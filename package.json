@@ -1,0 +1,19 @@
+{
+  "name": "vso-scvmm",
+  "version": "1.0.0",
+  "description": "SCVMM extension with tasks for Visual Studio Team Services.",
+  "main": "app.js",
+  "author": "Microsoft",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Microsoft/vso-scvmm.git"
+  },
+  "devDependencies": {
+    "del": "^2.2.0",
+    "gulp": "^3.9.0",
+    "gulp-util": "^3.0.7",
+    "rimraf": "^2.4.5",
+    "shelljs": "^0.6.0"
+  }
+}

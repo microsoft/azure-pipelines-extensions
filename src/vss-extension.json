@@ -1,0 +1,57 @@
+﻿{
+  "manifestVersion": 1,
+  "extensionId": "iiswebapp",
+  "name": "IIS Web App Deployment",
+  "version": "1.0.0",
+  "publisher": "ms-vscs-rm",
+  "description": "used for deploying web application",
+  "public": true,  
+  "icons": {
+    "default": "images/IIS_Web_App.png",
+    "large": "images/IIS_Web_App_Large.png"
+  },
+  "categories": [
+    "Build and release"
+  ],
+  "tags": [ ],
+  "links": {
+    "Learn": {
+      "uri": "http://go.microsoft.com/fwlink/?LinkId=616089"
+    }
+  },
+  "branding": {
+    "color": "#f6f7fb",
+    "theme": "light"
+  },
+  "content": {
+    "details": {
+      "path": "README.md"
+    }
+  },
+  "files": [
+    {
+      "path": "Tasks/IISWebAppDeploy"
+    },
+    {
+      "path": "images",
+      "addressable": true
+    }
+  ],
+  "targets": [
+    {
+      "id": "Microsoft.VisualStudio.Services"
+    }
+  ],
+  "contributions": [    
+    {
+      "id": "iiswebappdeploy-task",
+      "type": "ms.vss-distributed-task.task",
+      "targets": [
+        "ms.vss-distributed-task.tasks"
+      ],
+      "properties": {
+        "name": "Tasks/IISWebAppDeploy"
+      }
+    }
+  ]
+}
