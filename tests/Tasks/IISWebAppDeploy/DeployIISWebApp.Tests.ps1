@@ -202,7 +202,7 @@ Describe "Tests for testing Compute-MsDeploy-SetParams functionality" {
 
     Context "When no override params is given and createwebsite is true" {
 
-        $result = Compute-MsDeploy-SetParams -createWebsite "true" -websiteName "dummyWebsite"  -overRideParams "DummyOverrideParams"
+        $result = Compute-MsDeploy-SetParams -createWebsite "true" -websiteName "dummyWebsite"
 
         It "Should add setParam to deploy on website" {
             ($result.Contains('name="IIS Web Application Name",value="dummyWebsite"')) | Should Be $true
