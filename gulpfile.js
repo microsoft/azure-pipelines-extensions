@@ -2,7 +2,6 @@ var del = require("del");
 var gulp = require("gulp");
 var gulpUtil = require('gulp-util');
 var path = require("path");
-var rimraf = require("rimraf");
 var shell = require("shelljs");
 var spawn = require('child_process').spawn;
 
@@ -17,11 +16,8 @@ gulp.task("build", function() {
     .pipe(gulp.dest(buildDirectory));
 });
 
-gulp.task("clean", function(done) {
-    return rimraf(buildDirectory, function() {
-        // rimraf deletes the directory asynchronously
-        done();
-    });
+gulp.task("clean", function() {
+    return del([buildDirectory, packageDirectory]);
 });
 
 gulp.task("testci", function(done) {
