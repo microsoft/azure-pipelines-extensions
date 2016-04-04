@@ -2,7 +2,7 @@
 $sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path).Replace(".Tests.", ".")
 $VerbosePreference = 'Continue'
 
-$deployIISWebAppPath = "$currentScriptPath\..\..\..\src\Tasks\IISWebAppDeploy\$sut"
+$msDeployOnTargetMachinesPath = "$currentScriptPath\..\..\..\src\Tasks\IISWebAppDeploy\$sut"
 
 if(-not (Test-Path -Path $msDeployOnTargetMachinesPath ))
 {
@@ -172,20 +172,22 @@ Describe "Tests for verifying Get-MsDeployCmdArgs functionality" {
 
     Context "When webDeploy package does not exist" {
 
-        Mock Test-Path { throw "Package not found" } -ParameterFilter { $Path -eq $webDeployPackage }
+        $InvalidPkg = "n:\Invalid\pkg.zip"
+        $errMsg = "Package does not exist : `"$InvalidPkg`""
 
         It "Should throw exception"{
-            { Get-MsDeployCmdArgs -webDeployPackage $webDeployPackage -webDeployParamFile $webDeployParamFile -overRideParams $overRideParams } | Should Throw "Package not found"
-        }
+            { Get-MsDeployCmdArgs -webDeployPackage $InvalidPkg -webDeployParamFile $webDeployParamFile -overRideParams $overRideParams } | Should Throw $errMsg
+        }        
     }
 
     Context "When setParamFile does not exist" {
 
         Mock Test-Path { return $true } -ParameterFilter { $Path -eq $webDeployPackage }
-        Mock Test-Path { throw "setParamFile not found" } -ParameterFilter { $Path -eq $webDeployParamFile }
+        $InvalidParamFile = "n:\Invalid\param.xml"
+        $errMsg = "Param file does not exist : `"$InvalidParamFile`""
 
         It "Should throw exception"{
-            { Get-MsDeployCmdArgs -webDeployPackage $webDeployPackage -webDeployParamFile $webDeployParamFile -overRideParams $overRideParams } | Should Throw "setParamFile not found"
+            { Get-MsDeployCmdArgs -webDeployPackage $webDeployPackage -webDeployParamFile $InvalidParamFile -overRideParams $overRideParams } | Should Throw $errMsg
         }
     }
 
@@ -392,12 +394,13 @@ Describe "Tests for verifying Does-AppPoolExists functionality" {
 
 Describe "Tests for verifying Enable-SNI functionality" {
 
+    $ipAddress = "All Unassigned"
     Context "Enable SNI should return if iisVerision is less than 8" {
 
         Mock Run-Command { return }
         Mock Get-AppCmdLocation -Verifiable {return "", 7}
 
-        Enable-SNI -siteName "SampleWeb" -sni "true" -ipAddress "`"All Unassigned`"" -port "80" -hostname "localhost"
+        Enable-SNI -siteName "SampleWeb" -sni "true" -ipAddress $ipAddress -port "80" -hostname "localhost"
 
         It "Should not enable SNI"{
             Assert-VerifiableMocks
@@ -410,7 +413,7 @@ Describe "Tests for verifying Enable-SNI functionality" {
         Mock Run-Command { return }
         Mock Get-AppCmdLocation -Verifiable {return "", 8}
 
-        Enable-SNI -siteName "SampleWeb" -sni "false" -ipAddress "`"All Unassigned`"" -port "80" -hostname "localhost"
+        Enable-SNI -siteName "SampleWeb" -sni "false" -ipAddress $ipAddress -port "80" -hostname "localhost"
 
         It "Should not enable SNI"{
             Assert-VerifiableMocks
@@ -423,7 +426,7 @@ Describe "Tests for verifying Enable-SNI functionality" {
         Mock Run-Command { return }
         Mock Get-AppCmdLocation -Verifiable {return "", 8}
 
-        Enable-SNI -siteName "SampleWeb" -sni "true" -ipAddress "`"All Unassigned`"" -port "80" -hostname ""
+        Enable-SNI -siteName "SampleWeb" -sni "true" -ipAddress $ipAddress -port "80" -hostname ""
 
         It "Should not enable SNI"{
             Assert-VerifiableMocks
@@ -436,7 +439,7 @@ Describe "Tests for verifying Enable-SNI functionality" {
         Mock Run-Command -Verifiable { return }
         Mock Get-AppCmdLocation -Verifiable {return "", 8}
 
-        $output = Enable-SNI -siteName "SampleWeb" -sni "true" -ipAddress "`"All Unassigned`"" -port "80" -hostname "localhost" 4>&1 | Out-String
+        $output = Enable-SNI -siteName "SampleWeb" -sni "true" -ipAddress $ipAddress -port "80" -hostname "localhost" 4>&1 | Out-String
 
         It "Should enable SNI"{
             ( $output.Contains('].sslFlags:"1"') ) | Should Be $true

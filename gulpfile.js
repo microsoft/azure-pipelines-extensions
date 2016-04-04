@@ -2,13 +2,12 @@ var del = require("del");
 var gulp = require("gulp");
 var gulpUtil = require('gulp-util');
 var path = require("path");
-var rimraf = require("rimraf");
 var shell = require("shelljs");
 var spawn = require('child_process').spawn;
 
 var buildDirectory = "_build";
 var packageManifestFile = "vss-extension.json";
-var packageDirectory = buildDirectory + "/package";
+var packageDirectory = "_package";
 var sourceFiles = ["src/**/*.png", "src/**/*.json", "src/**/*.md", "src/**/*.ps1", "tests/**/*.ps1", "src/**/*.json"];
 var srcBuildDirectory = "_build/src";
 
@@ -17,11 +16,8 @@ gulp.task("build", function() {
     .pipe(gulp.dest(buildDirectory));
 });
 
-gulp.task("clean", function(done) {
-    return rimraf(buildDirectory, function() {
-        // rimraf deletes the directory asynchronously
-        done();
-    });
+gulp.task("clean", function() {
+    return del([buildDirectory, packageDirectory]);
 });
 
 gulp.task("testci", function(done) {
@@ -51,7 +47,7 @@ gulp.task("testci", function(done) {
 gulp.task("package", function() {
         del(packageDirectory);
         shell.mkdir("-p", packageDirectory);
-        createVsixPackage();        
+        createVsixPackage();
 });
 
 var createVsixPackage = function() {

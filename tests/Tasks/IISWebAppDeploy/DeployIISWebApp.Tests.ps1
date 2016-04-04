@@ -9,6 +9,43 @@ if(-not (Test-Path -Path $deployIISWebAppPath ))
     throw [System.IO.FileNotFoundException] "Unable to find DeployIISWebApp.ps1 at $deployIISWebAppDirectoryPath"
 }
 
+#Adding Invoke-RemoteDeployment, Import-Module, Get-LocalizedString dummy implementation for testability purpose
+function Import-Module
+{    
+    Write-Verbose "Dummy Import-Module" -Verbose
+}
+
+function Invoke-RemoteDeployment
+{   
+    Param(
+        [string]$environmentName,
+        [string]$adminUserName,
+        [string]$adminPassword,
+        [string]$protocol,
+        [string]$testCertificate,
+        [string]$tags,
+        [string]$machineNames,
+        [string]$scriptPath,
+        [string]$scriptBlockContent,
+        [string]$scriptArguments,
+        [string]$initializationScriptPath,
+        [string]$runPowershellInParallel,
+        [string]$sessionVariables
+    )
+
+    Write-Verbose "Dummy Invoke-RemoteDeployment" -Verbose
+}
+
+function Get-LocalizedString
+{
+    param(
+    [string]$key
+    )
+
+    Write-Verbose "Dummy Get-LocalizedString" -Verbose
+}
+
+
 . "$deployIISWebAppPath"
 
 Describe "Tests for testing Get-HostName functionality" {
@@ -165,7 +202,7 @@ Describe "Tests for testing Compute-MsDeploy-SetParams functionality" {
 
     Context "When no override params is given and createwebsite is true" {
 
-        $result = Compute-MsDeploy-SetParams -createWebsite "true" -websiteName "dummyWebsite"  -overRideParams "DummyOverrideParams"
+        $result = Compute-MsDeploy-SetParams -createWebsite "true" -websiteName "dummyWebsite"
 
         It "Should add setParam to deploy on website" {
             ($result.Contains('name="IIS Web Application Name",value="dummyWebsite"')) | Should Be $true
