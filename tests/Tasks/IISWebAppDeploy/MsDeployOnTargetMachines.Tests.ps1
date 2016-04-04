@@ -2,7 +2,7 @@
 $sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path).Replace(".Tests.", ".")
 $VerbosePreference = 'Continue'
 
-$deployIISWebAppPath = "$currentScriptPath\..\..\..\src\Tasks\IISWebAppDeploy\$sut"
+$msDeployOnTargetMachinesPath = "$currentScriptPath\..\..\..\src\Tasks\IISWebAppDeploy\$sut"
 
 if(-not (Test-Path -Path $msDeployOnTargetMachinesPath ))
 {
