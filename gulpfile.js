@@ -8,7 +8,7 @@ var spawn = require('child_process').spawn;
 
 var buildDirectory = "_build";
 var packageManifestFile = "vss-extension.json";
-var packageDirectory = buildDirectory + "/package";
+var packageDirectory = "_package";
 var sourceFiles = ["src/**/*.png", "src/**/*.json", "src/**/*.md", "src/**/*.ps1", "tests/**/*.ps1", "src/**/*.json"];
 var srcBuildDirectory = "_build/src";
 
@@ -51,7 +51,7 @@ gulp.task("testci", function(done) {
 gulp.task("package", function() {
         del(packageDirectory);
         shell.mkdir("-p", packageDirectory);
-        createVsixPackage();        
+        createVsixPackage();
 });
 
 var createVsixPackage = function() {
