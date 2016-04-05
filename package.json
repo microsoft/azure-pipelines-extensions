@@ -1,13 +1,13 @@
 {
-  "name": "vso-scvmm",
+  "name": "vsts-iiswebapp",
   "version": "1.0.0",
-  "description": "SCVMM extension with tasks for Visual Studio Team Services.",
+  "description": "IIS web application extension for deploying asp.net website.",
   "main": "app.js",
   "author": "Microsoft",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Microsoft/vso-scvmm.git"
+    "url": "https://github.com/Microsoft/vsts-iiswebdeploy.git"
   },
   "devDependencies": {
     "del": "^2.2.0",

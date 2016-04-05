@@ -36,85 +36,18 @@ _NOTE: Currently existing Azure Resource Groups, classic (v1) or Azure Resource 
 
 ### Windows Remote Management (WinRM) Setup
 
-The IIS Web Application Deployment task uses the [Windows Remote Management](https://msdn.microsoft.com/en-us/library/aa384426(v=vs.85).aspx) (WinRM) to access domain-joined/workgroup machines or Azure virtual machines. WinRM is Microsoft's implementation of  [WS-Management Protocol](https://msdn.microsoft.com/en-us/library/aa384470(v=vs.85).aspx) that is firewall-friendly and provides a common way for systems to access and exchange management information across on-premises or Cloud IT infrastructure. The automation agent that runs the IIS Web Application Deployment task uses WinRM to communicate with the target machines. It is important to setup WinRM properly on the target machines else the deployment tasks will fail. The configuration of WinRM is described in detail on the MSDN [site](https://msdn.microsoft.com/en-us/library/aa384372(v=vs.85).aspx). For the target machines the following will ensure that the WinRM has been setup properly on them:
+The IIS Web Application Deployment task uses the [Windows Remote Management](https://msdn.microsoft.com/en-us/library/aa384426.aspx) (WinRM) to access domain-joined/workgroup machines or Azure virtual machines. WinRM is Microsoft's implementation of  [WS-Management Protocol](https://msdn.microsoft.com/en-us/library/aa384470.aspx) that is firewall-friendly and provides a common way for systems to access and exchange management information across on-premises or Cloud IT infrastructure. The automation agent that runs the IIS Web Application Deployment task uses WinRM to communicate with the target machines. It is important to setup WinRM properly on the target machines else the deployment tasks will fail. The configuration of WinRM is described in detail on the MSDN [site](https://msdn.microsoft.com/en-us/library/aa384372.aspx). For the target machines the following will ensure that the WinRM has been setup properly on them:
 
 1. Azure virtual machines only work with the WinRM HTTPS protocol. When creating [classic](https://azure.microsoft.com/en-us/documentation/articles/virtual-machines-windows-tutorial-classic-portal/) or [resource manager](https://azure.microsoft.com/en-us/documentation/articles/virtual-machines-windows-tutorial/) virtual machine from the Azure preview portal or Azure portal, the virtual machine is already setup for WinRM HTTPS, with the default port 5986 already open in Firewall, and a test certificate installed on the machine. These virtual machines can be directly added to a machine group, with the WinRM protocol selected as HTTPS, and the Skip CA Check option selected. The Skip CA Check means that the certificate is a test certificate and the client should skip the validation of the certificate by a trusted certification authority. 
 2. To dynamically deploy Azure resource groups with virtual machines in them use the [Azure Resource Group Deployment](https://github.com/Microsoft/vso-agent-tasks/tree/master/Tasks/DeployAzureResourceGroup) task. The task has a sample template that can setup the WinRM HTTPS protocol on the virtual machines, open the 5986 port in the Firewall, and install the test certificate. After this the virtual machines are ready for use in the deployment task.
 3. For pre-existing on-premises machines, domain-joined or workgroup, and whether they are physical machines or virtual machines, set them up as per the table below to ensure that the deployment tasks work fine with them:
 
-<table border="1" style="width:100%">
-<tr>
-	<th> Target Machine State </th>
-	<th> Target Machine Trust with Automation Agent </th>
-	<th> Machine Identity </th>
-	<th> Authentication Account </th>
-	<th> Authentication Mode </th>
-	<th> Authentication Account Permission on Target Machine </th>
-	<th> Connection Type </th>
-	<th> Pre-requisites in Target machine for Deployment Tasks to Succeed </th>
-</tr>
-<tr>
-	<td> Domain joined machine in Corp network </td>
-	<td> Trusted </td>
-	<td> DNS name </td>
-	<td> Domain account </td>
-	<td> Kerberos </td>
-	<td> Machine Administrator </td>
-	<td> WinRM HTTP </td>
-	<td>	<ul>
-		<li> WinRM HTTP port (default 5985) opened in Firewall. </li>
-		<li> File & Printer sharing enabled </li>
-		</ul> </td>
-</tr>
-<tr>
-	<td> Domain joined machine in Corp network </td>
-	<td> Trusted </td>
-	<td> DNS name </td>
-	<td> Domain account </td>
-	<td> Kerberos </td>
-	<td> Machine Administrator </td>
-	<td> WinRM HTTPS </td>
-	<td>	<ul>
-		<li> WinRM HTTPS port (default 5986) opened in Firewall. </li>
-		<li> Trusted certificate in Automation agent. </li>
-		<li> If Trusted certificate not in Automation agent, then Test Certificate option enabled in Task for deployment. </li>
-		<li> File & Printer sharing enabled. </li>
-		</ul> </td>
-</tr>
-<tr>
-	<td> Domain joined machine or Workgroup machine, in Corp network </td>
-	<td> Any </td>
-	<td> DNS name </td>
-	<td> Local machine account </td>
-	<td> NTLM </td>
-	<td> Machine Administrator </td>
-	<td> WinRM HTTP </td>
-	<td>	<ul>
-		<li> WinRM HTTP port (default 5985) opened in Firewall. </li>
-		<li> Disable UAC remote restrictions (<a href="https://support.microsoft.com/en-us/kb/951016">link</a>). </li>
-		<li> Credential in domain\\account name  or machine\\account name format. </li>
-		<li> Set "AllowUnencrypted" option and add remote machines in "Trusted Host" list in Automation Agent (<a href="https://msdn.microsoft.com/en-us/library/aa384372(v=vs.85).aspx">link</a>). </li>
-		<li> File & Printer sharing enabled. </li>
-		</ul> </td>
-</tr>
-<tr>
-	<td> Domain joined machine or Workgroup machine, in Corp network </td>
-	<td> Any </td>
-	<td> DNS name </td>
-	<td> Local machine account </td>
-	<td> NTLM </td>
-	<td> Machine Administrator </td>
-	<td> WinRM HTTPS </td>
-	<td>	<ul>
-		<li> WinRM HTTPS port (default 5986) opened in Firewall. </li>
-		<li> Disable UAC remote restrictions(<a href="https://support.microsoft.com/en-us/kb/951016">link</a>). </li>
-		<li> Credential in <Account> format. </li>
-		<li> Trusted certificate in Automation agent. </li>
-		<li> If Trusted certificate not in Automation agent, then Test Certificate option enabled in Task for deployment. </li>
-		<li> File & Printer sharing enabled. </li>
-		</ul> </td>
-</tr>
-</table>
+| Target Machine State     | Target Machine Trust with Automation Agent    | Machine Identity | Authentication Account | Authentication Mode | Authentication Account Permission on Target Machine | Connection Type | Pre-requisites in Target machine for Deployment Tasks to Succeed |
+| --------|---------|-------|-------|-------|--------|---------|-------------|
+| Domain joined machine in Corp network  | Trusted   | DNS name | Domain account | Kerberos | Machine Administrator | WinRM HTTP | <ul><li> WinRM HTTP port (default 5985) opened in Firewall.</li> <li>File & Printer sharing enabled.</li></ui>  |
+| Domain joined machine in Corp network  | Trusted   | DNS name | Domain account | Kerberos | Machine Administrator | WinRM HTTPS | <ul><li> WinRM HTTPS port (default 5986) opened in Firewall.</li> <li>Trusted certificate in Automation agent</li>. <li>If Trusted certificate not in Automation agent, then Test Certificate option enabled in Task for deployment.</li> <li>File & Printer sharing enabled.</li> |
+| Domain joined machine or Workgroup machine, in Corp network  | Any   | DNS name | Local machine account | NTLM | Machine Administrator | WinRM HTTP | WinRM HTTP port (default 5985) opened in Firewall. Disable UAC remote restrictions [link](https://support.microsoft.com/en-us/kb/951016). Credential in domain\\account name  or machine\\account name format. Set "AllowUnencrypted" option and add remote machines in "Trusted Host" list in Automation Agent [link](https://msdn.microsoft.com/en-us/library/aa384372.aspx). File & Printer sharing enabled.|
+| Domain joined machine or Workgroup machine, in Corp network  | Any   | DNS name | Local machine account | NTLM | Machine Administrator | WinRM HTTP | WinRM HTTPS port (default 5986) opened in Firewall. Disable UAC remote restrictions [link](https://support.microsoft.com/en-us/kb/951016). Credential in <Account> format. Trusted certificate in Automation agent. If Trusted certificate not in Automation agent, then Test Certificate option enabled in Task for deployment. File & Printer sharing enabled. |
 
 ## Parameters of the task
 
@@ -132,7 +65,7 @@ This section of the task is used to deploy the web application to an existing II
  - **Test Certificate**: Select the option to skip validating the authenticity of the machine's certificate by a trusted certification authority. The parameter is required for the WinRM HTTPS protocol.
  - **Web Deploy Package\*:** Location of the web deploy zip package file on the target machine or on a UNC path that is accessible to the administrator credentials of the machine like, \\\\BudgetIT\Web\Deploy\FabrikamWeb.zip. Environment variables are also supported like $env:windir, $env:systemroot etc. For example, $env:windir\FabrikamFibre\Web.
   - **Web Deploy Parameters File:** The parameter file is used to override the default settings in the web deploy zip package file like, the IIS Web application name or the database connection string. This helps in having a single package that can be deployed across dev, test, staging, and production, with a specific parameter file for each environment. The parameter takes in the location of the parameter file on the target machines or on a UNC path.
-  - **Override Parameters:** Parameters specified here will override the parameters in the MSDeploy zip file and the Parameter file. The format followed here is same as that for [setParam](https://technet.microsoft.com/en-us/library/dd569084(v=ws.10).aspx) option of MsDeploy.exe. For example, name="IIS Web Application Name",value="Fabrikam/MyApplication"
+  - **Override Parameters:** Parameters specified here will override the parameters in the MSDeploy zip file and the Parameter file. The format followed here is same as that for [setParam](https://technet.microsoft.com/en-us/library/dd569084.aspx) option of MsDeploy.exe. For example, name="IIS Web Application Name",value="Fabrikam/MyApplication"
  
 ### Website
 The section of the task is used to create a new IIS website or to update an existing one by using the IIS Server's AppCmd.exe command line tool. For more information about the parameters see the [websites](https://technet.microsoft.com/library/hh831681.aspx#Add_Site) page on MSDN.
@@ -164,16 +97,15 @@ The section is used to create a new IIS application pool or to update an existin
 ### Advanced
 The section provides for advanced options.
 
-  - **Additional AppCmd.exe Commands:** Additional [AppCmd.exe](https://technet.microsoft.com/en-us/library/cc732107(v=ws.10).aspx) commands to set website or application pool properties. For more than one command use line separator. For example:
+  - **Additional AppCmd.exe Commands:** Additional [AppCmd.exe](https://technet.microsoft.com/en-us/library/cc732107.aspx) commands to set website or application pool properties. For more than one command use line separator. For example:
   
       ```c
       set config /section:applicationPools /[name='Fabrikam'].autoStart:false 
-	  add site /name:fabrikam /bindings:http/\*:85: fabrikam.com. 
+      add site /name:fabrikam /bindings:http/\*:85: fabrikam.com. 
       ```
-	  
+
   - **Deploy in Parallel:** Setting it to true will run the database deployment task in-parallel on the target machines.
 
 ## Known Issues
 
-  - The IIS Web Application Deployment task does not provide support for Web Deploy manifest files and has not been tested and verified for ASP.NET 5 and MVC 6 web application. Please send us feedback for the task and for the support for manifest files, ASP.NET 5/MVC 6 we applications at RM\_Customer\_Queries at microsoft dot com.
-  - The Override Parameters can take only one parameter based on the [setParam](https://technet.microsoft.com/en-us/library/dd569084(v=ws.10).aspx) option of MsDeploy.exe
+  - The IIS Web Application Deployment task does not provide support for Web Deploy manifest files and has not been tested and verified for ASP.NET 5 and MVC 6 web application. Please send us feedback for the task and for the support for manifest files, ASP.NET 5/MVC 6 we applications at RM\_Customer\_Queries at microsoft dot com. 
