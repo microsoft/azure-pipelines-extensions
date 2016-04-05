@@ -2,8 +2,9 @@
 import-module "Microsoft.TeamFoundation.DistributedTask.Task.Common"
 import-module "Microsoft.TeamFoundation.DistributedTask.Task.DevTestLabs"
 Import-Module "Microsoft.TeamFoundation.DistributedTask.Task.Deployment.Internal"
-Import-Module "Microsoft.TeamFoundation.DistributedTask.Task.Deployment.RemoteDeployment"
 
+
+. .\RemoteDeployment.ps1
 
 Write-Verbose "Entering script DeployIISWebApp.ps1"
 
