@@ -1,7 +1,4 @@
-﻿<#
-    Microsoft.TeamFoundation.DistributedTask.Task.Deployment.RemoteDeployment.psm1
-#>
-
+﻿
 function Invoke-RemoteDeployment
 {    
     [CmdletBinding()]
