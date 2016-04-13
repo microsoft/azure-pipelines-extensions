@@ -4,7 +4,7 @@ import-module "Microsoft.TeamFoundation.DistributedTask.Task.DevTestLabs"
 Import-Module "Microsoft.TeamFoundation.DistributedTask.Task.Deployment.Internal"
 
 
-Import-Module .\RemoteDeployment.ps1
+Import-Module .\InvokeRemoteDeployment.ps1
 
 Write-Verbose "Entering script DeployIISWebApp.ps1"
 
@@ -139,32 +139,22 @@ function Get-ScriptToRun
 function Run-RemoteDeployment
 {
     param(
+        [string]$machinesList,
         [string]$scriptToRun,
-        [string]$filteringMethod,
-        [string]$envName,
-        [string]$filter,
-        [string]$deployInParallel,
         [string]$adminUserName,
         [string]$adminPassword,
         [string]$winrmProtocol,
-        [string]$testCertificate
+        [string]$testCertificate,
+        [string]$deployInParallel
     )
 
     Write-Output ( Get-LocalizedString -Key "Starting deployment of IIS Web Deploy Package : {0}" -ArgumentList $webDeployPackage)
-    $errorMessage = [string]::Empty
 
-    if($filteringMethod -eq "tags")
-    {
-        $errorMessage = Invoke-RemoteDeployment -environmentName $envName -tags $filter -scriptBlockContent $scriptToRun -runPowershellInParallel $deployInParallel -adminUserName $adminUserName -adminPassword $adminPassword -protocol $winrmProtocol -testCertificate $testCertificate
-    }
-    else
-    {
-        $errorMessage = Invoke-RemoteDeployment -environmentName $envName -machineNames $filter -scriptBlockContent $scriptToRun -runPowershellInParallel $deployInParallel -adminUserName $adminUserName -adminPassword $adminPassword -protocol $winrmProtocol -testCertificate $testCertificate
-    }
+    $errorMessage = Invoke-RemoteDeployment -machinesList $machinesList -scriptToRun $scriptToRun -adminUserName $adminUserName -adminPassword $adminPassword -protocol $winrmProtocol -testCertificate $testCertificate -runPowershellInParallel $deployInParallel
 
     if(-not [string]::IsNullOrEmpty($errorMessage))
     {
-        $readmelink = "http://aka.ms/iiswebappdeployreadme"
+        $readmelink = "http://aka.ms/iisextnreadme"
         $helpMessage = (Get-LocalizedString -Key "For more info please refer to {0}" -ArgumentList $readmelink)
         throw "$errorMessage $helpMessage"
     }
@@ -175,13 +165,11 @@ function Run-RemoteDeployment
 function Main
 {
     param (
-    [string]$environmentName,
+    [string]$machinesList,
     [string]$adminUserName,
     [string]$adminPassword,
     [string]$winrmProtocol,
     [string]$testCertificate,
-    [string]$resourceFilteringMethod,
-    [string]$machineFilter,
     [string]$webDeployPackage,
     [string]$webDeployParamFile,
     [string]$overRideParams,
@@ -214,12 +202,10 @@ function Main
 
     $hostName = Get-HostName -protocol $protocol -hostNameWithHttp $hostNameWithHttp -hostNameWithSNI $hostNameWithSNI -hostNameWithOutSNI $hostNameWithOutSNI -sni $serverNameIndication
 
-    Write-Verbose "environmentName = $environmentName"
+    Write-Verbose "machinesList = $machinesList"
     Write-Verbose "adminUserName = $adminUserName"
     Write-Verbose "winrm protocol to connect to machine  = $winrmProtocol"
     Write-Verbose "testCertificate = $testCertificate"
-    Write-Verbose "resourceFilteringMethod = $resourceFilteringMethod"
-    Write-Verbose "machineFilter = $machineFilter"
     Write-Verbose "webDeployPackage = $webDeployPackage"
     Write-Verbose "webDeployParamFile = $webDeployParamFile"
     Write-Verbose "overRideParams = $overRideParams"
@@ -253,7 +239,7 @@ function Main
     Validate-Inputs -createWebsite $createWebsite -websiteName $websiteName -createAppPool $createAppPool -appPoolName $appPoolName
     $overRideParams = Compute-MsDeploy-SetParams -createWebsite $createWebsite -websiteName $websiteName -overRideParams $overRideParams
     $appCmdCommands = Escape-DoubleQuotes -str $appCmdCommands
-    $overRideParams = Escape-DoubleQuotes -str $overRideParams    
+    $overRideParams = Escape-DoubleQuotes -str $overRideParams
     $script = Get-ScriptToRun -webDeployPackage $webDeployPackage -webDeployParamFile $webDeployParamFile -overRideParams $overRideParams -websiteName $websiteName -websitePhysicalPath $websitePhysicalPath -websitePhysicalPathAuth $websitePhysicalPathAuth -websiteAuthUserName $websiteAuthUserName -websiteAuthUserPassword $websiteAuthUserPassword -addBinding $addBinding -assignDuplicateBinding $assignDuplicateBinding -protocol $protocol -ipAddress $ipAddress -port $port -hostName $hostName -serverNameIndication $serverNameIndication -sslCertThumbPrint $sslCertThumbPrint -appPoolName $appPoolName -pipeLineMode $pipeLineMode -dotNetVersion $dotNetVersion -appPoolIdentity $appPoolIdentity -appPoolUsername $appPoolUsername -appPoolPassword $appPoolPassword -appCmdCommands $appCmdCommands -createWebsite $createWebsite -createAppPool $createAppPool
-    Run-RemoteDeployment -scriptToRun $script -filteringMethod $resourceFilteringMethod -filter $machineFilter -envName $environmentName -deployInParallel $deployInParallel -adminUserName $adminUserName -adminPassword $adminPassword -winrmProtocol $winrmProtocol -testCertificate $testCertificate
+    Run-RemoteDeployment -machinesList $machinesList -scriptToRun $script -adminUserName $adminUserName -adminPassword $adminPassword -winrmProtocol $winrmProtocol -testCertificate $testCertificate -deployInParallel $deployInParallel
 }

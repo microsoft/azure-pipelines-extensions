@@ -245,7 +245,7 @@ Describe "Tests for testing Get-ScriptToRun functionality" {
 
 Describe "Tests for testing Run-RemoteDeployment" {
     
-    $environmentName = "dummyenv"
+    $machinesList = "dummyMachinesList"
     $script = "dummyscript"
     $deployInParallel = "true"
     $adminUserName = "dummyuser"
@@ -255,57 +255,38 @@ Describe "Tests for testing Run-RemoteDeployment" {
     $filter = "dummyFilter"
 
 
-    Context "Tags filter is input" {
-        
-        Mock Invoke-RemoteDeployment -Verifiable { return "" } -ParameterFilter { $EnvironmentName -eq $environmentName -and $Tags -eq $filter -and  $ScriptBlockContent -eq $script -and $RunPowershellInParallel -eq $deployInParallel -and $AdminUserName -eq $adminUserName -and $AdminPassword -eq $AdminPassword  -and $Protocol -eq $http -and $TestCertificate -eq "false"}
+    Context "On successful execution of remote deployment script" {
+
+        Mock Invoke-RemoteDeployment -Verifiable { return "" } -ParameterFilter { $MachinesList -eq $machinesList -and  $ScriptToRun -eq $script -and $RunPowershellInParallel -eq $deployInParallel -and $AdminUserName -eq $adminUserName -and $AdminPassword -eq $AdminPassword  -and $Protocol -eq $http -and $TestCertificate -eq "false"}
         
         try
         {
-            $result = Run-RemoteDeployment -scriptToRun $script -filteringMethod "tags" -filter $filter -envName $environmentName -deployInParallel $deployInParallel -adminUserName $adminUserName -adminPassword $adminPassword -winrmProtocol $http -testCertificate "false"
+            $result = Run-RemoteDeployment -machinesList $machinesList -scriptToRun $script -adminUserName $adminUserName -adminPassword $adminPassword -winrmProtocol $http -testCertificate "false" -deployInParallel $deployInParallel
         }
         catch
         {
             $result = $_
         }
-                        
-        It "Should run invoke-remoteDeployment with tags filter" {
+
+        It "Should not throw any exception" {
             $result.Exception | Should Be $null
             Assert-VerifiableMocks
         }
     }
 
-    Context "Machines filter is input" {
-
-        Mock Invoke-RemoteDeployment -Verifiable { return "" } -ParameterFilter { $EnvironmentName -eq $environmentName -and $MachineNames -eq $filter -and  $ScriptBlockContent -eq $script -and $RunPowershellInParallel -eq $deployInParallel -and $AdminUserName -eq $adminUserName -and $AdminPassword -eq $AdminPassword  -and $Protocol -eq $http -and $TestCertificate -eq "false"}
-        
-        try
-        {
-            $result = Run-RemoteDeployment -scriptToRun $script -filteringMethod "machines" -filter $filter -envName $environmentName -deployInParallel $deployInParallel -adminUserName $adminUserName -adminPassword $adminPassword -winrmProtocol $http -testCertificate "false"
-        }
-        catch
-        {
-            $result = $_
-        }
-                        
-        It "Should run invoke-remoteDeployment with machineNames filter" {
-            $result.Exception | Should Be $null
-            Assert-VerifiableMocks
-        }
-    }    
-
     Context "Should throw on failure of remote execution" {
         
-        Mock Invoke-RemoteDeployment -Verifiable { return "Error occurred" } -ParameterFilter { $EnvironmentName -eq $environmentName -and $Tags -eq $filter -and  $ScriptBlockContent -eq $script -and $RunPowershellInParallel -eq $deployInParallel -and $AdminUserName -eq $adminUserName -and $AdminPassword -eq $AdminPassword  -and $Protocol -eq $http -and $TestCertificate -eq "false"}
+        Mock Invoke-RemoteDeployment -Verifiable { return "Error occurred" } -ParameterFilter { $MachinesList -eq $machinesList -and  $ScriptToRun -eq $script -and $RunPowershellInParallel -eq $deployInParallel -and $AdminUserName -eq $adminUserName -and $AdminPassword -eq $AdminPassword  -and $Protocol -eq $http -and $TestCertificate -eq "false"}
         
         try
         {
-            $result = Run-RemoteDeployment -scriptToRun $script -filteringMethod "tags" -filter $filter -envName $environmentName -deployInParallel $deployInParallel -adminUserName $adminUserName -adminPassword $adminPassword -winrmProtocol $http -testCertificate "false"
+            $result = Run-RemoteDeployment -machinesList $machinesList -scriptToRun $script -adminUserName $adminUserName -adminPassword $adminPassword -winrmProtocol $http -testCertificate "false" -deployInParallel $deployInParallel
         }
         catch
         {
             $result = $_
         }
-                        
+
         It "Should run invoke-remoteDeployment with tags filter" {
             ($result.Exception.ToString().Contains('Error occurred')) | Should Be $true
             Assert-VerifiableMocks
@@ -316,16 +297,15 @@ Describe "Tests for testing Run-RemoteDeployment" {
 
 Describe "Tests for testing Main functionality" {
     Context "Should integrate all the functions and call with appropriate arguments" {
-        
-        Mock Get-Content -Verifiable {return "dummyscript"}
-        Mock Invoke-RemoteDeployment -Verifiable { return "" } -ParameterFilter { $Tags -eq $filter }        
 
-        Main -environmentName "dummyenv" -adminUserName "dummyadminuser" -adminPassword "dummyadminpassword" -winrmProtocol "https" -testCertificate "true" -resourceFilteringMethod "tags" -machineFilter "tag1:value1" -webDeployPackage "pkg.zip" -webDeployParamFile "param.xml" -overRideParams "dummyoverride" -createWebsite "true" -websiteName "dummyweb" -websitePhysicalPath "c:\inetpub\wwwroot" -websitePhysicalPathAuth "Pass through" -websiteAuthUserName "" -websiteAuthUserPassword "" -addBinding "true" -assignDuplicateBinding "true" -protocol "http" -ipAddress "127.0.o.1" -port "8080" -hostNameWithHttp "" -hostNameWithOutSNI "" -hostNameWithSNI "" -serverNameIndication "false" -sslCertThumbPrint "" -createAppPool "true" -appPoolName "dummy app pool" -dotNetVersion "v4.0" -pipeLineMode "Integrated" -appPoolIdentity "Specific User" -appPoolUsername "dummy user" -appPoolPassword "dummy password" -appCmdCommands "" -deployInParallel "true"
+        Mock Get-Content -Verifiable {return "dummyscript"}
+        Mock Invoke-RemoteDeployment -Verifiable { return "" } -ParameterFilter { $MachinesList -eq "dummyMachinesList" }
+
+        Main -machinesList "dummyMachinesList" -adminUserName "dummyadminuser" -adminPassword "dummyadminpassword" -winrmProtocol "https" -testCertificate "true" -resourceFilteringMethod "tags" -machineFilter "tag1:value1" -webDeployPackage "pkg.zip" -webDeployParamFile "param.xml" -overRideParams "dummyoverride" -createWebsite "true" -websiteName "dummyweb" -websitePhysicalPath "c:\inetpub\wwwroot" -websitePhysicalPathAuth "Pass through" -websiteAuthUserName "" -websiteAuthUserPassword "" -addBinding "true" -assignDuplicateBinding "true" -protocol "http" -ipAddress "127.0.o.1" -port "8080" -hostNameWithHttp "" -hostNameWithOutSNI "" -hostNameWithSNI "" -serverNameIndication "false" -sslCertThumbPrint "" -createAppPool "true" -appPoolName "dummy app pool" -dotNetVersion "v4.0" -pipeLineMode "Integrated" -appPoolIdentity "Specific User" -appPoolUsername "dummy user" -appPoolPassword "dummy password" -appCmdCommands "" -deployInParallel "true"
 
         It "Should integrate all the functions and call with appropriate arguments" {
             Assert-VerifiableMocks
         }
-
     }
 }
 
