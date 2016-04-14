@@ -41,7 +41,7 @@ $InvokePsOnRemoteScriptBlock = {
 function Invoke-RemoteDeployment
 {
     param(
-        [string]$machineList,
+        [string]$machinesList,
         [string]$scriptToRun,
         [string]$adminUserName,
         [string]$adminPassword,
@@ -54,7 +54,7 @@ function Invoke-RemoteDeployment
     $operationStatus = "Passed"
 
     $credential = Get-Credentials -userName $adminUserName -password $adminPassword
-    $machinePortDict = Get-MachinePortDict -machineList $machineList -protocol $protocol
+    $machinePortDict = Get-MachinePortDict -machinesList $machinesList -protocol $protocol
     $skipCAOption = Get-SkipCAOption -useTestCertificate $testCertificate
     $protocolOption = Get-ProtocolOption -protocol $protocol
 
@@ -178,14 +178,14 @@ function Get-Credentials
 function Get-MachinePortDict
 {
     param(
-        [string]$machineList,
+        [string]$machinesList,
         [string]$protocol
     )
 
     $machinePortDict = @{}
     $machines = @()
 
-    $machineList.split(',', [System.StringSplitOptions]::RemoveEmptyEntries) |`
+    $machinesList.split(',', [System.StringSplitOptions]::RemoveEmptyEntries) |`
     Foreach { if( ![string]::IsNullOrWhiteSpace($_) -and ![string]::Equals('\n', $_)) {$machines += $_}}
 
     foreach ($machine in $machines) {

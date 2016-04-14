@@ -9,44 +9,24 @@ if(-not (Test-Path -Path $deployIISWebAppPath ))
     throw [System.IO.FileNotFoundException] "Unable to find DeployIISWebApp.ps1 at $deployIISWebAppDirectoryPath"
 }
 
-#Adding Invoke-RemoteDeployment, Import-Module, Get-LocalizedString dummy implementation for testability purpose
+$invokeRemoteDeploymentPath = "$currentScriptPath\..\..\..\src\Tasks\IISWebAppDeploy\InvokeRemoteDeployment.ps1"
+
+
+if(-not (Test-Path -Path $invokeRemoteDeploymentPath ))
+{
+    throw [System.IO.FileNotFoundException] "Unable to find InvokeRemoteDeployment.ps1 at $invokeRemoteDeploymentPath"
+}
+
+
+
+#Adding Import-Module dummy implementation for testability purpose
 function Import-Module
-{    
+{
     Write-Verbose "Dummy Import-Module" -Verbose
 }
 
-function Invoke-RemoteDeployment
-{   
-    Param(
-        [string]$environmentName,
-        [string]$adminUserName,
-        [string]$adminPassword,
-        [string]$protocol,
-        [string]$testCertificate,
-        [string]$tags,
-        [string]$machineNames,
-        [string]$scriptPath,
-        [string]$scriptBlockContent,
-        [string]$scriptArguments,
-        [string]$initializationScriptPath,
-        [string]$runPowershellInParallel,
-        [string]$sessionVariables
-    )
-
-    Write-Verbose "Dummy Invoke-RemoteDeployment" -Verbose
-}
-
-function Get-LocalizedString
-{
-    param(
-    [string]$key
-    )
-
-    Write-Verbose "Dummy Get-LocalizedString" -Verbose
-}
-
-
 . "$deployIISWebAppPath"
+. "$invokeRemoteDeploymentPath"
 
 Describe "Tests for testing Get-HostName functionality" {
     
@@ -59,7 +39,7 @@ Describe "Tests for testing Get-HostName functionality" {
         $hostname = Get-HostName -protocol "http" -hostNameWithHttp $hostnamewithhttp  -hostNameWithSNI $hostnamewithsni -hostNameWithOutSNI $hostnamewithoutsni -sni "false"
 
         It "should return hostnamewithhtpp"{
-            ( $hostname ) | Should Be $hostnamewithhttp            
+            ( $hostname ) | Should Be $hostnamewithhttp
         }
     }
 
@@ -68,7 +48,7 @@ Describe "Tests for testing Get-HostName functionality" {
         $hostname = Get-HostName -protocol "https" -hostNameWithHttp $hostnamewithhttp  -hostNameWithSNI $hostnamewithsni -hostNameWithOutSNI $hostnamewithoutsni -sni "true"
 
         It "should return hostnamewithhtpp"{
-            ( $hostname ) | Should Be $hostnamewithsni          
+            ( $hostname ) | Should Be $hostnamewithsni
         }
     }
 
@@ -77,7 +57,7 @@ Describe "Tests for testing Get-HostName functionality" {
         $hostname = Get-HostName -protocol "https" -hostNameWithHttp $hostnamewithhttp  -hostNameWithSNI $hostnamewithsni -hostNameWithOutSNI $hostnamewithoutsni -sni "false"
 
         It "should return hostnamewithhtpp"{
-            ( $hostname ) | Should Be $hostnamewithoutsni            
+            ( $hostname ) | Should Be $hostnamewithoutsni
         }
     }
 }
@@ -122,7 +102,7 @@ Describe "Tests for testing Trim-Inputs functionality" {
         Trim-Inputs -package ([ref]$pkgNoExtraQuotes) -paramFile ([ref]$paramfileNoExtraQuotes) -siteName ([ref]$siteNoExtraQuotes) -physicalPath ([ref]$pathNoExtraQuotes)  -poolName ([ref]$appPoolNameNoExtraQuotes) -websitePathAuthuser ([ref]$siteAuthUser) -appPoolUser ([ref]$appPoolUser) -adminUser ([ref]$adminUser)
 
         It "should not have extra double quotes"{
-            ( $siteAuthUser ) | Should Be $siteAuthUserNoSpaces            
+            ( $siteAuthUser ) | Should Be $siteAuthUserNoSpaces
             ( $adminUser ) | Should Be $adminUserNoSpaces
             ( $appPoolUser ) | Should Be $appPoolUserNoSpaces
         }
@@ -257,7 +237,7 @@ Describe "Tests for testing Run-RemoteDeployment" {
 
     Context "On successful execution of remote deployment script" {
 
-        Mock Invoke-RemoteDeployment -Verifiable { return "" } -ParameterFilter { $MachinesList -eq $machinesList -and  $ScriptToRun -eq $script -and $RunPowershellInParallel -eq $deployInParallel -and $AdminUserName -eq $adminUserName -and $AdminPassword -eq $AdminPassword  -and $Protocol -eq $http -and $TestCertificate -eq "false"}
+        Mock Invoke-RemoteDeployment -Verifiable { return "" } -ParameterFilter { $MachinesList -eq $machinesList -and  $ScriptToRun -eq $script -and $AdminUserName -eq $adminUserName -and $AdminPassword -eq $AdminPassword  -and $Protocol -eq $http -and $TestCertificate -eq "false" -and $DeployInParallel -eq $deployInParallel}
         
         try
         {
@@ -276,7 +256,7 @@ Describe "Tests for testing Run-RemoteDeployment" {
 
     Context "Should throw on failure of remote execution" {
         
-        Mock Invoke-RemoteDeployment -Verifiable { return "Error occurred" } -ParameterFilter { $MachinesList -eq $machinesList -and  $ScriptToRun -eq $script -and $RunPowershellInParallel -eq $deployInParallel -and $AdminUserName -eq $adminUserName -and $AdminPassword -eq $AdminPassword  -and $Protocol -eq $http -and $TestCertificate -eq "false"}
+        Mock Invoke-RemoteDeployment -Verifiable { return "Error occurred" } -ParameterFilter { $MachinesList -eq $machinesList -and  $ScriptToRun -eq $script -and $AdminUserName -eq $adminUserName -and $AdminPassword -eq $AdminPassword  -and $Protocol -eq $http -and $TestCertificate -eq "false" -and $DeployInParallel -eq $deployInParallel}
         
         try
         {
@@ -287,7 +267,7 @@ Describe "Tests for testing Run-RemoteDeployment" {
             $result = $_
         }
 
-        It "Should run invoke-remoteDeployment with tags filter" {
+        It "Should throw exception on failure" {
             ($result.Exception.ToString().Contains('Error occurred')) | Should Be $true
             Assert-VerifiableMocks
         }

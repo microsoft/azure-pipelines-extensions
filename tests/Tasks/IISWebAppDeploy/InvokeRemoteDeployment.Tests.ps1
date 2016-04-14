@@ -15,7 +15,7 @@ $InitializationScript = {}
 
 Describe "Tests for testing Invoke-RemoteDeployment functionality" {
     
-    $machineList = "machine1:3234,machine2:2342,machine3:4343"
+    $machinesList = "machine1:3234,machine2:2342,machine3:4343"
     $scriptToRun = "dummy Script"
     $adminUserName = "dummyuser"
     $adminPassword = "dummypassword"
@@ -27,7 +27,7 @@ Describe "Tests for testing Invoke-RemoteDeployment functionality" {
 
     
     Mock Get-Credentials -Verifiable { return } -ParameterFilter { $UserName -eq $adminUserName -and $Password -eq $adminPassword }
-    Mock Get-MachinePortDict -Verifiable { return @{"machine1"="3234";"machine2"="2342";"machine3"="4343"} } -ParameterFilter { $MachineList -eq $machineList -and $Protocol -eq $httpsProtocol}
+    Mock Get-MachinePortDict -Verifiable { return @{"machine1"="3234";"machine2"="2342";"machine3"="4343"} } -ParameterFilter { $MachinesList -eq $machinesList -and $Protocol -eq $httpsProtocol}
     Mock Start-Sleep -Verifiable { return } -ParameterFilter { $Seconds -eq 10}
     Mock Write-Host { } -Verifiable
 
@@ -48,7 +48,7 @@ Describe "Tests for testing Invoke-RemoteDeployment functionality" {
             Write-Output $deploymentResponse
         }
 
-        $errMsg = Invoke-RemoteDeployment -machineList $machineList -scriptToRun $scriptToRun -adminUserName $adminUserName -adminPassword $adminPassword -protocol $httpsProtocol -testCertificate $doSkipCA -deployInParallel "true" 
+        $errMsg = Invoke-RemoteDeployment -machinesList $machinesList -scriptToRun $scriptToRun -adminUserName $adminUserName -adminPassword $adminPassword -protocol $httpsProtocol -testCertificate $doSkipCA -deployInParallel "true" 
 
         It "Should process jobs in parallel and wait for their completion"{
             Assert-VerifiableMocks
@@ -82,7 +82,7 @@ Describe "Tests for testing Invoke-RemoteDeployment functionality" {
             Write-Output $deploymentResponse
         }
         
-        $errMsg = Invoke-RemoteDeployment -machineList $machineList -scriptToRun $scriptToRun -adminUserName $adminUserName -adminPassword $adminPassword -protocol $httpsProtocol -testCertificate $doSkipCA -deployInParallel "true" 
+        $errMsg = Invoke-RemoteDeployment -machinesList $machinesList -scriptToRun $scriptToRun -adminUserName $adminUserName -adminPassword $adminPassword -protocol $httpsProtocol -testCertificate $doSkipCA -deployInParallel "true" 
 
         It "Should process jobs in parallel and wait for their completion"{
             Assert-VerifiableMocks
@@ -117,7 +117,7 @@ Describe "Tests for testing Invoke-RemoteDeployment functionality" {
             Write-Output $deploymentResponse
         }
 
-        $errMsg = Invoke-RemoteDeployment -machineList $machineList -scriptToRun $scriptToRun -adminUserName $adminUserName -adminPassword $adminPassword -protocol $httpsProtocol -testCertificate $doSkipCA -deployInParallel "false" 
+        $errMsg = Invoke-RemoteDeployment -machinesList $machinesList -scriptToRun $scriptToRun -adminUserName $adminUserName -adminPassword $adminPassword -protocol $httpsProtocol -testCertificate $doSkipCA -deployInParallel "false" 
 
         It "Should stop execution after failing for one machine"{
             Assert-VerifiableMocks
@@ -143,7 +143,7 @@ Describe "Tests for testing Invoke-RemoteDeployment functionality" {
             Write-Output $deploymentResponse
         }
 
-        $errMsg = Invoke-RemoteDeployment -machineList $machineList -scriptToRun $scriptToRun -adminUserName $adminUserName -adminPassword $adminPassword -protocol $httpsProtocol -testCertificate $doSkipCA -deployInParallel "false" 
+        $errMsg = Invoke-RemoteDeployment -machinesList $machinesList -scriptToRun $scriptToRun -adminUserName $adminUserName -adminPassword $adminPassword -protocol $httpsProtocol -testCertificate $doSkipCA -deployInParallel "false" 
 
         It "Should complete all the machines deployment sequentially"{
             Assert-VerifiableMocks
@@ -219,9 +219,9 @@ Describe "Tests for testing Get-Credentials function" {
 
 Describe "Tests for testing Get-MachinePortDict function" {
 
-    Context "When machineList is machine1 and protocol http" {
+    Context "When machinesList is machine1 and protocol http" {
 
-        $machines = Get-MachinePortDict -machineList "machine1" -protocol "http"
+        $machines = Get-MachinePortDict -machinesList "machine1" -protocol "http"
 
         It "Should create dict with @{`"machine1`":`"5985`"}" {
             ($machines.Count) | Should Be 1
@@ -230,9 +230,9 @@ Describe "Tests for testing Get-MachinePortDict function" {
         }
     }
     
-    Context "When machineList is machine1 and protocol https" {
+    Context "When machinesList is machine1 and protocol https" {
 
-        $machines = Get-MachinePortDict -machineList "machine1" -protocol "https"
+        $machines = Get-MachinePortDict -machinesList "machine1" -protocol "https"
 
         It "Should create dict with @{`"machine1`":`"5986`"}" {
             ($machines.Count) | Should Be 1
@@ -241,9 +241,9 @@ Describe "Tests for testing Get-MachinePortDict function" {
         }
     }
     
-    Context "When machineList is machine1:8345 with http" {
+    Context "When machinesList is machine1:8345 with http" {
 
-        $machines = Get-MachinePortDict -machineList "machine1:8345" -protocol "http"
+        $machines = Get-MachinePortDict -machinesList "machine1:8345" -protocol "http"
 
         It "Should create dict with @{`"machine1`":`"8345`"}" {
             ($machines.Count) | Should Be 1
@@ -252,9 +252,9 @@ Describe "Tests for testing Get-MachinePortDict function" {
         }
     }
     
-    Context "When machineList is machine1:2332,machine2:4343 with https" {
+    Context "When machinesList is machine1:2332,machine2:4343 with https" {
 
-        $machines = Get-MachinePortDict -machineList "machine1:2332,machine2:4343" -protocol "https"
+        $machines = Get-MachinePortDict -machinesList "machine1:2332,machine2:4343" -protocol "https"
 
         It "Should create dict with @{`"machine1`":`"2332`";`"machine2`":`"4343`";}" {
             ($machines.Count) | Should Be 2
@@ -265,7 +265,7 @@ Describe "Tests for testing Get-MachinePortDict function" {
     
     Context "When machineLust is machine1:4344,machine2,machine3:4389 with https" {
 
-        $machines = Get-MachinePortDict -machineList "machine1:4344,machine2,machine3:4389" -protocol "https"
+        $machines = Get-MachinePortDict -machinesList "machine1:4344,machine2,machine3:4389" -protocol "https"
 
         It "Should create dict with @{`"machine1`":`"4344`";`"machine2`":`"5986`";`"machine3`":`"4389`"}" {
             ($machines.Count) | Should Be 3
@@ -277,7 +277,7 @@ Describe "Tests for testing Get-MachinePortDict function" {
 
     Context "When machineLust is machine1:4344,machine2,machine3:4389 with http" {
 
-        $machines = Get-MachinePortDict -machineList "machine1:4344,machine2,machine3:4389" -protocol "http"
+        $machines = Get-MachinePortDict -machinesList "machine1:4344,machine2,machine3:4389" -protocol "http"
 
         It "Should create dict with @{`"machine1`":`"4344`";`"machine2`":`"5986`";`"machine3`":`"4389`"}" {
             ($machines.Count) | Should Be 3
@@ -290,7 +290,7 @@ Describe "Tests for testing Get-MachinePortDict function" {
     
     Context "When machines list contains spaces or newlines machine1, ,machine2,\n,machine3" {
 
-        $machines = Get-MachinePortDict -machineList "machine1, ,machine2,\n,machine3" -protocol "http"
+        $machines = Get-MachinePortDict -machinesList "machine1, ,machine2,\n,machine3" -protocol "http"
 
         It "Should create dict with @{`"machine1`":`"5985`";`"machine2`":`"5985`";`"machine3`":`"595`"}" {
             ($machines.Count) | Should Be 3

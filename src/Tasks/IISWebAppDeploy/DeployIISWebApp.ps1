@@ -148,18 +148,17 @@ function Run-RemoteDeployment
         [string]$deployInParallel
     )
 
-    Write-Output ( Get-LocalizedString -Key "Starting deployment of IIS Web Deploy Package : {0}" -ArgumentList $webDeployPackage)
+    Write-Host "Starting deployment of IIS Web Deploy Package :", $webDeployPackage
 
-    $errorMessage = Invoke-RemoteDeployment -machinesList $machinesList -scriptToRun $scriptToRun -adminUserName $adminUserName -adminPassword $adminPassword -protocol $winrmProtocol -testCertificate $testCertificate -runPowershellInParallel $deployInParallel
+    $errorMessage = Invoke-RemoteDeployment -machinesList $machinesList -scriptToRun $scriptToRun -adminUserName $adminUserName -adminPassword $adminPassword -protocol $winrmProtocol -testCertificate $testCertificate -deployInParallel $deployInParallel
 
     if(-not [string]::IsNullOrEmpty($errorMessage))
     {
-        $readmelink = "http://aka.ms/iisextnreadme"
-        $helpMessage = (Get-LocalizedString -Key "For more info please refer to {0}" -ArgumentList $readmelink)
+        $helpMessage = "For more info please refer to http://aka.ms/iisextnreadme)"
         throw "$errorMessage $helpMessage"
     }
 
-    Write-Output ( Get-LocalizedString -Key "Successfully deployed IIS Web Deploy Package : {0}" -ArgumentList $webDeployPackage)
+    Write-Host "Successfully deployed IIS Web Deploy Package :" , $webDeployPackage
 }
 
 function Main
