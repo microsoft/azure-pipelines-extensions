@@ -31,8 +31,8 @@ $InvokePsOnRemoteScriptBlock = {
         Load-AgentAssemblies
 
         Write-Verbose "Initiating deployment on $machineName" -Verbose
-        [String]$psOnRemoteScriptBlockString = "Invoke-PsOnRemote -MachineDnsName $machineName -ScriptBlockContent `$scriptToRun -WinRMPort $winRmPort -Credential `$credential $skipCAOption $protocolOption"
-        [scriptblock]$psOnRemoteScriptBlock = [scriptblock]::Create($psOnRemoteScriptBlockString)
+        [String]$psOnRemoteCmd = "Invoke-PsOnRemote -MachineDnsName $machineName -ScriptBlockContent `$scriptToRun -WinRMPort $winRmPort -Credential `$credential $skipCAOption $protocolOption"
+        [scriptblock]$psOnRemoteScriptBlock = [scriptblock]::Create($psOnRemoteCmd)
         $deploymentResponse = Invoke-Command -ScriptBlock $psOnRemoteScriptBlock
 
         Write-Output $deploymentResponse

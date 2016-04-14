@@ -11,10 +11,35 @@ if(-not (Test-Path -Path $invokeRemoteDeployment ))
 
 . "$invokeRemoteDeployment"
 
-$InitializationScript = {}
+Describe "Tests for testing InitializationScript block" {
+    Context "Initilization block have load-assemblies" {
+        . $InitializationScript
+        Mock Get-ChildItem -Verifiable { return }
+        Load-AgentAssemblies 
+        
+        It "Should load agent assemblies" {
+            Assert-VerifiableMocks
+            Assert-MockCalled Get-ChildItem -Times 2 -Exactly
+        }
+    }
+}
+
+Describe "Tests for testing InvokePsOnRemoteScriptBlock block" {
+    Context "Run invoke-psonremote command" {
+        . $InitializationScript
+        Mock Load-AgentAssemblies -Verifiable { return }
+        Mock Invoke-Command -Verifiable { return }
+        Mock Write-Output -Verifiable { return }
+        . $InvokePsOnRemoteScriptBlock
+        It "Should run invoke-psonremote command" {
+            Assert-VerifiableMocks
+        }
+    }
+}
+
 
 Describe "Tests for testing Invoke-RemoteDeployment functionality" {
-    
+    $InitializationScript = {}
     $machinesList = "machine1:3234,machine2:2342,machine3:4343"
     $scriptToRun = "dummy Script"
     $adminUserName = "dummyuser"
