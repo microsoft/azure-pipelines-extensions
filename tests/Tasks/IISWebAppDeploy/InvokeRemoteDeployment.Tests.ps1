@@ -78,7 +78,7 @@ Describe "Tests for testing Invoke-RemoteDeployment functionality" {
         It "Should process jobs in parallel and wait for their completion"{
             Assert-VerifiableMocks
             ($errMsg) | Should Be ""
-            Assert-MockCalled Write-Host -Times 6 -Exactly
+            Assert-MockCalled Write-Host -Times 7 -Exactly
         }
     }
 
@@ -112,7 +112,7 @@ Describe "Tests for testing Invoke-RemoteDeployment functionality" {
         It "Should process jobs in parallel and wait for their completion"{
             Assert-VerifiableMocks
             ($errMsg) | Should Be "Deployment on one or more machines failed."
-            Assert-MockCalled Write-Host -Times 7 -Exactly
+            Assert-MockCalled Write-Host -Times 8 -Exactly
         }
     }
 
@@ -147,7 +147,7 @@ Describe "Tests for testing Invoke-RemoteDeployment functionality" {
         It "Should stop execution after failing for one machine"{
             Assert-VerifiableMocks
             ($errMsg) | Should Be "Deployment on one or more machines failed."
-            Assert-MockCalled Write-Host -Times 4 -Exactly
+            Assert-MockCalled Write-Host -Times 5 -Exactly
         }
     }
 
@@ -173,7 +173,7 @@ Describe "Tests for testing Invoke-RemoteDeployment functionality" {
         It "Should complete all the machines deployment sequentially"{
             Assert-VerifiableMocks
             ($errMsg) | Should Be ""
-            Assert-MockCalled Write-Host -Times 6 -Exactly
+            Assert-MockCalled Write-Host -Times 7 -Exactly
         }
     }
 }
@@ -236,7 +236,7 @@ Describe "Tests for testing Get-Credentials function" {
         $creds = Get-Credentials -userName "user" -password "password"
         
         It "Should return credentials object" {
-            ($creds.ToString()) | Should Be "System.Management.Automation.PSCredential"
+            ($creds.ToString()) | Should Be "System.Net.NetworkCredential"
             ($creds.UserName) | Should Be "user"
         }
     }

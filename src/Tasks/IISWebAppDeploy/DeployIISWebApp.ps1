@@ -35,7 +35,9 @@ function Get-HostName
 }
 
 function Trim-Inputs([ref]$package, [ref]$paramFile, [ref]$siteName, [ref]$physicalPath, [ref]$poolName, [ref]$websitePathAuthuser, [ref]$appPoolUser, [ref]$adminUser)
-{    
+{
+    Write-Verbose "Triming inputs for excess spaces, double quotes"
+
     $package.Value = $package.Value.Trim('"', ' ')
     $paramFile.Value = $paramFile.Value.Trim('"', ' ')
     $siteName.Value = $siteName.Value.Trim('"', ' ')
@@ -56,6 +58,7 @@ function Validate-Inputs
         [string]$appPoolName
     )
 
+    Write-Verbose "Validating website and application pool inputs"
     if($createWebsite -ieq "true" -and [string]::IsNullOrWhiteSpace($websiteName))
     { 
         throw "Website Name cannot be empty if you want to create or update the target website."
@@ -75,6 +78,7 @@ function Compute-MsDeploy-SetParams
         [string]$overRideParams
     )
 
+    Write-Verbose "Computing override params for msdeploy."
     if($createWebsite -ieq "true")
     {
         if([string]::IsNullOrWhiteSpace($overRideParams))
@@ -84,6 +88,7 @@ function Compute-MsDeploy-SetParams
         }
         elseif(!$overRideParams.Contains("IIS Web Application Name")) 
         {
+            Write-Verbose "Adding override params to ensure deployment happens on $websiteName"
             $overRideParams = $overRideParams + [string]::Format('{0}name="IIS Web Application Name",value="{1}"',  [System.Environment]::NewLine, $websiteName)
         }
     }
@@ -95,6 +100,7 @@ function Escape-DoubleQuotes
     param(
         [string]$str
     )
+
     return $str.Replace('"', '`"')
 }
 
@@ -203,7 +209,7 @@ function Main
 
     Write-Verbose "machinesList = $machinesList"
     Write-Verbose "adminUserName = $adminUserName"
-    Write-Verbose "winrm protocol to connect to machine  = $winrmProtocol"
+    Write-Verbose "winrmProtocol  = $winrmProtocol"
     Write-Verbose "testCertificate = $testCertificate"
     Write-Verbose "webDeployPackage = $webDeployPackage"
     Write-Verbose "webDeployParamFile = $webDeployParamFile"

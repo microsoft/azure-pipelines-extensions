@@ -23,6 +23,7 @@ $InvokePsOnRemoteScriptBlock = {
         [string]$skipCAOption
         )
 
+        Write-Verbose "Running Invoke-PsOnRemote"
         Write-Verbose "machineName = $machineName"
         Write-Verbose "winRmPort = $winRmPort"
         Write-Verbose "protocolOption = $protocolOption"
@@ -30,7 +31,7 @@ $InvokePsOnRemoteScriptBlock = {
 
         Load-AgentAssemblies
 
-        Write-Verbose "Initiating deployment on $machineName" -Verbose
+        Write-Verbose "Initiating deployment on $machineName"
         [String]$psOnRemoteCmd = "Invoke-PsOnRemote -MachineDnsName $machineName -ScriptBlockContent `$scriptToRun -WinRMPort $winRmPort -Credential `$credential $skipCAOption $protocolOption"
         [scriptblock]$psOnRemoteScriptBlock = [scriptblock]::Create($psOnRemoteCmd)
         $deploymentResponse = Invoke-Command -ScriptBlock $psOnRemoteScriptBlock
@@ -53,6 +54,11 @@ function Invoke-RemoteDeployment
     $errorMsg = ""
     $operationStatus = "Passed"
 
+    Write-Verbose "Entered Invoke-RemoteDeployment function"
+    Write-Verbose "machinesList = $machinesList"
+    Write-Verbose "adminUserName = $adminUserName"
+    Write-Verbose "protocol = $protocol"
+    
     $credential = Get-Credentials -userName $adminUserName -password $adminPassword
     $machinePortDict = Get-MachinePortDict -machinesList $machinesList -protocol $protocol
     $skipCAOption = Get-SkipCAOption -useTestCertificate $testCertificate
@@ -60,11 +66,12 @@ function Invoke-RemoteDeployment
 
     if($deployInParallel -eq "true")
     {
+        Write-Host "Performing deployment in parallel on all the machines."
         [hashtable]$Jobs = @{}
         foreach($machine in $machinePortDict.Keys)
         {
             $winRmPort = $machinePortDict[$machine]
-            Write-Host "Deployment started for machine: $machine"
+            Write-Host "Deployment started for machine: $machine with port $winRmPort."
             $job = Start-Job -InitializationScript $InitializationScript -ScriptBlock $InvokePsOnRemoteScriptBlock -ArgumentList $machine, $scriptToRun, $winRmPort, $credential, $protocolOption, $skipCAOption
             $Jobs.Add($job.Id, $machine)
         }
@@ -97,11 +104,12 @@ function Invoke-RemoteDeployment
     }
     else
     {
+        Write-Host "Performing deployment in sequentially on all machines."
         . $InitializationScript
         foreach($machine in $machinePortDict.Keys)
         {
-            Write-Host "Deployment started for machine: $machine"
             $winRmPort = $machinePortDict[$machine]
+            Write-Host "Deployment started for machine: $machine with port $winRmPort."
             $deploymentResponse = Invoke-Command -ScriptBlock $InvokePsOnRemoteScriptBlock -ArgumentList $machine, $scriptToRun, $winRmPort, $credential, $protocolOption, $skipCAOption
 
             if ($deploymentResponse.Status -ne "Passed")
@@ -152,7 +160,7 @@ function Get-SkipCAOption
 
     if($useTestCertificate -eq "true")
     {
-        $skipCAOption = "-SkipCACheck"
+        $skipCAOption = "-SkipCaCheck"
     }
 
     return $skipCAOption
@@ -165,13 +173,13 @@ function Get-Credentials
         [string]$password
     )
 
+    Write-Verbose "Creating credentials object for connecting to remote host"
     if([string]::IsNullOrWhiteSpace($userName) -or [string]::IsNullOrWhiteSpace($password))
     {
         throw "Invalid administrator credentials."
     }
-    
-    $securePassword = ConvertTo-SecureString $password -AsPlainText -Force
-    $creds = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $username, $securePassword
+
+    $creds = New-Object -TypeName System.Net.NetworkCredential -ArgumentList $username, $password
     return $creds
 }
 
@@ -181,6 +189,8 @@ function Get-MachinePortDict
         [string]$machinesList,
         [string]$protocol
     )
+
+    Write-Verbose "Tokenizing machine name and port, to create dictonary"
 
     $machinePortDict = @{}
     $machines = @()
@@ -213,6 +223,7 @@ function Get-MachineNameAndPort
         [string]$machine
     )
 
+    Write-Verbose "Splitting machine name and port into tokens"
     $tokens = @()
     $machine.split(':') | Foreach { $tokens += $_.Trim()}
 
