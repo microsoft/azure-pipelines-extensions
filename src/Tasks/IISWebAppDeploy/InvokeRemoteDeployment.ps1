@@ -1,7 +1,7 @@
 ﻿$InitializationScript = {
     function Load-AgentAssemblies
     {
-        Get-ChildItem $env:AGENT_HOMEDIRECTORY\Agent\Worker\*.dll | % {
+        Get-ChildItem $(agent.ServerOMDirectory)\*.dll | % {
         [void][reflection.assembly]::LoadFrom( $_.FullName )
         Write-Verbose "Loading .NET assembly:`t$($_.name)"
         }
