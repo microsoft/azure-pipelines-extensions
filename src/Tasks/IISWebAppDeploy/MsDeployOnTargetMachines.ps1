@@ -600,7 +600,7 @@ function Execute-Main
         $doesWebsiteExists = Does-WebsiteExists -siteName $WebsiteName
         if (-not $doesWebsiteExists)  
         {
-            Write-Verbose "Website does not exist and you did not request to create it - deployment might fail." -Verbose 
+            Write-Verbose "Website does not exist and you did not request to create it - deployment might fail."
         }
     }
 

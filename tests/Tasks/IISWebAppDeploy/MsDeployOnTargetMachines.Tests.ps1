@@ -812,7 +812,7 @@ Describe "Tests for verifying Update-AppPool functionality" {
             ($output.Contains('/[name=''"SampleAppPool"''].managedRuntimeVersion:v4.0')) | Should Be $true
             ($output.Contains('/[name=''"SampleAppPool"''].managedPipelineMode:Integrated')) | Should Be $true
             ($output.Contains('/[name=''"SampleAppPool"''].processModel.identityType:LocalService')) | Should Be $true
-            ($output.Contains('/[name=''"SampleAppPool"''].processModel.userName:')) | Should Be $false           
+            ($output.Contains('/[name=''"SampleAppPool"''].processModel.userName:')) | Should Be $false
             ($output.Contains('/[name=''"SampleAppPool"''].processModel.password:')) | Should Be $false
             Assert-VerifiableMocks
         }
@@ -941,13 +941,15 @@ Describe "Tests for verifying Execute-Main functionality" {
     Context "CreateWebSite is false and website does not exist"{
 
         $CreateWebsite = "false"
-        $errorMsg = "Website does not exist and you did not request to create it - deployment cannot continue."
+        $errorMsg = "Website does not exist and you did not request to create it - deployment might fail."
                 
         Mock Create-And-Update-WebSite { return } -ParameterFilter { $SiteName -eq $WebsiteName }
         Mock Does-WebSiteExists -Verifiable { return $false } -ParameterFilter { $SiteName -eq $WebsiteName }
+        Mock Deploy-WebSite -Verifiable { return ""} -ParameterFilter { $webDeployPkg -eq $webDeployPackage }
 
+        $output = Execute-Main -CreateWebsite $CreateWebsite -WebsiteName $WebsiteName 4>&1 | Out-String
         It "Exception should be thrown"{
-            { Execute-Main -CreateWebsite $CreateWebsite -WebsiteName $WebsiteName } | Should Throw $errorMsg
+            ($output.Contains($errorMsg)) | Should Be $true
             Assert-VerifiableMocks
             Assert-MockCalled Create-And-Update-WebSite -Times 0
         }

@@ -4,7 +4,7 @@ import-module "Microsoft.TeamFoundation.DistributedTask.Task.DevTestLabs"
 Import-Module "Microsoft.TeamFoundation.DistributedTask.Task.Deployment.Internal"
 
 
-Import-Module .\RemoteDeployment.ps1
+Import-Module .\InvokeRemoteDeployment.ps1
 
 Write-Verbose "Entering script DeployIISWebApp.ps1"
 
@@ -35,7 +35,9 @@ function Get-HostName
 }
 
 function Trim-Inputs([ref]$package, [ref]$paramFile, [ref]$siteName, [ref]$physicalPath, [ref]$poolName, [ref]$websitePathAuthuser, [ref]$appPoolUser, [ref]$adminUser)
-{    
+{
+    Write-Verbose "Triming inputs for excess spaces, double quotes"
+
     $package.Value = $package.Value.Trim('"', ' ')
     $paramFile.Value = $paramFile.Value.Trim('"', ' ')
     $siteName.Value = $siteName.Value.Trim('"', ' ')
@@ -56,6 +58,7 @@ function Validate-Inputs
         [string]$appPoolName
     )
 
+    Write-Verbose "Validating website and application pool inputs"
     if($createWebsite -ieq "true" -and [string]::IsNullOrWhiteSpace($websiteName))
     { 
         throw "Website Name cannot be empty if you want to create or update the target website."
@@ -75,6 +78,7 @@ function Compute-MsDeploy-SetParams
         [string]$overRideParams
     )
 
+    Write-Verbose "Computing override params for msdeploy."
     if($createWebsite -ieq "true")
     {
         if([string]::IsNullOrWhiteSpace($overRideParams))
@@ -84,6 +88,7 @@ function Compute-MsDeploy-SetParams
         }
         elseif(!$overRideParams.Contains("IIS Web Application Name")) 
         {
+            Write-Verbose "Adding override params to ensure deployment happens on $websiteName"
             $overRideParams = $overRideParams + [string]::Format('{0}name="IIS Web Application Name",value="{1}"',  [System.Environment]::NewLine, $websiteName)
         }
     }
@@ -95,6 +100,7 @@ function Escape-DoubleQuotes
     param(
         [string]$str
     )
+
     return $str.Replace('"', '`"')
 }
 
@@ -139,49 +145,36 @@ function Get-ScriptToRun
 function Run-RemoteDeployment
 {
     param(
+        [string]$machinesList,
         [string]$scriptToRun,
-        [string]$filteringMethod,
-        [string]$envName,
-        [string]$filter,
-        [string]$deployInParallel,
         [string]$adminUserName,
         [string]$adminPassword,
         [string]$winrmProtocol,
-        [string]$testCertificate
+        [string]$testCertificate,
+        [string]$deployInParallel
     )
 
-    Write-Output ( Get-LocalizedString -Key "Starting deployment of IIS Web Deploy Package : {0}" -ArgumentList $webDeployPackage)
-    $errorMessage = [string]::Empty
+    Write-Host "Starting deployment of IIS Web Deploy Package :", $webDeployPackage
 
-    if($filteringMethod -eq "tags")
-    {
-        $errorMessage = Invoke-RemoteDeployment -environmentName $envName -tags $filter -scriptBlockContent $scriptToRun -runPowershellInParallel $deployInParallel -adminUserName $adminUserName -adminPassword $adminPassword -protocol $winrmProtocol -testCertificate $testCertificate
-    }
-    else
-    {
-        $errorMessage = Invoke-RemoteDeployment -environmentName $envName -machineNames $filter -scriptBlockContent $scriptToRun -runPowershellInParallel $deployInParallel -adminUserName $adminUserName -adminPassword $adminPassword -protocol $winrmProtocol -testCertificate $testCertificate
-    }
+    $errorMessage = Invoke-RemoteDeployment -machinesList $machinesList -scriptToRun $scriptToRun -adminUserName $adminUserName -adminPassword $adminPassword -protocol $winrmProtocol -testCertificate $testCertificate -deployInParallel $deployInParallel
 
     if(-not [string]::IsNullOrEmpty($errorMessage))
     {
-        $readmelink = "http://aka.ms/iiswebappdeployreadme"
-        $helpMessage = (Get-LocalizedString -Key "For more info please refer to {0}" -ArgumentList $readmelink)
+        $helpMessage = "For more info please refer to http://aka.ms/iisextnreadme)"
         throw "$errorMessage $helpMessage"
     }
 
-    Write-Output ( Get-LocalizedString -Key "Successfully deployed IIS Web Deploy Package : {0}" -ArgumentList $webDeployPackage)
+    Write-Host "Successfully deployed IIS Web Deploy Package :" , $webDeployPackage
 }
 
 function Main
 {
     param (
-    [string]$environmentName,
+    [string]$machinesList,
     [string]$adminUserName,
     [string]$adminPassword,
     [string]$winrmProtocol,
     [string]$testCertificate,
-    [string]$resourceFilteringMethod,
-    [string]$machineFilter,
     [string]$webDeployPackage,
     [string]$webDeployParamFile,
     [string]$overRideParams,
@@ -214,12 +207,10 @@ function Main
 
     $hostName = Get-HostName -protocol $protocol -hostNameWithHttp $hostNameWithHttp -hostNameWithSNI $hostNameWithSNI -hostNameWithOutSNI $hostNameWithOutSNI -sni $serverNameIndication
 
-    Write-Verbose "environmentName = $environmentName"
+    Write-Verbose "machinesList = $machinesList"
     Write-Verbose "adminUserName = $adminUserName"
-    Write-Verbose "winrm protocol to connect to machine  = $winrmProtocol"
+    Write-Verbose "winrmProtocol  = $winrmProtocol"
     Write-Verbose "testCertificate = $testCertificate"
-    Write-Verbose "resourceFilteringMethod = $resourceFilteringMethod"
-    Write-Verbose "machineFilter = $machineFilter"
     Write-Verbose "webDeployPackage = $webDeployPackage"
     Write-Verbose "webDeployParamFile = $webDeployParamFile"
     Write-Verbose "overRideParams = $overRideParams"
@@ -253,7 +244,7 @@ function Main
     Validate-Inputs -createWebsite $createWebsite -websiteName $websiteName -createAppPool $createAppPool -appPoolName $appPoolName
     $overRideParams = Compute-MsDeploy-SetParams -createWebsite $createWebsite -websiteName $websiteName -overRideParams $overRideParams
     $appCmdCommands = Escape-DoubleQuotes -str $appCmdCommands
-    $overRideParams = Escape-DoubleQuotes -str $overRideParams    
+    $overRideParams = Escape-DoubleQuotes -str $overRideParams
     $script = Get-ScriptToRun -webDeployPackage $webDeployPackage -webDeployParamFile $webDeployParamFile -overRideParams $overRideParams -websiteName $websiteName -websitePhysicalPath $websitePhysicalPath -websitePhysicalPathAuth $websitePhysicalPathAuth -websiteAuthUserName $websiteAuthUserName -websiteAuthUserPassword $websiteAuthUserPassword -addBinding $addBinding -assignDuplicateBinding $assignDuplicateBinding -protocol $protocol -ipAddress $ipAddress -port $port -hostName $hostName -serverNameIndication $serverNameIndication -sslCertThumbPrint $sslCertThumbPrint -appPoolName $appPoolName -pipeLineMode $pipeLineMode -dotNetVersion $dotNetVersion -appPoolIdentity $appPoolIdentity -appPoolUsername $appPoolUsername -appPoolPassword $appPoolPassword -appCmdCommands $appCmdCommands -createWebsite $createWebsite -createAppPool $createAppPool
-    Run-RemoteDeployment -scriptToRun $script -filteringMethod $resourceFilteringMethod -filter $machineFilter -envName $environmentName -deployInParallel $deployInParallel -adminUserName $adminUserName -adminPassword $adminPassword -winrmProtocol $winrmProtocol -testCertificate $testCertificate
+    Run-RemoteDeployment -machinesList $machinesList -scriptToRun $script -adminUserName $adminUserName -adminPassword $adminPassword -winrmProtocol $winrmProtocol -testCertificate $testCertificate -deployInParallel $deployInParallel
 }

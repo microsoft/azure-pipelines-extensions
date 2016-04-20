@@ -1,11 +1,9 @@
 param (
-    [string]$environmentName,
+    [string]$machinesList,
     [string]$adminUserName,
     [string]$adminPassword,
     [string]$winrmProtocol,
     [string]$testCertificate,
-    [string]$resourceFilteringMethod,
-    [string]$machineFilter,
     [string]$webDeployPackage,
     [string]$webDeployParamFile,
     [string]$overRideParams,
@@ -39,4 +37,4 @@ param (
 
 . .\DeployIISWebApp.ps1
 
-(Main -environmentName $environmentName -adminUserName $adminUserName -adminPassword $adminPassword -winrmProtocol $winrmProtocol -testCertificate $testCertificate -resourceFilteringMethod $resourceFilteringMethod -machineFilter $machineFilter -webDeployPackage "$webDeployPackage" -webDeployParamFile "$webDeployParamFile" -overRideParams "$overRideParams" -createWebsite $createWebsite -websiteName "$websiteName" -websitePhysicalPath "$websitePhysicalPath" -websitePhysicalPathAuth "$websitePhysicalPathAuth" -websiteAuthUserName "$websiteAuthUserName" -websiteAuthUserPassword "$websiteAuthUserPassword" -addBinding $addBinding -assignDuplicateBinding $assignDuplicateBinding -protocol $protocol -ipAddress "$ipAddress" -port $port -hostNameWithHttp "$hostNameWithHttp" -hostNameWithOutSNI "$hostNameWithOutSNI" -hostNameWithSNI "$hostNameWithSNI" -serverNameIndication $serverNameIndication -sslCertThumbPrint "$sslCertThumbPrint" -createAppPool $createAppPool -appPoolName "$appPoolName" -dotNetVersion $dotNetVersion -pipeLineMode $pipeLineMode -appPoolIdentity $appPoolIdentity -appPoolUsername "$appPoolUsername" -appPoolPassword "$appPoolPassword" -appCmdCommands "$appCmdCommands" -deployInParallel $deployInParallel)
+(Main -machinesList $machinesList -adminUserName $adminUserName -adminPassword $adminPassword -winrmProtocol $winrmProtocol -testCertificate $testCertificate -webDeployPackage "$webDeployPackage" -webDeployParamFile "$webDeployParamFile" -overRideParams "$overRideParams" -createWebsite $createWebsite -websiteName "$websiteName" -websitePhysicalPath "$websitePhysicalPath" -websitePhysicalPathAuth "$websitePhysicalPathAuth" -websiteAuthUserName "$websiteAuthUserName" -websiteAuthUserPassword "$websiteAuthUserPassword" -addBinding $addBinding -assignDuplicateBinding $assignDuplicateBinding -protocol $protocol -ipAddress "$ipAddress" -port $port -hostNameWithHttp "$hostNameWithHttp" -hostNameWithOutSNI "$hostNameWithOutSNI" -hostNameWithSNI "$hostNameWithSNI" -serverNameIndication $serverNameIndication -sslCertThumbPrint "$sslCertThumbPrint" -createAppPool $createAppPool -appPoolName "$appPoolName" -dotNetVersion $dotNetVersion -pipeLineMode $pipeLineMode -appPoolIdentity $appPoolIdentity -appPoolUsername "$appPoolUsername" -appPoolPassword "$appPoolPassword" -appCmdCommands "$appCmdCommands" -deployInParallel $deployInParallel)

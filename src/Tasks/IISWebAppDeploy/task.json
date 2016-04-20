@@ -42,7 +42,7 @@
   ],
   "inputs": [
     {
-      "name": "EnvironmentName",
+      "name": "machinesList",
       "type": "multiLine",
       "label": "Machines",
       "defaultValue": "",
@@ -54,7 +54,7 @@
       "type": "string",
       "label": "Admin Login",
       "defaultValue": "",
-      "required": false,
+      "required": true,
       "helpMarkDown": "Administrator login for the target machines."
     },
     {
@@ -62,15 +62,15 @@
       "type": "string",
       "label": "Password",
       "defaultValue": "",
-      "required": false,
+      "required": true,
       "helpMarkDown": "Administrator password for the target machines. <br>It can accept variable defined in Build/Release definitions as '$(passwordVariable)'. <br>You may mark variable type as 'secret' to secure it. "
     },
     {
       "name": "WinRMProtocol",
       "type": "radio",
       "label": "Protocol",
-      "required": false,
-      "defaultValue": "",
+      "required": true,
+      "defaultValue": "HTTPS",
       "options": {
         "Http": "HTTP",
         "Https": "HTTPS"
@@ -380,28 +380,6 @@
       "required": false,
       "groupName": "advanced",
       "helpMarkDown": "Setting it to true will deploy the Web application in-parallel on the target machines."
-    },
-    {
-      "name": "ResourceFilteringMethod",
-      "type": "radio",
-      "label": "Select Machines By",
-      "required": false,
-      "defaultValue": "machineNames",
-      "options": {
-        "machineNames": "Machine Names",
-        "tags": "Tags"
-      },
-      "groupName": "advanced",
-      "helpMarkDown": "Optionally, select a subset of machines either by providing machine names or tags."
-    },
-    {
-      "name": "MachineFilter",
-      "type": "string",
-      "label": "Deploy to Machines",
-      "required": false,
-      "defaultValue": "",
-      "groupName": "advanced",
-      "helpMarkDown": "This input is valid only for machine groups and is not supported for flat list of machines or output variables yet. Provide a list of machines like, dbserver.fabrikam.com, webserver.fabrikam.com, 192.168.12.34, or tags like, Role:DB; OS:Win8.1. If multiple tags are provided, then the task will run in all the machines with the specified tags. For Azure Resource Groups, provide the virtual machine's name like, ffweb, ffdb. The default is to run the task in all machines."
     }
   ],
     "instanceNameFormat": "Deploy IIS App: $(WebDeployPackage)",

@@ -20,7 +20,7 @@ gulp.task("clean", function() {
     return del([buildDirectory, packageDirectory]);
 });
 
-gulp.task("testci", function(done) {
+gulp.task("testci", ["build"], function(done) {
     // Runs powershell pester tests ( Unit Test)
     var pester = spawn('powershell.exe', ['.\\InvokePester.ps1' ,'Tests'], { stdio: 'inherit' });
     pester.on('exit', function(code, signal) {
