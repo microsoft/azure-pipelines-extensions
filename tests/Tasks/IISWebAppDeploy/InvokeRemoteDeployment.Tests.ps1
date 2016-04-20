@@ -2,6 +2,14 @@
 $sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path).Replace(".Tests.", ".")
 $VerbosePreference = 'Continue'
 
+function Get-VstsTaskVariable {
+    param(
+        [string]$Name
+    )
+
+    return $Name
+}
+
 $invokeRemoteDeployment = "$currentScriptPath\..\..\..\src\Tasks\IISWebAppDeploy\$sut"
 
 if(-not (Test-Path -Path $invokeRemoteDeployment ))
