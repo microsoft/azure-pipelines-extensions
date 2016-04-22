@@ -125,7 +125,7 @@
     "instanceNameFormat": "Deploy IIS App: $(WebDeployPackage)",
     "execution": {
         "PowerShell": {
-        "target": "$(currentDirectory)\\InvokeDeployIISWebApp.ps1",
+        "target": "$(currentDirectory)\\Main.ps1",
         "argumentFormat": "",
         "workingDirectory": "$(currentDirectory)"
         }
