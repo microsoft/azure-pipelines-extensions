@@ -17,8 +17,6 @@ if(-not (Test-Path -Path $invokeRemoteDeploymentPath ))
     throw [System.IO.FileNotFoundException] "Unable to find InvokeRemoteDeployment.ps1 at $invokeRemoteDeploymentPath"
 }
 
-
-
 #Adding Import-Module dummy implementation for testability purpose
 function Import-Module
 {
@@ -28,170 +26,62 @@ function Import-Module
 . "$deployIISWebAppPath"
 . "$invokeRemoteDeploymentPath"
 
-Describe "Tests for testing Get-HostName functionality" {
-    
-    $hostnamewithhttp = "hostnamewithhttp"
-    $hostnamewithsni = "hostnamewithsni"
-    $hostnamewithoutsni = "hostnamewithoutsni"
-
-    Context "When protocol is http" {
-        
-        $hostname = Get-HostName -protocol "http" -hostNameWithHttp $hostnamewithhttp  -hostNameWithSNI $hostnamewithsni -hostNameWithOutSNI $hostnamewithoutsni -sni "false"
-
-        It "should return hostnamewithhtpp"{
-            ( $hostname ) | Should Be $hostnamewithhttp
-        }
-    }
-
-    Context "When protocol is https and sni is true" {
-
-        $hostname = Get-HostName -protocol "https" -hostNameWithHttp $hostnamewithhttp  -hostNameWithSNI $hostnamewithsni -hostNameWithOutSNI $hostnamewithoutsni -sni "true"
-
-        It "should return hostnamewithhtpp"{
-            ( $hostname ) | Should Be $hostnamewithsni
-        }
-    }
-
-    Context "When protocol is https and sni is false" {
-
-        $hostname = Get-HostName -protocol "https" -hostNameWithHttp $hostnamewithhttp  -hostNameWithSNI $hostnamewithsni -hostNameWithOutSNI $hostnamewithoutsni -sni "false"
-
-        It "should return hostnamewithhtpp"{
-            ( $hostname ) | Should Be $hostnamewithoutsni
-        }
-    }
-}
-
 Describe "Tests for testing Trim-Inputs functionality" {
 
     $pkgNoExtraQuotes = "webdeploy.zip"
     $paramfileNoExtraQuotes = "paramfile.xml"
     $siteNoExtraQuotes = "website"
-    $pathNoExtraQuotes = "c:\web app\path"
-    $appPoolNameNoExtraQuotes = "application pool name"
-
-    $siteAuthUserNoSpaces = "dummyuser"
     $adminUserNoSpaces = "adminuser"
-    $appPoolUserNoSpaces = "apppooluser"
-    
+
     Context "Should remove extra quotes for all inputs except usernames " {
 
         $pkg = "`"webdeploy.zip`""
         $paramfile = "`"paramfile.xml`""
         $site = "`"website`""
-        $path = "`"c:\web app\path`""
-        $appPoolName = "`"application pool name`""
-                
-        Trim-Inputs -package ([ref]$pkg) -paramFile ([ref]$paramfile) -siteName ([ref]$site) -physicalPath ([ref]$path)  -poolName ([ref]$appPoolName) -websitePathAuthuser ([ref]$siteAuthUserNoSpaces) -appPoolUser ([ref]$appPoolUserNoSpaces) -adminUser ([ref]$adminUserNoSpaces)
+
+        Trim-Inputs -package ([ref]$pkg) -paramFile ([ref]$paramfile) -siteName ([ref]$site) -adminUser ([ref]$adminUserNoSpaces)
 
         It "should not have extra double quotes"{
-            ( $pkg ) | Should Be $pkgNoExtraQuotes            
+            ( $pkg ) | Should Be $pkgNoExtraQuotes
             ( $paramfile ) | Should Be $paramfileNoExtraQuotes
             ( $site ) | Should Be $siteNoExtraQuotes
-            ( $path ) | Should Be $pathNoExtraQuotes
-            ( $appPoolName ) | Should Be $appPoolNameNoExtraQuotes
-        }        
+        }
     }
 
-    Context "Should remove extra spaces for appPooluserName, websiteAuthUser, adminUserName" {
-        
-        $siteAuthUser = " dummyuser"
+    Context "Should remove extra spaces for adminUserName" {
         $adminUser = " adminuser "
-        $appPoolUser = " apppooluser "
-                
-        Trim-Inputs -package ([ref]$pkgNoExtraQuotes) -paramFile ([ref]$paramfileNoExtraQuotes) -siteName ([ref]$siteNoExtraQuotes) -physicalPath ([ref]$pathNoExtraQuotes)  -poolName ([ref]$appPoolNameNoExtraQuotes) -websitePathAuthuser ([ref]$siteAuthUser) -appPoolUser ([ref]$appPoolUser) -adminUser ([ref]$adminUser)
+
+        Trim-Inputs -package ([ref]$pkgNoExtraQuotes) -paramFile ([ref]$paramfileNoExtraQuotes) -siteName ([ref]$siteNoExtraQuotes) -adminUser ([ref]$adminUser)
 
         It "should not have extra double quotes"{
-            ( $siteAuthUser ) | Should Be $siteAuthUserNoSpaces
             ( $adminUser ) | Should Be $adminUserNoSpaces
-            ( $appPoolUser ) | Should Be $appPoolUserNoSpaces
-        }
-    }
-}
-
-Describe "Tests for testing Validate-Inputs functionality" {
-    Context "Should throw when createWebsite true and sitename empty" {
-        
-        $errorMsg = "Website Name cannot be empty if you want to create or update the target website."
-                
-        It "Should throw exception" {
-            { Validate-Inputs -createWebsite "true" -websiteName " " -createAppPool "true" -appPoolName "dummyapppool" } | Should Throw $errorMsg
-        }
-    }
-
-    Context "Should not throw when createWebsite true and sitename is not empty" {
-
-        try
-        {
-            $result = Validate-Inputs -createWebsite "true" -websiteName "dummywebsite" -createAppPool "true" -appPoolName "dummyapppool"
-        }
-        catch
-        {
-            $result = $_
-        }
-
-        It "Should not throw exception" {
-           $result.Exception | Should Be $null
-        }
-    }
-
-    Context "Should throw when createAppPool true and app pool name empty" {
-
-        $errorMsg = "Application pool name cannot be empty if you want to create or update the target app pool."
-                
-        It "Should throw exception" {
-            { Validate-Inputs -createWebsite "false" -websiteName "dummysite" -createAppPool "true" -appPoolName " " } | Should Throw $errorMsg
-        }
-
-    }
-
-    Context "Should not throw when createAppPool true and app pool name not empty" {
-
-        It "Should not throw exception" {
-            { Validate-Inputs -createWebsite "false" -websiteName "dummywebsite" -createAppPool "true" -appPoolName "dummyapppool" } | Should Not Throw
-        }
-
-    }
-
-    Context "Should not throw when createWebsite false and createAppPool false" {
-
-        It "Should not throw exception" {
-            { Validate-Inputs -createWebsite "false" -websiteName " " -createAppPool "false" -appPoolName " " } | Should Not Throw
         }
     }
 }
 
 Describe "Tests for testing Compute-MsDeploy-SetParams functionality" {
-    Context "when createWebsite is false" {
 
-        $result = Compute-MsDeploy-SetParams -createWebsite "false" -websiteName "dummyWebsite" -overRideParams "DummyOverrideParams"
+    Context "when override params for websitename is already present" {
 
-        It "Shouldn't alter override params " {
-            ( $result ) | Should Be "DummyOverrideParams"
-        }
-    }
-
-    Context "when createWebsite is true and override params for websitename is already present" {
-
-        $result = Compute-MsDeploy-SetParams -createWebsite "true" -websiteName "dummyWebsite" -overRideParams 'name="IIS Web Application Name",value="dummyWebsite"'
+        $result = Compute-MsDeploy-SetParams -websiteName "dummyWebsite2" -overRideParams 'name="IIS Web Application Name",value="dummyWebsite"'
 
         It "Shouldn't alter override params " {
             ( $result ) | Should Be 'name="IIS Web Application Name",value="dummyWebsite"'
         }
     }
 
-    Context "When no override params is given and createwebsite is true" {
+    Context "When no override params is given" {
 
-        $result = Compute-MsDeploy-SetParams -createWebsite "true" -websiteName "dummyWebsite"
+        $result = Compute-MsDeploy-SetParams -websiteName "dummyWebsite"
 
         It "Should add setParam to deploy on website" {
             ($result.Contains('name="IIS Web Application Name",value="dummyWebsite"')) | Should Be $true
         }
     }
 
-    Context "When createwebsite is true and override params contain db connection string override" {
-        
-        $result = Compute-MsDeploy-SetParams -createWebsite "true" -websiteName "dummyWebsite" -overRideParams 'name="ConnectionString",value="DummyConnectionString"'
+    Context "When override params contain db connection string override" {
+
+        $result = Compute-MsDeploy-SetParams -websiteName "dummyWebsite" -overRideParams 'name="ConnectionString",value="DummyConnectionString"'
 
         It "Should add setParam to deploy on website" {
             ($result.Contains('name="IIS Web Application Name",value="dummyWebsite"')) | Should Be $true
@@ -214,11 +104,11 @@ Describe "Tests for testing Get-ScriptToRun functionality" {
 
         Mock Get-Content {return "Dummy Script"}
 
-        $script = Get-ScriptToRun -webDeployPackage "pkg.zip" -webDeployParamFile "" -overRideParams "" -websiteName "dummysite" -websitePhysicalPath "C:\inetpub\wwwroot" -websitePhysicalPathAuth "Pass through" -websiteAuthUserName "" -websiteAuthUserPassword "" -addBinding "true" -assignDuplicateBinding "true" -protocol "http" -ipAddress "127.0.0.1" -port "8743" -hostName "" -serverNameIndication "false" -sslCertThumbPrint "" -appPoolName "" -pipeLineMode "Integrated" -dotNetVersion "v4.0" -appPoolIdentity "Identity" -appPoolUsername "" -appPoolPassword "" -appCmdCommands "" -createWebsite "true" -createAppPool "false"
+        $script = Get-ScriptToRun -webDeployPackage "pkg.zip" -webDeployParamFile "" -overRideParams ""
 
         It "should contain script content and invoke expression" {
             ($script.Contains('Dummy Script')) | Should Be $true
-            ($script.Contains('Execute-Main -WebDeployPackage "pkg.zip" -WebDeployParamFile "" -OverRideParams "" -WebsiteName "dummysite" -WebsitePhysicalPath "C:\inetpub\wwwroot" -WebsitePhysicalPathAuth "Pass through" -WebsiteAuthUserName "" -WebsiteAuthUserPassword "" -AddBinding true -AssignDuplicateBinding true -Protocol http -IpAddress "127.0.0.1" -Port 8743 -HostName "" -ServerNameIndication false -SslCertThumbPrint "" -AppPoolName "" -DotNetVersion "v4.0" -PipeLineMode Integrated -AppPoolIdentity Identity -AppPoolUsername "" -AppPoolPassword "" -AppCmdCommands "" -CreateWebsite true -CreateAppPool false')) | Should Be $true
+            ($script.Contains('Execute-Main -WebDeployPackage "pkg.zip" -WebDeployParamFile "" -OverRideParams ""')) | Should Be $true
         }
     }
 }
@@ -281,7 +171,7 @@ Describe "Tests for testing Main functionality" {
         Mock Get-Content -Verifiable {return "dummyscript"}
         Mock Invoke-RemoteDeployment -Verifiable { return "" } -ParameterFilter { $MachinesList -eq "dummyMachinesList" }
 
-        Main -machinesList "dummyMachinesList" -adminUserName "dummyadminuser" -adminPassword "dummyadminpassword" -winrmProtocol "https" -testCertificate "true" -resourceFilteringMethod "tags" -machineFilter "tag1:value1" -webDeployPackage "pkg.zip" -webDeployParamFile "param.xml" -overRideParams "dummyoverride" -createWebsite "true" -websiteName "dummyweb" -websitePhysicalPath "c:\inetpub\wwwroot" -websitePhysicalPathAuth "Pass through" -websiteAuthUserName "" -websiteAuthUserPassword "" -addBinding "true" -assignDuplicateBinding "true" -protocol "http" -ipAddress "127.0.o.1" -port "8080" -hostNameWithHttp "" -hostNameWithOutSNI "" -hostNameWithSNI "" -serverNameIndication "false" -sslCertThumbPrint "" -createAppPool "true" -appPoolName "dummy app pool" -dotNetVersion "v4.0" -pipeLineMode "Integrated" -appPoolIdentity "Specific User" -appPoolUsername "dummy user" -appPoolPassword "dummy password" -appCmdCommands "" -deployInParallel "true"
+        Main -machinesList "dummyMachinesList" -adminUserName "dummyadminuser" -adminPassword "dummyadminpassword" -winrmProtocol "https" -testCertificate "true" -webDeployPackage "pkg.zip" -webDeployParamFile "param.xml" -overRideParams "dummyoverride" -websiteName "dummyweb"
 
         It "Should integrate all the functions and call with appropriate arguments" {
             Assert-VerifiableMocks
