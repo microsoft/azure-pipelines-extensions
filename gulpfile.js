@@ -5,23 +5,17 @@ var path = require("path");
 var shell = require("shelljs");
 var spawn = require('child_process').spawn;
 var fs = require('fs');
-var fsextra = require('fs-extra')
 
 var buildDirectory = "_build";
 var packageManifestFile = "vss-extension.json";
 var packageDirectory = "_package";
 var sourcePaths = {
-    helpers: "src/Common/Helpers",
-    sourceFiles: ["src/**/*", "tests/**/*"],
-    tasksPath: "src/Tasks"
+    sourceFiles: ["Extensions/**/*"]
 };
 var srcBuildDirectory = "_build/src";
 
 gulp.task("build", function() {
     gulp.src(sourcePaths.sourceFiles, { base: "." }).pipe(gulp.dest(buildDirectory));
-    fs.readdirSync(sourcePaths.tasksPath).filter(function (file) {
-        return fs.statSync(path.join(sourcePaths.tasksPath, file)).isDirectory();
-    }).forEach(copyHelpers);
 });
 
 gulp.task("clean", function() {
@@ -57,13 +51,6 @@ gulp.task("package", function() {
         shell.mkdir("-p", packageDirectory);
         createVsixPackage();
 });
-
-var copyHelpers = function(taskName) {
-    var targetPath = path.join(srcBuildDirectory, "Tasks", taskName);
-    fsextra.copy(sourcePaths.helpers, targetPath, "*", function (err) {
-        if (err) return console.error(err)
-    })
-}
 
 var createVsixPackage = function() {
     var packagingCmd = "tfx extension create --manifeset-globs " + packageManifestFile + " --root " + srcBuildDirectory + " --output-path " + packageDirectory;
