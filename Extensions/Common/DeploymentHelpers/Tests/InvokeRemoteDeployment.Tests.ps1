@@ -2,13 +2,7 @@
 $sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path).Replace(".Tests.", ".")
 $VerbosePreference = 'Continue'
 
-function Get-VstsTaskVariable {
-    param(
-        [string]$Name
-    )
-
-    return $Name
-}
+$env:AGENT_SERVEROMDIRECTORY = "$env:SystemDrive\"
 
 $invokeRemoteDeployment = "$currentScriptPath\..\Src\$sut"
 

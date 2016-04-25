@@ -121,10 +121,11 @@ function Run-RemoteDeployment
         [string]$adminPassword,
         [string]$winrmProtocol,
         [string]$testCertificate,
-        [string]$deployInParallel
+        [string]$deployInParallel,
+        [string]$websiteName
     )
 
-    Write-Host "Starting deployment of IIS Web Deploy Package :", $webDeployPackage
+    Write-Host "Started creating website:", $websiteName
 
     $errorMessage = Invoke-RemoteDeployment -machinesList $machinesList -scriptToRun $scriptToRun -adminUserName $adminUserName -adminPassword $adminPassword -protocol $winrmProtocol -testCertificate $testCertificate -deployInParallel $deployInParallel
 
@@ -134,7 +135,7 @@ function Run-RemoteDeployment
         throw "$errorMessage $helpMessage"
     }
 
-    Write-Host "Successfully deployed IIS Web Deploy Package :" , $webDeployPackage
+    Write-Host "Successfully created website:", $websiteName
 }
 
 function Main
@@ -207,5 +208,5 @@ function Main
     Validate-Inputs -createWebsite $createWebsite -websiteName $websiteName -createAppPool $createAppPool -appPoolName $appPoolName
     $appCmdCommands = Escape-DoubleQuotes -str $appCmdCommands
     $script = Get-ScriptToRun -webDeployPackage $webDeployPackage -webDeployParamFile $webDeployParamFile -overRideParams $overRideParams -websiteName $websiteName -websitePhysicalPath $websitePhysicalPath -websitePhysicalPathAuth $websitePhysicalPathAuth -websiteAuthUserName $websiteAuthUserName -websiteAuthUserPassword $websiteAuthUserPassword -addBinding $addBinding -assignDuplicateBinding $assignDuplicateBinding -protocol $protocol -ipAddress $ipAddress -port $port -hostName $hostName -serverNameIndication $serverNameIndication -sslCertThumbPrint $sslCertThumbPrint -appPoolName $appPoolName -pipeLineMode $pipeLineMode -dotNetVersion $dotNetVersion -appPoolIdentity $appPoolIdentity -appPoolUsername $appPoolUsername -appPoolPassword $appPoolPassword -appCmdCommands $appCmdCommands -createWebsite $createWebsite -createAppPool $createAppPool
-    Run-RemoteDeployment -machinesList $machinesList -scriptToRun $script -adminUserName $adminUserName -adminPassword $adminPassword -winrmProtocol $winrmProtocol -testCertificate $testCertificate -deployInParallel $deployInParallel
+    Run-RemoteDeployment -machinesList $machinesList -scriptToRun $script -adminUserName $adminUserName -adminPassword $adminPassword -winrmProtocol $winrmProtocol -testCertificate $testCertificate -deployInParallel $deployInParallel -websiteName $websiteName
 }

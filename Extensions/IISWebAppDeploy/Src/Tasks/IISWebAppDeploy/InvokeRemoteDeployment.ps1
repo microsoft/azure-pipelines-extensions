@@ -1,7 +1,7 @@
 ﻿$InitializationScript = {
     function Load-AgentAssemblies
     {
-        $serverOMDirectory = Get-VstsTaskVariable -Name 'Agent.ServerOMDirectory' -Require
+        $serverOMDirectory = $env:AGENT_SERVEROMDIRECTORY
         Get-ChildItem $serverOMDirectory\*.dll | % {
         [void][reflection.assembly]::LoadFrom( $_.FullName )
         Write-Verbose "Loading .NET assembly:`t$($_.name)"
