@@ -350,7 +350,7 @@
       "helpMarkDown": "Setting it to true will deploy the Web application in-parallel on the target machines."
     }
   ],
-    "instanceNameFormat": "Manage IIS App: $(Website)",
+    "instanceNameFormat": "Manage IIS App: $(WebsiteName)",
     "execution": {
         "PowerShell": {
         "target": "$(currentDirectory)\\Main.ps1",
