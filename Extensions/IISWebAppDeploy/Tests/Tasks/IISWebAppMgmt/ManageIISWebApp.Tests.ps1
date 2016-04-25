@@ -3,11 +3,11 @@ $scritpDirName = Split-Path -Leaf $currentScriptPath
 $sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path).Replace(".Tests.", ".")
 $VerbosePreference = 'Continue'
 
-$deployIISWebAppPath = "$currentScriptPath\..\..\..\Src\Tasks\$scritpDirName\$sut"
+$manageIISWebAppPath = "$currentScriptPath\..\..\..\Src\Tasks\$scritpDirName\$sut"
 
-if(-not (Test-Path -Path $deployIISWebAppPath ))
+if(-not (Test-Path -Path $manageIISWebAppPath ))
 {
-    throw [System.IO.FileNotFoundException] "Unable to find DeployIISWebApp.ps1 at $deployIISWebAppDirectoryPath"
+    throw [System.IO.FileNotFoundException] "Unable to find ManageIISWebApp.ps1 at $manageIISWebAppPath"
 }
 
 $invokeRemoteDeploymentPath = "$currentScriptPath\..\..\..\Src\Tasks\$scritpDirName\InvokeRemoteDeployment.ps1"
@@ -25,7 +25,7 @@ function Import-Module
     Write-Verbose "Dummy Import-Module" -Verbose
 }
 
-. "$deployIISWebAppPath"
+. "$manageIISWebAppPath"
 . "$invokeRemoteDeploymentPath"
 
 Describe "Tests for testing Get-HostName functionality" {

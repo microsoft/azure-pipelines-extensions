@@ -3,14 +3,14 @@ $scritpDirName = Split-Path -Leaf $currentScriptPath
 $sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path).Replace(".Tests.", ".")
 $VerbosePreference = 'Continue'
 
-$msDeployOnTargetMachinesPath = "$currentScriptPath\..\..\..\Src\Tasks\$scritpDirName\$sut"
+$appCmdOnTargetMachinesPath = "$currentScriptPath\..\..\..\Src\Tasks\$scritpDirName\$sut"
 
-if(-not (Test-Path -Path $msDeployOnTargetMachinesPath ))
+if(-not (Test-Path -Path $appCmdOnTargetMachinesPath ))
 {
-    throw [System.IO.FileNotFoundException] "Unable to find MsDeployOnTargetMachines.ps1 at $msDeployOnTargetMachinesDirectoryPath"
+    throw [System.IO.FileNotFoundException] "Unable to find MsDeployOnTargetMachines.ps1 at $appCmdOnTargetMachinesPath"
 }
 
-. "$msDeployOnTargetMachinesPath"
+. "$appCmdOnTargetMachinesPath"
 
 Describe "Tests for verifying Run-Command functionality" {
 
