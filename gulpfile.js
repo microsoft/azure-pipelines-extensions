@@ -6,20 +6,17 @@ var shell = require("shelljs");
 var spawn = require('child_process').spawn;
 var fs = require('fs');
 
-var buildDirectory = "_build";
-var packageManifestFile = "vss-extension.json";
-var packageDirectory = "_package";
-var sourcePaths = {
-    sourceFiles: ["Extensions/**/*"]
-};
-var srcBuildDirectory = "_build/src";
+var buildRoot = "_build";
+var packageRoot = "_package";
+var extnPaths = "_build/Extensions/";
+var sourcePaths = "Extensions/**/*";
 
 gulp.task("build", function() {
-    gulp.src(sourcePaths.sourceFiles, { base: "." }).pipe(gulp.dest(buildDirectory));
+    gulp.src(sourcePaths, { base: "." }).pipe(gulp.dest(buildRoot));
 });
 
 gulp.task("clean", function() {
-    return del([buildDirectory, packageDirectory]);
+    return del([buildRoot, packageRoot]);
 });
 
 gulp.task("test", ["build"], function(done) {
@@ -47,13 +44,17 @@ gulp.task("test", ["build"], function(done) {
 
 
 gulp.task("package", function() {
-        del(packageDirectory);
-        shell.mkdir("-p", packageDirectory);
-        createVsixPackage();
+        fs.readdirSync(extnPaths).filter(function (file) {
+            return fs.statSync(path.join(extnPaths, file)).isDirectory() && file != "Common";
+        }).forEach(createVsixPackage);
 });
 
-var createVsixPackage = function() {
-    var packagingCmd = "tfx extension create --manifeset-globs " + packageManifestFile + " --root " + srcBuildDirectory + " --output-path " + packageDirectory;
+var createVsixPackage = function(extensionName) {
+    var extnOutputPath = path.join(packageRoot, extensionName);
+    var extnManifestPath = path.join(extnPaths, extensionName, "Src");
+    del(extnOutputPath);
+    shell.mkdir("-p", extnOutputPath);
+    var packagingCmd = "tfx extension create --manifeset-globs vss-extension.json --root " + extnManifestPath + " --output-path " + extnOutputPath;
     executeCommand(packagingCmd, function() {});
 }
 
