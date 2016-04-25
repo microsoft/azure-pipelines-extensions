@@ -12,7 +12,6 @@
   "devDependencies": {
     "del": "^2.2.0",
     "fs": "0.0.2",
-    "fs-extra": "^0.28.0",
     "gulp": "^3.9.0",
     "gulp-util": "^3.0.7",
     "shelljs": "^0.6.0"

@@ -45,7 +45,6 @@ Function Run-Tests()
 }
 
 # Run tests for all extensions.
-# Get folder names under _build folder
 $modulePaths = @()
 
 Get-ChildItem -Directory -Path .\_build\Extensions -Exclude "Common" | Select Name | %{ $modulePaths += $_.Name }

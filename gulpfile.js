@@ -11,7 +11,7 @@ var packageRoot = "_package";
 var extnPaths = "_build/Extensions/";
 var sourcePaths = "Extensions/**/*";
 
-gulp.task("build", function() {
+gulp.task("build", ["clean"], function() {
     gulp.src(sourcePaths, { base: "." }).pipe(gulp.dest(buildRoot));
 });
 
@@ -43,7 +43,7 @@ gulp.task("test", ["build"], function(done) {
 });
 
 
-gulp.task("package", function() {
+gulp.task("package", ["test"], function() {
         fs.readdirSync(extnPaths).filter(function (file) {
             return fs.statSync(path.join(extnPaths, file)).isDirectory() && file != "Common";
         }).forEach(createVsixPackage);
