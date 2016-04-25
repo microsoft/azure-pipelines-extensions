@@ -22,14 +22,14 @@ gulp.task("clean", function() {
     return del([buildDirectory, packageDirectory]);
 });
 
-gulp.task("testci", ["build"], function(done) {
+gulp.task("test", ["build"], function(done) {
     // Runs powershell pester tests ( Unit Test)
-    var pester = spawn('powershell.exe', ['.\\InvokePester.ps1' ,'Tests'], { stdio: 'inherit' });
+    var pester = spawn('powershell.exe', ['.\\InvokePester.ps1'], { stdio: 'inherit' });
     pester.on('exit', function(code, signal) {
 
         if (code != 0) {
            throw new gulpUtil.PluginError({
-              plugin: 'testci',
+              plugin: 'test',
               message: 'Pester Tests Failed!!!'
            });
 
@@ -67,7 +67,5 @@ var executeCommand = function(cmd, callback) {
        }
     });
 }
-
-gulp.task("test", ["testci"]);
 
 gulp.task("default", ["build"]);

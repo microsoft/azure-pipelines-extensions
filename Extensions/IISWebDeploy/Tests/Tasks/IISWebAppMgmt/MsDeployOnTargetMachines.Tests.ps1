@@ -1,8 +1,9 @@
 ﻿$currentScriptPath = Split-Path -Parent $MyInvocation.MyCommand.Path
+$scritpDirName = Split-Path -Leaf $currentScriptPath
 $sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path).Replace(".Tests.", ".")
 $VerbosePreference = 'Continue'
 
-$msDeployOnTargetMachinesPath = "$currentScriptPath\..\..\..\src\Tasks\IISWebAppMgmt\$sut"
+$msDeployOnTargetMachinesPath = "$currentScriptPath\..\..\..\Src\Tasks\$scritpDirName\$sut"
 
 if(-not (Test-Path -Path $msDeployOnTargetMachinesPath ))
 {

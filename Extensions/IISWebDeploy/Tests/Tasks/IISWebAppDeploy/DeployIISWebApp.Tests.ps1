@@ -1,15 +1,16 @@
 ﻿$currentScriptPath = Split-Path -Parent $MyInvocation.MyCommand.Path
+$scritpDirName = Split-Path -Leaf $currentScriptPath
 $sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path).Replace(".Tests.", ".")
 $VerbosePreference = 'Continue'
 
-$deployIISWebAppPath = "$currentScriptPath\..\..\..\src\Tasks\IISWebAppDeploy\$sut"
+$deployIISWebAppPath = "$currentScriptPath\..\..\..\Src\Tasks\$scritpDirName\$sut"
 
 if(-not (Test-Path -Path $deployIISWebAppPath ))
 {
     throw [System.IO.FileNotFoundException] "Unable to find DeployIISWebApp.ps1 at $deployIISWebAppDirectoryPath"
 }
 
-$invokeRemoteDeploymentPath = "$currentScriptPath\..\..\..\src\Tasks\IISWebAppDeploy\InvokeRemoteDeployment.ps1"
+$invokeRemoteDeploymentPath = "$currentScriptPath\..\..\..\Src\Tasks\$scritpDirName\InvokeRemoteDeployment.ps1"
 
 
 if(-not (Test-Path -Path $invokeRemoteDeploymentPath ))
