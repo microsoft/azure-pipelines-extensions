@@ -30,20 +30,18 @@ function Get-HostName
     else
     {
         $hostName = $hostNameWithOutSNI
-    }   
+    }
     return $hostName
 }
 
-function Trim-Inputs([ref]$package, [ref]$paramFile, [ref]$siteName, [ref]$physicalPath, [ref]$poolName, [ref]$websitePathAuthuser, [ref]$appPoolUser, [ref]$adminUser)
+function Trim-Inputs([ref]$siteName, [ref]$physicalPath, [ref]$poolName, [ref]$websitePathAuthuser, [ref]$appPoolUser, [ref]$adminUser)
 {
     Write-Verbose "Triming inputs for excess spaces, double quotes"
 
-    $package.Value = $package.Value.Trim('"', ' ')
-    $paramFile.Value = $paramFile.Value.Trim('"', ' ')
     $siteName.Value = $siteName.Value.Trim('"', ' ')
     $physicalPath.Value = $physicalPath.Value.Trim('"', ' ')
     $poolName.Value = $poolName.Value.Trim('"', ' ')
-    
+
     $appPoolUser.Value = $appPoolUser.Value.Trim()
     $websitePathAuthuser.Value = $websitePathAuthuser.Value.Trim()
     $adminUser.Value = $adminUser.Value.Trim()
@@ -70,31 +68,6 @@ function Validate-Inputs
     }
 }
 
-function Compute-MsDeploy-SetParams
-{
-    param(
-        [string]$createWebsite,
-        [string]$websiteName,
-        [string]$overRideParams
-    )
-
-    Write-Verbose "Computing override params for msdeploy."
-    if($createWebsite -ieq "true")
-    {
-        if([string]::IsNullOrWhiteSpace($overRideParams))
-        {
-            Write-Verbose "Adding override params to ensure deployment happens on $websiteName"
-            $overRideParams = [string]::Format('name="IIS Web Application Name",value="{0}"', $websiteName)
-        }
-        elseif(!$overRideParams.Contains("IIS Web Application Name")) 
-        {
-            Write-Verbose "Adding override params to ensure deployment happens on $websiteName"
-            $overRideParams = $overRideParams + [string]::Format('{0}name="IIS Web Application Name",value="{1}"',  [System.Environment]::NewLine, $websiteName)
-        }
-    }
-    return $overRideParams
-}
-
 function Escape-DoubleQuotes
 {
     param(
@@ -107,9 +80,7 @@ function Escape-DoubleQuotes
 function Get-ScriptToRun
 {
     param (
-        [string]$webDeployPackage,
-        [string]$webDeployParamFile,
-        [string]$overRideParams,
+        [string]$createWebsite,
         [string]$websiteName,
         [string]$websitePhysicalPath,
         [string]$websitePhysicalPathAuth,
@@ -123,21 +94,20 @@ function Get-ScriptToRun
         [string]$hostName,
         [string]$serverNameIndication,
         [string]$sslCertThumbPrint,
+        [string]$createAppPool,
         [string]$appPoolName,
         [string]$pipeLineMode,
         [string]$dotNetVersion,
         [string]$appPoolIdentity,
         [string]$appPoolUsername,
         [string]$appPoolPassword,
-        [string]$appCmdCommands,
-        [string]$createWebsite,
-        [string]$createAppPool
+        [string]$appCmdCommands
     )
 
-    $msDeployScript = Get-Content  ./MsDeployOnTargetMachines.ps1 | Out-String
-    $invokeMain = "Execute-Main -WebDeployPackage `"$webDeployPackage`" -WebDeployParamFile `"$webDeployParamFile`" -OverRideParams `"$overRideParams`" -WebsiteName `"$websiteName`" -WebsitePhysicalPath `"$websitePhysicalPath`" -WebsitePhysicalPathAuth `"$websitePhysicalPathAuth`" -WebsiteAuthUserName `"$websiteAuthUserName`" -WebsiteAuthUserPassword `"$websiteAuthUserPassword`" -AddBinding $addBinding -AssignDuplicateBinding $assignDuplicateBinding -Protocol $protocol -IpAddress `"$ipAddress`" -Port $port -HostName `"$hostName`" -ServerNameIndication $serverNameIndication -SslCertThumbPrint `"$sslCertThumbPrint`" -AppPoolName `"$appPoolName`" -DotNetVersion `"$dotNetVersion`" -PipeLineMode $pipeLineMode -AppPoolIdentity $appPoolIdentity -AppPoolUsername `"$appPoolUsername`" -AppPoolPassword `"$appPoolPassword`" -AppCmdCommands `"$appCmdCommands`" -CreateWebsite $createWebsite -CreateAppPool $createAppPool"
+    $msDeployScript = Get-Content  ./AppCmdOnTargetMachines.ps1 | Out-String
+    $invokeMain = "Execute-Main -CreateWebsite $createWebsite -WebsiteName `"$websiteName`" -WebsitePhysicalPath `"$websitePhysicalPath`" -WebsitePhysicalPathAuth `"$websitePhysicalPathAuth`" -WebsiteAuthUserName `"$websiteAuthUserName`" -WebsiteAuthUserPassword `"$websiteAuthUserPassword`" -AddBinding $addBinding -AssignDuplicateBinding $assignDuplicateBinding -Protocol $protocol -IpAddress `"$ipAddress`" -Port $port -HostName `"$hostName`" -ServerNameIndication $serverNameIndication -SslCertThumbPrint `"$sslCertThumbPrint`" -CreateAppPool $createAppPool -AppPoolName `"$appPoolName`" -DotNetVersion `"$dotNetVersion`" -PipeLineMode $pipeLineMode -AppPoolIdentity $appPoolIdentity -AppPoolUsername `"$appPoolUsername`" -AppPoolPassword `"$appPoolPassword`" -AppCmdCommands `"$appCmdCommands`""
 
-    Write-Verbose "Executing main funnction in MsDeployOnTargetMachines : $invokeMain"
+    Write-Verbose "Executing main funnction in AppCmdOnTargetMachines : $invokeMain"
     $msDeployOnTargetMachinesScript = [string]::Format("{0} {1} ( {2} )", $msDeployScript,  [Environment]::NewLine,  $invokeMain)
     return $msDeployOnTargetMachinesScript
 }
@@ -175,9 +145,6 @@ function Main
     [string]$adminPassword,
     [string]$winrmProtocol,
     [string]$testCertificate,
-    [string]$webDeployPackage,
-    [string]$webDeployParamFile,
-    [string]$overRideParams,
     [string]$createWebsite,
     [string]$websiteName,
     [string]$websitePhysicalPath,
@@ -211,10 +178,6 @@ function Main
     Write-Verbose "adminUserName = $adminUserName"
     Write-Verbose "winrmProtocol  = $winrmProtocol"
     Write-Verbose "testCertificate = $testCertificate"
-    Write-Verbose "webDeployPackage = $webDeployPackage"
-    Write-Verbose "webDeployParamFile = $webDeployParamFile"
-    Write-Verbose "overRideParams = $overRideParams"
-    Write-Verbose "deployInParallel = $deployInParallel"
 
     Write-Verbose "createWebsite = $createWebsite"
     Write-Verbose "websiteName = $websiteName"
@@ -239,12 +202,10 @@ function Main
     Write-Verbose "appCmdCommands = $appCmdCommands"
     Write-Verbose "deployInParallel = $deployInParallel"
 
-    Trim-Inputs -package ([ref]$webDeployPackage) -paramFile ([ref]$webDeployParamFile) -siteName ([ref]$websiteName) -physicalPath ([ref]$websitePhysicalPath)  -poolName ([ref]$appPoolName) -websitePathAuthuser ([ref]$websiteAuthUserName) -appPoolUser ([ref]$appPoolUsername) -adminUser ([ref]$adminUserName)
+    Trim-Inputs -package -siteName ([ref]$websiteName) -physicalPath ([ref]$websitePhysicalPath)  -poolName ([ref]$appPoolName) -websitePathAuthuser ([ref]$websiteAuthUserName) -appPoolUser ([ref]$appPoolUsername) -adminUser ([ref]$adminUserName)
 
     Validate-Inputs -createWebsite $createWebsite -websiteName $websiteName -createAppPool $createAppPool -appPoolName $appPoolName
-    $overRideParams = Compute-MsDeploy-SetParams -createWebsite $createWebsite -websiteName $websiteName -overRideParams $overRideParams
     $appCmdCommands = Escape-DoubleQuotes -str $appCmdCommands
-    $overRideParams = Escape-DoubleQuotes -str $overRideParams
     $script = Get-ScriptToRun -webDeployPackage $webDeployPackage -webDeployParamFile $webDeployParamFile -overRideParams $overRideParams -websiteName $websiteName -websitePhysicalPath $websitePhysicalPath -websitePhysicalPathAuth $websitePhysicalPathAuth -websiteAuthUserName $websiteAuthUserName -websiteAuthUserPassword $websiteAuthUserPassword -addBinding $addBinding -assignDuplicateBinding $assignDuplicateBinding -protocol $protocol -ipAddress $ipAddress -port $port -hostName $hostName -serverNameIndication $serverNameIndication -sslCertThumbPrint $sslCertThumbPrint -appPoolName $appPoolName -pipeLineMode $pipeLineMode -dotNetVersion $dotNetVersion -appPoolIdentity $appPoolIdentity -appPoolUsername $appPoolUsername -appPoolPassword $appPoolPassword -appCmdCommands $appCmdCommands -createWebsite $createWebsite -createAppPool $createAppPool
     Run-RemoteDeployment -machinesList $machinesList -scriptToRun $script -adminUserName $adminUserName -adminPassword $adminPassword -winrmProtocol $winrmProtocol -testCertificate $testCertificate -deployInParallel $deployInParallel
 }

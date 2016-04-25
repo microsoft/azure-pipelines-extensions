@@ -10,7 +10,7 @@ function Get-VstsTaskVariable {
     return $Name
 }
 
-$invokeRemoteDeployment = "$currentScriptPath\..\..\..\src\Tasks\IISWebAppDeploy\$sut"
+$invokeRemoteDeployment = "$currentScriptPath\..\Src\$sut"
 
 if(-not (Test-Path -Path $invokeRemoteDeployment ))
 {

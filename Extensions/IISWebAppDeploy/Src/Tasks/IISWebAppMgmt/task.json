@@ -1,8 +1,8 @@
 {
-  "id": "50ACC50F-7D15-470B-83C1-578B3F3EEBA2",
-  "name": "IISWebAppExtension",
-  "friendlyName": "IIS Web Application Extension",
-  "description": "Deploy by MSDeploy, create/update website & app pools",
+  "id": "0F5CD14F-3C01-4D5C-8F7A-EB96C5738DCC",
+  "name": "IISWebAppMgmt",
+  "friendlyName": "IIS Web Application Management",
+  "description": "create/update website & app pools",
   "helpMarkDown": "[More Information](http://aka.ms/iiswebappdeployreadme)",
   "category": "Deploy",
   "visibility": [
@@ -17,13 +17,8 @@
   },
   "demands": [
   ],
-  "minimumAgentVersion": "1.91.0",
+  "minimumAgentVersion": "1.99.0",
   "groups": [
-    {
-      "name": "deployment",
-      "displayName": "Deployment",
-      "isExpanded": true
-    },
     {
       "name": "website",
       "displayName": "Website",
@@ -85,33 +80,6 @@
       "visibleRule": "WinRMProtocol = Https",
       "required": false,
       "helpMarkDown": "Select the option to skip validating the authenticity of the machine's certificate by a trusted certification authority. The parameter is required for the WinRM HTTPS protocol."
-    },
-    {
-      "name": "WebDeployPackage",
-      "type": "string",
-      "label": "Web Deploy Package",
-      "required": true,
-      "groupName": "deployment",
-      "defaultValue": "",
-      "helpMarkDown": "Location of the Web Deploy (MSDeploy) zip file on the target machines or on a UNC path like, \\\\\\\\BudgetIT\\WebDeploy\\WebDeployPackage.zip. The UNC path should be accessible to the machine's administrator account. Environment variables are also supported like, $env:windir, $env:systemroot, like, $env:windir\\FabrikamFibre\\Web."
-    },
-    {
-      "name": "WebDeployParamFile",
-      "type": "string",
-      "label": "Web Deploy Parameter File",
-      "required": false,
-      "groupName": "deployment",
-      "defaultValue": "",
-      "helpMarkDown": "Location of the Parameter file on the target machines or on a UNC path. Parameter file is used to override Web application configuration settings like, IIS Web application name or database connection string."
-    },
-    {
-      "name": "OverRideParams",
-      "type": "multiLine",
-      "label": "Override Parameters",
-      "required": false,
-      "groupName": "deployment",
-      "defaultValue": "",
-      "helpMarkDown": "Parameters specified here will override the parameters in the MSDeploy zip file and the Parameter file. To override more than one parameter use line separator, e.g., <br/> \"IIS Web Application Name\"=\"Fabrikam\" <br/> \"ConnectionString\"=\"Server=localhost;Database=Fabrikam;\""
     },
     {
       "name": "CreateWebsite",
@@ -382,10 +350,10 @@
       "helpMarkDown": "Setting it to true will deploy the Web application in-parallel on the target machines."
     }
   ],
-    "instanceNameFormat": "Deploy IIS App: $(WebDeployPackage)",
+    "instanceNameFormat": "Manage IIS App: $(Website)",
     "execution": {
         "PowerShell": {
-        "target": "$(currentDirectory)\\InvokeDeployIISWebApp.ps1",
+        "target": "$(currentDirectory)\\Main.ps1",
         "argumentFormat": "",
         "workingDirectory": "$(currentDirectory)"
         }

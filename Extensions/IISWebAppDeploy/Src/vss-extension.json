@@ -35,6 +35,9 @@
     {
       "path": "images",
       "addressable": true
+    },
+    {
+      "path": "Tasks/IISWebAppMgmt"
     }
   ],
   "targets": [
@@ -42,7 +45,7 @@
       "id": "Microsoft.VisualStudio.Services"
     }
   ],
-  "contributions": [    
+  "contributions": [
     {
       "id": "iiswebappdeploy-task",
       "type": "ms.vss-distributed-task.task",
@@ -51,6 +54,16 @@
       ],
       "properties": {
         "name": "Tasks/IISWebAppDeploy"
+      }
+    },
+    {
+      "id": "iiswebappmgmt-task",
+      "type": "ms.vss-distributed-task.task",
+      "targets": [
+        "ms.vss-distributed-task.tasks"
+      ],
+      "properties": {
+        "name": "Tasks/IISWebAppMgmt"
       }
     }
   ]

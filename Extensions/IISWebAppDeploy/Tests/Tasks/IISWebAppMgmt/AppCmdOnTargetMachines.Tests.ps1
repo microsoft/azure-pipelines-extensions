@@ -1,17 +1,18 @@
 ﻿$currentScriptPath = Split-Path -Parent $MyInvocation.MyCommand.Path
+$scritpDirName = Split-Path -Leaf $currentScriptPath
 $sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path).Replace(".Tests.", ".")
 $VerbosePreference = 'Continue'
 
-$msDeployOnTargetMachinesPath = "$currentScriptPath\..\..\..\src\Tasks\IISWebAppDeploy\$sut"
+$appCmdOnTargetMachinesPath = "$currentScriptPath\..\..\..\Src\Tasks\$scritpDirName\$sut"
 
-if(-not (Test-Path -Path $msDeployOnTargetMachinesPath ))
+if(-not (Test-Path -Path $appCmdOnTargetMachinesPath ))
 {
-    throw [System.IO.FileNotFoundException] "Unable to find MsDeployOnTargetMachines.ps1 at $msDeployOnTargetMachinesDirectoryPath"
+    throw [System.IO.FileNotFoundException] "Unable to find MsDeployOnTargetMachines.ps1 at $appCmdOnTargetMachinesPath"
 }
 
-. "$msDeployOnTargetMachinesPath"
+. "$appCmdOnTargetMachinesPath"
 
-Describe "Tests for verifying Run-Command functionality"{
+Describe "Tests for verifying Run-Command functionality" {
 
     Context "When command execution fails" {
 
@@ -49,28 +50,6 @@ Describe "Tests for verifying Run-Command functionality"{
     }
 }
 
-Describe "Tests for verifying Get-MsDeployLocation functionality" {
-
-    $msDeployNotFoundError = "Cannot find MsDeploy.exe location. Verify MsDeploy.exe is installed on $env:ComputeName and try operation again."
-    Context "Get-ChildItem for fetching MsDeploy location, returns non-existing path" {
-
-        $regKeyWithNoInstallPath = "HKLM:\SOFTWARE\Microsoft"
-                
-        It "Should throw exception" {
-            { Get-MsDeployLocation -regKeyPath $regKeyWithNoInstallPath } | Should Throw
-        }
-    }
-
-    Context "Get-ChildItem for fails as MsDeploy not installed on the machine" {
-            
-        $inValidInstallPathRegKey = "HKLM:\SOFTWARE\Microsoft\IIS Extensions\Invalid"
-
-        It "Should throw exception" {
-            { Get-MsDeployLocation -regKeyPath $inValidInstallPathRegKey } | Should Throw $msDeployNotFoundError
-        }
-    }
-}
-
 Describe "Tests for verifying Get-AppCmdLocation functionality" {
 
     $appCmdNotFoundError = "Cannot find appcmd.exe location. Verify IIS is configured on $env:ComputerName and try operation again."
@@ -82,7 +61,7 @@ Describe "Tests for verifying Get-AppCmdLocation functionality" {
         $regKey = @{ MajorVersion = "6" 
                      InstallPath = "$env:SystemDrive"}
         Mock Get-ItemProperty { return $regKey } -ParameterFilter { $Path -eq $regKeyWithNoInstallPath }
-        
+
         It "Should throw task not supported exception" {
             { Get-AppCmdLocation -regKeyPath $regKeyWithNoInstallPath } | Should Throw $appCmdMinVersionError
         }
@@ -92,7 +71,7 @@ Describe "Tests for verifying Get-AppCmdLocation functionality" {
 
         $regKeyWithNoInstallPath = "HKLM:\SOFTWARE\Microsoft"
         $regKey = @{ MajorVersion = "7" 
-                     InstallPath = "xyz:"}        
+                     InstallPath = "xyz:"}
         Mock Get-ItemProperty { return $regKey } -ParameterFilter { $Path -eq $regKeyWithNoInstallPath }
 
         It "Should throw appcmd not installed exception" {
@@ -102,7 +81,7 @@ Describe "Tests for verifying Get-AppCmdLocation functionality" {
 
     Context "Get-ItemProperty for given path throws exception as the reg path does not exist" {
 
-        $regKeyWithNoInstallPath = "HKLM:\SOFTWARE\Microsoft\Invalid"        
+        $regKeyWithNoInstallPath = "HKLM:\SOFTWARE\Microsoft\Invalid"
         
         It "Should throw exception" {
             { Get-AppCmdLocation -regKeyPath $regKeyWithNoInstallPath } | Should Throw $appCmdNotFoundError
@@ -121,133 +100,6 @@ Describe "Tests for verifying Get-AppCmdLocation functionality" {
         It "Should not throw exception"{
             $appCmdPath | Should Be "$env:SystemDrive\appcmd.exe"
             $version | Should Be 7
-        }
-    }
-}
-
-Describe "Tests for verifying Get-MsDeployCmdArgs functionality" {
-
-    $webDeployPackage = "WebAppPackage.zip"
-    $webDeployParamFile = "webDeployParamFile.xml"
-    $overRideParams = "Param=Value"
-
-    Context "When webdeploy package input only provided" {
-
-        Mock Test-Path { return $true }
-
-        $result = Get-MsDeployCmdArgs -webDeployPackage $webDeployPackage
-
-        It "msDeployCmdArgs should only contain -source:packge"{
-            ( $result.Contains([string]::Format('-source:package="{0}"', $webDeployPackage) ) ) | Should Be $true
-            ( $result.Contains([string]::Format('-setParamFile="{0}"', $webDeployParamFile) ) )| Should Be $false
-            ( $result.Contains("-setParam:$overRideParams") ) | Should Be $false
-        }
-    }
-
-    Context "When webdeploy and setParamFiles input only provided" {
-
-        Mock Test-Path { return $true }
-
-        $result = Get-MsDeployCmdArgs -webDeployPackage $webDeployPackage -webDeployParamFile $webDeployParamFile
-
-        It "msDeployCmdArgs should only contain -source:packge and -setParamFile" {
-            ( $result.Contains([string]::Format('-source:package="{0}"', $webDeployPackage) ) ) | Should Be $true
-            ( $result.Contains([string]::Format('-setParamFile="{0}"', $webDeployParamFile) ) )| Should Be $true
-            ( $result.Contains("-setParam:$overRideParams") ) | Should Be $false
-        }
-    }
-
-    Context "When all three inputs are provided" {
-
-        Mock Test-Path { return $true }
-
-        $result = Get-MsDeployCmdArgs -webDeployPackage $webDeployPackage -webDeployParamFile $webDeployParamFile -overRideParams $overRideParams
-        
-        It "msDeployCmdArgs should contain -source:packge, -setParamFile and -setParam" {
-            ( $result.Contains([string]::Format('-source:package="{0}"', $webDeployPackage) ) ) | Should Be $true
-            ( $result.Contains([string]::Format('-setParamFile="{0}"', $webDeployParamFile) ) )| Should Be $true
-            ( $result.Contains("-setParam:$overRideParams") ) | Should Be $true
-        }
-    }
-
-    Context "When webDeploy package does not exist" {
-
-        $InvalidPkg = "n:\Invalid\pkg.zip"
-        $errMsg = "Package does not exist : `"$InvalidPkg`""
-
-        It "Should throw exception"{
-            { Get-MsDeployCmdArgs -webDeployPackage $InvalidPkg -webDeployParamFile $webDeployParamFile -overRideParams $overRideParams } | Should Throw $errMsg
-        }        
-    }
-
-    Context "When setParamFile does not exist" {
-
-        Mock Test-Path { return $true } -ParameterFilter { $Path -eq $webDeployPackage }
-        $InvalidParamFile = "n:\Invalid\param.xml"
-        $errMsg = "Param file does not exist : `"$InvalidParamFile`""
-
-        It "Should throw exception"{
-            { Get-MsDeployCmdArgs -webDeployPackage $webDeployPackage -webDeployParamFile $InvalidParamFile -overRideParams $overRideParams } | Should Throw $errMsg
-        }
-    }
-
-    Context "When two override params is given" {
-
-        $param1 = "name1=value1"
-        $param2 = "name2=value2"
-
-        $params = $param1 + [System.Environment]::NewLine + $param2
-
-        Mock Test-Path { return $true }
-
-        $result = Get-MsDeployCmdArgs -webDeployPackage $webDeployPackage -webDeployParamFile $webDeployParamFile -overRideParams $params
-        
-        It "msDeployCmdArgs should contain -source:packge, -setParamFile and -setParam for each override param" {
-            ( $result.Contains([string]::Format('-source:package="{0}"', $webDeployPackage) ) ) | Should Be $true
-            ( $result.Contains([string]::Format('-setParamFile="{0}"', $webDeployParamFile) ) )| Should Be $true
-            ( $result.Contains("-setParam:$param1") ) | Should Be $true
-            ( $result.Contains("-setParam:$param2") ) | Should Be $true
-        }
-    }
-
-    Context "When two override params with an empty line in between is given" {
-
-        $param1 = "name1=value1"
-        $param2 = " "
-        $param3 = "name2=value2"
-
-        $params = $param1 + [System.Environment]::NewLine + $param2 + [System.Environment]::NewLine + $param3
-
-        Mock Test-Path { return $true }
-
-        $result = Get-MsDeployCmdArgs -webDeployPackage $webDeployPackage -webDeployParamFile $webDeployParamFile -overRideParams $params
-
-        It "msDeployCmdArgs should contain -source:packge, -setParamFile and -setParam for each override param"{
-            ( $result.Contains([string]::Format('-source:package="{0}"', $webDeployPackage) ) ) | Should Be $true
-            ( $result.Contains([string]::Format('-setParamFile="{0}"', $webDeployParamFile) ) )| Should Be $true
-            ( $result.Contains("-setParam:$param1") ) | Should Be $true
-            ( $result.Contains("-setParam:$param2") ) | Should Be $false
-            ( $result.Contains("-setParam:$param3") ) | Should Be $true
-        }
-    }
-
-    Context "When two override params with an new line in between is given"{
-
-        $param1 = " name1=value1"
-        $param2 = "name2=value2"
-
-        $params = $param1 + [System.Environment]::NewLine + [System.Environment]::NewLine + [System.Environment]::NewLine + $param2
-
-        Mock Test-Path { return $true }
-
-        $result = Get-MsDeployCmdArgs -webDeployPackage $webDeployPackage -webDeployParamFile $webDeployParamFile -overRideParams $params
-        
-        It "msDeployCmdArgs should contain -source:packge, -setParamFile and -setParam for each override param"{
-            ( $result.Contains([string]::Format('-source:package="{0}"', $webDeployPackage) ) ) | Should Be $true
-            ( $result.Contains([string]::Format('-setParamFile="{0}"', $webDeployParamFile) ) )| Should Be $true
-            ( $result.Contains([string]::Format("-setParam:{0}", $param1.Trim()))) | Should Be $true
-            ( $result.Contains("-setParam:$param2") ) | Should Be $true
-            ( $result.Contains([string]::Format('-setParam:{0}', [System.Environment]::NewLine) ) )| Should Be $false
         }
     }
 }
@@ -502,27 +354,6 @@ Describe "Tests for verifying Add-SslCert functionality" {
             ($output.Contains('netsh http show sslcert hostnameport=localhost:80')) | Should Be $true
             Assert-MockCalled Run-command -Times 1 -Exactly -ParameterFilter { $failOnErr -eq $false }
             Assert-MockCalled Run-command -Times 1
-        }
-    }
-}
-
-Describe "Tests for verifying Deploy-WebSite functionality" {
-
-    Context "It should append msDeploy path and msDeploy args and run"{
-
-        $msDeploy = "Msdeploy.exe"
-        $msDeployArgs = " -verb:sync -source:package=Web.zip -setParamFile=SampleParam.xml"
-        
-        Mock Run-Command -Verifiable { return }
-        Mock Get-MsDeployLocation -Verifiable { return $msDeploy }
-        Mock Get-MsDeployCmdArgs -Verifiable { return $msDeployArgs }
-
-        $output = Deploy-WebSite -webDeployPkg "Web.zip" -webDeployParamFile "SampleParam.xml" 4>&1 | Out-String
-
-        It "Should contain both msDeploy and msDeployArgs"{
-            ($output.Contains("$msDeploy")) | Should Be $true
-            ($output.Contains("$msDeployArgs")) | Should Be $true
-            Assert-VerifiableMocks
         }
     }
 }
@@ -883,7 +714,6 @@ Describe "Tests for verifying Create-And-Update-AppPool functionality" {
 Describe "Tests for verifying Execute-Main functionality" {
 
     $AppCmdCommands = "ExtraCommands"
-    $WebDeployPackage = "WebDeploy.Pkg"
     $WebsiteName = "SampleWeb"
     Mock Run-AdditionalCommands -Verifiable { return } -ParameterFilter { $additionalCommands -eq $AppCmdCommands }
 
@@ -893,7 +723,6 @@ Describe "Tests for verifying Execute-Main functionality" {
         $CreateAppPool = "false"
         $CreateWebsite = "true"
 
-        Mock Deploy-WebSite -Verifiable { return } -ParameterFilter { $webDeployPkg -eq $WebDeployPackage }
         Mock Create-And-Update-WebSite -Verifiable { return } -ParameterFilter { $WebsiteName -eq $WebsiteName }
         Mock Create-And-Update-AppPool { return } -ParameterFilter { $appPoolName -eq $AppPoolName }
 
@@ -911,9 +740,8 @@ Describe "Tests for verifying Execute-Main functionality" {
         $createAppPool = "true"
         $CreateWebsite = "true"
 
-        Mock Deploy-WebSite -Verifiable { return } -ParameterFilter { $webDeployPkg -eq $WebDeployPackage }
         Mock Create-And-Update-WebSite -Verifiable { return } -ParameterFilter { $WebsiteName -eq $WebsiteName }
-        Mock Create-And-Update-AppPool -Verifiable { return } -ParameterFilter { $appPoolName -eq $AppPoolName }        
+        Mock Create-And-Update-AppPool -Verifiable { return } -ParameterFilter { $appPoolName -eq $AppPoolName }
 
         Execute-Main -AppPoolName $AppPoolName -CreateWebsite $CreateWebsite -CreateAppPool $CreateAppPool
 
@@ -922,13 +750,10 @@ Describe "Tests for verifying Execute-Main functionality" {
         }
     }
     
-    Context "CreateWebSite is false and website exits"{
+    Context "CreateWebSite is false" {
 
         $CreateWebsite = "false"
-
-        Mock Deploy-WebSite -Verifiable { return } -ParameterFilter { $webDeployPkg -eq $WebDeployPackage }
         Mock Create-And-Update-WebSite { return } -ParameterFilter { $SiteName -eq $WebsiteName }
-        Mock Does-WebSiteExists -Verifiable { return $true } -ParameterFilter { $SiteName -eq $WebsiteName }
 
         Execute-Main -CreateWebsite $CreateWebsite
 
@@ -938,30 +763,11 @@ Describe "Tests for verifying Execute-Main functionality" {
         }
     }
 
-    Context "CreateWebSite is false and website does not exist"{
-
-        $CreateWebsite = "false"
-        $errorMsg = "Website does not exist and you did not request to create it - deployment might fail."
-                
-        Mock Create-And-Update-WebSite { return } -ParameterFilter { $SiteName -eq $WebsiteName }
-        Mock Does-WebSiteExists -Verifiable { return $false } -ParameterFilter { $SiteName -eq $WebsiteName }
-        Mock Deploy-WebSite -Verifiable { return ""} -ParameterFilter { $webDeployPkg -eq $webDeployPackage }
-
-        $output = Execute-Main -CreateWebsite $CreateWebsite -WebsiteName $WebsiteName 4>&1 | Out-String
-        It "Exception should be thrown"{
-            ($output.Contains($errorMsg)) | Should Be $true
-            Assert-VerifiableMocks
-            Assert-MockCalled Create-And-Update-WebSite -Times 0
-        }
-
-    }
-
-    Context "CreateWebSite is true"{
+    Context "CreateWebSite is true and protocol is http"{
 
         $Protocol = "http"
         $CreateWebsite = "true"
 
-        Mock Deploy-WebSite -Verifiable { return } -ParameterFilter { $webDeployPkg -eq $WebDeployPackage }
         Mock Create-And-Update-WebSite -Verifiable { return } -ParameterFilter { $SiteName -eq $WebsiteName }
         Mock Add-SslCert { return }
         Mock Enable-SNI { return }
@@ -981,7 +787,6 @@ Describe "Tests for verifying Execute-Main functionality" {
         $SslCertThumbPrint = "SampleHash"
         $CreateWebsite = "true"
 
-        Mock Deploy-WebSite -Verifiable { return } -ParameterFilter { $webDeployPkg -eq $WebDeployPackage }
         Mock Create-And-Update-WebSite -Verifiable { return } -ParameterFilter { $SiteName -eq $WebsiteName }
         Mock Add-SslCert -Verifiable { return } -ParameterFilter { $Certhash -eq $SslCertThumbPrint }
         Mock Enable-SNI -Verifiable { return } -ParameterFilter { $SiteName -eq $WebsiteName }

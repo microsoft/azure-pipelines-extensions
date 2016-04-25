@@ -7,7 +7,7 @@
         Write-Verbose "Loading .NET assembly:`t$($_.name)"
         }
 
-        Get-ChildItem $env:AGENT_HOMEDIRECTORY\Agent\Worker\Modules\Microsoft.TeamFoundation.DistributedTask.Task.DevTestLabs\*.dll | % {
+        Get-ChildItem $serverOMDirectory\Modules\Microsoft.TeamFoundation.DistributedTask.Task.DevTestLabs\*.dll | % {
         [void][reflection.assembly]::LoadFrom( $_.FullName )
         Write-Verbose "Loading .NET assembly:`t$($_.name)"
         }
