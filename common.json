@@ -1,0 +1,14 @@
+{
+    "IISWebAppDeploy": [
+        {
+            "module": "DeploymentHelpers",
+            "dest": ""
+        }
+    ],
+    "IISWebAppMgmt": [
+        {
+            "module": "DeploymentHelpers",
+            "dest": ""
+        }
+    ]
+}
