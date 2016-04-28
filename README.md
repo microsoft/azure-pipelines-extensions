@@ -8,6 +8,6 @@ Extension that lets you deploy web application to IIS
 
 ## How to Build 
 
-    - Ensure you have instilled the node.js
+    - Ensure you have installed the node.js
     - gulp build
     - gulp test
