@@ -4,19 +4,28 @@ var gulpUtil = require('gulp-util');
 var path = require("path");
 var shell = require("shelljs");
 var spawn = require('child_process').spawn;
-var fs = require('fs');
+var fs = require('fs-extra');
+
+var pkgm = require('./package');
 
 var buildRoot = "_build";
 var packageRoot = "_package";
-var extnPaths = "_build/Extensions/";
+var extnBuildRoot = "_build/Extensions/";
 var sourcePaths = "Extensions/**/*";
-
-gulp.task("build", ["clean"], function() {
-    gulp.src(sourcePaths, { base: "." }).pipe(gulp.dest(buildRoot));
-});
 
 gulp.task("clean", function() {
     return del([buildRoot, packageRoot]);
+});
+
+gulp.task("compile", ["clean"], function(done) {
+    return gulp.src(sourcePaths, { base: "." }).pipe(gulp.dest(buildRoot));
+});
+
+gulp.task("build", ["compile"], function() {
+    //Foreach task under extensions copy common modules
+    fs.readdirSync(extnBuildRoot).filter(function (file) {
+        return fs.statSync(path.join(extnBuildRoot, file)).isDirectory() && file != "Common";
+    }).forEach(copyCommonModules);
 });
 
 gulp.task("test", ["build"], function(done) {
@@ -42,16 +51,25 @@ gulp.task("test", ["build"], function(done) {
     });
 });
 
-
 gulp.task("package", ["test"], function() {
-        fs.readdirSync(extnPaths).filter(function (file) {
-            return fs.statSync(path.join(extnPaths, file)).isDirectory() && file != "Common";
-        }).forEach(createVsixPackage);
+    fs.readdirSync(extnBuildRoot).filter(function (file) {
+        return fs.statSync(path.join(extnBuildRoot, file)).isDirectory() && file != "Common";
+    }).forEach(createVsixPackage);
 });
+
+var copyCommonModules = function(extensionName) {
+
+    var commonDeps = require('./common.json');
+    var commonSrc = path.join(__dirname, 'Extensions/Common');
+    var currentExtnRoot = path.join(__dirname, extnBuildRoot, extensionName);
+
+    return gulp.src(path.join(currentExtnRoot, '**/task.json'))
+        .pipe(pkgm.copyCommonModules(currentExtnRoot, commonDeps, commonSrc));
+}
 
 var createVsixPackage = function(extensionName) {
     var extnOutputPath = path.join(packageRoot, extensionName);
-    var extnManifestPath = path.join(extnPaths, extensionName, "Src");
+    var extnManifestPath = path.join(extnBuildRoot, extensionName, "Src");
     del(extnOutputPath);
     shell.mkdir("-p", extnOutputPath);
     var packagingCmd = "tfx extension create --manifeset-globs vss-extension.json --root " + extnManifestPath + " --output-path " + extnOutputPath;

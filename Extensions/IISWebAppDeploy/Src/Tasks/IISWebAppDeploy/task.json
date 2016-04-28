@@ -1,6 +1,6 @@
 {
   "id": "50ACC50F-7D15-470B-83C1-578B3F3EEBA2",
-  "name": "IISWebAppExtension",
+  "name": "IISWebAppDeploy",
   "friendlyName": "IIS Web Application Extension",
   "description": "Deploy by MSDeploy, create/update website & app pools",
   "helpMarkDown": "[More Information](http://aka.ms/iiswebappdeployreadme)",
