@@ -1,15 +1,34 @@
 ﻿$InitializationScript = {
-    function Load-AgentAssemblies
+    function Invoke-PsOnRemote
     {
-        $serverOMDirectory = $env:AGENT_SERVEROMDIRECTORY
-        Get-ChildItem $serverOMDirectory\*.dll | % {
-        [void][reflection.assembly]::LoadFrom( $_.FullName )
-        Write-Verbose "Loading .NET assembly:`t$($_.name)"
-        }
+        param(
+            [string]$machineDnsName,
+            [string]$scriptContent,
+            [int]$winRmPort,
+            [object]$credentials,
+            [bool]$skipCA,
+            [bool]$useHttp
+        )
 
-        Get-ChildItem $serverOMDirectory\Modules\Microsoft.TeamFoundation.DistributedTask.Task.DevTestLabs\*.dll | % {
-        [void][reflection.assembly]::LoadFrom( $_.FullName )
-        Write-Verbose "Loading .NET assembly:`t$($_.name)"
+        Import-Module .\Microsoft.VisualStudio.Services.DevTestLabs.Definition.dll
+        Import-Module .\Microsoft.VisualStudio.Services.DevTestLabs.Deployment.dll
+
+        try
+        {
+            $retryPolicy = New-Object -TypeName Microsoft.VisualStudio.Services.DevTestLabs.Definition.RetryPolicy -ArgumentList 5, 30000
+            $deploymentClient = New-Object -TypeName Microsoft.VisualStudio.Services.DevTestLabs.Deployment.Deployment.DeploymentClient -ArgumentList $retryPolicy
+            $deploymentMachineSpec = New-Object -TypeName Microsoft.VisualStudio.Services.DevTestLabs.Definition.DeploymentMachineSpecification -ArgumentList $machineDnsName, $winRmPort, $credentials, $skipCA, $useHttp, $false
+            $scriptSpecification = New-Object -TypeName Microsoft.VisualStudio.Services.DevTestLabs.Definition.ScriptSpecification -ArgumentList $scriptContent    
+            return $deploymentClient.RunPowerShellAsync($deploymentMachineSpec, $scriptSpecification, $null, [Uri]$null, [System.Threading.CancellationToken]::None, $true).Result
+        }
+        catch
+        {
+            $deploymentResponse = New-Object -TypeName Microsoft.VisualStudio.Services.DevTestLabs.Definition.DeploymentResponse
+            $deploymentResponse.MachineName = $machineDnsName
+            $deploymentResponse.Error = $_.Exception
+            $deploymentResponse.DeploymentLog = $_.Exception.ToString()
+            $deploymentResponse.Status = [Microsoft.VisualStudio.Services.DevTestLabs.Definition.DscStatus]::Failed
+            return $deploymentResponse
         }
     }
 }
@@ -18,25 +37,20 @@ $InvokePsOnRemoteScriptBlock = {
     param (
         [string]$machineName,
         [string]$scriptToRun,
-        [string]$winRmPort,
+        [int]$winRmPort,
         [object]$credential,
-        [string]$protocolOption,
-        [string]$skipCAOption
+        [bool]$useHttp,
+        [bool]$skipCA
         )
 
         Write-Verbose "Running Invoke-PsOnRemote"
         Write-Verbose "machineName = $machineName"
         Write-Verbose "winRmPort = $winRmPort"
-        Write-Verbose "protocolOption = $protocolOption"
-        Write-Verbose "skipCAOption = $skipCAOption"
-
-        Load-AgentAssemblies
-
+        Write-Verbose "useHttp = $useHttp"
+        Write-Verbose "skipCA = $skipCA"
         Write-Verbose "Initiating deployment on $machineName"
-        [String]$psOnRemoteCmd = "Invoke-PsOnRemote -MachineDnsName $machineName -ScriptBlockContent `$scriptToRun -WinRMPort $winRmPort -Credential `$credential $skipCAOption $protocolOption"
-        [scriptblock]$psOnRemoteScriptBlock = [scriptblock]::Create($psOnRemoteCmd)
-        $deploymentResponse = Invoke-Command -ScriptBlock $psOnRemoteScriptBlock
 
+        $deploymentResponse = Invoke-PsOnRemote -MachineDnsName $machineName -ScriptBlockContent `$scriptToRun -WinRMPort $winRmPort -Credential `$credential -skipCA $skipCA -useHttp $useHttp
         Write-Output $deploymentResponse
 }
 
@@ -59,11 +73,11 @@ function Invoke-RemoteDeployment
     Write-Verbose "machinesList = $machinesList"
     Write-Verbose "adminUserName = $adminUserName"
     Write-Verbose "protocol = $protocol"
-    
+
     $credential = Get-Credentials -userName $adminUserName -password $adminPassword
     $machinePortDict = Get-MachinePortDict -machinesList $machinesList -protocol $protocol
-    $skipCAOption = Get-SkipCAOption -useTestCertificate $testCertificate
-    $protocolOption = Get-ProtocolOption -protocol $protocol
+    $skipCA = Get-SkipCAOption -useTestCertificate $testCertificate
+    $useHttp = Get-UseHttpOption -protocol $protocol
 
     if($deployInParallel -eq "true")
     {
@@ -71,18 +85,18 @@ function Invoke-RemoteDeployment
         [hashtable]$Jobs = @{}
         foreach($machine in $machinePortDict.Keys)
         {
-            $winRmPort = $machinePortDict[$machine]
+            $winRmPort = [System.Convert]::ToInt32($machinePortDict[$machine])
             Write-Host "Deployment started for machine: $machine with port $winRmPort."
-            $job = Start-Job -InitializationScript $InitializationScript -ScriptBlock $InvokePsOnRemoteScriptBlock -ArgumentList $machine, $scriptToRun, $winRmPort, $credential, $protocolOption, $skipCAOption
+            $job = Start-Job -InitializationScript $InitializationScript -ScriptBlock $InvokePsOnRemoteScriptBlock -ArgumentList $machine, $scriptToRun, $winRmPort, $credential, $useHttp, $skipCA
             $Jobs.Add($job.Id, $machine)
         }
         
-        While (Get-Job)
+        While ($Jobs.Count -gt 0)
         {
             Start-Sleep -Seconds 10
             foreach($job in Get-Job)
             {
-                 if($job.State -ne "Running")
+                 if($Jobs.ContainsKey($job.Id) -and $job.State -ne "Running")
                 {
                     $output = Receive-Job -Id $job.Id
                     Remove-Job $job
@@ -99,6 +113,7 @@ function Invoke-RemoteDeployment
                         }
                         Write-Host "Deployment failed on machine $machineName with following message : $errorMsg"
                     }
+                    $Jobs.Remove($job.Id)
                 }
             }
         }
@@ -109,9 +124,9 @@ function Invoke-RemoteDeployment
         . $InitializationScript
         foreach($machine in $machinePortDict.Keys)
         {
-            $winRmPort = $machinePortDict[$machine]
+            $winRmPort = [System.Convert]::ToInt32($machinePortDict[$machine])
             Write-Host "Deployment started for machine: $machine with port $winRmPort."
-            $deploymentResponse = Invoke-Command -ScriptBlock $InvokePsOnRemoteScriptBlock -ArgumentList $machine, $scriptToRun, $winRmPort, $credential, $protocolOption, $skipCAOption
+            $deploymentResponse = Invoke-Command -ScriptBlock $InvokePsOnRemoteScriptBlock -ArgumentList $machine, $scriptToRun, $winRmPort, $credential, $useHttp, $skipCA
 
             if ($deploymentResponse.Status -ne "Passed")
             {
@@ -135,20 +150,20 @@ function Invoke-RemoteDeployment
     return $errorMsg
 }
 
-function Get-ProtocolOption
+function Get-UseHttpOption
 {
     param(
         [string]$protocol
     )
 
-    $protocolOption = ""
+    [bool]$useHttp = $false
     
     if($protocol -eq "http")
     {
-        $protocolOption = "-UseHttp"
+        $useHttp = $true
     }
 
-    return $protocolOption
+    return $useHttp
 }
 
 function Get-SkipCAOption
@@ -157,11 +172,13 @@ function Get-SkipCAOption
         [string]$useTestCertificate
     )
 
-    $skipCAOption = ""
+    [bool]$skipCAOption = $false
 
-    if($useTestCertificate -eq "true")
-    {
-        $skipCAOption = "-SkipCaCheck"
+    try {
+        $skipCAOption = [System.Convert]::ToBoolean($useTestCertificate)
+    }
+    catch [FormatException] {
+        $skipCAOption = $false
     }
 
     return $skipCAOption
