@@ -15,7 +15,7 @@ var createError = function(msg) {
 var validateTask = function(folderName, task) {
     var defer = Q.defer();
 
-    var vn = (task.name  || folderName);
+    var vn = (task.name || folderName);
 
     if (!task.id || !check.isUUID(task.id)) {
         defer.reject(createError(vn + ': id is a required guid'));
