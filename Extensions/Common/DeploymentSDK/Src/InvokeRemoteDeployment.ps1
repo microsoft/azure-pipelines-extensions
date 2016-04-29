@@ -5,21 +5,66 @@
             [string]$machineDnsName,
             [string]$scriptContent,
             [int]$winRmPort,
-            [object]$credentials,
+            [System.Net.NetworkCredential]$credentials,
             [bool]$skipCA,
             [bool]$useHttp
         )
 
-        Import-Module .\Microsoft.VisualStudio.Services.DevTestLabs.Definition.dll
-        Import-Module .\Microsoft.VisualStudio.Services.DevTestLabs.Deployment.dll
+        #TODO : $env:CURRENT_TASK_ROOTDIR variable is being set by main file of the task. Need to finout better way to do this
+        Import-Module $env:CURRENT_TASK_ROOTDIR\DeploymentSDK\Microsoft.VisualStudio.Services.DevTestLabs.Definition.dll
+        Import-Module $env:CURRENT_TASK_ROOTDIR\DeploymentSDK\Microsoft.VisualStudio.Services.DevTestLabs.Deployment.dll
 
+        Write-Verbose "Loading modules from $env:CURRENT_TASK_ROOTDIR\DeploymentSDK"
         try
         {
+            <#
+            RetryPolicy -- This is used to define retry policy for deployment client in case of network network issues or connection failures.
+            Params
+                int noOfRetries : The first argument defines how many times retry needs to happen.
+                int retryInterval : The second parameter specifies retry interval in milli seconds.
+            #>
             $retryPolicy = New-Object -TypeName Microsoft.VisualStudio.Services.DevTestLabs.Definition.RetryPolicy -ArgumentList 5, 30000
+
+            <#
+            DeploymentClient -- This class provides all the functionality necessary for doing a remote machine deployment using WinRM.
+            Params
+                RetryPolicy retryPolicy : Used to specify retry policy for this instance of deployment client.
+            #>
             $deploymentClient = New-Object -TypeName Microsoft.VisualStudio.Services.DevTestLabs.Deployment.Deployment.DeploymentClient -ArgumentList $retryPolicy
+            
+            <#
+            DeploymentMachineSpecification -- This class is used to specify all necessary information of target machine for the deployment.
+            Params
+                string machineDnsName -- It should be set to FQDN/IP Address of the target machine.
+                int winRmPort -- It should be set to the port number of target machine for which WinRM listeners are configured.
+                NetworkCredential credentials -- Administrator credentials for connecting to target machine.
+                bool skipCA -- It specifies whether to skip CA check for target machine certificate or not. This input is useful in case of https connection.
+                bool useHttp -- It specifies whether to use http or https protocol for making connection with target machine, set it to false for making https connection.
+                bool useCredSSP -- Input for cred SSP currently only false is supported.
+            #>
             $deploymentMachineSpec = New-Object -TypeName Microsoft.VisualStudio.Services.DevTestLabs.Definition.DeploymentMachineSpecification -ArgumentList $machineDnsName, $winRmPort, $credentials, $skipCA, $useHttp, $false
-            $scriptSpecification = New-Object -TypeName Microsoft.VisualStudio.Services.DevTestLabs.Definition.ScriptSpecification -ArgumentList $scriptContent    
-            return $deploymentClient.RunPowerShellAsync($deploymentMachineSpec, $scriptSpecification, $null, [Uri]$null, [System.Threading.CancellationToken]::None, $true).Result
+
+            <#
+            ScriptSpecification -- This class is used to specify all necessary information about the script to be executed
+            Params
+                string scriptContent -- Content of the script file to be executed
+            #>
+            $scriptSpecification = New-Object -TypeName Microsoft.VisualStudio.Services.DevTestLabs.Definition.ScriptSpecification -ArgumentList $scriptContent
+
+            <#
+            RunPowerShellAsync -- It executes the powershell script on the remote machine asychronously returns response.
+            Params
+                DeploymentMachineSpecification deploymentMachineSpec -- Deployment machine specification
+                ScriptSpecification scriptSpecification -- Script specification to be executed
+                ScriptSpecification initScriptSpecification -- Initialization script specification, in general used to set some environment variables etc.
+                Uri applicationPath -- Base path for the script to be executed.
+                CancellationToken cancellationToken -- Currently only None is supported.
+                bool enableDetailedLogging -- Setting it to true will result in getting all the logs related to remote deployment.
+                bool allowPallelDeployment -- Setting this to true will allows multiple deployments at the same time target machines
+            Returns:
+                DeploymentResponse -- This object contains all the logs related to deployment and remote infra structure service.
+            #>
+            return $deploymentClient.RunPowerShellAsync($deploymentMachineSpec, $scriptSpecification, $null, [Uri]$null, [System.Threading.CancellationToken]::None, $true, $true).Result
         }
         catch
         {
@@ -38,7 +83,7 @@ $InvokePsOnRemoteScriptBlock = {
         [string]$machineName,
         [string]$scriptToRun,
         [int]$winRmPort,
-        [object]$credential,
+        [System.Net.NetworkCredential]$credential,
         [bool]$useHttp,
         [bool]$skipCA
         )
@@ -50,7 +95,7 @@ $InvokePsOnRemoteScriptBlock = {
         Write-Verbose "skipCA = $skipCA"
         Write-Verbose "Initiating deployment on $machineName"
 
-        $deploymentResponse = Invoke-PsOnRemote -MachineDnsName $machineName -ScriptBlockContent `$scriptToRun -WinRMPort $winRmPort -Credential `$credential -skipCA $skipCA -useHttp $useHttp
+        $deploymentResponse = Invoke-PsOnRemote -MachineDnsName $machineName -ScriptBlockContent $scriptToRun -WinRMPort $winRmPort -Credentials $credential -skipCA $skipCA -useHttp $useHttp
         Write-Output $deploymentResponse
 }
 
@@ -96,7 +141,7 @@ function Invoke-RemoteDeployment
             Start-Sleep -Seconds 10
             foreach($job in Get-Job)
             {
-                 if($Jobs.ContainsKey($job.Id) -and $job.State -ne "Running")
+                if($Jobs.ContainsKey($job.Id) -and $job.State -ne "Running")
                 {
                     $output = Receive-Job -Id $job.Id
                     Remove-Job $job
@@ -163,6 +208,7 @@ function Get-UseHttpOption
         $useHttp = $true
     }
 
+    Write-Verbose "Using useHttp = $useHttp"
     return $useHttp
 }
 
@@ -181,6 +227,7 @@ function Get-SkipCAOption
         $skipCAOption = $false
     }
 
+    Write-Verbose "Using skipCA = $skipCAOption"
     return $skipCAOption
 }
 
