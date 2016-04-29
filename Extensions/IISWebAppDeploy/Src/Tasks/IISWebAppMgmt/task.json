@@ -65,7 +65,7 @@
       "type": "radio",
       "label": "Protocol",
       "required": true,
-      "defaultValue": "HTTPS",
+      "defaultValue": "Https",
       "options": {
         "Http": "HTTP",
         "Https": "HTTPS"

@@ -10,7 +10,7 @@ if(-not (Test-Path -Path $deployIISWebAppPath ))
     throw [System.IO.FileNotFoundException] "Unable to find DeployIISWebApp.ps1 at $deployIISWebAppDirectoryPath"
 }
 
-$invokeRemoteDeploymentPath = "$currentScriptPath\..\..\..\Src\Tasks\$scritpDirName\InvokeRemoteDeployment.ps1"
+$invokeRemoteDeploymentPath = "$currentScriptPath\..\..\..\Src\Tasks\$scritpDirName\DeploymentSDK\InvokeRemoteDeployment.ps1"
 
 
 if(-not (Test-Path -Path $invokeRemoteDeploymentPath ))

@@ -14,14 +14,32 @@ if(-not (Test-Path -Path $invokeRemoteDeployment ))
 . "$invokeRemoteDeployment"
 
 Describe "Tests for testing InitializationScript block" {
-    Context "Initilization block have load-assemblies" {
+    Context "Invoke-PsOnRemote successfully returns" {
         . $InitializationScript
-        Mock Get-ChildItem -Verifiable { return }
-        Load-AgentAssemblies 
-        
+        $dc = New-Object -TypeName PSObject
+        $method =
+        {
+            param(
+            [object]$deploymentSpec,
+            [object]$scriptSpecification,
+            [object]$initializationScriptSpec,
+            [Uri]$applicationPath,
+            [System.Threading.CancellationToken]$cancellationToken,
+            [bool]$enableDetailedLogging
+            )
+
+            Write-Verbose "In mocked version of RunPowerShellAsync" -Verbose
+            return
+        }
+        Add-Member -InputObject $dc -MemberType ScriptMethod -Name RunPowerShellAsync -Value $method
+        Mock Import-Module -Verifiable { return }
+        Mock New-Object -Verifiable { return $dc}
+
+        Invoke-PsOnRemote -machineDnsName "dummyMachine" -scriptContent "dummy Script" -winRmPort 7834
+
         It "Should load agent assemblies" {
             Assert-VerifiableMocks
-            Assert-MockCalled Get-ChildItem -Times 2 -Exactly
+            Assert-MockCalled Import-Module -Times 2 -Exactly
         }
     }
 }
@@ -29,8 +47,7 @@ Describe "Tests for testing InitializationScript block" {
 Describe "Tests for testing InvokePsOnRemoteScriptBlock block" {
     Context "Run invoke-psonremote command" {
         . $InitializationScript
-        Mock Load-AgentAssemblies -Verifiable { return }
-        Mock Invoke-Command -Verifiable { return }
+        Mock Invoke-PsOnRemote -Verifiable { return }
         Mock Write-Output -Verifiable { return }
         . $InvokePsOnRemoteScriptBlock
         It "Should run invoke-psonremote command" {
@@ -38,7 +55,6 @@ Describe "Tests for testing InvokePsOnRemoteScriptBlock block" {
         }
     }
 }
-
 
 Describe "Tests for testing Invoke-RemoteDeployment functionality" {
     $InitializationScript = {}
@@ -187,7 +203,7 @@ Describe "Test for testing functionality of Get-SkipCAOption" {
         $skipCAOption = Get-SkipCAOption -useTestCertificate "true"
 
         It "Should return -SkipCACheck for skipCAOption" {
-            ($skipCAOption ) | Should Be "-SkipCACheck"
+            ($skipCAOption) | Should Be $true
         }
     }
 
@@ -196,30 +212,39 @@ Describe "Test for testing functionality of Get-SkipCAOption" {
         $skipCAOption = Get-SkipCAOption -useTestCertificate "false"
 
         It "Should return empty for skipCAOption" {
-            ($skipCAOption ) | Should Be ""
+            ($skipCAOption ) | Should Be $false
+        }
+    }
+
+    Context "When testCertificate is random" {
+
+        $skipCAOption = Get-SkipCAOption -useTestCertificate "random"
+
+        It "Should return empty for skipCAOption" {
+            ($skipCAOption ) | Should Be $false
         }
     }
 
 }
 
-Describe "Tests for testing Get-ProtocolOption functionality" {
+Describe "Tests for testing Get-UseHttpOption functionality" {
 
     Context "When protocol input is http" {
 
-        $protocolOption = Get-ProtocolOption -protocol "http"
+        $protocolOption = Get-UseHttpOption -protocol "http"
 
         It "Should return -UseHttp for protocolOption" {
-            ($protocolOption ) | Should Be "-UseHttp"
+            ($protocolOption ) | Should Be $true
         }
 
     }
 
     Context "When protocol input is https" {
 
-        $protocolOption = Get-ProtocolOption -protocol "https"
+        $protocolOption = Get-UseHttpOption -protocol "https"
 
         It "Should return empty for protocolOption" {
-            ($protocolOption ) | Should Be ""
+            ($protocolOption ) | Should Be $false
         }
     }
 }

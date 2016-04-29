@@ -1,14 +1,14 @@
 {
     "IISWebAppDeploy": [
         {
-            "module": "DeploymentHelpers",
-            "dest": ""
+            "module": "DeploymentSDK",
+            "dest": "DeploymentSDK"
         }
     ],
     "IISWebAppMgmt": [
         {
-            "module": "DeploymentHelpers",
-            "dest": ""
+            "module": "DeploymentSDK",
+            "dest": "DeploymentSDK"
         }
     ]
 }
