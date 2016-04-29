@@ -116,7 +116,8 @@ function Does-BindingExists
             throw "Given binding already exists for a different website (`"$site`"), change the port and retry the operation."
         }
     }
-    Write-Verbose "Given binding does not exist for any website."
+
+    Write-Verbose "Does bindings exist for website (`"$siteName`") is : $isBindingExists"
     return $isBindingExists
 }
 

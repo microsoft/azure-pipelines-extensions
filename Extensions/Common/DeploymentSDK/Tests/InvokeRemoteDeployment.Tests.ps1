@@ -88,6 +88,7 @@ Describe "Tests for testing Invoke-RemoteDeployment functionality" {
             Start-Sleep -Milliseconds 500
             $deploymentResponse = New-Object psobject
             $deploymentResponse | Add-Member -MemberType NoteProperty -Name "Status" -Value "Passed"
+            $deploymentResponse | Add-Member -MemberType NoteProperty -Name "DeploymentLog" -Value "Successfully deployed"
             Write-Output $deploymentResponse
         }
 
@@ -118,8 +119,13 @@ Describe "Tests for testing Invoke-RemoteDeployment functionality" {
             {
                 $errObj = New-Object psobject
                 $errObj | Add-Member -MemberType NoteProperty -Name "Message" -Value "Deployment failed."
+                $deploymentResponse | Add-Member -MemberType NoteProperty -Name "DeploymentLog" -Value "Deployment log for failed operation."
                 $status = "Failed"
                 $deploymentResponse | Add-Member -MemberType NoteProperty -Name "Error" -Value $errObj
+            }
+            else 
+            {
+                $deploymentResponse | Add-Member -MemberType NoteProperty -Name "DeploymentLog" -Value "Deployment log for successful machine."
             }
             $deploymentResponse | Add-Member -MemberType NoteProperty -Name "Status" -Value $status
             Write-Output $deploymentResponse
@@ -151,10 +157,14 @@ Describe "Tests for testing Invoke-RemoteDeployment functionality" {
             $status = "Passed"
             if($machineName -eq "machine3")
             {
-                $errObj = New-Object psobject
-                $errObj | Add-Member -MemberType NoteProperty -Name "Message" -Value "Deployment failed."
+                $errObj = New-Object psobject("Deployment failed.")
+                $deploymentResponse | Add-Member -MemberType NoteProperty -Name "DeploymentLog" -Value "Deployment log for failed operation."
                 $status = "Failed"
                 $deploymentResponse | Add-Member -MemberType NoteProperty -Name "Error" -Value $errObj
+            }
+            else 
+            {
+                $deploymentResponse | Add-Member -MemberType NoteProperty -Name "DeploymentLog" -Value "Deployment log for successful machine."
             }
             $deploymentResponse | Add-Member -MemberType NoteProperty -Name "Status" -Value $status
             Write-Output $deploymentResponse
@@ -164,7 +174,7 @@ Describe "Tests for testing Invoke-RemoteDeployment functionality" {
 
         It "Should stop execution after failing for one machine"{
             Assert-VerifiableMocks
-            ($errMsg) | Should Be "Deployment on one or more machines failed."
+            ($errMsg) | Should Be "Deployment failed."
             Assert-MockCalled Write-Host -Times 5 -Exactly
         }
     }
@@ -183,6 +193,7 @@ Describe "Tests for testing Invoke-RemoteDeployment functionality" {
             Start-Sleep -Milliseconds 500
             $deploymentResponse = New-Object psobject
             $deploymentResponse | Add-Member -MemberType NoteProperty -Name "Status" -Value "Passed"
+            $deploymentResponse | Add-Member -MemberType NoteProperty -Name "DeploymentLog" -Value "Successfully deployed"
             Write-Output $deploymentResponse
         }
 

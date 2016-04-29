@@ -204,7 +204,7 @@ Describe "Tests for verifying Does-BindingExists functionality" {
         $result = Does-BindingExists -siteName "SampleWeb" -protocol $protocol -ipAddress $ipAddress -port $port -hostname $hostname 4>&1 | Out-String
 
         It "Does-BindingExists should throw exception"{
-            ($result.Contains('Given binding does not exist for any website.')) | Should Be $true
+            ($result.Contains("Does bindings exist for website (`"SampleWeb`") is : False")) | Should Be $true
         }
     }
 }
