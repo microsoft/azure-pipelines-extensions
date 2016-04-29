@@ -155,16 +155,6 @@
       "helpMarkDown": "Select the option to add port binding for the website."
     },
     {
-      "name": "AssignDuplicateBinding",
-      "type": "boolean",
-      "label": "Assign Duplicate Binding",
-      "required": false,
-      "groupName": "website",
-      "defaultValue": "false",
-      "visibleRule": "AddBinding = true",
-      "helpMarkDown": "Select the option to add the bindings specified here, even if there is another website with the same bindings. If there are binding conflicts, then only one of the website will start."
-    },
-    {
       "name": "Protocol",
       "type": "pickList",
       "label": "Protocol",

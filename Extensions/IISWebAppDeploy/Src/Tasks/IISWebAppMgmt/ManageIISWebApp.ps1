@@ -81,7 +81,6 @@ function Get-ScriptToRun
         [string]$websiteAuthUserName,
         [string]$websiteAuthUserPassword,
         [string]$addBinding,
-        [string]$assignDuplicateBinding,
         [string]$protocol,
         [string]$ipAddress,
         [string]$port,
@@ -99,7 +98,7 @@ function Get-ScriptToRun
     )
 
     $msDeployScript = Get-Content  ./AppCmdOnTargetMachines.ps1 | Out-String
-    $invokeMain = "Execute-Main -CreateWebsite $createWebsite -WebsiteName `"$websiteName`" -WebsitePhysicalPath `"$websitePhysicalPath`" -WebsitePhysicalPathAuth `"$websitePhysicalPathAuth`" -WebsiteAuthUserName `"$websiteAuthUserName`" -WebsiteAuthUserPassword `"$websiteAuthUserPassword`" -AddBinding $addBinding -AssignDuplicateBinding $assignDuplicateBinding -Protocol $protocol -IpAddress `"$ipAddress`" -Port $port -HostName `"$hostName`" -ServerNameIndication $serverNameIndication -SslCertThumbPrint `"$sslCertThumbPrint`" -CreateAppPool $createAppPool -AppPoolName `"$appPoolName`" -DotNetVersion `"$dotNetVersion`" -PipeLineMode $pipeLineMode -AppPoolIdentity $appPoolIdentity -AppPoolUsername `"$appPoolUsername`" -AppPoolPassword `"$appPoolPassword`" -AppCmdCommands `"$appCmdCommands`""
+    $invokeMain = "Execute-Main -CreateWebsite $createWebsite -WebsiteName `"$websiteName`" -WebsitePhysicalPath `"$websitePhysicalPath`" -WebsitePhysicalPathAuth `"$websitePhysicalPathAuth`" -WebsiteAuthUserName `"$websiteAuthUserName`" -WebsiteAuthUserPassword `"$websiteAuthUserPassword`" -AddBinding $addBinding -Protocol $protocol -IpAddress `"$ipAddress`" -Port $port -HostName `"$hostName`" -ServerNameIndication $serverNameIndication -SslCertThumbPrint `"$sslCertThumbPrint`" -CreateAppPool $createAppPool -AppPoolName `"$appPoolName`" -DotNetVersion `"$dotNetVersion`" -PipeLineMode $pipeLineMode -AppPoolIdentity $appPoolIdentity -AppPoolUsername `"$appPoolUsername`" -AppPoolPassword `"$appPoolPassword`" -AppCmdCommands `"$appCmdCommands`""
 
     Write-Verbose "Executing main funnction in AppCmdOnTargetMachines : $invokeMain"
     $msDeployOnTargetMachinesScript = [string]::Format("{0} {1} ( {2} )", $msDeployScript,  [Environment]::NewLine,  $invokeMain)
@@ -147,7 +146,6 @@ function Main
     [string]$websiteAuthUserName,
     [string]$websiteAuthUserPassword,
     [string]$addBinding,
-    [string]$assignDuplicateBinding,
     [string]$protocol,
     [string]$ipAddress,
     [string]$port,
@@ -180,7 +178,6 @@ function Main
     Write-Verbose "websitePhysicalPathAuth = $websitePhysicalPathAuth"
     Write-Verbose "websiteAuthUserName = $websiteAuthUserName"
     Write-Verbose "addBinding = $addBinding"
-    Write-Verbose "assignDuplicateBinding = $assignDuplicateBinding"
     Write-Verbose "protocol = $protocol"
     Write-Verbose "ipAddress = $ipAddress"
     Write-Verbose "port = $port"
@@ -201,6 +198,6 @@ function Main
 
     Validate-Inputs -createWebsite $createWebsite -websiteName $websiteName -createAppPool $createAppPool -appPoolName $appPoolName
     $appCmdCommands = Escape-DoubleQuotes -str $appCmdCommands
-    $script = Get-ScriptToRun -webDeployPackage $webDeployPackage -webDeployParamFile $webDeployParamFile -overRideParams $overRideParams -websiteName $websiteName -websitePhysicalPath $websitePhysicalPath -websitePhysicalPathAuth $websitePhysicalPathAuth -websiteAuthUserName $websiteAuthUserName -websiteAuthUserPassword $websiteAuthUserPassword -addBinding $addBinding -assignDuplicateBinding $assignDuplicateBinding -protocol $protocol -ipAddress $ipAddress -port $port -hostName $hostName -serverNameIndication $serverNameIndication -sslCertThumbPrint $sslCertThumbPrint -appPoolName $appPoolName -pipeLineMode $pipeLineMode -dotNetVersion $dotNetVersion -appPoolIdentity $appPoolIdentity -appPoolUsername $appPoolUsername -appPoolPassword $appPoolPassword -appCmdCommands $appCmdCommands -createWebsite $createWebsite -createAppPool $createAppPool
+    $script = Get-ScriptToRun -webDeployPackage $webDeployPackage -webDeployParamFile $webDeployParamFile -overRideParams $overRideParams -websiteName $websiteName -websitePhysicalPath $websitePhysicalPath -websitePhysicalPathAuth $websitePhysicalPathAuth -websiteAuthUserName $websiteAuthUserName -websiteAuthUserPassword $websiteAuthUserPassword -addBinding $addBinding -protocol $protocol -ipAddress $ipAddress -port $port -hostName $hostName -serverNameIndication $serverNameIndication -sslCertThumbPrint $sslCertThumbPrint -appPoolName $appPoolName -pipeLineMode $pipeLineMode -dotNetVersion $dotNetVersion -appPoolIdentity $appPoolIdentity -appPoolUsername $appPoolUsername -appPoolPassword $appPoolPassword -appCmdCommands $appCmdCommands -createWebsite $createWebsite -createAppPool $createAppPool
     Run-RemoteDeployment -machinesList $machinesList -scriptToRun $script -adminUserName $adminUserName -adminPassword $adminPassword -winrmProtocol $winrmProtocol -testCertificate $testCertificate -deployInParallel $deployInParallel -websiteName $websiteName
 }

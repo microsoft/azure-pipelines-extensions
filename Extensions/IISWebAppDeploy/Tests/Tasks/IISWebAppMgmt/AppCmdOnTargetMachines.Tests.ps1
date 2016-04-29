@@ -141,37 +141,15 @@ Describe "Tests for verifying Does-BindingExists functionality" {
     $binding2 = [string]::Format("{0}/{1}:{2}:{3}", $protocal, $ipAddress, "8080", "localhost")
 
     Mock Get-AppCmdLocation { return "appcmd.exe", 8 }
-    
-    Context "When assign duplicate is true and current website has same bindings" {
-    
-        Mock Run-command {return "SITE SampleWeb (id:1,bindings:$binding1,state:Started)"} -ParameterFilter { $failOnErr -eq $false }
 
-        $result = Does-BindingExists -siteName "SampleWeb" -protocol $protocol -ipAddress $ipAddress -port $port -hostname $hostname -assignDupBindings "true"
-
-        It "Does-BindingExists should return true"{
-            $result | Should Be $true
-        }
-    }
-
-    Context "When assign duplicate is true and another website has same bindings" {
-
-        Mock Run-command {return "SITE AnotherSite (id:1,bindings:$binding1,state:Started)"} -ParameterFilter { $failOnErr -eq $false }
-
-        $result = Does-BindingExists -siteName "SampleWeb" -protocol $protocol -ipAddress $ipAddress -port $port -hostname $hostname -assignDupBindings "true"
-        
-        It "Does-BindingExists should return false"{
-            $result | Should Be $false
-        }
-    }
-
-    Context "When assign duplicate is false, current and another website has same bindings" {
+    Context "When current and another website has same bindings" {
 
         Mock Run-command {return @("SITE SampleWeb (id:1,bindings:$binding1,state:Started)" , 
                         "SITE AnotherSite (id:1,bindings:$binding1,state:Started)")} -ParameterFilter { $failOnErr -eq $false }
 
         try
         {
-            $result = Does-BindingExists -siteName "SampleWeb" -protocol $protocol -ipAddress $ipAddress -port $port -hostname $hostname -assignDupBindings "false"
+            $result = Does-BindingExists -siteName "SampleWeb" -protocol $protocol -ipAddress $ipAddress -port $port -hostname $hostname
         }
         catch
         {
@@ -180,30 +158,31 @@ Describe "Tests for verifying Does-BindingExists functionality" {
         
         
         It "Does-BindingExists should throw exception"{
-            ($result.Contains('Binding already exists for website')) | Should Be $true
+            ($result.Contains('Given binding already exists for a different website')) | Should Be $true
+            ($result.Contains('change the port and retry the operation')) | Should Be $true
         }
     }
 
-    Context "When assign duplicate is false, current has same binding and no other website has same bindings" {
+    Context "When current has same binding and no other website has same bindings" {
         
         Mock Run-command {return @("SITE SampleWeb (id:1,bindings:$binding1,state:Started)" , 
                         "SITE AnotherSite (id:1,bindings:$binding2,state:Started)")} -ParameterFilter { $failOnErr -eq $false }
 
-        $result = Does-BindingExists -siteName "SampleWeb" -protocol $protocol -ipAddress $ipAddress -port $port -hostname $hostname -assignDupBindings "false"
+        $result = Does-BindingExists -siteName "SampleWeb" -protocol $protocol -ipAddress $ipAddress -port $port -hostname $hostname
         
         It "Does-BindingExists should return true"{
             $result | Should Be $true
         }
     }
 
-    Context "When assign duplicate is false, any other website has same bindings" {
+    Context "When any other website has same bindings" {
 
         Mock Run-command {return @("SITE SampleWeb (id:1,bindings:$binding2,state:Started)" , 
                         "SITE AnotherSite (id:1,bindings:$binding1,state:Started)")} -ParameterFilter { $failOnErr -eq $false }
 
         try
         {
-            $result = Does-BindingExists -siteName "SampleWeb" -protocol $protocol -ipAddress $ipAddress -port $port -hostname $hostname -assignDupBindings "false"
+            $result = Does-BindingExists -siteName "SampleWeb" -protocol $protocol -ipAddress $ipAddress -port $port -hostname $hostname
         }
         catch
         {
@@ -212,7 +191,20 @@ Describe "Tests for verifying Does-BindingExists functionality" {
         
         
         It "Does-BindingExists should throw exception"{
-            ($result.Contains('Binding already exists for website')) | Should Be $true
+            ($result.Contains('Given binding already exists for a different website')) | Should Be $true
+            ($result.Contains('change the port and retry the operation')) | Should Be $true
+        }
+    }
+
+    Context "When no website has same bindings" {
+
+        Mock Run-command {return @("SITE SampleWeb (id:1,bindings:$binding2,state:Started)" , 
+                        "SITE AnotherSite (id:1,bindings:$binding2,state:Started)")} -ParameterFilter { $failOnErr -eq $false }
+
+        $result = Does-BindingExists -siteName "SampleWeb" -protocol $protocol -ipAddress $ipAddress -port $port -hostname $hostname 4>&1 | Out-String
+
+        It "Does-BindingExists should throw exception"{
+            ($result.Contains('Given binding does not exist for any website.')) | Should Be $true
         }
     }
 }

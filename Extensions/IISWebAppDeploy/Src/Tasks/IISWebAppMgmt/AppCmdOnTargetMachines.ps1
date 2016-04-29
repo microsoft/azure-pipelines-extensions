@@ -90,8 +90,7 @@ function Does-BindingExists
         [string]$protocol,
         [string]$ipAddress,
         [string]$port,
-        [string]$hostname,
-        [string]$assignDupBindings
+        [string]$hostname
     )
 
     $appCmdPath, $iisVersion = Get-AppCmdLocation -regKeyPath $AppCmdRegKey
@@ -107,30 +106,17 @@ function Does-BindingExists
 
     foreach($site in $sites)
     {
-        switch($assignDupBindings)
+        if($site.Contains($siteName) -and $site.Contains($binding))
         {
-            $true
-            {
-                if($site.Contains($siteName) -and $site.Contains($binding))
-                {
-                    $isBindingExists = $true
-                }
-            }
-            default
-            {
-                if($site.Contains($siteName) -and $site.Contains($binding))
-                {
-                    $isBindingExists = $true
-                }
-                elseif($site.Contains($binding))
-                {
-                    throw "Binding already exists for website (`"$site`")"
-                }
-            }
+            Write-Verbose "Given binding already exists for the current website (`"$siteName`")."
+            $isBindingExists = $true
+        }
+        elseif($site.Contains($binding))
+        {
+            throw "Given binding already exists for a different website (`"$site`"), change the port and retry the operation."
         }
     }
-
-    Write-Verbose "Does bindings exist for website (`"$siteName`") is : $isBindingExists"
+    Write-Verbose "Given binding does not exist for any website."
     return $isBindingExists
 }
 
@@ -305,8 +291,7 @@ function Update-Website
         [string]$protocol,
         [string]$ipAddress,
         [string]$port,
-        [string]$hostname,
-        [string]$assignDupBindings
+        [string]$hostname
     )
 
     $appCmdArgs = [string]::Format(' set site /site.name:"{0}"', $siteName)
@@ -336,7 +321,7 @@ function Update-Website
         $ipAddress = "*"
     }
 
-    $isBindingExists = Does-BindingExists -siteName $siteName -protocol $protocol -ipAddress $ipAddress -port $port -hostname $hostname -assignDupBindings $assignDupBindings
+    $isBindingExists = Does-BindingExists -siteName $siteName -protocol $protocol -ipAddress $ipAddress -port $port -hostname $hostname
 
     if($addBinding -eq "true" -and $isBindingExists -eq $false)
     {
@@ -403,8 +388,7 @@ function Create-And-Update-Website
         [string]$protocol,
         [string]$ipAddress,
         [string]$port,
-        [string]$hostname,
-        [string]$assignDupBindings
+        [string]$hostname
     )
 
     $doesWebsiteExists = Does-WebsiteExists -siteName $siteName
@@ -415,7 +399,7 @@ function Create-And-Update-Website
     }
 
     Update-Website -siteName $siteName -appPoolName $appPoolName -physicalPath $physicalPath -authType $authType -userName $userName -password $password `
-    -addBinding $addBinding -protocol $protocol -ipAddress $ipAddress -port $port -hostname $hostname -assignDupBindings $assignDupBindings
+    -addBinding $addBinding -protocol $protocol -ipAddress $ipAddress -port $port -hostname $hostname
 }
 
 function Create-And-Update-AppPool
@@ -449,7 +433,6 @@ function Execute-Main
         [string]$WebsiteAuthUserName,
         [string]$WebsiteAuthUserPassword,
         [string]$AddBinding,
-        [string]$AssignDuplicateBinding,
         [string]$Protocol,
         [string]$IpAddress,
         [string]$Port,
@@ -474,7 +457,6 @@ function Execute-Main
     Write-Verbose "WebsiteAuthUserName = $WebsiteAuthUserName"
     Write-Verbose "WebSiteAuthUserPassword = $WebSiteAuthUserPassword"
     Write-Verbose "AddBinding = $AddBinding"
-    Write-Verbose "AssignDuplicateBinding = $AssignDuplicateBinding"
     Write-Verbose "Protocol = $Protocol"
     Write-Verbose "IpAddress = $IpAddress"
     Write-Verbose "Port = $Port"
@@ -498,7 +480,7 @@ function Execute-Main
     if($CreateWebsite -ieq "true")
     {
         Create-And-Update-Website -siteName $WebsiteName -appPoolName $AppPoolName -physicalPath $WebsitePhysicalPath -authType $WebsitePhysicalPathAuth -userName $WebsiteAuthUserName `
-         -password $WebsiteAuthUserPassword -addBinding $AddBinding -protocol $Protocol -ipAddress $IpAddress -port $Port -hostname $HostName -assignDupBindings $AssignDuplicateBinding
+         -password $WebsiteAuthUserPassword -addBinding $AddBinding -protocol $Protocol -ipAddress $IpAddress -port $Port -hostname $HostName
 
         if($Protocol -eq "https")
         {
