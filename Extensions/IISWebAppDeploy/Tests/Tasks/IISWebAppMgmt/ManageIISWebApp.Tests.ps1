@@ -103,20 +103,20 @@ Describe "Tests for testing Trim-Inputs functionality" {
 }
 
 Describe "Tests for testing Validate-Inputs functionality" {
-    Context "Should throw when createWebsite true and sitename empty" {
+    Context "Should throw when sitename empty" {
 
         $errorMsg = "Website Name cannot be empty if you want to create or update the target website."
 
         It "Should throw exception" {
-            { Validate-Inputs -createWebsite "true" -websiteName " " -createAppPool "true" -appPoolName "dummyapppool" } | Should Throw $errorMsg
+            { Validate-Inputs -websiteName " " -appPoolName "dummyapppool" } | Should Throw $errorMsg
         }
     }
 
-    Context "Should not throw when createWebsite true and sitename is not empty" {
+    Context "Should not throw when sitename is not empty" {
 
         try
         {
-            $result = Validate-Inputs -createWebsite "true" -websiteName "dummywebsite" -createAppPool "true" -appPoolName "dummyapppool"
+            $result = Validate-Inputs -websiteName "dummywebsite" -appPoolName "dummyapppool"
         }
         catch
         {
@@ -128,28 +128,20 @@ Describe "Tests for testing Validate-Inputs functionality" {
         }
     }
 
-    Context "Should throw when createAppPool true and app pool name empty" {
+    Context "Should throw when app pool name empty" {
 
         $errorMsg = "Application pool name cannot be empty if you want to create or update the target app pool."
                 
         It "Should throw exception" {
-            { Validate-Inputs -createWebsite "false" -websiteName "dummysite" -createAppPool "true" -appPoolName " " } | Should Throw $errorMsg
+            { Validate-Inputs -websiteName "dummysite" -appPoolName " " } | Should Throw $errorMsg
         }
 
     }
 
-    Context "Should not throw when createAppPool true and app pool name not empty" {
+    Context "Should not throw when app pool name not empty" {
 
         It "Should not throw exception" {
-            { Validate-Inputs -createWebsite "false" -websiteName "dummywebsite" -createAppPool "true" -appPoolName "dummyapppool" } | Should Not Throw
-        }
-
-    }
-
-    Context "Should not throw when createWebsite false and createAppPool false" {
-
-        It "Should not throw exception" {
-            { Validate-Inputs -createWebsite "false" -websiteName " " -createAppPool "false" -appPoolName " " } | Should Not Throw
+            { Validate-Inputs -websiteName "dummywebsite" -appPoolName "dummyapppool" } | Should Not Throw
         }
     }
 }
@@ -169,12 +161,12 @@ Describe "Tests for testing Get-ScriptToRun functionality" {
 
         Mock Get-Content {return "Dummy Script"}
 
-        $script = Get-ScriptToRun -createWebsite "true" -websiteName "dummysite" -websitePhysicalPath "C:\inetpub\wwwroot" -websitePhysicalPathAuth "Pass through" -websiteAuthUserName "dummyuser" -websiteAuthUserPassword "d`"ummypassword" -addBinding "true" -protocol "http" -ipAddress "127.0.0.1" -port "8743" -hostName "" -serverNameIndication "false" -sslCertThumbPrint ""  -createAppPool "false" -appPoolName "" -pipeLineMode "Integrated" -dotNetVersion "v4.0" -appPoolIdentity "Identity" -appPoolUsername "dummyuser" -appPoolPassword "d`"ummypassword" -appCmdCommands "abc`""
+        $script = Get-ScriptToRun -websiteName "dummysite" -websitePhysicalPath "C:\inetpub\wwwroot" -websitePhysicalPathAuth "Pass through" -websiteAuthUserName "dummyuser" -websiteAuthUserPassword "d`"ummypassword" -addBinding "true" -protocol "http" -ipAddress "127.0.0.1" -port "8743" -hostName "" -serverNameIndication "false" -sslCertThumbPrint "" -appPoolName "" -pipeLineMode "Integrated" -dotNetVersion "v4.0" -appPoolIdentity "Identity" -appPoolUsername "dummyuser" -appPoolPassword "d`"ummypassword" -appCmdCommands "abc`""
 
         Write-Verbose $script
         It "should contain script content and invoke expression" {
             ($script.Contains('Dummy Script')) | Should Be $true
-            ($script.Contains('Execute-Main -CreateWebsite true -WebsiteName "dummysite" -WebsitePhysicalPath "C:\inetpub\wwwroot" -WebsitePhysicalPathAuth "Pass through" -WebsiteAuthUserName "dummyuser" -WebsiteAuthUserPassword "d`"ummypassword" -AddBinding true -Protocol http -IpAddress "127.0.0.1" -Port 8743 -HostName "" -ServerNameIndication false -SslCertThumbPrint "" -CreateAppPool false -AppPoolName "" -DotNetVersion "v4.0" -PipeLineMode Integrated -AppPoolIdentity Identity -AppPoolUsername "dummyuser" -AppPoolPassword "d`"ummypassword" -AppCmdCommands "abc`""')) | Should Be $true
+            ($script.Contains('Execute-Main -WebsiteName "dummysite" -WebsitePhysicalPath "C:\inetpub\wwwroot" -WebsitePhysicalPathAuth "Pass through" -WebsiteAuthUserName "dummyuser" -WebsiteAuthUserPassword "d`"ummypassword" -AddBinding true -Protocol http -IpAddress "127.0.0.1" -Port 8743 -HostName "" -ServerNameIndication false -SslCertThumbPrint "" -AppPoolName "" -DotNetVersion "v4.0" -PipeLineMode Integrated -AppPoolIdentity Identity -AppPoolUsername "dummyuser" -AppPoolPassword "d`"ummypassword" -AppCmdCommands "abc`""')) | Should Be $true
         }
     }
 }
@@ -237,7 +229,7 @@ Describe "Tests for testing Main functionality" {
         Mock Get-Content -Verifiable {return "dummyscript"}
         Mock Invoke-RemoteDeployment -Verifiable { return "" } -ParameterFilter { $MachinesList -eq "dummyMachinesList" }
 
-        Main -machinesList "dummyMachinesList" -adminUserName "dummyadminuser" -adminPassword "dummyadminpassword" -winrmProtocol "https" -testCertificate "true" -createWebsite "true" -websiteName "dummyweb" -websitePhysicalPath "c:\inetpub\wwwroot" -websitePhysicalPathAuth "Pass through" -websiteAuthUserName "" -websiteAuthUserPassword "" -addBinding "true" -protocol "http" -ipAddress "127.0.o.1" -port "8080" -hostNameWithHttp "" -hostNameWithOutSNI "" -hostNameWithSNI "" -serverNameIndication "false" -sslCertThumbPrint "" -createAppPool "true" -appPoolName "dummy app pool" -dotNetVersion "v4.0" -pipeLineMode "Integrated" -appPoolIdentity "Specific User" -appPoolUsername "dummy user" -appPoolPassword "dummy password" -appCmdCommands "" -deployInParallel "true"
+        Main -machinesList "dummyMachinesList" -adminUserName "dummyadminuser" -adminPassword "dummyadminpassword" -winrmProtocol "https" -testCertificate "true" -websiteName "dummyweb" -websitePhysicalPath "c:\inetpub\wwwroot" -websitePhysicalPathAuth "Pass through" -websiteAuthUserName "" -websiteAuthUserPassword "" -addBinding "true" -protocol "http" -ipAddress "127.0.o.1" -port "8080" -hostNameWithHttp "" -hostNameWithOutSNI "" -hostNameWithSNI "" -serverNameIndication "false" -sslCertThumbPrint "" -appPoolName "dummy app pool" -dotNetVersion "v4.0" -pipeLineMode "Integrated" -appPoolIdentity "Specific User" -appPoolUsername "dummy user" -appPoolPassword "dummy password" -appCmdCommands "" -deployInParallel "true"
 
         It "Should integrate all the functions and call with appropriate arguments" {
             Assert-VerifiableMocks

@@ -82,22 +82,12 @@
       "helpMarkDown": "Select the option to skip validating the authenticity of the machine's certificate by a trusted certification authority. The parameter is required for the WinRM HTTPS protocol."
     },
     {
-      "name": "CreateWebsite",
-      "type": "boolean",
-      "label": "Create or Update Website",
-      "required": false,
-      "groupName": "website",
-      "defaultValue": "false",
-      "helpMarkDown": "Select the option to create a website or to update an existing website."
-    },
-    {
       "name": "WebsiteName",
       "type": "string",
       "label": "Website Name",
       "required": true,
       "groupName": "website",
       "defaultValue": "",
-      "visibleRule": "CreateWebsite = true",
       "helpMarkDown": "Name of the IIS website that will be created if it does not exist, or it will be updated if it is already present on the IIS server. The name of the website should be same as that specified in the web deploy zip package file. If a Parameter file and override Parameters setting is also specified, then the name of the website should be same as that in the override Parameters setting."
     },
     {
@@ -107,7 +97,6 @@
       "required": true,
       "groupName": "website",
       "defaultValue": "%SystemDrive%\\inetpub\\wwwroot",
-      "visibleRule": "CreateWebsite = true",
       "helpMarkDown": "Physical path where the website content is stored. The content can reside on the local computer or on a remote directory or share like, C:\\Fabrikam or \\\\\\\\ContentShare\\Fabrikam."
     },
     {
@@ -117,7 +106,6 @@
       "required": true,
       "groupName": "website",
       "defaultValue": "Application User (Pass-through)",
-      "visibleRule": "CreateWebsite = true",
       "options": {
         "WebsiteUserPassThrough": "Application User (Pass-through)",
         "WebsiteWindowsAuth": "Windows Authentication"
@@ -151,7 +139,6 @@
       "required": false,
       "groupName": "website",
       "defaultValue": "true",
-      "visibleRule": "CreateWebsite = true",
       "helpMarkDown": "Select the option to add port binding for the website."
     },
     {
@@ -165,7 +152,6 @@
         "https": "https",
         "http": "http"
       },
-      "visibleRule": "AddBinding = true",
       "helpMarkDown": "Select HTTP for the website to have an HTTP binding, or select HTTPS for the website to have a Secure Sockets Layer (SSL) binding."
     },
     {
@@ -175,7 +161,6 @@
       "required": true,
       "groupName": "website",
       "defaultValue": "All Unassigned",
-      "visibleRule": "AddBinding = true",
       "helpMarkDown": "Type an IP address that users can use to access this website. If All Unassigned is selected, the site will respond to requests for all IP addresses on the port and the optional host name that is specified for this site, unless another site on the server has a binding on the same port but with a specific IP address."
     },
     {
@@ -185,7 +170,6 @@
       "required": true,
       "groupName": "website",
       "defaultValue": "80",
-      "visibleRule": "AddBinding = true",
       "helpMarkDown": "Type the port on which Hypertext Transfer Protocol Stack (HTTP.sys) must listen for requests made to this website."
     },
     {
@@ -239,22 +223,12 @@
       "helpMarkDown": "Thumb-print of the Secure Socket Layer certificate that the website is going to use. The certificate should be already installed on the machine and present under the Local Computer, Personal store."
     },
     {
-      "name": "CreateAppPool",
-      "type": "boolean",
-      "label": "Create or Update Application Pool",
-      "required": false,
-      "groupName": "applicationPool",
-      "defaultValue": "false",
-      "helpMarkDown": "Select the option to create an application pool or to update an existing application pool."
-    },
-    {
       "name": "AppPoolName",
       "type": "string",
       "label": "Name",
       "defaultValue": "",
       "required": true,
       "groupName": "applicationPool",
-      "visibleRule": "CreateAppPool = true",
       "helpMarkDown": "Name of the IIS application pool to create or update. Existing application pool will be updated with the settings specified here."
     },
     {
@@ -264,7 +238,6 @@
       "defaultValue": "v4.0",
       "required": true,
       "groupName": "applicationPool",
-      "visibleRule": "CreateAppPool = true",
       "helpMarkDown": "Version of the .NET Framework that is loaded by this application pool. If the applications assigned to this application pool do not contain managed code, select the No Managed Code option from the list.",
       "options": {
         "v4.0": "v4.0",
@@ -279,7 +252,6 @@
       "defaultValue": "Integrated",
       "required": true,
       "groupName": "applicationPool",
-      "visibleRule": "CreateAppPool = true",
       "helpMarkDown": "Managed pipeline mode specifies how IIS processes requests for managed content. Use classic mode only when the applications in the application pool cannot run in the Integrated mode.",
       "options": {
         "Integrated": "Integrated",
@@ -293,7 +265,6 @@
       "defaultValue": "ApplicationPoolIdentity",
       "required": true,
       "groupName": "applicationPool",
-      "visibleRule": "CreateAppPool = true",
       "helpMarkDown": "Configure the account under which an application pool's worker process runs. Select one of the predefined security accounts or configure a custom account.",
       "options": {
         "ApplicationPoolIdentity": "ApplicationPoolIdentity",

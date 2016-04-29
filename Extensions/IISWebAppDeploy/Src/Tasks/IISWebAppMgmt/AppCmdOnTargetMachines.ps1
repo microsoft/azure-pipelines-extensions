@@ -426,7 +426,6 @@ function Create-And-Update-AppPool
 function Execute-Main
 {
     param (
-        [string]$CreateWebsite,
         [string]$WebsiteName,
         [string]$WebsitePhysicalPath,
         [string]$WebsitePhysicalPathAuth,
@@ -439,7 +438,6 @@ function Execute-Main
         [string]$HostName,
         [string]$ServerNameIndication,
         [string]$SslCertThumbPrint,
-        [string]$CreateAppPool,
         [string]$AppPoolName,
         [string]$DotNetVersion,
         [string]$PipeLineMode,
@@ -450,7 +448,6 @@ function Execute-Main
         )
 
     Write-Verbose "Entering Execute-Main function"
-    Write-Verbose "CreateWebsite= $CreateWebsite"
     Write-Verbose "WebsiteName = $WebsiteName"
     Write-Verbose "WebsitePhysicalPath = $WebsitePhysicalPath"
     Write-Verbose "WebsitePhysicalPathAuth = $WebsitePhysicalPathAuth"
@@ -463,7 +460,6 @@ function Execute-Main
     Write-Verbose "HostName = $HostName"
     Write-Verbose "ServerNameIndication = $ServerNameIndication"
 
-    Write-Verbose "CreateAppPool = $CreateAppPool"
     Write-Verbose "AppPoolName = $AppPoolName"
     Write-Verbose "DotNetVersion = $DotNetVersion"
     Write-Verbose "PipeLineMode = $PipeLineMode"
@@ -471,23 +467,17 @@ function Execute-Main
     Write-Verbose "AppPoolUsername = $AppPoolUsername"
     Write-Verbose "AppPoolPassword = $AppPoolPassword"
     Write-Verbose "AppCmdCommands = $AppCmdCommands"
-    
-    if($CreateAppPool -ieq "true")
-    {
-        Create-And-Update-AppPool -appPoolName $AppPoolName -clrVersion $DotNetVersion -pipeLineMode $PipeLineMode -identity $AppPoolIdentity -userName $AppPoolUsername -password $AppPoolPassword
-    }
 
-    if($CreateWebsite -ieq "true")
-    {
-        Create-And-Update-Website -siteName $WebsiteName -appPoolName $AppPoolName -physicalPath $WebsitePhysicalPath -authType $WebsitePhysicalPathAuth -userName $WebsiteAuthUserName `
-         -password $WebsiteAuthUserPassword -addBinding $AddBinding -protocol $Protocol -ipAddress $IpAddress -port $Port -hostname $HostName
+    Create-And-Update-AppPool -appPoolName $AppPoolName -clrVersion $DotNetVersion -pipeLineMode $PipeLineMode -identity $AppPoolIdentity -userName $AppPoolUsername -password $AppPoolPassword
 
-        if($Protocol -eq "https")
-        {
-            $appCmdPath, $iisVersion = Get-AppCmdLocation -regKeyPath $AppCmdRegKey
-            Add-SslCert -port $Port -certhash $SslCertThumbPrint -hostname $HostName -sni $ServerNameIndication -iisVersion $iisVersion
-            Enable-SNI -siteName $WebsiteName -sni $ServerNameIndication -ipAddress $IpAddress -port $Port -hostname $HostName
-        }
+    Create-And-Update-Website -siteName $WebsiteName -appPoolName $AppPoolName -physicalPath $WebsitePhysicalPath -authType $WebsitePhysicalPathAuth -userName $WebsiteAuthUserName `
+        -password $WebsiteAuthUserPassword -addBinding $AddBinding -protocol $Protocol -ipAddress $IpAddress -port $Port -hostname $HostName
+
+    if($Protocol -eq "https")
+    {
+        $appCmdPath, $iisVersion = Get-AppCmdLocation -regKeyPath $AppCmdRegKey
+        Add-SslCert -port $Port -certhash $SslCertThumbPrint -hostname $HostName -sni $ServerNameIndication -iisVersion $iisVersion
+        Enable-SNI -siteName $WebsiteName -sni $ServerNameIndication -ipAddress $IpAddress -port $Port -hostname $HostName
     }
     Run-AdditionalCommands -additionalCommands $AppCmdCommands
     Write-Verbose "Exiting Execute-Main function"

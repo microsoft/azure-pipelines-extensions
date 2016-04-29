@@ -707,64 +707,18 @@ Describe "Tests for verifying Execute-Main functionality" {
 
     $AppCmdCommands = "ExtraCommands"
     $WebsiteName = "SampleWeb"
+    $AppPoolName = "SampleAppPool"
     Mock Run-AdditionalCommands -Verifiable { return } -ParameterFilter { $additionalCommands -eq $AppCmdCommands }
+    Mock Create-And-Update-WebSite -Verifiable { return } -ParameterFilter { $SiteName -eq $WebsiteName }
+    Mock Create-And-Update-AppPool -Verifiable { return } -ParameterFilter { $appPoolName -eq $AppPoolName }
 
-    Context "createAppPool is false"{
-
-        $AppPoolName = "SampleAppPool"
-        $CreateAppPool = "false"
-        $CreateWebsite = "true"
-
-        Mock Create-And-Update-WebSite -Verifiable { return } -ParameterFilter { $WebsiteName -eq $WebsiteName }
-        Mock Create-And-Update-AppPool { return } -ParameterFilter { $appPoolName -eq $AppPoolName }
-
-        Execute-Main -AppPoolName $AppPoolName -CreateWebsite $CreateWebsite -CreateAppPool $CreateAppPool
-
-        It "Create and update application pool should not be called"{
-            Assert-VerifiableMocks
-            Assert-MockCalled Create-And-Update-AppPool -Times 0
-        }
-    }
-
-    Context "createAppPool is true"{
-
-        $AppPoolName = "SampleAppPool"
-        $createAppPool = "true"
-        $CreateWebsite = "true"
-
-        Mock Create-And-Update-WebSite -Verifiable { return } -ParameterFilter { $WebsiteName -eq $WebsiteName }
-        Mock Create-And-Update-AppPool -Verifiable { return } -ParameterFilter { $appPoolName -eq $AppPoolName }
-
-        Execute-Main -AppPoolName $AppPoolName -CreateWebsite $CreateWebsite -CreateAppPool $CreateAppPool
-
-        It "Create and update application pool should be called"{
-            Assert-VerifiableMocks
-        }
-    }
-    
-    Context "CreateWebSite is false" {
-
-        $CreateWebsite = "false"
-        Mock Create-And-Update-WebSite { return } -ParameterFilter { $SiteName -eq $WebsiteName }
-
-        Execute-Main -CreateWebsite $CreateWebsite
-
-        It "No exception should be thrown"{
-            Assert-VerifiableMocks
-            Assert-MockCalled Create-And-Update-WebSite -Times 0
-        }
-    }
-
-    Context "CreateWebSite is true and protocol is http"{
+    Context "When protocol is http"{
 
         $Protocol = "http"
-        $CreateWebsite = "true"
-
-        Mock Create-And-Update-WebSite -Verifiable { return } -ParameterFilter { $SiteName -eq $WebsiteName }
         Mock Add-SslCert { return }
         Mock Enable-SNI { return }
 
-        Execute-Main -CreateWebsite $CreateWebsite -Protocol $Protocol
+        Execute-Main -websiteName $WebsiteName -appPoolName $AppPoolName -Protocol $Protocol
 
         It "Create and update website should be called"{
             Assert-VerifiableMocks
@@ -773,18 +727,16 @@ Describe "Tests for verifying Execute-Main functionality" {
         }
     }
 
-    Context "CreateWebSite is true and protocol is https"{
+    Context "When protocol is https" {
 
         $Protocol = "https"
         $SslCertThumbPrint = "SampleHash"
-        $CreateWebsite = "true"
 
-        Mock Create-And-Update-WebSite -Verifiable { return } -ParameterFilter { $SiteName -eq $WebsiteName }
         Mock Add-SslCert -Verifiable { return } -ParameterFilter { $Certhash -eq $SslCertThumbPrint }
         Mock Enable-SNI -Verifiable { return } -ParameterFilter { $SiteName -eq $WebsiteName }
         Mock Get-AppCmdLocation -Verifiable { return "appcmd.exe", 8 }
 
-        Execute-Main -CreateWebsite $CreateWebsite -Protocol $Protocol -SslCertThumbPrint $SslCertThumbPrint
+        Execute-Main -websiteName $WebsiteName -appPoolName $AppPoolName -Protocol $Protocol -SslCertThumbPrint $SslCertThumbPrint
 
         It "Create and update website should be called along with setting cert and SNI"{
             Assert-VerifiableMocks
