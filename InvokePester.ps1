@@ -43,6 +43,7 @@ Function Run-Tests()
     popd
     Write-Host "Completed execution of units."
 }
+#test change
 
 # Run tests for all extensions.
 $modulePaths = @()
