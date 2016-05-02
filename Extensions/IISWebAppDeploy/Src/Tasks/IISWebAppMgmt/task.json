@@ -147,6 +147,7 @@
       "label": "Protocol",
       "required": true,
       "groupName": "website",
+      "visibleRule": "AddBinding = true",
       "defaultValue": "http",
       "options": {
         "https": "https",
@@ -160,6 +161,7 @@
       "label": "IP Address",
       "required": true,
       "groupName": "website",
+      "visibleRule": "AddBinding = true",
       "defaultValue": "All Unassigned",
       "helpMarkDown": "Type an IP address that users can use to access this website. If All Unassigned is selected, the site will respond to requests for all IP addresses on the port and the optional host name that is specified for this site, unless another site on the server has a binding on the same port but with a specific IP address."
     },
@@ -168,6 +170,7 @@
       "type": "string",
       "label": "Port",
       "required": true,
+      "visibleRule": "AddBinding = true",
       "groupName": "website",
       "defaultValue": "80",
       "helpMarkDown": "Type the port on which Hypertext Transfer Protocol Stack (HTTP.sys) must listen for requests made to this website."
