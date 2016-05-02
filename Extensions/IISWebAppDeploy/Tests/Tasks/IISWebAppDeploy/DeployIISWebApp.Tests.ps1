@@ -148,18 +148,11 @@ Describe "Tests for testing Run-RemoteDeployment" {
     Context "Should throw on failure of remote execution" {
         
         Mock Invoke-RemoteDeployment -Verifiable { return "Error occurred" } -ParameterFilter { $MachinesList -eq $machinesList -and  $ScriptToRun -eq $script -and $AdminUserName -eq $adminUserName -and $AdminPassword -eq $AdminPassword  -and $Protocol -eq $http -and $TestCertificate -eq "false" -and $DeployInParallel -eq $deployInParallel}
-        
-        try
-        {
-            $result = Run-RemoteDeployment -machinesList $machinesList -scriptToRun $script -adminUserName $adminUserName -adminPassword $adminPassword -winrmProtocol $http -testCertificate "false" -deployInParallel $deployInParallel
-        }
-        catch
-        {
-            $result = $_
-        }
+
+        $result = Run-RemoteDeployment -machinesList $machinesList -scriptToRun $script -adminUserName $adminUserName -adminPassword $adminPassword -winrmProtocol $http -testCertificate "false" -deployInParallel $deployInParallel 2>&1 | Out-String
 
         It "Should throw exception on failure" {
-            ($result.Exception.ToString().Contains('Error occurred')) | Should Be $true
+            ($result.Contains('Error occurred')) | Should Be $true
             Assert-VerifiableMocks
         }
 

@@ -80,7 +80,7 @@ function Run-RemoteDeployment
     if(-not [string]::IsNullOrEmpty($errorMessage))
     {
         $helpMessage = "For more info please refer to http://aka.ms/iisextnreadme)"
-        throw "$errorMessage $helpMessage"
+        Write-Error "$errorMessage`n$helpMessage"
     }
 
     Write-Host "Successfully deployed IIS Web Deploy Package :" , $webDeployPackage

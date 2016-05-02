@@ -90,8 +90,7 @@ function Does-BindingExists
         [string]$protocol,
         [string]$ipAddress,
         [string]$port,
-        [string]$hostname,
-        [string]$assignDupBindings
+        [string]$hostname
     )
 
     $appCmdPath, $iisVersion = Get-AppCmdLocation -regKeyPath $AppCmdRegKey
@@ -107,26 +106,14 @@ function Does-BindingExists
 
     foreach($site in $sites)
     {
-        switch($assignDupBindings)
+        if($site.Contains($siteName) -and $site.Contains($binding))
         {
-            $true
-            {
-                if($site.Contains($siteName) -and $site.Contains($binding))
-                {
-                    $isBindingExists = $true
-                }
-            }
-            default
-            {
-                if($site.Contains($siteName) -and $site.Contains($binding))
-                {
-                    $isBindingExists = $true
-                }
-                elseif($site.Contains($binding))
-                {
-                    throw "Binding already exists for website (`"$site`")"
-                }
-            }
+            Write-Verbose "Given binding already exists for the current website (`"$siteName`")."
+            $isBindingExists = $true
+        }
+        elseif($site.Contains($binding))
+        {
+            throw "Given binding already exists for a different website (`"$site`"), change the port and retry the operation."
         }
     }
 
@@ -305,8 +292,7 @@ function Update-Website
         [string]$protocol,
         [string]$ipAddress,
         [string]$port,
-        [string]$hostname,
-        [string]$assignDupBindings
+        [string]$hostname
     )
 
     $appCmdArgs = [string]::Format(' set site /site.name:"{0}"', $siteName)
@@ -336,7 +322,7 @@ function Update-Website
         $ipAddress = "*"
     }
 
-    $isBindingExists = Does-BindingExists -siteName $siteName -protocol $protocol -ipAddress $ipAddress -port $port -hostname $hostname -assignDupBindings $assignDupBindings
+    $isBindingExists = Does-BindingExists -siteName $siteName -protocol $protocol -ipAddress $ipAddress -port $port -hostname $hostname
 
     if($addBinding -eq "true" -and $isBindingExists -eq $false)
     {
@@ -403,8 +389,7 @@ function Create-And-Update-Website
         [string]$protocol,
         [string]$ipAddress,
         [string]$port,
-        [string]$hostname,
-        [string]$assignDupBindings
+        [string]$hostname
     )
 
     $doesWebsiteExists = Does-WebsiteExists -siteName $siteName
@@ -415,7 +400,7 @@ function Create-And-Update-Website
     }
 
     Update-Website -siteName $siteName -appPoolName $appPoolName -physicalPath $physicalPath -authType $authType -userName $userName -password $password `
-    -addBinding $addBinding -protocol $protocol -ipAddress $ipAddress -port $port -hostname $hostname -assignDupBindings $assignDupBindings
+    -addBinding $addBinding -protocol $protocol -ipAddress $ipAddress -port $port -hostname $hostname
 }
 
 function Create-And-Update-AppPool
@@ -442,21 +427,18 @@ function Create-And-Update-AppPool
 function Execute-Main
 {
     param (
-        [string]$CreateWebsite,
         [string]$WebsiteName,
         [string]$WebsitePhysicalPath,
         [string]$WebsitePhysicalPathAuth,
         [string]$WebsiteAuthUserName,
         [string]$WebsiteAuthUserPassword,
         [string]$AddBinding,
-        [string]$AssignDuplicateBinding,
         [string]$Protocol,
         [string]$IpAddress,
         [string]$Port,
         [string]$HostName,
         [string]$ServerNameIndication,
         [string]$SslCertThumbPrint,
-        [string]$CreateAppPool,
         [string]$AppPoolName,
         [string]$DotNetVersion,
         [string]$PipeLineMode,
@@ -467,21 +449,18 @@ function Execute-Main
         )
 
     Write-Verbose "Entering Execute-Main function"
-    Write-Verbose "CreateWebsite= $CreateWebsite"
     Write-Verbose "WebsiteName = $WebsiteName"
     Write-Verbose "WebsitePhysicalPath = $WebsitePhysicalPath"
     Write-Verbose "WebsitePhysicalPathAuth = $WebsitePhysicalPathAuth"
     Write-Verbose "WebsiteAuthUserName = $WebsiteAuthUserName"
     Write-Verbose "WebSiteAuthUserPassword = $WebSiteAuthUserPassword"
     Write-Verbose "AddBinding = $AddBinding"
-    Write-Verbose "AssignDuplicateBinding = $AssignDuplicateBinding"
     Write-Verbose "Protocol = $Protocol"
     Write-Verbose "IpAddress = $IpAddress"
     Write-Verbose "Port = $Port"
     Write-Verbose "HostName = $HostName"
     Write-Verbose "ServerNameIndication = $ServerNameIndication"
 
-    Write-Verbose "CreateAppPool = $CreateAppPool"
     Write-Verbose "AppPoolName = $AppPoolName"
     Write-Verbose "DotNetVersion = $DotNetVersion"
     Write-Verbose "PipeLineMode = $PipeLineMode"
@@ -489,23 +468,17 @@ function Execute-Main
     Write-Verbose "AppPoolUsername = $AppPoolUsername"
     Write-Verbose "AppPoolPassword = $AppPoolPassword"
     Write-Verbose "AppCmdCommands = $AppCmdCommands"
-    
-    if($CreateAppPool -ieq "true")
-    {
-        Create-And-Update-AppPool -appPoolName $AppPoolName -clrVersion $DotNetVersion -pipeLineMode $PipeLineMode -identity $AppPoolIdentity -userName $AppPoolUsername -password $AppPoolPassword
-    }
 
-    if($CreateWebsite -ieq "true")
-    {
-        Create-And-Update-Website -siteName $WebsiteName -appPoolName $AppPoolName -physicalPath $WebsitePhysicalPath -authType $WebsitePhysicalPathAuth -userName $WebsiteAuthUserName `
-         -password $WebsiteAuthUserPassword -addBinding $AddBinding -protocol $Protocol -ipAddress $IpAddress -port $Port -hostname $HostName -assignDupBindings $AssignDuplicateBinding
+    Create-And-Update-AppPool -appPoolName $AppPoolName -clrVersion $DotNetVersion -pipeLineMode $PipeLineMode -identity $AppPoolIdentity -userName $AppPoolUsername -password $AppPoolPassword
 
-        if($Protocol -eq "https")
-        {
-            $appCmdPath, $iisVersion = Get-AppCmdLocation -regKeyPath $AppCmdRegKey
-            Add-SslCert -port $Port -certhash $SslCertThumbPrint -hostname $HostName -sni $ServerNameIndication -iisVersion $iisVersion
-            Enable-SNI -siteName $WebsiteName -sni $ServerNameIndication -ipAddress $IpAddress -port $Port -hostname $HostName
-        }
+    Create-And-Update-Website -siteName $WebsiteName -appPoolName $AppPoolName -physicalPath $WebsitePhysicalPath -authType $WebsitePhysicalPathAuth -userName $WebsiteAuthUserName `
+        -password $WebsiteAuthUserPassword -addBinding $AddBinding -protocol $Protocol -ipAddress $IpAddress -port $Port -hostname $HostName
+
+    if($Protocol -eq "https")
+    {
+        $appCmdPath, $iisVersion = Get-AppCmdLocation -regKeyPath $AppCmdRegKey
+        Add-SslCert -port $Port -certhash $SslCertThumbPrint -hostname $HostName -sni $ServerNameIndication -iisVersion $iisVersion
+        Enable-SNI -siteName $WebsiteName -sni $ServerNameIndication -ipAddress $IpAddress -port $Port -hostname $HostName
     }
     Run-AdditionalCommands -additionalCommands $AppCmdCommands
     Write-Verbose "Exiting Execute-Main function"

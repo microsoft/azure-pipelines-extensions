@@ -81,7 +81,7 @@
 $InvokePsOnRemoteScriptBlock = {
     param (
         [string]$machineName,
-        [string]$scriptToRun,
+        [string]$scriptContent,
         [int]$winRmPort,
         [System.Net.NetworkCredential]$credential,
         [bool]$useHttp,
@@ -95,7 +95,7 @@ $InvokePsOnRemoteScriptBlock = {
         Write-Verbose "skipCA = $skipCA"
         Write-Verbose "Initiating deployment on $machineName"
 
-        $deploymentResponse = Invoke-PsOnRemote -MachineDnsName $machineName -ScriptBlockContent $scriptToRun -WinRMPort $winRmPort -Credentials $credential -skipCA $skipCA -useHttp $useHttp
+        $deploymentResponse = Invoke-PsOnRemote -MachineDnsName $machineName -ScriptContent $scriptContent -WinRMPort $winRmPort -Credentials $credential -SkipCA $skipCA -UseHttp $useHttp
         Write-Output $deploymentResponse
 }
 
@@ -148,19 +148,25 @@ function Invoke-RemoteDeployment
                     $machineName = $Jobs.Item($job.Id)
 
                     Write-Host "Deployment status for machine $machineName :", $output.Status
+                    Write-Verbose $output.DeploymentLog
                     if($output.Status -ne "Passed")
                     {
                         $operationStatus = "Failed"
                         $errorMsg = ""
                         if($output.Error -ne $null)
                         {
-                            $errorMsg = $output.Error.Message
+                            $errorMsg = $output.Error.ToString()
                         }
                         Write-Host "Deployment failed on machine $machineName with following message : $errorMsg"
                     }
                     $Jobs.Remove($job.Id)
                 }
             }
+        }
+
+        if($operationStatus -ne "Passed")
+        {
+            $errorMsg = 'Deployment on one or more machines failed.'
         }
     }
     else
@@ -173,23 +179,18 @@ function Invoke-RemoteDeployment
             Write-Host "Deployment started for machine: $machine with port $winRmPort."
             $deploymentResponse = Invoke-Command -ScriptBlock $InvokePsOnRemoteScriptBlock -ArgumentList $machine, $scriptToRun, $winRmPort, $credential, $useHttp, $skipCA
 
+            Write-Host "Deployment status for machine $machine :", $deploymentResponse.Status
+            Write-Verbose $deploymentResponse.DeploymentLog
             if ($deploymentResponse.Status -ne "Passed")
             {
                 $operationStatus = "Failed"
                 if($deploymentResponse.Error -ne $null)
                 {
-                    Write-Host "Deployment failed on machine $machine with following message :", $deploymentResponse.Error.ToString()
-                    $errorMsg = $deploymentResponse.Error.Message
+                    $errorMsg = $deploymentResponse.Error.ToString()
                     break
                 }
-           }
-           Write-Host "Deployment status for machine $machineName :", $deploymentResponse.Status
+            }
         }
-    }
-
-    if($operationStatus -ne "Passed")
-    {
-         $errorMsg = 'Deployment on one or more machines failed.'
     }
 
     return $errorMsg
