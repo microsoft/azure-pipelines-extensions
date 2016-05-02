@@ -126,7 +126,7 @@ function Run-RemoteDeployment
     if(-not [string]::IsNullOrEmpty($errorMessage))
     {
         $helpMessage = "For more info please refer to http://aka.ms/iisextnreadme)"
-        Write-Error "$errorMessage $helpMessage"
+        Write-Error "$errorMessage`n$helpMessage"
     }
 
     Write-Host "Successfully created website:", $websiteName

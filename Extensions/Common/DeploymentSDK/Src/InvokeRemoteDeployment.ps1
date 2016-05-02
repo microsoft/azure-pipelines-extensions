@@ -81,7 +81,7 @@
 $InvokePsOnRemoteScriptBlock = {
     param (
         [string]$machineName,
-        [string]$scriptToRun,
+        [string]$scriptContent,
         [int]$winRmPort,
         [System.Net.NetworkCredential]$credential,
         [bool]$useHttp,
@@ -95,7 +95,7 @@ $InvokePsOnRemoteScriptBlock = {
         Write-Verbose "skipCA = $skipCA"
         Write-Verbose "Initiating deployment on $machineName"
 
-        $deploymentResponse = Invoke-PsOnRemote -MachineDnsName $machineName -scriptContent $scriptToRun -WinRMPort $winRmPort -Credentials $credential -SkipCA $skipCA -UseHttp $useHttp
+        $deploymentResponse = Invoke-PsOnRemote -MachineDnsName $machineName -ScriptContent $scriptContent -WinRMPort $winRmPort -Credentials $credential -SkipCA $skipCA -UseHttp $useHttp
         Write-Output $deploymentResponse
 }
 

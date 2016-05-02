@@ -175,27 +175,6 @@ Describe "Tests for verifying Does-BindingExists functionality" {
         }
     }
 
-    Context "When any other website has same bindings" {
-
-        Mock Run-command {return @("SITE SampleWeb (id:1,bindings:$binding2,state:Started)" , 
-                        "SITE AnotherSite (id:1,bindings:$binding1,state:Started)")} -ParameterFilter { $failOnErr -eq $false }
-
-        try
-        {
-            $result = Does-BindingExists -siteName "SampleWeb" -protocol $protocol -ipAddress $ipAddress -port $port -hostname $hostname
-        }
-        catch
-        {
-            $result = $_.Exception.Message
-        }
-        
-        
-        It "Does-BindingExists should throw exception"{
-            ($result.Contains('Given binding already exists for a different website')) | Should Be $true
-            ($result.Contains('change the port and retry the operation')) | Should Be $true
-        }
-    }
-
     Context "When no website has same bindings" {
 
         Mock Run-command {return @("SITE SampleWeb (id:1,bindings:$binding2,state:Started)" , 
