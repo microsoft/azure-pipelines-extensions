@@ -5,7 +5,10 @@
   "version": "1.0.0",
   "publisher": "ms-vscs-rm",
   "description": "used for deploying web application",
-  "public": true,  
+  "public": true,
+  "galleryFlags": [
+    "Preview"
+  ],
   "icons": {
     "default": "images/IIS_Web_App.png",
     "large": "images/IIS_Web_App_Large.png"
