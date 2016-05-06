@@ -51,7 +51,7 @@ gulp.task("test", ["build"], function(done) {
     });
 });
 
-gulp.task("package", ["test"], function() {
+gulp.task("package", ["build"], function() {
     fs.readdirSync(extnBuildRoot).filter(function (file) {
         return fs.statSync(path.join(extnBuildRoot, file)).isDirectory() && file != "Common";
     }).forEach(createVsixPackage);
