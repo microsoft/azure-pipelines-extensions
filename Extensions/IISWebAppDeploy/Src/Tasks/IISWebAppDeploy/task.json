@@ -1,8 +1,8 @@
 {
   "id": "50ACC50F-7D15-470B-83C1-578B3F3EEBA2",
   "name": "IISWebAppDeploy",
-  "friendlyName": "IIS Web Application Extension",
-  "description": "Deploy by MSDeploy, create/update website & app pools",
+  "friendlyName": "WinRM - IIS Web App Deployment",
+  "description": "Connect via WinRM, to deploy Web project locally on IIS, using Web Deploy",
   "helpMarkDown": "[More Information](http://aka.ms/iiswebappdeployreadme)",
   "category": "Deploy",
   "visibility": [
@@ -37,7 +37,7 @@
       "label": "Machines",
       "defaultValue": "",
       "required": true,
-      "helpMarkDown": "Provide a comma separated list of machine IP addresses or FQDNs along with ports. Port is defaulted based on the selected protocol. <br>Eg: dbserver.fabrikam.com,dbserver_int.fabrikam.com:5986,192.168.12.34:5986 <br>Or provide output variable of other tasks. Eg: $(variableName)"
+      "helpMarkDown": "Provide a comma separated list of the machine(s) IP addresses or FQDNs along with ports. The port is defaulted based on the selected protocol or can be provided separately. <br>For example, dbserver.fabrikam.com, dbserver_int.fabrikam.com:5986, 192.168.12.34:40004."
     },
     {
       "name": "AdminUserName",
@@ -45,7 +45,7 @@
       "label": "Admin Login",
       "defaultValue": "",
       "required": true,
-      "helpMarkDown": "Administrator login for the target machines."
+      "helpMarkDown": "Provide the administrator's login of the target machines."
     },
     {
       "name": "AdminPassword",
@@ -53,7 +53,7 @@
       "label": "Password",
       "defaultValue": "",
       "required": true,
-      "helpMarkDown": "Administrator password for the target machines. <br>It can accept variable defined in Build/Release definitions as '$(passwordVariable)'. <br>You may mark variable type as 'secret' to secure it. "
+      "helpMarkDown": "Provide the administrator's password of the target machines. <br>The best practice is to create a variable in the Build or Release definition, and mark it as 'Secret' to secure it, and then use it here, like '$(adminPassword)'."
     },
     {
       "name": "WinRMProtocol",
@@ -65,7 +65,7 @@
         "Http": "HTTP",
         "Https": "HTTPS"
       },
-      "helpMarkDown": "Select the protocol to use for the WinRM connection with the machine(s). Default is HTTPS."
+      "helpMarkDown": "Select the network protocol to use for the WinRM connection with the machine(s). The default is HTTPS."
     },
     {
       "name": "TestCertificate",
@@ -74,7 +74,7 @@
       "defaultValue": "true",
       "visibleRule": "WinRMProtocol = Https",
       "required": false,
-      "helpMarkDown": "Select the option to skip validating the authenticity of the machine's certificate by a trusted certification authority. The parameter is required for the WinRM HTTPS protocol."
+      "helpMarkDown": "Select the option to skip validating the authenticity of the machine's certificate from a trusted certification authority. The parameter is required for the WinRM HTTPS protocol."
     },
     {
       "name": "WebDeployPackage",
@@ -83,7 +83,7 @@
       "required": true,
       "groupName": "deployment",
       "defaultValue": "",
-      "helpMarkDown": "Location of the Web Deploy (MSDeploy) zip file on the target machines or on a UNC path like, \\\\\\\\BudgetIT\\WebDeploy\\WebDeployPackage.zip. The UNC path should be accessible to the machine's administrator account. Environment variables are also supported like, $env:windir, $env:systemroot, like, $env:windir\\FabrikamFibre\\Web."
+      "helpMarkDown": "Location of the Web Deploy (MSDeploy) zip file on the target machine(s) or on a UNC path, like \\\\\\\\BudgetIT\\WebDeploy\\WebDeployPackage.zip. The UNC path should be accessible to the machine's administrator account. Environment variables are also supported, like $env:windir, $env:systemroot, like, $env:windir\\FabrikamFibre\\Web."
     },
     {
       "name": "WebDeployParamFile",
@@ -92,7 +92,7 @@
       "required": false,
       "groupName": "deployment",
       "defaultValue": "",
-      "helpMarkDown": "Location of the Parameter file on the target machines or on a UNC path. Parameter file is used to override Web application configuration settings like, IIS Web application name or database connection string."
+      "helpMarkDown": "Location of the Web Deploy Parameter file on the target machine(s) or on a UNC path. <br>The parameter file is used to override Web application configuration settings, like IIS Web application name or the database connection string.<br>"
     },
     {
       "name": "OverRideParams",
@@ -101,7 +101,7 @@
       "required": false,
       "groupName": "deployment",
       "defaultValue": "",
-      "helpMarkDown": "Parameters specified here will override the parameters in the MSDeploy zip file and the Parameter file. To override more than one parameter use line separator, e.g., <br/> \"IIS Web Application Name\"=\"Fabrikam\" <br/> \"ConnectionString\"=\"Server=localhost;Database=Fabrikam;\""
+      "helpMarkDown": "Specify parameters here to override the ones in the Web Deploy zip file and in the Parameter file. To override more than one parameter use line separator, e.g., <br/> \"IIS Web Application Name\"=\"Fabrikam\" <br/> \"ConnectionString\"=\"Server=localhost;Database=Fabrikam;\""
     },
     {
       "name": "WebsiteName",
@@ -110,7 +110,7 @@
       "required": true,
       "groupName": "deployment",
       "defaultValue": "",
-      "helpMarkDown": "Name of the website that will be updated."
+      "helpMarkDown": "Provide the name of the website for deploying the Web project to."
     },
     {
       "name": "DeployInParallel",
@@ -119,7 +119,7 @@
       "defaultValue": "true",
       "required": false,
       "groupName": "advanced",
-      "helpMarkDown": "Setting it to true will deploy the Web application in-parallel on the target machines."
+      "helpMarkDown": "Select the option to deploy the website in-parallel on the target machines."
     }
   ],
     "instanceNameFormat": "Deploy IIS App: $(WebDeployPackage)",

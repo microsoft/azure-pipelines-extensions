@@ -1,8 +1,8 @@
 {
   "id": "0F5CD14F-3C01-4D5C-8F7A-EB96C5738DCC",
   "name": "IISWebAppMgmt",
-  "friendlyName": "IIS Web Application Management",
-  "description": "create/update website & app pools",
+  "friendlyName": "WinRM - IIS Web App Management",
+  "description": "Connect via WinRM, to create or update the Website and App Pool locally on IIS",
   "helpMarkDown": "[More Information](http://aka.ms/iiswebappdeployreadme)",
   "category": "Deploy",
   "visibility": [
@@ -42,7 +42,7 @@
       "label": "Machines",
       "defaultValue": "",
       "required": true,
-      "helpMarkDown": "Provide a comma separated list of machine IP addresses or FQDNs along with ports. Port is defaulted based on the selected protocol. <br>Eg: dbserver.fabrikam.com,dbserver_int.fabrikam.com:5986,192.168.12.34:5986 <br>Or provide output variable of other tasks. Eg: $(variableName)"
+      "helpMarkDown": "Provide a comma separated list of the machine(s) IP addresses or FQDNs along with ports. The port is defaulted based on the selected protocol or can be provided separately. <br>For example, dbserver.fabrikam.com, dbserver_int.fabrikam.com:5986, 192.168.12.34:40004."
     },
     {
       "name": "AdminUserName",
@@ -50,7 +50,7 @@
       "label": "Admin Login",
       "defaultValue": "",
       "required": true,
-      "helpMarkDown": "Administrator login for the target machines."
+      "helpMarkDown": "Provide the administrator's login of the target machines."
     },
     {
       "name": "AdminPassword",
@@ -58,7 +58,7 @@
       "label": "Password",
       "defaultValue": "",
       "required": true,
-      "helpMarkDown": "Administrator password for the target machines. <br>It can accept variable defined in Build/Release definitions as '$(passwordVariable)'. <br>You may mark variable type as 'secret' to secure it. "
+      "helpMarkDown": "Provide the administrator's password of the target machines. <br>The best practice is to create a variable in the Build or Release definition, and mark it as 'Secret' to secure it, and then use it here, like '$(adminPassword)'."
     },
     {
       "name": "WinRMProtocol",
@@ -70,7 +70,7 @@
         "Http": "HTTP",
         "Https": "HTTPS"
       },
-      "helpMarkDown": "Select the protocol to use for the WinRM connection with the machine(s). Default is HTTPS."
+      "helpMarkDown": "Select the network protocol to use for the WinRM connection with the machine(s). The default is HTTPS."
     },
     {
       "name": "TestCertificate",
@@ -79,7 +79,16 @@
       "defaultValue": "true",
       "visibleRule": "WinRMProtocol = Https",
       "required": false,
-      "helpMarkDown": "Select the option to skip validating the authenticity of the machine's certificate by a trusted certification authority. The parameter is required for the WinRM HTTPS protocol."
+      "helpMarkDown": "Select the option to skip validating the authenticity of the machine's certificate from a trusted certification authority. The parameter is required for the WinRM HTTPS protocol."
+    },
+    {
+      "name": "CreateWebsite",
+      "type": "boolean",
+      "label": "Create or Update Website",
+      "required": false,
+      "groupName": "website",
+      "defaultValue": "false",
+      "helpMarkDown": "Select the option to create a website or to update an existing website."
     },
     {
       "name": "WebsiteName",
@@ -88,7 +97,8 @@
       "required": true,
       "groupName": "website",
       "defaultValue": "",
-      "helpMarkDown": "Name of the IIS website that will be created if it does not exist, or it will be updated if it is already present on the IIS server. The name of the website should be same as that specified in the web deploy zip package file. If a Parameter file and override Parameters setting is also specified, then the name of the website should be same as that in the override Parameters setting."
+      "visibleRule": "CreateWebsite = true",
+      "helpMarkDown": "Provide the name of the IIS website. It will be created if new, or else the existing website will be updated. <br>For deploying a Web project to the website, use the same name as specified in the Web deploy zip package file. If in the Web App deployment task, a Parameter file and Override Parameter settings are also specified, then the website name that the app will be deployed to be, is the one specified in the Override Parameters setting.<br>"
     },
     {
       "name": "WebsitePhysicalPath",
@@ -97,7 +107,8 @@
       "required": true,
       "groupName": "website",
       "defaultValue": "%SystemDrive%\\inetpub\\wwwroot",
-      "helpMarkDown": "Physical path where the website content is stored. The content can reside on the local computer or on a remote directory or share like, C:\\Fabrikam or \\\\\\\\ContentShare\\Fabrikam."
+      "visibleRule": "CreateWebsite = true",
+      "helpMarkDown": "Provide the physical path where the website content will be stored. The content can reside on the local Computer, or in a remote directory, or on a network share, like C:\\Fabrikam or \\\\\\\\ContentShare\\Fabrikam."
     },
     {
       "name": "WebsitePhysicalPathAuth",
@@ -106,11 +117,12 @@
       "required": true,
       "groupName": "website",
       "defaultValue": "Application User (Pass-through)",
+      "visibleRule": "CreateWebsite = true",
       "options": {
         "WebsiteUserPassThrough": "Application User (Pass-through)",
         "WebsiteWindowsAuth": "Windows Authentication"
       },
-      "helpMarkDown": "Authentication mechanism for accessing the physical path of the website."
+      "helpMarkDown": "Select the authentication mechanism that will be used to access the physical path of the website."
     },
     {
       "name": "WebsiteAuthUserName",
@@ -120,7 +132,7 @@
       "groupName": "website",
       "defaultValue": "",
       "visibleRule": "WebsitePhysicalPathAuth = WebsiteWindowsAuth",
-      "helpMarkDown": "User name for accessing the website's physical path."
+      "helpMarkDown": "Provide the user name that will be used to access the website's physical path."
     },
     {
       "name": "WebsiteAuthUserPassword",
@@ -130,7 +142,7 @@
       "groupName": "website",
       "defaultValue": "",
       "visibleRule": "WebsitePhysicalPathAuth = WebsiteWindowsAuth",
-      "helpMarkDown": "Password for accessing the website's physical path."
+      "helpMarkDown": "Provide the user's password that will be used to access the website's physical path."
     },
     {
       "name": "AddBinding",
@@ -139,6 +151,7 @@
       "required": false,
       "groupName": "website",
       "defaultValue": "true",
+      "visibleRule": "CreateWebsite = true",
       "helpMarkDown": "Select the option to add port binding for the website."
     },
     {
@@ -163,7 +176,7 @@
       "groupName": "website",
       "visibleRule": "AddBinding = true",
       "defaultValue": "All Unassigned",
-      "helpMarkDown": "Type an IP address that users can use to access this website. If All Unassigned is selected, the site will respond to requests for all IP addresses on the port and the optional host name that is specified for this site, unless another site on the server has a binding on the same port but with a specific IP address."
+      "helpMarkDown": "Provide an IP address that end-users can use to access this website. <br>If 'All Unassigned' is selected, then the website will respond to requests for all IP addresses on the port and for the host name, unless another website on the server has a binding on the same port but with a specific IP address.<br>"
     },
     {
       "name": "Port",
@@ -173,7 +186,7 @@
       "visibleRule": "AddBinding = true",
       "groupName": "website",
       "defaultValue": "80",
-      "helpMarkDown": "Type the port on which Hypertext Transfer Protocol Stack (HTTP.sys) must listen for requests made to this website."
+      "helpMarkDown": "Provide the port, where the Hypertext Transfer Protocol Stack (HTTP.sys) will listen to the website requests."
     },
     {
       "name": "ServerNameIndication",
@@ -183,7 +196,7 @@
       "groupName": "website",
       "defaultValue": "false",
       "visibleRule": "Protocol = https",
-      "helpMarkDown": "Determines whether the website requires Server Name Indication (SNI). SNI extends the SSL and TLS protocols to indicate what host name the client is attempting to connect to. It allows multiple secure websites with different certificates to use the same IP address."
+      "helpMarkDown": "Select the option to set the Server Name Indication (SNI) for the website. <br>SNI extends the SSL and TLS protocols to indicate the host name that the clients are attempting to connect to. It allows, multiple secure websites with different certificates, to use the same IP address.<br>"
     },
     {
       "name": "HostNameWithOutSNI",
@@ -193,7 +206,7 @@
       "groupName": "website",
       "defaultValue": "",
       "visibleRule": "ServerNameIndication = false",
-      "helpMarkDown": "To assign one or more host names (or domain names) to a computer that uses a single IP address, type a host name here. If a host name is specified then the clients must use the host name instead of the IP address to access the website."
+      "helpMarkDown": "Enter a host name (or domain name) for the website. <br>If a host name is specified, then the clients must use the host name instead of the IP address to access the website.<br>"
     },
     {
       "name": "HostNameWithHttp",
@@ -203,7 +216,7 @@
       "groupName": "website",
       "defaultValue": "",
       "visibleRule": "Protocol = http",
-      "helpMarkDown": "To assign one or more host names (or domain names) to a computer that uses a single IP address, type a host name here. If a host name is specified then the clients must use the host name instead of the IP address to access the website."
+      "helpMarkDown": "Enter a host name (or domain name) for the website. <br>If a host name is specified, then the clients must use the host name instead of the IP address to access the website.<br>"
     },
     {
       "name": "HostNameWithSNI",
@@ -213,7 +226,7 @@
       "groupName": "website",
       "defaultValue": "",
       "visibleRule": "ServerNameIndication = true",
-      "helpMarkDown": "To assign one or more host names (or domain names) to a computer that uses a single IP address, type a host name here. If a host name is specified then the clients must use the host name instead of the IP address to access the website."
+      "helpMarkDown": "Enter a host name (or domain name) for the website. <br>If a host name is specified, then the clients must use the host name instead of the IP address to access the website.<br>"
     },
     {
       "name": "SSLCertThumbPrint",
@@ -223,7 +236,16 @@
       "groupName": "website",
       "defaultValue": "",
       "visibleRule": "Protocol = https",
-      "helpMarkDown": "Thumb-print of the Secure Socket Layer certificate that the website is going to use. The certificate should be already installed on the machine and present under the Local Computer, Personal store."
+      "helpMarkDown": "Provide the thumb-print of the Secure Socket Layer certificate that the website is going to use for the HTTPS communication. The SSL certificate should be already installed on the Computer, at Local Computer, Personal store."
+    },
+    {
+      "name": "CreateAppPool",
+      "type": "boolean",
+      "label": "Create or Update Application Pool",
+      "required": false,
+      "groupName": "applicationPool",
+      "defaultValue": "false",
+      "helpMarkDown": "Select the option to create an application pool or to update an existing application pool."
     },
     {
       "name": "AppPoolName",
@@ -232,7 +254,8 @@
       "defaultValue": "",
       "required": true,
       "groupName": "applicationPool",
-      "helpMarkDown": "Name of the IIS application pool to create or update. Existing application pool will be updated with the settings specified here."
+      "visibleRule": "CreateAppPool = true",
+      "helpMarkDown": "Provide the name of the IIS application pool. Either a new app pool will be created if it doesn't exist, or the existing app pool will be updated with the settings specified here."
     },
     {
       "name": "DotNetVersion",
@@ -241,7 +264,8 @@
       "defaultValue": "v4.0",
       "required": true,
       "groupName": "applicationPool",
-      "helpMarkDown": "Version of the .NET Framework that is loaded by this application pool. If the applications assigned to this application pool do not contain managed code, select the No Managed Code option from the list.",
+      "visibleRule": "CreateAppPool = true",
+      "helpMarkDown": "Select the version of the .NET Framework that is loaded by the application pool. <br>If the applications assigned to this application pool do not contain managed code, then select the 'No Managed Code' option from the list.<br>",
       "options": {
         "v4.0": "v4.0",
         "v2.0": "v2.0",
@@ -255,7 +279,8 @@
       "defaultValue": "Integrated",
       "required": true,
       "groupName": "applicationPool",
-      "helpMarkDown": "Managed pipeline mode specifies how IIS processes requests for managed content. Use classic mode only when the applications in the application pool cannot run in the Integrated mode.",
+      "visibleRule": "CreateAppPool = true",
+      "helpMarkDown": "Select the managed pipeline mode that specifies how IIS processes requests for managed content. Use classic mode only when the applications in the application pool cannot run in the Integrated mode.",
       "options": {
         "Integrated": "Integrated",
         "Classic": "Classic"
@@ -268,6 +293,7 @@
       "defaultValue": "ApplicationPoolIdentity",
       "required": true,
       "groupName": "applicationPool",
+      "visibleRule": "CreateAppPool = true",
       "helpMarkDown": "Configure the account under which an application pool's worker process runs. Select one of the predefined security accounts or configure a custom account.",
       "options": {
         "ApplicationPoolIdentity": "ApplicationPoolIdentity",
@@ -302,7 +328,7 @@
       "required": false,
       "groupName": "advanced",
       "defaultValue": "",
-      "helpMarkDown": "Additional AppCmd.exe commands to set website or application pool properties. For more than one command use line separator, e.g., <br/> list apppools <br/> list sites"
+      "helpMarkDown": "Enter additional AppCmd.exe commands to set the website or the application pool properties. For more than one command use a line separator, like <br/> list apppools <br/> list sites"
     },
     {
       "name": "DeployInParallel",
@@ -311,7 +337,7 @@
       "defaultValue": "true",
       "required": false,
       "groupName": "advanced",
-      "helpMarkDown": "Setting it to true will deploy the Web application in-parallel on the target machines."
+      "helpMarkDown": "Select the option to deploy the website in-parallel on the target machines."
     }
   ],
     "instanceNameFormat": "Manage IIS App: $(WebsiteName)",
