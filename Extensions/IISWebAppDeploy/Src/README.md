@@ -15,7 +15,12 @@ VSTS accounts that are using the **preview tasks** wiz. **IIS Web Application De
 The extension installs the following tasks:
 
 - **WinRM: IIS Web App Management**: Create or update IIS websites and app pools. The task's detailed documentation is in the [source repo](http://aka.ms/IISMgmt).
+
+  ![WinRM: IIS Web App Management](Images/IISWebManagement.png)
+
 - **WinRM: IIS Web App Deployment**: Deploy an IIS Web App using Web Deploy. The task's detailed documentation is in the [source repo](http://aka.ms/IISWebDeploy).
+
+  ![WinRM: IIS Web App Deployment](Images/IISWebDeployment.png)
 
 ### **Contact Information**
 
