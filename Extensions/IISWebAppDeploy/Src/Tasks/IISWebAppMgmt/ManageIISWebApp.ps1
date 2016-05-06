@@ -44,17 +44,19 @@ function Trim-Inputs([ref]$siteName, [ref]$physicalPath, [ref]$poolName, [ref]$w
 function Validate-Inputs
 {
     param(
+        [string]$createWebsite,
         [string]$websiteName,
+        [string]$createAppPool,
         [string]$appPoolName
     )
 
     Write-Verbose "Validating website and application pool inputs"
-    if([string]::IsNullOrWhiteSpace($websiteName))
+    if($createWebsite -ieq "true" -and [string]::IsNullOrWhiteSpace($websiteName))
     { 
         throw "Website Name cannot be empty if you want to create or update the target website."
     }
 
-    if([string]::IsNullOrWhiteSpace($appPoolName))
+    if($createAppPool -ieq "true" -and [string]::IsNullOrWhiteSpace($appPoolName))
     { 
         throw "Application pool name cannot be empty if you want to create or update the target app pool."
     }
@@ -72,6 +74,7 @@ function Escape-DoubleQuotes
 function Get-ScriptToRun
 {
     param (
+        [string]$createWebsite,
         [string]$websiteName,
         [string]$websitePhysicalPath,
         [string]$websitePhysicalPathAuth,
@@ -84,6 +87,7 @@ function Get-ScriptToRun
         [string]$hostName,
         [string]$serverNameIndication,
         [string]$sslCertThumbPrint,
+        [string]$createAppPool,
         [string]$appPoolName,
         [string]$pipeLineMode,
         [string]$dotNetVersion,
@@ -99,7 +103,7 @@ function Get-ScriptToRun
     $websiteAuthUserPassword = Escape-DoubleQuotes -str $websiteAuthUserPassword
     $appCmdCommands = Escape-DoubleQuotes -str $appCmdCommands
 
-    $invokeMain = "Execute-Main -WebsiteName `"$websiteName`" -WebsitePhysicalPath `"$websitePhysicalPath`" -WebsitePhysicalPathAuth `"$websitePhysicalPathAuth`" -WebsiteAuthUserName `"$websiteAuthUserName`" -WebsiteAuthUserPassword `"$websiteAuthUserPassword`" -AddBinding $addBinding -Protocol $protocol -IpAddress `"$ipAddress`" -Port $port -HostName `"$hostName`" -ServerNameIndication $serverNameIndication -SslCertThumbPrint `"$sslCertThumbPrint`" -AppPoolName `"$appPoolName`" -DotNetVersion `"$dotNetVersion`" -PipeLineMode $pipeLineMode -AppPoolIdentity $appPoolIdentity -AppPoolUsername `"$appPoolUsername`" -AppPoolPassword `"$appPoolPassword`" -AppCmdCommands `"$appCmdCommands`""
+    $invokeMain = "Execute-Main -CreateWebsite $createWebsite -WebsiteName `"$websiteName`" -WebsitePhysicalPath `"$websitePhysicalPath`" -WebsitePhysicalPathAuth `"$websitePhysicalPathAuth`" -WebsiteAuthUserName `"$websiteAuthUserName`" -WebsiteAuthUserPassword `"$websiteAuthUserPassword`" -AddBinding $addBinding -Protocol $protocol -IpAddress `"$ipAddress`" -Port $port -HostName `"$hostName`" -ServerNameIndication $serverNameIndication -SslCertThumbPrint `"$sslCertThumbPrint`" -CreateAppPool $createAppPool -AppPoolName `"$appPoolName`" -DotNetVersion `"$dotNetVersion`" -PipeLineMode $pipeLineMode -AppPoolIdentity $appPoolIdentity -AppPoolUsername `"$appPoolUsername`" -AppPoolPassword `"$appPoolPassword`" -AppCmdCommands `"$appCmdCommands`""
 
     Write-Verbose "Executing main funnction in AppCmdOnTargetMachines : $invokeMain"
     $msDeployOnTargetMachinesScript = [string]::Format("{0} {1} ( {2} )", $msDeployScript,  [Environment]::NewLine,  $invokeMain)
@@ -140,6 +144,7 @@ function Main
     [string]$adminPassword,
     [string]$winrmProtocol,
     [string]$testCertificate,
+    [string]$createWebsite,
     [string]$websiteName,
     [string]$websitePhysicalPath,
     [string]$websitePhysicalPathAuth,
@@ -154,6 +159,7 @@ function Main
     [string]$hostNameWithSNI,
     [string]$serverNameIndication,
     [string]$sslCertThumbPrint,
+    [string]$createAppPool,
     [string]$appPoolName,
     [string]$dotNetVersion,
     [string]$pipeLineMode,
@@ -171,6 +177,7 @@ function Main
     Write-Verbose "winrmProtocol  = $winrmProtocol"
     Write-Verbose "testCertificate = $testCertificate"
 
+    Write-Verbose "createWebsite = $createWebsite"
     Write-Verbose "websiteName = $websiteName"
     Write-Verbose "websitePhysicalPath = $websitePhysicalPath"
     Write-Verbose "websitePhysicalPathAuth = $websitePhysicalPathAuth"
@@ -182,6 +189,7 @@ function Main
     Write-Verbose "hostName = $hostName"
     Write-Verbose "serverNameIndication = $serverNameIndication"
 
+    Write-Verbose "createAppPool = $createAppPool"
     Write-Verbose "appPoolName = $appPoolName"
     Write-Verbose "dotNetVersion = $dotNetVersion"
     Write-Verbose "pipeLineMode = $pipeLineMode"
@@ -193,8 +201,8 @@ function Main
 
     Trim-Inputs -package -siteName ([ref]$websiteName) -physicalPath ([ref]$websitePhysicalPath)  -poolName ([ref]$appPoolName) -websitePathAuthuser ([ref]$websiteAuthUserName) -appPoolUser ([ref]$appPoolUsername) -adminUser ([ref]$adminUserName)
 
-    Validate-Inputs -websiteName $websiteName -appPoolName $appPoolName
+    Validate-Inputs -createWebsite $createWebsite -websiteName $websiteName -createAppPool $createAppPool -appPoolName $appPoolName
 
-    $script = Get-ScriptToRun -webDeployPackage $webDeployPackage -webDeployParamFile $webDeployParamFile -overRideParams $overRideParams -websiteName $websiteName -websitePhysicalPath $websitePhysicalPath -websitePhysicalPathAuth $websitePhysicalPathAuth -websiteAuthUserName $websiteAuthUserName -websiteAuthUserPassword $websiteAuthUserPassword -addBinding $addBinding -protocol $protocol -ipAddress $ipAddress -port $port -hostName $hostName -serverNameIndication $serverNameIndication -sslCertThumbPrint $sslCertThumbPrint -appPoolName $appPoolName -pipeLineMode $pipeLineMode -dotNetVersion $dotNetVersion -appPoolIdentity $appPoolIdentity -appPoolUsername $appPoolUsername -appPoolPassword $appPoolPassword -appCmdCommands $appCmdCommands
+    $script = Get-ScriptToRun -createWebsite $createWebsite -websiteName $websiteName -websitePhysicalPath $websitePhysicalPath -websitePhysicalPathAuth $websitePhysicalPathAuth -websiteAuthUserName $websiteAuthUserName -websiteAuthUserPassword $websiteAuthUserPassword -addBinding $addBinding -protocol $protocol -ipAddress $ipAddress -port $port -hostName $hostName -serverNameIndication $serverNameIndication -sslCertThumbPrint $sslCertThumbPrint -createAppPool $createAppPool -appPoolName $appPoolName -pipeLineMode $pipeLineMode -dotNetVersion $dotNetVersion -appPoolIdentity $appPoolIdentity -appPoolUsername $appPoolUsername -appPoolPassword $appPoolPassword -appCmdCommands $appCmdCommands
     Run-RemoteDeployment -machinesList $machinesList -scriptToRun $script -adminUserName $adminUserName -adminPassword $adminPassword -winrmProtocol $winrmProtocol -testCertificate $testCertificate -deployInParallel $deployInParallel -websiteName $websiteName
 }
