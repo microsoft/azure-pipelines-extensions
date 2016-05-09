@@ -12,7 +12,7 @@
   "author": "Microsoft Corporation",
   "version": {
     "Major": 0,
-    "Minor": 1,
+    "Minor": 2,
     "Patch": 0
   },
   "demands": [
@@ -138,11 +138,11 @@
       "name": "WebsiteAuthUserPassword",
       "type": "string",
       "label": "Password",
-      "required": true,
+      "required": false,
       "groupName": "website",
       "defaultValue": "",
       "visibleRule": "WebsitePhysicalPathAuth = WebsiteWindowsAuth",
-      "helpMarkDown": "Provide the user's password that will be used to access the website's physical path."
+      "helpMarkDown": "Provide the user's password that will be used to access the website's physical path. If you are using a gMSA, this is not required."
     },
     {
       "name": "AddBinding",
@@ -317,8 +317,9 @@
       "type": "string",
       "label": "Password",
       "defaultValue": "",
-      "required": true,
+      "required": false,
       "groupName": "applicationPool",
+      "helpMarkDown": "If you are using a gMSA, this is not required.",
       "visibleRule": "AppPoolIdentity = SpecificUser"
     },
     {
