@@ -524,9 +524,29 @@ Describe "Tests for verifying Update-WebSite functionality" {
         It "Should contain appropriate options in command line"{
             ($output.Contains("-applicationDefaults.applicationPool")) | Should Be $true
             ($output.Contains("-[path='/'].[path='/'].physicalPath:")) | Should Be $true
-            ($output.Contains("-[path='/'].[path='/'].userName:")) | Should Be $true
-            ($output.Contains("-[path='/'].[path='/'].password:")) | Should Be $true
-            ($output.Contains("/+bindings.[protocol='http',bindingInformation='*:80:localhost']")) | Should Be $true            
+            ($output.Contains("-[path='/'].[path='/'].userName:localuser")) | Should Be $true
+            ($output.Contains("-[path='/'].[path='/'].password:SomePassword")) | Should Be $true
+            ($output.Contains("/+bindings.[protocol='http',bindingInformation='*:80:localhost']")) | Should Be $true
+            Assert-VerifiableMocks
+        }
+    }
+
+    Context "when all the inputs are given except website auth password"{
+
+        $appCmd = "appcmd.exe"
+        
+        Mock Run-Command -Verifiable { return }
+        Mock Get-AppCmdLocation -Verifiable { return $appCmd, 8 }
+        Mock Does-BindingExists -Verifiable { return $false } -ParameterFilter { $SiteName -eq "Sample Web" }
+
+        $output = Update-WebSite -siteName "Sample Web" -appPoolName "App Pool" -physicalPath "C:\Temp Path" -authType "WebSiteWindowsAuth" -userName "localuser" -addBinding "true" -protocol "http" -ipAddress "All Unassigned" -port "80" -hostname "localhost"  4>&1 | Out-String
+
+        It "Should contain appropriate options in command line"{
+            ($output.Contains("-applicationDefaults.applicationPool")) | Should Be $true
+            ($output.Contains("-[path='/'].[path='/'].physicalPath:")) | Should Be $true
+            ($output.Contains("-[path='/'].[path='/'].userName:localuser")) | Should Be $true
+            ($output.Contains("-[path='/'].[path='/'].password:")) | Should Be $false
+            ($output.Contains("/+bindings.[protocol='http',bindingInformation='*:80:localhost']")) | Should Be $true
             Assert-VerifiableMocks
         }
     }
@@ -593,6 +613,29 @@ Describe "Tests for verifying Update-AppPool functionality" {
             ($output.Contains('/[name=''"SampleAppPool"''].processModel.identityType:SpecificUser')) | Should Be $true
             ($output.Contains('/[name=''"SampleAppPool"''].processModel.userName:"TestUser"')) | Should Be $true
             ($output.Contains('/[name=''"SampleAppPool"''].processModel.password:"SamplePassword"')) | Should Be $true
+            Assert-VerifiableMocks
+        }
+    }
+
+    Context "when all the inputs are given non default values, but no password for custom user"{
+
+        $appCmd = "appcmd.exe"
+        $AppCmdRegKey = "HKLM:\SOFTWARE\Microsoft\InetStp"
+        
+        Mock Run-Command -Verifiable { return }
+        Mock Get-AppCmdLocation -Verifiable { return $appCmd, 8 } -ParameterFilter { $RegKeyPath -eq $AppCmdRegKey }
+
+        $output = Update-AppPool -appPoolName "SampleAppPool" -clrVersion "v2.0" -pipeLineMode "Classic" -identity "SpecificUser" -userName "TestUser" 4>&1 | Out-String
+        Write-Verbose $output -Verbose
+
+        It "Should contain appropriate options in command line"{
+            ($output.Contains(" set config")) | Should Be $true
+            ($output.Contains("-section:system.applicationHost/applicationPools")) | Should Be $true
+            ($output.Contains('/[name=''"SampleAppPool"''].managedRuntimeVersion:v2.0')) | Should Be $true
+            ($output.Contains('/[name=''"SampleAppPool"''].managedPipelineMode:Classic')) | Should Be $true
+            ($output.Contains('/[name=''"SampleAppPool"''].processModel.identityType:SpecificUser')) | Should Be $true
+            ($output.Contains('/[name=''"SampleAppPool"''].processModel.userName:"TestUser"')) | Should Be $true
+            ($output.Contains('/[name=''"SampleAppPool"''].processModel.password:')) | Should Be $false
             Assert-VerifiableMocks
         }
     }
