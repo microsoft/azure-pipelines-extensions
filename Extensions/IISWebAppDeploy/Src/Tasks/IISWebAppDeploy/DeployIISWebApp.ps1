@@ -73,7 +73,7 @@ function Run-RemoteDeployment
         [string]$deployInParallel
     )
 
-    Write-Host "Starting deployment of IIS Web Deploy Package :", $webDeployPackage
+    Write-Host "Starting deployment of IIS Web Deploy Package : $webDeployPackage"
 
     $errorMessage = Invoke-RemoteDeployment -machinesList $machinesList -scriptToRun $scriptToRun -adminUserName $adminUserName -adminPassword $adminPassword -protocol $winrmProtocol -testCertificate $testCertificate -deployInParallel $deployInParallel
 
