@@ -123,7 +123,7 @@ function Run-RemoteDeployment
         [string]$websiteName
     )
 
-    Write-Host "Started creating website:", $websiteName
+    Write-Host "Started creating website: $websiteName"
 
     $errorMessage = Invoke-RemoteDeployment -machinesList $machinesList -scriptToRun $scriptToRun -adminUserName $adminUserName -adminPassword $adminPassword -protocol $winrmProtocol -testCertificate $testCertificate -deployInParallel $deployInParallel
 

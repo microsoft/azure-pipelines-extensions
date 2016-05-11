@@ -2,7 +2,7 @@
   "manifestVersion": 1,
   "extensionId": "iiswebapp",
   "name": "IIS Web App Deployment Using WinRM",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "publisher": "ms-vscs-rm",
   "description": "Using WinRM connect to the host Computer, to create or update websites, and to deploy a Web project using Web Deploy.",
   "public": true,

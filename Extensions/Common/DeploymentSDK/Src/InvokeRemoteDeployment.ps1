@@ -48,8 +48,11 @@
             ScriptSpecification -- This class is used to specify all necessary information about the script to be executed
             Params
                 string scriptContent -- Content of the script file to be executed
+                string scriptArgs    -- Arguments that needs to be passed to script
+                Dict   params        -- Set of params to be passed to script
+                bool   isExpandParams -- Indicates whether to expand parameters or not.
             #>
-            $scriptSpecification = New-Object -TypeName Microsoft.VisualStudio.Services.DevTestLabs.Definition.ScriptSpecification -ArgumentList $scriptContent
+            $scriptSpecification = New-Object -TypeName Microsoft.VisualStudio.Services.DevTestLabs.Definition.ScriptSpecification -ArgumentList $scriptContent, "", @{}, $false
 
             <#
             RunPowerShellAsync -- It executes the powershell script on the remote machine asychronously returns response.
