@@ -81,9 +81,10 @@ function Run-RemoteDeployment
     {
         $helpMessage = "For more info please refer to http://aka.ms/iisextnreadme)"
         Write-Error "$errorMessage`n$helpMessage"
+        return
     }
 
-    Write-Host "Successfully deployed IIS Web Deploy Package :" , $webDeployPackage
+    Write-Host "Successfully deployed IIS Web Deploy Package : $webDeployPackage"
 }
 
 function Main
