@@ -101,7 +101,7 @@
       "required": false,
       "groupName": "deployment",
       "defaultValue": "",
-      "helpMarkDown": "Specify parameters here to override the ones in the Web Deploy zip file and in the Parameter file. To override more than one parameter use line separator, e.g., <br/> \"IIS Web Application Name\"=\"Fabrikam\" <br/> \"ConnectionString\"=\"Server=localhost;Database=Fabrikam;\""
+      "helpMarkDown": "Specify parameters here to override the ones in the Web Deploy zip file and in the Parameter file. To override more than one parameter use line separator, e.g., <br/> name=\"IIS Web Application Name\",value=\"Fabrikam\" <br/> name=\"ConnectionString\", value=\"Server=localhost;Database=Fabrikam;\""
     },
     {
       "name": "WebsiteName",
