@@ -131,9 +131,10 @@ function Run-RemoteDeployment
     {
         $helpMessage = "For more info please refer to http://aka.ms/iisextnreadme)"
         Write-Error "$errorMessage`n$helpMessage"
+        return
     }
 
-    Write-Host "Successfully created website:", $websiteName
+    Write-Host "Successfully created website: $websiteName" 
 }
 
 function Main
