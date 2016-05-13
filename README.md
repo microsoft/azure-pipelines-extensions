@@ -4,7 +4,7 @@ This repository is a common place for all the extensions that RM team publishes 
 
 ## Extensions
 ### IIS web deploy
-Extension that lets you deploy web application to IIS
+Extension that lets you deploy web application to IIS. [More info](Extensions/IISWebAppDeploy/Src/README.md)
 
 ## How to Build 
 
