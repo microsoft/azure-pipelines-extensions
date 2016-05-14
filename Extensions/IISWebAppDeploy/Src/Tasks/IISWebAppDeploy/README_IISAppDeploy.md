@@ -55,11 +55,11 @@ The task is used to deploy a web application to an existing website in the IIS w
 ### Machine Details
 This section of the task is used to provide the details of the machines to the task so that it can open a WinRM session with them and launch the bootstrap executable.
 
- - **Machines\***: Specify comma separated list of machine FQDNs/IP addresses along with port(optional). For example dbserver.fabrikam.com, dbserver_int.fabrikam.com:5986,192.168.34:5986. Output variables from preceding tasks, like Azure Resource Group Deployment task, can be also provided here, e.g. $(Fabrikam). Port when not specified will be defaulted to WinRM defaults based on the specified protocol. i.e., (For *WinRM 2.0*):  The default HTTP port is 5985, and the default HTTPS port is 5986.
- - **Admin Login\***: Domain or Local administrator of the target host. Format: &lt;Domain or hostname&gt;\&lt; Admin User&gt;, like fabrikam\markbrown.
- - **Password\***:  Password for the admin login. It can accept variable defined in Build/Release definitions as '$(passwordVariable)'. The variable type should be marked as 'secret' to secure it.
- - **Protocol\***:  Specify the protocol that will be used to connect to target host, either HTTP or HTTPS.
- - **Test Certificate**: Select the option to skip validating the authenticity of the machine's certificate by a trusted certification authority. The parameter is required for the WinRM HTTPS protocol.
+ - **Machines\*:** Specify comma separated list of machine FQDNs/IP addresses along with port(optional). For example dbserver.fabrikam.com, dbserver_int.fabrikam.com:5986,192.168.34:5986. Output variables from preceding tasks, like Azure Resource Group Deployment task, can be also provided here, e.g. $(Fabrikam). Port when not specified will be defaulted to WinRM defaults based on the specified protocol. i.e., (For *WinRM 2.0*):  The default HTTP port is 5985, and the default HTTPS port is 5986.
+ - **Admin Login\*:** Domain or Local administrator of the target host. Format: &lt;Domain or hostname&gt;\&lt; Admin User&gt;, like fabrikam\markbrown.
+ - **Password\*:**  Password for the admin login. It can accept variable defined in Build/Release definitions as '$(passwordVariable)'. The variable type should be marked as 'secret' to secure it.
+ - **Protocol\*:**  Specify the protocol that will be used to connect to target host, either HTTP or HTTPS.
+ - **Test Certificate:** Select the option to skip validating the authenticity of the machine's certificate by a trusted certification authority. The parameter is required for the WinRM HTTPS protocol.
 
 ### Deploy IIS Web Application
 This section of the task is used to deploy the web application to an existing IIS website and uses Web Deploy to do so.

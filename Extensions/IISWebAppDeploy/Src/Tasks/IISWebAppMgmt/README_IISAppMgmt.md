@@ -57,11 +57,11 @@ The task first creates/updates the application pool, and then creates/updates th
 ### Machine Details
 This section of the task is used to provide the details of the machines to the task so that it can open a WinRM session with them and launch the bootstrap executable.
 
- - **Machines\***: Specify comma separated list of machine FQDNs/IP addresses along with port(optional). For example dbserver.fabrikam.com, dbserver_int.fabrikam.com:5986,192.168.34:5986. Output variables from preceding tasks, like Azure Resource Group Deployment task, can be also provided here, e.g. $(Fabrikam). Port when not specified will be defaulted to WinRM defaults based on the specified protocol. i.e., (For *WinRM 2.0*):  The default HTTP port is 5985, and the default HTTPS port is 5986.
- - **Admin Login\***: Domain or Local administrator of the target host. Format: &lt;Domain or hostname&gt;\&lt; Admin User&gt;, like fabrikam\markbrown.
- - **Password\***:  Password for the admin login. It can accept variable defined in Build/Release definitions as '$(passwordVariable)'. The variable type should be marked as 'secret' to secure it.
- - **Protocol\***:  Specify the protocol that will be used to connect to target host, either HTTP or HTTPS.
- - **Test Certificate**: Select the option to skip validating the authenticity of the machine's certificate by a trusted certification authority. The parameter is required for the WinRM HTTPS protocol.
+ - **Machines\*:** Specify comma separated list of machine FQDNs/IP addresses along with port(optional). For example dbserver.fabrikam.com, dbserver_int.fabrikam.com:5986,192.168.34:5986. Output variables from preceding tasks, like Azure Resource Group Deployment task, can be also provided here, e.g. $(Fabrikam). Port when not specified will be defaulted to WinRM defaults based on the specified protocol. i.e., (For *WinRM 2.0*):  The default HTTP port is 5985, and the default HTTPS port is 5986.
+ - **Admin Login\*:** Domain or Local administrator of the target host. Format: &lt;Domain or hostname&gt;\&lt; Admin User&gt;, like fabrikam\markbrown.
+ - **Password\*:**  Password for the admin login. It can accept variable defined in Build/Release definitions as '$(passwordVariable)'. The variable type should be marked as 'secret' to secure it.
+ - **Protocol\*:**  Specify the protocol that will be used to connect to target host, either HTTP or HTTPS.
+ - **Test Certificate:** Select the option to skip validating the authenticity of the machine's certificate by a trusted certification authority. The parameter is required for the WinRM HTTPS protocol.
 
 ### Website
 The section of the task is used to create a new IIS website or to update an existing one by using the IIS Server's AppCmd.exe command line tool. For more information about the parameters see the [websites](https://technet.microsoft.com/library/hh831681.aspx#Add_Site) page on MSDN.
@@ -83,7 +83,7 @@ The section of the task is used to create a new IIS website or to update an exis
 ### Application Pool
 The section is used to create a new IIS application pool or to update an existing one by using the IIS Server's AppCmd.exe command line tool. For more information about the parameters see the [application pools](https://technet.microsoft.com/library/hh831797.aspx) page on MSDN.
 
-  - **Create or Update Website**: Select the option to create a new website or to update an existing one.
+  - **Create or Update Website:** Select the option to create a new website or to update an existing one.
   - **Name\*:** The name of the IIS application pool that will be created if it does not exist, or it will be updated if it is already present on the IIS server. The name of the application pool should be same as that specified in the web deploy zip package file. If a Parameter file and override Parameters setting is also specified, then the name of the application pool should be same as that in the override Parameters setting.
   - **.NET Version\*:** Version of the .NET Framework that is loaded by this application pool. If the applications assigned to this application pool do not contain managed code, select the No Managed Code option from the list.
   - **Managed Pipeline Mode\*:** Managed pipeline mode specifies how IIS processes requests for managed content. Use classic mode only when the applications in the application pool cannot run in the Integrated mode.
