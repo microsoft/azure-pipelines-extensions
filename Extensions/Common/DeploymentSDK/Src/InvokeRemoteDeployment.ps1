@@ -138,7 +138,7 @@ function Invoke-RemoteDeployment
             $job = Start-Job -InitializationScript $InitializationScript -ScriptBlock $InvokePsOnRemoteScriptBlock -ArgumentList $machine, $scriptToRun, $winRmPort, $credential, $useHttp, $skipCA
             $Jobs.Add($job.Id, $machine)
         }
-        
+
         While ($Jobs.Count -gt 0)
         {
             Start-Sleep -Seconds 10

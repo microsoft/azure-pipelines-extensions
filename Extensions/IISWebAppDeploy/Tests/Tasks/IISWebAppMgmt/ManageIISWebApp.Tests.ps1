@@ -154,12 +154,19 @@ Describe "Tests for testing Validate-Inputs functionality" {
     }
 }
 
-Describe "Tests for testing Escape-DoubleQuotes functionality" {
+Describe "Tests for testing Escape-SpecialChars functionality" {
 
     Context "When input string contains double quote character" {
 
         It "Should add powershell escape character for double quotes" {
-            (Escape-DoubleQuotes -str 'StringWithDouble"Quotes') | Should Be 'StringWithDouble`"Quotes'
+            (Escape-SpecialChars -str 'StringWithDouble"Quotes') | Should Be 'StringWithDouble`"Quotes'
+        }
+    }
+
+    Context "When input string contains dollar symbol character" {
+
+        It "Should add powershell escape character for dollar symbol" {
+            (Escape-SpecialChars -str 'StringWith$dollar') | Should Be 'StringWith`$dollar'
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿Write-Verbose "Entering script MsDeployOnTargetMachines.ps1"
+﻿Write-Verbose "Entering script AppCmdOnTargetMachines.ps1"
 $AppCmdRegKey = "HKLM:\SOFTWARE\Microsoft\InetStp"
 
 function Run-Command
