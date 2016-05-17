@@ -62,13 +62,13 @@ function Validate-Inputs
     }
 }
 
-function Escape-DoubleQuotes
+function Escape-SpecialChars
 {
     param(
         [string]$str
     )
 
-    return $str.Replace('"', '`"')
+    return $str.Replace('`', '``').Replace('"', '`"').Replace('$', '`$')
 }
 
 function Get-ScriptToRun
@@ -99,9 +99,9 @@ function Get-ScriptToRun
 
     $msDeployScript = Get-Content  ./AppCmdOnTargetMachines.ps1 | Out-String
 
-    $appPoolPassword = Escape-DoubleQuotes -str $appPoolPassword
-    $websiteAuthUserPassword = Escape-DoubleQuotes -str $websiteAuthUserPassword
-    $appCmdCommands = Escape-DoubleQuotes -str $appCmdCommands
+    $appPoolPassword = Escape-SpecialChars -str $appPoolPassword
+    $websiteAuthUserPassword = Escape-SpecialChars -str $websiteAuthUserPassword
+    $appCmdCommands = Escape-SpecialChars -str $appCmdCommands
 
     $invokeMain = "Execute-Main -CreateWebsite $createWebsite -WebsiteName `"$websiteName`" -WebsitePhysicalPath `"$websitePhysicalPath`" -WebsitePhysicalPathAuth `"$websitePhysicalPathAuth`" -WebsiteAuthUserName `"$websiteAuthUserName`" -WebsiteAuthUserPassword `"$websiteAuthUserPassword`" -AddBinding $addBinding -Protocol $protocol -IpAddress `"$ipAddress`" -Port $port -HostName `"$hostName`" -ServerNameIndication $serverNameIndication -SslCertThumbPrint `"$sslCertThumbPrint`" -CreateAppPool $createAppPool -AppPoolName `"$appPoolName`" -DotNetVersion `"$dotNetVersion`" -PipeLineMode $pipeLineMode -AppPoolIdentity $appPoolIdentity -AppPoolUsername `"$appPoolUsername`" -AppPoolPassword `"$appPoolPassword`" -AppCmdCommands `"$appCmdCommands`""
 
