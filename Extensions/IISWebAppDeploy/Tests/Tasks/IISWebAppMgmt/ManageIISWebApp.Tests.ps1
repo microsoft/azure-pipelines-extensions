@@ -169,6 +169,13 @@ Describe "Tests for testing Escape-SpecialChars functionality" {
             (Escape-SpecialChars -str 'StringWith$dollar') | Should Be 'StringWith`$dollar'
         }
     }
+
+    Context "When input string contains ` and $ symbol character" {
+
+        It "Should add powershell escape ` and $ symbol character" {
+            (Escape-SpecialChars -str 'StringWith`$dollar') | Should Be 'StringWith```$dollar'
+        }
+    }
 }
 
 Describe "Tests for testing Get-ScriptToRun functionality" {

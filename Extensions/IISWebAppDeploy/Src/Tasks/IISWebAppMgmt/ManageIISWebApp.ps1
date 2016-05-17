@@ -68,7 +68,7 @@ function Escape-SpecialChars
         [string]$str
     )
 
-    return $str.Replace('"', '`"').Replace('$', '`$')
+    return $str.Replace('`', '``').Replace('"', '`"').Replace('$', '`$')
 }
 
 function Get-ScriptToRun
