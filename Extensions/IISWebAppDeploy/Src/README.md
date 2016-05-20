@@ -27,3 +27,7 @@ The extension installs the following tasks:
 ### **Contact Information**
 
 For further information or to resolve issues, contact RM_Customer_Queries at Microsoft dot com.
+
+### **Change Log**
+
+For detailed information on changes in new release refer [change log](http://aka.ms/IISChangeLog)
