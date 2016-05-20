@@ -4,7 +4,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
-## [0.1.0] - 10th May 2016
+## [1.0.0] - 20th May 2016
 ### Fixed
 - Fixed help markdown issue for override params of IIS Web Deployment task.
 - Fixed handling special characters ('$', '`') in password for IIS Web Management task.
