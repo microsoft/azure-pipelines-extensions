@@ -30,8 +30,4 @@ For further information or to resolve issues, contact RM_Customer_Queries at Mic
 
 ### **Change Log**
 
-| Version     | Date    | Details |
-| --------|---------|-------|
-| 1.0.0  | 05/20/2016   | Bug fixes for help mark down, dollar character in password  |
-| 0.2.0  | 05/11/2016   | Fixed index out of bounds issue for automation agents with PowerShell 4.0    |
-| 0.1.0 | 05/10/2016 | Published IIS extension    |
+For detailed information on changes in new release refer [change log](http://aka.ms/IISChangeLog)
