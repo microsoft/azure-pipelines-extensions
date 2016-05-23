@@ -6,6 +6,8 @@ Using Windows Remote Management (WinRM), connect to the host machine(s) where II
  - Create a new application pool or update an existing application pool.
  - Deploy a Web Application to the IIS Server using Web Deploy.
 
+To easily **setup WinRM** on the **host machines** follow the directions for [domain-joined machines](https://www.visualstudio.com/en-us/docs/release/examples/other-servers/net-to-vm) or the [workgroup machines](https://www.visualstudio.com/en-us/docs/release/examples/other-servers/net-to-workgroup-vm).
+
 The SQL Server Database Deployment task will be added to the extension in the next update.
 
 VSTS accounts that are using the **preview tasks** wiz. **IIS Web Application Deployment** or **SQL Server Database Deployment**, should move to this extension. All **future enhancements** to the IIS Web App Deployment task or to the SQL Server Database Deployment task will be provided in this extension.
