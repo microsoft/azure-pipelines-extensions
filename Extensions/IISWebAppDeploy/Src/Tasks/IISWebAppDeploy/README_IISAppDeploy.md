@@ -22,14 +22,9 @@ To dynamically deploy IIS on machines, use the [PowerShell on Target Machines]((
 
 ### Windows Remote Management (WinRM) Setup for On-premises Physical or Virtual Machines
 
-The IIS Web Application Deployment task uses the [Windows Remote Management](https://msdn.microsoft.com/en-us/library/aa384426.aspx) (WinRM) to access domain-joined or workgroup, on-premises physical or virtual machines. Setup the target machines as per the following, to ensure that the WinRM has been setup properly on them:
+The IIS Web Application Deployment task uses the [Windows Remote Management](https://msdn.microsoft.com/en-us/library/aa384426.aspx) (WinRM) to access domain-joined or workgroup, on-premises physical or virtual machines. 
 
-| Target Machine State     | Target Machine Trust with Automation Agent    | Machine Identity | Authentication Account | Authentication Mode | Authentication Account Permission on Target Machine | Connection Type | Pre-requisites in Target machine for Deployment Tasks to Succeed |
-| --------|---------|-------|-------|-------|--------|---------|-------------|
-| Domain joined machine in Corp network  | Trusted   | DNS name | Domain account | Kerberos | Machine Administrator | WinRM HTTP | <ul><li> WinRM HTTP port (default 5985) opened in Firewall.</li> <li>File & Printer sharing enabled.</li></ui>  |
-| Domain joined machine in Corp network  | Trusted   | DNS name | Domain account | Kerberos | Machine Administrator | WinRM HTTPS | <ul><li> WinRM HTTPS port (default 5986) opened in Firewall.</li> <li>Trusted certificate in Automation agent</li>. <li>If Trusted certificate not in Automation agent, then Test Certificate option enabled in Task for deployment.</li> <li>File & Printer sharing enabled.</li> |
-| Domain joined machine or Workgroup machine, in Corp network  | Any   | DNS name | Local machine account | NTLM | Machine Administrator | WinRM HTTP |<ul><li> WinRM HTTP port (default 5985) opened in Firewall.</li><li> Disable UAC remote restrictions [link](https://support.microsoft.com/en-us/kb/951016).</li><li> Credential in domain\\account name  or machine\\account name format.</li><li> Set "AllowUnencrypted" option and add remote machines in "Trusted Host" list in Automation Agent [link](https://msdn.microsoft.com/en-us/library/aa384372.aspx).</li><li> File & Printer sharing enabled.</li>|
-| Domain joined machine or Workgroup machine, in Corp network  | Any   | DNS name | Local machine account | NTLM | Machine Administrator | WinRM HTTP | <ul><li>WinRM HTTPS port (default 5986) opened in Firewall.</li><li> Disable UAC remote restrictions [link](https://support.microsoft.com/en-us/kb/951016).</li><li> Credential in <Account> format.</li><li> Trusted certificate in Automation agent.</li><li> If Trusted certificate not in Automation agent, then Test Certificate option enabled in Task for deployment.</li><li> File & Printer sharing enabled.</li> |
+To easily **setup WinRM** on the **host machines** follow the directions for [domain-joined machines](https://www.visualstudio.com/en-us/docs/release/examples/other-servers/net-to-vm) or the [workgroup machines](https://www.visualstudio.com/en-us/docs/release/examples/other-servers/net-to-workgroup-vm).
 
 ### Windows Remote Management (WinRM) Setup for Azure Virtual Machines
 
