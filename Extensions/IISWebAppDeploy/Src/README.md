@@ -30,4 +30,4 @@ For further information or to resolve issues, contact RM_Customer_Queries at Mic
 
 ### **Change Log**
 
-For detailed information on changes in new release refer [change log](https://github.com/Microsoft/vsts-rm-extensions/blob/master/Extensions/IISWebAppDeploy/Src/CHANGELOG.md)
+For detailed information on changes in new release refer [change log](https://aka.ms/iisextnchangelog)
