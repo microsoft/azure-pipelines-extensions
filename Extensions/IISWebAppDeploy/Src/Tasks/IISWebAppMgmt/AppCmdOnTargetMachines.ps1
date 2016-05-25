@@ -187,7 +187,7 @@ function Add-SslCert
 
     if([string]::IsNullOrWhiteSpace($certhash))
     {
-        Write-Verbose "CertHash is empty .. returning"
+        Write-Verbose "CertHash is empty. Returning"
         return
     }
 
