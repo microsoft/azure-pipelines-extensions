@@ -353,10 +353,22 @@ Describe "Tests for testing Get-ResourceList function" {
 
         $machines = Get-ResourceList -machinesList "machine1, ,machine2,\n,machine3" -protocol "http"
 
-        It "Should create list with @{`"machine1`":`"5985`";`"machine2`":`"5985`";`"machine3`":`"595`"}" {
+        It "Should create list with @({name:machine1, port:5985};{name:machine2, port:5985};{name:machine3, port:5985})" {
             ($machines.Count) | Should Be 3
             ($machines[0].port) | Should Be "5985"
             ($machines[1].port) | Should Be "5985"
+            ($machines[2].port) | Should Be "5985"
+        }
+    }
+
+    Context "When machines list duplicate machine names machine1:7834, machine1:7432,machine3" {
+
+        $machines = Get-ResourceList -machinesList "machine1:7834, machine1:7432,machine3" -protocol "http"
+
+        It "Should create list with @({name:machine1, port:7834};{name:machine1, port:7432};{name:machine3, port:5985})" {
+            ($machines.Count) | Should Be 3
+            ($machines[0].port) | Should Be "7834"
+            ($machines[1].port) | Should Be "7432"
             ($machines[2].port) | Should Be "5985"
         }
     }

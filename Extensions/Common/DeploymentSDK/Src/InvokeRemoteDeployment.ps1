@@ -320,5 +320,5 @@ function Get-MachineNameAndPort
         throw "Invalid user input, machine name can not be empty."
     }
 
-    return ,$tokens
+    return , $tokens
 }
