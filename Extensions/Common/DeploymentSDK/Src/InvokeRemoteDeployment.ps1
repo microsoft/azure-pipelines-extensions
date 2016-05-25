@@ -123,7 +123,7 @@ function Invoke-RemoteDeployment
     Write-Verbose "protocol = $protocol"
 
     $credential = Get-Credentials -userName $adminUserName -password $adminPassword
-    $machinePortDict = Get-MachinePortDict -machinesList $machinesList -protocol $protocol
+    $resourceList = Get-ResourceList -machinesList $machinesList -protocol $protocol
     $skipCA = Get-SkipCAOption -useTestCertificate $testCertificate
     $useHttp = Get-UseHttpOption -protocol $protocol
 
@@ -131,12 +131,12 @@ function Invoke-RemoteDeployment
     {
         Write-Host "Performing deployment in parallel on all the machines."
         [hashtable]$Jobs = @{}
-        foreach($machine in $machinePortDict.Keys)
+        foreach($resource in $resourceList)
         {
-            $winRmPort = [System.Convert]::ToInt32($machinePortDict[$machine])
-            Write-Host "Deployment started for machine: $machine with port $winRmPort."
-            $job = Start-Job -InitializationScript $InitializationScript -ScriptBlock $InvokePsOnRemoteScriptBlock -ArgumentList $machine, $scriptToRun, $winRmPort, $credential, $useHttp, $skipCA
-            $Jobs.Add($job.Id, $machine)
+            $winRmPort = [System.Convert]::ToInt32($resource.port)
+            Write-Host "Deployment started for machine: $($resource.name) with port $winRmPort."
+            $job = Start-Job -InitializationScript $InitializationScript -ScriptBlock $InvokePsOnRemoteScriptBlock -ArgumentList $resource.name, $scriptToRun, $winRmPort, $credential, $useHttp, $skipCA
+            $Jobs.Add($job.Id, $resource.name)
         }
 
         While ($Jobs.Count -gt 0)
@@ -176,13 +176,13 @@ function Invoke-RemoteDeployment
     {
         Write-Host "Performing deployment in sequentially on all machines."
         . $InitializationScript
-        foreach($machine in $machinePortDict.Keys)
+        foreach($resource in $resourceList)
         {
-            $winRmPort = [System.Convert]::ToInt32($machinePortDict[$machine])
-            Write-Host "Deployment started for machine: $machine with port $winRmPort."
-            $deploymentResponse = Invoke-Command -ScriptBlock $InvokePsOnRemoteScriptBlock -ArgumentList $machine, $scriptToRun, $winRmPort, $credential, $useHttp, $skipCA
+            $winRmPort = [System.Convert]::ToInt32($resource.port)
+            Write-Host "Deployment started for machine: $($resource.name) with port $winRmPort."
+            $deploymentResponse = Invoke-Command -ScriptBlock $InvokePsOnRemoteScriptBlock -ArgumentList $resource.name, $scriptToRun, $winRmPort, $credential, $useHttp, $skipCA
 
-            Write-Host "Deployment status for machine $machine :", $deploymentResponse.Status
+            Write-Host "Deployment status for machine $($resource.name) :", $deploymentResponse.Status
             Write-Verbose $deploymentResponse.DeploymentLog
             if ($deploymentResponse.Status -ne "Passed")
             {
@@ -252,7 +252,7 @@ function Get-Credentials
     return $creds
 }
 
-function Get-MachinePortDict
+function Get-ResourceList
 {
     param(
         [string]$machinesList,
@@ -261,7 +261,7 @@ function Get-MachinePortDict
 
     Write-Verbose "Tokenizing machine name and port, to create dictonary"
 
-    $machinePortDict = @{}
+    $resourceList = @()
     $machines = @()
 
     $machinesList.split(',', [System.StringSplitOptions]::RemoveEmptyEntries) |`
@@ -271,19 +271,27 @@ function Get-MachinePortDict
         $tokens = Get-MachineNameAndPort -machine $machine
         if(![string]::IsNullOrWhiteSpace($tokens[1]))
         {
-            $machinePortDict.add($tokens[0], $tokens[1])
+            $machineName = $tokens[0]
+            $machinePort = $tokens[1]
         }
         elseif($protocol -eq "http")
         {
-            $machinePortDict.add($tokens[0], "5985")
+            $machineName = $tokens[0]
+            $machinePort = "5985"
         }
         else
         {
-            $machinePortDict.add($tokens[0], "5986")
+            $machineName = $tokens[0]
+            $machinePort = "5986"
         }
+
+        $resource = New-Object psobject
+        $resource | Add-Member -MemberType NoteProperty -Name "name" -Value $machineName
+        $resource | Add-Member -MemberType NoteProperty -Name "port" -Value $machinePort
+        $resourceList += $resource
     }
 
-    return $machinePortDict
+    return , $resourceList
 }
 
 function Get-MachineNameAndPort

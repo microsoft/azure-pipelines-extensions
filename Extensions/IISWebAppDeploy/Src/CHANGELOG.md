@@ -4,6 +4,11 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+
+## [1.0.1] - 25th May 2016
+### Fixed
+- Fixed tasks not accepting duplicate machine names with different port
+
 ## [1.0.0] - 20th May 2016
 ### Fixed
 - Fixed help markdown issue for override params of IIS Web Deployment task.
