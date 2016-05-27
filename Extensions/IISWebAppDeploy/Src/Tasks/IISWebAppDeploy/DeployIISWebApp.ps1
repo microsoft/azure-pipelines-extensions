@@ -54,6 +54,8 @@ function Get-ScriptToRun
     )
 
     $msDeployScript = Get-Content  ./MsDeployOnTargetMachines.ps1 | Out-String
+    $overRideParams = Escape-DoubleQuotes -str $overRideParams
+
     $invokeMain = "Execute-Main -WebDeployPackage `"$webDeployPackage`" -WebDeployParamFile `"$webDeployParamFile`" -OverRideParams `"$overRideParams`""
 
     Write-Verbose "Executing main funnction in MsDeployOnTargetMachines : $invokeMain"
@@ -115,7 +117,6 @@ function Main
 
     Trim-Inputs -package ([ref]$webDeployPackage) -paramFile ([ref]$webDeployParamFile) -siteName ([ref]$websiteName) -adminUser ([ref]$adminUserName)
     $overRideParams = Compute-MsDeploy-SetParams -websiteName $websiteName -overRideParams $overRideParams
-    $overRideParams = Escape-DoubleQuotes -str $overRideParams
     $script = Get-ScriptToRun -webDeployPackage $webDeployPackage -webDeployParamFile $webDeployParamFile -overRideParams $overRideParams
     Run-RemoteDeployment -machinesList $machinesList -scriptToRun $script -adminUserName $adminUserName -adminPassword $adminPassword -winrmProtocol $winrmProtocol -testCertificate $testCertificate -deployInParallel $deployInParallel -webDeployPackage $webDeployPackage
 }

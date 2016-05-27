@@ -1,11 +1,96 @@
-﻿param (
-    [string]$environmentName,
+﻿Import-Module $env:CURRENT_TASK_ROOTDIR\DeploymentSDK\InvokeRemoteDeployment.ps1
+
+function EscapeSpecialChars
+{
+    param(
+        [string]$str
+    )
+
+    return $str.Replace('`', '``').Replace('"', '`"').Replace('$', '`$')
+}
+
+function IsPublishProfileEmpty
+{
+    param(
+        [string]$publishProfile
+    )
+
+    return ([string]::IsNullOrWhitespace($PublishProfile) -or
+    $PublishProfile -eq $env:SYSTEM_DEFAULTWORKINGDIRECTORY -or
+    $PublishProfile -eq [String]::Concat($env:SYSTEM_DEFAULTWORKINGDIRECTORY, "\"))
+}
+function TrimInputs([ref]$adminUserName, [ref]$sqlUsername, [ref]$dacpacFile, [ref]$publishProfile)
+{
+    Write-Verbose "Triming inputs for excess spaces, double quotes"
+        
+    $adminUserName.Value = $adminUserName.Value.Trim()
+    $sqlUsername.Value = $sqlUsername.Value.Trim()    
+
+    $dacpacFile.Value = $dacpacFile.Value.Trim('"', ' ')
+    $publishProfile.Value = $publishProfile.Value.Trim('"', ' ')
+}
+
+function RunRemoteDeployment
+{
+    param(
+        [string]$machinesList,
+        [string]$scriptToRun,
+        [string]$adminUserName,
+        [string]$adminPassword,
+        [string]$winrmProtocol,
+        [string]$testCertificate,
+        [string]$deployInParallel
+    )
+
+    Write-Host "Starting deployment of Sql Dacpac File : $dacpacFile"
+
+    $errorMessage = Invoke-RemoteDeployment -machinesList $machinesList -scriptToRun $scriptToRun -adminUserName $adminUserName -adminPassword $adminPassword -protocol $winrmProtocol -testCertificate $testCertificate -deployInParallel $deployInParallel
+
+    if(-not [string]::IsNullOrEmpty($errorMessage))
+    {
+        $helpMessage = "For more info please refer to http://aka.ms/sqlserverdacpackreadme)"
+        Write-Error "$errorMessage`n$helpMessage"
+        return
+    }
+
+    Write-Host "Successfully deployed Sql Dacpac File : $dacpacFile"
+}
+
+function Get-ScriptToRun
+{
+    param (
+        [string]$dacpacFile,
+        [string]$targetMethod,
+        [string]$serverName,
+        [string]$databaseName,
+        [string]$sqlUserName,
+        [string]$sqlPassword,
+        [string]$connectionString,
+        [string]$publishProfile,
+        [string]$additionalArguments
+    )
+
+    $sqlPackageScript = Get-Content .\SqlPackageOnTargetMachines.ps1 | Out-String
+
+    $connectionString = EscapeSpecialChars -str $connectionString
+    $sqlPassword = EscapeSpecialChars -str $sqlPassword
+    $additionalArguments = EscapeSpecialChars -str $additionalArguments
+
+    $invokeMain = "ExecuteMain -dacpacFile `"$dacpacFile`" -targetMethod $targetMethod -serverName $serverName -databaseName $databaseName -sqlUsername `"$sqlUsername`" -sqlPassword `"$sqlPassword`" -connectionString `"$connectionString`" -publishProfile `"$publishProfile`" -additionalArguments `"$additionalArguments`""
+
+    Write-Verbose "Executing main funnction in SqlPackageOnTargetMachines : $invokeMain"
+    $sqlDacpacOnTargetMachinesScript = [string]::Format("{0} {1} ( {2} )", $sqlPackageScript,  [Environment]::NewLine,  $invokeMain)
+    return $sqlDacpacOnTargetMachinesScript
+}
+
+function Main
+{
+    param (
+    [string]$machinesList,
     [string]$adminUserName,
     [string]$adminPassword,
-    [string]$protocol,
+    [string]$winrmProtocol,
     [string]$testCertificate,
-    [string]$resourceFilteringMethod,
-    [string]$machineFilter,
     [string]$dacpacFile,
     [string]$targetMethod,
     [string]$serverName,
@@ -15,63 +100,30 @@
     [string]$connectionString,
     [string]$publishProfile,
     [string]$additionalArguments,
-    [string]$deployInParallel    
+    [string]$deployInParallel
     )
 
-Write-Verbose "Entering script DeployToSqlServer.ps1" -Verbose
-Write-Verbose "environmentName = $environmentName" -Verbose
-Write-Verbose "adminUserName = $adminUserName" -Verbose
-Write-Verbose "winrm protocol to connect to machine  = $protocol" -Verbose
-Write-Verbose "testCertificate = $testCertificate" -Verbose
-Write-Verbose "resourceFilteringMethod = $resourceFilteringMethod" -Verbose
-Write-Verbose "machineFilter = $machineFilter" -Verbose
-Write-Verbose "dacpacFile = $dacpacFile" -Verbose
-Write-Verbose "targetMethod = $targetMethod" -Verbose
-Write-Verbose "serverName = $serverName" -Verbose
-Write-Verbose "databaseName = $databaseName" -Verbose
-Write-Verbose "sqlUsername = $sqlUsername" -Verbose
-Write-Verbose "publishProfile = $publishProfile" -Verbose
-Write-Verbose "additionalArguments = $additionalArguments" -Verbose
-Write-Verbose "deployInParallel = $deployInParallel" -Verbose
+    Write-Verbose "Entering script DeployToSqlServer.ps1"
+    Write-Verbose "machinesList = $machinesList"
+    Write-Verbose "adminUserName = $adminUserName"
+    Write-Verbose "winrmProtocol  = $winrmProtocol"
+    Write-Verbose "testCertificate = $testCertificate"
+    Write-Verbose "dacpacFile = $dacpacFile"
+    Write-Verbose "targetMethod = $targetMethod"
+    Write-Verbose "serverName = $serverName"
+    Write-Verbose "databaseName = $databaseName"
+    Write-Verbose "sqlUsername = $sqlUsername"
+    Write-Verbose "publishProfile = $publishProfile"
+    Write-Verbose "additionalArguments = $additionalArguments"
+    Write-Verbose "deployInParallel = $deployInParallel"
 
-import-module "Microsoft.TeamFoundation.DistributedTask.Task.Internal"
-import-module "Microsoft.TeamFoundation.DistributedTask.Task.Common"
-import-module "Microsoft.TeamFoundation.DistributedTask.Task.DevTestLabs"
-Import-Module "Microsoft.TeamFoundation.DistributedTask.Task.Deployment.Internal"
-Import-Module "Microsoft.TeamFoundation.DistributedTask.Task.Deployment.RemoteDeployment"
+    if( IsPublishProfileEmpty -publishProfile $publishProfile )
+    {
+        $publishProfile = ""
+    }
 
-$ErrorActionPreference = 'Stop'
+    TrimInputs -adminUserName([ref]$adminUserName) -sqlUsername ([ref]$sqlUsername) -dacpacFile ([ref]$dacpacFile) -publishProfile ([ref]$publishProfile)  
 
-if( $publishProfile -eq $env:SYSTEM_DEFAULTWORKINGDIRECTORY -or $publishProfile -eq [String]::Concat($env:SYSTEM_DEFAULTWORKINGDIRECTORY, "\")){
-    $publishProfile = ""
+    $script = Get-ScriptToRun -dacpacFile $dacpacFile -targetMethod $targetMethod -serverName $serverName -databaseName $databaseName -sqlUserName $sqlUsername -sqlPassword $sqlPassword -connectionString $connectionString -publishProfile $publishProfile -additionalArguments $additionalArguments
+    RunRemoteDeployment -machinesList $machinesList -scriptToRun $script -adminUserName $adminUserName -adminPassword $adminPassword -winrmProtocol $winrmProtocol -testCertificate $testCertificate -deployInParallel $deployInParallel
 }
-
-$sqlDeploymentScriptPath = Join-Path "$env:AGENT_HOMEDIRECTORY" "Agent\Worker\Modules\Microsoft.TeamFoundation.DistributedTask.Task.DevTestLabs\Scripts\Microsoft.TeamFoundation.DistributedTask.Task.Deployment.Sql.ps1"
-
-$sqlPackageOnTargetMachineBlock = Get-Content $sqlDeploymentScriptPath | Out-String
-
-$sqlPackageArguments = Get-SqlPackageCommandArguments -dacpacFile $dacpacFile -targetMethod $targetMethod -serverName $serverName -databaseName $databaseName -sqlUsername $sqlUsername -sqlPassword $sqlPassword -connectionString $connectionString -publishProfile $publishProfile -additionalArguments $additionalArguments
-
-$scriptArguments = "-sqlPackageArguments $sqlPackageArguments"
-
-$errorMessage = [string]::Empty
-
-Write-Output ( Get-LocalizedString -Key "Starting deployment of Sql Dacpac File : {0}" -ArgumentList $dacpacFile)
-
-if($resourceFilteringMethod -eq "tags")
-{
-    $errorMessage = Invoke-RemoteDeployment -environmentName $environmentName -tags $machineFilter -ScriptBlockContent $sqlPackageOnTargetMachineBlock -scriptArguments $scriptArguments -runPowershellInParallel $deployInParallel -adminUserName $adminUserName -adminPassword $adminPassword -protocol $protocol -testCertificate $testCertificate
-}
-else
-{
-    $errorMessage = Invoke-RemoteDeployment -environmentName $environmentName -machineNames $machineFilter -ScriptBlockContent $sqlPackageOnTargetMachineBlock -scriptArguments $scriptArguments -runPowershellInParallel $deployInParallel -adminUserName $adminUserName -adminPassword $adminPassword -protocol $protocol -testCertificate $testCertificate 
-}
-
-if(-not [string]::IsNullOrEmpty($errorMessage))
-{
-    $readmelink = "http://aka.ms/sqlserverdacpackreadme"
-    $helpMessage = (Get-LocalizedString -Key "For more info please refer to {0}" -ArgumentList $readmelink)
-    throw "$errorMessage $helpMessage"
-}
-
-Write-Output ( Get-LocalizedString -Key "Successfully deployed Sql Dacpac File : {0}" -ArgumentList $dacpacFile)
