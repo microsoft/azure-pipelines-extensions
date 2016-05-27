@@ -70,7 +70,8 @@ function Run-RemoteDeployment
         [string]$adminPassword,
         [string]$winrmProtocol,
         [string]$testCertificate,
-        [string]$deployInParallel
+        [string]$deployInParallel,
+        [string]$webDeployPackage
     )
 
     Write-Host "Starting deployment of IIS Web Deploy Package : $webDeployPackage"
@@ -116,5 +117,5 @@ function Main
     $overRideParams = Compute-MsDeploy-SetParams -websiteName $websiteName -overRideParams $overRideParams
     $overRideParams = Escape-DoubleQuotes -str $overRideParams
     $script = Get-ScriptToRun -webDeployPackage $webDeployPackage -webDeployParamFile $webDeployParamFile -overRideParams $overRideParams
-    Run-RemoteDeployment -machinesList $machinesList -scriptToRun $script -adminUserName $adminUserName -adminPassword $adminPassword -winrmProtocol $winrmProtocol -testCertificate $testCertificate -deployInParallel $deployInParallel
+    Run-RemoteDeployment -machinesList $machinesList -scriptToRun $script -adminUserName $adminUserName -adminPassword $adminPassword -winrmProtocol $winrmProtocol -testCertificate $testCertificate -deployInParallel $deployInParallel -webDeployPackage $webDeployPackage
 }
