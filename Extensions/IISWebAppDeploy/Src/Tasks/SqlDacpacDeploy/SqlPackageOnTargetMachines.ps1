@@ -403,6 +403,7 @@ function Get-SqlPackageCmdArgs
     }
 
     $sqlPkgCmdArgs = [string]::Format('{0} {1}', $sqlPkgCmdArgs, $additionalArguments)
+    Write-Verbose "Sqlpackage.exe arguments : $sqlPkgCmdArgs"
     return $sqlPkgCmdArgs
 }
 
