@@ -185,7 +185,6 @@ Describe "Tests for testing Get-ScriptToRun functionality" {
 
         $script = Get-ScriptToRun -createWebsite "true" -websiteName "dummysite" -websitePhysicalPath "C:\inetpub\wwwroot" -websitePhysicalPathAuth "Pass through" -websiteAuthUserName "dummyuser" -websiteAuthUserPassword "d`"ummypassword" -addBinding "true" -protocol "http" -ipAddress "127.0.0.1" -port "8743" -hostName "" -serverNameIndication "false" -sslCertThumbPrint "" -createAppPool "false" -appPoolName "" -pipeLineMode "Integrated" -dotNetVersion "v4.0" -appPoolIdentity "Identity" -appPoolUsername "dummyuser" -appPoolPassword "d`"ummypassword" -appCmdCommands "abc`""
 
-        Write-Verbose $script
         It "should contain script content and invoke expression" {
             ($script.Contains('Dummy Script')) | Should Be $true
             ($script.Contains('Execute-Main -CreateWebsite true -WebsiteName "dummysite" -WebsitePhysicalPath "C:\inetpub\wwwroot" -WebsitePhysicalPathAuth "Pass through" -WebsiteAuthUserName "dummyuser" -WebsiteAuthUserPassword "d`"ummypassword" -AddBinding true -Protocol http -IpAddress "127.0.0.1" -Port 8743 -HostName "" -ServerNameIndication false -SslCertThumbPrint "" -CreateAppPool false -AppPoolName "" -DotNetVersion "v4.0" -PipeLineMode Integrated -AppPoolIdentity Identity -AppPoolUsername "dummyuser" -AppPoolPassword "d`"ummypassword" -AppCmdCommands "abc`""')) | Should Be $true
