@@ -83,7 +83,7 @@
     },
     {
       "name": "DacpacFile",
-      "type": "filePath",
+      "type": "string",
       "label": "DACPAC File",
       "required": true,
       "groupName": "deployment",
@@ -170,7 +170,7 @@
     },
     {
       "name": "PublishProfile",
-      "type": "filePath",
+      "type": "string",
       "label": "Publish Profile",
       "required": false,
       "groupName": "target",

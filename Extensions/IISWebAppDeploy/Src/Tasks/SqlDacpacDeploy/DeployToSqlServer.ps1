@@ -9,18 +9,6 @@ function EscapeSpecialChars
     return $str.Replace('`', '``').Replace('"', '`"').Replace('$', '`$')
 }
 
-function IsPublishProfileEmpty
-{
-    param(
-        [string]$publishProfile
-    )
-
-    $publishProfile = $publishProfile.Trim('\', ' ').Trim()
-
-    return ([string]::IsNullOrWhitespace($publishProfile) -or
-    $PublishProfile -eq $env:SYSTEM_DEFAULTWORKINGDIRECTORY )
-}
-
 function TrimInputs([ref]$adminUserName, [ref]$sqlUsername, [ref]$dacpacFile, [ref]$publishProfile)
 {
     Write-Verbose "Triming inputs for excess spaces, double quotes"
@@ -123,12 +111,7 @@ function Main
     Write-Verbose "additionalArguments = $additionalArguments"
     Write-Verbose "deployInParallel = $deployInParallel"
 
-    if( IsPublishProfileEmpty -publishProfile $publishProfile )
-    {
-        $publishProfile = ""
-    }
-
-    TrimInputs -adminUserName([ref]$adminUserName) -sqlUsername ([ref]$sqlUsername) -dacpacFile ([ref]$dacpacFile) -publishProfile ([ref]$publishProfile)  
+    TrimInputs -adminUserName([ref]$adminUserName) -sqlUsername ([ref]$sqlUsername) -dacpacFile ([ref]$dacpacFile) -publishProfile ([ref]$publishProfile)
 
     $script = GetScriptToRun -dacpacFile $dacpacFile -targetMethod $targetMethod -serverName $serverName -databaseName $databaseName -authscheme $authscheme -sqlUserName $sqlUsername -sqlPassword $sqlPassword -connectionString $connectionString -publishProfile $publishProfile -additionalArguments $additionalArguments
     RunRemoteDeployment -machinesList $machinesList -scriptToRun $script -adminUserName $adminUserName -adminPassword $adminPassword -winrmProtocol $winrmProtocol -testCertificate $testCertificate -deployInParallel $deployInParallel -dacpacFile $dacpacFile
