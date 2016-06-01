@@ -587,7 +587,7 @@ Describe "Tests for verifying Update-WebSite functionality" {
             ($output.Contains("-[path='/'].[path='/'].userName:")) | Should Be $false
             ($output.Contains("-[path='/'].[path='/'].password:")) | Should Be $false
             ($output.Contains("/+bindings")) | Should Be $false
-            Assert-VerifiableMocks
+            Assert-MockCalled Does-BindingExists -Exactly -Times 0 -ParameterFilter { $SiteName -eq "SampleWeb" }
         }
     }
 }

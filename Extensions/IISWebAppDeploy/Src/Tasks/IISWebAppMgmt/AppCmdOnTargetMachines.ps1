@@ -322,11 +322,14 @@ function Update-Website
         $ipAddress = "*"
     }
 
-    $isBindingExists = Does-BindingExists -siteName $siteName -protocol $protocol -ipAddress $ipAddress -port $port -hostname $hostname
-
-    if($addBinding -eq "true" -and $isBindingExists -eq $false)
+    if($addBinding -eq "true")
     {
-        $appCmdArgs = [string]::Format("{0} /+bindings.[protocol='{1}',bindingInformation='{2}:{3}:{4}']", $appCmdArgs, $protocol, $ipAddress, $port, $hostname)
+        $isBindingExists = Does-BindingExists -siteName $siteName -protocol $protocol -ipAddress $ipAddress -port $port -hostname $hostname
+
+        if($isBindingExists -eq $false)
+        {
+            $appCmdArgs = [string]::Format("{0} /+bindings.[protocol='{1}',bindingInformation='{2}:{3}:{4}']", $appCmdArgs, $protocol, $ipAddress, $port, $hostname)
+        }
     }
 
     $appCmdPath, $iisVersion = Get-AppCmdLocation -regKeyPath $AppCmdRegKey
