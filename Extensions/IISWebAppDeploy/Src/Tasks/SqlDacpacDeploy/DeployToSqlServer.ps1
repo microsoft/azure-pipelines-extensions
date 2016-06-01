@@ -17,7 +17,7 @@ function IsPublishProfileEmpty
 
     $publishProfile = $publishProfile.Trim('\', ' ').Trim()
 
-    return ([string]::IsNullOrWhitespace($PublishProfile) -or
+    return ([string]::IsNullOrWhitespace($publishProfile) -or
     $PublishProfile -eq $env:SYSTEM_DEFAULTWORKINGDIRECTORY )
 }
 
@@ -41,7 +41,8 @@ function RunRemoteDeployment
         [string]$adminPassword,
         [string]$winrmProtocol,
         [string]$testCertificate,
-        [string]$deployInParallel
+        [string]$deployInParallel,
+        [string]$dacpacFile
     )
 
     Write-Host "Starting deployment of Sql Dacpac File : $dacpacFile"
@@ -127,5 +128,5 @@ function Main
     TrimInputs -adminUserName([ref]$adminUserName) -sqlUsername ([ref]$sqlUsername) -dacpacFile ([ref]$dacpacFile) -publishProfile ([ref]$publishProfile)  
 
     $script = GetScriptToRun -dacpacFile $dacpacFile -targetMethod $targetMethod -serverName $serverName -databaseName $databaseName -sqlUserName $sqlUsername -sqlPassword $sqlPassword -connectionString $connectionString -publishProfile $publishProfile -additionalArguments $additionalArguments
-    RunRemoteDeployment -machinesList $machinesList -scriptToRun $script -adminUserName $adminUserName -adminPassword $adminPassword -winrmProtocol $winrmProtocol -testCertificate $testCertificate -deployInParallel $deployInParallel
+    RunRemoteDeployment -machinesList $machinesList -scriptToRun $script -adminUserName $adminUserName -adminPassword $adminPassword -winrmProtocol $winrmProtocol -testCertificate $testCertificate -deployInParallel $deployInParallel -dacpacFile $dacpacFile
 }
