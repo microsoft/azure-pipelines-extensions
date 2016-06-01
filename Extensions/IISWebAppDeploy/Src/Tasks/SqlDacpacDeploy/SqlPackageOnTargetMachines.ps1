@@ -352,6 +352,7 @@ function Get-SqlPackageCmdArgs
     [string]$targetMethod,
     [string]$serverName,
     [string]$databaseName,
+    [string]$authscheme,
     [string]$sqlUsername,
     [string]$sqlPassword,
     [string]$connectionString,
@@ -375,16 +376,9 @@ function Get-SqlPackageCmdArgs
             $sqlPkgCmdArgs = [string]::Format('{0} /TargetDatabaseName:"{1}"', $sqlPkgCmdArgs, $databaseName)
         }
 
-        if(![string]::IsNullOrWhiteSpace($sqlUsername))
+        if($authscheme -eq "SQL Server Authentication")
         {
-            $sqlPkgCmdArgs = [string]::Format('{0} /TargetUser:"{1}"', $sqlPkgCmdArgs, $sqlUsername)
-
-            if ([string]::IsNullOrWhiteSpace($sqlPassword))
-            {
-                throw "No password specified for the SQL User: [ $sqlUserName ]"
-            }
-
-            $sqlPkgCmdArgs = [string]::Format('{0} /TargetPassword:"{1}"', $sqlPkgCmdArgs, $sqlPassword)
+            $sqlPkgCmdArgs = [string]::Format('{0} /TargetUser:"{1}" /TargetPassword:"{2}"', $sqlPkgCmdArgs, $sqlUsername, $sqlPassword)
         }
     }
     elseif($targetMethod -eq "connectionString")
@@ -414,6 +408,7 @@ function ExecuteMain
      [string]$targetMethod,
      [string]$serverName,
      [string]$databaseName,
+     [string]$authscheme,
      [string]$sqlUsername,
      [string]$sqlPassword,
      [string]$connectionString,
@@ -423,7 +418,7 @@ function ExecuteMain
 
     Write-Verbose "Entering script SqlPackageOnTargetMachines.ps1"
     $sqlPackage = Get-SqlPackageOnTargetMachine
-    $sqlPackageArguments = Get-SqlPackageCmdArgs -dacpacFile $dacpacFile -targetMethod $targetMethod -serverName $serverName -databaseName $databaseName -sqlUsername $sqlUsername -sqlPassword $sqlPassword -connectionString $connectionString -publishProfile $publishProfile -additionalArguments $additionalArguments
+    $sqlPackageArguments = Get-SqlPackageCmdArgs -dacpacFile $dacpacFile -targetMethod $targetMethod -serverName $serverName -databaseName $databaseName -authscheme $authscheme -sqlUsername $sqlUsername -sqlPassword $sqlPassword -connectionString $connectionString -publishProfile $publishProfile -additionalArguments $additionalArguments
 
     $command = "`"$sqlPackage`" $sqlPackageArguments"
     Write-Verbose "Executing command: $command"

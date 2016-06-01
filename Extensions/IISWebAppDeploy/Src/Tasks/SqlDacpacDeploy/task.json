@@ -125,24 +125,38 @@
       "helpMarkDown": "Provide the name of the SQL Server database."
     },
     {
+      "name": "AuthScheme",
+      "type": "string",
+      "label": "Authentication",
+      "required": true,
+      "groupName": "target",
+      "defaultValue": "Windows Authentication",
+      "visibleRule": "TargetMethod = server",
+      "options": {
+        "windowsAuthentication": "Windows Authentication",
+        "sqlServerAuthentication": "SQL Server Authentication"
+      },
+      "helpMarkDown": "Select type of authentication for connecting to sql server."
+    },
+    {
       "name": "SqlUsername",
       "type": "string",
       "label": "SQL Username",
-      "required": false,
+      "required": true,
       "groupName": "target",
       "defaultValue": "",
-      "visibleRule": "TargetMethod = server",
-      "helpMarkDown": "If the SQL Server login is specified, it will be used to connect to the SQL Server. The default is Integrated Authentication and uses the machine administrator's credentials."
+      "visibleRule": "AuthScheme = sqlServerAuthentication",
+      "helpMarkDown": "If the SQL Server login is specified, it will be used to connect to the SQL Server."
     },
     {
       "name": "SqlPassword",
       "type": "string",
       "label": "SQL Password",
-      "required": false,
+      "required": true,
       "groupName": "target",
       "defaultValue": "",
-      "visibleRule": "TargetMethod = server",
-      "helpMarkDown": "If SQL Server login user name is specified, then provide the SQL Server password. The default is Integrated Authentication and uses the machine administrator's credentials."
+      "visibleRule": "AuthScheme = sqlServerAuthentication",
+      "helpMarkDown": "If SQL Server login user name is specified, then provide the SQL Server password."
     },
     {
       "name": "ConnectionString",

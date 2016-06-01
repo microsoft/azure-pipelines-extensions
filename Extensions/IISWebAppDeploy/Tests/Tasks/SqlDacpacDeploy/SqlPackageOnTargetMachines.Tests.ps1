@@ -440,7 +440,7 @@ Describe "Tests for Get-SqlPackageCmdArgs functionality" {
 
     Context "When target method is server and with windows authentication" {
 
-        $cmdArgs = Get-SqlPackageCmdArgs -dacpacFile "sample.dacpac" -targetMethod "server" -serverName "localhost" -databaseName "SampleDB"
+        $cmdArgs = Get-SqlPackageCmdArgs -dacpacFile "sample.dacpac" -targetMethod "server" -serverName "localhost" -databaseName "SampleDB" -authscheme "Windows Authentication"
 
         It "Should contain targetmethod as server and no sqluser argument should be present" {
             ($cmdArgs.Contains('/SourceFile:"sample.dacpac" /Action:Publish /TargetServerName:"localhost" /TargetDatabaseName:"SampleDB"')) | Should Be $true
@@ -450,7 +450,7 @@ Describe "Tests for Get-SqlPackageCmdArgs functionality" {
 
     Context "When target method is server and with mixed mode authentication" {
 
-        $cmdArgs = Get-SqlPackageCmdArgs -dacpacFile "sample.dacpac" -targetMethod "server" -serverName "localhost" -databaseName "SampleDB" -sqlUsername "dummyuser" -sqlPassword "dummypassword"
+        $cmdArgs = Get-SqlPackageCmdArgs -dacpacFile "sample.dacpac" -targetMethod "server" -serverName "localhost" -databaseName "SampleDB" -authscheme "SQL Server Authentication"-sqlUsername "dummyuser" -sqlPassword "dummypassword"
 
         It "Should contain targetmethod as server and sqluser argument should be present" {
             ($cmdArgs.Contains('/SourceFile:"sample.dacpac" /Action:Publish /TargetServerName:"localhost" /TargetDatabaseName:"SampleDB"')) | Should Be $true
@@ -482,8 +482,7 @@ Describe "Tests for Get-SqlPackageCmdArgs functionality" {
 Describe "Tests for verifying ExecuteMain functionality" {
 
     Context "When execute main is invoked with all inputs"{
-        
-        
+
         Mock Get-SqlPackageOnTargetMachine { return "sqlpackage.exe" }
         Mock Get-SqlPackageCmdArgs -Verifiable { return "args" } -ParameterFilter { $DacpacFile -eq "sample.dacpac" }
         Mock RunCommand -Verifiable { return } -ParameterFilter {$Command -eq "`"sqlpackage.exe`" args"}
