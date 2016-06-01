@@ -308,7 +308,7 @@ Describe "Tests for verifying Add-SslCert functionality" {
 
         It "Should not add cert"{
             ($output.Contains('netsh http show sslcert ipport=0.0.0.0:80')) | Should Be $true
-            ($output.Contains('SSL cert binding already present.. returning')) | Should Be $true
+            ($output.Contains('SSL cert binding is already present. Returning')) | Should Be $true
             Assert-MockCalled Run-command -Times 1 -Exactly -ParameterFilter { $failOnErr -eq $false }
             Assert-MockCalled Run-command -Times 0 -Exactly -ParameterFilter { }
         }
@@ -587,7 +587,7 @@ Describe "Tests for verifying Update-WebSite functionality" {
             ($output.Contains("-[path='/'].[path='/'].userName:")) | Should Be $false
             ($output.Contains("-[path='/'].[path='/'].password:")) | Should Be $false
             ($output.Contains("/+bindings")) | Should Be $false
-            Assert-VerifiableMocks
+            Assert-MockCalled Does-BindingExists -Exactly -Times 0 -ParameterFilter { $SiteName -eq "SampleWeb" }
         }
     }
 }

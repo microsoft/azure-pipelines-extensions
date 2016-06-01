@@ -94,7 +94,7 @@ function Does-BindingExists
     )
 
     $appCmdPath, $iisVersion = Get-AppCmdLocation -regKeyPath $AppCmdRegKey
-    $appCmdArgs = [string]::Format(' list sites')
+    $appCmdArgs = ' list sites'
     $command = "`"$appCmdPath`" $appCmdArgs"
 
     Write-Verbose "Checking binding exists for website (`"$siteName`"). Running command : $command"
@@ -187,7 +187,7 @@ function Add-SslCert
 
     if([string]::IsNullOrWhiteSpace($certhash))
     {
-        Write-Verbose "CertHash is empty .. returning"
+        Write-Verbose "CertHash is empty. Returning"
         return
     }
 
@@ -199,7 +199,7 @@ function Add-SslCert
     if($sni -eq "true" -and $iisVersion -ge 8 -and -not [string]::IsNullOrWhiteSpace($hostname))
     {
         $showCertCmd = [string]::Format("netsh http show sslcert hostnameport={0}:{1}", $hostname, $port)
-        Write-Verbose "Checking SslCert binding already Present. Running command : $showCertCmd"
+        Write-Verbose "Checking if SslCert binding is already present. Running command : $showCertCmd"
 
         $result = Run-Command -command $showCertCmd -failOnErr $false
         $isItSameBinding = $result.Get(4).Contains([string]::Format("{0}:{1}", $hostname, $port))
@@ -209,7 +209,7 @@ function Add-SslCert
     else
     {
         $showCertCmd = [string]::Format("netsh http show sslcert ipport=0.0.0.0:{0}", $port)
-        Write-Verbose "Checking SslCert binding already Present. Running command : $showCertCmd"
+        Write-Verbose "Checking if SslCert binding is already present. Running command : $showCertCmd"
 
         $result = Run-Command -command $showCertCmd -failOnErr $false
         $isItSameBinding = $result.Get(4).Contains([string]::Format("0.0.0.0:{0}", $port))
@@ -217,11 +217,11 @@ function Add-SslCert
         $addCertCmd = [string]::Format("netsh http add sslcert ipport=0.0.0.0:{0} certhash={1} appid={{{2}}}", $port, $certhash, [System.Guid]::NewGuid().toString())
     }
 
-    $isItSameCert = $result.Get(5).ToLower().Contains([string]::Format("{0}", $certhash.ToLower()))
+    $isItSameCert = $result.Get(5).ToLower().Contains($certhash.ToLower())
 
     if($isItSameBinding -and $isItSameCert)
     {
-        Write-Verbose "SSL cert binding already present.. returning"
+        Write-Verbose "SSL cert binding is already present. Returning"
         return
     }
 
@@ -322,11 +322,14 @@ function Update-Website
         $ipAddress = "*"
     }
 
-    $isBindingExists = Does-BindingExists -siteName $siteName -protocol $protocol -ipAddress $ipAddress -port $port -hostname $hostname
-
-    if($addBinding -eq "true" -and $isBindingExists -eq $false)
+    if($addBinding -eq "true")
     {
-        $appCmdArgs = [string]::Format("{0} /+bindings.[protocol='{1}',bindingInformation='{2}:{3}:{4}']", $appCmdArgs, $protocol, $ipAddress, $port, $hostname)
+        $isBindingExists = Does-BindingExists -siteName $siteName -protocol $protocol -ipAddress $ipAddress -port $port -hostname $hostname
+
+        if($isBindingExists -eq $false)
+        {
+            $appCmdArgs = [string]::Format("{0} /+bindings.[protocol='{1}',bindingInformation='{2}:{3}:{4}']", $appCmdArgs, $protocol, $ipAddress, $port, $hostname)
+        }
     }
 
     $appCmdPath, $iisVersion = Get-AppCmdLocation -regKeyPath $AppCmdRegKey

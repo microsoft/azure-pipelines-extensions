@@ -6,6 +6,10 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 - Sql Server Dacpac deployment task.
 
+## [1.0.2] - 1st June 2016
+### Fixed
+- Fixed checking for binding even when add binding is false
+
 ## [1.0.1] - 25th May 2016
 ### Fixed
 - Fixed tasks not accepting duplicate machine names with different port
