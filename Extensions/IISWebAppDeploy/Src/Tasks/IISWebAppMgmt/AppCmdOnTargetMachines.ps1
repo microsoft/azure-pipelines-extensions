@@ -94,7 +94,7 @@ function Does-BindingExists
     )
 
     $appCmdPath, $iisVersion = Get-AppCmdLocation -regKeyPath $AppCmdRegKey
-    $appCmdArgs = [string]::Format(' list sites')
+    $appCmdArgs = ' list sites'
     $command = "`"$appCmdPath`" $appCmdArgs"
 
     Write-Verbose "Checking binding exists for website (`"$siteName`"). Running command : $command"
@@ -217,7 +217,7 @@ function Add-SslCert
         $addCertCmd = [string]::Format("netsh http add sslcert ipport=0.0.0.0:{0} certhash={1} appid={{{2}}}", $port, $certhash, [System.Guid]::NewGuid().toString())
     }
 
-    $isItSameCert = $result.Get(5).ToLower().Contains([string]::Format("{0}", $certhash.ToLower()))
+    $isItSameCert = $result.Get(5).ToLower().Contains($certhash.ToLower())
 
     if($isItSameBinding -and $isItSameCert)
     {
