@@ -187,7 +187,7 @@ function Add-SslCert
 
     if([string]::IsNullOrWhiteSpace($certhash))
     {
-        Write-Verbose "CertHash is empty .. returning"
+        Write-Verbose "CertHash is empty. Returning"
         return
     }
 
@@ -199,7 +199,7 @@ function Add-SslCert
     if($sni -eq "true" -and $iisVersion -ge 8 -and -not [string]::IsNullOrWhiteSpace($hostname))
     {
         $showCertCmd = [string]::Format("netsh http show sslcert hostnameport={0}:{1}", $hostname, $port)
-        Write-Verbose "Checking SslCert binding already Present. Running command : $showCertCmd"
+        Write-Verbose "Checking if SslCert binding is already present. Running command : $showCertCmd"
 
         $result = Run-Command -command $showCertCmd -failOnErr $false
         $isItSameBinding = $result.Get(4).Contains([string]::Format("{0}:{1}", $hostname, $port))
@@ -209,7 +209,7 @@ function Add-SslCert
     else
     {
         $showCertCmd = [string]::Format("netsh http show sslcert ipport=0.0.0.0:{0}", $port)
-        Write-Verbose "Checking SslCert binding already Present. Running command : $showCertCmd"
+        Write-Verbose "Checking if SslCert binding is already present. Running command : $showCertCmd"
 
         $result = Run-Command -command $showCertCmd -failOnErr $false
         $isItSameBinding = $result.Get(4).Contains([string]::Format("0.0.0.0:{0}", $port))
@@ -221,7 +221,7 @@ function Add-SslCert
 
     if($isItSameBinding -and $isItSameCert)
     {
-        Write-Verbose "SSL cert binding already present.. returning"
+        Write-Verbose "SSL cert binding is already present. Returning"
         return
     }
 
