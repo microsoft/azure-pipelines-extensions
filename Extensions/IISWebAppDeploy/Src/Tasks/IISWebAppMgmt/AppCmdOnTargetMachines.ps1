@@ -11,21 +11,21 @@ function Run-Command
     $ErrorActionPreference = 'Continue'
 
     if( $psversiontable.PSVersion.Major -le 4)
-    {        
+    {
         $result = cmd.exe /c "`"$command`""
     }
     else
     {
         $result = cmd.exe /c "$command"
     }
-    
+
     $ErrorActionPreference = 'Stop'
 
     if($failOnErr -and $LASTEXITCODE -ne 0)
     {
         throw $result
     }
-    
+
     return $result
 }
 

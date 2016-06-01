@@ -10,5 +10,11 @@
             "module": "DeploymentSDK",
             "dest": "DeploymentSDK"
         }
+    ],
+    "SqlDacpacDeploy": [
+        {
+            "module": "DeploymentSDK",
+            "dest": "DeploymentSDK"
+        }
     ]
 }

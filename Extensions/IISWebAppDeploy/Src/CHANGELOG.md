@@ -3,6 +3,8 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+### Added
+- Sql Server Dacpac deployment task.
 
 ## [1.0.2] - 1st June 2016
 ### Fixed

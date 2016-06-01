@@ -2,7 +2,7 @@
   "manifestVersion": 1,
   "extensionId": "iiswebapp",
   "name": "IIS Web App Deployment Using WinRM",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "publisher": "ms-vscs-rm",
   "description": "Using WinRM connect to the host Computer, to create or update websites, and to deploy a Web project using Web Deploy.",
   "public": true,  
@@ -33,11 +33,10 @@
       "path": "Tasks/IISWebAppDeploy"
     },
     {
-      "path": "images",
-      "addressable": true
+      "path": "Tasks/IISWebAppMgmt"
     },
     {
-      "path": "Tasks/IISWebAppMgmt"
+      "path": "Tasks/SqlDacpacDeploy"
     }
   ],
   "targets": [
@@ -64,6 +63,16 @@
       ],
       "properties": {
         "name": "Tasks/IISWebAppMgmt"
+      }
+    },
+    {
+      "id": "sqldacpacdeploy-task",
+      "type": "ms.vss-distributed-task.task",
+      "targets": [
+        "ms.vss-distributed-task.tasks"
+      ],
+      "properties": {
+        "name": "Tasks/SqlDacpacDeploy"
       }
     }
   ]
