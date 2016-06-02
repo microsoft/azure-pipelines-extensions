@@ -3,7 +3,7 @@
   "name": "SqlDacpacDeploy",
   "friendlyName": "SQL Server Database Deployment",
   "description": "Deploy SQL Server Database using DACPAC",
-  "helpMarkDown": "[More Information](http://aka.ms/sqlserverdacpackreadme)",
+  "helpMarkDown": "[More Information](http://aka.ms/iiswebappdeployreadme)",
   "category": "Deploy",
   "visibility": [
     "Build",
