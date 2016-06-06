@@ -30,7 +30,7 @@ gulp.task("compile", ["clean"], function(done) {
         var areaPathArgument = args.testAreaPath;
         if(areaPathArgument.length > 0 )
         {
-            console.log('Test area-paths - ' + areaPathArgument + ' are passed, compiling only specific area-path');        
+            console.log('Compiling updated modules - ' + areaPathArgument);
             var areaPaths = areaPathArgument.trim().split(',');
             var filter = [];
             for (var n = 0; n < areaPaths.length; n++) {
