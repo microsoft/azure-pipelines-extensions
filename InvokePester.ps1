@@ -6,6 +6,7 @@ Function Run-Tests()
     $builtExtensionPath = Join-Path $scriptCwd "_build\Extensions"
     $resultsPath = Join-Path $scriptCwd "_build\TestResults"
 
+    Write-verbose "Setting working directory as $builtExtensionPath" -verbose
     pushd $builtExtensionPath
 
     Write-Host "Cleaning test results folder: $resultsPath."
