@@ -83,7 +83,7 @@
       "required": true,
       "groupName": "deployment",
       "defaultValue": "",
-      "helpMarkDown": "Location of the Web Deploy (MSDeploy) zip file on the target machine(s) or on a UNC path, like \\\\\\\\BudgetIT\\WebDeploy\\WebDeployPackage.zip. The UNC path should be accessible to the machine's administrator account. Environment variables are also supported, like $env:windir, $env:systemroot, like, $env:windir\\FabrikamFibre\\Web."
+      "helpMarkDown": "Location of the Web Deploy (MSDeploy) zip file on the target machine(s) or on a UNC path, like \\\\\\\\BudgetIT\\WebDeploy\\WebDeployPackage.zip. The UNC path should be accessible to the machine's administrator account. Environment variables are also supported, like $env:windir, $env:systemroot, $env:windir\\FabrikamFibre\\Web."
     },
     {
       "name": "WebDeployParamFile",
