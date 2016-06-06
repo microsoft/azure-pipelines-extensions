@@ -2,16 +2,11 @@
 
 Function Run-Tests()
 {
-    param(
-        [string]$modulePath
-    )
-
     $scriptCwd = Split-Path -Parent $PSCommandPath
-    $taskSrcPath = Join-Path $scriptCwd "_build\Extensions\$modulePath\Src"
-    $taskTestPath = Join-Path $scriptCwd "_build\Extensions\$modulePath\Tests"
-    $resultsPath = Join-Path $scriptCwd "_build\Extensions\$modulePath\TestResults"
+    $builtExtensionPath = Join-Path $scriptCwd "_build\Extensions"
+    $resultsPath = Join-Path $scriptCwd "_build\TestResults"
 
-    pushd $taskTestPath
+    pushd $builtExtensionPath
 
     Write-Host "Cleaning test results folder: $resultsPath."
     if(-not (Test-Path -Path $resultsPath))
@@ -20,10 +15,9 @@ Function Run-Tests()
     }
     Remove-Item -Path $resultsPath\* -Force -Recurse
 
-    Write-Host "Running unit tests.."
+    Write-Host "Running pester unit tests.."
     $resultsFile = Join-Path $resultsPath "Results.xml"    
     $result = Invoke-Pester -OutputFile $resultsFile -OutputFormat NUnitXml -PassThru
-
 
     <# TODO : subraman removing code coverage as of now
     $result = Invoke-Pester -OutputFile $resultsFile -OutputFormat NUnitXml -PassThru  -CodeCoverage @{Path = $taskSrcPath + '**\*.ps1'}
@@ -44,14 +38,5 @@ Function Run-Tests()
     Write-Host "Completed execution of units."
 }
 
-# Run tests for all extensions.
-$modulePaths = @()
-
-Get-ChildItem -Directory -Path .\_build\Extensions -Exclude "Common" | Select Name | %{ $modulePaths += $_.Name }
-Get-ChildItem -Directory -Path .\_build\Extensions\Common | Select Name | %{ Join-Path -Path "Common" -ChildPath $_.Name } | %{ $modulePaths += $_}
-
-foreach($modulePath in $modulePaths)
-{        
-    Write-Verbose "Running tests under $modulePath" -Verbose
-    Run-Tests -modulePath $modulePath    
-}
+Write-Verbose "InvokePester.ps1 started" -Verbose
+Run-Tests
