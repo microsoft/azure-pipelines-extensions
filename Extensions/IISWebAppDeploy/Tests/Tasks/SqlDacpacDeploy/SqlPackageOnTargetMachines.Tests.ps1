@@ -428,6 +428,7 @@ Describe "LocateHighestVersionSqlPackageInVS" {
     Context "SQLPackage not present in any VS version" {
         Mock LocateSqlPackageInVS { return $null, 0 } -ParameterFilter {$Version -eq $vsVersion1}
         Mock LocateSqlPackageInVS { return $null, 0 } -ParameterFilter {$Version -eq $vsVersion2}
+        Mock LocateSqlPackageInVS { return $null, 0 } -ParameterFilter {$Version -eq $vsVersion3}
         It "Should return null if SqlPackage not found in VS" {
             $vsPath, $version = LocateHighestVersionSqlPackageInVS 
             $vsPath | Should Be $null
