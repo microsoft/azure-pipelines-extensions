@@ -25,7 +25,7 @@ The extension installs the following tasks:
 
   ![WinRM: IIS Web App Deployment](Images/IISWebDeployment.png)
 
-  - **WinRM: SQL Server Database Deployment**: Deploy a SQL Server Database using sqlpackage.exe. The task's detailed documentation is in the [source repo](https://aka.ms/SQLDBDeploy).
+- **WinRM: SQL Server Database Deployment**: Deploy a SQL Server Database using sqlpackage.exe. The task's detailed documentation is in the [source repo](https://aka.ms/SQLDBDeploy).
 
     ![WinRM: SQL Server Database Deployment](Images/SQLDBDeployment.png)
 

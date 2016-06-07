@@ -3,7 +3,7 @@
   "name": "IISWebAppDeploy",
   "friendlyName": "WinRM - IIS Web App Deployment",
   "description": "Connect via WinRM, to deploy Web project locally on IIS, using Web Deploy",
-  "helpMarkDown": "[More Information](http://aka.ms/iiswebappdeployreadme)",
+  "helpMarkDown": "[More Information](http://aka.ms/IISWebDeploy)",
   "category": "Deploy",
   "visibility": [
     "Build",
