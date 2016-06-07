@@ -52,32 +52,6 @@ Describe "Tests for testing EscapeSpecialChars functionality" {
     }
 }
 
-Describe "Tests for testing IsPublishProfileEmpty functionality" {
-    
-    Context "When publish profile is empty" {
-        
-        It "It should return true" {
-            (IsPublishProfileEmpty -publishProfile "") | Should Be $true
-        }
-    }
-
-    Context "When publish profile is $env:SYSTEM_DEFAULTWORKINGDIRECTORY " {
-    
-        $env:SYSTEM_DEFAULTWORKINGDIRECTORY = "C:"
-
-        It "It should return true" {
-            (IsPublishProfileEmpty -publishProfile "C:\") | Should Be $true
-        }
-    }
-
-    Context "When publish profile file is any other path" {
-    
-        It "It should return true" {
-            (IsPublishProfileEmpty -publishProfile "sample.xml") | Should Be $false
-        }    
-    }
-}
-
 Describe "Tests for testing TrimInputs functionality" {
 
     $dacpacFileNoExtraQuotes = "sample.dacpac"
@@ -163,11 +137,11 @@ Describe "Tests for testing GetScriptToRun functionality" {
 
         Mock Get-Content {return "Dummy Script"}
 
-        $script = GetScriptToRun -dacpacFile "sample.dacpac" -targetMethod "server" -serverName "localhost" -databaseName "SampleDB" -sqlUserName "sampleuser" -sqlPassword "dummypassword" -connectionString "" -publishProfile "" -additionalArguments ""
+        $script = GetScriptToRun -dacpacFile "sample.dacpac" -targetMethod "server" -serverName "localhost" -databaseName "SampleDB" -authscheme "sqlServerAuthentication" -sqlUserName "sampleuser" -sqlPassword "dummypassword" -connectionString "" -publishProfile "" -additionalArguments ""
 
         It "should contain script content and invoke expression" {
             ($script.Contains('Dummy Script')) | Should Be $true
-            ($script.Contains('ExecuteMain -dacpacFile "sample.dacpac" -targetMethod server -serverName localhost -databaseName SampleDB -sqlUsername "sampleuser" -sqlPassword "dummypassword" -connectionString "" -publishProfile "" -additionalArguments ""')) | Should Be $true
+            ($script.Contains('ExecuteMain -dacpacFile "sample.dacpac" -targetMethod server -serverName localhost -databaseName SampleDB -authscheme sqlServerAuthentication -sqlUsername "sampleuser" -sqlPassword "dummypassword" -connectionString "" -publishProfile "" -additionalArguments ""')) | Should Be $true
         }
     }
 }

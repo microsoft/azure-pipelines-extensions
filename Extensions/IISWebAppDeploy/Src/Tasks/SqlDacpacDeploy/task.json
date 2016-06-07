@@ -1,8 +1,8 @@
 {
   "id": "063c7649-4934-49e8-9eac-37121fe7e350",
   "name": "SqlDacpacDeploy",
-  "friendlyName": "SQL Server Database Deployment",
-  "description": "Deploy SQL Server Database using DACPAC",
+  "friendlyName": "WinRM - SQL Server DB Deployment",
+  "description": "Using WinRM connect to host, and deploy DB using sqlpackage.exe",
   "helpMarkDown": "[More Information](http://aka.ms/sqlserverdacpackreadme)",
   "category": "Deploy",
   "visibility": [
@@ -50,7 +50,7 @@
       "label": "Admin Login",
       "defaultValue": "",
       "required": true,
-      "helpMarkDown": "Administrator login for the target machines."
+      "helpMarkDown": "Provide the administrator's login of the target machines."
     },
     {
       "name": "AdminPassword",
@@ -58,7 +58,7 @@
       "label": "Password",
       "defaultValue": "",
       "required": true,
-      "helpMarkDown": "Administrator password for the target machines.<br>It can accept variable defined in Build/Release definitions as '$(passwordVariable)'. <br>You may mark variable type as 'secret' to secure it. "
+      "helpMarkDown": "Provide the administrator's password of the target machines. <br>The best practice is to create a variable in the Build or Release definition, and mark it as 'Secret' to secure it, and then use it here, like '$(adminPassword)'."
     },
     {
       "name": "WinRMProtocol",
@@ -70,7 +70,7 @@
         "Http": "HTTP",
         "Https": "HTTPS"
       },
-      "helpMarkDown": "Select the protocol to use for the WinRM connection with the machine(s). Default is HTTPS."
+      "helpMarkDown": "Select the network protocol to use for the WinRM connection with the machine(s). The default is HTTPS."
     },
     {
       "name": "TestCertificate",
@@ -79,7 +79,7 @@
       "defaultValue": "true",
       "visibleRule": "WinRMProtocol = Https",
       "required": false,
-      "helpMarkDown": "Select the option to skip validating the authenticity of the machine's certificate by a trusted certification authority. The parameter is required for the WinRM HTTPS protocol."
+      "helpMarkDown": "Select the option to skip validating the authenticity of the machine's certificate from a trusted certification authority. The parameter is required for the WinRM HTTPS protocol."
     },
     {
       "name": "DacpacFile",
@@ -88,7 +88,7 @@
       "required": true,
       "groupName": "deployment",
       "defaultValue": "",
-      "helpMarkDown": "Location of the DACPAC file on the target machines or on a UNC path like, \\\\\\\\BudgetIT\\Web\\Deploy\\FabrikamDB.dacpac. The UNC path should be accessible to the machine's administrator account. Environment variables are also supported like $env:windir, $env:systemroot, like, $env:windir\\FabrikamFibre\\Web."
+      "helpMarkDown": "Location of the DACPAC file on the target machines or on a UNC path like, \\\\\\\\BudgetIT\\Web\\Deploy\\FabrikamDB.dacpac. The UNC path should be accessible to the machine's administrator account. Environment variables are also supported, like $env:windir, $env:systemroot, $env:windir\\FabrikamFibre\\DB."
     },
     {
       "name": "TargetMethod",
@@ -102,7 +102,7 @@
         "connectionString": "Connection String",
         "publishProfile": "Publish Profile"
       },
-      "helpMarkDown": "Select the option to connect to the target SQL Server Database. The options are to provide SQL Server Database details, or a SQL Server connection string, or a Publish profile XML file."
+      "helpMarkDown": "Specify the option to connect to the target SQL Server Database. The options are either to provide the SQL Server Database details, or the SQL Server connection string, or the Publish profile XML file."
     },
     {
       "name": "ServerName",
@@ -124,15 +124,30 @@
       "visibleRule": "TargetMethod = server",
       "helpMarkDown": "Provide the name of the SQL Server database."
     },
+	{
+      "name": "AuthScheme",
+      "type": "string",
+      "label": "Authentication",
+      "required": true,
+      "groupName": "target",
+      "defaultValue": "Windows Authentication",
+      "visibleRule": "TargetMethod = server",
+      "options": {
+        "windowsAuthentication": "Windows Authentication",
+        "sqlServerAuthentication": "SQL Server Authentication"
+      },
+      "helpMarkDown": "Select the authentication mode for connecting to the SQL Server. In Windows authentication mode, the administrator's account, as specified in the Machines section, is used to connect to the SQL Server. In SQL Server Authentication mode, the SQL login and Password have to be provided in the parameters below."
+    },
+	
     {
       "name": "SqlUsername",
       "type": "string",
-      "label": "SQL Username",
+      "label": "SQL User name",
       "required": false,
       "groupName": "target",
       "defaultValue": "",
       "visibleRule": "TargetMethod = server",
-      "helpMarkDown": "If the SQL Server login is specified, it will be used to connect to the SQL Server. The default is Integrated Authentication and uses the machine administrator's credentials."
+      "helpMarkDown": "Provide the SQL login to connect to the SQL Server. The option is only available if SQL Server Authentication mode has been selected."
     },
     {
       "name": "SqlPassword",
@@ -142,7 +157,7 @@
       "groupName": "target",
       "defaultValue": "",
       "visibleRule": "TargetMethod = server",
-      "helpMarkDown": "If SQL Server login user name is specified, then provide the SQL Server password. The default is Integrated Authentication and uses the machine administrator's credentials."
+      "helpMarkDown": "Provide the Password of the SQL login. The option is only available if SQL Server Authentication mode has been selected."
     },
     {
       "name": "ConnectionString",
@@ -161,7 +176,7 @@
       "required": false,
       "groupName": "target",
       "defaultValue": "",
-      "helpMarkDown": "Publish profile provide fine-grained control over SQL Server database creation or upgrades. Specify the path to the Publish profile XML file on the target machine or on a UNC share that is accessible by the machine administrator's credentials."
+      "helpMarkDown": "Publish profile provide fine-grained control over SQL Server database deployments. Specify the path to the Publish profile XML file on the target machine or on a UNC share that is accessible by the machine administrator's credentials."
     },
     {
       "name": "AdditionalArguments",
@@ -170,7 +185,7 @@
       "required": false,
       "groupName": "target",
       "defaultValue": "",
-      "helpMarkDown": "Additional SqlPackage.exe arguments that will be applied when creating or updating the SQL Server database like, /p:IgnoreAnsiNulls=True /p:IgnoreComments=True. These arguments will override the settings in the Publish profile XML file (if provided)."
+      "helpMarkDown": "Additional SqlPackage.exe arguments that will be applied when deploying the SQL Server database like, /p:IgnoreAnsiNulls=True /p:IgnoreComments=True. These arguments will override the settings in the Publish profile XML file (if provided)."
     },
     {
       "name": "DeployInParallel",
@@ -179,7 +194,7 @@
       "defaultValue": "true",
       "required": false,
       "groupName": "advanced",
-      "helpMarkDown": "Setting it to true will run the database deployment task in-parallel on the target machines."
+      "helpMarkDown": "Select the option to run the database deployment task in-parallel on the target machines."
     }
   ],
   "instanceNameFormat": "Deploy SQL DACPAC: $(DacpacFile)",

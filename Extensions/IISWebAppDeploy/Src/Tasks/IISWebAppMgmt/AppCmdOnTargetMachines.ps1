@@ -491,7 +491,7 @@ function Execute-Main
         Create-And-Update-Website -siteName $WebsiteName -appPoolName $AppPoolName -physicalPath $WebsitePhysicalPath -authType $WebsitePhysicalPathAuth -userName $WebsiteAuthUserName `
          -password $WebsiteAuthUserPassword -addBinding $AddBinding -protocol $Protocol -ipAddress $IpAddress -port $Port -hostname $HostName
 
-        if($Protocol -eq "https")
+        if($Protocol -ieq "https" -and $AddBinding -ieq "true")
         {
             $appCmdPath, $iisVersion = Get-AppCmdLocation -regKeyPath $AppCmdRegKey
             Add-SslCert -port $Port -certhash $SslCertThumbPrint -hostname $HostName -sni $ServerNameIndication -iisVersion $iisVersion

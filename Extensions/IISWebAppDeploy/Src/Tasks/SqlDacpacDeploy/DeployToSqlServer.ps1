@@ -9,18 +9,6 @@ function EscapeSpecialChars
     return $str.Replace('`', '``').Replace('"', '`"').Replace('$', '`$')
 }
 
-function IsPublishProfileEmpty
-{
-    param(
-        [string]$publishProfile
-    )
-
-    $publishProfile = $publishProfile.Trim('\', ' ').Trim()
-
-    return ([string]::IsNullOrWhitespace($publishProfile) -or
-    $PublishProfile -eq $env:SYSTEM_DEFAULTWORKINGDIRECTORY )
-}
-
 function TrimInputs([ref]$adminUserName, [ref]$sqlUsername, [ref]$dacpacFile, [ref]$publishProfile)
 {
     Write-Verbose "Triming inputs for excess spaces, double quotes"
@@ -66,6 +54,7 @@ function GetScriptToRun
         [string]$targetMethod,
         [string]$serverName,
         [string]$databaseName,
+        [string]$authscheme,
         [string]$sqlUserName,
         [string]$sqlPassword,
         [string]$connectionString,
@@ -79,7 +68,7 @@ function GetScriptToRun
     $sqlPassword = EscapeSpecialChars -str $sqlPassword
     $additionalArguments = EscapeSpecialChars -str $additionalArguments
 
-    $invokeMain = "ExecuteMain -dacpacFile `"$dacpacFile`" -targetMethod $targetMethod -serverName $serverName -databaseName $databaseName -sqlUsername `"$sqlUsername`" -sqlPassword `"$sqlPassword`" -connectionString `"$connectionString`" -publishProfile `"$publishProfile`" -additionalArguments `"$additionalArguments`""
+    $invokeMain = "ExecuteMain -dacpacFile `"$dacpacFile`" -targetMethod $targetMethod -serverName $serverName -databaseName $databaseName -authscheme $authscheme -sqlUsername `"$sqlUsername`" -sqlPassword `"$sqlPassword`" -connectionString `"$connectionString`" -publishProfile `"$publishProfile`" -additionalArguments `"$additionalArguments`""
 
     Write-Verbose "Executing main funnction in SqlPackageOnTargetMachines : $invokeMain"
     $sqlDacpacOnTargetMachinesScript = [string]::Format("{0} {1} ( {2} )", $sqlPackageScript,  [Environment]::NewLine,  $invokeMain)
@@ -98,6 +87,7 @@ function Main
     [string]$targetMethod,
     [string]$serverName,
     [string]$databaseName,
+    [string]$authscheme,
     [string]$sqlUsername,
     [string]$sqlPassword,
     [string]$connectionString,
@@ -115,18 +105,14 @@ function Main
     Write-Verbose "targetMethod = $targetMethod"
     Write-Verbose "serverName = $serverName"
     Write-Verbose "databaseName = $databaseName"
+    Write-Verbose "authscheme = $authscheme"
     Write-Verbose "sqlUsername = $sqlUsername"
     Write-Verbose "publishProfile = $publishProfile"
     Write-Verbose "additionalArguments = $additionalArguments"
     Write-Verbose "deployInParallel = $deployInParallel"
 
-    if( IsPublishProfileEmpty -publishProfile $publishProfile )
-    {
-        $publishProfile = ""
-    }
+    TrimInputs -adminUserName([ref]$adminUserName) -sqlUsername ([ref]$sqlUsername) -dacpacFile ([ref]$dacpacFile) -publishProfile ([ref]$publishProfile)
 
-    TrimInputs -adminUserName([ref]$adminUserName) -sqlUsername ([ref]$sqlUsername) -dacpacFile ([ref]$dacpacFile) -publishProfile ([ref]$publishProfile)  
-
-    $script = GetScriptToRun -dacpacFile $dacpacFile -targetMethod $targetMethod -serverName $serverName -databaseName $databaseName -sqlUserName $sqlUsername -sqlPassword $sqlPassword -connectionString $connectionString -publishProfile $publishProfile -additionalArguments $additionalArguments
+    $script = GetScriptToRun -dacpacFile $dacpacFile -targetMethod $targetMethod -serverName $serverName -databaseName $databaseName -authscheme $authscheme -sqlUserName $sqlUsername -sqlPassword $sqlPassword -connectionString $connectionString -publishProfile $publishProfile -additionalArguments $additionalArguments
     RunRemoteDeployment -machinesList $machinesList -scriptToRun $script -adminUserName $adminUserName -adminPassword $adminPassword -winrmProtocol $winrmProtocol -testCertificate $testCertificate -deployInParallel $deployInParallel -dacpacFile $dacpacFile
 }
