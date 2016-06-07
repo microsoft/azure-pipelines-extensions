@@ -58,7 +58,7 @@ function Get-ScriptToRun
 
     $invokeMain = "Execute-Main -WebDeployPackage `"$webDeployPackage`" -WebDeployParamFile `"$webDeployParamFile`" -OverRideParams `"$overRideParams`""
 
-    Write-Verbose "Executing main funnction in MsDeployOnTargetMachines : $invokeMain"
+    Write-Verbose "Executing main function in MsDeployOnTargetMachines : $invokeMain"
     $msDeployOnTargetMachinesScript = [string]::Format("{0} {1} ( {2} )", $msDeployScript,  [Environment]::NewLine,  $invokeMain)
     return $msDeployOnTargetMachinesScript
 }
