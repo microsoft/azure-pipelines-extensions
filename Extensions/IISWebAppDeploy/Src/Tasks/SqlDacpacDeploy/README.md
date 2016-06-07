@@ -88,8 +88,6 @@ This section of the task is used to deploy SQL Server Database to an existing SQ
 ### Advanced
 The section provides for advanced options.
   - **Deploy in Parallel:** Selecting the option, will run the task, in-parallel on the target machines.
-  - **Select Machines By:** Select the option to deploy to a subset of machines. This is used with the Output variables from preceding tasks, like $(Fabrikam), to specify deployment to a subset of machines.
-  - **Deploy to Machines:** Provide a list of machines, like dbserver.fabrikam.com, webserver.fabrikam.com, 192.168.12.34, or a comma separated list of tags, like Role:DB; OS:Win8.1. If multiple tags are provided, then the task will run on all the machines that have been tagged with the specified name - value pair. For Azure Resource Groups, provide the virtual machine's name like, ffweb, ffdb. The default is to run the task on all machines
 
 ## Known Issues
 

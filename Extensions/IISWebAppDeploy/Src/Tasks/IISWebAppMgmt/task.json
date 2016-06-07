@@ -3,7 +3,7 @@
   "name": "IISWebAppMgmt",
   "friendlyName": "WinRM - IIS Web App Management",
   "description": "Connect via WinRM, to create or update the Website and App Pool locally on IIS",
-  "helpMarkDown": "[More Information](http://aka.ms/iiswebappdeployreadme)",
+  "helpMarkDown": "[More Information](http://aka.ms/IISMgmt)",
   "category": "Deploy",
   "visibility": [
     "Build",
