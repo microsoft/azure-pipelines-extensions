@@ -800,13 +800,14 @@ Describe "Tests for verifying Execute-Main functionality" {
         $Protocol = "https"
         $SslCertThumbPrint = "SampleHash"
         $CreateWebsite = "true"
+        $AddBinging = "true"
 
         Mock Create-And-Update-WebSite -Verifiable { return } -ParameterFilter { $SiteName -eq $WebsiteName }
         Mock Add-SslCert -Verifiable { return } -ParameterFilter { $Certhash -eq $SslCertThumbPrint }
         Mock Enable-SNI -Verifiable { return } -ParameterFilter { $SiteName -eq $WebsiteName }
         Mock Get-AppCmdLocation -Verifiable { return "appcmd.exe", 8 }
 
-        Execute-Main -CreateWebsite $CreateWebsite -Protocol $Protocol -SslCertThumbPrint $SslCertThumbPrint
+        Execute-Main -CreateWebsite $CreateWebsite -Protocol $Protocol -SslCertThumbPrint $SslCertThumbPrint -AddBinding $AddBinging
 
         It "Create and update website should be called along with setting cert and SNI"{
             Assert-VerifiableMocks
