@@ -39,6 +39,8 @@ gulp.task("compile", ["clean"], function(done) {
                     
             return gulp.src(filter, { base: "." }).pipe(gulp.dest(buildRoot)); 
         }
+        // Create a _build/Extensions folder which will be empty
+        return gulp.src(ExtensionFolder, { base: "." }).pipe(gulp.dest(buildRoot)); 
     }
 });
 
