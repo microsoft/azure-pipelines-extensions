@@ -83,7 +83,7 @@
     },
     {
       "name": "DacpacFile",
-      "type": "filePath",
+      "type": "string",
       "label": "DACPAC File",
       "required": true,
       "groupName": "deployment",
@@ -124,9 +124,9 @@
       "visibleRule": "TargetMethod = server",
       "helpMarkDown": "Provide the name of the SQL Server database."
     },
-	{
+    {
       "name": "AuthScheme",
-      "type": "string",
+      "type": "pickList",
       "label": "Authentication",
       "required": true,
       "groupName": "target",
@@ -138,25 +138,24 @@
       },
       "helpMarkDown": "Select the authentication mode for connecting to the SQL Server. In Windows authentication mode, the administrator's account, as specified in the Machines section, is used to connect to the SQL Server. In SQL Server Authentication mode, the SQL login and Password have to be provided in the parameters below."
     },
-	
     {
       "name": "SqlUsername",
       "type": "string",
       "label": "SQL User name",
-      "required": false,
+      "required": true,
       "groupName": "target",
       "defaultValue": "",
-      "visibleRule": "TargetMethod = server",
+      "visibleRule": "AuthScheme = sqlServerAuthentication",
       "helpMarkDown": "Provide the SQL login to connect to the SQL Server. The option is only available if SQL Server Authentication mode has been selected."
     },
     {
       "name": "SqlPassword",
       "type": "string",
       "label": "SQL Password",
-      "required": false,
+      "required": true,
       "groupName": "target",
       "defaultValue": "",
-      "visibleRule": "TargetMethod = server",
+      "visibleRule": "AuthScheme = sqlServerAuthentication",
       "helpMarkDown": "Provide the Password of the SQL login. The option is only available if SQL Server Authentication mode has been selected."
     },
     {
@@ -171,7 +170,7 @@
     },
     {
       "name": "PublishProfile",
-      "type": "filePath",
+      "type": "string",
       "label": "Publish Profile",
       "required": false,
       "groupName": "target",
