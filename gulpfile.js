@@ -39,8 +39,12 @@ gulp.task("compile", ["clean"], function(done) {
                     
             return gulp.src(filter, { base: "." }).pipe(gulp.dest(buildRoot)); 
         }
-        // Create a _build/Extensions folder which will be empty
-        return gulp.src(ExtensionFolder, { base: "." }).pipe(gulp.dest(buildRoot)); 
+        else
+        {
+            console.log('No module is updated with given change-set');
+            // Create a _build/Extensions folder which will be empty
+            return gulp.src(ExtensionFolder, { base: "." }).pipe(gulp.dest(buildRoot)); 
+        }
     }
 });
 
