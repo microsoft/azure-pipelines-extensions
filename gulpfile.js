@@ -1,5 +1,6 @@
 var del = require("del");
 var gulp = require("gulp");
+var args   = require('yargs').argv;
 var gulpUtil = require('gulp-util');
 var path = require("path");
 var shell = require("shelljs");
@@ -12,13 +13,39 @@ var buildRoot = "_build";
 var packageRoot = "_package";
 var extnBuildRoot = "_build/Extensions/";
 var sourcePaths = "Extensions/**/*";
+var ExtensionFolder = "Extensions";
 
 gulp.task("clean", function() {
     return del([buildRoot, packageRoot]);
 });
 
 gulp.task("compile", ["clean"], function(done) {
-    return gulp.src(sourcePaths, { base: "." }).pipe(gulp.dest(buildRoot));
+    
+    if(args.testAreaPath === undefined )
+    {
+        return gulp.src(sourcePaths, { base: "." }).pipe(gulp.dest(buildRoot)); 
+    }
+    else
+    {     
+        var areaPathArgument = args.testAreaPath;
+        if(areaPathArgument.length > 0 )
+        {
+            console.log('Compiling updated modules - ' + areaPathArgument);
+            var areaPaths = areaPathArgument.trim().split(',');
+            var filter = [];
+            for (var n = 0; n < areaPaths.length; n++) {
+                filter.push(ExtensionFolder + '/' + areaPaths[n] + '/**/*')
+                } 
+                    
+            return gulp.src(filter, { base: "." }).pipe(gulp.dest(buildRoot)); 
+        }
+        else
+        {
+            console.log('No module is updated with given change-set');
+            // Create a _build/Extensions folder which will be empty
+            return gulp.src(ExtensionFolder, { base: "." }).pipe(gulp.dest(buildRoot)); 
+        }
+    }
 });
 
 gulp.task("build", ["compile"], function() {
@@ -48,7 +75,7 @@ gulp.task("test", ["build"], function(done) {
     pester.on('error', function(err) {
         gutil.log('We may be in a non-windows machine or powershell.exe is not in path. Skip pester tests.');
         done();
-    });
+    }); 
 });
 
 gulp.task("package", ["test"], function() {
