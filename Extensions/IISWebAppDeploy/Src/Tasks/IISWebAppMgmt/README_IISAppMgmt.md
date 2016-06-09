@@ -99,7 +99,4 @@ The section provides for advanced options.
       ```
   - **Deploy in Parallel:** Selecting the option, will run the IIS Web App Management task, in-parallel on the target machines.
 
-## Known Issues
-  - The IIS Web Application Deployment task does not provide support for Web Deploy manifest files and has not been tested and verified for ASP.NET Core 1 web applications. Send us feedback for the task and for the support for manifest files, ASP.NET Core 1/MVC 6 we applications at RM\_Customer\_Queries at microsoft dot com.
-
   [1]: https://msdn.microsoft.com/en-us/library/aa384426(v=vs.85).aspx
