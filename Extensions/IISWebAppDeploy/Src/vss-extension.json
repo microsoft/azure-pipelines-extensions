@@ -37,6 +37,10 @@
     },
     {
       "path": "Tasks/SqlDacpacDeploy"
+    },
+    {
+      "path":"images",
+      "addressable":true
     }
   ],
   "targets": [
