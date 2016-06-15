@@ -5,7 +5,7 @@ Using Windows Remote Management (WinRM), connect to the host machine(s) where II
  - Create a new website or update an existing website using [AppCmd.exe](http://www.iis.net/learn/get-started/getting-started-with-iis/getting-started-with-appcmdexe).
  - Create a new application pool or update an existing application pool using [AppCmd.exe](http://www.iis.net/learn/get-started/getting-started-with-iis/getting-started-with-appcmdexe).
  - Deploy a Web Application to the IIS Server using [Web Deploy](http://www.iis.net/downloads/microsoft/web-deploy).
- - Deploy a SQL Server Database using DACPAC and sqlpackage.exe.
+ - Deploy a SQL Server Database using DACPAC and [SqlPackage.exe](https://aka.ms/sqlpackage).
 
 To easily **setup WinRM** on the **host machines**, follow the directions for the **[domain-joined machines](https://www.visualstudio.com/en-us/docs/release/examples/other-servers/net-to-vm)** or the **[workgroup machines](https://www.visualstudio.com/en-us/docs/release/examples/other-servers/net-to-workgroup-vm)**.
 
