@@ -352,7 +352,11 @@ function Update-AppPool
 
     $appCmdArgs = ' set config  -section:system.applicationHost/applicationPools'
 
-    if(-not [string]::IsNullOrWhiteSpace($clrVersion))
+    if($clrVersion -ieq "No Managed Code")
+    {
+        $appCmdArgs = [string]::Format('{0} /[name=''"{1}"''].managedRuntimeVersion:', $appCmdArgs, $appPoolName)
+    }
+    elseif(-not [string]::IsNullOrWhiteSpace($clrVersion))
     {
         $appCmdArgs = [string]::Format('{0} /[name=''"{1}"''].managedRuntimeVersion:{2}', $appCmdArgs, $appPoolName, $clrVersion)
     }

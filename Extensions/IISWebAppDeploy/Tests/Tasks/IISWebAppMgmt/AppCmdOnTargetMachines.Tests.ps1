@@ -649,7 +649,6 @@ Describe "Tests for verifying Update-AppPool functionality" {
         Mock Get-AppCmdLocation -Verifiable { return $appCmd, 8 } -ParameterFilter { $RegKeyPath -eq $AppCmdRegKey }
 
         $output = Update-AppPool -appPoolName "SampleAppPool" -clrVersion "v4.0" -pipeLineMode "Integrated" -identity "LocalService" 4>&1 | Out-String
-        Write-Verbose $output -Verbose
 
         It "Should contain appropriate options in command line"{
             ($output.Contains(" set config")) | Should Be $true
@@ -662,7 +661,25 @@ Describe "Tests for verifying Update-AppPool functionality" {
             Assert-VerifiableMocks
         }
     }
-    
+
+    Context "when .net clr version is no managed code"{
+
+        $appCmd = "appcmd.exe"
+        $AppCmdRegKey = "HKLM:\SOFTWARE\Microsoft\InetStp"
+        
+        Mock Run-Command -Verifiable { return }
+        Mock Get-AppCmdLocation -Verifiable { return $appCmd, 8 } -ParameterFilter { $RegKeyPath -eq $AppCmdRegKey }
+
+        $output = Update-AppPool -appPoolName "SampleAppPool" -clrVersion "No Managed Code" -pipeLineMode "Integrated" -identity "LocalService" 4>&1 | Out-String
+        Write-Verbose $output -Verbose
+
+        It "Should contain appropriate options in command line"{
+            ($output.Contains(" set config")) | Should Be $true
+            ($output.Contains("-section:system.applicationHost/applicationPools")) | Should Be $true
+            ($output.Contains('/[name=''"SampleAppPool"''].managedRuntimeVersion:')) | Should Be $true
+            Assert-VerifiableMocks
+        }
+    }
 }
 
 Describe "Tests for verifying Create-And-Update-WebSite functionality" {

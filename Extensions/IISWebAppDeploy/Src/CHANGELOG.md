@@ -6,6 +6,9 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 - Sql Server Dacpac deployment task.
 
+### Fixed
+- No managed code option not working for application clr version
+
 ## [1.0.2] - 1st June 2016
 ### Fixed
 - Fixed checking for binding even when add binding is false
