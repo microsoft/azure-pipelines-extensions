@@ -62,7 +62,8 @@ function Get-MsDeployCmdArgs
     [string]$overRideParams,
     [string]$removeAdditionalFiles,
     [string]$excludeFilesFromAppData,
-    [string]$takeAppOffline
+    [string]$takeAppOffline,
+    [string]$additionalArguments
     )
 
     if(-not ( Test-Path -Path $webDeployPackage))
@@ -106,6 +107,11 @@ function Get-MsDeployCmdArgs
     {
         $msDeployCmdArgs = [string]::Format('{0} -skip:Directory="\\App_Data"', $msDeployCmdArgs)
     }
+
+    if(-not [string]::IsNullOrWhiteSpace($additionalArguments))
+    {
+        $msDeployCmdArgs = [string]::Format('{0} {1}', $msDeployCmdArgs, $additionalArguments)
+    }
     
     $msDeployCmdArgs = [string]::Format(' -verb:sync -source:package="{0}" {1} -dest:auto -retryAttempts:3 -retryInterval:3000', $webDeployPackage, $msDeployCmdArgs)
     return $msDeployCmdArgs
@@ -119,11 +125,12 @@ function Deploy-Website
         [string]$overRiderParams,
         [string]$removeAdditionalFiles,
         [string]$excludeFilesFromAppData,
-        [string]$takeAppOffline
+        [string]$takeAppOffline,
+        [string]$additionalArguments
     )
 
     $msDeployExePath = Get-MsDeployLocation -regKeyPath $MsDeployInstallPathRegKey
-    $msDeployCmdArgs = Get-MsDeployCmdArgs -webDeployPackage $webDeployPkg -webDeployParamFile $webDeployParamFile -overRideParams $overRiderParams -removeAdditionalFiles $removeAdditionalFiles -excludeFilesFromAppData $excludeFilesFromAppData -takeAppOffline $takeAppOffline
+    $msDeployCmdArgs = Get-MsDeployCmdArgs -webDeployPackage $webDeployPkg -webDeployParamFile $webDeployParamFile -overRideParams $overRiderParams -removeAdditionalFiles $removeAdditionalFiles -excludeFilesFromAppData $excludeFilesFromAppData -takeAppOffline $takeAppOffline -additionalArguments $additionalArguments
 
     $msDeployCmd = "`"$msDeployExePath`" $msDeployCmdArgs"
     Write-Verbose "Deploying website. Running command: $msDeployCmd"
@@ -162,7 +169,8 @@ function Execute-Main
         [string]$WebsiteName,
         [string]$RemoveAdditionalFiles,
         [string]$ExcludeFilesFromAppData,
-        [string]$TakeAppOffline
+        [string]$TakeAppOffline,
+        [string]$AdditionalArguments
         )
 
     Write-Verbose "Entering Execute-Main function"
@@ -173,8 +181,9 @@ function Execute-Main
     Write-Verbose "RemoveAdditionalFiles = $RemoveAdditionalFiles"
     Write-Verbose "ExcludeFilesFromAppData = $ExcludeFilesFromAppData"
     Write-Verbose "TakeAppOffline = $TakeAppOffline"
+    Write-Verbose "AdditionalArguments = $AdditionalArguments"
 
     $overRideParams = Compute-MsDeploy-SetParams -websiteName $websiteName -overRideParams $overRideParams
-    Deploy-Website -webDeployPkg $WebDeployPackage -webDeployParamFile $WebDeployParamFile -overRiderParams $OverRideParams
+    Deploy-Website -webDeployPkg $WebDeployPackage -webDeployParamFile $WebDeployParamFile -overRiderParams $OverRideParams -websiteName $websiteName -excludeFilesFromAppData $excludeFilesFromAppData -removeAdditionalFiles $removeAdditionalFiles -takeAppOffline $takeAppOffline -additionalArguments $AdditionalArguments
     Write-Verbose "Exiting Execute-Main function"
 }

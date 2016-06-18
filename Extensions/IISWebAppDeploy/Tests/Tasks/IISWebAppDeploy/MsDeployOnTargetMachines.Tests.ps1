@@ -104,16 +104,17 @@ Describe "Tests for verifying Get-MsDeployCmdArgs functionality" {
         }
     }
 
-    Context "When all three inputs are provided" {
+    Context "When all three inputs are provided with additional args" {
 
         Mock Test-Path { return $true }
 
-        $result = Get-MsDeployCmdArgs -webDeployPackage $webDeployPackage -webDeployParamFile $webDeployParamFile -overRideParams $overRideParams
+        $result = Get-MsDeployCmdArgs -webDeployPackage $webDeployPackage -webDeployParamFile $webDeployParamFile -overRideParams $overRideParams -additionalArguments "args"
         
         It "msDeployCmdArgs should contain -source:packge, -setParamFile and -setParam" {
             ( $result.Contains([string]::Format('-source:package="{0}"', $webDeployPackage) ) ) | Should Be $true
             ( $result.Contains([string]::Format('-setParamFile="{0}"', $webDeployParamFile) ) )| Should Be $true
             ( $result.Contains("-setParam:$overRideParams") ) | Should Be $true
+            ( $result.Contains(" args") ) | Should Be $true
         }
     }
 

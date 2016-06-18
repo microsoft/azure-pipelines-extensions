@@ -12,8 +12,8 @@
   "author": "Microsoft Corporation",
   "version": {
     "Major": 1,
-    "Minor": 0,
-    "Patch": 1
+    "Minor": 1,
+    "Patch": 0
   },
   "demands": [
   ],
@@ -138,6 +138,15 @@
       "required": false,
       "groupName": "advanced",
       "helpMarkDown": "Select the option to take the IIS Web App offline by placing an app_offline.html file in the root directory of the Web App before the sync operation begins. The file will be removed after the sync operation completes successfully."
+    },
+    {
+      "name":"AdditionalArguments",
+      "type":"string",
+      "label":"Additional Arguments",
+      "defaultValue":"",
+      "required":false,
+      "groupName":"advanced",
+      "helpMarkDown":"Enter additional MsDeploy.exe -verb:sync options to be used during website deployment."      
     },
     {
       "name": "DeployInParallel",

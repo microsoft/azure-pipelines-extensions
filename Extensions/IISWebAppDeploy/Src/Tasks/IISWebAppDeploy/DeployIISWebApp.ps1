@@ -30,15 +30,16 @@ function Get-ScriptToRun
         [string]$overRideParams,
         [string]$websiteName,
         [string]$removeAdditionalFiles,
-        [string]$excludeFilesFromAppData,
-        [string]$takeAppOffline
+        [string]$excludeFilesFromAppData,        
+        [string]$takeAppOffline,
+        [string]$additionalArguments
     )
 
     $msDeployScript = Get-Content  ./MsDeployOnTargetMachines.ps1 | Out-String
     $overRideParams = Escape-DoubleQuotes -str $overRideParams
     $websiteName = Escape-DoubleQuotes -str $websiteName
 
-    $invokeMain = "Execute-Main -WebDeployPackage `"$webDeployPackage`" -WebDeployParamFile `"$webDeployParamFile`" -OverRideParams `"$overRideParams`" -WebsiteName $websiteName -RemoveAdditionalFiles $removeAdditionalFiles -ExcludeFilesFromAppData $excludeFilesFromAppData -TakeAppOffline $takeAppOffline"
+    $invokeMain = "Execute-Main -WebDeployPackage `"$webDeployPackage`" -WebDeployParamFile `"$webDeployParamFile`" -OverRideParams `"$overRideParams`" -WebsiteName $websiteName -RemoveAdditionalFiles $removeAdditionalFiles -ExcludeFilesFromAppData $excludeFilesFromAppData -TakeAppOffline $takeAppOffline -AdditionalArguments $AdditionalArguments"
 
     Write-Verbose "Executing main function in MsDeployOnTargetMachines : $invokeMain"
     $msDeployOnTargetMachinesScript = [string]::Format("{0} {1} ( {2} )", $msDeployScript,  [Environment]::NewLine,  $invokeMain)
@@ -87,6 +88,7 @@ function Main
     [string]$removeAdditionalFiles,
     [string]$excludeFilesFromAppData,
     [string]$takeAppOffline,
+    [string]$additionalArguments,
     [string]$deployInParallel
     )
 
@@ -101,9 +103,10 @@ function Main
     Write-Verbose "removeAdditionalFiles = $removeAdditionalFiles"
     Write-Verbose "excludeFilesFromAppData = $excludeFilesFromAppData"
     Write-Verbose "takeAppOffline = $takeAppOffline"
+    Write-Verbose "additionalArguments = $additionalArguments"
     Write-Verbose "deployInParallel = $deployInParallel"
 
     Trim-Inputs -package ([ref]$webDeployPackage) -paramFile ([ref]$webDeployParamFile) -siteName ([ref]$websiteName) -adminUser ([ref]$adminUserName)    
-    $script = Get-ScriptToRun -webDeployPackage $webDeployPackage -webDeployParamFile $webDeployParamFile -websiteName $websiteName -overRideParams $overRideParams -removeAdditionalFiles $removeAdditionalFiles -excludeFilesFromAppData $excludeFilesFromAppData -takeAppOffline $takeAppOffline
+    $script = Get-ScriptToRun -webDeployPackage $webDeployPackage -webDeployParamFile $webDeployParamFile -websiteName $websiteName -overRideParams $overRideParams -removeAdditionalFiles $removeAdditionalFiles -excludeFilesFromAppData $excludeFilesFromAppData -takeAppOffline $takeAppOffline -additionalArguments $additionalArguments
     Run-RemoteDeployment -machinesList $machinesList -scriptToRun $script -adminUserName $adminUserName -adminPassword $adminPassword -winrmProtocol $winrmProtocol -testCertificate $testCertificate -deployInParallel $deployInParallel -webDeployPackage $webDeployPackage
 }
