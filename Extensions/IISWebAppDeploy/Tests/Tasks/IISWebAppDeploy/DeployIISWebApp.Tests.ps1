@@ -79,7 +79,7 @@ Describe "Tests for testing Get-ScriptToRun functionality" {
 
         It "should contain script content and invoke expression" {
             ($script.Contains('Dummy Script')) | Should Be $true
-            ($script.Contains('Execute-Main -WebDeployPackage "pkg.zip" -WebDeployParamFile "" -OverRideParams "" -WebsiteName "Sample`"Web -RemoveAdditionalFiles false -ExcludeFilesFromAppData true -TakeAppOffline true')) | Should Be $true
+            ($script.Contains('Execute-Main -WebDeployPackage "pkg.zip" -WebDeployParamFile "" -OverRideParams "" -WebsiteName Sample`"Web -RemoveAdditionalFiles false -ExcludeFilesFromAppData true -TakeAppOffline true')) | Should Be $true
         }
     }
 }

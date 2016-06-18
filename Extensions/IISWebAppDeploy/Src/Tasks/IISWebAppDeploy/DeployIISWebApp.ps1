@@ -31,7 +31,7 @@ function Get-ScriptToRun
         [string]$websiteName,
         [string]$removeAdditionalFiles,
         [string]$excludeFilesFromAppData,
-        [string]$takeAppOffline,
+        [string]$takeAppOffline
     )
 
     $msDeployScript = Get-Content  ./MsDeployOnTargetMachines.ps1 | Out-String
