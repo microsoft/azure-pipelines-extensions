@@ -13,29 +13,6 @@ function Trim-Inputs([ref]$package, [ref]$paramFile, [ref]$siteName, [ref]$admin
     $adminUser.Value = $adminUser.Value.Trim()
 }
 
-function Compute-MsDeploy-SetParams
-{
-    param(
-        [string]$websiteName,
-        [string]$overRideParams
-    )
-
-    Write-Verbose "Computing override params for msdeploy."
-
-    if([string]::IsNullOrWhiteSpace($overRideParams))
-    {
-        Write-Verbose "Adding override params to ensure deployment happens on $websiteName"
-        $overRideParams = [string]::Format('name="IIS Web Application Name",value="{0}"', $websiteName)
-    }
-    elseif(!$overRideParams.Contains("IIS Web Application Name")) 
-    {
-        Write-Verbose "Adding override params to ensure deployment happens on $websiteName"
-        $overRideParams = $overRideParams + [string]::Format('{0}name="IIS Web Application Name",value="{1}"',  [System.Environment]::NewLine, $websiteName)
-    }
-
-    return $overRideParams
-}
-
 function Escape-DoubleQuotes
 {
     param(
@@ -50,13 +27,18 @@ function Get-ScriptToRun
     param (
         [string]$webDeployPackage,
         [string]$webDeployParamFile,
-        [string]$overRideParams
+        [string]$overRideParams,
+        [string]$websiteName,
+        [string]$removeAdditionalFiles,
+        [string]$excludeFilesFromAppData,
+        [string]$takeAppOffline,
     )
 
     $msDeployScript = Get-Content  ./MsDeployOnTargetMachines.ps1 | Out-String
     $overRideParams = Escape-DoubleQuotes -str $overRideParams
+    $websiteName = Escape-DoubleQuotes -str $websiteName
 
-    $invokeMain = "Execute-Main -WebDeployPackage `"$webDeployPackage`" -WebDeployParamFile `"$webDeployParamFile`" -OverRideParams `"$overRideParams`""
+    $invokeMain = "Execute-Main -WebDeployPackage `"$webDeployPackage`" -WebDeployParamFile `"$webDeployParamFile`" -OverRideParams `"$overRideParams`" -WebsiteName $websiteName -RemoveAdditionalFiles $removeAdditionalFiles -ExcludeFilesFromAppData $excludeFilesFromAppData -TakeAppOffline $takeAppOffline"
 
     Write-Verbose "Executing main function in MsDeployOnTargetMachines : $invokeMain"
     $msDeployOnTargetMachinesScript = [string]::Format("{0} {1} ( {2} )", $msDeployScript,  [Environment]::NewLine,  $invokeMain)
@@ -102,6 +84,9 @@ function Main
     [string]$webDeployParamFile,
     [string]$overRideParams,
     [string]$websiteName,
+    [string]$removeAdditionalFiles,
+    [string]$excludeFilesFromAppData,
+    [string]$takeAppOffline,
     [string]$deployInParallel
     )
 
@@ -113,10 +98,12 @@ function Main
     Write-Verbose "webDeployParamFile = $webDeployParamFile"
     Write-Verbose "overRideParams = $overRideParams"
     Write-Verbose "websiteName = $websiteName"
+    Write-Verbose "removeAdditionalFiles = $removeAdditionalFiles"
+    Write-Verbose "excludeFilesFromAppData = $excludeFilesFromAppData"
+    Write-Verbose "takeAppOffline = $takeAppOffline"
     Write-Verbose "deployInParallel = $deployInParallel"
 
-    Trim-Inputs -package ([ref]$webDeployPackage) -paramFile ([ref]$webDeployParamFile) -siteName ([ref]$websiteName) -adminUser ([ref]$adminUserName)
-    $overRideParams = Compute-MsDeploy-SetParams -websiteName $websiteName -overRideParams $overRideParams
-    $script = Get-ScriptToRun -webDeployPackage $webDeployPackage -webDeployParamFile $webDeployParamFile -overRideParams $overRideParams
+    Trim-Inputs -package ([ref]$webDeployPackage) -paramFile ([ref]$webDeployParamFile) -siteName ([ref]$websiteName) -adminUser ([ref]$adminUserName)    
+    $script = Get-ScriptToRun -webDeployPackage $webDeployPackage -webDeployParamFile $webDeployParamFile -websiteName $websiteName -overRideParams $overRideParams -removeAdditionalFiles $removeAdditionalFiles -excludeFilesFromAppData $excludeFilesFromAppData -takeAppOffline $takeAppOffline
     Run-RemoteDeployment -machinesList $machinesList -scriptToRun $script -adminUserName $adminUserName -adminPassword $adminPassword -winrmProtocol $winrmProtocol -testCertificate $testCertificate -deployInParallel $deployInParallel -webDeployPackage $webDeployPackage
 }

@@ -197,6 +197,32 @@ Describe "Tests for verifying Get-MsDeployCmdArgs functionality" {
             ( $result.Contains([string]::Format('-setParam:{0}', [System.Environment]::NewLine) ) )| Should Be $false
         }
     }
+
+    Context "When removeAdditionalFiles, takeAppOffline, excludeFilesFromAppData are true"{
+
+        Mock Test-Path { return $true }
+
+        $result = Get-MsDeployCmdArgs -webDeployPackage $webDeployPackage -webDeployParamFile $webDeployParamFile -overRideParams $overRideParams -removeAdditionalFiles "true" -excludeFilesFromAppData "true" -takeAppOffline "true"
+        
+        It "msDeployCmdArgs should contain -source:packge, -setParamFile and -setParam" {
+            ( $result.Contains("-enableRule:DoNotDeleteRule") ) | Should Be $false
+            ( $result.Contains("-enableRule:AppOffline") ) | Should Be $true
+            ( $result.Contains('-skip:Directory="\\App_Data"') ) | Should Be $true
+        }
+    }
+
+    Context "When removeAdditionalFiles, takeAppOffline, excludeFilesFromAppData are false"{
+
+        Mock Test-Path { return $true }
+
+        $result = Get-MsDeployCmdArgs -webDeployPackage $webDeployPackage -webDeployParamFile $webDeployParamFile -overRideParams $overRideParams -removeAdditionalFiles "false" -excludeFilesFromAppData "false" -takeAppOffline "false"
+        
+        It "msDeployCmdArgs should contain -source:packge, -setParamFile and -setParam" {
+            ( $result.Contains("-enableRule:DoNotDeleteRule") ) | Should Be $true
+            ( $result.Contains("-enableRule:AppOffline") ) | Should Be $false
+            ( $result.Contains('-skip:Directory="\\App_Data"') ) | Should Be $false
+        }
+    }
 }
 
 Describe "Tests for verifying Deploy-WebSite functionality" {
@@ -216,6 +242,36 @@ Describe "Tests for verifying Deploy-WebSite functionality" {
             ($output.Contains("$msDeploy")) | Should Be $true
             ($output.Contains("$msDeployArgs")) | Should Be $true
             Assert-VerifiableMocks
+        }
+    }
+}
+
+Describe "Tests for testing Compute-MsDeploy-SetParams functionality" {
+
+    Context "when override params for websitename is already present" {
+
+        $result = Compute-MsDeploy-SetParams -websiteName "dummyWebsite2" -overRideParams 'name="IIS Web Application Name",value="dummyWebsite"'
+
+        It "Shouldn't alter override params " {
+            ( $result ) | Should Be 'name="IIS Web Application Name",value="dummyWebsite"'
+        }
+    }
+
+    Context "When no override params is given" {
+
+        $result = Compute-MsDeploy-SetParams -websiteName "dummyWebsite"
+
+        It "Should add setParam to deploy on website" {
+            ($result.Contains('name="IIS Web Application Name",value="dummyWebsite"')) | Should Be $true
+        }
+    }
+
+    Context "When override params contain db connection string override" {
+
+        $result = Compute-MsDeploy-SetParams -websiteName "dummyWebsite" -overRideParams 'name="ConnectionString",value="DummyConnectionString"'
+
+        It "Should add setParam to deploy on website" {
+            ($result.Contains('name="IIS Web Application Name",value="dummyWebsite"')) | Should Be $true
         }
     }
 }

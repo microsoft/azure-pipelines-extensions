@@ -59,7 +59,10 @@ function Get-MsDeployCmdArgs
     [Parameter(Mandatory=$true)]
     [string]$webDeployPackage,
     [string]$webDeployParamFile,
-    [string]$overRideParams
+    [string]$overRideParams,
+    [string]$removeAdditionalFiles,
+    [string]$excludeFilesFromAppData,
+    [string]$takeAppOffline
     )
 
     if(-not ( Test-Path -Path $webDeployPackage))
@@ -88,6 +91,21 @@ function Get-MsDeployCmdArgs
             $msDeployCmdArgs = [string]::Format('{0} -setParam:{1}', $msDeployCmdArgs, $setParam)
         }
     }
+
+    if($removeAdditionalFiles -eq "false")
+    {
+        $msDeployCmdArgs = [string]::Format('{0} -enableRule:DoNotDeleteRule', $msDeployCmdArgs)
+    }
+
+    if($takeAppOffline -eq "true")
+    {
+        $msDeployCmdArgs = [string]::Format('{0} -enableRule:AppOffline', $msDeployCmdArgs)
+    }
+
+    if($excludeFilesFromAppData -eq "true")
+    {
+        $msDeployCmdArgs = [string]::Format('{0} -skip:Directory="\\App_Data"', $msDeployCmdArgs)
+    }
     
     $msDeployCmdArgs = [string]::Format(' -verb:sync -source:package="{0}" {1} -dest:auto -retryAttempts:3 -retryInterval:3000', $webDeployPackage, $msDeployCmdArgs)
     return $msDeployCmdArgs
@@ -98,15 +116,41 @@ function Deploy-Website
     param(
         [string]$webDeployPkg,
         [string]$webDeployParamFile,
-        [string]$overRiderParams
+        [string]$overRiderParams,
+        [string]$removeAdditionalFiles,
+        [string]$excludeFilesFromAppData,
+        [string]$takeAppOffline
     )
 
     $msDeployExePath = Get-MsDeployLocation -regKeyPath $MsDeployInstallPathRegKey
-    $msDeployCmdArgs = Get-MsDeployCmdArgs -webDeployPackage $webDeployPkg -webDeployParamFile $webDeployParamFile -overRideParams $overRiderParams
+    $msDeployCmdArgs = Get-MsDeployCmdArgs -webDeployPackage $webDeployPkg -webDeployParamFile $webDeployParamFile -overRideParams $overRiderParams -removeAdditionalFiles $removeAdditionalFiles -excludeFilesFromAppData $excludeFilesFromAppData -takeAppOffline $takeAppOffline
 
     $msDeployCmd = "`"$msDeployExePath`" $msDeployCmdArgs"
     Write-Verbose "Deploying website. Running command: $msDeployCmd"
     Run-Command -command $msDeployCmd
+}
+
+function Compute-MsDeploy-SetParams
+{
+    param(
+        [string]$websiteName,
+        [string]$overRideParams
+    )
+
+    Write-Verbose "Computing override params for msdeploy."
+
+    if([string]::IsNullOrWhiteSpace($overRideParams))
+    {
+        Write-Verbose "Adding override params to ensure deployment happens on $websiteName"
+        $overRideParams = [string]::Format('name="IIS Web Application Name",value="{0}"', $websiteName)
+    }
+    elseif(!$overRideParams.Contains("IIS Web Application Name")) 
+    {
+        Write-Verbose "Adding override params to ensure deployment happens on $websiteName"
+        $overRideParams = $overRideParams + [string]::Format('{0}name="IIS Web Application Name",value="{1}"',  [System.Environment]::NewLine, $websiteName)
+    }
+
+    return $overRideParams
 }
 
 function Execute-Main
@@ -114,14 +158,23 @@ function Execute-Main
     param (
         [string]$WebDeployPackage,
         [string]$WebDeployParamFile,
-        [string]$OverRideParams
+        [string]$OverRideParams,
+        [string]$WebsiteName,
+        [string]$RemoveAdditionalFiles,
+        [string]$ExcludeFilesFromAppData,
+        [string]$TakeAppOffline
         )
 
     Write-Verbose "Entering Execute-Main function"
     Write-Verbose "WebDeployPackage = $WebDeployPackage"
     Write-Verbose "WebDeployParamFile = $WebDeployParamFile"
     Write-Verbose "OverRideParams = $OverRideParams"
+    Write-Verbose "WebsiteName = $WebsiteName"
+    Write-Verbose "RemoveAdditionalFiles = $RemoveAdditionalFiles"
+    Write-Verbose "ExcludeFilesFromAppData = $ExcludeFilesFromAppData"
+    Write-Verbose "TakeAppOffline = $TakeAppOffline"
 
+    $overRideParams = Compute-MsDeploy-SetParams -websiteName $websiteName -overRideParams $overRideParams
     Deploy-Website -webDeployPkg $WebDeployPackage -webDeployParamFile $WebDeployParamFile -overRiderParams $OverRideParams
     Write-Verbose "Exiting Execute-Main function"
 }
