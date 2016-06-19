@@ -75,11 +75,11 @@ Describe "Tests for testing Get-ScriptToRun functionality" {
 
         Mock Get-Content {return "Dummy Script"}
 
-        $script = Get-ScriptToRun -webDeployPackage "pkg.zip" -webDeployParamFile "" -overRideParams "" -websiteName "Sample`"Web" -removeAdditionalFiles "false" -excludeFilesFromAppData "true" -takeAppOffline "true"
+        $script = Get-ScriptToRun -webDeployPackage "pkg.zip" -webDeployParamFile "" -overRideParams "" -websiteName "Sample`"Web" -removeAdditionalFiles "false" -excludeFilesFromAppData "true" -takeAppOffline "true" -additonalArguments ""
 
         It "should contain script content and invoke expression" {
             ($script.Contains('Dummy Script')) | Should Be $true
-            ($script.Contains('Execute-Main -WebDeployPackage "pkg.zip" -WebDeployParamFile "" -OverRideParams "" -WebsiteName Sample`"Web -RemoveAdditionalFiles false -ExcludeFilesFromAppData true -TakeAppOffline true')) | Should Be $true
+            ($script.Contains('Execute-Main -WebDeployPackage "pkg.zip" -WebDeployParamFile "" -OverRideParams "" -WebsiteName Sample`"Web -RemoveAdditionalFiles false -ExcludeFilesFromAppData true -TakeAppOffline true -AdditionalArguments ""')) | Should Be $true
         }
     }
 }
