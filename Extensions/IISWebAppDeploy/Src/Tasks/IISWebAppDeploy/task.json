@@ -146,7 +146,7 @@
       "defaultValue":"",
       "required":false,
       "groupName":"advanced",
-      "helpMarkDown":"Enter additional MsDeploy.exe -verb:sync options to be used during website deployment."      
+      "helpMarkDown":"Enter additional MsDeploy.exe -verb:sync options to be used during website deployment."
     },
     {
       "name": "DeployInParallel",
