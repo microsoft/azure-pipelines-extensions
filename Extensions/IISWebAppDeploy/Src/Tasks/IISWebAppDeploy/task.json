@@ -25,6 +25,11 @@
       "isExpanded": true
     },
     {
+      "name": "msdeployadvanced",
+      "displayName": "MsDeploy Additional Options",
+      "isExpanded": false
+    },
+    {
       "name": "advanced",
       "displayName": "Advanced",
       "isExpanded": false
@@ -118,7 +123,7 @@
       "label": "Remove Additional Files at Destination",
       "defaultValue": "false",
       "required": false,
-      "groupName": "advanced",
+      "groupName": "msdeployadvanced",
       "helpMarkDown": "Select the option to delete files on the IIS Web App that have no matching files in the Web App zip package."
     },
     {
@@ -127,7 +132,7 @@
       "label": "Exclude Files from the App_Data Folder",
       "defaultValue": "false",
       "required": false,
-      "groupName": "advanced",
+      "groupName": "msdeployadvanced",
       "helpMarkDown": "Select the option to prevent files in the App_Data folder from being deployed to the IIS Web App."
     },
     {
@@ -136,7 +141,7 @@
       "label": "Take App Offline",
       "defaultValue": "false",
       "required": false,
-      "groupName": "advanced",
+      "groupName": "msdeployadvanced",
       "helpMarkDown": "Select the option to take the IIS Web App offline by placing an app_offline.html file in the root directory of the Web App before the sync operation begins. The file will be removed after the sync operation completes successfully."
     },
     {
@@ -145,7 +150,7 @@
       "label":"Additional Arguments",
       "defaultValue":"",
       "required":false,
-      "groupName":"advanced",
+      "groupName":"msdeployadvanced",
       "helpMarkDown":"Enter additional MsDeploy.exe -verb:sync options to be used during website deployment."
     },
     {
