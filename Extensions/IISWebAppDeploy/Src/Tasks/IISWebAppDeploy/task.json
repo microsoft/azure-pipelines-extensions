@@ -12,8 +12,8 @@
   "author": "Microsoft Corporation",
   "version": {
     "Major": 1,
-    "Minor": 0,
-    "Patch": 1
+    "Minor": 1,
+    "Patch": 0
   },
   "demands": [
   ],
@@ -23,6 +23,11 @@
       "name": "deployment",
       "displayName": "Deployment",
       "isExpanded": true
+    },
+    {
+      "name": "msdeployadvanced",
+      "displayName": "MsDeploy Additional Options",
+      "isExpanded": false
     },
     {
       "name": "advanced",
@@ -113,6 +118,42 @@
       "helpMarkDown": "Provide the name of the website for deploying the Web project to."
     },
     {
+      "name": "RemoveAdditionalFiles",
+      "type": "boolean",
+      "label": "Remove Additional Files at Destination",
+      "defaultValue": "false",
+      "required": false,
+      "groupName": "msdeployadvanced",
+      "helpMarkDown": "Select the option to delete files on the IIS Web App that have no matching files in the Web App zip package."
+    },
+    {
+      "name": "ExcludeFilesFromAppData",
+      "type": "boolean",
+      "label": "Exclude Files from the App_Data Folder",
+      "defaultValue": "false",
+      "required": false,
+      "groupName": "msdeployadvanced",
+      "helpMarkDown": "Select the option to prevent files in the App_Data folder from being deployed to the IIS Web App."
+    },
+    {
+      "name": "TakeAppOffline",
+      "type": "boolean",
+      "label": "Take App Offline",
+      "defaultValue": "false",
+      "required": false,
+      "groupName": "msdeployadvanced",
+      "helpMarkDown": "Select the option to take the IIS Web App offline by placing an app_offline.html file in the root directory of the Web App before the sync operation begins. The file will be removed after the sync operation completes successfully."
+    },
+    {
+      "name":"AdditionalArguments",
+      "type":"string",
+      "label":"Additional Arguments",
+      "defaultValue":"",
+      "required":false,
+      "groupName":"msdeployadvanced",
+      "helpMarkDown":"Enter additional MsDeploy.exe -verb:sync options to be used during website deployment."
+    },
+    {
       "name": "DeployInParallel",
       "type": "boolean",
       "label": "Deploy in Parallel",
@@ -124,10 +165,10 @@
   ],
     "instanceNameFormat": "Deploy IIS App: $(WebDeployPackage)",
     "execution": {
-        "PowerShell": {
+      "PowerShell": {
         "target": "$(currentDirectory)\\Main.ps1",
         "argumentFormat": "",
         "workingDirectory": "$(currentDirectory)"
-        }
-    }
+      }
+}
 }

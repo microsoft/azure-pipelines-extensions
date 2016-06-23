@@ -29,6 +29,10 @@ The extension installs the following tasks:
 
   ![WinRM: SQL Server Database Deployment](Images/SQLServerDacpac.png)
 
+### **Note**
+
+This extension is **supported in TFS 2015 Update 2** onwards.
+
 ### **Contact Information**
 
 For further information or to resolve issues, contact RM_Customer_Queries at Microsoft dot com.

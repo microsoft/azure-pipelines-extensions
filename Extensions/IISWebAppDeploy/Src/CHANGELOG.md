@@ -3,6 +3,11 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+### Added
+- Support for taking application offline
+- Support for excluding files from App_Data
+- Support for retaining extra files in target deployment folder
+- Additional arguments support for verb:sync 
 
 ## [1.1.0] - 15th June 2016
 ### Added

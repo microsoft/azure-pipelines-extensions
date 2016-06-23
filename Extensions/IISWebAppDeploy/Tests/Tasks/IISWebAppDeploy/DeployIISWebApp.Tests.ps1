@@ -60,36 +60,6 @@ Describe "Tests for testing Trim-Inputs functionality" {
     }
 }
 
-Describe "Tests for testing Compute-MsDeploy-SetParams functionality" {
-
-    Context "when override params for websitename is already present" {
-
-        $result = Compute-MsDeploy-SetParams -websiteName "dummyWebsite2" -overRideParams 'name="IIS Web Application Name",value="dummyWebsite"'
-
-        It "Shouldn't alter override params " {
-            ( $result ) | Should Be 'name="IIS Web Application Name",value="dummyWebsite"'
-        }
-    }
-
-    Context "When no override params is given" {
-
-        $result = Compute-MsDeploy-SetParams -websiteName "dummyWebsite"
-
-        It "Should add setParam to deploy on website" {
-            ($result.Contains('name="IIS Web Application Name",value="dummyWebsite"')) | Should Be $true
-        }
-    }
-
-    Context "When override params contain db connection string override" {
-
-        $result = Compute-MsDeploy-SetParams -websiteName "dummyWebsite" -overRideParams 'name="ConnectionString",value="DummyConnectionString"'
-
-        It "Should add setParam to deploy on website" {
-            ($result.Contains('name="IIS Web Application Name",value="dummyWebsite"')) | Should Be $true
-        }
-    }
-}
-
 Describe "Tests for testing Escape-DoubleQuotes functionality" {
 
     Context "When input string contains double quote character" {
@@ -105,11 +75,11 @@ Describe "Tests for testing Get-ScriptToRun functionality" {
 
         Mock Get-Content {return "Dummy Script"}
 
-        $script = Get-ScriptToRun -webDeployPackage "pkg.zip" -webDeployParamFile "" -overRideParams ""
+        $script = Get-ScriptToRun -webDeployPackage "pkg.zip" -webDeployParamFile "" -overRideParams "" -websiteName "Sample`"Web" -removeAdditionalFiles "false" -excludeFilesFromAppData "true" -takeAppOffline "true" -additonalArguments ""
 
         It "should contain script content and invoke expression" {
             ($script.Contains('Dummy Script')) | Should Be $true
-            ($script.Contains('Execute-Main -WebDeployPackage "pkg.zip" -WebDeployParamFile "" -OverRideParams ""')) | Should Be $true
+            ($script.Contains('Execute-Main -WebDeployPackage "pkg.zip" -WebDeployParamFile "" -OverRideParams "" -WebsiteName Sample`"Web -RemoveAdditionalFiles false -ExcludeFilesFromAppData true -TakeAppOffline true -AdditionalArguments ""')) | Should Be $true
         }
     }
 }
