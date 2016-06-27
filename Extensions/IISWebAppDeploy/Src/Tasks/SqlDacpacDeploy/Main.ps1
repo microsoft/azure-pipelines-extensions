@@ -14,11 +14,13 @@ param (
     [string]$connectionString,
     [string]$publishProfile,
     [string]$additionalArguments,
-    [string]$deployInParallel
+    [string]$deployInParallel,
+    [string]$action,
+	[string]$outputPath
     )
 
 $env:CURRENT_TASK_ROOTDIR = Split-Path -Parent $MyInvocation.MyCommand.Path
 
 . $env:CURRENT_TASK_ROOTDIR\DeployToSqlServer.ps1
 
-(Main -machinesList $machinesList -adminUserName $adminUserName -adminPassword $adminPassword -winrmProtocol $winrmProtocol -testCertificate $testCertificate -dacpacFile $dacpacFile -targetMethod $targetMethod -serverName $serverName -databaseName $databaseName -authscheme $authscheme -sqlUsername $sqlUsername -sqlPassword $sqlPassword -connectionString $connectionString -publishProfile $publishProfile -additionalArguments $additionalArguments -deployInParallel $deployInParallel)
+(Main -machinesList $machinesList -adminUserName $adminUserName -adminPassword $adminPassword -winrmProtocol $winrmProtocol -testCertificate $testCertificate -dacpacFile $dacpacFile -targetMethod $targetMethod -serverName $serverName -databaseName $databaseName -authscheme $authscheme -sqlUsername $sqlUsername -sqlPassword $sqlPassword -connectionString $connectionString -publishProfile $publishProfile -additionalArguments $additionalArguments -deployInParallel $deployInParallel -action $action -outputPath $outputPath)

@@ -357,7 +357,9 @@ function Get-SqlPackageCmdArgs
     [string]$sqlPassword,
     [string]$connectionString,
     [string]$publishProfile,
-    [string]$additionalArguments
+    [string]$additionalArguments,
+    [string]$action,
+    [string]$outputPath
     )
 
     # validate dacpac file
@@ -365,8 +367,10 @@ function Get-SqlPackageCmdArgs
     {
         throw "Invalid Dacpac file [ $dacpacFile ] provided"
     }
-
-    $sqlPkgCmdArgs = [string]::Format(' /SourceFile:"{0}" /Action:Publish', $dacpacFile)
+    if([string]::IsNullOrEmpty($action)){
+        $action = "Publish"
+    }
+     $sqlPkgCmdArgs = [string]::Format(' /SourceFile:"{0}" /Action:{1}', $dacpacFile, $action)
 
     if($targetMethod -eq "server")
     {
@@ -396,6 +400,10 @@ function Get-SqlPackageCmdArgs
         $sqlPkgCmdArgs = [string]::Format('{0} /Profile:"{1}"', $sqlPkgCmdArgs, $publishProfile)
     }
 
+    if((-not [string]::IsNullOrEmpty($outputPath)) -and ($action -eq 'script')){
+		$sqlPkgCmdArgs = [string]::Format('{0} /OutputPath:"{1}"', $sqlPkgCmdArgs, $outputPath)
+	}
+
     $sqlPkgCmdArgs = [string]::Format('{0} {1}', $sqlPkgCmdArgs, $additionalArguments)
     Write-Verbose "Sqlpackage.exe arguments : $sqlPkgCmdArgs"
     return $sqlPkgCmdArgs
@@ -413,12 +421,14 @@ function ExecuteMain
      [string]$sqlPassword,
      [string]$connectionString,
      [string]$publishProfile,
-     [string]$additionalArguments
+     [string]$additionalArguments,
+     [string]$action,
+     [string]$outputPath
     )
 
     Write-Verbose "Entering script SqlPackageOnTargetMachines.ps1"
     $sqlPackage = Get-SqlPackageOnTargetMachine
-    $sqlPackageArguments = Get-SqlPackageCmdArgs -dacpacFile $dacpacFile -targetMethod $targetMethod -serverName $serverName -databaseName $databaseName -authscheme $authscheme -sqlUsername $sqlUsername -sqlPassword $sqlPassword -connectionString $connectionString -publishProfile $publishProfile -additionalArguments $additionalArguments
+    $sqlPackageArguments = Get-SqlPackageCmdArgs -dacpacFile $dacpacFile -targetMethod $targetMethod -serverName $serverName -databaseName $databaseName -authscheme $authscheme -sqlUsername $sqlUsername -sqlPassword $sqlPassword -connectionString $connectionString -publishProfile $publishProfile -additionalArguments $additionalArguments -action $action -outputPath $outputPath
 
     $command = "`"$sqlPackage`" $sqlPackageArguments"
     Write-Verbose "Executing command: $command"

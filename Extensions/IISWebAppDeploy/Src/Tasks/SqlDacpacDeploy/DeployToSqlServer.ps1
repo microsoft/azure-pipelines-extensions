@@ -59,7 +59,9 @@ function GetScriptToRun
         [string]$sqlPassword,
         [string]$connectionString,
         [string]$publishProfile,
-        [string]$additionalArguments
+        [string]$additionalArguments,
+        [string]$action,
+	    [string]$outputPath
     )
 
     $sqlPackageScript = Get-Content .\SqlPackageOnTargetMachines.ps1 | Out-String
@@ -68,7 +70,7 @@ function GetScriptToRun
     $sqlPassword = EscapeSpecialChars -str $sqlPassword
     $additionalArguments = EscapeSpecialChars -str $additionalArguments
 
-    $invokeMain = "ExecuteMain -dacpacFile `"$dacpacFile`" -targetMethod $targetMethod -serverName $serverName -databaseName $databaseName -authscheme $authscheme -sqlUsername `"$sqlUsername`" -sqlPassword `"$sqlPassword`" -connectionString `"$connectionString`" -publishProfile `"$publishProfile`" -additionalArguments `"$additionalArguments`""
+    $invokeMain = "ExecuteMain -dacpacFile `"$dacpacFile`" -targetMethod $targetMethod -serverName $serverName -databaseName $databaseName -authscheme $authscheme -sqlUsername `"$sqlUsername`" -sqlPassword `"$sqlPassword`" -connectionString `"$connectionString`" -publishProfile `"$publishProfile`" -additionalArguments `"$additionalArguments`" -action `"$action`" -outputPath `"$outputPath`""
 
     Write-Verbose "Executing main funnction in SqlPackageOnTargetMachines : $invokeMain"
     $sqlDacpacOnTargetMachinesScript = [string]::Format("{0} {1} ( {2} )", $sqlPackageScript,  [Environment]::NewLine,  $invokeMain)
@@ -93,7 +95,9 @@ function Main
     [string]$connectionString,
     [string]$publishProfile,
     [string]$additionalArguments,
-    [string]$deployInParallel
+    [string]$deployInParallel,
+    [string]$action,
+	[string]$outputPath
     )
 
     Write-Verbose "Entering script DeployToSqlServer.ps1"
@@ -110,9 +114,11 @@ function Main
     Write-Verbose "publishProfile = $publishProfile"
     Write-Verbose "additionalArguments = $additionalArguments"
     Write-Verbose "deployInParallel = $deployInParallel"
+    Write-Verbose "action = $action"
+    Write-Verbose "outputPath = $outputPath"
 
     TrimInputs -adminUserName([ref]$adminUserName) -sqlUsername ([ref]$sqlUsername) -dacpacFile ([ref]$dacpacFile) -publishProfile ([ref]$publishProfile)
 
-    $script = GetScriptToRun -dacpacFile $dacpacFile -targetMethod $targetMethod -serverName $serverName -databaseName $databaseName -authscheme $authscheme -sqlUserName $sqlUsername -sqlPassword $sqlPassword -connectionString $connectionString -publishProfile $publishProfile -additionalArguments $additionalArguments
+    $script = GetScriptToRun -dacpacFile $dacpacFile -targetMethod $targetMethod -serverName $serverName -databaseName $databaseName -authscheme $authscheme -sqlUserName $sqlUsername -sqlPassword $sqlPassword -connectionString $connectionString -publishProfile $publishProfile -additionalArguments $additionalArguments -action $action -outputPath $outputPath
     RunRemoteDeployment -machinesList $machinesList -scriptToRun $script -adminUserName $adminUserName -adminPassword $adminPassword -winrmProtocol $winrmProtocol -testCertificate $testCertificate -deployInParallel $deployInParallel -dacpacFile $dacpacFile
 }

@@ -178,6 +178,29 @@
       "helpMarkDown": "Publish profile provide fine-grained control over SQL Server database deployments. Specify the path to the Publish profile XML file on the target machine or on a UNC share that is accessible by the machine administrator's credentials."
     },
     {
+			"name": "Action",
+			"type": "pickList",
+			"label": "Specify Action",
+			"required": true,
+			"groupName": "target",
+			"defaultValue": "publish",
+			"options": {
+				"publish": "Publish",
+				"script": "Script"
+			},
+			"helpMarkDown": "Choose if the task will publish the dacpac (change the database) or script the changes. If Script is choosen, Output Path is required"
+		},
+		{
+			"name": "OutputPath",
+			"type": "string",
+			"label": "Output File",
+			"required": true,
+			"groupName": "target",
+			"defaultValue": "",
+			"visibleRule": "Action = script",
+			"helpMarkDown": "Path on the remote server to save the sql script created by the dacpac"
+		},
+    {
       "name": "AdditionalArguments",
       "type": "multiLine",
       "label": "Additional Arguments",
