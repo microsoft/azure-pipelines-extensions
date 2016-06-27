@@ -590,6 +590,23 @@ Describe "Tests for verifying Update-WebSite functionality" {
             Assert-MockCalled Does-BindingExists -Exactly -Times 0 -ParameterFilter { $SiteName -eq "SampleWeb" }
         }
     }
+
+    Context "When physicalPath of the website does not exist"{
+     
+        $appCmd = "appcmd.exe"
+        $physicalPath = "$env:SystemDrive:\IISPhysicalPath"
+
+        Mock Run-Command -Verifiable { return }
+        Mock Get-AppCmdLocation -Verifiable { return $appCmd, 8 }
+        Mock Does-BindingExists -Verifiable { return $false } -ParameterFilter { $SiteName -eq "SampleWeb" }
+         
+        $output = Update-WebSite -siteName "SampleWeb" -physicalPath $physicalPath -authType "PassThrough" -addBinding "false" -protocol "http" -ipAddress "`"All Unassigned`"" -port "80" -hostname "localhost" 4>&1 | Out-String   
+        
+        It "Should create physicalPath of the website"{
+            (Test-Path -Path $physicalPath) | Should Be $true
+            Remove-Item -Path $physicalPath -Force -Recurse
+        }
+    }    
 }
 
 Describe "Tests for verifying Update-AppPool functionality" {
