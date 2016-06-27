@@ -30,7 +30,7 @@ function Get-ScriptToRun
         [string]$overRideParams,
         [string]$websiteName,
         [string]$removeAdditionalFiles,
-        [string]$excludeFilesFromAppData,        
+        [string]$excludeFilesFromAppData,
         [string]$takeAppOffline,
         [string]$additionalArguments
     )
@@ -39,7 +39,7 @@ function Get-ScriptToRun
     $overRideParams = Escape-DoubleQuotes -str $overRideParams
     $websiteName = Escape-DoubleQuotes -str $websiteName
 
-    $invokeMain = "Execute-Main -WebDeployPackage `"$webDeployPackage`" -WebDeployParamFile `"$webDeployParamFile`" -OverRideParams `"$overRideParams`" -WebsiteName $websiteName -RemoveAdditionalFiles $removeAdditionalFiles -ExcludeFilesFromAppData $excludeFilesFromAppData -TakeAppOffline $takeAppOffline -AdditionalArguments `"$AdditionalArguments`""
+    $invokeMain = "Execute-Main -WebDeployPackage `"$webDeployPackage`" -WebDeployParamFile `"$webDeployParamFile`" -OverRideParams `"$overRideParams`" -WebsiteName `"$websiteName`" -RemoveAdditionalFiles $removeAdditionalFiles -ExcludeFilesFromAppData $excludeFilesFromAppData -TakeAppOffline $takeAppOffline -AdditionalArguments `"$AdditionalArguments`""
 
     Write-Verbose "Executing main function in MsDeployOnTargetMachines : $invokeMain"
     $msDeployOnTargetMachinesScript = [string]::Format("{0} {1} ( {2} )", $msDeployScript,  [Environment]::NewLine,  $invokeMain)
