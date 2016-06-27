@@ -304,6 +304,13 @@ function Update-Website
 
     if(-not [string]::IsNullOrWhiteSpace($physicalPath))
     {
+        $tmpPhysicalPath = $physicalPath.Replace("%SystemDrive%", "$env:SystemDrive")
+        Write-Verbose "Checking website physical path exists $tmpPhysicalPath"
+        if(!(Test-Path -Path $tmpPhysicalPath))
+        {
+            Write-Verbose "Creating website physical path $tmpPhysicalPath"
+            New-Item -ItemType Directory -Path $tmpPhysicalPath
+        }
         $appCmdArgs = [string]::Format("{0} -[path='/'].[path='/'].physicalPath:`"{1}`"", $appCmdArgs, $physicalPath)
     }
 

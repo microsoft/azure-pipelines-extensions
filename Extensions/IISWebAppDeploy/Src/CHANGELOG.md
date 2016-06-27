@@ -4,6 +4,11 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [1.2.1] - 27th June 2016
+### Fixed
+- Web App Deploy task fails when there is a space in website name.
+- Web App Deploy task fails when appoffline is selected and the website folder does not exist.
+
 ## [1.2.0] - 24th June 2016
 ### Added
 - Support for taking application offline
