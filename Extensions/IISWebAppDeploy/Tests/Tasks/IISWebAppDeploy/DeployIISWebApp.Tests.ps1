@@ -60,12 +60,26 @@ Describe "Tests for testing Trim-Inputs functionality" {
     }
 }
 
-Describe "Tests for testing Escape-DoubleQuotes functionality" {
+Describe "Tests for testing EscapeSpecialChars functionality" {
 
     Context "When input string contains double quote character" {
 
         It "Should add powershell escape character for double quotes" {
-            (Escape-DoubleQuotes -str 'StringWithDouble"Quotes') | Should Be 'StringWithDouble`"Quotes'
+            (EscapeSpecialChars -str 'StringWithDouble"Quotes') | Should Be 'StringWithDouble`"Quotes'
+        }
+    }
+
+    Context "When input string contains dollar symbol character" {
+
+        It "Should add powershell escape character for dollar symbol" {
+            (EscapeSpecialChars -str 'StringWith$dollar') | Should Be 'StringWith`$dollar'
+        }
+    }
+
+    Context "When input string contains ` and $ symbol character" {
+
+        It "Should add powershell escape ` and $ symbol character" {
+            (EscapeSpecialChars -str 'StringWith`$dollar') | Should Be 'StringWith```$dollar'
         }
     }
 }

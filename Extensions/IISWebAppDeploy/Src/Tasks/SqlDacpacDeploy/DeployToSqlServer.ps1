@@ -67,6 +67,8 @@ function GetScriptToRun
     $connectionString = EscapeSpecialChars -str $connectionString
     $sqlPassword = EscapeSpecialChars -str $sqlPassword
     $additionalArguments = EscapeSpecialChars -str $additionalArguments
+    $serverName = EscapeSpecialChars -str $serverName
+    $databaseName = EscapeSpecialChars -str $databaseName
 
     $invokeMain = "ExecuteMain -dacpacFile `"$dacpacFile`" -targetMethod $targetMethod -serverName `"$serverName`" -databaseName `"$databaseName`" -authscheme $authscheme -sqlUsername `"$sqlUsername`" -sqlPassword `"$sqlPassword`" -connectionString `"$connectionString`" -publishProfile `"$publishProfile`" -additionalArguments `"$additionalArguments`""
 
