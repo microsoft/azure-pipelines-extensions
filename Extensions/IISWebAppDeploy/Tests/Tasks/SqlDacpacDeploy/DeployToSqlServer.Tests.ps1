@@ -141,7 +141,7 @@ Describe "Tests for testing GetScriptToRun functionality" {
 
         It "should contain script content and invoke expression" {
             ($script.Contains('Dummy Script')) | Should Be $true
-            ($script.Contains('ExecuteMain -dacpacFile "sample.dacpac" -targetMethod server -serverName localhost -databaseName SampleDB -authscheme sqlServerAuthentication -sqlUsername "sampleuser" -sqlPassword "dummypassword" -connectionString "" -publishProfile "" -additionalArguments ""')) | Should Be $true
+            ($script.Contains('ExecuteMain -dacpacFile "sample.dacpac" -targetMethod server -serverName "localhost" -databaseName "SampleDB" -authscheme sqlServerAuthentication -sqlUsername "sampleuser" -sqlPassword "dummypassword" -connectionString "" -publishProfile "" -additionalArguments ""')) | Should Be $true
         }
     }
 }
