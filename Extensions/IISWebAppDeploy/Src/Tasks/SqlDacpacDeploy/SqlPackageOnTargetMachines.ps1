@@ -376,7 +376,7 @@ function Get-SqlPackageCmdArgs
             $sqlPkgCmdArgs = [string]::Format('{0} /TargetDatabaseName:"{1}"', $sqlPkgCmdArgs, $databaseName)
         }
 
-        if($authscheme -eq "SQL Server Authentication")
+        if($authscheme -eq "sqlServerAuthentication")
         {
             $sqlPkgCmdArgs = [string]::Format('{0} /TargetUser:"{1}" /TargetPassword:"{2}"', $sqlPkgCmdArgs, $sqlUsername, $sqlPassword)
         }

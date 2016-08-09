@@ -8,6 +8,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ### Fixed
 - Web App Deploy task fails when there is a spacial character like $ in msdeploy.exe additional arguments.
 - SQL Dacpac Deploy task fails when there is a spacial character in server name or Database name.
+- SQL Dacpac Deploy task always work with Windows Authentication even Auth Scheme is selected as SQL Server Authentication.
 
 ## [1.2.1] - 27th June 2016
 ### Fixed
