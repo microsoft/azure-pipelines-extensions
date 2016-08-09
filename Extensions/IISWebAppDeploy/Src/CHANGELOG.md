@@ -4,6 +4,11 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [1.2.2] - 9th August 2016
+### Fixed
+- Web App Deploy task fails when there is a spacial character like $ in msdeploy.exe additional arguments.
+- SQL Dacpac Deploy task fails when there is a spacial character in server name or Database name.
+
 ## [1.2.1] - 27th June 2016
 ### Fixed
 - Web App Deploy task fails when there is a space in website name.

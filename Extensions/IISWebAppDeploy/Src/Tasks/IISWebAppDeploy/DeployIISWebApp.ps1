@@ -13,13 +13,13 @@ function Trim-Inputs([ref]$package, [ref]$paramFile, [ref]$siteName, [ref]$admin
     $adminUser.Value = $adminUser.Value.Trim()
 }
 
-function Escape-DoubleQuotes
+function EscapeSpecialChars
 {
     param(
         [string]$str
     )
 
-    return $str.Replace('"', '`"')
+    return $str.Replace('`', '``').Replace('"', '`"').Replace('$', '`$')
 }
 
 function Get-ScriptToRun
@@ -36,8 +36,9 @@ function Get-ScriptToRun
     )
 
     $msDeployScript = Get-Content  ./MsDeployOnTargetMachines.ps1 | Out-String
-    $overRideParams = Escape-DoubleQuotes -str $overRideParams
-    $websiteName = Escape-DoubleQuotes -str $websiteName
+    $overRideParams = EscapeSpecialChars -str $overRideParams
+    $websiteName = EscapeSpecialChars -str $websiteName
+    $AdditionalArguments = EscapeSpecialChars -str $AdditionalArguments
 
     $invokeMain = "Execute-Main -WebDeployPackage `"$webDeployPackage`" -WebDeployParamFile `"$webDeployParamFile`" -OverRideParams `"$overRideParams`" -WebsiteName `"$websiteName`" -RemoveAdditionalFiles $removeAdditionalFiles -ExcludeFilesFromAppData $excludeFilesFromAppData -TakeAppOffline $takeAppOffline -AdditionalArguments `"$AdditionalArguments`""
 
