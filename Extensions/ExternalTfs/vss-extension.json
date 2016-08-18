@@ -1,0 +1,756 @@
+﻿{
+  "manifestVersion": 1.0,
+  "id": "vss-services-externaltfs",
+  "version": "15.104.299598805",
+  "name": "TFS artifacts for Release Management",
+  "publisher": "ms-vscs-rm",
+  "description": "i18n:Deploy external TFS/ VS-Team-Services artifacts using Release Management",
+  "_description.comment": "Don't Localize the word 'TFS'",
+  "public": true,
+  "categories": [ "Build and release" ],
+  "tags": [ "Artifacts", "DevOps", "Release" ],
+  "targets": [
+    {
+      "id": "Microsoft.VisualStudio.Services"
+    }
+  ],
+  "demands": [ "contribution/ms.vss-releaseartifact.artifact-types" ],
+  "icons": {
+    "default": "vss_default.png"
+  },
+  "screenshots": [
+    {
+      "path": "images/screen1.png"
+    },
+    {
+      "path": "images/screen2.png"
+    },
+    {
+      "path": "images/screen3.png"
+    }
+  ],
+  "content": { 
+      "details": { 
+        "path": "readme.md" 
+      } 
+    },
+  "files": [
+    {
+       "path": "images/screen1.png",
+       "addressable": true
+    },
+    {
+       "path": "images/screen2.png",
+       "addressable": true
+    },
+    {
+       "path": "images/screen3.png",
+       "addressable": true
+    },
+    {
+       "path": "DownloadArtifactTfvc"
+    },
+    {
+       "path": "DownloadArtifactTfGit"
+    }
+  ],
+  "branding": {
+      "color": "#5C2D91",
+      "theme": "dark"
+  },  
+  "contributions": [
+    {
+      "id": "externaltfs-endpoint-type",
+      "description": "i18n:Service Endpoint type for all External TFS connections",
+      "type": "ms.vss-endpoint.service-endpoint-type",
+      "targets": [ "ms.vss-endpoint.endpoint-types" ],
+      "properties": {
+        "name": "externaltfs",
+        "displayName": "i18n:External TFS",
+        "_displayName.comment": "Don't Localize the word 'TFS'",
+        "url": {
+          "displayName": "i18n:TFS Collection Url",
+          "_displayName.comment": "Don't Localize the word 'TFS'",
+          "helpText": "i18n:Url for the Team Project Collection to connect to."
+        },
+        "dataSources": [
+          {
+            "name": "TestConnection",
+            "endpointUrl": "{{endpoint.url}}/_apis/projects",
+            "resultSelector": "jsonpath:$.value[?(@.state=='wellFormed')]"
+          },
+          {
+            "name": "Projects",
+            "endpointUrl": "{{endpoint.url}}/_apis/projects",
+            "resultSelector": "jsonpath:$.value[?(@.state=='wellFormed')]"
+          },
+          {
+            "name": "Definitions",
+            "endpointUrl": "{{endpoint.url}}/{{project}}/_apis/build/definitions?api-version=3.0-preview",
+            "resultSelector": "jsonpath:$.value[?(@.quality=='definition')]"
+          },
+          {
+            "name": "Builds",
+            "endpointUrl": "{{endpoint.url}}/{{project}}/_apis/build/builds?definitions={{definition}}",
+            "resultSelector": "jsonpath:$.value[?(@.result=='succeeded')]"
+          },
+          {
+            "name": "LatestBuild",
+            "endpointUrl": "{{endpoint.url}}/{{project}}/_apis/build/builds?maxBuildsPerDefinition=1&definitions={{definition}}&resultFilter=succeeded",
+            "resultSelector": "jsonpath:$.value[0]"
+          },
+          {
+            "name": "Artifacts",
+            "endpointUrl": "{{endpoint.url}}/{{project}}/_apis/build/builds/{{version}}/artifacts",
+            "resultSelector": "jsonpath:$.value[*]"
+          },
+          {
+            "name": "ArtifactItems",
+            "endpointUrl": "{{endpoint.url}}/_apis/resources/Containers/{{containerId}}?ItemPath={{itemPath}}&isShallow=true",
+            "resultSelector": "jsonpath:$.value[*]"
+          },
+          {
+            "name": "BranchName",
+            "endpointUrl": "{{endpoint.url}}/{{project}}/_apis/build/builds/{{version}}",
+            "resultSelector": "jsonpath:$.sourceBranch"
+          },
+          {
+            "name": "XamlProjects",
+            "endpointUrl": "{{endpoint.url}}/_apis/projects?api-version=1.0",
+            "resultSelector": "jsonpath:$.value[*]"
+          },
+          {
+              "name": "XamlDefinitions",
+              "endpointUrl": "{{endpoint.url}}/_apis/build/definitions?api-version=1.0&projectname={{project}}",
+              "resultSelector": "jsonpath:$.value[*]"
+          },
+          {
+            "name": "XamlBuilds",
+            "endpointUrl": "{{endpoint.url}}/_apis/build/builds?definition={{definition}}&status=Succeeded&api-version=1.0",
+            "resultSelector": "jsonpath:$.value[*]"
+          },
+          {
+            "name": "LatestXamlBuild",
+            "endpointUrl": "{{endpoint.url}}/_apis/build/builds?definition={{definition}}&status=Succeeded&$top=1&api-version=1.0",
+            "resultSelector": "jsonpath:$.value[0]"
+          },
+          {
+            "name": "XamlBuild",
+            "endpointUrl": "{{endpoint.url}}/_apis/build/builds/{{version}}?api-version=1.0",
+            "resultSelector": "jsonpath:$"
+          },
+          {
+            "name": "TfvcProjects",
+            "endpointUrl": "{{endpoint.url}}/_apis/tfvc/{{project}}/projectinfo",
+            "resultSelector": "jsonpath:$"
+          },
+          {
+            "name": "TfvcChangesets",
+            "endpointUrl": "{{endpoint.url}}/_apis/tfvc/changesets?api-version=1.0",
+            "resultSelector": "jsonpath:$.value[*]"
+          },
+          {
+            "name": "TfvcLatestChangeset",
+            "endpointUrl": "{{endpoint.url}}/_apis/tfvc/changesets?$orderby=id dsc&api-version=1.0",
+            "resultSelector": "jsonpath:$.value[0]"
+          },
+          {
+            "name": "TfvcArtifacts",
+            "endpointUrl": "{{endpoint.url}}/_apis/tfvc/items?scopepath=$/{{project}}&recursionlevel=OneLevel&api-version=1.0-preview.1",
+            "resultSelector": "jsonpath:$.value[1:]"
+          },
+          {
+            "name": "TfvcArtifactItems",
+            "endpointUrl": "{{endpoint.url}}/_apis/tfvc/items?scopepath=$/{{project}}/{{itemPath}}&recursionlevel=OneLevel&api-version=1.0-preview.1",
+            "resultSelector": "jsonpath:$.value[1:]"
+          },        
+          {
+            "name": "Repositories",
+            "endpointUrl": "{{endpoint.url}}/_apis/git/{{project}}/repositories",
+            "resultSelector": "jsonpath:$.value[*]"
+          },
+          {
+            "name": "Branches",
+            "endpointUrl": "{{endpoint.url}}/_apis/git/repositories/{{definition}}/stats/branches",
+            "resultSelector": "jsonpath:$.value[*]"
+          },
+          {
+            "name": "GitCommits",
+            "endpointUrl": "{{endpoint.url}}/_apis/git/{{project}}/repositories/{{definition}}/commits?itemVersion[versionType]=Branch&itemVersion[version]={{branch}}",
+            "resultSelector": "jsonpath:$.value[*]"
+          },
+          {
+            "name": "GitLatestCommit",
+            "endpointUrl": "{{endpoint.url}}/_apis/git/{{project}}/repositories/{{definition}}/commits?itemVersion[versionType]=Branch&itemVersion[version]={{branch}}",
+            "resultSelector": "jsonpath:$.value[0]"
+          },
+          {
+            "name": "GitArtifacts",
+            "endpointUrl": "{{endpoint.url}}/_apis/git/repositories/{{definition}}/items?versionType=branch&version={{branch}}&scopePath=%2F&recursionLevel=1",
+            "resultSelector": "jsonpath:$.value[1:]"
+          },
+          {
+            "name": "GitArtifactItems",
+            "endpointUrl": "{{endpoint.url}}/_apis/git/repositories/{{definition}}/items?versionType=branch&version={{branch}}&scopePath=%2F{{itemPath}}&recursionLevel=1",
+            "resultSelector": "jsonpath:$.value[1:]"
+          }
+        ],
+        "authenticationSchemes": [
+          {
+            "type": "ms.vss-endpoint.endpoint-auth-scheme-basic"
+          },
+          {
+            "type": "ms.vss-endpoint.endpoint-auth-scheme-token",
+            "headers": [{"name": "Authorization", "value": "Basic {{ #base64 \"token\" \":\" endpoint.apitoken }}"}],
+            "inputDescriptors": [
+              {
+                "id": "apitoken",
+                "name": "i18n:Personal Access Token",
+                "description": "i18n:Personal access token is applicable only for endpoint targeting VSTS account or TFS 2016. Click <a href=\"https://www.visualstudio.com/en-us/docs/setup-admin/team-services/use-personal-access-tokens-to-authenticate\" target=\"_blank\">here</a>. for information on how to create Personal Access Token.",
+                "inputMode": "passwordbox",
+                "isConfidential": true,
+                "validation": {
+                    "isRequired": true,
+                    "dataType": "string"
+                }
+              }
+            ]
+          }
+        ],
+        "helpMarkDown": "<a href=\"https://msdn.microsoft.com/Library/vs/alm/Release/author-release-definition/understanding-tasks#serviceconnections\" target=\"_blank\"><b>Learn More</b></a>"
+      }
+    },
+    {
+      "id": "externalTFSBuild-release-artifact-type",
+      "description": "i18n:External TFS Build Artifact",
+      "_description.comment": "Don't Localize the word 'TFS'",
+      "type": "ms.vss-releaseartifact.release-artifact-type",
+      "targets": [ "ms.vss-releaseartifact.artifact-types" ],
+      "properties": {
+        "name": "ExternalTfsBuild",
+        "displayName": "i18n:External TFS Build",
+        "_displayName.comment": "Don't Localize the word 'TFS'",
+        "endpointTypeId": "ExternalTFS",
+        "uniqueSourceIdentifier": "{{connection}}:{{project}}:{{definition}}",
+        "artifactType": "Build",
+        "inputDescriptors": [
+          {
+            "id": "connection",
+            "name": "i18n:Service Endpoint",
+            "description": "i18n:Service Endpoint Id",
+            "inputMode": "Combo",
+            "isConfidential": false,
+            "hasDynamicValueInformation": true,
+            "validation": {
+              "isRequired": true,
+              "dataType": "string",
+              "maxLength": 300
+            }
+          },
+          {
+            "id": "project",
+            "name": "i18n:Project",
+            "description": "i18n:Project Id",
+            "inputMode": "Combo",
+            "isConfidential": false,
+            "hasDynamicValueInformation": true,
+            "dependencyInputIds": [
+              "connection"
+            ],
+            "validation": {
+              "isRequired": true,
+              "dataType": "string",
+              "maxLength": 300
+            }
+          },
+          {
+            "id": "definition",
+            "name": "i18n:Build Definition",
+            "description": "i18n:Build Definition Id",
+            "inputMode": "Combo",
+            "isConfidential": false,
+            "hasDynamicValueInformation": true,
+            "dependencyInputIds": [
+              "connection",
+              "project"
+            ],
+            "validation": {
+              "isRequired": true,
+              "dataType": "string",
+              "maxLength": 300
+            }
+          },
+          {
+            "id": "artifacts",
+            "name": "Artifacts",
+            "description": "i18n:Build artifacts",
+            "inputMode": "none",
+            "isConfidential": false,
+            "hasDynamicValueInformation": true,
+            "dependencyInputIds": [
+              "connection",
+              "project",
+              "definition"
+            ],
+            "validation": {
+              "isRequired": false,
+              "dataType": "string",
+              "maxLength": 300
+            }
+          }
+        ],
+        "dataSourceBindings": [
+          {
+            "target": "project",
+            "dataSourceName": "Projects",
+            "resultTemplate": "{ Value : \"{{id}}\", DisplayValue : \"{{{name}}}\" }"
+          },
+          {
+            "target": "definition",
+            "dataSourceName": "Definitions",
+            "resultTemplate": "{ Value : \"{{id}}\", DisplayValue : \"{{{name}}}\" }"
+          },
+          {
+            "target": "versions",
+            "dataSourceName": "Builds",
+            "resultTemplate": "{ Value : \"{{id}}\", DisplayValue : \"{{{buildNumber}}}\" }"
+          },
+          {
+            "target": "latestVersion",
+            "dataSourceName": "LatestBuild",
+            "resultTemplate": "{ Value : \"{{id}}\", DisplayValue : \"{{{buildNumber}}}\" }"
+          },
+          {
+            "target": "artifactDetails",
+            "dataSourceName": "Artifacts",
+            "resultTemplate": "{ Name: \"{{name}}\", StreamType: \"{{resource.type}}\", downloadUrl : \"{{{resource.downloadUrl}}}\" }"
+          },
+          {
+            "target": "artifacts",
+            "dataSourceName": "Artifacts",
+            "resultTemplate": "{ Value : \"{{{name}}}\", DisplayValue : \"{{{name}}}\", data: { artifactType: \"{{resource.type}}\", containerId:\"{{ #regex /([0-9]+)/ resource.data }}\" } }"
+          },
+          {
+            "target": "artifactItems",
+            "dataSourceName": "ArtifactItems",
+            "resultTemplate": "{ Value : \"{{{path}}}\", DisplayValue : \"{{{path}}}\", data: { itemType: \"{{{itemType}}}\", containerId:\"{{containerId}}\" } }"
+          },
+          {
+            "target": "branchName",
+            "dataSourceName": "BranchName"
+          }
+        ],
+        "browsableArtifactTypeMapping": {
+          "container": "artifactItems"
+        },
+        "artifactTypeStreamMapping": {
+          "container": "zip",
+          "filepath":  "fileshare"
+        }
+      }
+    },
+    {
+        "id": "externalTFVC-release-artifact-type",
+        "description": "i18n:External TFS Version Control",
+        "_description.comment": "Don't Localize the word 'TFS Version Control'",
+        "type": "ms.vss-releaseartifact.release-artifact-type",
+        "targets": [ "ms.vss-releaseartifact.artifact-types" ],
+        "properties": {
+            "name": "ExternalTfvc",
+            "displayName": "i18n:External TFS Version Control",
+            "_displayName.comment": "Don't Localize the word 'TFS Version Control'",
+            "endpointTypeId": "ExternalTFS",
+            "uniqueSourceIdentifier": "{{{connection}}}:{{{project}}}:{{{definition}}}",
+            "downloadTaskId": "f77a5e28-640e-4250-aa3a-174fa697a658",
+            "artifactType": "SourceControl",
+            "inputDescriptors": [
+                {
+                    "id": "connection",
+                    "name": "i18n:Service Endpoint",
+                    "description": "i18n:Service Endpoint Id",
+                    "inputMode": "Combo",
+                    "isConfidential": false,
+                    "hasDynamicValueInformation": true,
+                    "validation": {
+                        "isRequired": true,
+                        "dataType": "string",
+                        "maxLength": 300
+                    }
+                },
+                {
+                    "id": "project",
+                    "name": "i18n:Project",
+                    "description": "i18n:Projects",
+                    "inputMode": "Combo",
+                    "isConfidential": false,
+                    "hasDynamicValueInformation": true,
+                    "dependencyInputIds": [
+                        "connection"
+                    ],
+                    "validation": {
+                        "isRequired": true,
+                        "dataType": "string",
+                        "maxLength": 300
+                    }
+                },
+                {
+                    "id": "definition",
+                    "name": "i18n:Source (repository)",
+                    "description": "i18n:Repository to pull",
+                    "inputMode": "Combo",
+                    "isConfidential": false,
+                    "hasDynamicValueInformation": true,
+                    "dependencyInputIds": [
+                        "connection",
+                        "project"
+                    ],
+                    "validation": {
+                        "isRequired": true,
+                        "dataType": "string",
+                        "maxLength": 300
+                    }
+                },
+                {
+                    "id": "artifacts",
+                    "name": "i18n:Artifacts",
+                    "description": "i18n:Source Artifacts",
+                    "inputMode": "none",
+                    "isConfidential": false,
+                    "hasDynamicValueInformation": true,
+                    "dependencyInputIds": [
+                        "connection",
+                        "project",
+                        "definition"
+                    ],
+                    "validation": {
+                        "isRequired": false,
+                        "dataType": "string",
+                        "maxLength": 300
+                    }
+                }
+            ],
+            "dataSourceBindings": [
+                {
+                    "target": "project",
+                    "dataSourceName": "Projects",
+                    "resultTemplate": "{ Value : \"{{{id}}}\", DisplayValue : \"{{{name}}}\" }"
+                },
+                {
+                    "target": "definition",
+                    "dataSourceName": "TfvcProjects",
+                    "resultTemplate": "{ Value : \"{{#if supportsTFVC}}{{{project.id}}}{{else}}{{/if}}\", DisplayValue : \"{{#if supportsTFVC}}$/{{{project.name}}}{{else}}{{/if}}\" }"
+                },
+                {
+                    "target": "versions",
+                    "dataSourceName": "TfvcChangesets",
+                    "resultTemplate": "{ Value : \"{{{changesetId}}}\", DisplayValue : \"Changeset {{{changesetId}}}\" }"
+                },
+                {
+                    "target": "latestVersion",
+                    "dataSourceName": "TfvcLatestChangeset",
+                    "resultTemplate": "{ Value : \"{{{changesetId}}}\", DisplayValue : \"Changeset {{{changesetId}}}\" }"
+                },
+                {
+                    "target": "artifacts",
+                    "dataSourceName": "TfvcArtifacts",
+                    "resultTemplate": "{ Value : \"{{{ #regex ([^/]*$) path}}}\", DisplayValue : \"{{{ #regex ([^/]*$) path}}}\", data: { artifactType: \"source\" } }"
+                },
+                {
+                    "target": "artifactItems",
+                    "dataSourceName": "TfvcArtifactItems",
+                    "resultTemplate": "{ Value : \"{{{ #stringReplace sourceName '' path}}}\", DisplayValue : \"{{{ #stringReplace sourceName '' path}}}\", data: { itemType: \"{{#if isFolder}}folder{{else}}file{{/if}}\" } }"
+                }
+            ],
+            "browsableArtifactTypeMapping": {
+                "source": "artifactItems"
+            }
+        }
+    },      
+    {
+      "id": "externalTfvc-task",
+      "type": "ms.vss-distributed-task.task",
+      "targets": [
+        "ms.vss-distributed-task.tasks"
+      ],
+      "properties": {
+        "name": "DownloadArtifactTfvc"
+        }
+    },      
+    {
+      "id": "externalTfGit-release-artifact-type",
+      "description": "i18n:External TFS Git",
+      "_description.comment": "Don't Localize the word 'TFS Git'",
+      "type": "ms.vss-releaseartifact.release-artifact-type",
+      "targets": [ "ms.vss-releaseartifact.artifact-types" ],
+      "properties": {
+        "name": "ExternalTfsGit",
+        "displayName": "i18n:External TFS Git",
+        "_displayName.comment": "Don't Localize the word 'TFS Git'",
+        "endpointTypeId": "ExternalTFS",
+        "uniqueSourceIdentifier": "{{connection}}:{{project}}:{{definition}}",
+        "downloadTaskId": "bf7b17db-eb58-4014-ab2b-e4bf9d3b28f1",
+        "artifactType": "SourceControl",
+        "inputDescriptors": [
+            {
+                "id": "connection",
+                "name": "i18n:Service Endpoint",
+                "description": "i18n:Service Endpoint Id",
+                "inputMode": "Combo",
+                "isConfidential": false,
+                "hasDynamicValueInformation": true,
+                "validation": {
+                    "isRequired": true,
+                    "dataType": "string",
+                    "maxLength": 300
+                }
+            },
+            {
+                "id": "project",
+                "name": "i18n:Project",
+                "description": "i18n:Projects",
+                "inputMode": "Combo",
+                "isConfidential": false,
+                "hasDynamicValueInformation": true,
+                "dependencyInputIds": [
+                    "connection"
+                ],
+                "validation": {
+                    "isRequired": true,
+                    "dataType": "string",
+                    "maxLength": 300
+                }
+            },
+            {
+                "id": "definition",
+                "name": "i18n:Source (repository)",
+                "description": "i18n:Repository to pull",
+                "inputMode": "Combo",
+                "isConfidential": false,
+                "hasDynamicValueInformation": true,
+                "dependencyInputIds": [
+                    "connection",
+                    "project"
+                ],
+                "validation": {
+                    "isRequired": true,
+                    "dataType": "string",
+                    "maxLength": 300
+                }
+            },
+            {
+                "id": "branch",
+                "name": "i18n:Branch",
+                "description": "i18n:Branch to checkout",
+                "inputMode": "Combo",
+                "isConfidential": false,
+                "hasDynamicValueInformation": true,
+                "dependencyInputIds": [
+                    "connection",
+                    "project",
+                    "definition"
+                ],
+                "validation": {
+                    "isRequired": true,
+                    "dataType": "string",
+                    "maxLength": 300
+                }
+            },
+            {
+                "id": "artifacts",
+                "name": "i18n:Artifacts",
+                "description": "i18n:Source Artifacts",
+                "inputMode": "none",
+                "isConfidential": false,
+                "hasDynamicValueInformation": true,
+                "dependencyInputIds": [
+                    "connection",
+                    "project",
+                    "definition",
+                    "branch"
+                ],
+                "validation": {
+                    "isRequired": false,
+                    "dataType": "string",
+                    "maxLength": 300
+                }
+            }
+        ],
+        "dataSourceBindings": [
+          {
+            "target": "project",
+            "dataSourceName": "Projects",
+            "resultTemplate": "{ Value : \"{{{id}}}\", DisplayValue : \"{{{name}}}\" }"
+          },
+          {
+            "target": "definition",
+            "dataSourceName": "Repositories",
+            "resultTemplate": "{ Value : \"{{{id}}}\", DisplayValue : \"{{{name}}}\" }"
+          },
+          {
+            "target": "branch",
+            "dataSourceName": "Branches",
+            "resultTemplate": "{ Value : \"{{{name}}}\", DisplayValue : \"{{{name}}}\" }"
+          },
+          {
+            "target": "versions",
+            "dataSourceName": "GitCommits",
+            "resultTemplate": "{ Value : \"{{{commitId}}}\", DisplayValue : \"{{{ #subString 0 8 commitId }}}\" }"
+          },
+          {
+            "target": "latestVersion",
+            "dataSourceName": "GitLatestCommit",
+            "resultTemplate": "{ Value : \"{{{commitId}}}\", DisplayValue : \"{{{ #subString 0 8 commitId }}}\" }"
+          },
+          {
+            "target": "artifacts",
+            "dataSourceName": "GitArtifacts",
+            "resultTemplate": "{ Value : \"{{{ #regex ([^/]*$) path}}}\", DisplayValue : \"{{{ #regex ([^/]*$) path}}}\", data: { itemType: \"{{#if isFolder}}Folder{{else}}File{{/if}}\", artifactType: \"source\" } }"
+          },
+          {
+            "target": "artifactItems",
+            "dataSourceName": "GitArtifactItems",
+            "resultTemplate": "{ Value : \"{{{ #stringReplace sourceName '' path}}}\", DisplayValue : \"{{{ #stringReplace sourceName '' path}}}\", data: { itemType: \"{{#if isFolder}}Folder{{else}}File{{/if}}\" } }"
+          }
+        ],
+        "browsableArtifactTypeMapping": {
+          "source": "artifactItems"
+        }
+      }
+    },
+    {
+      "id": "externalTfGit-task",
+      "type": "ms.vss-distributed-task.task",
+      "targets": [
+        "ms.vss-distributed-task.tasks"
+      ],
+      "properties": {
+        "name": "DownloadArtifactTfGit"
+      }
+    },    
+    {
+      "id": "externalTFSXamlBuild-release-artifact-type",
+      "description": "i18n:External TFS XAML Build Artifact",
+      "_description.comment": "Don't Localize the words 'TFS' and 'XAML'",
+      "type": "ms.vss-releaseartifact.release-artifact-type",
+      "targets": [ "ms.vss-releaseartifact.artifact-types" ],
+      "properties": {
+        "name": "ExternalTfsXamlBuild",
+        "displayName": "i18n:External TFS XAML Build",
+        "_displayName.comment": "Don't Localize the words 'TFS' and 'XAML'",
+        "endpointTypeId": "ExternalTFS",
+        "uniqueSourceIdentifier": "{{connection}}:{{project}}:{{definition}}",
+        "artifactType": "Build",
+        "inputDescriptors": [
+          {
+            "id": "connection",
+            "name": "i18n:Service Endpoint",
+            "description": "i18n:Service Endpoint Id",
+            "inputMode": "Combo",
+            "isConfidential": false,
+            "hasDynamicValueInformation": true,
+            "validation": {
+              "isRequired": true,
+              "dataType": "string",
+              "maxLength": 300
+            }
+          },
+          {
+            "id": "project",
+            "name": "i18n:Project",
+            "description": "i18n:Project Id",
+            "inputMode": "Combo",
+            "isConfidential": false,
+            "hasDynamicValueInformation": true,
+            "dependencyInputIds": [
+              "connection"
+            ],
+            "validation": {
+              "isRequired": true,
+              "dataType": "string",
+              "maxLength": 300
+            }
+          },
+          {
+            "id": "definition",
+            "name": "i18n:XAML Build Definition",
+            "description": "i18n:XAML Build Definition Id",
+            "inputMode": "Combo",
+            "isConfidential": false,
+            "hasDynamicValueInformation": true,
+            "dependencyInputIds": [
+              "connection",
+              "project"
+            ],
+            "validation": {
+              "isRequired": true,
+              "dataType": "string",
+              "maxLength": 300
+            }
+          },
+          {
+            "id": "artifacts",
+            "name": "Artifacts",
+            "description": "i18n:Build artifacts",
+            "inputMode": "none",
+            "isConfidential": false,
+            "hasDynamicValueInformation": true,
+            "dependencyInputIds": [
+              "connection",
+              "project",
+              "definition"
+            ],
+            "validation": {
+              "isRequired": false,
+              "dataType": "string",
+              "maxLength": 300
+            }
+          }
+        ],
+        "dataSourceBindings": [
+          {
+            "target": "project",
+            "dataSourceName": "XamlProjects",
+            "resultTemplate": "{ Value : \"{{{name}}}\", DisplayValue : \"{{{name}}}\" }"
+          },
+          {
+            "target": "definition",
+            "dataSourceName": "XamlDefinitions",
+            "resultTemplate": "{ Value : \"{{{name}}}\", DisplayValue : \"{{{name}}}\" }"
+          },
+          {
+            "target": "versions",
+            "dataSourceName": "XamlBuilds",
+            "resultTemplate": "{ Value : \"{{{id}}}\", DisplayValue : \"{{{buildNumber}}}\" }"
+          },
+          {
+            "target": "latestVersion",
+            "dataSourceName": "LatestXamlBuild",
+            "resultTemplate": "{ Value : \"{{{id}}}\", DisplayValue : \"{{{buildNumber}}}\" }"
+          },
+          {
+            "target": "artifactDetails",
+            "dataSourceName": "XamlBuild",
+            "resultTemplate": "{ Name: \"drop\", StreamType: \"{{ #regex ^(..) dropLocation }}\", downloadUrl: \"{{endpoint.url}}/{{project}}/_api/_build/ItemContent?buildUri={{uri}}&path=/drop\", fileShareLocation : \"{{ #jsonEscape dropLocation }}\" }"
+          },
+          {
+            "target": "artifacts",
+            "dataSourceName": "XamlBuild",
+            "resultTemplate": "{ Value : \"drop\", DisplayValue : \"drop\", data: { artifactType: \"{{{ #regex ^(..) dropLocation }}}\", containerId:\"{{ #regex /([0-9]+)/ dropLocation }}\" } }"
+          },
+          {
+            "target": "artifactItems",
+            "dataSourceName": "ArtifactItems",
+            "resultTemplate": "{ Value : \"{{{path}}}\", DisplayValue : \"{{{path}}}\", data: { itemType: \"{{{itemType}}}\", containerId:\"{{containerId}}\" } }"
+          }
+        ],
+        "browsableArtifactTypeMapping": {
+          "#/": "artifactItems"
+        },
+        "artifactTypeStreamMapping": {
+          "#/": "zip",
+          "\\":  "fileshare"
+        }
+      }
+    }
+  ]
+}
