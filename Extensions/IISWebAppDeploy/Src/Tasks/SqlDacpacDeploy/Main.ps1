@@ -17,6 +17,8 @@ param (
     [string]$deployInParallel
     )
 
+#### Test1
+
 $env:CURRENT_TASK_ROOTDIR = Split-Path -Parent $MyInvocation.MyCommand.Path
 
 . $env:CURRENT_TASK_ROOTDIR\DeployToSqlServer.ps1
