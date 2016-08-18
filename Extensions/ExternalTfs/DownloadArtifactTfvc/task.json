@@ -1,0 +1,102 @@
+{
+  "id": "F77A5E28-640E-4250-AA3A-174FA697A658",
+  "name": "DownloadArtifactsTfsVersionControl",
+  "friendlyName": "Download Artifacts - External TFVC",
+  "description": "Download External TFS Version Control repository",
+  "helpMarkDown": "[More Information](https://marketplace.visualstudio.com/items?itemName=ms-vscs-rm.vss-services-externaltfs)",
+  "category": "Utility",      
+  "visibility": [
+    "Build",
+    "Release"
+  ],
+  "author": "ms-vscs-rm",  
+  "version": {
+    "Major": "1",
+    "Minor": "0",
+    "Patch": "0"
+  },
+  "demands": [],
+  "minimumAgentVersion": "1.99.0",  
+  "inputs": [
+    {
+      "name": "connection",
+      "type": "connectedService:Externaltfs",
+      "label": "External TFS Connection",
+      "defaultValue": "",
+      "required": true,
+      "helpMarkDown": "External TFS service connection"
+    },
+    {
+      "name": "project",
+      "type": "pickList",
+      "label": "Project",
+      "defaultValue": "",
+      "required": true,
+      "properties": {
+        "EditableOptions": "True"
+      },
+      "helpMarkDown": "TFS team project id"
+    },
+    {
+      "name": "definition",
+      "type": "pickList",
+      "label": "Repository",
+      "defaultValue": "",
+      "required": true,
+      "properties": {
+        "EditableOptions": "True"
+      },
+      "helpMarkDown": "TFS Version Control repository id"
+    },    
+    {
+      "name": "version",
+      "type": "pickList",
+      "label": "Changeset Id",
+      "defaultValue": "",
+      "required": false,
+      "helpMarkDown": "Changeset id"
+    },
+    {
+      "name": "downloadPath",
+      "type": "string",
+      "label": "Download Path",
+      "defaultValue": "",
+      "required": true,
+      "helpMarkDown": "Path on the agent machine where the artifacts will be downloaded"
+    }
+  ],
+    "dataSourceBindings": [
+    {
+      "target": "project",
+      "endpointId": "$(connection)",
+      "dataSourceName": "Projects",
+      "resultTemplate": "{ \"Value\" : \"{{{id}}}\", \"DisplayValue\" : \"{{{name}}}\" }"
+    },
+    {
+        "target": "definition",
+        "endpointId": "$(connection)",
+        "dataSourceName": "TfvcProjects",
+        "parameters": {
+            "project": "$(project)"
+        },
+        "resultTemplate": "{ \"Value\" : \"{{#if supportsTFVC}}{{{project.id}}}{{else}}{{/if}}\", \"DisplayValue\" : \"{{#if supportsTFVC}}$/{{{project.name}}}{{else}}{{/if}}\" }"
+    },
+    {
+        "target": "version",
+        "endpointId": "$(connection)",
+        "dataSourceName": "TfvcChangesets",
+        "parameters":{
+        "project": "$(project)",
+        "definition": "$(definition)"
+        },
+        "resultTemplate": "{ \"Value\" : \"{{{changesetId}}}\", \"DisplayValue\" : \"Changeset {{{changesetId}}}\" }"
+    }
+  ],
+  "instanceNameFormat": "Download Artifacts - External TFS Version Control",
+  "execution": {
+    "Node": {
+      "target": "downloadTfsVersionControl.js",
+      "argumentFormat": ""
+    }
+  }
+}
