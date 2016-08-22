@@ -22,7 +22,6 @@ var gulp = require('gulp');
 var gutil = require('gulp-util');
 var pkgm = require('./package');
 var typescript = require('typescript');
-var zip = require('gulp-zip');
 var args   = require('yargs').argv;
 
 // validation
@@ -54,7 +53,8 @@ var _extnBuildRoot = "_build/Extensions/";
 var sourcePaths = "Extensions/**/*";
 var ExtensionFolder = "Extensions";
 var _tempPath = path.join(__dirname, '_temp');
-
+var _testRoot = "_build/";
+var _testTemp = "_build/Temp";
 //-----------------------------------------------------------------------------------------------------------------
 // Build Tasks
 //-----------------------------------------------------------------------------------------------------------------
@@ -163,7 +163,13 @@ gulp.task("build", ["compileNode"], function() {
     }).forEach(copyCommonModules);
 });
 
-gulp.task("test", ["build"], function(done) {
+gulp.task("default", ["build"]);
+
+//-----------------------------------------------------------------------------------------------------------------
+// Test Tasks
+//-----------------------------------------------------------------------------------------------------------------
+
+gulp.task("testPester", ["build"], function(done) {
     // Runs powershell pester tests ( Unit Test)
     var pester = spawn('powershell.exe', ['.\\InvokePester.ps1'], { stdio: 'inherit' });
     pester.on('exit', function(code, signal) {
@@ -186,6 +192,54 @@ gulp.task("test", ["build"], function(done) {
     }); 
 });
 
+gulp.task('compileTests', function (cb) {
+    var testsPath = path.join(__dirname, 'Extensions/**/Tests', '**/*.ts');
+
+    return gulp.src([testsPath, 'definitions/*.d.ts'])
+        .pipe(ts)
+        .on('error', errorHandler)
+        .pipe(gulp.dest(_testRoot));
+});
+
+gulp.task('testLib', ['compileTests'], function (cb) {
+    return gulp.src(['Extensions/Common/lib/**/*'])
+        .pipe(gulp.dest(path.join(_testRoot,'Extensions/Common/lib/')));
+});
+
+gulp.task('copyTestData', ['compileTests'], function (cb) {
+    return gulp.src(['Extensions/**/Tests/**/data/**'], { dot: true })
+        .pipe(gulp.dest(_testRoot));
+});
+
+gulp.task('ps1tests', ['compileTests'], function (cb) {
+    return gulp.src(['Extensions/**/Tests/**/*.ps1', 'Extensions/**/Tests/**/*.json'])
+        .pipe(gulp.dest(_testRoot));
+});
+
+gulp.task('testLib_NodeModules', ['testLib'], function (cb) {
+    return gulp.src(path.join(__dirname, 'Extensions/Common/lib/vsts-task-lib/**/*'))
+        .pipe(gulp.dest(path.join(_testRoot, 'Extensions/Common/lib/node_modules/vsts-task-lib')));
+});
+
+gulp.task('testResources', ['testLib_NodeModules', 'ps1tests', 'copyTestData']);
+
+gulp.task("testMocha", ["testPester"], function(done){
+    process.env['TASK_TEST_TEMP'] = _testTemp;
+    shell.rm('-rf', _testTemp);
+    shell.mkdir('-p', _testTemp);
+    console.log(options.suite);
+    var suitePath = path.join(_testRoot,"Extensions/**/Tests/Tasks/", options.suite + '/_suite.js');
+    var tfBuild = ('' + process.env['TF_BUILD']).toLowerCase() == 'true'
+    return gulp.src([suitePath])
+        .pipe(mocha({ reporter: 'spec', ui: 'bdd', useColors: !tfBuild }));
+});
+
+gulp.task("test", ["testMocha"]);
+
+//-----------------------------------------------------------------------------------------------------------------
+// Package
+//-----------------------------------------------------------------------------------------------------------------
+
 gulp.task("package", ["test"], function() {
     fs.readdirSync(_extnBuildRoot).filter(function (file) {
         return fs.statSync(path.join(_extnBuildRoot, file)).isDirectory() && file != "Common";
@@ -196,7 +250,6 @@ gulp.task("locCommon",function(){
     return gulp.src(path.join(__dirname, 'Extensions/Common/**/module.json')) 
              .pipe(pkgm.LocCommon()); 
 });
-
 
 var copyCommonModules = function(extensionName) {
 
@@ -226,9 +279,6 @@ var executeCommand = function(cmd, callback) {
        }
     });
 }
-
-gulp.task("default", ["build"]);
-
 
 var cacheArchiveFile = function (url) {
     // Validate the parameters.
@@ -373,37 +423,3 @@ var cacheNuGetV2Package = function (repository, name, version) {
     // Cache the archive file.
     cacheArchiveFile(repository.replace(/\/$/, '') + '/package/' + name + '/' + version);
 }
-
-var QExec = function (commandLine) {
-    var defer = Q.defer();
-
-    gutil.log('running: ' + commandLine)
-    var child = exec(commandLine, function (err, stdout, stderr) {
-        if (err) {
-            defer.reject(err);
-            return;
-        }
-
-        if (stdout) {
-            gutil.log(stdout);
-        }
-
-        if (stderr) {
-            gutil.log(stderr);
-        }
-
-        defer.resolve();
-    });
-
-    return defer.promise;
-}
-
-gulp.task('zip', ['build'], function (done) {
-    shell.mkdir('-p', _wkRoot);
-    var zipPath = path.join(_wkRoot, 'contents');
-
-    return gulp.src(path.join(_buildRoot, '**', '*'))
-        .pipe(zip('Microsoft.TeamFoundation.Build.Tasks.zip'))
-        .pipe(gulp.dest(zipPath));
-});
-
