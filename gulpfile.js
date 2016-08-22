@@ -187,8 +187,8 @@ gulp.task("test", ["build"], function(done) {
 });
 
 gulp.task("package", ["test"], function() {
-    fs.readdirSync(extnBuildRoot).filter(function (file) {
-        return fs.statSync(path.join(extnBuildRoot, file)).isDirectory() && file != "Common";
+    fs.readdirSync(_extnBuildRoot).filter(function (file) {
+        return fs.statSync(path.join(_extnBuildRoot, file)).isDirectory() && file != "Common";
     }).forEach(createVsixPackage);
 });
 
@@ -209,7 +209,7 @@ var copyCommonModules = function(extensionName) {
 
 var createVsixPackage = function(extensionName) {
     var extnOutputPath = path.join(_packageRoot, extensionName);
-    var extnManifestPath = path.join(extn_BuildRoot, extensionName, "Src");
+    var extnManifestPath = path.join(_extnBuildRoot, extensionName, "Src");
     del(extnOutputPath);
     shell.mkdir("-p", extnOutputPath);
     var packagingCmd = "tfx extension create --manifeset-globs vss-extension.json --root " + extnManifestPath + " --output-path " + extnOutputPath;
