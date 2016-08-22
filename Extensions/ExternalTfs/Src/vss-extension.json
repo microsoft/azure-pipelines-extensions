@@ -48,10 +48,10 @@
        "addressable": true
     },
     {
-       "path": "DownloadArtifactTfvc"
+       "path": "Tasks/DownloadArtifactTfvc"
     },
     {
-       "path": "DownloadArtifactTfGit"
+       "path": "Tasks/DownloadArtifactTfGit"
     }
   ],
   "branding": {

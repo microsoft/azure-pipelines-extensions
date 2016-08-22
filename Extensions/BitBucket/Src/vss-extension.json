@@ -45,7 +45,7 @@
       "addressable": true
     },
     {
-      "path": "DownloadArtifactBitbucket"
+      "path": "Tasks/DownloadArtifactBitbucket"
     }
   ],
   "contributions": [
