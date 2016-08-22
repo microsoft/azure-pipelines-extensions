@@ -1,0 +1,127 @@
+{
+  "id": "bf7b17db-eb58-4014-ab2b-e4bf9d3b28f1",
+  "name": "DownloadArtifactsTfsGit",
+  "friendlyName": "Download Artifacts - External TFS Git",
+  "description": "Download TFS Git code repository using Git Clone",
+  "author": "ms-vscs-rm",
+  "helpMarkDown": "[More Information](https://marketplace.visualstudio.com/items?itemName=ms-vscs-rm.vss-services-externaltfs)",
+  "category": "Utility",
+  "visibility": [
+    "Build",
+    "Release"
+  ],
+  "demands": [],
+  "version": {
+    "Major": "1",
+    "Minor": "0",
+    "Patch": "0"
+  },
+  "minimumAgentVersion": "1.99.0",
+  "instanceNameFormat": "Download Artifacts - External TFS Git",
+  "inputs": [
+    {
+      "name": "connection",
+      "type": "connectedService:Externaltfs",
+      "label": "External TFS Connection",
+      "defaultValue": "",
+      "required": true,
+      "helpMarkDown": "External tfs service connection"
+    },
+    {
+      "name": "project",
+      "type": "pickList",
+      "label": "Project",
+      "defaultValue": "",
+      "required": true,
+      "properties": {
+        "EditableOptions": "True"
+      },
+      "helpMarkDown": "TFS team project id"
+    },
+    {
+      "name": "definition",
+      "type": "pickList",
+      "label": "Repository",
+      "defaultValue": "",
+      "required": true,
+      "properties": {
+        "EditableOptions": "True"
+      },
+      "helpMarkDown": "TFS git repository id"
+      },
+    {
+      "name": "branch",
+      "type": "pickList",
+      "label": "Branch",
+      "defaultValue": "",
+      "required": true,
+      "properties": {
+        "EditableOptions": "True"
+      },
+      "helpMarkDown": "Branch to checkout"
+    },
+    {
+      "name": "version",
+      "type": "pickList",
+      "label": "Commit Id",
+      "defaultValue": "",
+      "required": true,
+      "properties": {
+        "EditableOptions": "True"
+      },
+      "helpMarkDown": "Commit id"
+    },
+    {
+      "name": "downloadPath",
+      "type": "string",
+      "label": "Download Path",
+      "defaultValue": "",
+      "required": true,
+      "helpMarkDown": "Path on the agent machine where the artifacts will be downloaded"
+    }
+  ],
+    "dataSourceBindings": [
+    {
+      "target": "project",
+      "endpointId": "$(connection)",
+      "dataSourceName": "Projects",
+      "resultTemplate": "{ \"Value\" : \"{{{id}}}\", \"DisplayValue\" : \"{{{name}}}\" }"
+    },
+    {
+      "target": "definition",
+      "endpointId": "$(connection)",
+      "dataSourceName": "Repositories",
+      "parameters":{
+        "project": "$(project)"
+      },
+      "resultTemplate": "{ \"Value\" : \"{{{id}}}\", \"DisplayValue\" : \"{{{name}}}\" }"
+    },
+    {
+      "target": "branch",
+      "endpointId": "$(connection)",
+      "dataSourceName": "Branches",
+      "parameters":{
+        "project": "$(project)",
+        "definition": "$(definition)"
+      },
+      "resultTemplate": "{ \"Value\" : \"{{{ #stringReplace 'refs/heads/' '' name}}}\", \"DisplayValue\" : \"{{{ #stringReplace 'refs/heads/' '' name}}}\" }"
+    },
+    {
+      "target": "version",
+      "endpointId": "$(connection)",
+      "dataSourceName": "GitCommits",
+      "parameters":{
+        "project": "$(project)",
+        "definition": "$(definition)",
+        "branch": "$(branch)"
+      },
+      "resultTemplate": "{ \"Value\" : \"{{{commitId}}}\", \"DisplayValue\" : \"{{{ #subString 0 8 commitId }}}\" }"
+    }
+  ],
+  "execution": {
+    "Node": {
+      "target": "downloadTfGit.js",
+      "argumentFormat": ""
+    }
+  }
+}

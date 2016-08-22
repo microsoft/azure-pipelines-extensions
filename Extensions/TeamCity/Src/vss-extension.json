@@ -1,0 +1,227 @@
+{
+  "manifestVersion": 1.0,
+  "id": "vss-services-teamcity",
+  "name": "TeamCity artifacts for Release Management",
+  "publisher": "ms-devlabs",
+  "version": "15.100.0.1771652552",
+  "public": true,
+  "description": "i18n:Tools related to connecting with TeamCity",
+  "_description.comment": "Don't Localize the word 'TeamCity'",
+  "categories": [ "Build and release" ],
+  "Tags": [ "TeamCity", "Release", "DevOps", "Artifacts" ],
+  "targets": [
+    {
+      "id": "Microsoft.VisualStudio.Services"
+    }
+  ],
+  "demands": [ "contribution/ms.vss-releaseartifact.artifact-types" ],
+  "icons": {
+    "default": "images\\tc-icon128px.png"
+  },
+  "branding": {
+    "color": "#3B3E43",
+    "theme": "dark"
+  },
+  "screenshots": [
+    {
+      "path": "images/screen1.png"
+    },
+    {
+      "path": "images/screen2.png"
+    }
+  ],
+  "content": {
+    "details": {
+      "path": "readme.md"
+    }
+  },
+  "files": [
+    {
+      "path": "images/screen1.png",
+      "addressable": true
+    },
+    {
+      "path": "images/screen2.png",
+      "addressable": true
+    }
+  ],
+  "contributions": [
+    {
+      "id": "teamcity-endpoint-type",
+      "description": "i18n:Service Endpoint type for all TeamCity connections",
+      "_description.comment": "Don't Localize the word 'TeamCity'",
+      "type": "ms.vss-endpoint.service-endpoint-type",
+      "targets": [ "ms.vss-endpoint.endpoint-types" ],
+      "properties": {
+        "name": "teamcity",
+        "displayName": "TeamCity",
+        "dataSources": [
+          {
+            "name": "TestConnection",
+            "endpointUrl": "{{endpoint.url}}httpAuth/app/rest/projects",
+            "resultSelector": "jsonpath:$.project[?(@.id!='_Root')]"
+          },
+          {
+            "name": "Projects",
+            "endpointUrl": "{{endpoint.url}}httpAuth/app/rest/projects",
+            "resultSelector": "jsonpath:$.project[?(@.id!='_Root')]"
+          },
+          {
+            "name": "BuildConfigurations",
+            "endpointUrl": "{{endpoint.url}}httpAuth/app/rest/projects/{{project}}/buildTypes",
+            "resultSelector": "jsonpath:$.buildType[*]"
+          },
+          {
+            "name": "Builds",
+            "endpointUrl": "{{endpoint.url}}httpAuth/app/rest/buildTypes/{{definition}}/builds",
+            "resultSelector": "jsonpath:$.build[?(@.status=='SUCCESS')]"
+          },
+          {
+            "name": "LatestBuild",
+            "endpointUrl": "{{endpoint.url}}httpAuth/app/rest/buildTypes/{{definition}}/builds?count=1&status=success",
+            "resultSelector": "jsonpath:$.build[*]"
+          },
+          {
+            "name": "Artifacts",
+            "endpointUrl": "{{endpoint.url}}httpAuth/app/rest/builds/id:{{version}}/artifacts/children/{{itemPath}}",
+            "resultSelector": "jsonpath:$.file[*]"
+          },
+          {
+            "name": "BranchName",
+            "endpointUrl": "{{endpoint.url}}httpAuth/app/rest/builds/id:{{version}}",
+            "resultSelector": "jsonpath:$.branchName"
+          }
+        ],
+        "authenticationSchemes": [
+          {
+            "type": "ms.vss-endpoint.endpoint-auth-scheme-basic"
+          }
+        ],
+        "helpMarkDown": "<a href=\"https://msdn.microsoft.com/Library/vs/alm/Release/author-release-definition/understanding-tasks#serviceconnections\" target=\"_blank\"><b>Learn More</b></a>"
+      }
+    },
+    {
+      "id": "teamcity-release-artifact-type",
+      "description": "TeamCity Artifact",
+      "type": "ms.vss-releaseartifact.release-artifact-type",
+      "targets": [ "ms.vss-releaseartifact.artifact-types" ],
+      "properties": {
+        "name": "TeamCity",
+        "displayName": "i18n:TeamCity",
+        "_displayName.comment": "Don't Localize the word 'TeamCity'",
+        "endpointTypeId": "teamcity",
+        "uniqueSourceIdentifier": "{{connection}}:{{project}}:{{definition}}",
+        "artifactType": "Build",
+        "inputDescriptors": [
+          {
+            "id": "connection",
+            "name": "i18n:Service Endpoint",
+            "description": "i18n:Service Endpoint Id",
+            "inputMode": "Combo",
+            "isConfidential": false,
+            "hasDynamicValueInformation": true,
+            "validation": {
+              "isRequired": true,
+              "dataType": "string",
+              "maxLength": 300
+            }
+          },
+          {
+            "id": "project",
+            "name": "i18n:Project",
+            "description": "i18n:Project Id",
+            "inputMode": "Combo",
+            "isConfidential": false,
+            "hasDynamicValueInformation": true,
+            "dependencyInputIds": [
+              "connection"
+            ],
+            "validation": {
+              "isRequired": true,
+              "dataType": "string",
+              "maxLength": 300
+            }
+          },
+          {
+            "id": "definition",
+            "name": "i18n:Build Configuration",
+            "description": "i18n:Build Configuration Id",
+            "inputMode": "Combo",
+            "isConfidential": false,
+            "hasDynamicValueInformation": true,
+            "dependencyInputIds": [
+              "connection",
+              "project"
+            ],
+            "validation": {
+              "isRequired": true,
+              "dataType": "string",
+              "maxLength": 300
+            }
+          },
+          {
+            "id": "artifacts",
+            "name": "Artifacts",
+            "description": "Build artifacts",
+            "inputMode": "none",
+            "isConfidential": false,
+            "hasDynamicValueInformation": true,
+            "dependencyInputIds": [
+              "connection",
+              "project",
+              "definition"
+            ],
+            "validation": {
+              "isRequired": false,
+              "dataType": "string",
+              "maxLength": 300
+            }
+          }
+        ],
+        "dataSourceBindings": [
+          {
+            "target": "project",
+            "dataSourceName": "Projects",
+            "resultTemplate": "{ Value : \"{{id}}\", DisplayValue : \"{{{name}}}\" }"
+          },
+          {
+            "target": "definition",
+            "dataSourceName": "BuildConfigurations",
+            "resultTemplate": "{ Value : \"{{id}}\", DisplayValue : \"{{{name}}}\" }"
+          },
+          {
+            "target": "versions",
+            "dataSourceName": "Builds",
+            "resultTemplate": "{ Value : \"{{id}}\", DisplayValue : \"{{{number}}}\" }"
+          },
+          {
+            "target": "latestversion",
+            "dataSourceName": "LatestBuild",
+            "resultTemplate": "{ Value : \"{{id}}\", DisplayValue : \"{{{number}}}\" }"
+          },
+          {
+            "target": "artifactDetails",
+            "resultTemplate": "{ Name: \"{{version}}\", StreamType: \"zip\", downloadUrl : \"{{endpoint.url}}downloadArtifacts.html?buildTypeId={{definition}}&buildId={{version}}\" }"
+          },
+          {
+            "target": "artifacts",
+            "dataSourceName": "Artifacts",
+            "resultTemplate": "{ Value : \"{{#if itemPath}}{{{itemPath}}}/{{{name}}}{{else}}{{{name}}}{{/if}}\", DisplayValue : \"{{{name}}}\", data: { artifactType: \"{{#if children}}folder{{else}}archive{{/if}}\" } }"
+          },
+          {
+            "target": "artifactItems",
+            "dataSourceName": "Artifacts",
+            "resultTemplate": "{ Value : \"{{#if itemPath}}{{{itemPath}}}/{{{name}}}{{else}}{{{name}}}{{/if}}\", DisplayValue : \"{{{name}}}\", data: { itemType: \"{{#if children}}folder{{else}}file{{/if}}\" } }"
+          },
+          {
+            "target": "branchName",
+            "dataSourceName": "BranchName"
+          }
+        ],
+        "browsableArtifactTypeMapping": {
+          "folder": "artifactItems"
+        }
+      }
+    }
+  ]
+}
