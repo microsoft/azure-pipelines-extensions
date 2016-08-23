@@ -2,7 +2,6 @@
 /// <reference path="../../../definitions/Q.d.ts"/>
 /// <reference path="../../../definitions/shelljs.d.ts"/>
 /// <reference path="../../../definitions/vsts-task-lib.d.ts"/>
-
 "use strict";
 const Q = require('q');
 const events = require('events');
@@ -21,7 +20,7 @@ class TaskRunner extends events.EventEmitter {
         super();
         this._inputs = {};
         this._name = name;
-        this.extensionName = extensionName;
+        this._extensionName = extensionName;
         this._taskEnv = {};
         this._taskEnv['MOCK_RESPONSES'] = process.env['MOCK_RESPONSES'];
         this.succeeded = true;
@@ -59,8 +58,7 @@ class TaskRunner extends events.EventEmitter {
         if (!this._tempPath) {
             throw (new Error('Temp is not defined'));
         }
-        this._taskSrcPath = path.join(__dirname, '..', '..',this.extensionName,'Src\\Tasks', this._name);
-        console.log(this._taskSrcPath);
+        this._taskSrcPath = path.join(__dirname, '..', '..', this._extensionName, 'Src\\Tasks', this._name);
         if (!fs.existsSync(this._taskSrcPath)) {
             throw (new Error('Did you build with "gulp"? Task does not exist: ' + this._taskSrcPath));
         }

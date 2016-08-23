@@ -1,6 +1,5 @@
 /// <reference path="../../../definitions/node.d.ts"/>
 /// <reference path="../../../definitions/Q.d.ts"/>
-
 "use strict";
 const Q = require('q');
 const events = require('events');
