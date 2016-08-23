@@ -3,8 +3,6 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
-
-## [1.2.3] - 23rd August 2016
 ### Fixed
 - Web App Management fails with: Given binding already exists for a different website.
 
