@@ -100,7 +100,7 @@ function Does-BindingExists
     Write-Verbose "Checking binding exists for website (`"$siteName`"). Running command : $command"
 
     $sites = Run-Command -command $command -failOnErr $false
-    $binding = [string]::Format("{0}/{1}:{2}:{3}", $protocol, $ipAddress, $port, $hostname)
+    $binding = [string]::Format("{0}/{1}:{2}:{3},", $protocol, $ipAddress, $port, $hostname)
 
     $isBindingExists = $false
 
