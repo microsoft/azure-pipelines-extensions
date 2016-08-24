@@ -100,10 +100,11 @@ export class TaskRunner extends events.EventEmitter {
 
 		// copy the task over so we can execute from Temp 
 		// this forces it to use the mocked vsts-task-lib and provides isolation
-		this._taskPath = path.join(this._tempPath, this._name);
+		var taskDumpPath = path.join(this._tempPath, "Extensions",this._extensionName, "Src\\Tasks");
+		this._taskPath = path.join(taskDumpPath, this._name);
 		if (!shell.test('-d', this._taskPath)) {
 			shell.mkdir('-p', this._taskPath);
-			shell.cp('-R', this._taskSrcPath, this._tempPath);
+			shell.cp('-R', this._taskSrcPath, taskDumpPath);
 		}
 
 		// delete it's linked copy of vsts-task-lib so it uses the mocked task-lib above

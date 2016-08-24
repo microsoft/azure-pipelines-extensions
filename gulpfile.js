@@ -55,6 +55,7 @@ var ExtensionFolder = "Extensions";
 var _tempPath = path.join(__dirname, '_temp');
 var _testRoot = "_build/";
 var _testTemp = "_build/Temp";
+
 //-----------------------------------------------------------------------------------------------------------------
 // Build Tasks
 //-----------------------------------------------------------------------------------------------------------------
@@ -153,7 +154,7 @@ gulp.task("compileNode", ["compilePS"],function(){
     return gulp.src([tasksPath, 'definitions/*.d.ts'])
         .pipe(ts)
         .on('error', errorHandler)
-        .pipe(gulp.dest(path.join(__dirname, 'Extensions')));
+        .pipe(gulp.dest(path.join(_buildRoot, 'Extensions')));
 })
 
 gulp.task("build", ["compileNode"], function() {
@@ -169,36 +170,13 @@ gulp.task("default", ["build"]);
 // Test Tasks
 //-----------------------------------------------------------------------------------------------------------------
 
-gulp.task("testPester", ["build"], function(done) {
-    // Runs powershell pester tests ( Unit Test)
-    var pester = spawn('powershell.exe', ['.\\InvokePester.ps1'], { stdio: 'inherit' });
-    pester.on('exit', function(code, signal) {
-
-        if (code != 0) {
-           throw new gulpUtil.PluginError({
-              plugin: 'test',
-              message: 'Pester Tests Failed!!!'
-           });
-
-        }
-        else {
-            done();
-        }
-    });
-
-    pester.on('error', function(err) {
-        gutil.log('We may be in a non-windows machine or powershell.exe is not in path. Skip pester tests.');
-        done();
-    }); 
-});
-
 gulp.task('compileTests', function () {
     var testsPath = path.join(__dirname, 'Extensions/**/Tests', '**/*.ts');
 
     return gulp.src([testsPath, 'definitions/*.d.ts'])
         .pipe(ts)
         .on('error', errorHandler)
-        .pipe(gulp.dest(_testRoot));
+        .pipe(gulp.dest(_testRoot+"\\Extensions"));
 });
 
 gulp.task('testLib', ['compileTests'], function () {
@@ -208,12 +186,12 @@ gulp.task('testLib', ['compileTests'], function () {
 
 gulp.task('copyTestData', ['compileTests'], function () {
     return gulp.src(['Extensions/**/Tests/**/data/**'], { dot: true })
-        .pipe(gulp.dest(_testRoot));
+        .pipe(gulp.dest(_testRoot+"\\Extensions"));
 });
 
 gulp.task('ps1tests', ['compileTests'], function () {
     return gulp.src(['Extensions/**/Tests/**/*.ps1', 'Extensions/**/Tests/**/*.json'])
-        .pipe(gulp.dest(_testRoot));
+        .pipe(gulp.dest(_testRoot+"\\Extensions"));
 });
 
 gulp.task('testLib_NodeModules', ['testLib'], function () {
@@ -223,24 +201,41 @@ gulp.task('testLib_NodeModules', ['testLib'], function () {
 
 gulp.task('testResources', ['testLib_NodeModules', 'ps1tests', 'copyTestData']);
 
-gulp.task("testMocha", ["testResources"], function(){
+gulp.task("_mochaTests", ["testResources"], function(){
     process.env['TASK_TEST_TEMP'] =path.join(__dirname, _testTemp);
     shell.rm('-rf', _testTemp);
     shell.mkdir('-p', _testTemp);
-    console.log(options.suite);
     var suitePath = path.join(_testRoot,"Extensions/**/Tests/", options.suite + '/_suite.js');
     var tfBuild = ('' + process.env['TF_BUILD']).toLowerCase() == 'true'
     return gulp.src([suitePath])
         .pipe(mocha({ reporter: 'spec', ui: 'bdd', useColors: !tfBuild }));
 });
 
-gulp.task("test", ["testMocha","testPester"]);
+gulp.task("test", ["_mochaTests"],function(done){
+    // Runs powershell pester tests ( Unit Test)
+    var pester = spawn('powershell.exe', ['.\\InvokePester.ps1'], { stdio: 'inherit' });
+    pester.on('exit', function(code, signal) {
+        if (code != 0) {
+           throw new gulpUtil.PluginError({
+              plugin: 'test',
+              message: 'Pester Tests Failed!!!'
+           });
+        }
+        else {
+            done();
+        }
+    });
+    pester.on('error', function(err) {
+        gutil.log('We may be in a non-windows machine or powershell.exe is not in path. Skip pester tests.');
+        done();
+    }); 
+});
 
 //-----------------------------------------------------------------------------------------------------------------
 // Package
 //-----------------------------------------------------------------------------------------------------------------
 
-gulp.task("package", ["test"], function() {
+gulp.task("package",  function() {
     fs.readdirSync(_extnBuildRoot).filter(function (file) {
         return fs.statSync(path.join(_extnBuildRoot, file)).isDirectory() && file != "Common";
     }).forEach(createVsixPackage);
