@@ -150,7 +150,7 @@ function Invoke-RemoteDeployment
                     Remove-Job $job
                     $machineName = $Jobs.Item($job.Id)
 
-                    Write-Host "Deployment status for machine $machineName :", $output.Status
+                    Write-Host "Deployment status for machine $machineName : $output.Status"
                     Write-Verbose $output.DeploymentLog
                     if($output.Status -ne "Passed")
                     {
@@ -182,7 +182,7 @@ function Invoke-RemoteDeployment
             Write-Host "Deployment started for machine: $($resource.name) with port $winRmPort."
             $deploymentResponse = Invoke-Command -ScriptBlock $InvokePsOnRemoteScriptBlock -ArgumentList $resource.name, $scriptToRun, $winRmPort, $credential, $useHttp, $skipCA
 
-            Write-Host "Deployment status for machine $($resource.name) :", $deploymentResponse.Status
+            Write-Host "Deployment status for machine $($resource.name) : $deploymentResponse.Status"
             Write-Verbose $deploymentResponse.DeploymentLog
             if ($deploymentResponse.Status -ne "Passed")
             {
