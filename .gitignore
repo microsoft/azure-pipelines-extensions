@@ -24,6 +24,7 @@ node_modules
 ## Application Specific
 _build
 _package
+_temp
 
 ## Artifact extensions specific
 Extensions/BitBucket/DownloadArtifactBitbucket/.ntvs_analysis.dat
