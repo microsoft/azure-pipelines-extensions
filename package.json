@@ -10,14 +10,26 @@
     "url": "https://github.com/Microsoft/vsts-iiswebdeploy.git"
   },
   "devDependencies": {
+    "adm-zip": "0.4.7",
     "del": "^2.2.0",
     "fs-extra": "^0.28.0",
     "gulp": "^3.9.0",
+    "gulp-unzip": "0.1.4",
     "gulp-util": "^3.0.7",
+    "gulp-mocha": "2.1.3",
+    "gulp-typescript": "2.13.0",
+    "minimatch": "3.0.2",
+    "minimist": "1.1.1",
+    "mocha": "2.3.3",
     "q": "^1.4.1",
+    "request": "2.72.0",
+    "semver": "4.3.3",
     "shelljs": "^0.6.0",
+    "sync-request": "3.0.1",
     "through2": "^2.0.1",
+    "typescript": "1.8.7",
     "validator": "^5.2.0",
     "yargs": "^4.7.1"
   }
 }
+
