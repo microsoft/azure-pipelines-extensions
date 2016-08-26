@@ -75,7 +75,7 @@ Describe "Tests for testing Trim-Inputs functionality" {
     Context "Should remove extra quotes for all inputs except usernames " {
 
         $site = "`"website`""
-        $path = "`"c:\web app\path`""
+        $path = "`"c:\web app\path\`""
         $appPoolName = "`"application pool name`""
                 
         Trim-Inputs -siteName ([ref]$site) -physicalPath ([ref]$path)  -poolName ([ref]$appPoolName) -websitePathAuthuser ([ref]$siteAuthUserNoSpaces) -appPoolUser ([ref]$appPoolUserNoSpaces) -adminUser ([ref]$adminUserNoSpaces)
