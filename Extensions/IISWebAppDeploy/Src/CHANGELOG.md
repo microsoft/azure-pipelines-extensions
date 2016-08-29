@@ -5,6 +5,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ## [Unreleased]
 ### Fixed
 - Web App Management fails with: Given binding already exists for a different website.
+- Web App deployment fails when physical path for website ends with back slash.
 
 ## [1.2.2] - 9th August 2016
 ### Fixed
