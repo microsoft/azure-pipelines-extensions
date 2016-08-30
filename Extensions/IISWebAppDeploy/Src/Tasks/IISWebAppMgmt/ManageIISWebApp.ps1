@@ -33,7 +33,7 @@ function Trim-Inputs([ref]$siteName, [ref]$physicalPath, [ref]$poolName, [ref]$w
     Write-Verbose "Triming inputs for excess spaces, double quotes"
 
     $siteName.Value = $siteName.Value.Trim('"', ' ')
-    $physicalPath.Value = $physicalPath.Value.Trim('"', ' ')
+    $physicalPath.Value = $physicalPath.Value.Trim('"', ' ').Trim('\', ' ')
     $poolName.Value = $poolName.Value.Trim('"', ' ')
 
     $appPoolUser.Value = $appPoolUser.Value.Trim()
