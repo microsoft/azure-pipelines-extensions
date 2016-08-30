@@ -5,8 +5,8 @@
   "publisher": "ms-vscs-rm",
   "version": "1.0.0",
   "public": true,
-  "description": "i18n:Tools related to connecting with Bitbucket",
-  "_description.comment": "Don't Localize the word 'Bitbucket'",
+  "description": "Tools related to connecting with Bitbucket",
+  "_description.comment": "The below format to define artifact extensions is currently in preview and may change in future.",
   "categories": [ "Integrate" ],
   "Tags": [ "Bitbucket", "Release", "DevOps", "Artifacts" ],
   "targets": [
@@ -61,7 +61,7 @@
     },
     {
       "id": "bitbucket-endpoint-type",
-      "description": "i18n:Service Endpoint type for all Bitbucket connections",
+      "description": "Service Endpoint type for all Bitbucket connections",
       "_description.comment": "Don't Localize the word 'Bitbucket'",
       "type": "ms.vss-endpoint.service-endpoint-type",
       "targets": [ "ms.vss-endpoint.endpoint-types" ],
@@ -69,7 +69,7 @@
         "name": "bitbucket",
         "displayName": "Bitbucket",
         "url": {
-            "displayName": "i18n:Server Url",
+            "displayName": "Server Url",
             "value": "https://api.bitbucket.org/",
             "helpText": ""
         },
@@ -142,7 +142,7 @@
       "targets": [ "ms.vss-releaseartifact.artifact-types" ],
       "properties": {
         "name": "Bitbucket",
-        "displayName": "i18n:Bitbucket",
+        "displayName": "Bitbucket",
         "_displayName.comment": "Don't Localize the word 'Bitbucket'",
         "endpointTypeId": "bitbucket",
         "uniqueSourceIdentifier": "{{connection}}:{{definition}}:{{branch}}",
@@ -151,8 +151,8 @@
         "inputDescriptors": [
           {
             "id": "connection",
-            "name": "i18n:Service Endpoint",
-            "description": "i18n:Service Endpoint Id",
+            "name": "Service Endpoint",
+            "description": "Service Endpoint Id",
             "inputMode": "Combo",
             "isConfidential": false,
             "hasDynamicValueInformation": true,
@@ -164,8 +164,8 @@
           },
           {
             "id": "definition",
-            "name": "i18n:Source (repository)",
-            "description": "i18n:Repository to pull",
+            "name": "Source (repository)",
+            "description": "Repository to pull",
             "inputMode": "Combo",
             "isConfidential": false,
             "hasDynamicValueInformation": true,
@@ -180,8 +180,8 @@
           },
           {
               "id": "branch",
-              "name": "i18n:Branch",
-              "description": "i18n:Branch to checkout",
+              "name": "Branch",
+              "description": "Branch to checkout",
               "inputMode": "Combo",
               "isConfidential": false,
               "hasDynamicValueInformation": true,

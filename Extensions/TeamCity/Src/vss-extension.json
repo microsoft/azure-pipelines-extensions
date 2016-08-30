@@ -5,8 +5,8 @@
   "publisher": "ms-devlabs",
   "version": "15.100.0.1771652552",
   "public": true,
-  "description": "i18n:Tools related to connecting with TeamCity",
-  "_description.comment": "Don't Localize the word 'TeamCity'",
+  "description": "Tools related to connecting with TeamCity",
+  "_description.comment": "The below format to define artifact extensions is currently in preview and may change in future.",
   "categories": [ "Build and release" ],
   "Tags": [ "TeamCity", "Release", "DevOps", "Artifacts" ],
   "targets": [
@@ -48,7 +48,7 @@
   "contributions": [
     {
       "id": "teamcity-endpoint-type",
-      "description": "i18n:Service Endpoint type for all TeamCity connections",
+      "description": "Service Endpoint type for all TeamCity connections",
       "_description.comment": "Don't Localize the word 'TeamCity'",
       "type": "ms.vss-endpoint.service-endpoint-type",
       "targets": [ "ms.vss-endpoint.endpoint-types" ],
@@ -107,7 +107,7 @@
       "targets": [ "ms.vss-releaseartifact.artifact-types" ],
       "properties": {
         "name": "TeamCity",
-        "displayName": "i18n:TeamCity",
+        "displayName": "TeamCity",
         "_displayName.comment": "Don't Localize the word 'TeamCity'",
         "endpointTypeId": "teamcity",
         "uniqueSourceIdentifier": "{{connection}}:{{project}}:{{definition}}",
@@ -115,8 +115,8 @@
         "inputDescriptors": [
           {
             "id": "connection",
-            "name": "i18n:Service Endpoint",
-            "description": "i18n:Service Endpoint Id",
+            "name": "Service Endpoint",
+            "description": "Service Endpoint Id",
             "inputMode": "Combo",
             "isConfidential": false,
             "hasDynamicValueInformation": true,
@@ -128,8 +128,8 @@
           },
           {
             "id": "project",
-            "name": "i18n:Project",
-            "description": "i18n:Project Id",
+            "name": "Project",
+            "description": "Project Id",
             "inputMode": "Combo",
             "isConfidential": false,
             "hasDynamicValueInformation": true,
@@ -144,8 +144,8 @@
           },
           {
             "id": "definition",
-            "name": "i18n:Build Configuration",
-            "description": "i18n:Build Configuration Id",
+            "name": "Build Configuration",
+            "description": "Build Configuration Id",
             "inputMode": "Combo",
             "isConfidential": false,
             "hasDynamicValueInformation": true,
