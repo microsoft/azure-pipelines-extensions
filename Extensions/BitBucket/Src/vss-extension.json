@@ -6,7 +6,7 @@
   "version": "1.0.0",
   "public": true,
   "description": "Tools related to connecting with Bitbucket",
-  "_description.comment": "Don't Localize the word 'Bitbucket'",
+  "_description.comment": "The below format to define artifact extensions is currently in preview and may change in future.",
   "categories": [ "Integrate" ],
   "Tags": [ "Bitbucket", "Release", "DevOps", "Artifacts" ],
   "targets": [
