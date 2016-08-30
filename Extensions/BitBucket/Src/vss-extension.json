@@ -56,7 +56,7 @@
         "ms.vss-distributed-task.tasks"
       ],
       "properties": {
-        "name": "DownloadArtifactBitbucket"
+        "name": "Tasks/DownloadArtifactBitbucket"
       }
     },
     {

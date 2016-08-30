@@ -473,7 +473,7 @@
         "ms.vss-distributed-task.tasks"
       ],
       "properties": {
-        "name": "DownloadArtifactTfvc"
+        "name": "Tasks/DownloadArtifactTfvc"
         }
     },      
     {
@@ -624,7 +624,7 @@
         "ms.vss-distributed-task.tasks"
       ],
       "properties": {
-        "name": "DownloadArtifactTfGit"
+        "name": "Tasks/DownloadArtifactTfGit"
       }
     },    
     {
