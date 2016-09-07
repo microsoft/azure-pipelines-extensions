@@ -103,7 +103,7 @@ function copyCommonModules(currentExtnRoot, commonDeps, commonSrc){
                     // Copy the lib from the cache.
                     
                     gutil.log('Linking vsts-task-lib ' + libVer);
-                    var copySource = path.join(_tempPath, 'npm', 'vsts-task-lib', libVer, 'node_modules', '*');
+                    var copySource = path.join(_tempPath, 'npm', 'vsts-task-lib', libVer, 'node_modules', '**');
                     var copyTarget = path.join(targetPath, 'node_modules');
                     shell.mkdir('-p', copyTarget);
                     gulp.src([copySource])
