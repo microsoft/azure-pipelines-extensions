@@ -48,10 +48,10 @@
        "addressable": true
     },
     {
-       "path": "Tasks/DownloadArtifactTfvc"
+       "path": "Tasks/DownloadArtifactsTfsVersionControl"
     },
     {
-       "path": "Tasks/DownloadArtifactTfGit"
+       "path": "Tasks/DownloadArtifactsTfsGit"
     }
   ],
   "branding": {
@@ -473,7 +473,7 @@
         "ms.vss-distributed-task.tasks"
       ],
       "properties": {
-        "name": "Tasks/DownloadArtifactTfvc"
+        "name": "Tasks/DownloadArtifactsTfsVersionControl"
         }
     },      
     {
@@ -624,7 +624,7 @@
         "ms.vss-distributed-task.tasks"
       ],
       "properties": {
-        "name": "Tasks/DownloadArtifactTfGit"
+        "name": "Tasks/DownloadArtifactsTfsGit"
       }
     },    
     {
