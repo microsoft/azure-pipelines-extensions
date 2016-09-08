@@ -6,7 +6,7 @@ var __extends = (this && this.__extends) || function (d, b) {
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
 
-var tl = require('vso-task-lib');
+var tl = require('vsts-task-lib');
 var shell = require('shelljs');
 var path = require('path');
 var fs = require('fs');
@@ -110,62 +110,27 @@ var TfvcWrapper = (function (_super) {
 
         return tf.exec(ops);
     };
-    
-    TfvcWrapper.prototype._shellExec = function (cmd, args, addDefaults) {
-        if (tfPath === null) {
-            return this._getTfNotInstalled();
-        }
-        var quote = '"';
-        var cmdline;
-        cmdline = quote + tfPath + quote + ' ' + cmd + ' ' + this._getQuotedArgs(args, addDefaults).join(' ');
-
-        return this._utilExec(cmdline);
-    };
-
-    // ret is { output: string, code: number }
-    TfvcWrapper.prototype._utilExec = function exec(cmdLine) {
-        var defer = Q.defer();
-        shell.exec(cmdLine, function (code, output) {
-            console.log("cmdLine1:" + cmdLine);
-            console.log("output1:" + output);
-            console.log("code1:" + code);
-            defer.resolve({ code: code, output: output });
-        });
-        return defer.promise;
-    };
 
     TfvcWrapper.prototype._getToolRunner = function (cmd, args, addDefaultArgs) {
         var tf = new tl.ToolRunner(tfPath);
         tf.silent = true;
         // cmd
         tf.arg(cmd, true);
-        var quotedArgs = this._getQuotedArgs(args, addDefaultArgs);
-        // args
-        quotedArgs.map(function (arg) {
-            tf.arg(arg, true); // raw arg
-        });
-        return tf;
-    };
-
-    TfvcWrapper.prototype._getQuotedArgs = function (args, addDefaults) {
-        var quotedArg = function (arg) {
-            var quote = '"';
-            if (arg.indexOf('"') > -1) {
-                quote = '\'';
-            }
-            return quote + arg + quote;
-        };
-
-        if (addDefaults === true) {
+		
+		if (addDefaultArgs === true) {
             // default connection related args
             var collectionArg = '-collection:' + connOptions.collection;
             var loginArg = '-login:' + connOptions.username + ',' + connOptions.password;
 
-            return args.concat([collectionArg, loginArg]).map(function (a) { return quotedArg(a); });
-
-        } else {
-            return args.map(function (a) { return quotedArg(a); });
-        }
+            args = args.concat([collectionArg, loginArg]);
+        } 
+		        
+        // args
+        args.map(function (arg) {
+            tf.arg(arg, true); // raw arg
+        });
+		
+        return tf;
     };
 
     TfvcWrapper.prototype._getOpts = function (options) {
