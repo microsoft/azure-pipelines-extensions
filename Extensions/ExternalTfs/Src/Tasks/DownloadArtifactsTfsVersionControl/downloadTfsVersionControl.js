@@ -1,6 +1,6 @@
 var shell = require('shelljs');
 var path = require('path');
-var tl = require('vso-task-lib');
+var tl = require('vsts-task-lib/task');
 var webApim = require('vso-node-api/WebApi');
 var tfvcInterfaces = require('vso-node-api/interfaces/TfvcInterfaces');
 var Q = require('q');
