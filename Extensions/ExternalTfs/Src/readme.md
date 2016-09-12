@@ -52,4 +52,4 @@ The extension isn't supported for TFS 2015 update 2, It is only supported TFS "1
 
 **7. Where can I learn more about artifacts in Release Management?**
 
-You can refer to Release Management [documentation](https://msdn.microsoft.com/library/vs/alm/release/author-release-definition/understanding-artifacts) for more details.
+You can refer to Release Management [documentation](https://msdn.microsoft.com/library/vs/alm/release/author-release-definition/understanding-artifacts) for more details. Also you can use [RM Extensions on Github](https://github.com/Microsoft/vsts-rm-extensions/issues) to report any issues.
