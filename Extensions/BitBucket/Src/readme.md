@@ -2,6 +2,8 @@
 
 This extension is an integration point for Bitbucket&reg; with Release management in VS Team Services. With this extension, you can deploy sources from Bitbucket&reg; repositories using Release management. 
 
+**Note:** This extension work only with VS Team Services and TFS "15" RC onwards. 
+
 ## Usage
 This extension provides a service endpoint to connect to Bitbucket&reg; account. Once connected, you can link a repositories from the Bitbucket&reg; and deploy the same using Release management orchestration service.
 
