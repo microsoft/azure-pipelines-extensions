@@ -42,6 +42,9 @@ Yes.
 
 No. This extension supports TFS 2013 and above versions.
 
-**5. Where can I learn more about artifacts in Release Management?**
+**5. I am getting the error "Missing contribution (ms.vss-releaseartifact.artifact-types)" with TFS 2015 update 3 on-prem?**
+The extension isn't supported for TFS 2015 update 3, It is only supported TFS "15" RC onwards.
+
+**6. Where can I learn more about artifacts in Release Management?**
 
 You can refer to Release Management [documentation](https://msdn.microsoft.com/library/vs/alm/release/author-release-definition/understanding-artifacts) for more details.
