@@ -45,7 +45,7 @@
       "addressable": true
     },
     {
-      "path": "Tasks/DownloadArtifactBitbucket"
+      "path": "Tasks/DownloadArtifactsBitbucket"
     }
   ],
   "contributions": [
@@ -56,7 +56,7 @@
         "ms.vss-distributed-task.tasks"
       ],
       "properties": {
-        "name": "Tasks/DownloadArtifactBitbucket"
+        "name": "Tasks/DownloadArtifactsBitbucket"
       }
     },
     {
