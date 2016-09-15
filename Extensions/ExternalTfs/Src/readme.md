@@ -24,6 +24,17 @@ Currently you need to use [Basic Auth](https://www.visualstudio.com/en-us/integr
 Once you have set up the service endpoint connection, you would be able to link an external TFS/VS-Team-Services build artifact in your release definition
 ![Linking an external TFS/VS-Team-Services artifact](images/screen3.png)
 
+### Known Issues
+
+**1. Code artifacts (External TFS version control and External TFS GIT) does not work with PAT based External on-prem TFS service endpoints.** 
+Release linked to External TFS Version Control will fail with below error message at download artifact step:
+TF30063: You are not authorized to access http://{ExternalTfsServerName}:{port}/tfs/DefaultCollection.
+ 
+Release linked to External TFS GIT will fail with below error message at download artifact step:
+Authentication failed for 'http://.:********@{ExternalTfsServerName}:{port}/tfs/DefaultCollection/_git/{GitProjectName}/
+
+**Note:** Code artifacts (External TFS version control and TFS GIT) works fine with PAT based VSTS service endpoints.
+
 ### FAQs
 
 **1. Can I use an external TFS build artifact that is not accessible from my VS Team Services account?**
