@@ -26,7 +26,7 @@ Once you have set up the service endpoint connection, you would be able to link 
 
 ### Known Issues
 
-**1. Code artifacts (External TFS version control and External TFS GIT) does not work with PAT based External TFS service endpoints. 
+**1. Code artifacts (External TFS version control and External TFS GIT) does not work with PAT based External on-prem TFS service endpoints.** 
 Release linked to External TFS Version Control will fail with below error message at download artifact step:
 TF30063: You are not authorized to access http://{ExternalTfsServerName}:{port}/tfs/DefaultCollection.
  
