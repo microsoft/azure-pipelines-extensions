@@ -45,7 +45,7 @@
       "addressable": true
     },
     {
-      "path": "Tasks/DownloadArtifactBitbucket"
+      "path": "Tasks/DownloadArtifactsBitbucket"
     }
   ],
   "contributions": [
@@ -56,7 +56,7 @@
         "ms.vss-distributed-task.tasks"
       ],
       "properties": {
-        "name": "Tasks/DownloadArtifactBitbucket"
+        "name": "Tasks/DownloadArtifactsBitbucket"
       }
     },
     {
@@ -76,7 +76,7 @@
         "dataSources": [
           {
             "name": "TestConnection",
-            "endpointUrl": "{{{endpoint.url}}}/2.0/repositories/{{{endpoint.username}}}",
+            "endpointUrl": "{{{endpoint.url}}}/2.0/repositories?role=member",
             "resultSelector": "jsonpath:$.values[*]"
           },
           {
@@ -100,32 +100,29 @@
             "resultSelector": "jsonpath:$.values[0]"
           }
         ],
-        "inputDescriptors": [
-          {
-            "id": "username",
-            "name": "Username",
-            "description": "Username",
-            "inputMode": "textbox",
-            "isConfidential": false,
-            "validation": {
-              "isRequired": false,
-              "dataType": "string"
-            }
-          }
-        ],
         "authenticationSchemes": [
           {
-            "type": "ms.vss-endpoint.endpoint-auth-scheme-token",
-            "headers": [{"name": "Authorization", "value": "Basic {{ #base64 endpoint.username \":\" endpoint.apitoken }}"}],
+            "type": "ms.vss-endpoint.endpoint-auth-scheme-basic",
             "inputDescriptors": [
               {
-                "id": "apitoken",
+                "id": "username",
+                "name": "Username",
+                "description": "Username",
+                "inputMode": "textbox",
+                "isConfidential": false,
+                "validation": {
+                  "isRequired": true,
+                  "dataType": "string"
+                }
+              },
+			  {
+                "id": "password",
                 "name": "Password",
                 "description": "Password",
                 "inputMode": "passwordbox",
                 "isConfidential": true,
                 "validation": {
-                  "isRequired": false,
+                  "isRequired": true,
                   "dataType": "string"
                 }
               }

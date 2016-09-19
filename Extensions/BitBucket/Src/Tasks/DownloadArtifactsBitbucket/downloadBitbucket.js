@@ -95,10 +95,8 @@ https.request(options, function (rs) {
 
 function getEndpointDetails(inputFieldName) {
     var bitbucketEndpoint = tl.getInput(inputFieldName);
-    var endpointData = JSON.parse(process.env["ENDPOINT_DATA_" + bitbucketEndpoint]);
-    var usernameKey = getCaseInsensitiveKeyMatch(endpointData, 'username');
-    var hostUsername = endpointData[usernameKey];
-    var hostPassword = getAuthParameter(bitbucketEndpoint, 'apitoken');
+    var hostUsername = getAuthParameter(bitbucketEndpoint, 'username');
+    var hostPassword = getAuthParameter(bitbucketEndpoint, 'password');
     tl.debug('hostUsername: ' + hostUsername);
     tl.debug('hostPassword: ' + hostPassword);
 
@@ -112,8 +110,8 @@ function getAuthParameter(endpoint, paramName) {
     var paramValue = null;
     var auth = tl.getEndpointAuthorization(endpoint, false);
     
-    if (auth.scheme != "Token") {
-        throw new Error("The authorization scheme " + auth.scheme + " is not supported for a bitbucket endpoint. Please use a token instead.");
+    if (auth.scheme.toLowerCase().trim() != "usernamepassword") {
+        throw new Error("The authorization scheme " + auth.scheme + " is not supported for a bitbucket endpoint. Please use a basic instead.");
     }
     
     var keyName = getCaseInsensitiveKeyMatch(auth['parameters'], paramName);

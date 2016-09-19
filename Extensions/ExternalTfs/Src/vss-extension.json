@@ -1,7 +1,7 @@
 ﻿{
   "manifestVersion": 1.0,
   "id": "vss-services-externaltfs",
-  "version": "15.105.3",
+  "version": "15.105.4",
   "name": "TFS artifacts for Release Management",
   "publisher": "ms-vscs-rm",
   "description": "Deploy external TFS/ VS-Team-Services artifacts using Release Management",
@@ -48,10 +48,10 @@
        "addressable": true
     },
     {
-       "path": "Tasks/DownloadArtifactTfvc"
+       "path": "Tasks/DownloadArtifactsTfsVersionControl"
     },
     {
-       "path": "Tasks/DownloadArtifactTfGit"
+       "path": "Tasks/DownloadArtifactsTfsGit"
     }
   ],
   "branding": {
@@ -473,7 +473,7 @@
         "ms.vss-distributed-task.tasks"
       ],
       "properties": {
-        "name": "Tasks/DownloadArtifactTfvc"
+        "name": "Tasks/DownloadArtifactsTfsVersionControl"
         }
     },      
     {
@@ -624,7 +624,7 @@
         "ms.vss-distributed-task.tasks"
       ],
       "properties": {
-        "name": "Tasks/DownloadArtifactTfGit"
+        "name": "Tasks/DownloadArtifactsTfsGit"
       }
     },    
     {
