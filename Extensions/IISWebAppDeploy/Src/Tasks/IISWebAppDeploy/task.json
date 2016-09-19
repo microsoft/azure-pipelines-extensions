@@ -139,7 +139,7 @@
       "name": "TakeAppOffline",
       "type": "boolean",
       "label": "Take App Offline",
-      "defaultValue": "false",
+      "defaultValue": "true",
       "required": false,
       "groupName": "msdeployadvanced",
       "helpMarkDown": "Select the option to take the IIS Web App offline by placing an app_offline.html file in the root directory of the Web App before the sync operation begins. The file will be removed after the sync operation completes successfully."
