@@ -8,7 +8,7 @@ Extension that lets you deploy web application to IIS. [More info](Extensions/II
 
 ## How to Build 
 
-Ensure you have installed the node.js
+Ensure you have installed Node.js. Clone the repository, and go to the root folder of the repository and run the following commands. 
 
     - npm install
     - gulp build
