@@ -8,7 +8,7 @@ With this extension, you can deploy artifacts from external TFS or VS Team Servi
 
 These Build/Code artifacts could be from different TFS or VS Team Services accounts or from different collections from the same account.
 
-**Note:** This extension is available only on VS Team Services.  
+**Note:** This extension work only with VS Team Services and TFS "15" RC onwards. 
 
 ## Usage
 This extension provides a service endpoint to connect to an external TFS or VS Team Services Collection. Once connected, you can link an artifact from this TFS / VS Team Services.
@@ -23,6 +23,17 @@ Currently you need to use [Basic Auth](https://www.visualstudio.com/en-us/integr
 ### Linking an external artifact (Build in this example)
 Once you have set up the service endpoint connection, you would be able to link an external TFS/VS-Team-Services build artifact in your release definition
 ![Linking an external TFS/VS-Team-Services artifact](images/screen3.png)
+
+### Known Issues
+
+**1. Code artifacts (External TFS version control and External TFS GIT) does not work with PAT based External on-prem TFS service endpoints.** 
+Release linked to External TFS Version Control will fail with below error message at download artifact step:
+TF30063: You are not authorized to access http://{ExternalTfsServerName}:{port}/tfs/DefaultCollection.
+ 
+Release linked to External TFS GIT will fail with below error message at download artifact step:
+Authentication failed for 'http://.:********@{ExternalTfsServerName}:{port}/tfs/DefaultCollection/_git/{GitProjectName}/
+
+**Note:** Code artifacts (External TFS version control and TFS GIT) works fine with PAT based VSTS service endpoints.
 
 ### FAQs
 
@@ -42,6 +53,14 @@ Yes.
 
 No. This extension supports TFS 2013 and above versions.
 
-**5. Where can I learn more about artifacts in Release Management?**
+**5. I am getting the error "Missing contribution (ms.vss-releaseartifact.artifact-types)" with TFS 2015 update 3 on-prem?**
 
-You can refer to Release Management [documentation](https://msdn.microsoft.com/library/vs/alm/release/author-release-definition/understanding-artifacts) for more details.
+The extension isn't supported for TFS 2015 update 3, It is only supported TFS "15" RC onwards.
+
+**6. I am not able to see the ExternalTfs types in link artifacts UI with TFS 2015 update 2?** 
+
+The extension isn't supported for TFS 2015 update 2, It is only supported TFS "15" RC onwards.
+
+**7. Where can I learn more about artifacts in Release Management?**
+
+You can refer to Release Management [documentation](https://msdn.microsoft.com/library/vs/alm/release/author-release-definition/understanding-artifacts) for more details. Also you can use [RM Extensions on Github](https://github.com/Microsoft/vsts-rm-extensions/issues) to report any issues.

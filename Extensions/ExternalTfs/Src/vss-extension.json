@@ -1,11 +1,11 @@
 ﻿{
   "manifestVersion": 1.0,
   "id": "vss-services-externaltfs",
-  "version": "15.104.299598805",
+  "version": "15.105.4",
   "name": "TFS artifacts for Release Management",
   "publisher": "ms-vscs-rm",
-  "description": "i18n:Deploy external TFS/ VS-Team-Services artifacts using Release Management",
-  "_description.comment": "Don't Localize the word 'TFS'",
+  "description": "Deploy external TFS/ VS-Team-Services artifacts using Release Management",
+  "_description.comment": "The below format to define artifact extensions is currently in preview and may change in future.",
   "public": true,
   "categories": [ "Build and release" ],
   "tags": [ "Artifacts", "DevOps", "Release" ],
@@ -48,10 +48,10 @@
        "addressable": true
     },
     {
-       "path": "Tasks/DownloadArtifactTfvc"
+       "path": "Tasks/DownloadArtifactsTfsVersionControl"
     },
     {
-       "path": "Tasks/DownloadArtifactTfGit"
+       "path": "Tasks/DownloadArtifactsTfsGit"
     }
   ],
   "branding": {
@@ -61,17 +61,17 @@
   "contributions": [
     {
       "id": "externaltfs-endpoint-type",
-      "description": "i18n:Service Endpoint type for all External TFS connections",
+      "description": "Service Endpoint type for all External TFS connections",
       "type": "ms.vss-endpoint.service-endpoint-type",
       "targets": [ "ms.vss-endpoint.endpoint-types" ],
       "properties": {
         "name": "externaltfs",
-        "displayName": "i18n:External TFS",
+        "displayName": "External TFS",
         "_displayName.comment": "Don't Localize the word 'TFS'",
         "url": {
-          "displayName": "i18n:TFS Collection Url",
+          "displayName": "TFS Collection Url",
           "_displayName.comment": "Don't Localize the word 'TFS'",
-          "helpText": "i18n:Url for the Team Project Collection to connect to."
+          "helpText": "Url for the Team Project Collection to connect to."
         },
         "dataSources": [
           {
@@ -205,8 +205,8 @@
             "inputDescriptors": [
               {
                 "id": "apitoken",
-                "name": "i18n:Personal Access Token",
-                "description": "i18n:Personal access token is applicable only for endpoint targeting VSTS account or TFS 2016. Click <a href=\"https://www.visualstudio.com/en-us/docs/setup-admin/team-services/use-personal-access-tokens-to-authenticate\" target=\"_blank\">here</a>. for information on how to create Personal Access Token.",
+                "name": "Personal Access Token",
+                "description": "Personal access token is applicable only for endpoint targeting VSTS account or TFS 2016. Click <a href=\"https://www.visualstudio.com/en-us/docs/setup-admin/team-services/use-personal-access-tokens-to-authenticate\" target=\"_blank\">here</a>. for information on how to create Personal Access Token.",
                 "inputMode": "passwordbox",
                 "isConfidential": true,
                 "validation": {
@@ -222,13 +222,13 @@
     },
     {
       "id": "externalTFSBuild-release-artifact-type",
-      "description": "i18n:External TFS Build Artifact",
+      "description": "External TFS Build Artifact",
       "_description.comment": "Don't Localize the word 'TFS'",
       "type": "ms.vss-releaseartifact.release-artifact-type",
       "targets": [ "ms.vss-releaseartifact.artifact-types" ],
       "properties": {
         "name": "ExternalTfsBuild",
-        "displayName": "i18n:External TFS Build",
+        "displayName": "External TFS Build",
         "_displayName.comment": "Don't Localize the word 'TFS'",
         "endpointTypeId": "ExternalTFS",
         "uniqueSourceIdentifier": "{{connection}}:{{project}}:{{definition}}",
@@ -236,8 +236,8 @@
         "inputDescriptors": [
           {
             "id": "connection",
-            "name": "i18n:Service Endpoint",
-            "description": "i18n:Service Endpoint Id",
+            "name": "Service Endpoint",
+            "description": "Service Endpoint Id",
             "inputMode": "Combo",
             "isConfidential": false,
             "hasDynamicValueInformation": true,
@@ -249,8 +249,8 @@
           },
           {
             "id": "project",
-            "name": "i18n:Project",
-            "description": "i18n:Project Id",
+            "name": "Project",
+            "description": "Project Id",
             "inputMode": "Combo",
             "isConfidential": false,
             "hasDynamicValueInformation": true,
@@ -265,8 +265,8 @@
           },
           {
             "id": "definition",
-            "name": "i18n:Build Definition",
-            "description": "i18n:Build Definition Id",
+            "name": "Build Definition",
+            "description": "Build Definition Id",
             "inputMode": "Combo",
             "isConfidential": false,
             "hasDynamicValueInformation": true,
@@ -283,7 +283,7 @@
           {
             "id": "artifacts",
             "name": "Artifacts",
-            "description": "i18n:Build artifacts",
+            "description": "Build artifacts",
             "inputMode": "none",
             "isConfidential": false,
             "hasDynamicValueInformation": true,
@@ -351,13 +351,13 @@
     },
     {
         "id": "externalTFVC-release-artifact-type",
-        "description": "i18n:External TFS Version Control",
+        "description": "External TFS Version Control",
         "_description.comment": "Don't Localize the word 'TFS Version Control'",
         "type": "ms.vss-releaseartifact.release-artifact-type",
         "targets": [ "ms.vss-releaseartifact.artifact-types" ],
         "properties": {
             "name": "ExternalTfvc",
-            "displayName": "i18n:External TFS Version Control",
+            "displayName": "External TFS Version Control",
             "_displayName.comment": "Don't Localize the word 'TFS Version Control'",
             "endpointTypeId": "ExternalTFS",
             "uniqueSourceIdentifier": "{{{connection}}}:{{{project}}}:{{{definition}}}",
@@ -366,8 +366,8 @@
             "inputDescriptors": [
                 {
                     "id": "connection",
-                    "name": "i18n:Service Endpoint",
-                    "description": "i18n:Service Endpoint Id",
+                    "name": "Service Endpoint",
+                    "description": "Service Endpoint Id",
                     "inputMode": "Combo",
                     "isConfidential": false,
                     "hasDynamicValueInformation": true,
@@ -379,8 +379,8 @@
                 },
                 {
                     "id": "project",
-                    "name": "i18n:Project",
-                    "description": "i18n:Projects",
+                    "name": "Project",
+                    "description": "Projects",
                     "inputMode": "Combo",
                     "isConfidential": false,
                     "hasDynamicValueInformation": true,
@@ -395,8 +395,8 @@
                 },
                 {
                     "id": "definition",
-                    "name": "i18n:Source (repository)",
-                    "description": "i18n:Repository to pull",
+                    "name": "Source (repository)",
+                    "description": "Repository to pull",
                     "inputMode": "Combo",
                     "isConfidential": false,
                     "hasDynamicValueInformation": true,
@@ -412,8 +412,8 @@
                 },
                 {
                     "id": "artifacts",
-                    "name": "i18n:Artifacts",
-                    "description": "i18n:Source Artifacts",
+                    "name": "Artifacts",
+                    "description": "Source Artifacts",
                     "inputMode": "none",
                     "isConfidential": false,
                     "hasDynamicValueInformation": true,
@@ -473,18 +473,18 @@
         "ms.vss-distributed-task.tasks"
       ],
       "properties": {
-        "name": "Tasks/DownloadArtifactTfvc"
+        "name": "Tasks/DownloadArtifactsTfsVersionControl"
         }
     },      
     {
       "id": "externalTfGit-release-artifact-type",
-      "description": "i18n:External TFS Git",
+      "description": "External TFS Git",
       "_description.comment": "Don't Localize the word 'TFS Git'",
       "type": "ms.vss-releaseartifact.release-artifact-type",
       "targets": [ "ms.vss-releaseartifact.artifact-types" ],
       "properties": {
         "name": "ExternalTfsGit",
-        "displayName": "i18n:External TFS Git",
+        "displayName": "External TFS Git",
         "_displayName.comment": "Don't Localize the word 'TFS Git'",
         "endpointTypeId": "ExternalTFS",
         "uniqueSourceIdentifier": "{{connection}}:{{project}}:{{definition}}",
@@ -493,8 +493,8 @@
         "inputDescriptors": [
             {
                 "id": "connection",
-                "name": "i18n:Service Endpoint",
-                "description": "i18n:Service Endpoint Id",
+                "name": "Service Endpoint",
+                "description": "Service Endpoint Id",
                 "inputMode": "Combo",
                 "isConfidential": false,
                 "hasDynamicValueInformation": true,
@@ -506,8 +506,8 @@
             },
             {
                 "id": "project",
-                "name": "i18n:Project",
-                "description": "i18n:Projects",
+                "name": "Project",
+                "description": "Projects",
                 "inputMode": "Combo",
                 "isConfidential": false,
                 "hasDynamicValueInformation": true,
@@ -522,8 +522,8 @@
             },
             {
                 "id": "definition",
-                "name": "i18n:Source (repository)",
-                "description": "i18n:Repository to pull",
+                "name": "Source (repository)",
+                "description": "Repository to pull",
                 "inputMode": "Combo",
                 "isConfidential": false,
                 "hasDynamicValueInformation": true,
@@ -539,8 +539,8 @@
             },
             {
                 "id": "branch",
-                "name": "i18n:Branch",
-                "description": "i18n:Branch to checkout",
+                "name": "Branch",
+                "description": "Branch to checkout",
                 "inputMode": "Combo",
                 "isConfidential": false,
                 "hasDynamicValueInformation": true,
@@ -557,8 +557,8 @@
             },
             {
                 "id": "artifacts",
-                "name": "i18n:Artifacts",
-                "description": "i18n:Source Artifacts",
+                "name": "Artifacts",
+                "description": "Source Artifacts",
                 "inputMode": "none",
                 "isConfidential": false,
                 "hasDynamicValueInformation": true,
@@ -624,18 +624,18 @@
         "ms.vss-distributed-task.tasks"
       ],
       "properties": {
-        "name": "Tasks/DownloadArtifactTfGit"
+        "name": "Tasks/DownloadArtifactsTfsGit"
       }
     },    
     {
       "id": "externalTFSXamlBuild-release-artifact-type",
-      "description": "i18n:External TFS XAML Build Artifact",
+      "description": "External TFS XAML Build Artifact",
       "_description.comment": "Don't Localize the words 'TFS' and 'XAML'",
       "type": "ms.vss-releaseartifact.release-artifact-type",
       "targets": [ "ms.vss-releaseartifact.artifact-types" ],
       "properties": {
         "name": "ExternalTfsXamlBuild",
-        "displayName": "i18n:External TFS XAML Build",
+        "displayName": "External TFS XAML Build",
         "_displayName.comment": "Don't Localize the words 'TFS' and 'XAML'",
         "endpointTypeId": "ExternalTFS",
         "uniqueSourceIdentifier": "{{connection}}:{{project}}:{{definition}}",
@@ -643,8 +643,8 @@
         "inputDescriptors": [
           {
             "id": "connection",
-            "name": "i18n:Service Endpoint",
-            "description": "i18n:Service Endpoint Id",
+            "name": "Service Endpoint",
+            "description": "Service Endpoint Id",
             "inputMode": "Combo",
             "isConfidential": false,
             "hasDynamicValueInformation": true,
@@ -656,8 +656,8 @@
           },
           {
             "id": "project",
-            "name": "i18n:Project",
-            "description": "i18n:Project Id",
+            "name": "Project",
+            "description": "Project Id",
             "inputMode": "Combo",
             "isConfidential": false,
             "hasDynamicValueInformation": true,
@@ -672,8 +672,8 @@
           },
           {
             "id": "definition",
-            "name": "i18n:XAML Build Definition",
-            "description": "i18n:XAML Build Definition Id",
+            "name": "XAML Build Definition",
+            "description": "XAML Build Definition Id",
             "inputMode": "Combo",
             "isConfidential": false,
             "hasDynamicValueInformation": true,
@@ -690,7 +690,7 @@
           {
             "id": "artifacts",
             "name": "Artifacts",
-            "description": "i18n:Build artifacts",
+            "description": "Build artifacts",
             "inputMode": "none",
             "isConfidential": false,
             "hasDynamicValueInformation": true,

@@ -275,7 +275,7 @@ var createVsixPackage = function(extensionName) {
         fs.writeFileSync(path.join(extnManifestPath,"vss-extension.json"), JSON.stringify(manifest));
     }
     shell.mkdir("-p", extnOutputPath);
-    var packagingCmd = "tfx extension create --manifeset-globs vss-extension.json --root " + extnManifestPath + " --output-path " + extnOutputPath;
+    var packagingCmd = "tfx extension create --manifest-globs vss-extension.json --root " + extnManifestPath + " --output-path " + extnOutputPath;
     executeCommand(packagingCmd, function() {});
 }
 
