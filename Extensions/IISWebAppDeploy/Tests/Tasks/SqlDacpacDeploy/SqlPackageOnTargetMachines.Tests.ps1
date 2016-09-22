@@ -1,9 +1,9 @@
 ﻿$currentScriptPath = Split-Path -Parent $MyInvocation.MyCommand.Path
-$scritpDirName = Split-Path -Leaf $currentScriptPath
+$scriptDirName = Split-Path -Leaf $currentScriptPath
 $sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path).Replace(".Tests.", ".")
 $VerbosePreference = 'Continue'
 
-$sqlPackageOnTargetMachinesPath = "$currentScriptPath\..\..\..\Src\Tasks\$scritpDirName\$sut"
+$sqlPackageOnTargetMachinesPath = "$currentScriptPath\..\..\..\Src\Tasks\$scriptDirName\$sut"
 
 if(-not (Test-Path -Path $sqlPackageOnTargetMachinesPath ))
 {
