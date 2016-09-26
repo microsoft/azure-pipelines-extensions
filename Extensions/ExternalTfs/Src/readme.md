@@ -39,7 +39,7 @@ Authentication failed for 'http://.:********@{ExternalTfsServerName}:{port}/tfs/
 Release linked to External TFS Version Control will fail with below error message at download artifact step:
 TF30063: You are not authorized to access http://fabfiber.visualstudio.com/DefaultCollection
 
-Workaround - Run agent as admin user when working with "External TFS version control" code artifact.
+Workaround - Run agent as admin user(either interactively or as service) when working with "External TFS version control" code artifact.
 
 ### FAQs
 
