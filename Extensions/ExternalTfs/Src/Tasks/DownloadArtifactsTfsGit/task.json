@@ -13,8 +13,8 @@
   "demands": [],
   "version": {
     "Major": "15",
-    "Minor": "105",
-    "Patch": "4"
+    "Minor": "106",
+    "Patch": "1"
   },
   "minimumAgentVersion": "1.99.0",
   "instanceNameFormat": "Download Artifacts - External TFS Git",
