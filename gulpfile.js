@@ -236,9 +236,15 @@ gulp.task("test", ["_mochaTests"],function(done){
 //-----------------------------------------------------------------------------------------------------------------
 
 var publisherName = null;
-gulp.task("package",  function() {
+gulp.task("package", ["build"], function() {
     if(args.publisher){
         publisherName = args.publisher;
+    }
+    
+    // use gulp package --extension=<Extension_Name> to package an individual package
+    if(args.extension){
+        createVsixPackage(args.extension);
+        return;
     }
     fs.readdirSync(_extnBuildRoot).filter(function (file) {
         return fs.statSync(path.join(_extnBuildRoot, file)).isDirectory() && file != "Common";
