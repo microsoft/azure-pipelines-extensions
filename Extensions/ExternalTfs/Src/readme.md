@@ -14,7 +14,7 @@ These Build/Code artifacts could be from different TFS or VS Team Services accou
 This extension provides a service endpoint to connect to an external TFS or VS Team Services Collection. Once connected, you can link an artifact from this TFS / VS Team Services.
 
 ### Connecting to an External TFS/VS-Team-Services account & collection
-Currently you need to use [Basic Auth](https://www.visualstudio.com/en-us/integrate/get-started/auth/overview) to connect to an external TFS/VS-Team-Services account. We intend to support other auth schemes soon. Know how to enable [Basic Auth on TFS](https://github.com/Microsoft/tfs-cli/blob/master/docs/configureBasicAuth.md)
+When using Basic Authentication scheme, enable [Basic Auth on TFS](https://github.com/Microsoft/tfs-cli/blob/master/docs/configureBasicAuth.md)
 ![Creating an external TFS/VS-Team-Services service endpoint connection](images/screen1.png)
 ![Creating an external TFS/VS-Team-Services service endpoint connection](images/screen2.png)
 
@@ -23,6 +23,23 @@ Currently you need to use [Basic Auth](https://www.visualstudio.com/en-us/integr
 ### Linking an external artifact (Build in this example)
 Once you have set up the service endpoint connection, you would be able to link an external TFS/VS-Team-Services build artifact in your release definition
 ![Linking an external TFS/VS-Team-Services artifact](images/screen3.png)
+
+### Known Issues
+
+**1. Code artifacts (External TFS version control and External TFS GIT) does not work with PAT based External on-prem TFS service endpoints.** 
+Release linked to External TFS Version Control will fail with below error message at download artifact step:
+TF30063: You are not authorized to access http://{ExternalTfsServerName}:{port}/tfs/DefaultCollection.
+ 
+Release linked to External TFS GIT will fail with below error message at download artifact step:
+Authentication failed for 'http://.:********@{ExternalTfsServerName}:{port}/tfs/DefaultCollection/_git/{GitProjectName}/
+
+**Note:** Code artifacts (External TFS version control and TFS GIT) works fine with PAT based VSTS service endpoints.
+
+**2. "External TFS version control" code artifact download fails when agent is running as Network Service. **
+Release linked to External TFS Version Control will fail with below error message at download artifact step:
+TF30063: You are not authorized to access http://fabfiber.visualstudio.com/DefaultCollection
+
+Workaround - Run agent as admin user(either interactively or as service) when working with "External TFS version control" code artifact.
 
 ### FAQs
 
