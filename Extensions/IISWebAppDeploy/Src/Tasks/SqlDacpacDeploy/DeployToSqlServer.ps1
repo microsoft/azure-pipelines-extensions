@@ -9,7 +9,7 @@ function EscapeSpecialChars
     return $str.Replace('`', '``').Replace('"', '`"').Replace('$', '`$')
 }
 
-function TrimInputs([ref]$adminUserName, [ref]$sqlUsername, [ref]$dacpacFile, [ref]$publishProfile)
+function TrimInputs([ref]$adminUserName, [ref]$sqlUsername, [ref]$dacpacFile, [ref]$publishProfile, [ref]$sqlFile)
 {
     Write-Verbose "Triming inputs for excess spaces, double quotes"
 
@@ -18,6 +18,7 @@ function TrimInputs([ref]$adminUserName, [ref]$sqlUsername, [ref]$dacpacFile, [r
 
     $dacpacFile.Value = $dacpacFile.Value.Trim('"', ' ')
     $publishProfile.Value = $publishProfile.Value.Trim('"', ' ')
+    $sqlFile = $sqlFile.Value.Trim('"', ' ')
 }
 
 function RunRemoteDeployment
@@ -30,10 +31,10 @@ function RunRemoteDeployment
         [string]$winrmProtocol,
         [string]$testCertificate,
         [string]$deployInParallel,
-        [string]$dacpacFile
+        [string]$taskType
     )
 
-    Write-Host "Starting deployment of Sql Dacpac File : $dacpacFile"
+    Write-Host "Starting deployment using $taskType"
 
     $errorMessage = Invoke-RemoteDeployment -machinesList $machinesList -scriptToRun $scriptToRun -adminUserName $adminUserName -adminPassword $adminPassword -protocol $winrmProtocol -testCertificate $testCertificate -deployInParallel $deployInParallel
 
@@ -44,13 +45,16 @@ function RunRemoteDeployment
         return
     }
 
-    Write-Host "Successfully deployed Sql Dacpac File : $dacpacFile"
+    Write-Host "Successfully deployed using $taskType"
 }
 
 function GetScriptToRun
 {
     param (
+        [string]$taskType,
         [string]$dacpacFile,
+        [string]$sqlFile,
+        [string]$inlineSql,
         [string]$targetMethod,
         [string]$serverName,
         [string]$databaseName,
@@ -62,19 +66,33 @@ function GetScriptToRun
         [string]$additionalArguments
     )
 
-    $sqlPackageScript = Get-Content .\SqlPackageOnTargetMachines.ps1 | Out-String
-
     $connectionString = EscapeSpecialChars -str $connectionString
     $sqlPassword = EscapeSpecialChars -str $sqlPassword
     $additionalArguments = EscapeSpecialChars -str $additionalArguments
     $serverName = EscapeSpecialChars -str $serverName
     $databaseName = EscapeSpecialChars -str $databaseName
 
-    $invokeMain = "ExecuteMain -dacpacFile `"$dacpacFile`" -targetMethod $targetMethod -serverName `"$serverName`" -databaseName `"$databaseName`" -authscheme $authscheme -sqlUsername `"$sqlUsername`" -sqlPassword `"$sqlPassword`" -connectionString `"$connectionString`" -publishProfile `"$publishProfile`" -additionalArguments `"$additionalArguments`""
+    if ($taskType -eq "dacpac")
+    {
+        $invokeMain = "ExecuteMain -dacpacFile `"$dacpacFile`" -targetMethod $targetMethod -serverName `"$serverName`" -databaseName `"$databaseName`" -authscheme $authscheme -sqlUsername `"$sqlUsername`" -sqlPassword `"$sqlPassword`" -connectionString `"$connectionString`" -publishProfile `"$publishProfile`" -additionalArguments `"$additionalArguments`""
 
-    Write-Verbose "Executing main funnction in SqlPackageOnTargetMachines : $invokeMain"
-    $sqlDacpacOnTargetMachinesScript = [string]::Format("{0} {1} ( {2} )", $sqlPackageScript,  [Environment]::NewLine,  $invokeMain)
-    return $sqlDacpacOnTargetMachinesScript
+        $sqlPackageScript = Get-Content .\SqlPackageOnTargetMachines.ps1 | Out-String
+
+        Write-Verbose "Executing main function in SqlPackageOnTargetMachines : $invokeMain"
+        $sqlDacpacOnTargetMachinesScript = [string]::Format("{0} {1} ( {2} )", $sqlPackageScript,  [Environment]::NewLine,  $invokeMain)
+        return $sqlDacpacOnTargetMachinesScript
+    }
+    else
+    {
+        $sqlQueryScript = Get-Content .\SqlQueryOnTargetMachines.ps1 | Out-String
+
+        $invokeExecute = "ExecuteSql -taskType `"$taskType`" -sqlFile `"$sqlFile`" -inlineSql `"$inlineSql`" -serverName `"$serverName`" -databaseName `"$databaseName`" -authscheme $authscheme -sqlUsername `"$sqlUsername`" -sqlPassword `"$sqlPassword`" -additionalArguments `"$additionalArguments`""
+
+        Write-Verbose "Executing main function in SqlQueryOnTargetMachines : $invokeExecute"
+        $sqlScriptOnTargetMachines = [string]::Format("{0} {1} ( {2} )", $sqlQueryScript,  [Environment]::NewLine,  $invokeExecute)
+
+        return $sqlScriptOnTargetMachines
+    }
 }
 
 function Main
@@ -85,7 +103,10 @@ function Main
     [string]$adminPassword,
     [string]$winrmProtocol,
     [string]$testCertificate,
+    [String]$taskType,
     [string]$dacpacFile,
+    [string]$sqlFile,
+    [string]$inlineSql,
     [string]$targetMethod,
     [string]$serverName,
     [string]$databaseName,
@@ -103,7 +124,9 @@ function Main
     Write-Verbose "adminUserName = $adminUserName"
     Write-Verbose "winrmProtocol  = $winrmProtocol"
     Write-Verbose "testCertificate = $testCertificate"
+    Write-Verbose "TaskType = $taskType"
     Write-Verbose "dacpacFile = $dacpacFile"
+    Write-Verbose "sqlFile = $sqlFile"
     Write-Verbose "targetMethod = $targetMethod"
     Write-Verbose "serverName = $serverName"
     Write-Verbose "databaseName = $databaseName"
@@ -112,9 +135,11 @@ function Main
     Write-Verbose "publishProfile = $publishProfile"
     Write-Verbose "additionalArguments = $additionalArguments"
     Write-Verbose "deployInParallel = $deployInParallel"
+    Write-Verbose "inlineSql = $inlineSql"
 
-    TrimInputs -adminUserName([ref]$adminUserName) -sqlUsername ([ref]$sqlUsername) -dacpacFile ([ref]$dacpacFile) -publishProfile ([ref]$publishProfile)
+    TrimInputs -adminUserName([ref]$adminUserName) -sqlUsername ([ref]$sqlUsername) -dacpacFile ([ref]$dacpacFile) -publishProfile ([ref]$publishProfile) -sqlFile ([ref]$sqlFile)
 
-    $script = GetScriptToRun -dacpacFile $dacpacFile -targetMethod $targetMethod -serverName $serverName -databaseName $databaseName -authscheme $authscheme -sqlUserName $sqlUsername -sqlPassword $sqlPassword -connectionString $connectionString -publishProfile $publishProfile -additionalArguments $additionalArguments
-    RunRemoteDeployment -machinesList $machinesList -scriptToRun $script -adminUserName $adminUserName -adminPassword $adminPassword -winrmProtocol $winrmProtocol -testCertificate $testCertificate -deployInParallel $deployInParallel -dacpacFile $dacpacFile
+    $script = GetScriptToRun -dacpacFile $dacpacFile -targetMethod $targetMethod -serverName $serverName -databaseName $databaseName -authscheme $authscheme -sqlUserName $sqlUsername -sqlPassword $sqlPassword -connectionString $connectionString -publishProfile $publishProfile -additionalArguments $additionalArguments -taskType $taskType -inlineSql $inlineSql -sqlFile $sqlFile
+
+    RunRemoteDeployment -machinesList $machinesList -scriptToRun $script -adminUserName $adminUserName -adminPassword $adminPassword -winrmProtocol $winrmProtocol -testCertificate $testCertificate -deployInParallel $deployInParallel -taskType $taskType
 }
