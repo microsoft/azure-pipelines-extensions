@@ -42,14 +42,20 @@ function Get-MsDeployLocation
     {
         throw $msDeployNotFoundError 
     }
-        
+
     $path = (Get-ChildItem -Path $regKeyPath | Select -Last 1).GetValue("InstallPath")
+
+    if($path -eq $null)
+    {
+        throw $msDeployNotFoundError
+    }
 
     if( -not (Test-Path -Path $path))
     {
         throw $msDeployNotFoundError 
     }
 
+    Write-Verbose "MsDeploy Install location: $path"
     return (Join-Path $path msDeploy.exe)
 }
 
@@ -112,8 +118,9 @@ function Get-MsDeployCmdArgs
     {
         $msDeployCmdArgs = [string]::Format('{0} {1}', $msDeployCmdArgs, $additionalArguments)
     }
-    
+
     $msDeployCmdArgs = [string]::Format(' -verb:sync -source:package="{0}" {1} -dest:auto -retryAttempts:3 -retryInterval:3000', $webDeployPackage, $msDeployCmdArgs)
+    Write-Verbose "MsDeploy command line arguments: $msDeployCmdArgs"
     return $msDeployCmdArgs
 }
 
@@ -184,6 +191,6 @@ function Execute-Main
     Write-Verbose "AdditionalArguments = $AdditionalArguments"
 
     $overRideParams = Compute-MsDeploy-SetParams -websiteName $websiteName -overRideParams $overRideParams
-    Deploy-Website -webDeployPkg $WebDeployPackage -webDeployParamFile $WebDeployParamFile -overRiderParams $OverRideParams -websiteName $websiteName -excludeFilesFromAppData $excludeFilesFromAppData -removeAdditionalFiles $removeAdditionalFiles -takeAppOffline $takeAppOffline -additionalArguments $AdditionalArguments
+    Deploy-Website -webDeployPkg $WebDeployPackage -webDeployParamFile $WebDeployParamFile -overRiderParams $OverRideParams -excludeFilesFromAppData $excludeFilesFromAppData -removeAdditionalFiles $removeAdditionalFiles -takeAppOffline $takeAppOffline -additionalArguments $AdditionalArguments
     Write-Verbose "Exiting Execute-Main function"
 }
