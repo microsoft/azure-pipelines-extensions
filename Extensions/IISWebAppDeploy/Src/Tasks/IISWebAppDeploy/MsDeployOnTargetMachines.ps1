@@ -55,6 +55,7 @@ function Get-MsDeployLocation
         throw $msDeployNotFoundError 
     }
 
+    Write-Verbose "MsDeploy Install location: $path"
     return (Join-Path $path msDeploy.exe)
 }
 
@@ -117,8 +118,9 @@ function Get-MsDeployCmdArgs
     {
         $msDeployCmdArgs = [string]::Format('{0} {1}', $msDeployCmdArgs, $additionalArguments)
     }
-    
+
     $msDeployCmdArgs = [string]::Format(' -verb:sync -source:package="{0}" {1} -dest:auto -retryAttempts:3 -retryInterval:3000', $webDeployPackage, $msDeployCmdArgs)
+    Write-Verbose "MsDeploy command line arguments: $msDeployCmdArgs"
     return $msDeployCmdArgs
 }
 
