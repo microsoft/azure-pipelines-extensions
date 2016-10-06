@@ -4,6 +4,11 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [1.2.4] - 10th October 2016
+### Fixed
+- Deployment fails when user name has a dot
+- No proper error message is displaced when msdeploy not installed 
+
 ## [1.2.3] - 2nd September 2016
 ### Fixed
 - Web App Management fails with: Given binding already exists for a different website.

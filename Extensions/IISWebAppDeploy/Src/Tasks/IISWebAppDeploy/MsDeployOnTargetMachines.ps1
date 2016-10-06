@@ -42,8 +42,13 @@ function Get-MsDeployLocation
     {
         throw $msDeployNotFoundError 
     }
-        
+
     $path = (Get-ChildItem -Path $regKeyPath | Select -Last 1).GetValue("InstallPath")
+
+    if($path -eq $null)
+    {
+        throw $msDeployNotFoundError
+    }
 
     if( -not (Test-Path -Path $path))
     {
@@ -184,6 +189,6 @@ function Execute-Main
     Write-Verbose "AdditionalArguments = $AdditionalArguments"
 
     $overRideParams = Compute-MsDeploy-SetParams -websiteName $websiteName -overRideParams $overRideParams
-    Deploy-Website -webDeployPkg $WebDeployPackage -webDeployParamFile $WebDeployParamFile -overRiderParams $OverRideParams -websiteName $websiteName -excludeFilesFromAppData $excludeFilesFromAppData -removeAdditionalFiles $removeAdditionalFiles -takeAppOffline $takeAppOffline -additionalArguments $AdditionalArguments
+    Deploy-Website -webDeployPkg $WebDeployPackage -webDeployParamFile $WebDeployParamFile -overRiderParams $OverRideParams -excludeFilesFromAppData $excludeFilesFromAppData -removeAdditionalFiles $removeAdditionalFiles -takeAppOffline $takeAppOffline -additionalArguments $AdditionalArguments
     Write-Verbose "Exiting Execute-Main function"
 }
