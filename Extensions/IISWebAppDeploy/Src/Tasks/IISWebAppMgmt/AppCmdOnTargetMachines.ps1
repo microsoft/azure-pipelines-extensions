@@ -168,7 +168,7 @@ function Enable-SNI
         $ipAddress = "*"
     }
 
-    $appCmdArgs = [string]::Format(' set site /site.name:{0} /bindings.[protocol=''https'',bindingInformation=''{1}:{2}:{3}''].sslFlags:"1"',$siteName, $ipAddress, $port, $hostname)
+    $appCmdArgs = [string]::Format(' set site /site.name:"{0}" /bindings.[protocol=''https'',bindingInformation=''{1}:{2}:{3}''].sslFlags:"1"',$siteName, $ipAddress, $port, $hostname)
     $command = "`"$appCmdPath`" $appCmdArgs"
 
     Write-Verbose "Enabling SNI by setting SslFlags=1 for binding. Running command : $command"
