@@ -1,6 +1,6 @@
-﻿/// <reference path="../typings/knockout.d.ts" />
-/// <reference path="../typings/q.d.ts" />
-/// <reference path="../typings/vss.d.ts" />
+﻿/// <reference path="../../../definitions/knockout.d.ts" />
+/// <reference path="../../../definitions/q.d.ts" />
+/// <reference path="../../../definitions/vss.d.ts" />
 
 import ko = require("knockout");
 
