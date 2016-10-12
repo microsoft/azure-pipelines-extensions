@@ -150,12 +150,32 @@ gulp.task("compileNode", ["compilePS"],function(){
         return;
     }
 
-    var tasksPath = path.join(__dirname, 'Extensions', '**/*.ts');
+    // Compile UIExtensions
+    fs.readdirSync( path.join(__dirname, 'Extensions/')).filter(function (file) {
+        return fs.statSync(path.join(_extnBuildRoot, file)).isDirectory() && file != "Common";
+    }).forEach(compileUIExtensions);
+
+    // Compile tasks
+    var tasksPath = path.join(__dirname, 'Extensions/**/Tasks', '**/*.ts');
     return gulp.src([tasksPath, 'definitions/*.d.ts'])
         .pipe(ts)
         .on('error', errorHandler)
         .pipe(gulp.dest(path.join(_buildRoot, 'Extensions')));
 })
+
+function compileUIExtensions(extensionRoot) {
+    var uiExtensionsPath = path.join(_buildRoot,"Extensions", extensionRoot, 'Src', 'UIExtensions');
+    var tsconfigPath = path.join(uiExtensionsPath,"tsconfig.json");
+    if (fs.existsSync(tsconfigPath)) {
+        var projLocal = gts.createProject(tsconfigPath, { typescript: typescript });
+        var tsLocal = gts(projLocal);
+        var uiFilePath = path.join(uiExtensionsPath, '**/**/*.ts');
+        return gulp.src([uiFilePath])
+        .pipe(tsLocal)
+        .on('error', errorHandler)
+        .pipe(gulp.dest(uiExtensionsPath));
+    };
+}
 
 gulp.task("build", ["compileNode"], function() {
     //Foreach task under extensions copy common modules
