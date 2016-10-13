@@ -1,6 +1,6 @@
-﻿/// <reference path="../../../definitions/knockout.d.ts" />
-/// <reference path="../../../definitions/q.d.ts" />
-/// <reference path="../../../definitions/vss.d.ts" />
+/// <reference path="../definitions/knockout.d.ts" />
+/// <reference path="../definitions/q.d.ts" />
+/// <reference path="../definitions/vss.d.ts" />
 
 import ko = require("knockout");
 
@@ -161,7 +161,7 @@ var vm = new sampleViewModel();
 
 VSS.ready(function () {
     ko.applyBindings(vm);
-    VSS.register("ms.vss-service-distributed-task.key-value-grid", vm);
+    VSS.register("ms.vss-distributed-task-input-editor.parameters-grid", vm);
     VSS.notifyLoadSucceeded();
 });
 
