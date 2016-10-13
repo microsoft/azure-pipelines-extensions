@@ -250,6 +250,7 @@ gulp.task("test", ["_mochaTests"],function(done){
         done();
     }); 
 });
+
 //-----------------------------------------------------------------------------------------------------------------
 // Package
 //-----------------------------------------------------------------------------------------------------------------
@@ -258,6 +259,12 @@ var publisherName = null;
 gulp.task("package",  function() {
     if(args.publisher){
         publisherName = args.publisher;
+    }
+
+    // use gulp package --extension=<Extension_Name> to package an individual package		
+    if(args.extension){		
+        createVsixPackage(args.extension);		
+        return;		
     }
     fs.readdirSync(_extnBuildRoot).filter(function (file) {
         return fs.statSync(path.join(_extnBuildRoot, file)).isDirectory() && file != "Common";
