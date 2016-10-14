@@ -281,8 +281,7 @@ gulp.task('nuget-download', function(done) {
     }
     console.log("> Downloading nuget.exe");
     return request.get('http://nuget.org/nuget.exe')
-        .pipe(fs.createWriteStream('nuget.exe'))
-        .on('close', done);
+        .pipe(fs.createWriteStream('nuget.exe'));
 });
 
 gulp.task("package_nuget", ['nuget-download'], function() {
