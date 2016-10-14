@@ -116,6 +116,13 @@ function findLiteral (input, currentPosition) {
             currentPosition = findClosingQuoteIndex(input, currentPosition + 1, "'");
             specialCharacterFlag = true;
         }
+        else if(input[currentPosition] == "`") {
+            currentPosition++;
+            specialCharacterFlag = true;
+            if(currentPosition >= input.length) {
+                break;
+            }
+        }
     }
     return {currentPosition: currentPosition, specialCharacterFlag: specialCharacterFlag};
 }
@@ -141,6 +148,12 @@ function findClosingBracketIndex(input, currentPosition, closingBracket) : numbe
         else if(input[currentPosition] == "'") {
             currentPosition = findClosingQuoteIndex(input, currentPosition + 1, "'");
         }
+        else if(input[currentPosition] == "`") {
+            currentPosition++;
+            if(currentPosition >= input.length) {
+                break;
+            }
+        }
     }
 
     return currentPosition;
@@ -151,6 +164,12 @@ function findClosingQuoteIndex (input, currentPosition, closingQuote) {
         if(input[currentPosition] == closingQuote)
         {
             break;
+        }
+        else if(input[currentPosition] == "`") {
+            currentPosition++;
+            if(currentPosition >= input.length) {
+                break;
+            }
         }
     }
 
