@@ -14,12 +14,14 @@ var Q = require('q');
 var semver = require('semver');
 var shell = require('shelljs');
 var syncRequest = require('sync-request');
+var request = require('request');
 
 // gulp modules
 var del = require('del');
 var gts = require('gulp-typescript');
 var gulp = require('gulp');
 var gutil = require('gulp-util');
+var nuget = require('gulp-nuget');
 var pkgm = require('./package');
 var typescript = require('typescript');
 var args   = require('yargs').argv;
@@ -55,6 +57,7 @@ var ExtensionFolder = "Extensions";
 var _tempPath = path.join(__dirname, '_temp');
 var _testRoot = "_build/";
 var _testTemp = "_build/Temp";
+var nugetPath = "_nuget";
 
 //-----------------------------------------------------------------------------------------------------------------
 // Build Tasks
@@ -68,7 +71,7 @@ var proj = gts.createProject('./tsconfig.json', { typescript: typescript });
 var ts = gts(proj);
 
 gulp.task("clean", function() {
-    return del([_buildRoot, _packageRoot]);
+    return del([_buildRoot, _packageRoot, nugetPath]);
 });
 
 gulp.task("compilePS", ["clean"], function() {
@@ -100,7 +103,7 @@ gulp.task("compilePS", ["clean"], function() {
     }
 });
 
-gulp.task("compileNode", ["compilePS"],function(){
+gulp.task("compileNode", ["compilePS"], function(cb){
      try {
         // Cache all externals in the download directory.
         var allExternalsJson = shell.find(path.join(__dirname, 'Extensions'))
@@ -270,6 +273,95 @@ gulp.task("package",  function() {
         return fs.statSync(path.join(_extnBuildRoot, file)).isDirectory() && file != "Common";
     }).forEach(createVsixPackage);
 });
+
+gulp.task('nuget-download', function(done) {
+    console.log("> Checking for nuget.exe");
+    if(fs.existsSync('nuget.exe')) {
+        return done();
+    }
+    console.log("> Downloading nuget.exe");
+    return request.get('http://nuget.org/nuget.exe')
+        .pipe(fs.createWriteStream('nuget.exe'))
+        .on('close', done);
+});
+
+gulp.task("package_nuget", ['nuget-download'], function() {
+    
+    // nuspec
+    var version = options.version;
+    if (!version) {
+        console.error('ERROR: supply version with --version');
+        process.exit(1);
+    }
+
+    if (!semver.valid(version)) {
+        console.error('ERROR: invalid semver version: ' + version);
+        process.exit(1);
+    }
+
+    if(!options.extension) {
+        console.error('ERROR: supply extension name with --extension');
+        process.exit(1);
+    }
+
+    if(!fs.existsSync("_package\\"+options.extension)) {
+        console.error('ERROR: mentioned extension does not exist');
+        process.exit(1);
+    }
+    // Nuget package
+
+    // Copying extension to contents
+    var extensionPath = path.join("_package", options.extension);
+    
+    shell.rm("-rf", nugetPath);
+    var contentsPath = path.join(nugetPath,'pack-source', 'contents');
+    shell.mkdir("-p", contentsPath);
+    shell.cp(path.join(extensionPath,"*"), contentsPath);
+    
+    // nuspec
+    var pkgName = 'Mseng.MS.TF.Build.Extensions';
+    console.log();
+    console.log('> Generating .nuspec file');
+    var contents = '<?xml version="1.0" encoding="utf-8"?>' + os.EOL;
+    contents += '<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">' + os.EOL;
+    contents += '   <metadata>' + os.EOL;
+    contents += '      <id>' + pkgName + '</id>' + os.EOL;
+    contents += '      <version>' + version + '</version>' + os.EOL;
+    contents += '      <authors>bigbldt</authors>' + os.EOL;
+    contents += '      <owners>bigbldt,Microsoft</owners>' + os.EOL;
+    contents += '      <requireLicenseAcceptance>false</requireLicenseAcceptance>' + os.EOL;
+    contents += '      <description>For VSS internal use only</description>' + os.EOL;
+    contents += '      <tags>VSSInternal</tags>' + os.EOL;
+    contents += '   </metadata>' + os.EOL;
+    contents += '</package>' + os.EOL;
+    console.log('> Generated .nuspec file');
+
+    console.log();
+    console.log('> Copying extension to package');
+    var nuspecPath = path.join(nugetPath, 'pack-source', pkgName + '.nuspec');
+    fs.writeFileSync(nuspecPath, contents);
+    console.log('> Copied extension to package');
+
+    // package
+    console.log();
+    console.log('> Beginning package...');
+    var nupkgPath = path.join(nugetPath, 'pack-target');
+    var exePath = './nuget.exe';
+    gulp.src(nuspecPath)
+        .pipe(nuget.pack({ nuget: exePath, version: options.version }))
+        .pipe(gulp.dest(nupkgPath));
+    console.log();
+    console.log('> Package Successful');
+    
+    if (options.server) {
+        console.log();
+        console.log('> Publishing .nupkg file to server');
+        gulp.src(path.join(nupkgPath, pkgName + "." + options.version + ".nupkg"))
+            .pipe(nuget.push({ source: options.server, nuget: exePath, apiKey: 'SkyRise' }));
+        console.log('> Publish Successful');    
+    }
+});
+
 
 gulp.task("locCommon",function(){
     return gulp.src(path.join(__dirname, 'Extensions/Common/**/module.json')) 

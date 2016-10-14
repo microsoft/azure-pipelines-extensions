@@ -25,9 +25,13 @@ node_modules
 _build
 _package
 _temp
+_nuget
 
 ## Artifact extensions specific
 Extensions/BitBucket/DownloadArtifactBitbucket/.ntvs_analysis.dat
 Extensions/BitBucket/DownloadArtifactBitbucket/.vs/*
 Extensions/BitBucket/DownloadArtifactBitbucket/bin/*
 Extensions/BitBucket/DownloadArtifactBitbucket/obj/*
+
+## Nuget 
+nuget.exe
