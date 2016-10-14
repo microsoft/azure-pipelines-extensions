@@ -269,6 +269,19 @@ Describe "Tests for verifying Enable-SNI functionality" {
             Assert-VerifiableMocks
         }
     }
+
+    Context "Enable SNI should succeed for website with spaces" {
+
+        Mock Run-Command -Verifiable { return }
+        Mock Get-AppCmdLocation -Verifiable {return "", 8}
+
+        $output = Enable-SNI -siteName "Sample Web" -sni "true" -ipAddress $ipAddress -port "80" -hostname "localhost" 4>&1 | Out-String
+
+        It "Should enable SNI"{
+            ( $output.Contains('/site.name:"Sample Web"') ) | Should Be $true
+            Assert-VerifiableMocks
+        }
+    }
 }
 
 Describe "Tests for verifying Add-SslCert functionality" {
