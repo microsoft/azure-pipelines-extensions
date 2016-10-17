@@ -244,8 +244,7 @@ gulp.task("test", ["_mochaTests"],function(done){
               message: 'Pester Tests Failed!!!'
            });
         }
-        else {
-            done();
+        else {            done();
         }
     });
     pester.on('error', function(err) {
@@ -255,8 +254,7 @@ gulp.task("test", ["_mochaTests"],function(done){
 });
 
 //-----------------------------------------------------------------------------------------------------------------
-// Package
-//-----------------------------------------------------------------------------------------------------------------
+// Package//-----------------------------------------------------------------------------------------------------------------
 
 var publisherName = null;
 gulp.task("package",  function() {
@@ -266,8 +264,7 @@ gulp.task("package",  function() {
     
     // use gulp package --extension=<Extension_Name> to package an individual package
     if(args.extension){
-        createVsixPackage(args.extension);
-        return;
+        createVsixPackage(args.extension);        return;
     }
     fs.readdirSync(_extnBuildRoot).filter(function (file) {
         return fs.statSync(path.join(_extnBuildRoot, file)).isDirectory() && file != "Common";
@@ -318,7 +315,7 @@ gulp.task("package_nuget", ['nuget-download'], function() {
     shell.cp(path.join(extensionPath,"*"), contentsPath);
     
     // nuspec
-    var pkgName = 'Mseng.MS.TF.Build.Extensions';
+    var pkgName = 'Mseng.MS.TF.RM.Extensions';
     console.log();
     console.log('> Generating .nuspec file');
     var contents = '<?xml version="1.0" encoding="utf-8"?>' + os.EOL;
