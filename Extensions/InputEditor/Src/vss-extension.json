@@ -2,7 +2,7 @@
     "manifestVersion": 1.0,
     "extensionId": "vss-distributed-task-input-editor",
     "name": "Task Input Editor",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "publisher": "ms",
     "public": false,
     "description": "i18n:Editors to help with complex distributed task inputs",

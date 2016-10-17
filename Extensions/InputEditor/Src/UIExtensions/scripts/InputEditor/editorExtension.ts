@@ -10,7 +10,14 @@ class sampleViewModel
 
     public setValueOfParameters(initialconfig){
         if(initialconfig.inputValues[initialconfig.target] != undefined) {
-            this.parameters = ko.observableArray(parse(initialconfig.inputValues[initialconfig.target]));
+            try {
+                this.parameters = ko.observableArray(parse(initialconfig.inputValues[initialconfig.target]));
+            }
+            catch (err) {
+                $(".edit-parameters-grid").hide();
+                $(".grid-container").append("<h3 >Error while parsing.<h3>");
+                console.log("Error while Parsing" + err.toString());
+            }
         }
         else {
             $(".edit-parameters-grid").hide();
