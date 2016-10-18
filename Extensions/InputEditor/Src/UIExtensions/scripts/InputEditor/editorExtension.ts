@@ -7,7 +7,7 @@ import ko = require("knockout");
 class sampleViewModel
 {
     public parameters = ko.observableArray([]);
-    private initailconfig;
+    private initialconfig;
 
     public setValueOfParameters(initialconfig){
         this.initialconfig = initialconfig;
@@ -51,7 +51,7 @@ class sampleViewModel
             }
         }
         else {
-            return this.initialconfig.inputValues[initialconfig.target];
+            return this.initialconfig.inputValues[this.initialconfig.target];
         }
         return result;
     }
