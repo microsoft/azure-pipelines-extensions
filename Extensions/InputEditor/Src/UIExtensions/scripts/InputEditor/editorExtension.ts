@@ -17,9 +17,7 @@ class sampleViewModel
             }
             catch (err) {
                 $(".edit-parameters-grid").hide();
-                $(".grid-container").append("<h3 >Error while parsing.<h3>");
-                console.log("Error while Parsing" + err.toString());
-                this.parameters.removeAll();
+                $(".grid-container").append("<h3 >An error occurred while parsing the current value, use Input field to edit values.<h3>");
             }
         }
         else {
