@@ -7,10 +7,18 @@ import ko = require("knockout");
 class sampleViewModel
 {
     public parameters = ko.observableArray([]);
+    private initialconfig;
 
     public setValueOfParameters(initialconfig){
+        this.initialconfig = initialconfig;
         if(initialconfig.inputValues[initialconfig.target] != undefined) {
-            this.parameters = ko.observableArray(parse(initialconfig.inputValues[initialconfig.target]));
+            try {
+                this.parameters = ko.observableArray(parse(initialconfig.inputValues[initialconfig.target]));
+            }
+            catch (err) {
+                $(".edit-parameters-grid").hide();
+                $(".grid-container").append("<h3 >An error occurred while parsing the current value, use Input field to edit values.<h3>");
+            }
         }
         else {
             $(".edit-parameters-grid").hide();
@@ -30,13 +38,18 @@ class sampleViewModel
     public onOkClicked() {
         var result = "";
         
-        for(var i = 0; i < this.parameters().length; i++) { 
-            if(this.parameters()[i].name) {
-                result += "-" + this.parameters()[i].name + " ";
+        if(this.parameters()) {
+            for(var i = 0; i < this.parameters().length; i++) { 
+                if(this.parameters()[i].name) {
+                    result += "-" + this.parameters()[i].name + " ";
+                }
+                if(this.parameters()[i].value) {
+                    result += this.parameters()[i].value + " ";
+                }
             }
-            if(this.parameters()[i].value) {
-                result += this.parameters()[i].value + " ";
-            }
+        }
+        else {
+            return this.initialconfig.inputValues[this.initialconfig.target];
         }
         return result;
     }
