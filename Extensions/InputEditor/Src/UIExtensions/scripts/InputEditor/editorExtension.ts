@@ -7,8 +7,10 @@ import ko = require("knockout");
 class sampleViewModel
 {
     public parameters = ko.observableArray([]);
+    private initailconfig;
 
     public setValueOfParameters(initialconfig){
+        this.initialconfig = initialconfig;
         if(initialconfig.inputValues[initialconfig.target] != undefined) {
             try {
                 this.parameters = ko.observableArray(parse(initialconfig.inputValues[initialconfig.target]));
@@ -17,6 +19,7 @@ class sampleViewModel
                 $(".edit-parameters-grid").hide();
                 $(".grid-container").append("<h3 >Error while parsing.<h3>");
                 console.log("Error while Parsing" + err.toString());
+                this.parameters.removeAll();
             }
         }
         else {
@@ -37,13 +40,18 @@ class sampleViewModel
     public onOkClicked() {
         var result = "";
         
-        for(var i = 0; i < this.parameters().length; i++) { 
-            if(this.parameters()[i].name) {
-                result += "-" + this.parameters()[i].name + " ";
+        if(this.parameters()) {
+            for(var i = 0; i < this.parameters().length; i++) { 
+                if(this.parameters()[i].name) {
+                    result += "-" + this.parameters()[i].name + " ";
+                }
+                if(this.parameters()[i].value) {
+                    result += this.parameters()[i].value + " ";
+                }
             }
-            if(this.parameters()[i].value) {
-                result += this.parameters()[i].value + " ";
-            }
+        }
+        else {
+            return this.initialconfig.inputValues[initialconfig.target];
         }
         return result;
     }
