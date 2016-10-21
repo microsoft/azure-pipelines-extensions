@@ -332,7 +332,7 @@ gulp.task("package_nuget", function() {
     console.log();
     console.log('> Beginning package...');
     var nupkgPath = path.join(nugetPath, 'pack-target');
-    var out = {
+    var opt = {
         stdio: "pipe"
     };
 
