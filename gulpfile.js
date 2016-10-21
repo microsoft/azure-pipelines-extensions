@@ -271,17 +271,7 @@ gulp.task("package",  function() {
     }).forEach(createVsixPackage);
 });
 
-gulp.task('nuget-download', function(done) {
-    console.log("> Checking for nuget.exe");
-    if(fs.existsSync('nuget.exe')) {
-        return done();
-    }
-    console.log("> Downloading nuget.exe");
-    return request.get('http://nuget.org/nuget.exe')
-        .pipe(fs.createWriteStream('nuget.exe'));
-});
-
-gulp.task("package_nuget", ['nuget-download'], function() {
+gulp.task("package_nuget", function() {
     
     // nuspec
     var version = options.version;
@@ -342,19 +332,21 @@ gulp.task("package_nuget", ['nuget-download'], function() {
     console.log();
     console.log('> Beginning package...');
     var nupkgPath = path.join(nugetPath, 'pack-target');
-    var exePath = './nuget.exe';
-    gulp.src(nuspecPath)
-        .pipe(nuget.pack({ nuget: exePath, version: options.version }))
-        .pipe(gulp.dest(nupkgPath));
+    var out = {
+        stdio: "pipe"
+    };
+
+    shell.mkdir("-p", nupkgPath);
+    cp.execSync(`nuget.exe pack ${nuspecPath} -OutputDirectory ${nupkgPath}`, out);
     console.log();
     console.log('> Package Successful');
     
     if (options.server) {
         console.log();
         console.log('> Publishing .nupkg file to server');
-        gulp.src(path.join(nupkgPath, pkgName + "." + options.version + ".nupkg"))
-            .pipe(nuget.push({ source: options.server, nuget: exePath, apiKey: 'SkyRise' }));
-        console.log('> Publish Successful');    
+        var nupkgfile = path.join(nupkgPath, pkgName + "." + options.version + ".nupkg");
+        cp.execSync(`nuget.exe push ${nupkgfile} -Source ${options.server} -apikey Skyrise`, out);
+        console.log('> Publish Successful');
     }
 });
 
