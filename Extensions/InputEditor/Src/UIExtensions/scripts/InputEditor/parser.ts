@@ -9,6 +9,10 @@ export class Parser {
         while (index < input.length) {
             var literalData = this.findLiteral(input, index);
             var nextIndex = literalData.currentPosition;
+            if(input[index] == " ") {
+                index = nextIndex + 1;
+                continue;
+            }
             var specialCharacterFlag = literalData.specialCharacterFlag
             var literal = input.substr(index, nextIndex - index).trim();
             if (this.isName(literal, specialCharacterFlag)) {
