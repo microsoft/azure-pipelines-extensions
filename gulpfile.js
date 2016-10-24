@@ -20,7 +20,6 @@ var request = require('request');
 var del = require('del');
 var gts = require('gulp-typescript');
 var gulp = require('gulp');
-var mocha = require('gulp-mocha');
 var gutil = require('gulp-util');
 var nuget = require('gulp-nuget');
 var pkgm = require('./package');
@@ -197,29 +196,11 @@ gulp.task("default", ["build"]);
 gulp.task('compileTests', function () {
     var testsPath = path.join(__dirname, 'Extensions/**/Tests', '**/*.ts');
 
-    fs.readdirSync( path.join(__dirname, 'Extensions/')).filter(function (file) {
-        return fs.statSync(path.join(_extnBuildRoot, file)).isDirectory() && file != "Common";
-    }).forEach(compileUIExtensionTest);
-	
-	return gulp.src([testsPath, 'definitions/*.d.ts'])
+    return gulp.src([testsPath, 'definitions/*.d.ts'])
         .pipe(ts)
         .on('error', errorHandler)
         .pipe(gulp.dest(_testRoot+"\\Extensions"));
 });
-
-function compileUIExtensionTest(extensionRoot) {
-    var uiExtensionTestPath = path.join(__dirname,"Extensions", extensionRoot, 'UIExtTests');
-    var tsconfigPath = path.join(__dirname, "Extensions", extensionRoot, 'Src', 'UIExtensions',"tsconfig.json");
-    if (fs.existsSync(tsconfigPath)) {
-        var projLocal = gts.createProject(tsconfigPath, { typescript: typescript });
-        var tsLocal = gts(projLocal);
-        var uiFilePath = path.join(uiExtensionTestPath, '*.ts');
-        return gulp.src(uiFilePath)
-        .pipe(ts)
-        .on('error', errorHandler)
-        .pipe(gulp.dest(_testRoot+"\\Extensions\\InputEditor\\UIExtTests"));
-    };
-}
 
 gulp.task('testLib', ['compileTests'], function () {
     return gulp.src(['Extensions/Common/lib/**/*'])
@@ -247,7 +228,7 @@ gulp.task("_mochaTests", ["testResources"], function(){
     process.env['TASK_TEST_TEMP'] =path.join(__dirname, _testTemp);
     shell.rm('-rf', _testTemp);
     shell.mkdir('-p', _testTemp);
-    var suitePath = path.join(_testRoot,"Extensions/**/UIExtTests/", options.suite + '/_suite.js');
+    var suitePath = path.join(_testRoot,"Extensions/**/Tests/", options.suite + '/_suite.js');
     var tfBuild = ('' + process.env['TF_BUILD']).toLowerCase() == 'true'
     return gulp.src([suitePath])
         .pipe(mocha({ reporter: 'spec', ui: 'bdd', useColors: !tfBuild }));
