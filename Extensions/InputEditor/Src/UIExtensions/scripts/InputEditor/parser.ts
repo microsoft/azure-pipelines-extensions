@@ -44,7 +44,7 @@ export class Parser {
         for (; currentPosition < input.length; currentPosition++) {
             if (input[currentPosition] == " " || input[currentPosition] == "\t") {
                 for (; currentPosition < input.length; currentPosition++) {
-                    if (input[currentPosition + 1] != " " || input[currentPosition + 1] != "\t") {
+                    if (input[currentPosition + 1] != " " && input[currentPosition + 1] != "\t") {
                         break;
                     }
                 }
