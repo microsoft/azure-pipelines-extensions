@@ -1,9 +1,6 @@
 {
     "compilerOptions": {
-        "module": "amd",
-        "target": "es5"
-    },
-    "exclude":[
-        "node_modules"
-    ]
+        "module": "umd",
+        "target": "ES6"
+    }
 }
