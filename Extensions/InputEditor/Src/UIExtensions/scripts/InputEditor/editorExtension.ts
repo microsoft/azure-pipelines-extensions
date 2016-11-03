@@ -4,21 +4,92 @@
 
 import ko = require("knockout");
 import * as parser from "./parser"
-class sampleViewModel
+
+function isNonEmpty(str) {
+    return str != undefined && str != null && str.trim() !="";
+}
+
+function request(x, url) {
+    return $.ajax({
+        type: "GET",
+        url: url,
+        async: false
+    }).responseText;
+}
+
+function getParametersFromCSMTemplate(url) {
+    if(url && url.trim() != "") {
+        var response = request("GET", url);
+        var csmFile;
+        try {
+            csmFile = JSON.parse(response);
+        } catch (error) {
+            throw new Error("URL doesn't point to a JSON file");
+        }
+        if (isNonEmpty(csmFile["$schema"]) && isNonEmpty(csmFile["contentVersion"]) && Array.isArray(csmFile["resources"])) {
+            if (csmFile["parameters"]) {
+                var defaultParams = {};
+                for (var param in csmFile["parameters"]) {
+                    defaultParams[param] = csmFile["parameters"][param]["defaultValue"];
+                }
+                return defaultParams;
+            }
+        } else {
+            throw new Error("$schema, contentVersion, resources are required fields in your CSM template file.");
+        }
+    }
+    throw new Error("Template Link field is REQUIRED");
+}
+
+function getInputsFromTemplate(initialconfig) {
+    if (initialconfig.inputValues["templateLocation"] === "Quick Start Template") {
+        var url = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/"
+                    +initialconfig.inputValues["commitID"]
+                    +"/"+initialconfig.inputValues["quickStartTemplate"]
+                    +"/azuredeploy.json";
+        return getParametersFromCSMTemplate(url);
+    } else if (initialconfig.inputValues["templateLocation"] === "External URL") {
+        return getParametersFromCSMTemplate(initialconfig.inputValues["csmFileLink"]);
+    } else {
+        return null;
+    }
+}
+
+class sampleViewModel 
 {
     public parameters = ko.observableArray([]);
 
-    public setValueOfParameters(initialconfig){
+    public setValueOfParameters(initialconfig) {
+        var params = null;
+        try {
+            params = getInputsFromTemplate(initialconfig);
+        } catch (error) {
+            $(".edit-parameters-grid").hide();
+            $(".grid-container").append("<h3>"+error+"</h3>");
+            return;
+        }
+        if (params != null) {
+            var overrideParams = parser.Parser.parse(initialconfig.inputValues[initialconfig.target]);
+            for (var i= 0; i < overrideParams.length; i++ ) {
+                var param = overrideParams[i];
+                params[param["name"]] = param["value"];
+            }
+            this.parameters = ko.observableArray(Object.keys(params).map(function(key){
+                return {"name": key, "value": params[key]}
+            }));
+            return;
+        }
+
         if(initialconfig.inputValues[initialconfig.target] != undefined) {
             this.parameters = ko.observableArray(parser.Parser.parse(initialconfig.inputValues[initialconfig.target]));
         }
         else {
             $(".edit-parameters-grid").hide();
-            $(".grid-container").append("<h3 >Target input not found.<h3>");
+            $(".grid-container").append("<h3>Target input not found.</h3>");
         }
     }
 
-    public add(){
+    public add() {
         this.parameters.push({name:"", value:""});
     }
 
