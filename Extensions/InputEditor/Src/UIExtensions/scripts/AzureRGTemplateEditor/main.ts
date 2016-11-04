@@ -20,7 +20,8 @@ function request(url) {
 }
 
 class parametersGridViewModel {
-    public parameters = ko.observableArray([]);
+    public statics = ko.observableArray([]);
+    public extras = ko.observableArray([]);
 
     public getParametersFromCSMTemplate(url) {
         if(url && url.trim() != "") {
@@ -29,7 +30,7 @@ class parametersGridViewModel {
             try {
                 csmFile = JSON.parse(response);
             } catch (error) {
-                throw new Error("URL doesn't point to a JSON file");
+                throw new Error("Template URL doesn't point to a JSON file");
             }
             if (isNonEmpty(csmFile["$schema"]) && isNonEmpty(csmFile["contentVersion"]) && Array.isArray(csmFile["resources"])) {
                 if (csmFile["parameters"]) {
@@ -60,29 +61,47 @@ class parametersGridViewModel {
         }
     }
 
+    public updateParametersFromFile(initialconfig, params) {
+        var csmParametersFile;
+        var response = request(initialconfig.inputValues["csmParametersFileLink"]);
+        try {
+             csmParametersFile = JSON.parse(response);
+        } catch (error) {
+            throw new Error("Parameters URL doesn't point to a JSON file");
+        }
+        for (var i in csmParametersFile.parameters) {
+            params[i] = csmParametersFile.parameters[i].value;
+        }
+        return params;
+    }
+
     public setValueOfParameters(initialconfig) {
         var params = null;
         try {
             params = this.getInputsFromTemplate(initialconfig);
+            if (params != null) {
+                if (initialconfig.inputValues["templateLocation"] === "External URL") {
+                    if (initialconfig.inputValues["csmParametersFileLink"].trim()!="") {
+                        params = this.updateParametersFromFile(initialconfig, params);
+                    }
+                }
+                var overrideParams = parser.parse(initialconfig.inputValues[initialconfig.target]);
+                for (var i= 0; i < overrideParams.length; i++ ) {
+                    var param = overrideParams[i];
+                    params[param["name"]] = param["value"];
+                }
+                this.statics = ko.observableArray(Object.keys(params).map(function(key) {
+                    return {"name": key, "value": params[key]}
+                }));
+                return;
+             }
         } catch (error) {
             $(".edit-parameters-grid").hide();
             $(".grid-container").append("<h3>"+error+"</h3>");
             return;
         }
-        if (params != null) {
-            var overrideParams = parser.parse(initialconfig.inputValues[initialconfig.target]);
-            for (var i= 0; i < overrideParams.length; i++ ) {
-                var param = overrideParams[i];
-                params[param["name"]] = param["value"];
-            }
-            this.parameters = ko.observableArray(Object.keys(params).map(function(key){
-                return {"name": key, "value": params[key]}
-            }));
-            return;
-        }
-
         if(initialconfig.inputValues[initialconfig.target] != undefined) {
-            this.parameters = ko.observableArray(parserLib.Parser.parse(initialconfig.inputValues[initialconfig.target]));
+            this.statics = ko.observableArray(parserLib.Parser.parse(initialconfig.inputValues[initialconfig.target]));
         }
         else {
             $(".edit-parameters-grid").hide();
@@ -91,22 +110,30 @@ class parametersGridViewModel {
     }
 
     public add() {
-        this.parameters.push({name:"", value:""});
+        this.extras.push({name:"", value:""});
     }
 
     public remove(variable , evt) {
         var context = ko.contextFor(evt.target).$parent;
-        context.parameters.remove(this);
+        context.extras.remove(this);
     }
 
     public onOkClicked() {
         var result = "";
-        for(var i = 0; i < this.parameters().length; i++) { 
-            if(this.parameters()[i].name) {
-                result += "-" + this.parameters()[i].name + " ";
+        for(var i = 0; i < this.statics().length; i++) { 
+            if(this.statics()[i].name) {
+                result += "-" + this.statics()[i].name + " ";
             }
-            if(this.parameters()[i].value) {
-                result += this.parameters()[i].value + " ";
+            if(this.statics()[i].value) {
+                result += this.statics()[i].value + " ";
+            }
+        }
+        for(var i = 0; i < this.extras().length; i++) { 
+            if(this.extras()[i].name) {
+                result += "-" + this.extras()[i].name + " ";
+            }
+            if(this.extras()[i].value) {
+                result += this.extras()[i].value + " ";
             }
         }
         return result;
@@ -117,7 +144,7 @@ var vm = new parametersGridViewModel();
 
 VSS.ready(function () {
     ko.applyBindings(vm);
-    VSS.register("ms.vss-distributed-a-task-input-editor.azurerg-parameters-grid", vm);
+    VSS.register("ms.vss-distributed-task-input-editor.azurerg-parameters-grid", vm);
     VSS.notifyLoadSucceeded();
 });
 

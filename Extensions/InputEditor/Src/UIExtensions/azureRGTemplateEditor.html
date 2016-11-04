@@ -34,24 +34,23 @@
                 <td class="value">Value</td>
             </tr>
         </thead>
-        <tbody data-bind="foreach: parameters">
+        <tbody data-bind="foreach: statics">
+            <tr>
+                <td style="width: 20px;">
+                </td>
+                <td><label type="text" class="name-input" data-bind="html: name"></td>
+                <td><input type="text" class="value-input" data-bind="value: value, valueUpdate: 'afterkeydown'"></td>
+            </tr>
+        </tbody>
+        <tbody data-bind="foreach: extras">
             <tr>
                 <td style="width: 20px;">
                     <a href="#" data-bind="click: $parent.remove, style: {display: 'block'}" style="display: block;">
                         <span class="bowtie-icon bowtie-edit-delete" title="Remove"></span>
                     </a>
                 </td>
-                <td><input type="text" class="name-input" data-bind="value: name, valueUpdate: 'afterkeydown'"></td>
+                <td><input type="text" class="name-input" data-bind="value: value, valueUpdate: 'afterkeydown'"></td>
                 <td><input type="text" class="value-input" data-bind="value: value, valueUpdate: 'afterkeydown'"></td>
-            </tr>
-        </tbody>
-        <tbody>
-            <tr>
-                <td colspan="3" class="add-button">
-                    <a href="#" data-bind="click: add" title="Add">
-                        <span class="bowtie-icon bowtie-math-plus"></span> Add 
-                    </a>
-                </td>
             </tr>
         </tbody>
         </table>
