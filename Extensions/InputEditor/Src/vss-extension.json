@@ -2,7 +2,7 @@
     "manifestVersion": 1.0,
     "extensionId": "vss-distributed-task-input-editor",
     "name": "Task Input Editor",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "publisher": "ms",
     "public": false,
     "description": "i18n:Editors to help with complex distributed task inputs",
@@ -23,6 +23,9 @@
     "files": [
         {
             "path": "UIExtensions/gridEditor.html", "addressable": true
+        },
+        {
+            "path": "UIExtensions/azureRGTemplateEditor.html", "addressable": true
         },
         {
             "path": "UIExtensions/css", "addressable": true
@@ -47,6 +50,16 @@
             "properties": {
                 "name":"Input Editor Parameter Grid",
                 "uri": "UIExtensions/gridEditor.html",
+                "order": "99"
+            }
+        }, 
+        {
+            "id": "azurerg-parameters-grid",
+            "type": "ms.vss-distributed-task.task-input-editor",
+            "targets": [ "ms.vss-distributed-task.task-input-editors" ],
+            "properties": {
+                "name":"Template Editor Parameter Grid",
+                "uri": "UIExtensions/azureRGTemplateEditor.html",
                 "order": "99"
             }
         }
