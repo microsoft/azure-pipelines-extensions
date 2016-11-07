@@ -1,6 +1,0 @@
-{
-    "compilerOptions": {
-        "module": "umd",
-        "target": "ES6"
-    }
-}
