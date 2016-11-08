@@ -38,10 +38,19 @@
             <tr>
                 <td style="width: 20px;">
                 </td>
-                <td><label type="text" class="name-input" data-bind="html: name"></td>
-                <td><input type="text" class="value-input" data-bind="value: value, valueUpdate: 'afterkeydown'"></td>
-            </tr>
-        </tbody>
+                <td><label type="text" data-bind="html: name"></label></td>
+                <td data-bind="visible: isDropdown">
+                    <select databind=" options:dropdownOptions, value: value">
+                        <!-- ko foreach: dropdownOptions -->
+                        <option data-bind="attr: { value: option, selected: isSelected }, text: option"></option>
+                        <!-- /ko -->
+                    </select>
+                </td>
+                <td data-bind="visible: !isDropdown">
+                    <input type="text" data-bind="value: value, valueUpdate: 'afterkeydown'">
+                </td>
+             </tr>   
+        </tbody>    
         <tbody data-bind="foreach: extras">
             <tr>
                 <td style="width: 20px;">

@@ -36,7 +36,11 @@ class parametersGridViewModel {
                 if (csmFile["parameters"]) {
                     var defaultParams = {};
                     for (var param in csmFile["parameters"]) {
-                        defaultParams[param] = csmFile["parameters"][param]["defaultValue"];
+                        if (csmFile["parameters"][param]["allowedValues"]) {
+                            defaultParams[param] =  {"options" : csmFile["parameters"][param]["allowedValues"], "value" : csmFile["parameters"][param]["defaultValue"] }
+                        } else {
+                            defaultParams[param] = {"options": null, "value" : csmFile["parameters"][param]["defaultValue"]};
+                        }
                     }
                     return defaultParams;
                 }
@@ -60,6 +64,9 @@ class parametersGridViewModel {
             return null;
         }
     }
+  public add(){
+        this.extras.push({name:"", value:""});
+    }
 
     public updateParametersFromFile(initialconfig, params) {
         var csmParametersFile;
@@ -70,7 +77,7 @@ class parametersGridViewModel {
             throw new Error("Parameters URL doesn't point to a JSON file");
         }
         for (var i in csmParametersFile.parameters) {
-            params[i] = csmParametersFile.parameters[i].value;
+            params[i].value = csmParametersFile.parameters[i].value;
         }
         return params;
     }
@@ -88,10 +95,24 @@ class parametersGridViewModel {
                 var overrideParams = parser.parse(initialconfig.inputValues[initialconfig.target]);
                 for (var i= 0; i < overrideParams.length; i++ ) {
                     var param = overrideParams[i];
-                    params[param["name"]] = param["value"];
+                    try {
+                        params[param["name"]]["value"] = param["value"];
+                    } catch (error) {
+                        
+                    }
                 }
                 this.statics = ko.observableArray(Object.keys(params).map(function(key) {
-                    return {"name": key, "value": params[key]}
+                    if (params[key].options) {
+                        var options = [];
+                        for (var i in params[key].options) {
+                           options=  options.concat({"option":params[key].options[i], "isSelected": ko.observable(params[key].options[i] === params[key].value)});
+                        }
+                        var obj =  {"name": key, "value":"", "dropdownOptions": options, "isDropdown": true};
+                        return obj;
+                    } else {
+                        return {"name": key, "value": params[key]["value"],"dropdownOptions":[], "isDropdown": false};
+                    }
+                    
                 }));
                 return;
              }
@@ -107,10 +128,6 @@ class parametersGridViewModel {
             $(".edit-parameters-grid").hide();
             $(".grid-container").append("<h3>Target input not found.</h3>");
         }
-    }
-
-    public add() {
-        this.extras.push({name:"", value:""});
     }
 
     public remove(variable , evt) {
@@ -144,7 +161,7 @@ var vm = new parametersGridViewModel();
 
 VSS.ready(function () {
     ko.applyBindings(vm);
-    VSS.register("ms.vss-distributed-task-input-editor.azurerg-parameters-grid", vm);
+    VSS.register("ms.vss-distributed-a-task-input-editor.azurerg-parameters-grid", vm);
     VSS.notifyLoadSucceeded();
 });
 
