@@ -141,12 +141,12 @@ gulp.task('prepublish:TaskModulePublish', function (done) {
 });
 
 gulp.task('TaskModulePublish', ['prepublish:TaskModulePublish'], function (done) {
-    var powershellModulesDirectory = path.join(_taskModuleBuildRoot, 'powershell/');
+    var powershellModulesDirectory = path.join(_taskModuleBuildRoot, 'powershell', '**/*');
 
     if(options.outputDir){
-        var outputModulesDirectory = path.join(__dirname, options.outputDir, 'ps_modules');
+        var outputModulesDirectory = path.join(options.outputDir, 'ps_modules');
         shell.mkdir('-p', outputModulesDirectory);
-        gulp.src(powershellModulesDirectory, { base: "."}).pipe(gulp.dest(outputModulesDirectory));
+        gulp.src(powershellModulesDirectory).pipe(gulp.dest(outputModulesDirectory));
     }
 
 
