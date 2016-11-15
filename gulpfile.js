@@ -5,6 +5,7 @@ var spawn = require('child_process').spawn;
 var fs = require('fs-extra');
 var path = require('path');
 var os = require('os');
+var tsc = require('gulp-tsc');
 
 // build/test script
 var admZip = require('adm-zip');
@@ -52,8 +53,13 @@ var options = minimist(process.argv.slice(2), mopts);
 var _buildRoot = "_build";
 var _packageRoot = "_package";
 var _extnBuildRoot = "_build/Extensions/";
+var _taskModuleBuildRoot = "_build/TaskModules/";
 var sourcePaths = "Extensions/**/*";
 var ExtensionFolder = "Extensions";
+var taskModulesSourcePath = "TaskModules/**/*"
+var TaskModulesFolder = "TaskModules"
+var TaskModulesTestRoot = path.join(_taskModuleBuildRoot, 'powershell', 'Tests');
+var TaskModulesTestTemp = path.join(TaskModulesTestRoot, 'Temp');
 var _tempPath = path.join(__dirname, '_temp');
 var _testRoot = "_build/";
 var _testTemp = "_build/Temp";
@@ -71,7 +77,7 @@ var proj = gts.createProject('./tsconfig.json', { typescript: typescript });
 var ts = gts(proj);
 
 gulp.task("clean", function() {
-    return del([_buildRoot, _packageRoot, nugetPath]);
+    return del([_buildRoot, _packageRoot, nugetPath, _taskModuleBuildRoot]);
 });
 
 gulp.task("compilePS", ["clean"], function() {
@@ -102,6 +108,56 @@ gulp.task("compilePS", ["clean"], function() {
         }
     }
 });
+
+gulp.task("TaskModuleBuild", ["clean"], function() {
+    gulp.src(taskModulesSourcePath, { base: "."}).pipe(gulp.dest(_buildRoot));
+});
+
+gulp.task("clean:TaskModuleTest", function(cb) {
+    return del([TaskModulesTestRoot], cb);
+});
+
+gulp.task('compile:TaskModuleTest', ['clean:TaskModuleTest'], function (cb) {
+    var testsPath = path.join('TaskModules', 'powershell', 'Tests', '**/*.ts');
+    return gulp.src([TaskModulesTestRoot, 'definitions/*.d.ts'])
+        .pipe(tsc())
+        .pipe(gulp.dest(TaskModulesTestRoot));
+});
+
+gulp.task('copy:TaskModuleTest', ['compile:TaskModuleTest'], function (cb) {
+    return gulp.src([path.join('TaskModules', 'powershell', 'Tests', '**/*')])
+        .pipe(gulp.dest(TaskModulesTestRoot));
+});
+
+gulp.task("TaskModuleTest", ['copy:TaskModuleTest'], function() {
+    process.env['TASK_TEST_TEMP'] = TaskModulesTestRoot;
+    shell.rm('-rf', TaskModulesTestRoot);
+    shell.mkdir('-p', TaskModulesTestRoot);
+    
+});
+
+gulp.task('prepublish:TaskModulePublish', function (done) {
+	return del([TaskModulesTestRoot], done);
+});
+
+gulp.task('TaskModulePublish', ['prepublish:TaskModulePublish'], function (done) {
+    var powershellModulesDirectory = path.join(_taskModuleBuildRoot, 'powershell/');
+
+    if(options.outputDir){
+        var outputModulesDirectory = path.join(__dirname, options.outputDir, 'ps_modules');
+        shell.mkdir('-p', outputModulesDirectory);
+        gulp.src(powershellModulesDirectory, { base: "."}).pipe(gulp.dest(outputModulesDirectory));
+    }
+
+
+    /*fs.readdirSync(powershellModulesDirectory).filter(function (file) {
+        return fs.statSync(path.join(powershellModulesDirectory, file)).isDirectory() && file != "Common";
+    }).forEach(moduleName);*/
+});
+
+function publishModule(moduleName) {
+    var moduleDirectory = path.join(_taskModuleBuildRoot, 'powershell', moduleName);
+}
 
 gulp.task("compileNode", ["compilePS"], function(cb){
      try {
