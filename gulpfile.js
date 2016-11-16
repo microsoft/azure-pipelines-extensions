@@ -148,16 +148,7 @@ gulp.task('TaskModulePublish', ['prepublish:TaskModulePublish'], function (done)
         shell.mkdir('-p', outputModulesDirectory);
         gulp.src(powershellModulesDirectory).pipe(gulp.dest(outputModulesDirectory));
     }
-
-
-    /*fs.readdirSync(powershellModulesDirectory).filter(function (file) {
-        return fs.statSync(path.join(powershellModulesDirectory, file)).isDirectory() && file != "Common";
-    }).forEach(moduleName);*/
 });
-
-function publishModule(moduleName) {
-    var moduleDirectory = path.join(_taskModuleBuildRoot, 'powershell', moduleName);
-}
 
 gulp.task("compileNode", ["compilePS"], function(cb){
      try {
