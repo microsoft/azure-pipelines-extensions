@@ -59,6 +59,74 @@ var _testRoot = "_build/";
 var _testTemp = "_build/Temp";
 var nugetPath = "_nuget";
 
+//------------------------------------------------------------------------------
+// shell functions
+//------------------------------------------------------------------------------
+var shellAssert = function () {
+    var errMsg = shell.error();
+    if (errMsg) {
+        throw new Error(errMsg);
+    }
+}
+
+var cd = function (dir) {
+    shell.cd(dir);
+    shellAssert();
+}
+exports.cd = cd;
+
+var cp = function (options, source, dest) {
+
+    if (dest) {
+        shell.cp(options, source, dest);
+    }
+    else {
+        shell.cp(options, source);
+    }
+
+    shellAssert();
+}
+exports.cp = cp;
+
+var mkdir = function (options, target) {
+    if (target) {
+        shell.mkdir(options, target);
+    }
+    else {
+        shell.mkdir(options);
+    }
+
+    shellAssert();
+}
+exports.mkdir = mkdir;
+
+var rm = function (options, target) {
+    if (target) {
+        shell.rm(options, target);
+    }
+    else {
+        shell.rm(options);
+    }
+
+    shellAssert();
+}
+exports.rm = rm;
+
+var test = function (options, p) {
+    var result = shell.test(options, p);
+    shellAssert();
+    return result;
+}
+exports.test = test;
+//------------------------------------------------------------------------------
+
+var assert = function (value, name) {
+    if (!value) {
+        throw new Error('"' + name + '" cannot be null or empty.');
+    }
+}
+exports.assert = assert;
+
 //-----------------------------------------------------------------------------------------------------------------
 // Build Tasks
 //-----------------------------------------------------------------------------------------------------------------
@@ -103,6 +171,61 @@ gulp.task("compilePS", ["clean"], function() {
     }
 });
 
+var copyGroup = function (group, sourceRoot, destRoot) {
+
+    // validate parameters
+    assert(group, 'group');
+    assert(group.source, 'group.source');
+    if (typeof group.source == 'object') {
+        assert(group.source.length, 'group.source.length');
+        group.source.forEach(function (s) {
+            assert(s, 'group.source[i]');
+        });
+    }
+
+    assert(sourceRoot, 'sourceRoot');
+    assert(destRoot, 'destRoot');
+
+    // multiply by culture name (recursive call to self)
+    if (group.dest && group.dest.indexOf('<CULTURE_NAME>') >= 0) {
+        cultureNames.forEach(function (cultureName) {
+            // culture names do not contain any JSON-special characters, so this is OK (albeit a hack)
+            var localizedGroupJson = JSON.stringify(group).replace(/<CULTURE_NAME>/g, cultureName);
+            copyGroup(JSON.parse(localizedGroupJson), sourceRoot, destRoot);
+        });
+
+        return;
+    }
+
+    // build the source array
+    var source = typeof group.source == 'string' ? [ group.source ] : group.source;
+    source = source.map(function (val) { // root the paths
+        return path.join(sourceRoot, val);
+    });
+
+    // create the destination directory
+    var dest = group.dest ? path.join(destRoot, group.dest) : destRoot + '/';
+    dest = path.normalize(dest);
+    mkdir('-p', dest);
+
+    // copy the files
+    if (group.hasOwnProperty('options') && group.options) {
+        cp(group.options, source, dest);
+    }
+    else {
+        cp(source, dest);
+    }
+}
+
+var copyGroups = function (groups, sourceRoot, destRoot) {
+    assert(groups, 'groups');
+    assert(groups.length, 'groups.length');
+    groups.forEach(function (group) {
+        copyGroup(group, sourceRoot, destRoot);
+    })
+}
+exports.copyGroups = copyGroups;
+
 gulp.task("compileNode", ["compilePS"], function(cb){
      try {
         // Cache all externals in the download directory.
@@ -115,6 +238,10 @@ gulp.task("compileNode", ["compilePS"], function(cb){
             // Load the externals.json file.
             console.log('Loading ' + externalsJson);
             var externals = require(externalsJson);
+            var relativeExternalsPath = path.dirname(externalsJson).replace(new RegExp('/','g'),'\\').replace(path.join(__dirname),'');
+            if(relativeExternalsPath.startsWith('\\')) {
+                relativeExternalsPath = relativeExternalsPath.substring(1);
+            }
 
             // Check for NPM externals.
             if (externals.npm) {
@@ -134,7 +261,11 @@ gulp.task("compileNode", ["compilePS"], function(cb){
                     // Cache the NuGet V2 package.
                     var packageVersion = externals.nugetv2[packageName].version;
                     var packageRepository = externals.nugetv2[packageName].repository;
-                    cacheNuGetV2Package(packageRepository, packageName, packageVersion);
+                    var packageSource  = cacheNuGetV2Package(packageRepository, packageName, packageVersion);
+                    if(relativeExternalsPath) {
+                         var destRoot = path.join(_buildRoot, relativeExternalsPath);
+                         copyGroups(externals.nugetv2[packageName].cp, packageSource, destRoot);
+                    }
                 })
             }
             // Check for archive files.
@@ -409,7 +540,7 @@ var cacheArchiveFile = function (url) {
     var targetPath = path.join(_tempPath, 'archive', scrubbedUrl);
     if (shell.test('-d', targetPath)) {
         console.log('Archive file already cached: ' + url);
-        return;
+        return targetPath;
     }
 
     console.log('Downloading archive file: ' + url);
@@ -438,6 +569,7 @@ var cacheArchiveFile = function (url) {
 
     // Remove the remaining partial directory.
     shell.rm('-rf', partialPath);
+    return targetPath;
 }
 
 var cacheNpmPackage = function (name, version) {
@@ -539,5 +671,5 @@ var cacheNuGetV2Package = function (repository, name, version) {
     }
 
     // Cache the archive file.
-    cacheArchiveFile(repository.replace(/\/$/, '') + '/package/' + name + '/' + version);
+    return cacheArchiveFile(repository.replace(/\/$/, '') + '/package/' + name + '/' + version);
 }
