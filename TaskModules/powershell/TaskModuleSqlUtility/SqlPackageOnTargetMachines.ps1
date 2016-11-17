@@ -214,14 +214,14 @@ function LocateHighestVersionSqlPackageWithDacMsi()
     $sqlDataTierFrameworkRegKeyWow = "HKLM:", "SOFTWARE", "Wow6432Node", "Microsoft", "Microsoft SQL Server", "Data-Tier Application Framework" -join [System.IO.Path]::DirectorySeparatorChar
     $sqlDataTierFrameworkRegKey = "HKLM:", "SOFTWARE", "Microsoft", "Microsoft SQL Server", "Data-Tier Application Framework" -join [System.IO.Path]::DirectorySeparatorChar
 
-    if (-not (Test-Path $sqlDataTierFrameworkRegKeyWow))
+    if (-not (Test-Path $sqlDataTierFrameworkRegKey))
     {
-        $sqlDataTierFrameworkRegKeyWow = $sqlDataTierFrameworkRegKey
+        $sqlDataTierFrameworkRegKey = $sqlDataTierFrameworkRegKeyWow
     }
 
-    if ((Test-Path $sqlDataTierFrameworkRegKeyWow))
+    if ((Test-Path $sqlDataTierFrameworkRegKey))
     {
-        $keys = Get-Item $sqlDataTierFrameworkRegKeyWow | %{$_.GetSubKeyNames()} 
+        $keys = Get-Item $sqlDataTierFrameworkRegKey | %{$_.GetSubKeyNames()} 
         $versions = Get-SubKeysInFloatFormat $keys | Sort-Object -Descending
 
         $installedMajorVersion = 0
