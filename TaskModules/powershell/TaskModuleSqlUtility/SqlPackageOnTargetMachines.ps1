@@ -235,9 +235,9 @@ function LocateHighestVersionSqlPackageWithDacMsi()
                 $sqlInstallRootPath = $sqlInstallRootPath64
                 break
             }
-            if ($sqlInstallRootPath64 -ne $null)
+            if ($sqlInstallRootPath32 -ne $null)
             {
-                $sqlInstallRootPath = $sqlInstallRootPath64
+                $sqlInstallRootPath = $sqlInstallRootPath32
                 break
             }
         }
