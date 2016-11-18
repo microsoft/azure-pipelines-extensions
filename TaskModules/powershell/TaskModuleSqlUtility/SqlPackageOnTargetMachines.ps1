@@ -9,13 +9,13 @@
 
     if( $psversiontable.PSVersion.Major -le 4)
     {
-        $result = cmd.exe /c "`"$command`""
+        $result = cmd.exe /c "`"$command`""  2>&1
     }
     else
     {
 
         Write-Verbose -Verbose $command
-        $result = cmd.exe /c "$command"
+        $result = cmd.exe /c "$command"  2>&1
     }
 
     $ErrorActionPreference = 'Stop'
