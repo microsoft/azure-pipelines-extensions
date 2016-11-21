@@ -1,6 +1,6 @@
 @{
     RootModule = 'TaskModuleSqlUtility.psm1'
-    ModuleVersion = '0.1.0' # Do not modify. This value gets replaced at build time with the value from the package.json.
+    ModuleVersion = '0.1.1'
     GUID = 'd997c6dd-33ad-481c-859b-01120229b91f'
     Author = 'Microsoft'
     CompanyName = 'Microsoft'
