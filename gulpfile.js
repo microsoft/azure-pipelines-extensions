@@ -65,38 +65,6 @@ var _testRoot = "_build/";
 var _testTemp = "_build/Temp";
 var nugetPath = "_nuget";
 
-var cp = function (source, dest, options) {
-
-    if (dest) {
-        shell.cp(options, source, dest);
-    }
-    else {
-        shell.cp(source, dest);
-    }
-
-    shellAssert();
-}
-exports.cp = cp;
-
-var mkdir = function (target ,options) {
-    if (target) {
-        shell.mkdir(options, target);
-    }
-    else {
-        shell.mkdir(target);
-    }
-
-    shellAssert();
-}
-exports.mkdir = mkdir;
-
-var shellAssert = function () {
-    var errMsg = shell.error();
-    if (errMsg) {
-        throw new Error(errMsg);
-    }
-}
-
 //-----------------------------------------------------------------------------------------------------------------
 // Build Tasks
 //-----------------------------------------------------------------------------------------------------------------
@@ -236,8 +204,8 @@ gulp.task("compileNode", ["compilePS"], function(cb){
                          relativeExternalsPath = relativeExternalsPath.substring(1);
                       }
                       var destPath = path.join(_buildRoot, relativeExternalsPath, module['dest']);
-                      mkdir(destPath, '-p');
-                      cp(srcPath, destPath, "-R");
+                      shell.mkdir('-p', destPath);
+                      shell.cp('-R', srcPath, destPath);
                 });
             }
         });
