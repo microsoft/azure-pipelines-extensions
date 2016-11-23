@@ -65,25 +65,25 @@ var _testRoot = "_build/";
 var _testTemp = "_build/Temp";
 var nugetPath = "_nuget";
 
-var cp = function (options, source, dest) {
+var cp = function (source, dest, options) {
 
     if (dest) {
         shell.cp(options, source, dest);
     }
     else {
-        shell.cp(options, source);
+        shell.cp(source, dest);
     }
 
     shellAssert();
 }
 exports.cp = cp;
 
-var mkdir = function (options, target) {
+var mkdir = function (target ,options) {
     if (target) {
         shell.mkdir(options, target);
     }
     else {
-        shell.mkdir(options);
+        shell.mkdir(target);
     }
 
     shellAssert();
@@ -228,7 +228,7 @@ gulp.task("compileNode", ["compilePS"], function(cb){
             // check of task modules
             if(externals.taskModule) {
                 var taskModules = Object.keys(externals.taskModule);
-                taskModules.forEach(function (moduleIndex){
+                taskModules.forEach(function (moduleIndex) {
                       var module = externals.taskModule[moduleIndex];
                       var srcPath = path.join("TaskModules", module['type'], module['name']);
                       var relativeExternalsPath = path.dirname(externalsJson).replace(new RegExp('/','g'),'\\').replace(path.join(__dirname),'');
@@ -236,8 +236,8 @@ gulp.task("compileNode", ["compilePS"], function(cb){
                          relativeExternalsPath = relativeExternalsPath.substring(1);
                       }
                       var destPath = path.join(_buildRoot, relativeExternalsPath, module['dest']);
-                      mkdir('-p', destPath);
-                      cp("-R", srcPath, destPath);
+                      mkdir(destPath, '-p');
+                      cp(srcPath, destPath, "-R");
                 });
             }
         });

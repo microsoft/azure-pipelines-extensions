@@ -7,7 +7,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ## [1.2.5] - 25th November 2016
 ### Fixed
 - Error messages are not showing on console
-- Unable to detect sqlPackge.exe using SQL dacpac framework
+- Unable to detect sqlPackge.exe when sql DAC-Framework 2016 installed
 
 ## [1.2.4] - 12th October 2016
 ### Fixed
