@@ -400,9 +400,6 @@ function Get-SqlPackageCmdArgs
     [string]$additionalArguments
     )
 
-    $sqlUsername = $sqlPSCredential.GetNetworkCredential().username
-    $sqlPassword = $sqlPSCredential.GetNetworkCredential().password
-
     Write-Verbose -Verbose "File is $dacpacFile"
 
     # validate dacpac file
@@ -423,6 +420,11 @@ function Get-SqlPackageCmdArgs
 
         if($authscheme -eq "sqlServerAuthentication")
         {
+            if($sqlPSCredential)
+            {
+                $sqlUsername = $sqlPSCredential.GetNetworkCredential().username
+                $sqlPassword = $sqlPSCredential.GetNetworkCredential().password
+            }
             $sqlPkgCmdArgs = [string]::Format('{0} /TargetUser:"{1}" /TargetPassword:"{2}"', $sqlPkgCmdArgs, $sqlUsername, $sqlPassword)
         }
     }

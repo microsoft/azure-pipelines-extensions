@@ -451,7 +451,9 @@ Describe "Tests for Get-SqlPackageCmdArgs functionality" {
 
     Context "When target method is server and with mixed mode authentication" {
 
-        $cmdArgs = Get-SqlPackageCmdArgs -dacpacFile "sample.dacpac" -targetMethod "server" -serverName "localhost" -databaseName "SampleDB" -authscheme "sqlServerAuthentication"-sqlUsername "dummyuser" -sqlPassword "dummypassword"
+        $secureAdminPassword =  ConvertTo-SecureString "dummypassword" -AsPlainText -Force
+        $psCredential = New-Object System.Management.Automation.PSCredential ("dummyuser", $secureAdminPassword)
+        $cmdArgs = Get-SqlPackageCmdArgs -dacpacFile "sample.dacpac" -targetMethod "server" -serverName "localhost" -databaseName "SampleDB" -authscheme "sqlServerAuthentication" -sqlPSCredential $psCredential
 
         It "Should contain targetmethod as server and sqluser argument should be present" {
             ($cmdArgs.Contains('/SourceFile:"sample.dacpac" /Action:Publish /TargetServerName:"localhost" /TargetDatabaseName:"SampleDB"')) | Should Be $true

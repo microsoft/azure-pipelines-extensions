@@ -28,9 +28,6 @@ function Execute-SqlQueryDeployment
         [string]$additionalArguments
     )
 
-    $sqlUsername = $sqlPSCredential.GetNetworkCredential().username
-    $sqlPassword = $sqlPSCredential.GetNetworkCredential().password
-
     Write-Verbose "Entering script SqlQueryOnTargetMachines.ps1"
     try 
     {
@@ -59,6 +56,11 @@ function Execute-SqlQueryDeployment
 
         if($authscheme -eq "sqlServerAuthentication")
         {
+            if($sqlPSCredential)
+            {
+                $sqlUsername = $sqlPSCredential.GetNetworkCredential().username
+                $sqlPassword = $sqlPSCredential.GetNetworkCredential().password
+            }
             $commandToRun += " -Username `"$sqlUsername`" -Password `"$sqlPassword`" "
             $commandToLog += " -Username `"$sqlUsername`" -Password ****** "
         }
