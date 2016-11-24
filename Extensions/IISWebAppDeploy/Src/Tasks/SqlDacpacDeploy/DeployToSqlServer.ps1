@@ -74,9 +74,9 @@ function GetScriptToRun
 
     if ($taskType -eq "dacpac")
     {
-        $invokeMain = "ExecuteMain -dacpacFile `"$dacpacFile`" -targetMethod $targetMethod -serverName `"$serverName`" -databaseName `"$databaseName`" -authscheme $authscheme -sqlUsername `"$sqlUsername`" -sqlPassword `"$sqlPassword`" -connectionString `"$connectionString`" -publishProfile `"$publishProfile`" -additionalArguments `"$additionalArguments`""
+        $invokeMain = "Execute-DacpacDeployment -dacpacFile `"$dacpacFile`" -targetMethod $targetMethod -serverName `"$serverName`" -databaseName `"$databaseName`" -authscheme $authscheme -sqlUsername `"$sqlUsername`" -sqlPassword `"$sqlPassword`" -connectionString `"$connectionString`" -publishProfile `"$publishProfile`" -additionalArguments `"$additionalArguments`""
 
-        $sqlPackageScript = Get-Content .\SqlPackageOnTargetMachines.ps1 | Out-String
+        $sqlPackageScript = Get-Content TaskModuleSqlUtility\SqlPackageOnTargetMachines.ps1 | Out-String
 
         Write-Verbose "Executing main function in SqlPackageOnTargetMachines : $invokeMain"
         $sqlDacpacOnTargetMachinesScript = [string]::Format("{0} {1} ( {2} )", $sqlPackageScript,  [Environment]::NewLine,  $invokeMain)
@@ -84,9 +84,9 @@ function GetScriptToRun
     }
     else
     {
-        $sqlQueryScript = Get-Content .\SqlQueryOnTargetMachines.ps1 | Out-String
+        $sqlQueryScript = Get-Content TaskModuleSqlUtility\SqlQueryOnTargetMachines.ps1 | Out-String
 
-        $invokeExecute = "ExecuteSql -taskType `"$taskType`" -sqlFile `"$sqlFile`" -inlineSql `"$inlineSql`" -serverName `"$serverName`" -databaseName `"$databaseName`" -authscheme $authscheme -sqlUsername `"$sqlUsername`" -sqlPassword `"$sqlPassword`" -additionalArguments `"$additionalArguments`""
+        $invokeExecute = "Execute-SqlQueryDeployment -taskType `"$taskType`" -sqlFile `"$sqlFile`" -inlineSql `"$inlineSql`" -serverName `"$serverName`" -databaseName `"$databaseName`" -authscheme $authscheme -sqlUsername `"$sqlUsername`" -sqlPassword `"$sqlPassword`" -additionalArguments `"$additionalArguments`""
 
         Write-Verbose "Executing main function in SqlQueryOnTargetMachines : $invokeExecute"
         $sqlScriptOnTargetMachines = [string]::Format("{0} {1} ( {2} )", $sqlQueryScript,  [Environment]::NewLine,  $invokeExecute)
