@@ -24,10 +24,12 @@ function Execute-SqlQueryDeployment
         [string]$serverName,
         [string]$databaseName,
         [string]$authscheme,
-        [string]$sqlUsername,
-        [string]$sqlPassword,
+        [System.Management.Automation.PSCredential]$sqlPSCredential,
         [string]$additionalArguments
     )
+
+    $sqlUsername = $sqlPSCredential.GetNetworkCredential().username
+    $sqlPassword = $sqlPSCredential.GetNetworkCredential().password
 
     Write-Verbose "Entering script SqlQueryOnTargetMachines.ps1"
     try 

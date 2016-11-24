@@ -394,12 +394,14 @@ function Get-SqlPackageCmdArgs
     [string]$serverName,
     [string]$databaseName,
     [string]$authscheme,
-    [string]$sqlUsername,
-    [string]$sqlPassword,
+    [System.Management.Automation.PSCredential]$sqlPSCredential,
     [string]$connectionString,
     [string]$publishProfile,
     [string]$additionalArguments
     )
+
+    $sqlUsername = $sqlPSCredential.GetNetworkCredential().username
+    $sqlPassword = $sqlPSCredential.GetNetworkCredential().password
 
     Write-Verbose -Verbose "File is $dacpacFile"
 
@@ -462,8 +464,7 @@ function Execute-DacpacDeployment
      [string]$serverName,
      [string]$databaseName,
      [string]$authscheme,
-     [string]$sqlUsername,
-     [string]$sqlPassword,
+     [System.Management.Automation.PSCredential]$sqlPSCredential,
      [string]$connectionString,
      [string]$publishProfile,
      [string]$additionalArguments
@@ -471,7 +472,7 @@ function Execute-DacpacDeployment
 
     Write-Verbose "Entering script SqlPackageOnTargetMachines.ps1"
     $sqlPackage = Get-SqlPackageOnTargetMachine
-    $sqlPackageArguments = Get-SqlPackageCmdArgs -dacpacFile $dacpacFile -targetMethod $targetMethod -serverName $serverName -databaseName $databaseName -authscheme $authscheme -sqlUsername $sqlUsername -sqlPassword $sqlPassword -connectionString $connectionString -publishProfile $publishProfile -additionalArguments $additionalArguments
+    $sqlPackageArguments = Get-SqlPackageCmdArgs -dacpacFile $dacpacFile -targetMethod $targetMethod -serverName $serverName -databaseName $databaseName -authscheme $authscheme -sqlPSCredential $sqlPSCredential -connectionString $connectionString -publishProfile $publishProfile -additionalArguments $additionalArguments
     Write-Verbose -Verbose $sqlPackageArguments
     
     $command = "`"$sqlPackage`" $sqlPackageArguments"
