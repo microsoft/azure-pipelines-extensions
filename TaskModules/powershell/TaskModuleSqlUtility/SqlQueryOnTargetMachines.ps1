@@ -60,9 +60,9 @@ function Execute-SqlQueryDeployment
             {
                 $sqlUsername = $sqlServerCredentials.GetNetworkCredential().username
                 $sqlPassword = $sqlServerCredentials.GetNetworkCredential().password
+                $commandToRun += " -Username `"$sqlUsername`" -Password `"$sqlPassword`" "
+                $commandToLog += " -Username `"$sqlUsername`" -Password ****** "
             }
-            $commandToRun += " -Username `"$sqlUsername`" -Password `"$sqlPassword`" "
-            $commandToLog += " -Username `"$sqlUsername`" -Password ****** "
         }
 
         Write-Verbose "Executing : $commandToLog"

@@ -424,8 +424,8 @@ function Get-SqlPackageCmdArgs
             {
                 $sqlUsername = $sqlServerCredentials.GetNetworkCredential().username
                 $sqlPassword = $sqlServerCredentials.GetNetworkCredential().password
+                $sqlPkgCmdArgs = [string]::Format('{0} /TargetUser:"{1}" /TargetPassword:"{2}"', $sqlPkgCmdArgs, $sqlUsername, $sqlPassword)
             }
-            $sqlPkgCmdArgs = [string]::Format('{0} /TargetUser:"{1}" /TargetPassword:"{2}"', $sqlPkgCmdArgs, $sqlUsername, $sqlPassword)
         }
     }
     elseif($targetMethod -eq "connectionString")
