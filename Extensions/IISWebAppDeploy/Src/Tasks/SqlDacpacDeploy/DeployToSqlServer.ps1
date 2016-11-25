@@ -81,7 +81,7 @@ function GetScriptToRun
 
     if ($taskType -eq "dacpac")
     {
-        $invokeMain = "Execute-DacpacDeployment -dacpacFile `"$dacpacFile`" -targetMethod $targetMethod -serverName `"$serverName`" -databaseName `"$databaseName`" -authscheme $authscheme -sqlPSCredential `$sqlServerCredentials -connectionString `"$connectionString`" -publishProfile `"$publishProfile`" -additionalArguments `"$additionalArguments`""
+        $invokeMain = "Execute-DacpacDeployment -dacpacFile `"$dacpacFile`" -targetMethod $targetMethod -serverName `"$serverName`" -databaseName `"$databaseName`" -authscheme $authscheme -sqlServerCredentials `$sqlServerCredentials -connectionString `"$connectionString`" -publishProfile `"$publishProfile`" -additionalArguments `"$additionalArguments`""
 
         $sqlPackageScript = Get-Content TaskModuleSqlUtility\SqlPackageOnTargetMachines.ps1 | Out-String
 
@@ -93,7 +93,7 @@ function GetScriptToRun
     {
         $sqlQueryScript = Get-Content TaskModuleSqlUtility\SqlQueryOnTargetMachines.ps1 | Out-String
 
-        $invokeExecute = "Execute-SqlQueryDeployment -taskType `"$taskType`" -sqlFile `"$sqlFile`" -inlineSql `"$inlineSql`" -serverName `"$serverName`" -databaseName `"$databaseName`" -authscheme $authscheme -sqlPSCredential `$sqlServerCredentials -additionalArguments `"$additionalArguments`""
+        $invokeExecute = "Execute-SqlQueryDeployment -taskType `"$taskType`" -sqlFile `"$sqlFile`" -inlineSql `"$inlineSql`" -serverName `"$serverName`" -databaseName `"$databaseName`" -authscheme $authscheme -sqlServerCredentials `$sqlServerCredentials -additionalArguments `"$additionalArguments`""
 
         Write-Verbose "Executing main function in SqlQueryOnTargetMachines : $invokeExecute"
         $sqlScriptOnTargetMachines = [string]::Format("{0} {1} {2} {3} ( {4} )", $sqlQueryScript,  [Environment]::NewLine, $initScript, [Environment]::NewLine,  $invokeExecute)

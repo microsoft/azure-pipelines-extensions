@@ -104,7 +104,7 @@ Describe "Tests for verifying Execute-SqlQueryDeployment functionality" {
         Mock Get-SqlFilepathOnTargetMachine { return "sample.temp" }
         Mock Invoke-Expression -Verifiable { return } -ParameterFilter {$Command -and $Command.Contains($UsernamePasswordParams)}
 
-        Execute-SqlQueryDeployment -taskType "sqlInline" -inlineSql "SampleQuery" -targetMethod "server" -serverName "localhost" -databaseName "SampleDB" -sqlPSCredential $psCredential -authscheme sqlServerAuthentication
+        Execute-SqlQueryDeployment -taskType "sqlInline" -inlineSql "SampleQuery" -targetMethod "server" -serverName "localhost" -databaseName "SampleDB" -sqlServerCredentials $psCredential -authscheme sqlServerAuthentication
 
         It "Should deploy inline Sql with Server Authetication"{
             Assert-VerifiableMocks

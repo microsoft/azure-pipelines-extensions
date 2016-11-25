@@ -144,21 +144,21 @@ Describe "Tests for testing GetScriptToRun functionality" {
         Write-Verbose $script
         It "should contain script content and invoke expression" {
             ($script.Contains('Dummy Script')) | Should Be $true
-            ($script.Contains('Execute-DacpacDeployment -dacpacFile "sample.dacpac" -targetMethod server -serverName "localhost" -databaseName "SampleDB" -authscheme sqlServerAuthentication -sqlPSCredential $sqlServerCredentials -connectionString "" -publishProfile "" -additionalArguments ""')) | Should Be $true
+            ($script.Contains('Execute-DacpacDeployment -dacpacFile "sample.dacpac" -targetMethod server -serverName "localhost" -databaseName "SampleDB" -authscheme sqlServerAuthentication -sqlServerCredentials $sqlServerCredentials -connectionString "" -publishProfile "" -additionalArguments ""')) | Should Be $true
         }
 
         $script = GetScriptToRun -dacpacFile "" -targetMethod "server" -serverName "localhost" -databaseName "SampleDB" -authscheme "sqlServerAuthentication" -sqlUserName "sampleuser" -sqlPassword "dummypassword" -connectionString "" -publishProfile "" -additionalArguments "" -taskType "sqlQuery" -inlineSql "" -sqlFile "sample.sql"
 
         It "should contain script content and invoke expression" {
             ($script.Contains('Dummy Script')) | Should Be $true
-            ($script.Contains('Execute-SqlQueryDeployment -taskType "sqlQuery" -sqlFile "sample.sql" -inlineSql "" -serverName "localhost" -databaseName "SampleDB" -authscheme sqlServerAuthentication -sqlPSCredential $sqlServerCredentials -additionalArguments ""')) | Should Be $true
+            ($script.Contains('Execute-SqlQueryDeployment -taskType "sqlQuery" -sqlFile "sample.sql" -inlineSql "" -serverName "localhost" -databaseName "SampleDB" -authscheme sqlServerAuthentication -sqlServerCredentials $sqlServerCredentials -additionalArguments ""')) | Should Be $true
         }
 
         $script = GetScriptToRun -dacpacFile "" -targetMethod "server" -serverName "localhost" -databaseName "SampleDB" -authscheme "sqlServerAuthentication" -sqlUserName "sampleuser" -sqlPassword "dummypassword" -connectionString "" -publishProfile "" -additionalArguments "" -taskType "sqlInline" -inlineSql "Testing Inline SQL" -sqlFile ""
         
         It "should contain script content and invoke expression" {
             ($script.Contains('Dummy Script')) | Should Be $true
-            ($script.Contains('Execute-SqlQueryDeployment -taskType "sqlInline" -sqlFile "" -inlineSql "Testing Inline SQL" -serverName "localhost" -databaseName "SampleDB" -authscheme sqlServerAuthentication -sqlPSCredential $sqlServerCredentials -additionalArguments ""')) | Should Be $true
+            ($script.Contains('Execute-SqlQueryDeployment -taskType "sqlInline" -sqlFile "" -inlineSql "Testing Inline SQL" -serverName "localhost" -databaseName "SampleDB" -authscheme sqlServerAuthentication -sqlServerCredentials $sqlServerCredentials -additionalArguments ""')) | Should Be $true
         }
     }
 }

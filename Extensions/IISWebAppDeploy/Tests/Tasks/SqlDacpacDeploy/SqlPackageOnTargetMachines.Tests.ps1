@@ -453,7 +453,7 @@ Describe "Tests for Get-SqlPackageCmdArgs functionality" {
 
         $secureAdminPassword =  ConvertTo-SecureString "dummypassword" -AsPlainText -Force
         $psCredential = New-Object System.Management.Automation.PSCredential ("dummyuser", $secureAdminPassword)
-        $cmdArgs = Get-SqlPackageCmdArgs -dacpacFile "sample.dacpac" -targetMethod "server" -serverName "localhost" -databaseName "SampleDB" -authscheme "sqlServerAuthentication" -sqlPSCredential $psCredential
+        $cmdArgs = Get-SqlPackageCmdArgs -dacpacFile "sample.dacpac" -targetMethod "server" -serverName "localhost" -databaseName "SampleDB" -authscheme "sqlServerAuthentication" -sqlServerCredentials $psCredential
 
         It "Should contain targetmethod as server and sqluser argument should be present" {
             ($cmdArgs.Contains('/SourceFile:"sample.dacpac" /Action:Publish /TargetServerName:"localhost" /TargetDatabaseName:"SampleDB"')) | Should Be $true
