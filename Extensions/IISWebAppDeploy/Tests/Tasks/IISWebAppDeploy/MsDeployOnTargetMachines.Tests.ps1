@@ -74,6 +74,7 @@ Describe "Tests for verifying Get-MsDeployLocation functionality" {
 
 Describe "Tests for verifying Get-MsDeployCmdArgs functionality" {
 
+    $websiteName = "SampleWebApp"
     $webDeployPackage = "WebAppPackage.zip"
     $webDeployParamFile = "webDeployParamFile.xml"
     $overRideParams = "Param=Value"
@@ -82,7 +83,7 @@ Describe "Tests for verifying Get-MsDeployCmdArgs functionality" {
 
         Mock Test-Path { return $true }
 
-        $result = Get-MsDeployCmdArgs -webDeployPackage $webDeployPackage
+        $result = Get-MsDeployCmdArgs -websiteName $websiteName -webDeployPackage $webDeployPackage
 
         It "msDeployCmdArgs should only contain -source:packge"{
             ( $result.Contains([string]::Format('-source:package="{0}"', $webDeployPackage) ) ) | Should Be $true
@@ -95,7 +96,7 @@ Describe "Tests for verifying Get-MsDeployCmdArgs functionality" {
 
         Mock Test-Path { return $true }
 
-        $result = Get-MsDeployCmdArgs -webDeployPackage $webDeployPackage -webDeployParamFile $webDeployParamFile
+        $result = Get-MsDeployCmdArgs -websiteName $websiteName -webDeployPackage $webDeployPackage -webDeployParamFile $webDeployParamFile
 
         It "msDeployCmdArgs should only contain -source:packge and -setParamFile" {
             ( $result.Contains([string]::Format('-source:package="{0}"', $webDeployPackage) ) ) | Should Be $true
@@ -108,7 +109,7 @@ Describe "Tests for verifying Get-MsDeployCmdArgs functionality" {
 
         Mock Test-Path { return $true }
 
-        $result = Get-MsDeployCmdArgs -webDeployPackage $webDeployPackage -webDeployParamFile $webDeployParamFile -overRideParams $overRideParams -additionalArguments "args"
+        $result = Get-MsDeployCmdArgs -websiteName $websiteName -webDeployPackage $webDeployPackage -webDeployParamFile $webDeployParamFile -overRideParams $overRideParams -additionalArguments "args"
         
         It "msDeployCmdArgs should contain -source:packge, -setParamFile and -setParam" {
             ( $result.Contains([string]::Format('-source:package="{0}"', $webDeployPackage) ) ) | Should Be $true
@@ -124,7 +125,7 @@ Describe "Tests for verifying Get-MsDeployCmdArgs functionality" {
         $errMsg = "Package does not exist : `"$InvalidPkg`""
 
         It "Should throw exception"{
-            { Get-MsDeployCmdArgs -webDeployPackage $InvalidPkg -webDeployParamFile $webDeployParamFile -overRideParams $overRideParams } | Should Throw $errMsg
+            { Get-MsDeployCmdArgs -websiteName $websiteName -webDeployPackage $InvalidPkg -webDeployParamFile $webDeployParamFile -overRideParams $overRideParams } | Should Throw $errMsg
         }        
     }
 
@@ -135,7 +136,7 @@ Describe "Tests for verifying Get-MsDeployCmdArgs functionality" {
         $errMsg = "Param file does not exist : `"$InvalidParamFile`""
 
         It "Should throw exception"{
-            { Get-MsDeployCmdArgs -webDeployPackage $webDeployPackage -webDeployParamFile $InvalidParamFile -overRideParams $overRideParams } | Should Throw $errMsg
+            { Get-MsDeployCmdArgs -websiteName $websiteName -webDeployPackage $webDeployPackage -webDeployParamFile $InvalidParamFile -overRideParams $overRideParams } | Should Throw $errMsg
         }
     }
 
@@ -148,7 +149,7 @@ Describe "Tests for verifying Get-MsDeployCmdArgs functionality" {
 
         Mock Test-Path { return $true }
 
-        $result = Get-MsDeployCmdArgs -webDeployPackage $webDeployPackage -webDeployParamFile $webDeployParamFile -overRideParams $params
+        $result = Get-MsDeployCmdArgs -websiteName $websiteName -webDeployPackage $webDeployPackage -webDeployParamFile $webDeployParamFile -overRideParams $params
         
         It "msDeployCmdArgs should contain -source:packge, -setParamFile and -setParam for each override param" {
             ( $result.Contains([string]::Format('-source:package="{0}"', $webDeployPackage) ) ) | Should Be $true
@@ -168,7 +169,7 @@ Describe "Tests for verifying Get-MsDeployCmdArgs functionality" {
 
         Mock Test-Path { return $true }
 
-        $result = Get-MsDeployCmdArgs -webDeployPackage $webDeployPackage -webDeployParamFile $webDeployParamFile -overRideParams $params
+        $result = Get-MsDeployCmdArgs -websiteName $websiteName -webDeployPackage $webDeployPackage -webDeployParamFile $webDeployParamFile -overRideParams $params
 
         It "msDeployCmdArgs should contain -source:packge, -setParamFile and -setParam for each override param"{
             ( $result.Contains([string]::Format('-source:package="{0}"', $webDeployPackage) ) ) | Should Be $true
@@ -188,7 +189,7 @@ Describe "Tests for verifying Get-MsDeployCmdArgs functionality" {
 
         Mock Test-Path { return $true }
 
-        $result = Get-MsDeployCmdArgs -webDeployPackage $webDeployPackage -webDeployParamFile $webDeployParamFile -overRideParams $params
+        $result = Get-MsDeployCmdArgs -websiteName $websiteName -webDeployPackage $webDeployPackage -webDeployParamFile $webDeployParamFile -overRideParams $params
         
         It "msDeployCmdArgs should contain -source:packge, -setParamFile and -setParam for each override param"{
             ( $result.Contains([string]::Format('-source:package="{0}"', $webDeployPackage) ) ) | Should Be $true
@@ -203,7 +204,7 @@ Describe "Tests for verifying Get-MsDeployCmdArgs functionality" {
 
         Mock Test-Path { return $true }
 
-        $result = Get-MsDeployCmdArgs -webDeployPackage $webDeployPackage -webDeployParamFile $webDeployParamFile -overRideParams $overRideParams -removeAdditionalFiles "true" -excludeFilesFromAppData "true" -takeAppOffline "true"
+        $result = Get-MsDeployCmdArgs -websiteName $websiteName -webDeployPackage $webDeployPackage -webDeployParamFile $webDeployParamFile -overRideParams $overRideParams -removeAdditionalFiles "true" -excludeFilesFromAppData "true" -takeAppOffline "true"
         
         It "msDeployCmdArgs should contain -source:packge, -setParamFile and -setParam" {
             ( $result.Contains("-enableRule:DoNotDeleteRule") ) | Should Be $false
@@ -216,7 +217,7 @@ Describe "Tests for verifying Get-MsDeployCmdArgs functionality" {
 
         Mock Test-Path { return $true }
 
-        $result = Get-MsDeployCmdArgs -webDeployPackage $webDeployPackage -webDeployParamFile $webDeployParamFile -overRideParams $overRideParams -removeAdditionalFiles "false" -excludeFilesFromAppData "false" -takeAppOffline "false"
+        $result = Get-MsDeployCmdArgs -websiteName $websiteName -webDeployPackage $webDeployPackage -webDeployParamFile $webDeployParamFile -overRideParams $overRideParams -removeAdditionalFiles "false" -excludeFilesFromAppData "false" -takeAppOffline "false"
         
         It "msDeployCmdArgs should contain -source:packge, -setParamFile and -setParam" {
             ( $result.Contains("-enableRule:DoNotDeleteRule") ) | Should Be $true
@@ -236,8 +237,9 @@ Describe "Tests for verifying Deploy-WebSite functionality" {
         Mock Run-Command -Verifiable { return }
         Mock Get-MsDeployLocation -Verifiable { return $msDeploy }
         Mock Get-MsDeployCmdArgs -Verifiable { return $msDeployArgs }
+        Mock Is-Directory -Verifiable { return $false }
 
-        $output = Deploy-WebSite -webDeployPkg "Web.zip" -webDeployParamFile "SampleParam.xml" 4>&1 | Out-String
+        $output = Deploy-WebSite -websiteName "SampleWebApp" -webDeployPkg "Web.zip" -webDeployParamFile "SampleParam.xml" 4>&1 | Out-String
 
         It "Should contain both msDeploy and msDeployArgs"{
             ($output.Contains("$msDeploy")) | Should Be $true

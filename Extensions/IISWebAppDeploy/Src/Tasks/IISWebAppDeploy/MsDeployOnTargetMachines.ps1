@@ -108,11 +108,11 @@ function Get-MsDeployCmdArgs
             throw "Param file does not exist : `"$webDeployParamFile`""
         }
 
-        $msDeployCmdArgs = [string]::Format(' -setParamFile="{0}"', $webDeployParamFile)
+        $msDeployCmdArgs += [string]::Format(' -setParamFile="{0}"', $webDeployParamFile)
     }
 
     if($isParamFilePresentInPacakge) {
-        $msDeployCmdArgs += [string]::Format(' -setParam:name="IIS Web Application Name",value="{0}"', $websiteName);
+         $overRideParams = Compute-MsDeploy-SetParams -websiteName $websiteName -overRideParams $overRideParams
     }
     
     $setParams = $overRideParams.Split([System.Environment]::NewLine, [System.StringSplitOptions]::RemoveEmptyEntries)
@@ -215,6 +215,29 @@ function Contains-ParamFile
     }
     Write-Verbose "Parameters.xml file is not present in package"   
     return $false
+}
+
+function Compute-MsDeploy-SetParams
+{
+    param(
+        [string]$websiteName,
+        [string]$overRideParams
+    )
+
+    Write-Verbose "Computing override params for msdeploy."
+
+    if([string]::IsNullOrWhiteSpace($overRideParams))
+    {
+        Write-Verbose "Adding override params to ensure deployment happens on $websiteName"
+        $overRideParams = [string]::Format('name="IIS Web Application Name",value="{0}"', $websiteName)
+    }
+    elseif(!$overRideParams.Contains("IIS Web Application Name")) 
+    {
+        Write-Verbose "Adding override params to ensure deployment happens on $websiteName"
+        $overRideParams = $overRideParams + [string]::Format('{0}name="IIS Web Application Name",value="{1}"',  [System.Environment]::NewLine, $websiteName)
+    }
+
+    return $overRideParams
 }
 
 function Execute-Main
