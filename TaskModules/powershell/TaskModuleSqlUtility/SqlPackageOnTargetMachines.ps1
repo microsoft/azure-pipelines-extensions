@@ -394,8 +394,7 @@ function Get-SqlPackageCmdArgs
     [string]$serverName,
     [string]$databaseName,
     [string]$authscheme,
-    [string]$sqlUsername,
-    [string]$sqlPassword,
+    [System.Management.Automation.PSCredential]$sqlServerCredentials,
     [string]$connectionString,
     [string]$publishProfile,
     [string]$additionalArguments
@@ -421,7 +420,12 @@ function Get-SqlPackageCmdArgs
 
         if($authscheme -eq "sqlServerAuthentication")
         {
-            $sqlPkgCmdArgs = [string]::Format('{0} /TargetUser:"{1}" /TargetPassword:"{2}"', $sqlPkgCmdArgs, $sqlUsername, $sqlPassword)
+            if($sqlServerCredentials)
+            {
+                $sqlUsername = $sqlServerCredentials.GetNetworkCredential().username
+                $sqlPassword = $sqlServerCredentials.GetNetworkCredential().password
+                $sqlPkgCmdArgs = [string]::Format('{0} /TargetUser:"{1}" /TargetPassword:"{2}"', $sqlPkgCmdArgs, $sqlUsername, $sqlPassword)
+            }
         }
     }
     elseif($targetMethod -eq "connectionString")
@@ -462,8 +466,7 @@ function Execute-DacpacDeployment
      [string]$serverName,
      [string]$databaseName,
      [string]$authscheme,
-     [string]$sqlUsername,
-     [string]$sqlPassword,
+     [System.Management.Automation.PSCredential]$sqlServerCredentials,
      [string]$connectionString,
      [string]$publishProfile,
      [string]$additionalArguments
@@ -471,7 +474,7 @@ function Execute-DacpacDeployment
 
     Write-Verbose "Entering script SqlPackageOnTargetMachines.ps1"
     $sqlPackage = Get-SqlPackageOnTargetMachine
-    $sqlPackageArguments = Get-SqlPackageCmdArgs -dacpacFile $dacpacFile -targetMethod $targetMethod -serverName $serverName -databaseName $databaseName -authscheme $authscheme -sqlUsername $sqlUsername -sqlPassword $sqlPassword -connectionString $connectionString -publishProfile $publishProfile -additionalArguments $additionalArguments
+    $sqlPackageArguments = Get-SqlPackageCmdArgs -dacpacFile $dacpacFile -targetMethod $targetMethod -serverName $serverName -databaseName $databaseName -authscheme $authscheme -sqlServerCredentials $sqlServerCredentials -connectionString $connectionString -publishProfile $publishProfile -additionalArguments $additionalArguments
     Write-Verbose -Verbose $sqlPackageArguments
     
     $command = "`"$sqlPackage`" $sqlPackageArguments"
