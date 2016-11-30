@@ -225,6 +225,65 @@ Describe "Tests for verifying Get-MsDeployCmdArgs functionality" {
             ( $result.Contains('-skip:Directory="\\App_Data"') ) | Should Be $false
         }
     }
+
+    context "When folder is provided as input" {
+
+        Mock Test-Path { return $true }
+        $webAppFolder = "WebAppFolder"
+
+        $result = Get-MsDeployCmdArgs -websiteName $websiteName -webDeployPackage $webAppFolder -isFolderBasedDeployment $true
+
+        It "msDeployCmdArgs should only contain -source:iisApp"{
+            ( $result.Contains([string]::Format('-source:iisApp="{0}"', $webAppFolder) ) ) | Should Be $true
+            ( $result.Contains([string]::Format('-dest:iisApp="{0}"', $websiteName) ) ) | Should Be $true
+        }
+    }
+}
+
+Describe "Tests for verifying Contains-ParamFile functionality" {
+
+    $msDeploy = "MSDeploy.exe"
+    $webAppPackage = "Sample.zip"
+
+    Context "When parameter file is not present in Package" {
+        
+        Mock Get-MsDeployLocation -Verifiable { return $msDeploy }
+        Mock Run-Command -Verifiable { return "<output><parameters /></output>"}
+
+        $isParameterPresent = Contains-ParamFile -packageFile $webAppPackage
+        
+        It "Should return false since parameter file is not present in the package" {
+            $isParameterPresent | should Be $false
+            Assert-VerifiableMocks
+        }
+    }
+
+    Context "When parameter file is present but don't contains parameter 'IIS Web Application Name'" {
+        
+        Mock Get-MsDeployLocation -Verifiable { return $msDeploy }
+        Mock Run-Command -Verifiable { return '<output><parameters><parameter name="DefaultConnection-Web.configConnectionString" defaultValue="Testvalue"></parameter></parameters></output>'}
+
+        $isParameterPresent = Contains-ParamFile -packageFile $webAppPackage
+        
+        It "Should return false since parameter file is not present in the package" {
+            $isParameterPresent | should Be $false
+            Assert-VerifiableMocks
+        }
+    }
+
+    Context "When parameter file is present and contains parameter 'IIS Web Application Name'" {
+        
+        Mock Get-MsDeployLocation -Verifiable { return $msDeploy }
+        Mock Run-Command -Verifiable { return '<output><parameters><parameter name="IIS Web Application Name" defaultValue="Default Web Site/AzureWebApp1_deploy" tags="IisApp"></parameter></parameters></output>'}
+
+        $isParameterPresent = Contains-ParamFile -packageFile $webAppPackage
+        
+        It "Should return false since parameter file is not present in the package" {
+            $isParameterPresent | should Be $true
+            Assert-VerifiableMocks
+        }
+    }
+
 }
 
 Describe "Tests for verifying Deploy-WebSite functionality" {

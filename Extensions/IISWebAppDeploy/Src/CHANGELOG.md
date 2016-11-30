@@ -4,12 +4,10 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
-## [1.2.6] - 30th November 2016
-### Fixed
+### Added
 - Webapp folder supported
 - ASP.NET core webapp support added
 
-## [1.2.5] - 25th November 2016
 ### Fixed
 - Error messages are not showing on console for SQL task
 - Unable to detect sqlPackge.exe when sql DAC-Framework 2016 installed

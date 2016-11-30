@@ -208,10 +208,16 @@ function Contains-ParamFile
     Write-Verbose "Running msDeploy command to check if $packageFile contains paramters file."
     $ParamFileContent = Run-Command -command $msDeployCheckParamFileCmd
     $paramFileXML = [XML] $ParamFileContent
-    if( $paramFileXML.output.parameters )
+    $parameters = $paramFileXML.output.parameters
+    if($parameters)
     {
-        Write-Verbose "Parameters file is present in the package"
-        return $true
+        $iisWebApplicationParameter = $parameters.parameter | Where-Object { $_.name -eq 'IIS Web Application Name'}
+        if($iisWebApplicationParameter)
+        {
+            return $true
+        }
+        Write-Verbose "'IIS Web Application Name' parameter not present in parameters.xml"
+        return $false       
     }
     Write-Verbose "Parameters.xml file is not present in package"   
     return $false

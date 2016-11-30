@@ -106,12 +106,13 @@ function Does-BindingExists
 
     foreach($site in $sites)
     {
-        if($site.Contains($siteName) -and $site.Contains($binding))
+        $site = $site.ToLower()
+        if($site.Contains($siteName.ToLower()) -and $site.Contains($binding.ToLower()))
         {
             Write-Verbose "Given binding already exists for the current website (`"$siteName`")."
             $isBindingExists = $true
         }
-        elseif($site.Contains($binding))
+        elseif($site.Contains($binding.ToLower()))
         {
             throw "Given binding already exists for a different website (`"$site`"), change the port and retry the operation."
         }
