@@ -150,8 +150,7 @@ function Invoke-RemoteDeployment
                     Remove-Job $job
                     $machineName = $Jobs.Item($job.Id)
 
-                    Write-Host "Deployment status for machine $machineName : $output.Status"
-                    Write-Verbose $output.DeploymentLog
+                    Write-Host "Deployment status for machine $machineName : $($output.Status)"
                     if($output.Status -ne "Passed")
                     {
                         $operationStatus = "Failed"
@@ -160,7 +159,12 @@ function Invoke-RemoteDeployment
                         {
                             $errorMsg = $output.Error.ToString()
                         }
+                        Write-Verbose ($output|Format-List -Force|Out-String)
                         Write-Host "Deployment failed on machine $machineName with following message : $errorMsg"
+                    }
+                    else
+                    {
+                        Write-Verbose $output.DeploymentLog
                     }
                     $Jobs.Remove($job.Id)
                 }
@@ -182,16 +186,20 @@ function Invoke-RemoteDeployment
             Write-Host "Deployment started for machine: $($resource.name) with port $winRmPort."
             $deploymentResponse = Invoke-Command -ScriptBlock $InvokePsOnRemoteScriptBlock -ArgumentList $resource.name, $scriptToRun, $winRmPort, $credential, $useHttp, $skipCA
 
-            Write-Host "Deployment status for machine $($resource.name) : $deploymentResponse.Status"
-            Write-Verbose $deploymentResponse.DeploymentLog
+            Write-Host "Deployment status for machine $($resource.name) : $($deploymentResponse.Status)"
             if ($deploymentResponse.Status -ne "Passed")
             {
                 $operationStatus = "Failed"
+                Write-Verbose ($deploymentResponse|Format-List -Force|Out-String)
                 if($deploymentResponse.Error -ne $null)
                 {
                     $errorMsg = $deploymentResponse.Error.ToString()
                     break
                 }
+            }
+            else
+            {
+                Write-Verbose $deploymentResponse.DeploymentLog
             }
         }
     }

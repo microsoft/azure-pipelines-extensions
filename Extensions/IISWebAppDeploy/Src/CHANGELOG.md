@@ -4,6 +4,17 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [1.2.5] - 25th November 2016
+### Fixed
+- Error messages are not showing on console for SQL task
+- Unable to detect sqlPackge.exe when sql DAC-Framework 2016 installed
+
+## [1.2.4] - 12th October 2016
+### Fixed
+- Deployment fails when user name has a dot
+- No proper error message is displaced when msdeploy not installed
+- Fixed enable SNI failure when website name has spaces
+
 ## [1.2.3] - 2nd September 2016
 ### Fixed
 - Web App Management fails with: Given binding already exists for a different website.

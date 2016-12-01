@@ -1,9 +1,9 @@
 ﻿$currentScriptPath = Split-Path -Parent $MyInvocation.MyCommand.Path
-$scritpDirName = Split-Path -Leaf $currentScriptPath
+$scriptDirName = Split-Path -Leaf $currentScriptPath
 $sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path).Replace(".Tests.", ".")
 $VerbosePreference = 'Continue'
 
-$sqlPackageOnTargetMachinesPath = "$currentScriptPath\..\..\..\Src\Tasks\$scritpDirName\$sut"
+$sqlPackageOnTargetMachinesPath = "$currentScriptPath\..\..\..\Src\Tasks\$scriptDirName\TaskModuleSqlUtility\$sut"
 
 if(-not (Test-Path -Path $sqlPackageOnTargetMachinesPath ))
 {
@@ -451,7 +451,9 @@ Describe "Tests for Get-SqlPackageCmdArgs functionality" {
 
     Context "When target method is server and with mixed mode authentication" {
 
-        $cmdArgs = Get-SqlPackageCmdArgs -dacpacFile "sample.dacpac" -targetMethod "server" -serverName "localhost" -databaseName "SampleDB" -authscheme "sqlServerAuthentication"-sqlUsername "dummyuser" -sqlPassword "dummypassword"
+        $secureAdminPassword =  ConvertTo-SecureString "dummypassword" -AsPlainText -Force
+        $psCredential = New-Object System.Management.Automation.PSCredential ("dummyuser", $secureAdminPassword)
+        $cmdArgs = Get-SqlPackageCmdArgs -dacpacFile "sample.dacpac" -targetMethod "server" -serverName "localhost" -databaseName "SampleDB" -authscheme "sqlServerAuthentication" -sqlServerCredentials $psCredential
 
         It "Should contain targetmethod as server and sqluser argument should be present" {
             ($cmdArgs.Contains('/SourceFile:"sample.dacpac" /Action:Publish /TargetServerName:"localhost" /TargetDatabaseName:"SampleDB"')) | Should Be $true
@@ -480,15 +482,15 @@ Describe "Tests for Get-SqlPackageCmdArgs functionality" {
 
 }
 
-Describe "Tests for verifying ExecuteMain functionality" {
+Describe "Tests for verifying Execute-DacpacDeployment functionality" {
 
-    Context "When execute main is invoked with all inputs"{
+    Context "When execute DacpacDeployment is invoked with all inputs"{
 
         Mock Get-SqlPackageOnTargetMachine { return "sqlpackage.exe" }
         Mock Get-SqlPackageCmdArgs -Verifiable { return "args" } -ParameterFilter { $DacpacFile -eq "sample.dacpac" }
         Mock RunCommand -Verifiable { return } -ParameterFilter {$Command -eq "`"sqlpackage.exe`" args"}
 
-        ExecuteMain -dacpacFile "sample.dacpac" -targetMethod "server" -serverName "localhost"
+        Execute-DacpacDeployment -dacpacFile "sample.dacpac" -targetMethod "server" -serverName "localhost"
 
         It "Should deploy dacpac file"{
             Assert-VerifiableMocks
