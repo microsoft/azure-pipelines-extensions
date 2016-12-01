@@ -11,7 +11,6 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ### Fixed
 - Error messages are not showing on console for SQL task
 
-
 ## [1.2.4] - 12th October 2016
 ### Fixed
 - Deployment fails when user name has a dot
