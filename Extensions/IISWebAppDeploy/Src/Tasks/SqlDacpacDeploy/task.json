@@ -2,7 +2,7 @@
   "id": "063c7649-4934-49e8-9eac-37121fe7e350",
   "name": "SqlDacpacDeploy",
   "friendlyName": "WinRM - SQL Server DB Deployment",
-  "description": "Using WinRM connect to host, and deploy DB using sqlpackage.exe",
+  "description": "Using WinRM connect to host, and deploy DB using sqlpackage.exe or Invoke-Sqlcmd",
   "helpMarkDown": "[More Information](http://aka.ms/sqlserverdacpackreadme)",
   "category": "Deploy",
   "visibility": [
@@ -12,18 +12,13 @@
   "author": "Microsoft Corporation",
   "version": {
     "Major": 1,
-    "Minor": 0,
-    "Patch": 2
+    "Minor": 1,
+    "Patch": 0
   },
   "demands": [
   ],
   "minimumAgentVersion": "1.95.0",
   "groups": [
-    {
-      "name": "deployment",
-      "displayName": "Deployment",
-      "isExpanded": true
-    },
     {
       "name": "target",
       "displayName": "Target",
@@ -82,13 +77,52 @@
       "helpMarkDown": "Select the option to skip validating the authenticity of the machine's certificate from a trusted certification authority. The parameter is required for the WinRM HTTPS protocol."
     },
     {
+      "name": "TaskType",
+      "type": "pickList",
+      "label": "Deploy SQL Using",
+      "required": true,
+      "groupName": "target",
+      "defaultValue": "dacpac",
+      "options": {
+        "dacpac": "Sql Dacpac",
+        "sqlQuery": "Sql Query File",
+        "sqlInline": "Inline Sql"
+      },
+      "helpMarkDown": "Specify the way in which you want to deploy DB, either by using Dacpac or by using Sql Script."
+    },
+    {
       "name": "DacpacFile",
       "type": "string",
       "label": "DACPAC File",
       "required": true,
-      "groupName": "deployment",
+      "groupName": "target",
+      "visibleRule": "TaskType = dacpac",
       "defaultValue": "",
       "helpMarkDown": "Location of the DACPAC file on the target machines or on a UNC path like, \\\\\\\\BudgetIT\\Web\\Deploy\\FabrikamDB.dacpac. The UNC path should be accessible to the machine's administrator account. Environment variables are also supported, like $env:windir, $env:systemroot, $env:windir\\FabrikamFibre\\DB."
+    },
+    {
+      "name": "SqlFile",
+      "type": "string",
+      "label": "Sql File",
+      "required": true,
+      "groupName": "target",
+      "visibleRule": "TaskType = sqlQuery",
+      "defaultValue": "",
+      "helpMarkDown": "Location of the SQL file on the target machines or on a UNC path like, \\\\\\\\BudgetIT\\Web\\Deploy\\FabrikamDB.sql. The UNC path should be accessible to the machine's administrator account. Environment variables are also supported, like $env:windir, $env:systemroot, $env:windir\\FabrikamFibre\\DB."
+    },
+    {
+      "name": "InlineSql",
+      "type": "multiLine",
+      "label": "Inline Sql",
+      "required": true,
+      "groupName": "target",
+      "visibleRule": "TaskType = sqlInline",
+      "defaultValue": "",
+      "properties": {
+          "resizable": "true",
+          "rows": "10"
+          },      
+      "helpMarkDown": "Sql Queries inline"
     },
     {
       "name": "TargetMethod",
@@ -97,6 +131,7 @@
       "required": true,
       "groupName": "target",
       "defaultValue": "server",
+      "visibleRule": "TaskType = dacpac",
       "options": {
         "server": "Server",
         "connectionString": "Connection String",
@@ -111,7 +146,7 @@
       "required": true,
       "groupName": "target",
       "defaultValue": "localhost",
-      "visibleRule": "TargetMethod = server",
+      "visibleRule": "TargetMethod = server || TaskType = sqlQuery || TaskType = sqlInline",
       "helpMarkDown": "Provide the SQL Server name like, machinename\\FabriakmSQL,1433 or localhost or .\\SQL2012R2. Specifying localhost will connect to the Default SQL Server instance on the machine."
     },
     {
@@ -121,7 +156,7 @@
       "required": true,
       "groupName": "target",
       "defaultValue": "",
-      "visibleRule": "TargetMethod = server",
+      "visibleRule": "TargetMethod = server || TaskType = sqlQuery || TaskType = sqlInline",
       "helpMarkDown": "Provide the name of the SQL Server database."
     },
     {
@@ -131,7 +166,7 @@
       "required": true,
       "groupName": "target",
       "defaultValue": "Windows Authentication",
-      "visibleRule": "TargetMethod = server",
+      "visibleRule": "TargetMethod = server || TaskType = sqlQuery || TaskType = sqlInline",
       "options": {
         "windowsAuthentication": "Windows Authentication",
         "sqlServerAuthentication": "SQL Server Authentication"
@@ -175,6 +210,7 @@
       "required": false,
       "groupName": "target",
       "defaultValue": "",
+      "visibleRule": "TaskType = dacpac",
       "helpMarkDown": "Publish profile provide fine-grained control over SQL Server database deployments. Specify the path to the Publish profile XML file on the target machine or on a UNC share that is accessible by the machine administrator's credentials."
     },
     {
@@ -184,8 +220,19 @@
       "required": false,
       "groupName": "target",
       "defaultValue": "",
+      "visibleRule": "TaskType = dacpac",
       "helpMarkDown": "Additional SqlPackage.exe arguments that will be applied when deploying the SQL Server database like, /p:IgnoreAnsiNulls=True /p:IgnoreComments=True. These arguments will override the settings in the Publish profile XML file (if provided)."
     },
+    {
+      "name": "AdditionalArgumentsSql",
+      "type": "multiLine",
+      "label": "Additional Arguments",
+      "required": false,
+      "groupName": "target",
+      "defaultValue": "",
+      "visibleRule": "TaskType = sqlQuery || TaskType = sqlInline",
+      "helpMarkDown": "Additional Invoke-Sqlcmd arguments that will be applied when deploying the SQL Server database."
+    },    
     {
       "name": "DeployInParallel",
       "type": "boolean",
@@ -196,7 +243,7 @@
       "helpMarkDown": "Select the option to run the database deployment task in-parallel on the target machines."
     }
   ],
-  "instanceNameFormat": "Deploy SQL DACPAC: $(DacpacFile)",
+  "instanceNameFormat": "Deploy using : $(TaskType)",
   "execution": {
     "PowerShell": {
       "target": "$(currentDirectory)\\Main.ps1",

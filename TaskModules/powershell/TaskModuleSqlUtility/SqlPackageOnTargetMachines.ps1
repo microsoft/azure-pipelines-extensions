@@ -9,11 +9,13 @@
 
     if( $psversiontable.PSVersion.Major -le 4)
     {
-        $result = cmd.exe /c "`"$command`""
+        $result = cmd.exe /c "`"$command`""  2>&1
     }
     else
     {
-        $result = cmd.exe /c "$command"
+
+        Write-Verbose -Verbose $command
+        $result = cmd.exe /c "$command"  2>&1
     }
 
     $ErrorActionPreference = 'Stop'
@@ -209,6 +211,45 @@ function LocateHighestVersionSqlPackageWithSql()
 
 function LocateHighestVersionSqlPackageWithDacMsi()
 {
+    $sqlDataTierFrameworkRegKeyWow = "HKLM:", "SOFTWARE", "Wow6432Node", "Microsoft", "Microsoft SQL Server", "Data-Tier Application Framework" -join [System.IO.Path]::DirectorySeparatorChar
+    $sqlDataTierFrameworkRegKey = "HKLM:", "SOFTWARE", "Microsoft", "Microsoft SQL Server", "Data-Tier Application Framework" -join [System.IO.Path]::DirectorySeparatorChar
+
+    if (-not (Test-Path $sqlDataTierFrameworkRegKey))
+    {
+        $sqlDataTierFrameworkRegKey = $sqlDataTierFrameworkRegKeyWow
+    }
+
+    if ((Test-Path $sqlDataTierFrameworkRegKey))
+    {
+        $keys = Get-Item $sqlDataTierFrameworkRegKey | %{$_.GetSubKeyNames()} 
+        $versions = Get-SubKeysInFloatFormat $keys | Sort-Object -Descending
+
+        $installedMajorVersion = 0
+        foreach ($majorVersion in $versions)
+        {
+            $sqlInstallRootRegKey = "SOFTWARE", "Microsoft", "Microsoft SQL Server", "Data-Tier Application Framework", "$majorVersion" -join [System.IO.Path]::DirectorySeparatorChar
+            $sqlInstallRootPath64 = Get-RegistryValueIgnoreError LocalMachine "$sqlInstallRootRegKey" "InstallDir" Registry64
+            $sqlInstallRootPath32 = Get-RegistryValueIgnoreError LocalMachine "$sqlInstallRootRegKey" "InstallDir" Registry32
+            if ($sqlInstallRootPath64 -ne $null)
+            {
+                $sqlInstallRootPath = $sqlInstallRootPath64
+                break
+            }
+            if ($sqlInstallRootPath32 -ne $null)
+            {
+                $sqlInstallRootPath = $sqlInstallRootPath32
+                break
+            }
+        }
+
+        $DacInstallPath = [System.IO.Path]::Combine($sqlInstallRootPath, "SqlPackage.exe")
+        if (Test-Path $DacInstallPath)
+        {
+            Write-Verbose "Dac Framework installed with SQL Version $majorVersion found at $DacInstallPath on machine $env:COMPUTERNAME"
+            return $DacInstallPath, $majorVersion
+        }
+    }
+
     $sqlRegKeyWow = "HKLM:", "SOFTWARE", "Wow6432Node", "Microsoft", "Microsoft SQL Server", "DACFramework", "CurrentVersion" -join [System.IO.Path]::DirectorySeparatorChar
     $sqlRegKey = "HKLM:", "SOFTWARE", "Microsoft", "Microsoft SQL Server", "DACFramework", "CurrentVersion" -join [System.IO.Path]::DirectorySeparatorChar
 
@@ -353,12 +394,13 @@ function Get-SqlPackageCmdArgs
     [string]$serverName,
     [string]$databaseName,
     [string]$authscheme,
-    [string]$sqlUsername,
-    [string]$sqlPassword,
+    [System.Management.Automation.PSCredential]$sqlServerCredentials,
     [string]$connectionString,
     [string]$publishProfile,
     [string]$additionalArguments
     )
+
+    Write-Verbose -Verbose "File is $dacpacFile"
 
     # validate dacpac file
     if ([System.IO.Path]::GetExtension($dacpacFile) -ne ".dacpac")
@@ -378,7 +420,12 @@ function Get-SqlPackageCmdArgs
 
         if($authscheme -eq "sqlServerAuthentication")
         {
-            $sqlPkgCmdArgs = [string]::Format('{0} /TargetUser:"{1}" /TargetPassword:"{2}"', $sqlPkgCmdArgs, $sqlUsername, $sqlPassword)
+            if($sqlServerCredentials)
+            {
+                $sqlUsername = $sqlServerCredentials.GetNetworkCredential().username
+                $sqlPassword = $sqlServerCredentials.GetNetworkCredential().password
+                $sqlPkgCmdArgs = [string]::Format('{0} /TargetUser:"{1}" /TargetPassword:"{2}"', $sqlPkgCmdArgs, $sqlUsername, $sqlPassword)
+            }
         }
     }
     elseif($targetMethod -eq "connectionString")
@@ -401,7 +448,17 @@ function Get-SqlPackageCmdArgs
     return $sqlPkgCmdArgs
 }
 
-function ExecuteMain
+function Escape-SpecialChars
+{
+    param(
+        [string]$str
+    )
+
+    return $str.Replace('`', '``').Replace('"', '`"').Replace('$', '`$')
+}
+
+
+function Execute-DacpacDeployment
 {
     param (
      [string]$dacpacFile,
@@ -409,8 +466,7 @@ function ExecuteMain
      [string]$serverName,
      [string]$databaseName,
      [string]$authscheme,
-     [string]$sqlUsername,
-     [string]$sqlPassword,
+     [System.Management.Automation.PSCredential]$sqlServerCredentials,
      [string]$connectionString,
      [string]$publishProfile,
      [string]$additionalArguments
@@ -418,8 +474,9 @@ function ExecuteMain
 
     Write-Verbose "Entering script SqlPackageOnTargetMachines.ps1"
     $sqlPackage = Get-SqlPackageOnTargetMachine
-    $sqlPackageArguments = Get-SqlPackageCmdArgs -dacpacFile $dacpacFile -targetMethod $targetMethod -serverName $serverName -databaseName $databaseName -authscheme $authscheme -sqlUsername $sqlUsername -sqlPassword $sqlPassword -connectionString $connectionString -publishProfile $publishProfile -additionalArguments $additionalArguments
-
+    $sqlPackageArguments = Get-SqlPackageCmdArgs -dacpacFile $dacpacFile -targetMethod $targetMethod -serverName $serverName -databaseName $databaseName -authscheme $authscheme -sqlServerCredentials $sqlServerCredentials -connectionString $connectionString -publishProfile $publishProfile -additionalArguments $additionalArguments
+    Write-Verbose -Verbose $sqlPackageArguments
+    
     $command = "`"$sqlPackage`" $sqlPackageArguments"
     Write-Verbose "Executing command: $command"
     RunCommand -command $command -failOnErr $true

@@ -5,6 +5,7 @@ var spawn = require('child_process').spawn;
 var fs = require('fs-extra');
 var path = require('path');
 var os = require('os');
+var tsc = require('gulp-tsc');
 
 // build/test script
 var admZip = require('adm-zip');
@@ -14,12 +15,14 @@ var Q = require('q');
 var semver = require('semver');
 var shell = require('shelljs');
 var syncRequest = require('sync-request');
+var request = require('request');
 
 // gulp modules
 var del = require('del');
 var gts = require('gulp-typescript');
 var gulp = require('gulp');
 var gutil = require('gulp-util');
+var nuget = require('gulp-nuget');
 var pkgm = require('./package');
 var typescript = require('typescript');
 var args   = require('yargs').argv;
@@ -50,11 +53,17 @@ var options = minimist(process.argv.slice(2), mopts);
 var _buildRoot = "_build";
 var _packageRoot = "_package";
 var _extnBuildRoot = "_build/Extensions/";
+var _taskModuleBuildRoot = "_build/TaskModules/";
 var sourcePaths = "Extensions/**/*";
 var ExtensionFolder = "Extensions";
+var taskModulesSourcePath = "TaskModules/**/*"
+var TaskModulesFolder = "TaskModules"
+var TaskModulesTestRoot = path.join(_taskModuleBuildRoot, 'powershell', 'Tests');
+var TaskModulesTestTemp = path.join(TaskModulesTestRoot, 'Temp');
 var _tempPath = path.join(__dirname, '_temp');
 var _testRoot = "_build/";
 var _testTemp = "_build/Temp";
+var nugetPath = "_nuget";
 
 //-----------------------------------------------------------------------------------------------------------------
 // Build Tasks
@@ -68,7 +77,7 @@ var proj = gts.createProject('./tsconfig.json', { typescript: typescript });
 var ts = gts(proj);
 
 gulp.task("clean", function() {
-    return del([_buildRoot, _packageRoot]);
+    return del([_buildRoot, _packageRoot, nugetPath, _taskModuleBuildRoot]);
 });
 
 gulp.task("compilePS", ["clean"], function() {
@@ -100,7 +109,48 @@ gulp.task("compilePS", ["clean"], function() {
     }
 });
 
-gulp.task("compileNode", ["compilePS"],function(){
+gulp.task("TaskModuleBuild", ["clean"], function() {
+    gulp.src(taskModulesSourcePath, { base: "."}).pipe(gulp.dest(_buildRoot));
+});
+
+gulp.task("clean:TaskModuleTest", function(cb) {
+    return del([TaskModulesTestRoot], cb);
+});
+
+gulp.task('compile:TaskModuleTest', ['clean:TaskModuleTest'], function (cb) {
+    var testsPath = path.join('TaskModules', 'powershell', 'Tests', '**/*.ts');
+    return gulp.src([TaskModulesTestRoot, 'definitions/*.d.ts'])
+        .pipe(tsc())
+        .pipe(gulp.dest(TaskModulesTestRoot));
+});
+
+gulp.task('copy:TaskModuleTest', ['compile:TaskModuleTest'], function (cb) {
+    return gulp.src([path.join('TaskModules', 'powershell', 'Tests', '**/*')])
+        .pipe(gulp.dest(TaskModulesTestRoot));
+});
+
+gulp.task("TaskModuleTest", ['copy:TaskModuleTest'], function() {
+    process.env['TASK_TEST_TEMP'] = TaskModulesTestRoot;
+    shell.rm('-rf', TaskModulesTestRoot);
+    shell.mkdir('-p', TaskModulesTestRoot);
+    
+});
+
+gulp.task('prepublish:TaskModulePublish', function (done) {
+	return del([TaskModulesTestRoot], done);
+});
+
+gulp.task('TaskModulePublish', ['prepublish:TaskModulePublish'], function (done) {
+    var powershellModulesDirectory = path.join(_taskModuleBuildRoot, 'powershell', '**/*');
+
+    if(options.outputDir){
+        var outputModulesDirectory = path.join(options.outputDir, 'ps_modules');
+        shell.mkdir('-p', outputModulesDirectory);
+        gulp.src(powershellModulesDirectory).pipe(gulp.dest(outputModulesDirectory));
+    }
+});
+
+gulp.task("compileNode", ["compilePS"], function(cb){
      try {
         // Cache all externals in the download directory.
         var allExternalsJson = shell.find(path.join(__dirname, 'Extensions'))
@@ -142,6 +192,22 @@ gulp.task("compileNode", ["compilePS"],function(){
                     cacheArchiveFile(archive.url);
                 });
             }
+
+            // check of task modules
+            if(externals.taskModule) {
+                var taskModules = Object.keys(externals.taskModule);
+                taskModules.forEach(function (moduleIndex) {
+                      var module = externals.taskModule[moduleIndex];
+                      var srcPath = path.join("TaskModules", module['type'], module['name']);
+                      var relativeExternalsPath = path.dirname(externalsJson).replace(new RegExp('/','g'),'\\').replace(path.join(__dirname),'');
+                      if(relativeExternalsPath.startsWith('\\')) {
+                         relativeExternalsPath = relativeExternalsPath.substring(1);
+                      }
+                      var destPath = path.join(_buildRoot, relativeExternalsPath, module['dest']);
+                      shell.mkdir('-p', destPath);
+                      shell.cp('-R', srcPath, destPath);
+                });
+            }
         });
     }
     catch (err) {
@@ -150,12 +216,32 @@ gulp.task("compileNode", ["compilePS"],function(){
         return;
     }
 
-    var tasksPath = path.join(__dirname, 'Extensions', '**/*.ts');
+    // Compile UIExtensions
+    fs.readdirSync( path.join(__dirname, 'Extensions/')).filter(function (file) {
+        return fs.statSync(path.join(_extnBuildRoot, file)).isDirectory() && file != "Common";
+    }).forEach(compileUIExtensions);
+
+    // Compile tasks
+    var tasksPath = path.join(__dirname, 'Extensions/**/Tasks', '**/*.ts');
     return gulp.src([tasksPath, 'definitions/*.d.ts'])
         .pipe(ts)
         .on('error', errorHandler)
         .pipe(gulp.dest(path.join(_buildRoot, 'Extensions')));
 })
+
+function compileUIExtensions(extensionRoot) {
+    var uiExtensionsPath = path.join(_buildRoot,"Extensions", extensionRoot, 'Src', 'UIExtensions');
+    var tsconfigPath = path.join(uiExtensionsPath,"tsconfig.json");
+    if (fs.existsSync(tsconfigPath)) {
+        var projLocal = gts.createProject(tsconfigPath, { typescript: typescript });
+        var tsLocal = gts(projLocal);
+        var uiFilePath = path.join(uiExtensionsPath, '**/**/*.ts');
+        return gulp.src([uiFilePath])
+        .pipe(tsLocal)
+        .on('error', errorHandler)
+        .pipe(gulp.dest(uiExtensionsPath));
+    };
+}
 
 gulp.task("build", ["compileNode"], function() {
     //Foreach task under extensions copy common modules
@@ -221,8 +307,7 @@ gulp.task("test", ["_mochaTests"],function(done){
               message: 'Pester Tests Failed!!!'
            });
         }
-        else {
-            done();
+        else {            done();
         }
     });
     pester.on('error', function(err) {
@@ -232,18 +317,110 @@ gulp.task("test", ["_mochaTests"],function(done){
 });
 
 //-----------------------------------------------------------------------------------------------------------------
-// Package
-//-----------------------------------------------------------------------------------------------------------------
+// Package//-----------------------------------------------------------------------------------------------------------------
 
 var publisherName = null;
 gulp.task("package",  function() {
     if(args.publisher){
         publisherName = args.publisher;
     }
+    
+    // use gulp package --extension=<Extension_Name> to package an individual package
+    if(args.extension){
+        createVsixPackage(args.extension);        return;
+    }
     fs.readdirSync(_extnBuildRoot).filter(function (file) {
         return fs.statSync(path.join(_extnBuildRoot, file)).isDirectory() && file != "Common";
     }).forEach(createVsixPackage);
 });
+
+gulp.task('nuget-download', function(done) {
+    console.log("> Checking for nuget.exe");
+    if(fs.existsSync('nuget.exe')) {
+        return done();
+    }
+    console.log("> Downloading nuget.exe");
+    return request.get('http://nuget.org/nuget.exe')
+        .pipe(fs.createWriteStream('nuget.exe'));
+});
+
+gulp.task("package_nuget", ['nuget-download'], function() {
+    
+    // nuspec
+    var version = options.version;
+    if (!version) {
+        console.error('ERROR: supply version with --version');
+        process.exit(1);
+    }
+
+    if (!semver.valid(version)) {
+        console.error('ERROR: invalid semver version: ' + version);
+        process.exit(1);
+    }
+
+    if(!options.extension) {
+        console.error('ERROR: supply extension name with --extension');
+        process.exit(1);
+    }
+
+    if(!fs.existsSync("_package\\"+options.extension)) {
+        console.error('ERROR: mentioned extension does not exist');
+        process.exit(1);
+    }
+    // Nuget package
+
+    // Copying extension to contents
+    var extensionPath = path.join("_package", options.extension);
+    
+    shell.rm("-rf", nugetPath);
+    var contentsPath = path.join(nugetPath,'pack-source', 'contents');
+    shell.mkdir("-p", contentsPath);
+    shell.cp(path.join(extensionPath,"*"), contentsPath);
+    
+    // nuspec
+    var pkgName = 'Mseng.MS.TF.RM.Extensions';
+    console.log();
+    console.log('> Generating .nuspec file');
+    var contents = '<?xml version="1.0" encoding="utf-8"?>' + os.EOL;
+    contents += '<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">' + os.EOL;
+    contents += '   <metadata>' + os.EOL;
+    contents += '      <id>' + pkgName + '</id>' + os.EOL;
+    contents += '      <version>' + version + '</version>' + os.EOL;
+    contents += '      <authors>bigbldt</authors>' + os.EOL;
+    contents += '      <owners>bigbldt,Microsoft</owners>' + os.EOL;
+    contents += '      <requireLicenseAcceptance>false</requireLicenseAcceptance>' + os.EOL;
+    contents += '      <description>For VSS internal use only</description>' + os.EOL;
+    contents += '      <tags>VSSInternal</tags>' + os.EOL;
+    contents += '   </metadata>' + os.EOL;
+    contents += '</package>' + os.EOL;
+    console.log('> Generated .nuspec file');
+
+    console.log();
+    console.log('> Copying extension to package');
+    var nuspecPath = path.join(nugetPath, 'pack-source', pkgName + '.nuspec');
+    fs.writeFileSync(nuspecPath, contents);
+    console.log('> Copied extension to package');
+
+    // package
+    console.log();
+    console.log('> Beginning package...');
+    var nupkgPath = path.join(nugetPath, 'pack-target');
+    var exePath = './nuget.exe';
+    gulp.src(nuspecPath)
+        .pipe(nuget.pack({ nuget: exePath, version: options.version }))
+        .pipe(gulp.dest(nupkgPath));
+    console.log();
+    console.log('> Package Successful');
+    
+    if (options.server) {
+        console.log();
+        console.log('> Publishing .nupkg file to server');
+        gulp.src(path.join(nupkgPath, pkgName + "." + options.version + ".nupkg"))
+            .pipe(nuget.push({ source: options.server, nuget: exePath, apiKey: 'SkyRise' }));
+        console.log('> Publish Successful');    
+    }
+});
+
 
 gulp.task("locCommon",function(){
     return gulp.src(path.join(__dirname, 'Extensions/Common/**/module.json')) 

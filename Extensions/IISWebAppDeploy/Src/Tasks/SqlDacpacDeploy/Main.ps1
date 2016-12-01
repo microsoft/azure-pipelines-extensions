@@ -4,8 +4,12 @@ param (
     [string]$adminPassword,
     [string]$winrmProtocol,
     [string]$testCertificate,
+    [string]$taskType,
     [string]$dacpacFile,
+    [string]$sqlFile,
+    [string]$inlineSql,
     [string]$targetMethod,
+    [string]$targetMethodSql,
     [string]$serverName,
     [string]$databaseName,
     [string]$authscheme,
@@ -14,6 +18,7 @@ param (
     [string]$connectionString,
     [string]$publishProfile,
     [string]$additionalArguments,
+    [string]$additionalArgumentsSql,
     [string]$deployInParallel
     )
 
@@ -21,4 +26,10 @@ $env:CURRENT_TASK_ROOTDIR = Split-Path -Parent $MyInvocation.MyCommand.Path
 
 . $env:CURRENT_TASK_ROOTDIR\DeployToSqlServer.ps1
 
-(Main -machinesList $machinesList -adminUserName $adminUserName -adminPassword $adminPassword -winrmProtocol $winrmProtocol -testCertificate $testCertificate -dacpacFile $dacpacFile -targetMethod $targetMethod -serverName $serverName -databaseName $databaseName -authscheme $authscheme -sqlUsername $sqlUsername -sqlPassword $sqlPassword -connectionString $connectionString -publishProfile $publishProfile -additionalArguments $additionalArguments -deployInParallel $deployInParallel)
+if ($taskType -ne "dacpac")
+{
+    $additionalArguments = $additionalArgumentsSql
+    $targetMethod = "server"
+}
+
+(Main -machinesList $machinesList -adminUserName $adminUserName -adminPassword $adminPassword -winrmProtocol $winrmProtocol -testCertificate $testCertificate -dacpacFile $dacpacFile -targetMethod $targetMethod -serverName $serverName -databaseName $databaseName -authscheme $authscheme -sqlUsername $sqlUsername -sqlPassword $sqlPassword -connectionString $connectionString -publishProfile $publishProfile -additionalArguments $additionalArguments -deployInParallel $deployInParallel -taskType $taskType -inlineSql $inlineSql -sqlFile $sqlFile)

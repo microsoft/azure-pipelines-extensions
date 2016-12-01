@@ -1,16 +1,16 @@
 ﻿$currentScriptPath = Split-Path -Parent $MyInvocation.MyCommand.Path
-$scritpDirName = Split-Path -Leaf $currentScriptPath
+$scriptDirName = Split-Path -Leaf $currentScriptPath
 $sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path).Replace(".Tests.", ".")
 $VerbosePreference = 'Continue'
 
-$deploySqlDacpacPath = "$currentScriptPath\..\..\..\Src\Tasks\$scritpDirName\$sut"
+$deploySqlDacpacPath = "$currentScriptPath\..\..\..\Src\Tasks\$scriptDirName\$sut"
 
 if(-not (Test-Path -Path $deploySqlDacpacPath ))
 {
     throw [System.IO.FileNotFoundException] "Unable to find DeployToSqlServer.ps1 at $deploySqlDacpacPath"
 }
 
-$invokeRemoteDeploymentPath = "$currentScriptPath\..\..\..\Src\Tasks\$scritpDirName\DeploymentSDK\InvokeRemoteDeployment.ps1"
+$invokeRemoteDeploymentPath = "$currentScriptPath\..\..\..\Src\Tasks\$scriptDirName\DeploymentSDK\InvokeRemoteDeployment.ps1"
 
 if(-not (Test-Path -Path $invokeRemoteDeploymentPath ))
 {
@@ -56,6 +56,7 @@ Describe "Tests for testing TrimInputs functionality" {
 
     $dacpacFileNoExtraQuotes = "sample.dacpac"
     $pubProfileNoExtraQuotes = "c:\pub.xml"
+    $sqlFileNoExtraQuotes = ""
 
     $adminUserNoSpaces = "adminuser"
     $sqlUserNoSpaces = "sqluser"
@@ -64,8 +65,9 @@ Describe "Tests for testing TrimInputs functionality" {
 
         $dacpacFile = "`"sample.dacpac`""
         $pubProfile = "`"c:\pub.xml`""
+        $sqlFile = "`"sample.sql`""
                 
-        TrimInputs -dacpacFile ([ref]$dacpacFile) -publishProfile ([ref]$pubProfile)  -adminUserName ([ref]$adminUserNoSpaces) -sqlUsername ([ref]$sqlUserNoSpaces)
+        TrimInputs -dacpacFile ([ref]$dacpacFile) -publishProfile ([ref]$pubProfile)  -adminUserName ([ref]$adminUserNoSpaces) -sqlUsername ([ref]$sqlUserNoSpaces) -sqlFile ([ref]$sqlFile)
 
         It "should not have extra double quotes"{
             ( $dacpacFile ) | Should Be $dacpacFileNoExtraQuotes
@@ -78,7 +80,7 @@ Describe "Tests for testing TrimInputs functionality" {
         $sqlUser = " sqluser "
         
 
-        TrimInputs -dacpacFile ([ref]$dacpacFileNoExtraQuotes) -publishProfile ([ref]$pubProfileNoExtraQuotes)  -adminUserName ([ref]$adminUser) -sqlUsername ([ref]$sqlUser)
+        TrimInputs -dacpacFile ([ref]$dacpacFileNoExtraQuotes) -publishProfile ([ref]$pubProfileNoExtraQuotes)  -adminUserName ([ref]$adminUser) -sqlUsername ([ref]$sqlUser) -sqlFile ([ref]$sqlFileNoExtraQuotes)
 
         It "should not have extra double quotes"{
             ( $adminUser ) | Should Be $adminUserNoSpaces
@@ -137,11 +139,26 @@ Describe "Tests for testing GetScriptToRun functionality" {
 
         Mock Get-Content {return "Dummy Script"}
 
-        $script = GetScriptToRun -dacpacFile "sample.dacpac" -targetMethod "server" -serverName "localhost" -databaseName "SampleDB" -authscheme "sqlServerAuthentication" -sqlUserName "sampleuser" -sqlPassword "dummypassword" -connectionString "" -publishProfile "" -additionalArguments ""
+        $script = GetScriptToRun -dacpacFile "sample.dacpac" -targetMethod "server" -serverName "localhost" -databaseName "SampleDB" -authscheme "sqlServerAuthentication" -sqlUserName "sampleuser" -sqlPassword "dummypassword" -connectionString "" -publishProfile "" -additionalArguments "" -taskType "dacpac" -inlineSql "" -sqlFile ""
+
+        Write-Verbose $script
+        It "should contain script content and invoke expression" {
+            ($script.Contains('Dummy Script')) | Should Be $true
+            ($script.Contains('Execute-DacpacDeployment -dacpacFile "sample.dacpac" -targetMethod server -serverName "localhost" -databaseName "SampleDB" -authscheme sqlServerAuthentication -sqlServerCredentials $sqlServerCredentials -connectionString "" -publishProfile "" -additionalArguments ""')) | Should Be $true
+        }
+
+        $script = GetScriptToRun -dacpacFile "" -targetMethod "server" -serverName "localhost" -databaseName "SampleDB" -authscheme "sqlServerAuthentication" -sqlUserName "sampleuser" -sqlPassword "dummypassword" -connectionString "" -publishProfile "" -additionalArguments "" -taskType "sqlQuery" -inlineSql "" -sqlFile "sample.sql"
 
         It "should contain script content and invoke expression" {
             ($script.Contains('Dummy Script')) | Should Be $true
-            ($script.Contains('ExecuteMain -dacpacFile "sample.dacpac" -targetMethod server -serverName "localhost" -databaseName "SampleDB" -authscheme sqlServerAuthentication -sqlUsername "sampleuser" -sqlPassword "dummypassword" -connectionString "" -publishProfile "" -additionalArguments ""')) | Should Be $true
+            ($script.Contains('Execute-SqlQueryDeployment -taskType "sqlQuery" -sqlFile "sample.sql" -inlineSql "" -serverName "localhost" -databaseName "SampleDB" -authscheme sqlServerAuthentication -sqlServerCredentials $sqlServerCredentials -additionalArguments ""')) | Should Be $true
+        }
+
+        $script = GetScriptToRun -dacpacFile "" -targetMethod "server" -serverName "localhost" -databaseName "SampleDB" -authscheme "sqlServerAuthentication" -sqlUserName "sampleuser" -sqlPassword "dummypassword" -connectionString "" -publishProfile "" -additionalArguments "" -taskType "sqlInline" -inlineSql "Testing Inline SQL" -sqlFile ""
+        
+        It "should contain script content and invoke expression" {
+            ($script.Contains('Dummy Script')) | Should Be $true
+            ($script.Contains('Execute-SqlQueryDeployment -taskType "sqlInline" -sqlFile "" -inlineSql "Testing Inline SQL" -serverName "localhost" -databaseName "SampleDB" -authscheme sqlServerAuthentication -sqlServerCredentials $sqlServerCredentials -additionalArguments ""')) | Should Be $true
         }
     }
 }
@@ -153,7 +170,13 @@ Describe "Tests for testing Main functionality" {
         Mock Invoke-RemoteDeployment -Verifiable { return "" } -ParameterFilter { $MachinesList -eq "dummyMachinesList" }
         Mock TrimInputs -Verifiable { return }
 
-        Main -machinesList "dummyMachinesList" -adminUserName "dummyadminuser" -adminPassword "dummyadminpassword" -winrmProtocol "https" -testCertificate "true" -dacpacFile "sample.dacpac" -targetMethod "server" -serverName "localhost" -databaseName "SampleDB" -sqlUserName "sampleuser" -sqlPassword "dummypassword" -connectionString "" -publishProfile "" -additionalArguments ""
+        Main -machinesList "dummyMachinesList" -adminUserName "dummyadminuser" -adminPassword "dummyadminpassword" -winrmProtocol "https" -testCertificate "true" -dacpacFile "sample.dacpac" -targetMethod "server" -serverName "localhost" -databaseName "SampleDB" -sqlUserName "sampleuser" -sqlPassword "dummypassword" -connectionString "" -publishProfile "" -additionalArguments "" -taskType "dacpac" -inlineSql "" -sqlFile ""
+
+        It "Should integrate all the functions and call with appropriate arguments" {
+            Assert-VerifiableMocks
+        }
+
+        Main -machinesList "dummyMachinesList" -adminUserName "dummyadminuser" -adminPassword "dummyadminpassword" -winrmProtocol "http" -dacpacFile "" -targetMethod "server" -serverName "localhost" -databaseName "SampleDB" -authscheme sqlServerAuthentication -sqlUserName "sampleuser" -sqlPassword "dummypassword" -connectionString "" -publishProfile "" -additionalArguments "" -taskType "sqlQuery" -inlineSql "" -sqlFile "sample.sql"
 
         It "Should integrate all the functions and call with appropriate arguments" {
             Assert-VerifiableMocks
