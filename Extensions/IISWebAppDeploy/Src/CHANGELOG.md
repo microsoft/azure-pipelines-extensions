@@ -5,9 +5,12 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ## [Unreleased]
 
 ## [1.3.0] - 1st December 2016
+### Added
+- Added support for Sql Server, Dac Framwork 2016
+
 ### Fixed
 - Error messages are not showing on console for SQL task
-- Unable to detect sqlPackge.exe when sql DAC-Framework 2016 installed
+
 
 ## [1.2.4] - 12th October 2016
 ### Fixed
