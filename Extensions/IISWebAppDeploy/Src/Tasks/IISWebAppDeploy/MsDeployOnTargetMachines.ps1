@@ -168,7 +168,19 @@ function Deploy-Website
     $containsParamFile = $false
     if(-not $isFolderBasedDeployment)
     {
-        $containsParamFile = Contains-ParamFile -packageFile $webDeployPkg
+        $paramFileXml = Get-ParamFileXml -packageFile $webDeployPkg
+        if($paramFileXml -ne $null)
+        {
+            $containsParamFile = $true
+            $parameters = $paramFileXML.output.parameters
+            $iisWebApplicationParameter = $parameters.parameter | Where-Object { $_.name -eq 'IIS Web Application Name'}
+            if(-not $iisWebApplicationParameter)
+            {
+                $msDeployExePath = Get-MsDeployLocation -regKeyPath $MsDeployInstallPathRegKey
+                $msDeployCheckParamFileCmdArgs = " -verb:getParameters -source:package='" + $packageFile + "'";
+                return $true
+            }
+        }
     }
 
     $msDeployExePath = Get-MsDeployLocation -regKeyPath $MsDeployInstallPathRegKey
@@ -211,17 +223,39 @@ function Contains-ParamFile
     $parameters = $paramFileXML.output.parameters
     if($parameters)
     {
-        $iisWebApplicationParameter = $parameters.parameter | Where-Object { $_.name -eq 'IIS Web Application Name'}
+        return $paramFileXML
+        <#$iisWebApplicationParameter = $parameters.parameter | Where-Object { $_.name -eq 'IIS Web Application Name'}
         if($iisWebApplicationParameter)
         {
             return $true
         }
         Write-Verbose "'IIS Web Application Name' parameter not present in parameters.xml"
-        return $false       
+        return $false#>       
     }
     Write-Verbose "Parameters.xml file is not present in package"   
-    return $false
+    return $null
 }
+
+function Get-ParamFileXml
+{
+    param(
+        [String][Parameter(Mandatory=$true)] $packageFile
+    )
+
+    $msDeployExePath = Get-MsDeployLocation -regKeyPath $MsDeployInstallPathRegKey
+    $msDeployCheckParamFileCmdArgs = " -verb:getParameters -source:package='" + $packageFile + "'";
+    $msDeployCheckParamFileCmd = "`"$msDeployExePath`" $msDeployCheckParamFileCmdArgs"
+    Write-Verbose "Running msDeploy command to check if $packageFile contains paramters file."
+    $ParamFileContent = Run-Command -command $msDeployCheckParamFileCmd
+    $paramFileXML = [XML] $ParamFileContent
+    if($paramFileXML.output.parameters)
+    {
+        return $paramFileXML  
+    }
+    Write-Verbose "Parameters.xml file is not present in package"   
+    return $null
+}
+
 
 function Compute-MsDeploy-SetParams
 {
