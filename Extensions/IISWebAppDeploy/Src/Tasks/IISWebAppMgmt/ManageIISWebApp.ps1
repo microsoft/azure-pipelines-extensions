@@ -47,7 +47,8 @@ function Validate-Inputs
         [string]$createWebsite,
         [string]$websiteName,
         [string]$createAppPool,
-        [string]$appPoolName
+        [string]$appPoolName,
+        [string]$sslCertThumbPrint
     )
 
     Write-Verbose "Validating website and application pool inputs"
@@ -59,6 +60,14 @@ function Validate-Inputs
     if($createAppPool -ieq "true" -and [string]::IsNullOrWhiteSpace($appPoolName))
     { 
         throw "Application pool name cannot be empty if you want to create or update the target app pool."
+    }
+
+    if(-not [string]::IsNullOrWhiteSpace($sslCertThumbPrint))
+    {
+        if(($sslCertThumbPrint.Length -ne 40) -or (-not [regex]::IsMatch($thumbprint, "[a-fA-F0-9]{40}")))
+        {
+            throw "Invalid thumbprint. Length is not 40 characters or contains invalid characters."
+        }
     }
 }
 
