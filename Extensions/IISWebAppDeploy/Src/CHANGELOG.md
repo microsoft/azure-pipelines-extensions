@@ -5,8 +5,9 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ## [Unreleased]
 
 ### Added
-- Webapp folder supported
-- ASP.NET core webapp support added
+- Support for deploying Asp.Net4, Asp.Net Core 1 and Node Apps using
+    - Build output in the form of folder or UNC Path
+    - Compressed (zip) build output
 
 ### Fixed
 - Error messages are not showing on console for SQL task

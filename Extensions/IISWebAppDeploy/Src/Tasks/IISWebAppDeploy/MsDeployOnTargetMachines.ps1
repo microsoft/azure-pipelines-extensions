@@ -215,7 +215,7 @@ function Create-ParametersFileWithWebAppNameAttribute
     $paramFileXml.removeChild($paramFileXml.output) | Out-null
     $paramFileXml.AppendChild($parameters) | Out-null
 
-    $declareParamFilePath = [string]::Format("{0}{1}{2}", $env:temp, [System.IO.Path]::DirectorySeparatorChar, "temp_parameters.xml");
+    $declareParamFilePath = [string]::Format("{0}{1}", [System.IO.Path]::GetTempPath(), "temp_parameters.xml");
     $paramFileXml.save($declareParamFilePath)
     Write-Verbose "Declare parameters.xml file is being created at path : $declareParamFilePath"
     return $declareParamFilePath
@@ -233,7 +233,6 @@ function Create-ChildNodeWithAttributes
     $childNode = $xmlDom.CreateElement($name)
     $attributes.Keys | % { $childNode.SetAttribute($_, $attributes.Item($_)) }
     return $childNode
-
 }
 
 function Update-ParametersFile
@@ -243,7 +242,7 @@ function Update-ParametersFile
         [String][Parameter(Mandatory=$true)] $declareParamFile
     )
 
-    $updatedWebDeployPackage = [string]::Format("{0}{1}{2}", $env:temp, [System.IO.Path]::DirectorySeparatorChar, "temp_webapp_package.zip");
+    $updatedWebDeployPackage = [string]::Format("{0}{1}", [System.IO.Path]::GetTempPath(), "temp_webapp_package.zip");
     $msDeployExePath = Get-MsDeployLocation -regKeyPath $MsDeployInstallPathRegKey
     $msDeployDeclareParamFileCmdArgs = '-verb:sync -source:package="' + $webDeployPackage +'" -dest:package="' + $updatedWebDeployPackage + '" -enableRule:DoNotDeleteRule -declareParamFile:"' + $declareParamFile + '"' 
     $msDeployDeclareParamFileCmd = "`"$msDeployExePath`" $msDeployDeclareParamFileCmdArgs"
@@ -251,7 +250,6 @@ function Update-ParametersFile
     Write-Verbose "##[command]$msDeployDeclareParamFileCmd"
     $result = Run-Command -command $msDeployDeclareParamFileCmd
     return $updatedWebDeployPackage
-
 }
 
 function Is-Directory
@@ -269,34 +267,6 @@ function Is-Directory
         return $true
     }
     return $false
-}
-
-function Contains-ParamFile
-{
-    param(
-        [String][Parameter(Mandatory=$true)] $packageFile
-    )
-
-    $msDeployExePath = Get-MsDeployLocation -regKeyPath $MsDeployInstallPathRegKey
-    $msDeployCheckParamFileCmdArgs = " -verb:getParameters -source:package='" + $packageFile + "'";
-    $msDeployCheckParamFileCmd = "`"$msDeployExePath`" $msDeployCheckParamFileCmdArgs"
-    Write-Verbose "Running msDeploy command to check if $packageFile contains paramters file."
-    $ParamFileContent = Run-Command -command $msDeployCheckParamFileCmd
-    $paramFileXML = [XML] $ParamFileContent
-    $parameters = $paramFileXML.output.parameters
-    if($parameters)
-    {
-        return $paramFileXML
-        <#$iisWebApplicationParameter = $parameters.parameter | Where-Object { $_.name -eq 'IIS Web Application Name'}
-        if($iisWebApplicationParameter)
-        {
-            return $true
-        }
-        Write-Verbose "'IIS Web Application Name' parameter not present in parameters.xml"
-        return $false#>       
-    }
-    Write-Verbose "Parameters.xml file is not present in package"   
-    return $null
 }
 
 function Get-ParamFileXml
