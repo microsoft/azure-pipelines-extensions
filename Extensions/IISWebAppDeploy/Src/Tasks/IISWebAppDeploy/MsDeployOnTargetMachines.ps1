@@ -200,9 +200,9 @@ function Create-ParametersFileWithWebAppNameAttribute
         $websiteName
     )
 
-    $parameterIISWebAppNodeAttributes=@{ "name"="IIS Web Application Name"; "defaultValue" = "$websiteName"; "tags" = "IisApp"}
-    $parameterEntryIISAppChildNodeAttributes=@{ "kind"="ProviderPath"; "scope" = "IisApp"; "tags" = "IisApp"}
-    $parameterEntryAclChildNodeAttributes=@{ "kind"="ProviderPath"; "scope" = "setAcl"}
+    $parameterIISWebAppNodeAttributes = @{ "name"="IIS Web Application Name"; "defaultValue" = "$websiteName"; "tags" = "IisApp"}
+    $parameterEntryIISAppChildNodeAttributes = @{ "kind"="ProviderPath"; "scope" = "IisApp"; "tags" = "IisApp"}
+    $parameterEntryAclChildNodeAttributes = @{ "kind"="ProviderPath"; "scope" = "setAcl"}
 
     $parameterIISWebAppNode = Create-ChildNodeWithAttributes -xmlDom $paramFileXml -name "parameter" -attributes $parameterIISWebAppNodeAttributes
     $parameterEntryIISAppChildNode = Create-ChildNodeWithAttributes -xmlDom $paramFileXml -name "parameterEntry" -attributes $parameterEntryIISAppChildNodeAttributes

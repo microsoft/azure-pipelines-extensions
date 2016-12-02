@@ -24,6 +24,8 @@ $vsRegKey = "HKLM:", "SOFTWARE", "Wow6432Node", "Microsoft", "VisualStudio" -joi
 $vsRegKey64 = "HKLM:", "SOFTWARE", "Microsoft", "VisualStudio" -join [System.IO.Path]::DirectorySeparatorChar
 $sqlDacRegKeyWow = "HKLM:", "SOFTWARE", "Wow6432Node", "Microsoft", "Microsoft SQL Server", "DACFramework", "CurrentVersion" -join [System.IO.Path]::DirectorySeparatorChar
 $sqlDacRegKey = "HKLM:", "SOFTWARE", "Microsoft", "Microsoft SQL Server", "DACFramework", "CurrentVersion" -join [System.IO.Path]::DirectorySeparatorChar
+$sqlDacRegKeyWow2016 = "HKLM:", "SOFTWARE", "Wow6432Node", "Microsoft", "Microsoft SQL Server", "Data-Tier Application Framework" -join [System.IO.Path]::DirectorySeparatorChar
+$sqlDacRegKey2016 = "HKLM:", "SOFTWARE", "Microsoft", "Microsoft SQL Server", "Data-Tier Application Framework" -join [System.IO.Path]::DirectorySeparatorChar
 $dacExtensionPath = [System.IO.Path]::Combine("Extensions", "Microsoft", "SQLDB", "DAC")
 
 
@@ -281,6 +283,8 @@ Describe "LocateHighestVersionSqlPackageWithDacMsi" {
     Context "Dac Fx present in Registry32 in Program Files(x86)" {
         Mock Test-Path { return $false } -ParameterFilter { $Path -eq $sqlDacRegKey }
         Mock Test-Path { return $true } -ParameterFilter { $Path -eq $sqlDacRegKeyWow }
+        Mock Test-Path { return $false } -ParameterFilter { $Path -eq $sqlDacRegKey2016 }
+        Mock Test-Path { return $false } -ParameterFilter { $Path -eq $sqlDacRegKeyWow2016 }
         Mock Get-RegistryValueIgnoreError { return $testDacMajorVersion12 } -ParameterFilter { $RegistryView -eq "Registry32" }
         Mock Test-Path { return $true } -ParameterFilter { $Path -eq $testDacFxPathx86 }
         It "Should return correct sql dacapc path and version" {
@@ -293,6 +297,8 @@ Describe "LocateHighestVersionSqlPackageWithDacMsi" {
     Context "Dac Fx present in Registry32 in Program Files" {
         Mock Test-Path { return $false } -ParameterFilter { $Path -eq $sqlDacRegKey }
         Mock Test-Path { return $true } -ParameterFilter { $Path -eq $sqlDacRegKeyWow }
+        Mock Test-Path { return $false } -ParameterFilter { $Path -eq $sqlDacRegKey2016 }
+        Mock Test-Path { return $false } -ParameterFilter { $Path -eq $sqlDacRegKeyWow2016 }
         Mock Get-RegistryValueIgnoreError { return $testDacMajorVersion12 } -ParameterFilter { $RegistryView -eq "Registry32" }
         Mock Test-Path { return $false } -ParameterFilter { $Path -eq $testDacFxPathx86 }
         Mock Test-Path { return $true } -ParameterFilter { $Path -eq $testDacFxPath }

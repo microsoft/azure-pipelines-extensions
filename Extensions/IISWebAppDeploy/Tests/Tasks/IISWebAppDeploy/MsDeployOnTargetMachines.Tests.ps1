@@ -240,7 +240,7 @@ Describe "Tests for verifying Get-MsDeployCmdArgs functionality" {
     }
 }
 
-Describe "Tests for verifying Contains-ParamFile functionality" {
+Describe "Tests for verifying Get-ParamFileXml functionality" {
 
     $msDeploy = "MSDeploy.exe"
     $webAppPackage = "Sample.zip"
@@ -250,10 +250,10 @@ Describe "Tests for verifying Contains-ParamFile functionality" {
         Mock Get-MsDeployLocation -Verifiable { return $msDeploy }
         Mock Run-Command -Verifiable { return "<output><parameters /></output>"}
 
-        $isParameterPresent = Contains-ParamFile -packageFile $webAppPackage
+        $isParameterPresent = Get-ParamFileXml -packageFile $webAppPackage
         
         It "Should return false since parameter file is not present in the package" {
-            $isParameterPresent | should Be $false
+            $isParameterPresent | should Be $null
             Assert-VerifiableMocks
         }
     }
@@ -263,10 +263,10 @@ Describe "Tests for verifying Contains-ParamFile functionality" {
         Mock Get-MsDeployLocation -Verifiable { return $msDeploy }
         Mock Run-Command -Verifiable { return '<output><parameters><parameter name="DefaultConnection-Web.configConnectionString" defaultValue="Testvalue"></parameter></parameters></output>'}
 
-        $isParameterPresent = Contains-ParamFile -packageFile $webAppPackage
+        $isParameterPresent = Get-ParamFileXml -packageFile $webAppPackage
         
         It "Should return false since parameter file is not present in the package" {
-            $isParameterPresent | should Be $false
+            $isParameterPresent -ne $null | should Be $true
             Assert-VerifiableMocks
         }
     }
@@ -276,14 +276,27 @@ Describe "Tests for verifying Contains-ParamFile functionality" {
         Mock Get-MsDeployLocation -Verifiable { return $msDeploy }
         Mock Run-Command -Verifiable { return '<output><parameters><parameter name="IIS Web Application Name" defaultValue="Default Web Site/AzureWebApp1_deploy" tags="IisApp"></parameter></parameters></output>'}
 
-        $isParameterPresent = Contains-ParamFile -packageFile $webAppPackage
+        $isParameterPresent = Get-ParamFileXml -packageFile $webAppPackage
         
         It "Should return false since parameter file is not present in the package" {
-            $isParameterPresent | should Be $true
+            $isParameterPresent -ne $null | should Be $true
             Assert-VerifiableMocks
         }
     }
+}
 
+Describe "Tests for verifying Create-ParametersFileWithWebAppNameAttribute functionality" {
+
+    Context "Should create a temp file with parameters" {
+        
+        $parametersFileContent = '<output><parameters><parameter name="DefaultConnection-Web.configConnectionString" defaultValue="Testvalue"></parameter></parameters></output>'
+        $paramFileXml = [xml] $parametersFileContent
+        $declareParamFilePath = Create-ParametersFileWithWebAppNameAttribute -paramFileXml $paramFileXml -websiteName "sampleWebApp"
+        
+        It "Should have create declare file in temp Directory" {
+            (Test-Path $declareParamFilePath) | should Be $true
+        }
+    }
 }
 
 Describe "Tests for verifying Deploy-WebSite functionality" {
