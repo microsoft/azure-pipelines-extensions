@@ -28,7 +28,7 @@ function Get-HostName
     return $hostName
 }
 
-function Trim-Inputs([ref]$siteName, [ref]$physicalPath, [ref]$poolName, [ref]$websitePathAuthuser, [ref]$appPoolUser, [ref]$adminUser)
+function Trim-Inputs([ref]$siteName, [ref]$physicalPath, [ref]$poolName, [ref]$websitePathAuthuser, [ref]$appPoolUser, [ref]$adminUser, [ref]$sslCertThumbPrint)
 {
     Write-Verbose "Triming inputs for excess spaces, double quotes"
 
@@ -39,6 +39,7 @@ function Trim-Inputs([ref]$siteName, [ref]$physicalPath, [ref]$poolName, [ref]$w
     $appPoolUser.Value = $appPoolUser.Value.Trim()
     $websitePathAuthuser.Value = $websitePathAuthuser.Value.Trim()
     $adminUser.Value = $adminUser.Value.Trim()
+    $sslCertThumbPrint.Value = $sslCertThumbPrint.Value.Trim()
 }
 
 function Validate-Inputs
@@ -209,7 +210,7 @@ function Main
     Write-Verbose "appCmdCommands = $appCmdCommands"
     Write-Verbose "deployInParallel = $deployInParallel"
 
-    Trim-Inputs -siteName ([ref]$websiteName) -physicalPath ([ref]$websitePhysicalPath)  -poolName ([ref]$appPoolName) -websitePathAuthuser ([ref]$websiteAuthUserName) -appPoolUser ([ref]$appPoolUsername) -adminUser ([ref]$adminUserName)
+    Trim-Inputs -siteName ([ref]$websiteName) -physicalPath ([ref]$websitePhysicalPath)  -poolName ([ref]$appPoolName) -websitePathAuthuser ([ref]$websiteAuthUserName) -appPoolUser ([ref]$appPoolUsername) -adminUser ([ref]$adminUserName) -sslCertThumbPrint ([ref]$sslCertThumbPrint)
 
     Validate-Inputs -createWebsite $createWebsite -websiteName $websiteName -createAppPool $createAppPool -appPoolName $appPoolName
 
