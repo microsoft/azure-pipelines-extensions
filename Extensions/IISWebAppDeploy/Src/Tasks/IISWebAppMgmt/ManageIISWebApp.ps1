@@ -49,6 +49,8 @@ function Validate-Inputs
         [string]$websiteName,
         [string]$createAppPool,
         [string]$appPoolName,
+        [string]$addBinding,
+        [string]$protocol,
         [string]$sslCertThumbPrint
     )
 
@@ -63,7 +65,7 @@ function Validate-Inputs
         throw "Application pool name cannot be empty if you want to create or update the target app pool."
     }
 
-    if(-not [string]::IsNullOrWhiteSpace($sslCertThumbPrint))
+    if((-not [string]::IsNullOrWhiteSpace($sslCertThumbPrint)) -and ($protocol -ieq "https") -and ($addBinding -ieq "true")) 
     {
         if(($sslCertThumbPrint.Length -ne 40) -or (-not [regex]::IsMatch($sslCertThumbPrint, "[a-fA-F0-9]{40}")))
         {
@@ -212,7 +214,7 @@ function Main
 
     Trim-Inputs -siteName ([ref]$websiteName) -physicalPath ([ref]$websitePhysicalPath)  -poolName ([ref]$appPoolName) -websitePathAuthuser ([ref]$websiteAuthUserName) -appPoolUser ([ref]$appPoolUsername) -adminUser ([ref]$adminUserName) -sslCertThumbPrint ([ref]$sslCertThumbPrint)
 
-    Validate-Inputs -createWebsite $createWebsite -websiteName $websiteName -createAppPool $createAppPool -appPoolName $appPoolName -sslCertThumbPrint $sslCertThumbPrint
+    Validate-Inputs -createWebsite $createWebsite -websiteName $websiteName -createAppPool $createAppPool -appPoolName $appPoolName -addBinding $addBinding -protocol $protocol -sslCertThumbPrint $sslCertThumbPrint
 
     $script = Get-ScriptToRun -createWebsite $createWebsite -websiteName $websiteName -websitePhysicalPath $websitePhysicalPath -websitePhysicalPathAuth $websitePhysicalPathAuth -websiteAuthUserName $websiteAuthUserName -websiteAuthUserPassword $websiteAuthUserPassword -addBinding $addBinding -protocol $protocol -ipAddress $ipAddress -port $port -hostName $hostName -serverNameIndication $serverNameIndication -sslCertThumbPrint $sslCertThumbPrint -createAppPool $createAppPool -appPoolName $appPoolName -pipeLineMode $pipeLineMode -dotNetVersion $dotNetVersion -appPoolIdentity $appPoolIdentity -appPoolUsername $appPoolUsername -appPoolPassword $appPoolPassword -appCmdCommands $appCmdCommands
     Run-RemoteDeployment -machinesList $machinesList -scriptToRun $script -adminUserName $adminUserName -adminPassword $adminPassword -winrmProtocol $winrmProtocol -testCertificate $testCertificate -deployInParallel $deployInParallel -websiteName $websiteName

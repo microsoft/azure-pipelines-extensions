@@ -160,35 +160,49 @@ Describe "Tests for testing Validate-Inputs functionality" {
     Context "Should throw when sslCertThumbPrint is greater than 40 character length" {
         It "Should throw exception" {
             $thumbprint = "de86af66a9624ddbc3a1055f937be9c000d6b8a11" #contains one char extra at end
-            { Validate-Inputs -createWebsite "faslse" -createAppPool "false" -sslCertThumbPrint $thumbprint } | Should Throw
+            { Validate-Inputs -createWebsite "faslse" -createAppPool "false" -addBinding "true" -protocol "https" -sslCertThumbPrint $thumbprint } | Should Throw
         }
     }
 
     Context "Should throw when sslCertThumbPrint is less than 40 character length" {
         It "Should throw exception" {
             $thumbprint = "de86af66a9624ddbc3a1055f937be9c000d6b8a" #contains one char less
-            { Validate-Inputs -createWebsite "faslse" -createAppPool "false" -sslCertThumbPrint $thumbprint } | Should Throw
+            { Validate-Inputs -createWebsite "faslse" -createAppPool "false" -addBinding "true" -protocol "https" -sslCertThumbPrint $thumbprint } | Should Throw
         }
     }
 
     Context "Should throw when sslCertThumbPrint contains non hexadecimal characters" {
         It "Should throw exception" {
             $thumbprint = "de86af66a9624ddbc3a1055f937be9c000d6b8ag" #last char is 'g'
-            { Validate-Inputs -createWebsite "faslse" -createAppPool "false" -sslCertThumbPrint $thumbprint } | Should Throw
+            { Validate-Inputs -createWebsite "faslse" -createAppPool "false" -addBinding "true" -protocol "https" -sslCertThumbPrint $thumbprint } | Should Throw
         }
     }
     
     Context "Should throw when sslCertThumbPrint contains spaces between hexadecimal numbers" {
         It "Should throw exception" {
             $thumbprint = "de 86 af 66 a9 62 4d db c3 a1 05 5f 93 7b e9 c0 00 d6 b8 a1"
-            { Validate-Inputs -createWebsite "faslse" -createAppPool "false" -sslCertThumbPrint $thumbprint } | Should Throw
+            { Validate-Inputs -createWebsite "faslse" -createAppPool "false" -addBinding "true" -protocol "https" -sslCertThumbPrint $thumbprint } | Should Throw
         }
     }
 
     Context "Should throw when sslCertThumbPrint contains invisible characters" {
         It "Should throw exception" {
             $thumbprint = "‎de86af66a9624ddbc3a1055f937be9c000d6b8a1" #contains invisible character at the start. You can move the cursor using arrow keys to figure it out
-            { Validate-Inputs -createWebsite "faslse" -createAppPool "false" -sslCertThumbPrint $thumbprint } | Should Throw
+            { Validate-Inputs -createWebsite "faslse" -createAppPool "false" -addBinding "true" -protocol "https" -sslCertThumbPrint $thumbprint } | Should Throw
+        }
+    }
+
+    Context "Should not throw when addBinding is false" {
+        It "Should not throw exception" {
+            $thumbprint = "invalid-thumbprint"
+            { Validate-Inputs -createWebsite "faslse" -createAppPool "false" -addBinding "false"-sslCertThumbPrint $thumbprint } | Should Not Throw
+        }
+    }
+
+    Context "Should not throw when protocol is http" {
+        It "Should not throw exception" {
+            $thumbprint = "invalid-thumbprint"
+            { Validate-Inputs -createWebsite "faslse" -createAppPool "false" -protocol "http"-sslCertThumbPrint $thumbprint } | Should Not Throw
         }
     }
 }
