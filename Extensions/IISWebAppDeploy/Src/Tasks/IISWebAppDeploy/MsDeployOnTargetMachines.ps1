@@ -176,9 +176,11 @@ function Deploy-Website
             $iisWebApplicationParameter = $parameters.parameter | Where-Object { $_.name -eq 'IIS Web Application Name'}
             if(-not $iisWebApplicationParameter)
             {
-                $msDeployExePath = Get-MsDeployLocation -regKeyPath $MsDeployInstallPathRegKey
-                $msDeployCheckParamFileCmdArgs = " -verb:getParameters -source:package='" + $packageFile + "'";
-                return $true
+                # Create parameters.xml and add 'IIS Web Application Name' parameter to it.
+                $declareParamFilePath = Create-ParametersFileWithWebAppNameAttribute -paramFileXml $paramFileXml -websiteName $websiteName
+
+                # Create a temp pacakge by declaring paramter 'IIS Web Application Name'
+                $webDeployPkg = Update-ParametersFile -webDeployPackage $webDeployPkg -declareParamFile $declareParamFilePath
             }
         }
     }
@@ -189,6 +191,67 @@ function Deploy-Website
     $msDeployCmd = "`"$msDeployExePath`" $msDeployCmdArgs"
     Write-Verbose "Deploying website. Running command: $msDeployCmd"
     Run-Command -command $msDeployCmd
+}
+
+function Create-ParametersFileWithWebAppNameAttribute
+{
+    param(
+        $paramFileXml,
+        $websiteName
+    )
+
+    $parameterIISWebAppNodeAttributes=@{ "name"="IIS Web Application Name"; "defaultValue" = "$websiteName"; "tags" = "IisApp"}
+    $parameterEntryIISAppChildNodeAttributes=@{ "kind"="ProviderPath"; "scope" = "IisApp"; "tags" = "IisApp"}
+    $parameterEntryAclChildNodeAttributes=@{ "kind"="ProviderPath"; "scope" = "setAcl"}
+
+    $parameterIISWebAppNode = Create-ChildNodeWithAttributes -xmlDom $paramFileXml -name "parameter" -attributes $parameterIISWebAppNodeAttributes
+    $parameterEntryIISAppChildNode = Create-ChildNodeWithAttributes -xmlDom $paramFileXml -name "parameterEntry" -attributes $parameterEntryIISAppChildNodeAttributes
+    $parameterEntryAclChildNode = Create-ChildNodeWithAttributes -xmlDom $paramFileXml -name "parameterEntry" -attributes $parameterEntryAclChildNodeAttributes
+    
+    $parameterIISWebAppNode.AppendChild($parameterEntryIISAppChildNode) | Out-null
+    $parameterIISWebAppNode.AppendChild($parameterEntryAclChildNode) | Out-null
+    $parameters = $paramFileXml.output.parameters
+    $parameters.AppendChild($parameterIISWebAppNode) | Out-Null
+    $paramFileXml.removeChild($paramFileXml.output) | Out-null
+    $paramFileXml.AppendChild($parameters) | Out-null
+
+    $declareParamFilePath = [string]::Format("{0}{1}{2}", $env:temp, [System.IO.Path]::DirectorySeparatorChar, "temp_parameters.xml");
+    $paramFileXml.save($declareParamFilePath)
+    Write-Verbose "Declare parameters.xml file is being created at path : $declareParamFilePath"
+    return $declareParamFilePath
+
+}
+
+function Create-ChildNodeWithAttributes
+{
+    param(
+        $xmlDom,
+        $name,
+        $attributes
+    )
+
+    $childNode = $xmlDom.CreateElement($name)
+    $attributes.Keys | % { $childNode.SetAttribute($_, $attributes.Item($_)) }
+    return $childNode
+
+}
+
+function Update-ParametersFile
+{
+    param(
+        [String][Parameter(Mandatory=$true)] $webDeployPackage,
+        [String][Parameter(Mandatory=$true)] $declareParamFile
+    )
+
+    $updatedWebDeployPackage = [string]::Format("{0}{1}{2}", $env:temp, [System.IO.Path]::DirectorySeparatorChar, "temp_webapp_package.zip");
+    $msDeployExePath = Get-MsDeployLocation -regKeyPath $MsDeployInstallPathRegKey
+    $msDeployDeclareParamFileCmdArgs = '-verb:sync -source:package="' + $webDeployPackage +'" -dest:package="' + $updatedWebDeployPackage + '" -enableRule:DoNotDeleteRule -declareParamFile:"' + $declareParamFile + '"' 
+    $msDeployDeclareParamFileCmd = "`"$msDeployExePath`" $msDeployDeclareParamFileCmdArgs"
+    Write-Verbose "Running msDeploy command to update parameters.xml file in package."
+    Write-Verbose "##[command]$msDeployDeclareParamFileCmd"
+    $result = Run-Command -command $msDeployDeclareParamFileCmd
+    return $updatedWebDeployPackage
+
 }
 
 function Is-Directory
@@ -246,13 +309,15 @@ function Get-ParamFileXml
     $msDeployCheckParamFileCmdArgs = " -verb:getParameters -source:package='" + $packageFile + "'";
     $msDeployCheckParamFileCmd = "`"$msDeployExePath`" $msDeployCheckParamFileCmdArgs"
     Write-Verbose "Running msDeploy command to check if $packageFile contains paramters file."
+    Write-Verbose "##[command]$msDeployCheckParamFileCmd"
     $ParamFileContent = Run-Command -command $msDeployCheckParamFileCmd
     $paramFileXML = [XML] $ParamFileContent
     if($paramFileXML.output.parameters)
     {
+        Write-Verbose "Parameters.xml file is present in package."
         return $paramFileXML  
     }
-    Write-Verbose "Parameters.xml file is not present in package"   
+    Write-Verbose "Parameters.xml file is not present in package."   
     return $null
 }
 
