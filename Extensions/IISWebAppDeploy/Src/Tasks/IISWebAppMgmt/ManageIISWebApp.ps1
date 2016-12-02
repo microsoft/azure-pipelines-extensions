@@ -65,7 +65,7 @@ function Validate-Inputs
 
     if(-not [string]::IsNullOrWhiteSpace($sslCertThumbPrint))
     {
-        if(($sslCertThumbPrint.Length -ne 40) -or (-not [regex]::IsMatch($thumbprint, "[a-fA-F0-9]{40}")))
+        if(($sslCertThumbPrint.Length -ne 40) -or (-not [regex]::IsMatch($sslCertThumbPrint, "[a-fA-F0-9]{40}")))
         {
             throw "Invalid thumbprint. Length is not 40 characters or contains invalid characters."
         }
