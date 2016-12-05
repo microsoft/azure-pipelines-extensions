@@ -13,7 +13,7 @@
   "version": {
     "Major": 1,
     "Minor": 0,
-    "Patch": 7
+    "Patch": 8
   },
   "demands": [
   ],
@@ -236,7 +236,7 @@
       "groupName": "website",
       "defaultValue": "",
       "visibleRule": "Protocol = https",
-      "helpMarkDown": "Provide the thumb-print of the Secure Socket Layer certificate that the website is going to use for the HTTPS communication. The SSL certificate should be already installed on the Computer, at Local Computer, Personal store."
+      "helpMarkDown": "Provide the thumb-print of the Secure Socket Layer certificate that the website is going to use for the HTTPS communication as a 40 character long hexadecimal string. The SSL certificate should be already installed on the Computer, at Local Computer, Personal store."
     },
     {
       "name": "CreateAppPool",
