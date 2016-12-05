@@ -71,8 +71,8 @@ function Get-MsDeployCmdArgs
     [string]$removeAdditionalFiles,
     [string]$excludeFilesFromAppData,
     [string]$takeAppOffline,
-    [Boolean] $isFolderBasedDeployment,
-    [Boolean] $isParamFilePresentInPacakge,
+    [Boolean]$isInputFolder,
+    [Boolean]$isInputWebDeployPkg,
     [string]$additionalArguments
     )
 
@@ -83,7 +83,7 @@ function Get-MsDeployCmdArgs
 
     $msDeployCmdArgs = [String]::Format(" -verb:sync")
 
-    if($isFolderBasedDeployment)
+    if($isInputFolder)
     {
         $msDeployCmdArgs += [String]::Format(' -source:iisApp="{0}"', $webDeployPackage);
         $msDeployCmdArgs += [String]::Format(' -dest:iisApp="{0}"', $websiteName);
@@ -91,7 +91,7 @@ function Get-MsDeployCmdArgs
     else
     {
         $msDeployCmdArgs += [String]::Format(' -source:package="{0}"', $webDeployPackage);
-        if($isParamFilePresentInPacakge)
+        if($isInputWebDeployPkg)
         {
             $msDeployCmdArgs += [String]::Format(' -dest:auto');
         }
@@ -111,7 +111,7 @@ function Get-MsDeployCmdArgs
         $msDeployCmdArgs += [string]::Format(' -setParamFile="{0}"', $webDeployParamFile)
     }
 
-    if($isParamFilePresentInPacakge) {
+    if($isInputWebDeployPkg) {
          $overRideParams = Compute-MsDeploy-SetParams -websiteName $websiteName -overRideParams $overRideParams
     }
     
@@ -156,69 +156,49 @@ function Deploy-Website
         [string]$websiteName,
         [string]$webDeployPkg,
         [string]$webDeployParamFile,
-        [string]$overRiderParams,
+        [string]$overRideParams,
         [string]$removeAdditionalFiles,
         [string]$excludeFilesFromAppData,
         [string]$takeAppOffline,
-        [string]$additionalArguments
+        [string]$additionalArguments,
+        [Boolean]$isInputFolder,
+        [Boolean]$isInputWebDeployPkg
     )
 
-    # Check if package contains parameter.xml file
-    $isFolderBasedDeployment = Is-Directory -Path $webDeployPkg
-    $containsParamFile = $false
-    if(-not $isFolderBasedDeployment)
-    {
-        $paramFileXml = Get-ParamFileXml -packageFile $webDeployPkg
-        if($paramFileXml -ne $null)
-        {
-            $containsParamFile = $true
-            $parameters = $paramFileXML.output.parameters
-            $iisWebApplicationParameter = $parameters.parameter | Where-Object { $_.name -eq 'IIS Web Application Name'}
-            if(-not $iisWebApplicationParameter)
-            {
-                # Create parameters.xml and add 'IIS Web Application Name' parameter to it.
-                $declareParamFilePath = Create-ParametersFileWithWebAppNameAttribute -paramFileXml $paramFileXml -websiteName $websiteName
-
-                # Create a temp pacakge by declaring paramter 'IIS Web Application Name'
-                $webDeployPkg = Update-ParametersFile -webDeployPackage $webDeployPkg -declareParamFile $declareParamFilePath
-            }
-        }
-    }
-
     $msDeployExePath = Get-MsDeployLocation -regKeyPath $MsDeployInstallPathRegKey
-    $msDeployCmdArgs = Get-MsDeployCmdArgs -websiteName $websiteName -webDeployPackage $webDeployPkg -webDeployParamFile $webDeployParamFile -overRideParams $overRiderParams -removeAdditionalFiles $removeAdditionalFiles -excludeFilesFromAppData $excludeFilesFromAppData -takeAppOffline $takeAppOffline -isFolderBasedDeployment $isFolderBasedDeployment -isParamFilePresentInPacakge $containsParamFile -additionalArguments $additionalArguments
+    $msDeployCmdArgs = Get-MsDeployCmdArgs -websiteName $websiteName -webDeployPackage $webDeployPkg -webDeployParamFile $webDeployParamFile -overRideParams $overRiderParams -removeAdditionalFiles $removeAdditionalFiles -excludeFilesFromAppData $excludeFilesFromAppData -takeAppOffline $takeAppOffline -isInputFolder $isInputFolder -isInputWebDeployPkg $isInputWebDeployPkg -additionalArguments $additionalArguments
 
     $msDeployCmd = "`"$msDeployExePath`" $msDeployCmdArgs"
     Write-Verbose "Deploying website. Running command: $msDeployCmd"
     Run-Command -command $msDeployCmd
 }
 
-function Create-ParametersFileWithWebAppNameAttribute
+function Create-ParamFileWithWebAppNameAttribute
 {
     param(
         $paramFileXml,
         $websiteName
     )
 
-    $parameterIISWebAppNodeAttributes = @{ "name"="IIS Web Application Name"; "defaultValue" = "$websiteName"; "tags" = "IisApp"}
-    $parameterEntryIISAppChildNodeAttributes = @{ "kind"="ProviderPath"; "scope" = "IisApp"; "tags" = "IisApp"}
-    $parameterEntryAclChildNodeAttributes = @{ "kind"="ProviderPath"; "scope" = "setAcl"}
+    $iisAppNodeAttr = @{ "name"="IIS Web Application Name"; "defaultValue" = "$websiteName"; "tags" = "IisApp"}
+    $iisAppChildNodeAttr = @{ "kind"="ProviderPath"; "scope" = "IisApp"; "tags" = "IisApp"}
+    $aclChildNodeAttr = @{ "kind"="ProviderPath"; "scope" = "setAcl"}
 
-    $parameterIISWebAppNode = Create-ChildNodeWithAttributes -xmlDom $paramFileXml -name "parameter" -attributes $parameterIISWebAppNodeAttributes
-    $parameterEntryIISAppChildNode = Create-ChildNodeWithAttributes -xmlDom $paramFileXml -name "parameterEntry" -attributes $parameterEntryIISAppChildNodeAttributes
-    $parameterEntryAclChildNode = Create-ChildNodeWithAttributes -xmlDom $paramFileXml -name "parameterEntry" -attributes $parameterEntryAclChildNodeAttributes
+    $iisAppNode = Create-ChildNodeWithAttributes -xmlDom $paramFileXml -name "parameter" -attributes $iisAppNodeAttr
+    $iisAppChildNode = Create-ChildNodeWithAttributes -xmlDom $paramFileXml -name "parameterEntry" -attributes $iisAppChildNodeAttr
+    $aclChildNode = Create-ChildNodeWithAttributes -xmlDom $paramFileXml -name "parameterEntry" -attributes $aclChildNodeAttr
     
-    $parameterIISWebAppNode.AppendChild($parameterEntryIISAppChildNode) | Out-null
-    $parameterIISWebAppNode.AppendChild($parameterEntryAclChildNode) | Out-null
+    $iisAppNode.AppendChild($iisAppChildNode) | Out-null
+    $iisAppNode.AppendChild($aclChildNode) | Out-null
     $parameters = $paramFileXml.output.parameters
-    $parameters.AppendChild($parameterIISWebAppNode) | Out-Null
+    $parameters.AppendChild($iisAppNode) | Out-Null
     $paramFileXml.removeChild($paramFileXml.output) | Out-null
     $paramFileXml.AppendChild($parameters) | Out-null
 
-    $declareParamFilePath = [string]::Format("{0}{1}", [System.IO.Path]::GetTempPath(), "temp_parameters.xml");
-    $paramFileXml.save($declareParamFilePath)
-    Write-Verbose "Declare parameters.xml file is being created at path : $declareParamFilePath"
-    return $declareParamFilePath
+    $declareParamFile = [string]::Format("{0}{1}", [System.IO.Path]::GetTempPath(), "temp_parameters.xml");
+    $paramFileXml.save($declareParamFile)
+    Write-Verbose "Declare parameters.xml file is being created at path : $declareParamFile"
+    return $declareParamFile
 
 }
 
@@ -235,21 +215,21 @@ function Create-ChildNodeWithAttributes
     return $childNode
 }
 
-function Update-ParametersFile
+function Update-PkgWithParamFile
 {
     param(
         [String][Parameter(Mandatory=$true)] $webDeployPackage,
         [String][Parameter(Mandatory=$true)] $declareParamFile
     )
 
-    $updatedWebDeployPackage = [string]::Format("{0}{1}", [System.IO.Path]::GetTempPath(), "temp_webapp_package.zip");
+    $updatedWebDeployPkg = [string]::Format("{0}{1}", [System.IO.Path]::GetTempPath(), "temp_webapp_package.zip");
     $msDeployExePath = Get-MsDeployLocation -regKeyPath $MsDeployInstallPathRegKey
-    $msDeployDeclareParamFileCmdArgs = '-verb:sync -source:package="' + $webDeployPackage +'" -dest:package="' + $updatedWebDeployPackage + '" -enableRule:DoNotDeleteRule -declareParamFile:"' + $declareParamFile + '"' 
+    $msDeployDeclareParamFileCmdArgs = '-verb:sync -source:package="' + $webDeployPackage +'" -dest:package="' + $updatedWebDeployPkg + '" -enableRule:DoNotDeleteRule -declareParamFile:"' + $declareParamFile + '"' 
     $msDeployDeclareParamFileCmd = "`"$msDeployExePath`" $msDeployDeclareParamFileCmdArgs"
     Write-Verbose "Running msDeploy command to update parameters.xml file in package."
     Write-Verbose "##[command]$msDeployDeclareParamFileCmd"
     $result = Run-Command -command $msDeployDeclareParamFileCmd
-    return $updatedWebDeployPackage
+    return $updatedWebDeployPkg
 }
 
 function Is-Directory
@@ -315,6 +295,32 @@ function Compute-MsDeploy-SetParams
     return $overRideParams
 }
 
+function Process-WebDeployPackage
+{
+    param (
+        [string]$WebDeployPackage
+        )
+
+    $paramFileXml = Get-ParamFileXml -packageFile $WebDeployPackage
+    $isInputWebDeployPkg = $false
+    $updatedWebDeployPkg = $WebDeployPackage
+
+    if($paramFileXml -ne $null)
+    {
+        $isInputWebDeployPkg = $true
+        $parameters = $paramFileXML.output.parameters
+        $iisWebAppParam = $parameters.parameter | Where-Object { $_.name -eq 'IIS Web Application Name'}
+
+        if(-not $iisWebAppParam)
+        {
+            $declareParamFile = Create-ParamFileWithWebAppNameAttribute -paramFileXml $paramFileXml -websiteName $websiteName
+            $updatedWebDeployPkg = Update-PkgWithParamFile -webDeployPackage $WebDeployPackage -declareParamFile $declareParamFile
+        }
+    }
+
+    return $updatedWebDeployPkg, $isInputWebDeployPkg
+}
+
 function Execute-Main
 {
     param (
@@ -338,6 +344,15 @@ function Execute-Main
     Write-Verbose "TakeAppOffline = $TakeAppOffline"
     Write-Verbose "AdditionalArguments = $AdditionalArguments"
 
-    Deploy-Website -websiteName $websiteName -webDeployPkg $WebDeployPackage -webDeployParamFile $WebDeployParamFile -overRiderParams $OverRideParams -excludeFilesFromAppData $excludeFilesFromAppData -removeAdditionalFiles $removeAdditionalFiles -takeAppOffline $takeAppOffline -additionalArguments $AdditionalArguments
+    # Check if package contains parameter.xml file
+    $isInputFolder = Is-Directory -Path $WebDeployPackage
+    $isInputWebDeployPkg = $false
+    if(-not $isInputFolder)
+    {
+        $WebDeployPackage, $isInputWebDeployPkg = Process-WebDeployPackage -WebDeployPackage $WebDeployPackage
+    }
+
+    Deploy-Website -websiteName $websiteName -webDeployPkg $WebDeployPackage -webDeployParamFile $WebDeployParamFile -overRiderParams $OverRideParams -excludeFilesFromAppData $excludeFilesFromAppData -removeAdditionalFiles $removeAdditionalFiles -takeAppOffline $takeAppOffline -isInputFolder $isInputFolder -isInputWebDeployPkg $isInputWebDeployPkg -additionalArguments $AdditionalArguments
     Write-Verbose "Exiting Execute-Main function"
 }
+
