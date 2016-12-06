@@ -24,8 +24,7 @@ function Execute-SqlQueryDeployment
         [string]$serverName,
         [string]$databaseName,
         [string]$authscheme,
-        [string]$sqlUsername,
-        [string]$sqlPassword,
+        [System.Management.Automation.PSCredential]$sqlServerCredentials,
         [string]$additionalArguments
     )
 
@@ -57,8 +56,13 @@ function Execute-SqlQueryDeployment
 
         if($authscheme -eq "sqlServerAuthentication")
         {
-            $commandToRun += " -Username `"$sqlUsername`" -Password `"$sqlPassword`" "
-            $commandToLog += " -Username `"$sqlUsername`" -Password ****** "
+            if($sqlServerCredentials)
+            {
+                $sqlUsername = $sqlServerCredentials.GetNetworkCredential().username
+                $sqlPassword = $sqlServerCredentials.GetNetworkCredential().password
+                $commandToRun += " -Username `"$sqlUsername`" -Password `"$sqlPassword`" "
+                $commandToLog += " -Username `"$sqlUsername`" -Password ****** "
+            }
         }
 
         Write-Verbose "Executing : $commandToLog"

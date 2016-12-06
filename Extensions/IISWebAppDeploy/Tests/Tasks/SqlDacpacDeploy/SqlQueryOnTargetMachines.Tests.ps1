@@ -97,12 +97,14 @@ Describe "Tests for verifying Execute-SqlQueryDeployment functionality" {
     Context "When execute sql is invoked with Server Auth Type"{
 
         $UsernamePasswordParams = "-Username `"SqlUser`" -Password `"SqlPass`""
+        $secureAdminPassword =  ConvertTo-SecureString "SqlPass" -AsPlainText -Force
+        $psCredential = New-Object System.Management.Automation.PSCredential ("SqlUser", $secureAdminPassword)
 
         Mock Import-SqlPs { return }
         Mock Get-SqlFilepathOnTargetMachine { return "sample.temp" }
         Mock Invoke-Expression -Verifiable { return } -ParameterFilter {$Command -and $Command.Contains($UsernamePasswordParams)}
 
-        Execute-SqlQueryDeployment -taskType "sqlInline" -inlineSql "SampleQuery" -targetMethod "server" -serverName "localhost" -databaseName "SampleDB" -sqlUsername "SqlUser" -sqlPassword "SqlPass" -authscheme sqlServerAuthentication
+        Execute-SqlQueryDeployment -taskType "sqlInline" -inlineSql "SampleQuery" -targetMethod "server" -serverName "localhost" -databaseName "SampleDB" -sqlServerCredentials $psCredential -authscheme sqlServerAuthentication
 
         It "Should deploy inline Sql with Server Authetication"{
             Assert-VerifiableMocks
