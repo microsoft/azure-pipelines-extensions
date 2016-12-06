@@ -74,6 +74,7 @@ Describe "Tests for verifying Get-MsDeployLocation functionality" {
 
 Describe "Tests for verifying Get-MsDeployCmdArgs functionality" {
 
+    $websiteName = "SampleWebApp"
     $webDeployPackage = "WebAppPackage.zip"
     $webDeployParamFile = "webDeployParamFile.xml"
     $overRideParams = "Param=Value"
@@ -82,7 +83,7 @@ Describe "Tests for verifying Get-MsDeployCmdArgs functionality" {
 
         Mock Test-Path { return $true }
 
-        $result = Get-MsDeployCmdArgs -webDeployPackage $webDeployPackage
+        $result = Get-MsDeployCmdArgs -websiteName $websiteName -webDeployPackage $webDeployPackage
 
         It "msDeployCmdArgs should only contain -source:packge"{
             ( $result.Contains([string]::Format('-source:package="{0}"', $webDeployPackage) ) ) | Should Be $true
@@ -95,7 +96,7 @@ Describe "Tests for verifying Get-MsDeployCmdArgs functionality" {
 
         Mock Test-Path { return $true }
 
-        $result = Get-MsDeployCmdArgs -webDeployPackage $webDeployPackage -webDeployParamFile $webDeployParamFile
+        $result = Get-MsDeployCmdArgs -websiteName $websiteName -webDeployPackage $webDeployPackage -webDeployParamFile $webDeployParamFile
 
         It "msDeployCmdArgs should only contain -source:packge and -setParamFile" {
             ( $result.Contains([string]::Format('-source:package="{0}"', $webDeployPackage) ) ) | Should Be $true
@@ -108,7 +109,7 @@ Describe "Tests for verifying Get-MsDeployCmdArgs functionality" {
 
         Mock Test-Path { return $true }
 
-        $result = Get-MsDeployCmdArgs -webDeployPackage $webDeployPackage -webDeployParamFile $webDeployParamFile -overRideParams $overRideParams -additionalArguments "args"
+        $result = Get-MsDeployCmdArgs -websiteName $websiteName -webDeployPackage $webDeployPackage -webDeployParamFile $webDeployParamFile -overRideParams $overRideParams -additionalArguments "args"
         
         It "msDeployCmdArgs should contain -source:packge, -setParamFile and -setParam" {
             ( $result.Contains([string]::Format('-source:package="{0}"', $webDeployPackage) ) ) | Should Be $true
@@ -124,7 +125,7 @@ Describe "Tests for verifying Get-MsDeployCmdArgs functionality" {
         $errMsg = "Package does not exist : `"$InvalidPkg`""
 
         It "Should throw exception"{
-            { Get-MsDeployCmdArgs -webDeployPackage $InvalidPkg -webDeployParamFile $webDeployParamFile -overRideParams $overRideParams } | Should Throw $errMsg
+            { Get-MsDeployCmdArgs -websiteName $websiteName -webDeployPackage $InvalidPkg -webDeployParamFile $webDeployParamFile -overRideParams $overRideParams } | Should Throw $errMsg
         }        
     }
 
@@ -135,7 +136,7 @@ Describe "Tests for verifying Get-MsDeployCmdArgs functionality" {
         $errMsg = "Param file does not exist : `"$InvalidParamFile`""
 
         It "Should throw exception"{
-            { Get-MsDeployCmdArgs -webDeployPackage $webDeployPackage -webDeployParamFile $InvalidParamFile -overRideParams $overRideParams } | Should Throw $errMsg
+            { Get-MsDeployCmdArgs -websiteName $websiteName -webDeployPackage $webDeployPackage -webDeployParamFile $InvalidParamFile -overRideParams $overRideParams } | Should Throw $errMsg
         }
     }
 
@@ -148,7 +149,7 @@ Describe "Tests for verifying Get-MsDeployCmdArgs functionality" {
 
         Mock Test-Path { return $true }
 
-        $result = Get-MsDeployCmdArgs -webDeployPackage $webDeployPackage -webDeployParamFile $webDeployParamFile -overRideParams $params
+        $result = Get-MsDeployCmdArgs -websiteName $websiteName -webDeployPackage $webDeployPackage -webDeployParamFile $webDeployParamFile -overRideParams $params
         
         It "msDeployCmdArgs should contain -source:packge, -setParamFile and -setParam for each override param" {
             ( $result.Contains([string]::Format('-source:package="{0}"', $webDeployPackage) ) ) | Should Be $true
@@ -168,7 +169,7 @@ Describe "Tests for verifying Get-MsDeployCmdArgs functionality" {
 
         Mock Test-Path { return $true }
 
-        $result = Get-MsDeployCmdArgs -webDeployPackage $webDeployPackage -webDeployParamFile $webDeployParamFile -overRideParams $params
+        $result = Get-MsDeployCmdArgs -websiteName $websiteName -webDeployPackage $webDeployPackage -webDeployParamFile $webDeployParamFile -overRideParams $params
 
         It "msDeployCmdArgs should contain -source:packge, -setParamFile and -setParam for each override param"{
             ( $result.Contains([string]::Format('-source:package="{0}"', $webDeployPackage) ) ) | Should Be $true
@@ -188,7 +189,7 @@ Describe "Tests for verifying Get-MsDeployCmdArgs functionality" {
 
         Mock Test-Path { return $true }
 
-        $result = Get-MsDeployCmdArgs -webDeployPackage $webDeployPackage -webDeployParamFile $webDeployParamFile -overRideParams $params
+        $result = Get-MsDeployCmdArgs -websiteName $websiteName -webDeployPackage $webDeployPackage -webDeployParamFile $webDeployParamFile -overRideParams $params
         
         It "msDeployCmdArgs should contain -source:packge, -setParamFile and -setParam for each override param"{
             ( $result.Contains([string]::Format('-source:package="{0}"', $webDeployPackage) ) ) | Should Be $true
@@ -203,7 +204,7 @@ Describe "Tests for verifying Get-MsDeployCmdArgs functionality" {
 
         Mock Test-Path { return $true }
 
-        $result = Get-MsDeployCmdArgs -webDeployPackage $webDeployPackage -webDeployParamFile $webDeployParamFile -overRideParams $overRideParams -removeAdditionalFiles "true" -excludeFilesFromAppData "true" -takeAppOffline "true"
+        $result = Get-MsDeployCmdArgs -websiteName $websiteName -webDeployPackage $webDeployPackage -webDeployParamFile $webDeployParamFile -overRideParams $overRideParams -removeAdditionalFiles "true" -excludeFilesFromAppData "true" -takeAppOffline "true"
         
         It "msDeployCmdArgs should contain -source:packge, -setParamFile and -setParam" {
             ( $result.Contains("-enableRule:DoNotDeleteRule") ) | Should Be $false
@@ -216,12 +217,72 @@ Describe "Tests for verifying Get-MsDeployCmdArgs functionality" {
 
         Mock Test-Path { return $true }
 
-        $result = Get-MsDeployCmdArgs -webDeployPackage $webDeployPackage -webDeployParamFile $webDeployParamFile -overRideParams $overRideParams -removeAdditionalFiles "false" -excludeFilesFromAppData "false" -takeAppOffline "false"
+        $result = Get-MsDeployCmdArgs -websiteName $websiteName -webDeployPackage $webDeployPackage -webDeployParamFile $webDeployParamFile -overRideParams $overRideParams -removeAdditionalFiles "false" -excludeFilesFromAppData "false" -takeAppOffline "false"
         
         It "msDeployCmdArgs should contain -source:packge, -setParamFile and -setParam" {
             ( $result.Contains("-enableRule:DoNotDeleteRule") ) | Should Be $true
             ( $result.Contains("-enableRule:AppOffline") ) | Should Be $false
             ( $result.Contains('-skip:Directory="\\App_Data"') ) | Should Be $false
+        }
+    }
+
+    context "When folder is provided as input" {
+
+        Mock Test-Path { return $true }
+        $webAppFolder = "WebAppFolder"
+
+        $result = Get-MsDeployCmdArgs -websiteName $websiteName -webDeployPackage $webAppFolder -isInputFolder $true
+
+        It "msDeployCmdArgs should only contain -source:iisApp"{
+            ( $result.Contains([string]::Format('-source:iisApp="{0}"', $webAppFolder) ) ) | Should Be $true
+            ( $result.Contains([string]::Format('-dest:iisApp="{0}"', $websiteName) ) ) | Should Be $true
+        }
+    }
+}
+
+Describe "Tests for verifying Get-ParamFileXml functionality" {
+
+    $msDeploy = "MSDeploy.exe"
+    $webAppPackage = "Sample.zip"
+
+    Context "When parameter file is not present in Package" {
+        
+        Mock Get-MsDeployLocation -Verifiable { return $msDeploy }
+        Mock Run-Command -Verifiable { return "<output><parameters /></output>"}
+
+        $paramFileXml = Get-ParamFileXml -packageFile $webAppPackage
+        
+        It "Should return null since parameter file is not present in the package" {
+            $paramFileXml | should Be $null
+            Assert-VerifiableMocks
+        }
+    }
+
+    Context "When parameter file is present but don't contains parameter 'IIS Web Application Name'" {
+        
+        Mock Get-MsDeployLocation -Verifiable { return $msDeploy }
+        Mock Run-Command -Verifiable { return '<output><parameters><parameter name="DefaultConnection-Web.configConnectionString" defaultValue="Testvalue"></parameter></parameters></output>'}
+
+        $paramFileXml = Get-ParamFileXml -packageFile $webAppPackage
+        
+        It "Should return parameter file content since parameter file is not present in the package" {
+            $paramFileXml -ne $null | should Be $true
+            Assert-VerifiableMocks
+        }
+    }
+
+}
+
+Describe "Tests for verifying Create-ParamFileWithWebAppNameAttribute functionality" {
+
+    Context "Should create a temp file with parameters" {
+        
+        $parametersFileContent = '<output><parameters><parameter name="DefaultConnection-Web.configConnectionString" defaultValue="Testvalue"></parameter></parameters></output>'
+        $paramFileXml = [xml] $parametersFileContent
+        $declareParamFilePath = Create-ParamFileWithWebAppNameAttribute -paramFileXml $paramFileXml -websiteName "sampleWebApp"
+        
+        It "Should have create declare file in temp Directory" {
+            (Test-Path $declareParamFilePath) | should Be $true
         }
     }
 }
@@ -237,12 +298,103 @@ Describe "Tests for verifying Deploy-WebSite functionality" {
         Mock Get-MsDeployLocation -Verifiable { return $msDeploy }
         Mock Get-MsDeployCmdArgs -Verifiable { return $msDeployArgs }
 
-        $output = Deploy-WebSite -webDeployPkg "Web.zip" -webDeployParamFile "SampleParam.xml" 4>&1 | Out-String
+        $output = Deploy-WebSite -websiteName "SampleWebApp" -webDeployPkg "Web.zip" -webDeployParamFile "SampleParam.xml" 4>&1 | Out-String
 
         It "Should contain both msDeploy and msDeployArgs"{
             ($output.Contains("$msDeploy")) | Should Be $true
             ($output.Contains("$msDeployArgs")) | Should Be $true
             Assert-VerifiableMocks
+        }
+    }
+}
+
+Describe "Test for verifying Is-Directory functionality" {
+
+    Context "When path provided is a directory" {
+
+        $isDirectory = Is-Directory -Path $env:temp
+
+        It "Should return true as temp path is a directory" {
+            $isDirectory | Should Be $true
+        }
+    }
+}
+
+Describe "Test for verifying Process-WebDeployPackage functionality" {
+
+    Context "When a package provided is not webDeployPackage" {
+
+        $webDeployPackage = "WebDeploy.Pkg"
+       
+        Mock Get-ParamFileXml -Verifiable { return $null}
+
+        $updatedWebDeployPkg, $isInputWebDeployPkg = Process-WebDeployPackage -WebDeployPackage $WebDeployPackage
+
+        It "Should return original package and isInputWebDeployPkg should be false" {
+            $updatedWebDeployPkg -eq $WebDeployPackage | Should Be $true
+            $isInputWebDeployPkg | Should Be $false
+        }
+    }
+
+    Context "When a package provided which is generated from WebDeploy with 'IIS Web Application Name' parameter" {
+
+        $webDeployPackage = "WebDeploy.Pkg"
+       
+        Mock Get-ParamFileXml -Verifiable { return ([xml] '<output><parameters><parameter name="IIS Web Application Name" defaultValue="Default Web Site/AzureWebApp1_deploy" tags="IisApp"></parameter></parameters></output>')}
+
+        $updatedWebDeployPkg, $isInputWebDeployPkg = Process-WebDeployPackage -WebDeployPackage $WebDeployPackage
+
+        It "Should return original package and isInputWebDeployPkg should be true" {
+            $updatedWebDeployPkg -eq $WebDeployPackage | Should Be $true
+            $isInputWebDeployPkg | Should Be $true
+        }
+    }
+
+    Context "When a package provided which is generated from WebDeploy without 'IIS Web Application Name' parameter" {
+
+        $webDeployPackage = "WebDeploy.Pkg"
+       
+        Mock Get-ParamFileXml -Verifiable { return ([xml] '<output><parameters><parameter name="ConnectionString" defaultValue="DummyConnectionString" tags="IisApp"></parameter></parameters></output>')}
+        Mock Create-ParamFileWithWebAppNameAttribute -Verifiable { return "temp_param.txt"}
+        Mock Update-PkgWithParamFile -Verifiable { return "temp_webDeploy.pkg"}
+
+        $updatedWebDeployPkg, $isInputWebDeployPkg = Process-WebDeployPackage -WebDeployPackage $webDeployPackage
+
+        It "Should return original package and isInputWebDeployPkg should be true" {
+            $updatedWebDeployPkg -eq "temp_webDeploy.pkg" | Should Be $true
+            $isInputWebDeployPkg | Should Be $true
+        }
+    }
+}
+
+Describe "Test for verifying Update-PkgWithParamFile functionality" {
+
+    Context "When a package and declare param file is provided" {
+
+        $webDeployPackage = "WebDeploy.Pkg"
+        $declareParamFile = "declare.txt"
+       
+        Mock Get-MsDeployLocation -Verifiable { return "msdeploy.exe" }
+        Mock Run-Command -Verifiable { return }
+
+        $updatedWebDeployPkg = Update-PkgWithParamFile -webDeployPackage $WebDeployPackage -declareParamFile $declareParamFile
+
+        It "Should return updated web deploy package" {
+            $updatedWebDeployPkg.contains("temp_webapp_package.zip") | Should Be $true
+        }
+    }
+}
+
+Describe "Test for verifying Create-ChildNodeWithAttributes functionality" {
+
+    Context "When xmlDom is being provided along with new node name and attributes" {
+
+        $xmlDom = [xml] '<output><parameters /></output>'
+
+        $childNode = Create-ChildNodeWithAttributes -xmlDom $xmlDom -name "parameter" -attributes @{ "name"="IIS Web Application Name"; "defaultValue" = "testWebApp"; "tags" = "IisApp"}
+
+        It "Should return create a new node with provided name and attribute" {
+            $childNode.name -eq "IIS Web Application Name" | Should Be $true
         }
     }
 }
@@ -279,14 +431,32 @@ Describe "Tests for testing Compute-MsDeploy-SetParams functionality" {
 
 Describe "Tests for verifying Execute-Main functionality" {
 
-    Context "When execute main is invoked with all inputs"{
+    Context "When execute main is invoked with package input"{
         $webDeployPackage = "WebDeploy.Pkg"
         $webDeployParamFile = "Param.xml"
         $overrideParams = "Abc=xyz"
         
-        Mock Deploy-WebSite -Verifiable { return } -ParameterFilter { $WebDeployPkg -eq $WebDeployPackage -and $WebDeployParamFile -eq $webDeployParamFile -and $OverRideParams -eq $overRideParams}
+        Mock Deploy-WebSite -Verifiable { return } -ParameterFilter { $webDeployPkg -eq $WebDeployPackage -and $webDeployParamFile -eq $webDeployParamFile -and $overRideParams -eq $overRideParams}
+        Mock Is-Directory -Verifiable { return $false }
+        Mock Process-WebDeployPackage -Verifiable { return $webDeployPackage, $false}
 
         Execute-Main -WebDeployPackage $WebDeployPackage -webDeployParamFile $WebDeployParamFile -overRiderParams $OverRideParams
+
+        It "Should deploy website"{
+            Assert-VerifiableMocks
+            Assert-MockCalled Deploy-WebSite -Times 1
+        }
+    }
+
+    Context "When execute main is invoked with folder input"{
+        $webDeployFolder = "WebDeploy"
+        $webDeployParamFile = "Param.xml"
+        $overrideParams = "Abc=xyz"
+        
+        Mock Deploy-WebSite -Verifiable { return } -ParameterFilter { $webDeployPkg -eq $webDeployFolder -and $webDeployParamFile -eq $webDeployParamFile -and $overRideParams -eq $overRideParams}
+        Mock Is-Directory -Verifiable { return $true }
+
+        Execute-Main -WebDeployPackage $webDeployFolder -webDeployParamFile $WebDeployParamFile -overRiderParams $OverRideParams
 
         It "Should deploy website"{
             Assert-VerifiableMocks

@@ -4,6 +4,11 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- Support for deploying Asp.Net4, Asp.Net Core 1 and Node Apps using
+    - Build output in the form of folder or UNC Path
+    - Compressed (zip) build output
+
 ## [1.3.0] - 1st December 2016
 ### Added
 - Added support for Sql Server, Dac Framwork 2016
