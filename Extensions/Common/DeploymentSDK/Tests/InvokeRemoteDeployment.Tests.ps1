@@ -13,6 +13,9 @@ if(-not (Test-Path -Path $invokeRemoteDeployment ))
 
 . "$invokeRemoteDeployment"
 
+## Mocking the telemetry method
+function Write-Telemetry {}
+
 Describe "Tests for testing InitializationScript block" {
     Context "Invoke-PsOnRemote successfully returns" {
         . $InitializationScript
