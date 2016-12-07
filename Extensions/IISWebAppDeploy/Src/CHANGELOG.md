@@ -4,7 +4,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
-## [1.4.0] - 6th December 2016
+## [1.4.0] - 7th December 2016
 ### Added
 - Support for deploying Asp.Net4, Asp.Net Core 1 and Node Apps using
     - Build output in the form of folder or UNC Path
