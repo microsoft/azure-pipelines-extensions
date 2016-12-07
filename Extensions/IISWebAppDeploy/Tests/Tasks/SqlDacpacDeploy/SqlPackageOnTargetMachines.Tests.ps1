@@ -3,7 +3,7 @@ $scriptDirName = Split-Path -Leaf $currentScriptPath
 $sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path).Replace(".Tests.", ".")
 $VerbosePreference = 'Continue'
 
-$sqlPackageOnTargetMachinesPath = "$currentScriptPath\..\..\..\Src\Tasks\$scriptDirName\$sut"
+$sqlPackageOnTargetMachinesPath = "$currentScriptPath\..\..\..\Src\Tasks\$scriptDirName\TaskModuleSqlUtility\$sut"
 
 if(-not (Test-Path -Path $sqlPackageOnTargetMachinesPath ))
 {
@@ -24,6 +24,8 @@ $vsRegKey = "HKLM:", "SOFTWARE", "Wow6432Node", "Microsoft", "VisualStudio" -joi
 $vsRegKey64 = "HKLM:", "SOFTWARE", "Microsoft", "VisualStudio" -join [System.IO.Path]::DirectorySeparatorChar
 $sqlDacRegKeyWow = "HKLM:", "SOFTWARE", "Wow6432Node", "Microsoft", "Microsoft SQL Server", "DACFramework", "CurrentVersion" -join [System.IO.Path]::DirectorySeparatorChar
 $sqlDacRegKey = "HKLM:", "SOFTWARE", "Microsoft", "Microsoft SQL Server", "DACFramework", "CurrentVersion" -join [System.IO.Path]::DirectorySeparatorChar
+$sqlDacRegKeyWow2016 = "HKLM:", "SOFTWARE", "Wow6432Node", "Microsoft", "Microsoft SQL Server", "Data-Tier Application Framework" -join [System.IO.Path]::DirectorySeparatorChar
+$sqlDacRegKey2016 = "HKLM:", "SOFTWARE", "Microsoft", "Microsoft SQL Server", "Data-Tier Application Framework" -join [System.IO.Path]::DirectorySeparatorChar
 $dacExtensionPath = [System.IO.Path]::Combine("Extensions", "Microsoft", "SQLDB", "DAC")
 
 
@@ -281,6 +283,8 @@ Describe "LocateHighestVersionSqlPackageWithDacMsi" {
     Context "Dac Fx present in Registry32 in Program Files(x86)" {
         Mock Test-Path { return $false } -ParameterFilter { $Path -eq $sqlDacRegKey }
         Mock Test-Path { return $true } -ParameterFilter { $Path -eq $sqlDacRegKeyWow }
+        Mock Test-Path { return $false } -ParameterFilter { $Path -eq $sqlDacRegKey2016 }
+        Mock Test-Path { return $false } -ParameterFilter { $Path -eq $sqlDacRegKeyWow2016 }
         Mock Get-RegistryValueIgnoreError { return $testDacMajorVersion12 } -ParameterFilter { $RegistryView -eq "Registry32" }
         Mock Test-Path { return $true } -ParameterFilter { $Path -eq $testDacFxPathx86 }
         It "Should return correct sql dacapc path and version" {
@@ -293,6 +297,8 @@ Describe "LocateHighestVersionSqlPackageWithDacMsi" {
     Context "Dac Fx present in Registry32 in Program Files" {
         Mock Test-Path { return $false } -ParameterFilter { $Path -eq $sqlDacRegKey }
         Mock Test-Path { return $true } -ParameterFilter { $Path -eq $sqlDacRegKeyWow }
+        Mock Test-Path { return $false } -ParameterFilter { $Path -eq $sqlDacRegKey2016 }
+        Mock Test-Path { return $false } -ParameterFilter { $Path -eq $sqlDacRegKeyWow2016 }
         Mock Get-RegistryValueIgnoreError { return $testDacMajorVersion12 } -ParameterFilter { $RegistryView -eq "Registry32" }
         Mock Test-Path { return $false } -ParameterFilter { $Path -eq $testDacFxPathx86 }
         Mock Test-Path { return $true } -ParameterFilter { $Path -eq $testDacFxPath }
@@ -451,7 +457,9 @@ Describe "Tests for Get-SqlPackageCmdArgs functionality" {
 
     Context "When target method is server and with mixed mode authentication" {
 
-        $cmdArgs = Get-SqlPackageCmdArgs -dacpacFile "sample.dacpac" -targetMethod "server" -serverName "localhost" -databaseName "SampleDB" -authscheme "sqlServerAuthentication"-sqlUsername "dummyuser" -sqlPassword "dummypassword"
+        $secureAdminPassword =  ConvertTo-SecureString "dummypassword" -AsPlainText -Force
+        $psCredential = New-Object System.Management.Automation.PSCredential ("dummyuser", $secureAdminPassword)
+        $cmdArgs = Get-SqlPackageCmdArgs -dacpacFile "sample.dacpac" -targetMethod "server" -serverName "localhost" -databaseName "SampleDB" -authscheme "sqlServerAuthentication" -sqlServerCredentials $psCredential
 
         It "Should contain targetmethod as server and sqluser argument should be present" {
             ($cmdArgs.Contains('/SourceFile:"sample.dacpac" /Action:Publish /TargetServerName:"localhost" /TargetDatabaseName:"SampleDB"')) | Should Be $true
@@ -480,15 +488,15 @@ Describe "Tests for Get-SqlPackageCmdArgs functionality" {
 
 }
 
-Describe "Tests for verifying ExecuteMain functionality" {
+Describe "Tests for verifying Execute-DacpacDeployment functionality" {
 
-    Context "When execute main is invoked with all inputs"{
+    Context "When execute DacpacDeployment is invoked with all inputs"{
 
         Mock Get-SqlPackageOnTargetMachine { return "sqlpackage.exe" }
         Mock Get-SqlPackageCmdArgs -Verifiable { return "args" } -ParameterFilter { $DacpacFile -eq "sample.dacpac" }
         Mock RunCommand -Verifiable { return } -ParameterFilter {$Command -eq "`"sqlpackage.exe`" args"}
 
-        ExecuteMain -dacpacFile "sample.dacpac" -targetMethod "server" -serverName "localhost"
+        Execute-DacpacDeployment -dacpacFile "sample.dacpac" -targetMethod "server" -serverName "localhost"
 
         It "Should deploy dacpac file"{
             Assert-VerifiableMocks

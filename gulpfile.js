@@ -192,6 +192,22 @@ gulp.task("compileNode", ["compilePS"], function(cb){
                     cacheArchiveFile(archive.url);
                 });
             }
+
+            // check of task modules
+            if(externals.taskModule) {
+                var taskModules = Object.keys(externals.taskModule);
+                taskModules.forEach(function (moduleIndex) {
+                      var module = externals.taskModule[moduleIndex];
+                      var srcPath = path.join("TaskModules", module['type'], module['name']);
+                      var relativeExternalsPath = path.dirname(externalsJson).replace(new RegExp('/','g'),'\\').replace(path.join(__dirname),'');
+                      if(relativeExternalsPath.startsWith('\\')) {
+                         relativeExternalsPath = relativeExternalsPath.substring(1);
+                      }
+                      var destPath = path.join(_buildRoot, relativeExternalsPath, module['dest']);
+                      shell.mkdir('-p', destPath);
+                      shell.cp('-R', srcPath, destPath);
+                });
+            }
         });
     }
     catch (err) {

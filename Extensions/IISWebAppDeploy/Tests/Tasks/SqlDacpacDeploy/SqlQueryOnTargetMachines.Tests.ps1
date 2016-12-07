@@ -3,7 +3,7 @@ $scriptDirName = Split-Path -Leaf $currentScriptPath
 $sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path).Replace(".Tests.", ".")
 $VerbosePreference = 'Continue'
 
-$sqlQueryOnTargetMachinesPath = "$currentScriptPath\..\..\..\Src\Tasks\$scriptDirName\$sut"
+$sqlQueryOnTargetMachinesPath = "$currentScriptPath\..\..\..\Src\Tasks\$scriptDirName\TaskModuleSqlUtility\$sut"
 
 if(-not (Test-Path -Path $sqlQueryOnTargetMachinesPath ))
 {
@@ -54,7 +54,7 @@ Describe "Tests for verifying Import-SqlPs functionality" {
     }
 }
 
-Describe "Tests for verifying ExecuteSql functionality" {
+Describe "Tests for verifying Execute-SqlQueryDeployment functionality" {
 
     Context "When execute sql is invoked with all inputs for Inline Sql"{
 
@@ -62,7 +62,7 @@ Describe "Tests for verifying ExecuteSql functionality" {
         Mock Get-SqlFilepathOnTargetMachine { return "sample.temp" }
         Mock Invoke-Expression -Verifiable { return } -ParameterFilter {$Command -and $Command.StartsWith("Invoke-Sqlcmd")}
 
-        ExecuteSql -taskType "sqlInline" -inlineSql "SampleQuery" -targetMethod "server" -serverName "localhost" -databaseName "SampleDB" 
+        Execute-SqlQueryDeployment -taskType "sqlInline" -inlineSql "SampleQuery" -targetMethod "server" -serverName "localhost" -databaseName "SampleDB" 
 
         It "Should deploy inline Sql"{
             Assert-VerifiableMocks
@@ -82,7 +82,7 @@ Describe "Tests for verifying ExecuteSql functionality" {
 
         try
         {
-            ExecuteSql -taskType "sqlQuery" -sqlFile "SampleFile.temp" -targetMethod "server" -serverName "localhost" -databaseName "SampleDB" 
+            Execute-SqlQueryDeployment -taskType "sqlQuery" -sqlFile "SampleFile.temp" -targetMethod "server" -serverName "localhost" -databaseName "SampleDB" 
         }
         catch
         {
@@ -97,12 +97,14 @@ Describe "Tests for verifying ExecuteSql functionality" {
     Context "When execute sql is invoked with Server Auth Type"{
 
         $UsernamePasswordParams = "-Username `"SqlUser`" -Password `"SqlPass`""
+        $secureAdminPassword =  ConvertTo-SecureString "SqlPass" -AsPlainText -Force
+        $psCredential = New-Object System.Management.Automation.PSCredential ("SqlUser", $secureAdminPassword)
 
         Mock Import-SqlPs { return }
         Mock Get-SqlFilepathOnTargetMachine { return "sample.temp" }
         Mock Invoke-Expression -Verifiable { return } -ParameterFilter {$Command -and $Command.Contains($UsernamePasswordParams)}
 
-        ExecuteSql -taskType "sqlInline" -inlineSql "SampleQuery" -targetMethod "server" -serverName "localhost" -databaseName "SampleDB" -sqlUsername "SqlUser" -sqlPassword "SqlPass" -authscheme sqlServerAuthentication
+        Execute-SqlQueryDeployment -taskType "sqlInline" -inlineSql "SampleQuery" -targetMethod "server" -serverName "localhost" -databaseName "SampleDB" -sqlServerCredentials $psCredential -authscheme sqlServerAuthentication
 
         It "Should deploy inline Sql with Server Authetication"{
             Assert-VerifiableMocks
@@ -124,7 +126,7 @@ Describe "Tests for verifying ExecuteSql functionality" {
 
         try
         {
-            ExecuteSql -taskType "sqlInline" -inlineSql "SampleQuery" -targetMethod "server" -serverName "localhost" -databaseName "SampleDB" 
+            Execute-SqlQueryDeployment -taskType "sqlInline" -inlineSql "SampleQuery" -targetMethod "server" -serverName "localhost" -databaseName "SampleDB" 
         }
         catch
         {
@@ -150,7 +152,7 @@ Describe "Tests for verifying ExecuteSql functionality" {
 
         try
         {
-            ExecuteSql -taskType "sqlInline" -inlineSql "SampleQuery" -targetMethod "server" -serverName "localhost" -databaseName "SampleDB" 
+            Execute-SqlQueryDeployment -taskType "sqlInline" -inlineSql "SampleQuery" -targetMethod "server" -serverName "localhost" -databaseName "SampleDB" 
         }
         catch
         {
@@ -173,7 +175,7 @@ Describe "Tests for verifying ExecuteSql functionality" {
 
         try
         {
-            ExecuteSql -taskType "sqlQuery" -sqlFile "SampleFile.temp" -targetMethod "server" -serverName "localhost" -databaseName "SampleDB"
+            Execute-SqlQueryDeployment -taskType "sqlQuery" -sqlFile "SampleFile.temp" -targetMethod "server" -serverName "localhost" -databaseName "SampleDB"
         }
         catch
         {
