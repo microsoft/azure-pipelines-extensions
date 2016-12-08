@@ -34,5 +34,5 @@ Extensions/BitBucket/DownloadArtifactBitbucket/bin/*
 Extensions/BitBucket/DownloadArtifactBitbucket/obj/*
 
 ## Nuget 
-nuget.exe
-Extensions/**/DeploymentSDK
+#nuget.exe
+#Extensions/**/DeploymentSDK
