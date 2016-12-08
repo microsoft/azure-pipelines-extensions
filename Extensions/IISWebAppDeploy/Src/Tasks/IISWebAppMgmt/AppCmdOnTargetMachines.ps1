@@ -192,6 +192,11 @@ function Add-SslCert
         return
     }
 
+    if($ipAddress -eq "All Unassigned"){
+        Write-Verbose "inside IpAddress check"
+        $ipAddress = "0.0.0.0"
+    }
+
     $result = $null
     $isItSameBinding = $false
     $addCertCmd = [string]::Empty
@@ -227,6 +232,7 @@ function Add-SslCert
     }
 
     Write-Verbose "Setting SslCert for website."
+    Write-Verbose "command: $addCertCmd"
     Run-Command -command $addCertCmd
 }
 
