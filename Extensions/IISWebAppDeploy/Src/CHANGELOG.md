@@ -4,6 +4,10 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [1.4.1] - 8th December 2016
+### Fixed
+- Fixing override parameters not honored issue
+
 ## [1.4.0] - 7th December 2016
 ### Added
 - Support for deploying Asp.Net4, Asp.Net Core 1 and Node Apps using

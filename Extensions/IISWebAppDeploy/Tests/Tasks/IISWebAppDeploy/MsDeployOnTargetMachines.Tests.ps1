@@ -343,7 +343,7 @@ Describe "Tests for verifying Execute-Main functionality" {
         
         Mock Deploy-WebSite -Verifiable { return } -ParameterFilter { $webDeployPkg -eq $WebDeployPackage -and $webDeployParamFile -eq $webDeployParamFile -and $overRideParams -eq $overRideParams}
         Mock Is-Directory -Verifiable { return $false }
-        Mock Process-WebDeployPackage -Verifiable { return $webDeployPackage, $false}
+        Mock Contains-ParamFile -Verifiable { return $false }
 
         Execute-Main -WebDeployPackage $WebDeployPackage -webDeployParamFile $WebDeployParamFile -overRiderParams $OverRideParams
 
