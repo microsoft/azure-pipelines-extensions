@@ -48,11 +48,36 @@ function Execute-SqlQueryDeployment
         # Import SQLPS Module
         Import-SqlPs
 
-        $scriptArgument = "Invoke-Sqlcmd -ServerInstance `"$serverName`" -Database `"$databaseName`" -InputFile `"$sqlFile`" "
-        $scriptArgument += $additionalArguments
+        $spaltArguments = @{
+            ServerInstance=$serverName
+            Database=$databaseName
+            InputFile=$sqlFile
+        }
 
-        $commandToRun = $scriptArgument
-        $commandToLog = $scriptArgument
+        # Process Additional arguments 
+        if($additionalArguments) 
+        {
+            $additionArgsArray = $additionalArguments.Split()
+            $previousArg = "";
+            foreach($arg in $additionArgsArray) {
+                if($arg.StartsWith("-")){
+                    if($previousArg.StartsWith("-"))
+                    {
+                        $spaltArguments.Add($previousArg.SubString(1), $null)
+                    }
+                } else {
+                    $spaltArguments.Add($previousArg.SubString(1), $arg);
+                }
+                $previousArg = $arg
+            }
+            if ($arg.StartsWith("-")) {
+                $spaltArguments.Add($arg.SubString(1), $null)
+            }
+        }
+
+        $spaltArgumentsToLog = $spaltArguments
+        $spaltArgumentsToLogJson = $spaltArgumentsToLog | ConvertTo-Json
+        Write-Verbose "Arguments : $spaltArgumentsToLogJson"
 
         if($authscheme -eq "sqlServerAuthentication")
         {
@@ -60,13 +85,12 @@ function Execute-SqlQueryDeployment
             {
                 $sqlUsername = $sqlServerCredentials.GetNetworkCredential().username
                 $sqlPassword = $sqlServerCredentials.GetNetworkCredential().password
-                $commandToRun += " -Username `"$sqlUsername`" -Password `"$sqlPassword`" "
-                $commandToLog += " -Username `"$sqlUsername`" -Password ****** "
+                $spaltArguments.Add("Username", $sqlUsername)
+                $spaltArguments.Add("Password", $sqlPassword)
             }
         }
 
-        Write-Verbose "Executing : $commandToLog"
-        Invoke-Expression $commandToRun
+        Invoke-Sqlcmd @spaltArguments
 
     } # End of Try
     Finally

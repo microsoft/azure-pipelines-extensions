@@ -66,12 +66,6 @@ function GetScriptToRun
         [string]$additionalArguments
     )
 
-    $connectionString = EscapeSpecialChars -str $connectionString
-    $sqlPassword = EscapeSpecialChars -str $sqlPassword
-    $additionalArguments = EscapeSpecialChars -str $additionalArguments
-    $serverName = EscapeSpecialChars -str $serverName
-    $databaseName = EscapeSpecialChars -str $databaseName
-
     if($sqlUserName -and $sqlPassword)
     {
         $securePasswordScript = "`$secureAdminPassword = ConvertTo-SecureString `"$sqlPassword`"  -AsPlainText -Force"
@@ -81,22 +75,73 @@ function GetScriptToRun
 
     if ($taskType -eq "dacpac")
     {
-        $invokeMain = "Execute-DacpacDeployment -dacpacFile `"$dacpacFile`" -targetMethod $targetMethod -serverName `"$serverName`" -databaseName `"$databaseName`" -authscheme $authscheme -sqlServerCredentials `$sqlServerCredentials -connectionString `"$connectionString`" -publishProfile `"$publishProfile`" -additionalArguments `"$additionalArguments`""
-
+        
         $sqlPackageScript = Get-Content TaskModuleSqlUtility\SqlPackageOnTargetMachines.ps1 | Out-String
 
+        $sqlSplatArguments = @{
+            dacpacFile=$dacpacFile 
+            targetMethod=$targetMethod 
+            serverName=$serverName
+            databaseName=$databaseName
+            authscheme=$authscheme 
+            sqlServerCredentials="`$sqlServerCredentials"
+            connectionString=$connectionString 
+            publishProfile=$publishProfile 
+            additionalArguments=$additionalArguments
+        }
+        $jsonSqlSplatArguments = $sqlSplatArguments | ConvertTo-Json
+        $remoteArgsInit = "`$remoteJsonSqlSplattedArgs = '$jsonSqlSplatArguments'
+            `$splattedArgsOject = `$remoteJsonSqlSplattedArgs | ConvertFrom-Json
+            `$remoteSqlDacpacArgs = @{
+                dacpacFile=`$splattedArgsOject.dacpacFile
+                targetMethod=`$splattedArgsOject.targetMethod
+                serverName=`$splattedArgsOject.serverName
+                databaseName=`$splattedArgsOject.databaseName
+                authscheme=`$splattedArgsOject.authscheme
+                sqlServerCredentials=`$sqlServerCredentials
+                connectionString=`$splattedArgsOject.connectionString
+                publishProfile=`$splattedArgsOject.publishProfile
+                additionalArguments=`$splattedArgsOject.additionalArguments
+            }"
+
+        $invokeMain = "Execute-DacpacDeployment @remoteSqlDacpacArgs"
+
         Write-Verbose "Executing main function in SqlPackageOnTargetMachines : $invokeMain"
-        $sqlDacpacOnTargetMachinesScript = [string]::Format("{0} {1} {2} {3} ( {4} )", $sqlPackageScript,  [Environment]::NewLine, $initScript, [Environment]::NewLine,  $invokeMain)
+        $sqlDacpacOnTargetMachinesScript = [string]::Format("{0} {1} {2} {3} {4} {5} {6}", $sqlPackageScript,  [Environment]::NewLine, $initScript, [Environment]::NewLine,  $remoteArgsInit, [Environment]::NewLine, $invokeMain)
         return $sqlDacpacOnTargetMachinesScript
     }
     else
     {
         $sqlQueryScript = Get-Content TaskModuleSqlUtility\SqlQueryOnTargetMachines.ps1 | Out-String
 
-        $invokeExecute = "Execute-SqlQueryDeployment -taskType `"$taskType`" -sqlFile `"$sqlFile`" -inlineSql `"$inlineSql`" -serverName `"$serverName`" -databaseName `"$databaseName`" -authscheme $authscheme -sqlServerCredentials `$sqlServerCredentials -additionalArguments `"$additionalArguments`""
+        $sqlSplatArguments = @{
+            taskType=$taskType
+            sqlFile=$sqlFile
+            inlineSql=$inlineSql
+            serverName=$serverName
+            databaseName=$databaseName
+            authscheme=$authscheme
+            sqlServerCredentials="`$sqlServerCredentials"
+            additionalArguments=$additionalArguments
+        }
+        $jsonSqlSplatArguments = $sqlSplatArguments | ConvertTo-Json
+        $remoteArgsInit = "`$remoteJsonSqlSplattedArgs = '$jsonSqlSplatArguments'
+            `$splattedArgsOject = `$remoteJsonSqlSplattedArgs | ConvertFrom-Json
+            `$remoteSplattedSql = @{
+                taskType=`$splattedArgsOject.taskType
+                sqlFile=`$splattedArgsOject.sqlFile
+                inlineSql=`$splattedArgsOject.inlineSql
+                serverName=`$splattedArgsOject.serverName
+                databaseName=`$splattedArgsOject.databaseName
+                authscheme=`$splattedArgsOject.authscheme
+                sqlServerCredentials=`$sqlServerCredentials
+                additionalArguments=`$splattedArgsOject.additionalArguments
+            }"
+        $invokeExecute = "Execute-SqlQueryDeployment @remoteSplattedSql"
+
 
         Write-Verbose "Executing main function in SqlQueryOnTargetMachines : $invokeExecute"
-        $sqlScriptOnTargetMachines = [string]::Format("{0} {1} {2} {3} ( {4} )", $sqlQueryScript,  [Environment]::NewLine, $initScript, [Environment]::NewLine,  $invokeExecute)
+        $sqlScriptOnTargetMachines = [string]::Format("{0} {1} {2} {3} {4} {5} {6}", $sqlQueryScript,  [Environment]::NewLine, $initScript, [Environment]::NewLine,  $remoteArgsInit,[Environment]::NewLine, $invokeExecute)
 
         return $sqlScriptOnTargetMachines
     }
@@ -146,7 +191,34 @@ function Main
 
     TrimInputs -adminUserName([ref]$adminUserName) -sqlUsername ([ref]$sqlUsername) -dacpacFile ([ref]$dacpacFile) -publishProfile ([ref]$publishProfile) -sqlFile ([ref]$sqlFile)
 
-    $script = GetScriptToRun -dacpacFile $dacpacFile -targetMethod $targetMethod -serverName $serverName -databaseName $databaseName -authscheme $authscheme -sqlUserName $sqlUsername -sqlPassword $sqlPassword -connectionString $connectionString -publishProfile $publishProfile -additionalArguments $additionalArguments -taskType $taskType -inlineSql $inlineSql -sqlFile $sqlFile
+    $scriptBuilderArgs = @{
+        dacpacFile=$dacpacFile 
+        targetMethod=$targetMethod 
+        serverName=$serverName 
+        databaseName=$databaseName 
+        authscheme=$authscheme 
+        sqlUserName=$sqlUsername 
+        sqlPassword=$sqlPassword 
+        connectionString=$connectionString 
+        publishProfile=$publishProfile 
+        additionalArguments=$additionalArguments 
+        taskType=$taskType 
+        inlineSql=$inlineSql 
+        sqlFile=$sqlFile
+    }
 
-    RunRemoteDeployment -machinesList $machinesList -scriptToRun $script -adminUserName $adminUserName -adminPassword $adminPassword -winrmProtocol $winrmProtocol -testCertificate $testCertificate -deployInParallel $deployInParallel -taskType $taskType
+    $script = GetScriptToRun @scriptBuilderArgs
+
+    $remoteDeploymentArgs = @{
+        machinesList=$machinesList 
+        scriptToRun=$script 
+        adminUserName=$adminUserName 
+        adminPassword=$adminPassword 
+        winrmProtocol=$winrmProtocol 
+        testCertificate=$testCertificate 
+        deployInParallel=$deployInParallel 
+        taskType=$taskType
+    }
+
+    RunRemoteDeployment @remoteDeploymentArgs
 }

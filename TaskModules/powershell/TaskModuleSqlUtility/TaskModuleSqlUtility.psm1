@@ -19,7 +19,6 @@ Write-Verbose "NonInteractive: $script:nonInteractive"
 Export-ModuleMember -Function @(
         'Execute-SqlQueryDeployment',
         'Execute-DacpacDeployment'
-        'Escape-SpecialChars'
     )
 
 # Special internal exception type to control the flow. Not currently intended
