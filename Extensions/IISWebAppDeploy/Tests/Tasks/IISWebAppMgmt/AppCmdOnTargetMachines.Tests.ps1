@@ -290,7 +290,7 @@ Describe "Tests for verifying Add-SslCert functionality" {
 
         Mock Run-Command { return } -ParameterFilter { $failOnErr -eq $false }
 
-        Add-SslCert -certhash ""
+        Add-SslCert -certhash "" -ipAddress "0.0.0.0"
 
         It "Should not add SslCert"{
             Assert-MockCalled Run-command -Exactly -Times 0
@@ -302,7 +302,7 @@ Describe "Tests for verifying Add-SslCert functionality" {
         Mock Run-Command { return } -ParameterFilter { }
         Mock Run-Command -Verifiable {return "", "" , "" , "", "HostName:port                : localhost:80", "Certificate Hash             : SampleHash"} -ParameterFilter { $failOnErr -eq $false }
 
-        $output = Add-SslCert -port "80" -certhash "SampleHash" -hostname "localhost" -sni "true" -iisVersion "8.0" 4>&1 | Out-String
+        $output = Add-SslCert -ipAddress "0.0.0.0" -port "80" -certhash "SampleHash" -hostname "localhost" -sni "true" -iisVersion "8.0" 4>&1 | Out-String
         
         It "Should not add hostnameport for cert"{
             ($output.Contains('netsh http show sslcert hostnameport=localhost:80')) | Should Be $true
@@ -317,7 +317,7 @@ Describe "Tests for verifying Add-SslCert functionality" {
         Mock Run-Command { return }
         Mock Run-Command {return "", "" , "" , "", "", ""} -ParameterFilter { $failOnErr -eq $false }
 
-        $output = Add-SslCert -port "80" -certhash "SampleHash" -hostname "localhost" -sni "true" -iisVersion "8.0" 4>&1 | Out-String
+        $output = Add-SslCert -ipAddress "0.0.0.0" -port "80" -certhash "SampleHash" -hostname "localhost" -sni "true" -iisVersion "8.0" 4>&1 | Out-String
         
         It "Should add hostnameport entry for given cert"{
             ($output.Contains('netsh http show sslcert hostnameport=localhost:80')) | Should Be $true
