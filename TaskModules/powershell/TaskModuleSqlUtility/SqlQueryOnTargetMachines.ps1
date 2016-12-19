@@ -57,21 +57,37 @@ function Execute-SqlQueryDeployment
         # Process Additional arguments 
         if($additionalArguments) 
         {
-            $additionArgsArray = $additionalArguments.Split()
-            $previousArg = "";
-            foreach($arg in $additionArgsArray) {
-                if($arg.StartsWith("-")){
-                    if($previousArg.StartsWith("-"))
+            $args = $additionalArguments.Split()
+            $argScope = $null
+            foreach($arg in $args) {
+                $arg = $arg.Trim()
+                if($arg)
+                {
+                    if ($arg.StartsWith("-") -and ($arg.Length -gt 1)){
+                        $argVal = $arg.SubString(1)
+                        if($argScope)
+                        {
+                            $spaltArguments.Add($argScope, $null)
+                        }
+                        $argScope = $argVal
+                    } 
+                    elseif (-not $arg.StartsWith("-")) 
                     {
-                        $spaltArguments.Add($previousArg.SubString(1), $null)
+                        if($argScope)
+                        {
+                            $spaltArguments.Add($argScope, $arg);
+                        }
+                        $argScope = $null
+                    } 
+                    else
+                    {
+                        #Ignore argument
+                        Write-Verbose "Ignoring argument $arg"
                     }
-                } else {
-                    $spaltArguments.Add($previousArg.SubString(1), $arg);
                 }
-                $previousArg = $arg
             }
-            if ($arg.StartsWith("-")) {
-                $spaltArguments.Add($arg.SubString(1), $null)
+            if ($argScope) {
+                $spaltArguments.Add($argScope, $null)
             }
         }
 

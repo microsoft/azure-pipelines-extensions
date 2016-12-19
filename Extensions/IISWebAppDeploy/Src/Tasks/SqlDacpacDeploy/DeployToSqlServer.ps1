@@ -78,33 +78,41 @@ function GetScriptToRun
         
         $sqlPackageScript = Get-Content TaskModuleSqlUtility\SqlPackageOnTargetMachines.ps1 | Out-String
 
-        $sqlSplatArguments = @{
-            dacpacFile=$dacpacFile 
-            targetMethod=$targetMethod 
-            serverName=$serverName
-            databaseName=$databaseName
-            authscheme=$authscheme 
-            sqlServerCredentials="`$sqlServerCredentials"
-            connectionString=$connectionString 
-            publishProfile=$publishProfile 
-            additionalArguments=$additionalArguments
-        }
-        $jsonSqlSplatArguments = $sqlSplatArguments | ConvertTo-Json
-        $remoteArgsInit = "`$remoteJsonSqlSplattedArgs = '$jsonSqlSplatArguments'
-            `$splattedArgsOject = `$remoteJsonSqlSplattedArgs | ConvertFrom-Json
-            `$remoteSqlDacpacArgs = @{
-                dacpacFile=`$splattedArgsOject.dacpacFile
-                targetMethod=`$splattedArgsOject.targetMethod
-                serverName=`$splattedArgsOject.serverName
-                databaseName=`$splattedArgsOject.databaseName
-                authscheme=`$splattedArgsOject.authscheme
-                sqlServerCredentials=`$sqlServerCredentials
-                connectionString=`$splattedArgsOject.connectionString
-                publishProfile=`$splattedArgsOject.publishProfile
-                additionalArguments=`$splattedArgsOject.additionalArguments
-            }"
+        try{
+            $sqlSplatArguments = @{
+                dacpacFile=$dacpacFile 
+                targetMethod=$targetMethod 
+                serverName=$serverName
+                databaseName=$databaseName
+                authscheme=$authscheme 
+                sqlServerCredentials="`$sqlServerCredentials"
+                connectionString=$connectionString 
+                publishProfile=$publishProfile 
+                additionalArguments=$additionalArguments
+            }
+            $jsonSqlSplatArguments = $sqlSplatArguments | ConvertTo-Json
+            $remoteArgsInit = "`$remoteJsonSqlSplattedArgs = '$jsonSqlSplatArguments'
+                `$splattedArgsOject = `$remoteJsonSqlSplattedArgs | ConvertFrom-Json
+                `$remoteSqlDacpacArgs = @{
+                    dacpacFile=`$splattedArgsOject.dacpacFile
+                    targetMethod=`$splattedArgsOject.targetMethod
+                    serverName=`$splattedArgsOject.serverName
+                    databaseName=`$splattedArgsOject.databaseName
+                    authscheme=`$splattedArgsOject.authscheme
+                    sqlServerCredentials=`$sqlServerCredentials
+                    connectionString=`$splattedArgsOject.connectionString
+                    publishProfile=`$splattedArgsOject.publishProfile
+                    additionalArguments=`$splattedArgsOject.additionalArguments
+                }"
 
-        $invokeMain = "Execute-DacpacDeployment @remoteSqlDacpacArgs"
+            $invokeMain = "Execute-DacpacDeployment @remoteSqlDacpacArgs"
+        }
+        catch
+        {
+            Write-Verbose $_.Exception
+            throw "Failed to create splat arguments for sql dacpac deployment"
+        }
+        
 
         Write-Verbose "Executing main function in SqlPackageOnTargetMachines : $invokeMain"
         $sqlDacpacOnTargetMachinesScript = [string]::Format("{0} {1} {2} {3} {4} {5} {6}", $sqlPackageScript,  [Environment]::NewLine, $initScript, [Environment]::NewLine,  $remoteArgsInit, [Environment]::NewLine, $invokeMain)
@@ -114,30 +122,37 @@ function GetScriptToRun
     {
         $sqlQueryScript = Get-Content TaskModuleSqlUtility\SqlQueryOnTargetMachines.ps1 | Out-String
 
-        $sqlSplatArguments = @{
-            taskType=$taskType
-            sqlFile=$sqlFile
-            inlineSql=$inlineSql
-            serverName=$serverName
-            databaseName=$databaseName
-            authscheme=$authscheme
-            sqlServerCredentials="`$sqlServerCredentials"
-            additionalArguments=$additionalArguments
+        try{
+            $sqlSplatArguments = @{
+                taskType=$taskType
+                sqlFile=$sqlFile
+                inlineSql=$inlineSql
+                serverName=$serverName
+                databaseName=$databaseName
+                authscheme=$authscheme
+                sqlServerCredentials="`$sqlServerCredentials"
+                additionalArguments=$additionalArguments
+            }
+            $jsonSqlSplatArguments = $sqlSplatArguments | ConvertTo-Json
+            $remoteArgsInit = "`$remoteJsonSqlSplattedArgs = '$jsonSqlSplatArguments'
+                `$splattedArgsOject = `$remoteJsonSqlSplattedArgs | ConvertFrom-Json
+                `$remoteSplattedSql = @{
+                    taskType=`$splattedArgsOject.taskType
+                    sqlFile=`$splattedArgsOject.sqlFile
+                    inlineSql=`$splattedArgsOject.inlineSql
+                    serverName=`$splattedArgsOject.serverName
+                    databaseName=`$splattedArgsOject.databaseName
+                    authscheme=`$splattedArgsOject.authscheme
+                    sqlServerCredentials=`$sqlServerCredentials
+                    additionalArguments=`$splattedArgsOject.additionalArguments
+                }"
+            $invokeExecute = "Execute-SqlQueryDeployment @remoteSplattedSql"
         }
-        $jsonSqlSplatArguments = $sqlSplatArguments | ConvertTo-Json
-        $remoteArgsInit = "`$remoteJsonSqlSplattedArgs = '$jsonSqlSplatArguments'
-            `$splattedArgsOject = `$remoteJsonSqlSplattedArgs | ConvertFrom-Json
-            `$remoteSplattedSql = @{
-                taskType=`$splattedArgsOject.taskType
-                sqlFile=`$splattedArgsOject.sqlFile
-                inlineSql=`$splattedArgsOject.inlineSql
-                serverName=`$splattedArgsOject.serverName
-                databaseName=`$splattedArgsOject.databaseName
-                authscheme=`$splattedArgsOject.authscheme
-                sqlServerCredentials=`$sqlServerCredentials
-                additionalArguments=`$splattedArgsOject.additionalArguments
-            }"
-        $invokeExecute = "Execute-SqlQueryDeployment @remoteSplattedSql"
+        catch
+        {
+            Write-Verbose $_.Exception
+            throw "Failed to create splat arguments for sql query execution"
+        }
 
 
         Write-Verbose "Executing main function in SqlQueryOnTargetMachines : $invokeExecute"
