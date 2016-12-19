@@ -193,7 +193,8 @@ function Add-SslCert
         return
     }
 
-    if($ipAddress -eq "All Unassigned"){
+    if($ipAddress -eq "All Unassigned")
+    {
         Write-Verbose "inside IpAddress check"
         $ipAddress = "0.0.0.0"
     }
