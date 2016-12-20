@@ -99,7 +99,7 @@ function Execute-SqlQueryDeployment
         {
             if($sqlServerCredentials)
             {
-                $sqlUsername = $sqlServerCredentials.GetNetworkCredential().username
+                $sqlUsername = $sqlServerCredentials.Username
                 $sqlPassword = $sqlServerCredentials.GetNetworkCredential().password
                 $spaltArguments.Add("Username", $sqlUsername)
                 $spaltArguments.Add("Password", $sqlPassword)
