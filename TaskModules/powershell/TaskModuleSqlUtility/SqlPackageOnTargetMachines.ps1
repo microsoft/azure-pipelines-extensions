@@ -468,6 +468,32 @@ function Execute-DacpacDeployment
     Write-Verbose -Verbose $sqlPackageArguments
     
     Write-Verbose "Executing command: $sqlPackage $sqlPackageArguments"
-    Invoke-Expression "& '$sqlPackage' --% $sqlPackageArguments"
+    Invoke-Command -FileName "$FileName"  -Arguments $sqlPackageArguments
+}
+
+function Invoke-Command
+{
+    param(
+        [String][Parameter(Mandatory=$true)] $FileName,
+        [String][Parameter(Mandatory=$true)] $Arguments
+    )
+
+    $ErrorActionPreference = 'Continue' 
+    Invoke-Expression "& '$FileName' --% $Arguments" 2>&1 -ErrorVariable errors | ForEach-Object {
+        if ($_ -is [System.Management.Automation.ErrorRecord]) {
+            Write-Error $_
+        } else {
+            Write-Host $_
+        }
+    } 
+    
+    foreach($errorMsg in $errors){
+        Write-Error $errorMsg
+    }
+    $ErrorActionPreference = 'Stop'
+    if($LASTEXITCODE -ne 0)
+    {
+         throw  ("SQL server dacpac deployment failed.")
+    }
 }
 
