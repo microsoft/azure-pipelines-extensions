@@ -468,10 +468,10 @@ function Execute-DacpacDeployment
     Write-Verbose -Verbose $sqlPackageArguments
     
     Write-Verbose "Executing command: $sqlPackage $sqlPackageArguments"
-    Invoke-Command -FileName "$sqlPackage"  -Arguments $sqlPackageArguments
+    Execute-Command -FileName "$sqlPackage"  -Arguments $sqlPackageArguments
 }
 
-function Invoke-Command
+function Execute-Command
 {
     param(
         [String][Parameter(Mandatory=$true)] $FileName,

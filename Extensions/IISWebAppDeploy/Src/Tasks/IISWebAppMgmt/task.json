@@ -13,7 +13,7 @@
   "version": {
     "Major": 1,
     "Minor": 3,
-    "Patch": 0
+    "Patch": 1
   },
   "demands": [
   ],
@@ -75,7 +75,7 @@
     {
       "name": "TestCertificate",
       "type": "boolean",
-      "label": "Test Certificate",
+      "label": "Skip CA check",
       "defaultValue": "true",
       "visibleRule": "WinRMProtocol = Https",
       "required": false,
@@ -329,7 +329,7 @@
       "required": false,
       "groupName": "advanced",
       "defaultValue": "",
-      "helpMarkDown": "Enter additional AppCmd.exe commands to set the website or the application pool properties. For more than one command use a line separator, like <br/> list apppools <br/> list sites"
+      "helpMarkDown": "Enter additional AppCmd.exe commands to set the website or the application pool properties. For more than one command use a line separator, like <br/> list apppools <br/> list sites<br/> recycle apppool /apppool.name:ExampleAppPoolName"
     },
     {
       "name": "DeployInParallel",
