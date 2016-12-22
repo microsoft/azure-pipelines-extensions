@@ -33,4 +33,26 @@ if ($taskType -ne "dacpac")
     $targetMethod = "server"
 }
 
-(Main -machinesList $machinesList -adminUserName $adminUserName -adminPassword $adminPassword -winrmProtocol $winrmProtocol -testCertificate $testCertificate -dacpacFile $dacpacFile -targetMethod $targetMethod -serverName $serverName -databaseName $databaseName -authscheme $authscheme -sqlUsername $sqlUsername -sqlPassword $sqlPassword -connectionString $connectionString -publishProfile $publishProfile -additionalArguments $additionalArguments -deployInParallel $deployInParallel -taskType $taskType -inlineSql $inlineSql -sqlFile $sqlFile)
+$sqlMainArgs = @{
+    machinesList=$machinesList 
+    adminUserName=$adminUserName 
+    adminPassword=$adminPassword 
+    winrmProtocol=$winrmProtocol 
+    testCertificate=$testCertificate 
+    dacpacFile=$dacpacFile 
+    targetMethod=$targetMethod 
+    serverName=$serverName 
+    databaseName=$databaseName 
+    authscheme=$authscheme 
+    sqlUsername=$sqlUsername 
+    sqlPassword=$sqlPassword 
+    connectionString=$connectionString 
+    publishProfile=$publishProfile 
+    additionalArguments=$additionalArguments 
+    deployInParallel=$deployInParallel 
+    taskType=$taskType 
+    inlineSql=$inlineSql 
+    sqlFile=$sqlFile
+}
+
+(Main @sqlMainArgs)

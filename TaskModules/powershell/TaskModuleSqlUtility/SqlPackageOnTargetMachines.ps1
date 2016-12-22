@@ -422,7 +422,7 @@ function Get-SqlPackageCmdArgs
         {
             if($sqlServerCredentials)
             {
-                $sqlUsername = $sqlServerCredentials.GetNetworkCredential().username
+                $sqlUsername = $sqlServerCredentials.UserName
                 $sqlPassword = $sqlServerCredentials.GetNetworkCredential().password
                 $sqlPkgCmdArgs = [string]::Format('{0} /TargetUser:"{1}" /TargetPassword:"{2}"', $sqlPkgCmdArgs, $sqlUsername, $sqlPassword)
             }
@@ -448,16 +448,6 @@ function Get-SqlPackageCmdArgs
     return $sqlPkgCmdArgs
 }
 
-function Escape-SpecialChars
-{
-    param(
-        [string]$str
-    )
-
-    return $str.Replace('`', '``').Replace('"', '`"').Replace('$', '`$')
-}
-
-
 function Execute-DacpacDeployment
 {
     param (
@@ -477,8 +467,34 @@ function Execute-DacpacDeployment
     $sqlPackageArguments = Get-SqlPackageCmdArgs -dacpacFile $dacpacFile -targetMethod $targetMethod -serverName $serverName -databaseName $databaseName -authscheme $authscheme -sqlServerCredentials $sqlServerCredentials -connectionString $connectionString -publishProfile $publishProfile -additionalArguments $additionalArguments
     Write-Verbose -Verbose $sqlPackageArguments
     
-    $command = "`"$sqlPackage`" $sqlPackageArguments"
-    Write-Verbose "Executing command: $command"
-    RunCommand -command $command -failOnErr $true
+    Write-Verbose "Executing command: $sqlPackage $sqlPackageArguments"
+    Execute-Command -FileName "$sqlPackage"  -Arguments $sqlPackageArguments
+}
+
+function Execute-Command
+{
+    param(
+        [String][Parameter(Mandatory=$true)] $FileName,
+        [String][Parameter(Mandatory=$true)] $Arguments
+    )
+
+    $ErrorActionPreference = 'SilentlyContinue'
+    $finalErrorMessage = ""
+    Invoke-Expression "& '$FileName' --% $Arguments"  -ErrorVariable errors | ForEach-Object {
+        if ($_ -is [System.Management.Automation.ErrorRecord]) {
+            $finalErrorMessage +=  "$_ "
+        } else {
+            Write-Host $_
+        }
+    } 
+    
+    foreach($errorMsg in $errors){
+        $finalErrorMessage +=  "$errorMsg "
+    }
+    $ErrorActionPreference = 'Stop'
+    if($LASTEXITCODE -ne 0)
+    {
+         throw  $finalErrorMessage
+    }
 }
 
