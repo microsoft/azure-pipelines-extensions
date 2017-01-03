@@ -4,6 +4,11 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [1.4.2] - 19th December 2016
+### Fixed
+- Fixing Add-SslCert function to correctly assign SSL certificate to HTTPS binding when passing IP and port
+    - Also, when passing the string "All Unassigned", a value of 0.0.0.0 will be used for the IP address
+
 ## [1.4.1] - 8th December 2016
 ### Fixed
 - Fixing override parameters not honored issue
