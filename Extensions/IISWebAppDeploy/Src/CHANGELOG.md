@@ -4,7 +4,8 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [1.4.2] - 4th January 2017
 ### Fixed
-- Fixing assign SSL certificate to HTTPS binding when passing IP and port
+- Assign SSL certificate to HTTPS binding when passing IP and port
+- Special character issues in sql task inputs
 
 ## [1.4.1] - 8th December 2016
 ### Fixed
