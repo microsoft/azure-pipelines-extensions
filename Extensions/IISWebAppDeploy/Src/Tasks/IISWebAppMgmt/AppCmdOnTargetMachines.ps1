@@ -183,13 +183,19 @@ function Add-SslCert
         [string]$certhash,
         [string]$hostname,
         [string]$sni,
-        [string]$iisVersion
+        [string]$iisVersion,
+        [string]$ipAddress
     )
 
     if([string]::IsNullOrWhiteSpace($certhash))
     {
         Write-Verbose "CertHash is empty. Returning"
         return
+    }
+
+    if($ipAddress -eq "All Unassigned")
+    {
+        $ipAddress = "0.0.0.0"
     }
 
     $result = $null
@@ -209,13 +215,13 @@ function Add-SslCert
     }
     else
     {
-        $showCertCmd = [string]::Format("netsh http show sslcert ipport=0.0.0.0:{0}", $port)
+        $showCertCmd = [string]::Format("netsh http show sslcert ipport={0}:{1}", $ipAddress, $port)
         Write-Verbose "Checking if SslCert binding is already present. Running command : $showCertCmd"
 
         $result = Run-Command -command $showCertCmd -failOnErr $false
-        $isItSameBinding = $result.Get(4).Contains([string]::Format("0.0.0.0:{0}", $port))
+        $isItSameBinding = $result.Get(4).Contains([string]::Format("{0}:{1}", $ipAddress, $port))
         
-        $addCertCmd = [string]::Format("netsh http add sslcert ipport=0.0.0.0:{0} certhash={1} appid={{{2}}}", $port, $certhash, [System.Guid]::NewGuid().toString())
+        $addCertCmd = [string]::Format("netsh http add sslcert ipport={0}:{1} certhash={2} appid={{{3}}} certstorename=MY", $ipAddress, $port, $certhash, [System.Guid]::NewGuid().toString())
     }
 
     $isItSameCert = $result.Get(5).ToLower().Contains($certhash.ToLower())
@@ -506,7 +512,7 @@ function Execute-Main
         if($Protocol -ieq "https" -and $AddBinding -ieq "true")
         {
             $appCmdPath, $iisVersion = Get-AppCmdLocation -regKeyPath $AppCmdRegKey
-            Add-SslCert -port $Port -certhash $SslCertThumbPrint -hostname $HostName -sni $ServerNameIndication -iisVersion $iisVersion
+            Add-SslCert -ipAddress $IpAddress -port $Port -certhash $SslCertThumbPrint -hostname $HostName -sni $ServerNameIndication -iisVersion $iisVersion
             Enable-SNI -siteName $WebsiteName -sni $ServerNameIndication -ipAddress $IpAddress -port $Port -hostname $HostName
         }
     }

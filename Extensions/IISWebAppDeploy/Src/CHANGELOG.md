@@ -2,7 +2,9 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
-## [Unreleased]
+## [1.4.2] - 4th January 2017
+### Fixed
+- Fixing assign SSL certificate to HTTPS binding when passing IP and port
 
 ## [1.4.1] - 8th December 2016
 ### Fixed
