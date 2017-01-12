@@ -91,6 +91,15 @@ function Execute-SqlQueryDeployment
             }
         }
 
+        # Special handing for argument variable
+        if($spaltArguments.Contains("variable")) {
+            $paramString = $spaltArguments.Item("variable")
+            if($paramString) {
+                $params = $paramString.Split(',')
+                $spaltArguments.set_Item("variable", $params)
+            }
+        }
+
         $spaltArgumentsToLog = $spaltArguments
         $spaltArgumentsToLogJson = $spaltArgumentsToLog | ConvertTo-Json
         Write-Verbose "Arguments : $spaltArgumentsToLogJson"
