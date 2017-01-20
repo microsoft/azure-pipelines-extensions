@@ -1,4 +1,20 @@
-﻿function RunCommand
+﻿function Get-SingleFile($files, $pattern)
+{
+    if ($files -is [system.array])
+    {
+        throw "Found more than one file to deploy with search pattern $pattern there can be only one."
+    }
+    else
+    {
+        if (!$files)
+        {
+            throw "No files were found to deploy with search pattern $pattern"
+        }
+        return $files
+    }
+}
+
+function RunCommand
 {
     param(
         [string]$command,
@@ -463,10 +479,16 @@ function Execute-DacpacDeployment
     )
 
     Write-Verbose "Entering script SqlPackageOnTargetMachines.ps1"
+
+    Write-Verbose "Finding files with pattern $dacpacFile"
+    $dacpacFiles = Find-VstsFiles -LegacyPattern "$dacpacFile"
+    Write-Verbose "dacpacFiles = $dacpacFiles"
+    $dacpacFile = Get-SingleFile $dacpacFiles $dacpacFile
+
     $sqlPackage = Get-SqlPackageOnTargetMachine
     $sqlPackageArguments = Get-SqlPackageCmdArgs -dacpacFile $dacpacFile -targetMethod $targetMethod -serverName $serverName -databaseName $databaseName -authscheme $authscheme -sqlServerCredentials $sqlServerCredentials -connectionString $connectionString -publishProfile $publishProfile -additionalArguments $additionalArguments
     Write-Verbose -Verbose $sqlPackageArguments
-    
+
     Write-Verbose "Executing command: $sqlPackage $sqlPackageArguments"
     Execute-Command -FileName "$sqlPackage"  -Arguments $sqlPackageArguments
 }

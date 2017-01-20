@@ -5,6 +5,22 @@ function Import-SqlPs {
     pop-location
 }
 
+function Get-SingleFile($files, $pattern)
+{
+    if ($files -is [system.array])
+    {
+        throw "Found more than one file to deploy with search pattern $pattern there can be only one."
+    }
+    else
+    {
+        if (!$files)
+        {
+            throw "No files were found to deploy with search pattern $pattern"
+        }
+        return $files
+    }
+}
+
 function Get-SqlFilepathOnTargetMachine
 {
     param([string] $inlineSql)
@@ -38,12 +54,17 @@ function Execute-SqlQueryDeployment
         }
         else
         {
+            Write-Verbose "Finding files with pattern $sqlFile"
+            $sqlFiles = Find-VstsFiles -LegacyPattern "$dacpacFile"
+            Write-Verbose "sqlFiles = $sqlFiles"
+            $sqlFile = Get-SingleFile $sqlFiles $sqlFile
+
             # Validate Sql File
             if([System.IO.Path]::GetExtension($sqlFile) -ne ".sql")
             {
                 throw "Invalid Sql file [ $sqlFile ] provided"
             }
-        }        
+        }
 
         # Import SQLPS Module
         Import-SqlPs
