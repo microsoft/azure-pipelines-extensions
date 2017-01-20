@@ -55,7 +55,7 @@ function Execute-SqlQueryDeployment
         else
         {
             Write-Verbose "Finding files with pattern $sqlFile"
-            $sqlFiles = Find-VstsFiles -LegacyPattern "$dacpacFile"
+            $sqlFiles = Find-VstsFiles -LegacyPattern "$sqlFile"
             Write-Verbose "sqlFiles = $sqlFiles"
             $sqlFile = Get-SingleFile $sqlFiles $sqlFile
 
