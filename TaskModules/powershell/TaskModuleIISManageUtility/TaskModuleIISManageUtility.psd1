@@ -1,6 +1,6 @@
 @{
     RootModule = 'TaskModuleIISManageUtility.psm1'
-    ModuleVersion = '0.1.0'
+    ModuleVersion = '0.1.1'
     GUID = '61fa1dac-d205-4cc7-a24f-502a8f461576'
     Author = 'Microsoft'
     CompanyName = 'Microsoft'

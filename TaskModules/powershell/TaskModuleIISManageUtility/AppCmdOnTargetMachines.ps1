@@ -293,8 +293,7 @@ function Update-Website
         [string]$appPoolName,
         [string]$physicalPath,
         [string]$authType,
-        [string]$userName,
-        [string]$password,
+        [System.Management.Automation.PSCredential] $websitePhysicalPathAuthCredentials,
         [string]$addBinding,
         [string]$protocol,
         [string]$ipAddress,
@@ -321,14 +320,20 @@ function Update-Website
         $appCmdArgs = [string]::Format("{0} -[path='/'].[path='/'].physicalPath:`"{1}`"", $appCmdArgs, $physicalPath)
     }
 
-    if(-not [string]::IsNullOrWhiteSpace($userName) -and $authType -eq "WebsiteWindowsAuth")
+    if($authType -eq "WebsiteWindowsAuth") 
     {
-        $appCmdArgs = [string]::Format("{0} -[path='/'].[path='/'].userName:{1}", $appCmdArgs, $userName)
-    }
+        $userName = $websitePhysicalPathAuthCredentials.userName
+        $password = $websitePhysicalPathAuthCredentials.GetNetworkCredential().password
 
-    if(-not [string]::IsNullOrWhiteSpace($password) -and $authType -eq "WebsiteWindowsAuth")
-    {
-        $appCmdArgs = [string]::Format("{0} -[path='/'].[path='/'].password:{1}", $appCmdArgs, $password)
+        if(-not [string]::IsNullOrWhiteSpace($userName))
+        {
+            $appCmdArgs = [string]::Format("{0} -[path='/'].[path='/'].userName:{1}", $appCmdArgs, $userName)
+        }
+
+        if(-not [string]::IsNullOrWhiteSpace($password) -and $authType -eq "WebsiteWindowsAuth")
+        {
+            $appCmdArgs = [string]::Format("{0} -[path='/'].[path='/'].password:{1}", $appCmdArgs, $password)
+        }
     }
 
     if($ipAddress -eq "All Unassigned")
@@ -360,8 +365,7 @@ function Update-AppPool
         [string]$clrVersion,
         [string]$pipeLineMode,
         [string]$identity,
-        [string]$userName,
-        [string]$password
+        [System.Management.Automation.PSCredential] $AppPoolCredentials
     )
 
     $appCmdArgs = ' set config  -section:system.applicationHost/applicationPools'
@@ -380,15 +384,20 @@ function Update-AppPool
         $appCmdArgs = [string]::Format('{0} /[name=''"{1}"''].managedPipelineMode:{2}', $appCmdArgs, $appPoolName, $pipeLineMode)
     }
 
-    if($identity -eq "SpecificUser" -and -not [string]::IsNullOrWhiteSpace($userName) -and -not [string]::IsNullOrWhiteSpace($password))
+    if($identity -eq "SpecificUser" -and $AppPoolCredentials)
     {
-        $appCmdArgs = [string]::Format('{0} /[name=''"{1}"''].processModel.identityType:SpecificUser /[name=''"{1}"''].processModel.userName:"{2}" /[name=''"{1}"''].processModel.password:"{3}"',`
+        $userName = $AppPoolCredentials.UserName
+        $password = $AppPoolCredentials.GetNetworkCredential().password
+
+        if (-not [string]::IsNullOrWhiteSpace($userName) -and -not [string]::IsNullOrWhiteSpace($userName) )
+        {
+            $appCmdArgs = [string]::Format('{0} /[name=''"{1}"''].processModel.identityType:SpecificUser /[name=''"{1}"''].processModel.userName:"{2}" /[name=''"{1}"''].processModel.password:"{3}"',`
                                 $appCmdArgs, $appPoolName, $userName, $password)
-    }
-    elseif ($identity -eq "SpecificUser" -and -not [string]::IsNullOrWhiteSpace($userName))
-    {
-        $appCmdArgs = [string]::Format('{0} /[name=''"{1}"''].processModel.identityType:SpecificUser /[name=''"{1}"''].processModel.userName:"{2}"',`
+        }
+        elseif (-not [string]::IsNullOrWhiteSpace($userName)) {
+            $appCmdArgs = [string]::Format('{0} /[name=''"{1}"''].processModel.identityType:SpecificUser /[name=''"{1}"''].processModel.userName:"{2}"',`
                                 $appCmdArgs, $appPoolName, $userName)
+        }
     }
     else
     {
@@ -409,8 +418,7 @@ function Create-And-Update-Website
         [string]$appPoolName,
         [string]$physicalPath,
         [string]$authType,
-        [string]$userName,
-        [string]$password,
+        [System.Management.Automation.PSCredential] $websitePhysicalPathAuthCredentials,
         [string]$addBinding,
         [string]$protocol,
         [string]$ipAddress,
@@ -425,7 +433,7 @@ function Create-And-Update-Website
         Create-Website -siteName $siteName -physicalPath $physicalPath
     }
 
-    Update-Website -siteName $siteName -appPoolName $appPoolName -physicalPath $physicalPath -authType $authType -userName $userName -password $password `
+    Update-Website -siteName $siteName -appPoolName $appPoolName -physicalPath $physicalPath -authType $authType -websitePhysicalPathAuthCredentials $websitePhysicalPathAuthCredentials `
     -addBinding $addBinding -protocol $protocol -ipAddress $ipAddress -port $port -hostname $hostname
 }
 
@@ -436,8 +444,7 @@ function Create-And-Update-AppPool
         [string]$clrVersion,
         [string]$pipeLineMode,
         [string]$identity,
-        [string]$userName,
-        [string]$password
+        [System.Management.Automation.PSCredential] $AppPoolCredentials
     )
 
     $doesAppPoolExists = Does-AppPoolExists -appPoolName $appPoolName
@@ -447,7 +454,7 @@ function Create-And-Update-AppPool
         Create-AppPool -appPoolName $appPoolName
     }
 
-    Update-AppPool -appPoolName $appPoolName -clrVersion $clrVersion -pipeLineMode $pipeLineMode -identity $identity -userName $userName -password $password
+    Update-AppPool -appPoolName $appPoolName -clrVersion $clrVersion -pipeLineMode $pipeLineMode -identity $identity -appPoolCredentials $AppPoolCredentials
 }
 
 function Execute-Main
@@ -457,8 +464,7 @@ function Execute-Main
         [string]$WebsiteName,
         [string]$WebsitePhysicalPath,
         [string]$WebsitePhysicalPathAuth,
-        [string]$WebsiteAuthUserName,
-        [string]$WebsiteAuthUserPassword,
+        [System.Management.Automation.PSCredential] $websitePhysicalPathAuthCredentials,
         [string]$AddBinding,
         [string]$Protocol,
         [string]$IpAddress,
@@ -471,8 +477,7 @@ function Execute-Main
         [string]$DotNetVersion,
         [string]$PipeLineMode,
         [string]$AppPoolIdentity,
-        [string]$AppPoolUsername,
-        [string]$AppPoolPassword,
+        [System.Management.Automation.PSCredential] $AppPoolCredentials,
         [string]$AppCmdCommands
         )
 
@@ -481,8 +486,6 @@ function Execute-Main
     Write-Verbose "WebsiteName = $WebsiteName"
     Write-Verbose "WebsitePhysicalPath = $WebsitePhysicalPath"
     Write-Verbose "WebsitePhysicalPathAuth = $WebsitePhysicalPathAuth"
-    Write-Verbose "WebsiteAuthUserName = $WebsiteAuthUserName"
-    Write-Verbose "WebSiteAuthUserPassword = $WebSiteAuthUserPassword"
     Write-Verbose "AddBinding = $AddBinding"
     Write-Verbose "Protocol = $Protocol"
     Write-Verbose "IpAddress = $IpAddress"
@@ -495,19 +498,17 @@ function Execute-Main
     Write-Verbose "DotNetVersion = $DotNetVersion"
     Write-Verbose "PipeLineMode = $PipeLineMode"
     Write-Verbose "AppPoolIdentity = $AppPoolIdentity"
-    Write-Verbose "AppPoolUsername = $AppPoolUsername"
-    Write-Verbose "AppPoolPassword = $AppPoolPassword"
     Write-Verbose "AppCmdCommands = $AppCmdCommands"
     
     if($CreateAppPool -ieq "true")
     {
-        Create-And-Update-AppPool -appPoolName $AppPoolName -clrVersion $DotNetVersion -pipeLineMode $PipeLineMode -identity $AppPoolIdentity -userName $AppPoolUsername -password $AppPoolPassword
+        Create-And-Update-AppPool -appPoolName $AppPoolName -clrVersion $DotNetVersion -pipeLineMode $PipeLineMode -identity $AppPoolIdentity -appPoolCredentials $AppPoolCredentials 
     }
 
     if($CreateWebsite -ieq "true")
     {
-        Create-And-Update-Website -siteName $WebsiteName -appPoolName $AppPoolName -physicalPath $WebsitePhysicalPath -authType $WebsitePhysicalPathAuth -userName $WebsiteAuthUserName `
-         -password $WebsiteAuthUserPassword -addBinding $AddBinding -protocol $Protocol -ipAddress $IpAddress -port $Port -hostname $HostName
+        Create-And-Update-Website -siteName $WebsiteName -appPoolName $AppPoolName -physicalPath $WebsitePhysicalPath -authType $WebsitePhysicalPathAuth -websitePhysicalPathAuthCredentials $websitePhysicalPathAuthCredentials `
+         -addBinding $AddBinding -protocol $Protocol -ipAddress $IpAddress -port $Port -hostname $HostName
 
         if($Protocol -ieq "https" -and $AddBinding -ieq "true")
         {
