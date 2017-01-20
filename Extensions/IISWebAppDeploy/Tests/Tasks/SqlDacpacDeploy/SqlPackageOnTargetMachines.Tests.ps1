@@ -492,6 +492,10 @@ Describe "Tests for verifying Execute-DacpacDeployment functionality" {
 
     Context "When execute DacpacDeployment is invoked with all inputs"{
 
+        function Find-VstsFiles 
+        {
+            return "sample.dacpac"
+        }
         Mock Get-SqlPackageOnTargetMachine { return "sqlpackage.exe" }
         Mock Get-SqlPackageCmdArgs -Verifiable { return "args" } -ParameterFilter { $DacpacFile -eq "sample.dacpac" }
         Mock Invoke-Expression -Verifiable { return }
