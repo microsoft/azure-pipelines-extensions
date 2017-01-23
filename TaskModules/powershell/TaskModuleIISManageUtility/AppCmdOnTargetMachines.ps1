@@ -365,7 +365,7 @@ function Update-AppPool
         [string]$clrVersion,
         [string]$pipeLineMode,
         [string]$identity,
-        [System.Management.Automation.PSCredential] $AppPoolCredentials
+        [System.Management.Automation.PSCredential] $appPoolCredentials
     )
 
     $appCmdArgs = ' set config  -section:system.applicationHost/applicationPools'
@@ -384,10 +384,10 @@ function Update-AppPool
         $appCmdArgs = [string]::Format('{0} /[name=''"{1}"''].managedPipelineMode:{2}', $appCmdArgs, $appPoolName, $pipeLineMode)
     }
 
-    if($identity -eq "SpecificUser" -and $AppPoolCredentials)
+    if($identity -eq "SpecificUser" -and $appPoolCredentials)
     {
-        $userName = $AppPoolCredentials.UserName
-        $password = $AppPoolCredentials.GetNetworkCredential().password
+        $userName = $appPoolCredentials.UserName
+        $password = $appPoolCredentials.GetNetworkCredential().password
 
         if (-not [string]::IsNullOrWhiteSpace($userName) -and -not [string]::IsNullOrWhiteSpace($userName) )
         {
@@ -444,7 +444,7 @@ function Create-And-Update-AppPool
         [string]$clrVersion,
         [string]$pipeLineMode,
         [string]$identity,
-        [System.Management.Automation.PSCredential] $AppPoolCredentials
+        [System.Management.Automation.PSCredential] $appPoolCredentials
     )
 
     $doesAppPoolExists = Does-AppPoolExists -appPoolName $appPoolName
@@ -454,7 +454,7 @@ function Create-And-Update-AppPool
         Create-AppPool -appPoolName $appPoolName
     }
 
-    Update-AppPool -appPoolName $appPoolName -clrVersion $clrVersion -pipeLineMode $pipeLineMode -identity $identity -appPoolCredentials $AppPoolCredentials
+    Update-AppPool -appPoolName $appPoolName -clrVersion $clrVersion -pipeLineMode $pipeLineMode -identity $identity -appPoolCredentials $appPoolCredentials
 }
 
 function Execute-Main
@@ -464,7 +464,7 @@ function Execute-Main
         [string]$WebsiteName,
         [string]$WebsitePhysicalPath,
         [string]$WebsitePhysicalPathAuth,
-        [System.Management.Automation.PSCredential] $websitePhysicalPathAuthCredentials,
+        [System.Management.Automation.PSCredential] $WebsitePhysicalPathAuthCredentials,
         [string]$AddBinding,
         [string]$Protocol,
         [string]$IpAddress,
@@ -504,10 +504,13 @@ function Execute-Main
     {
         Create-And-Update-AppPool -appPoolName $AppPoolName -clrVersion $DotNetVersion -pipeLineMode $PipeLineMode -identity $AppPoolIdentity -appPoolCredentials $AppPoolCredentials 
     }
+    else {
+        $AppPoolName = $null
+    }
 
     if($CreateWebsite -ieq "true")
     {
-        Create-And-Update-Website -siteName $WebsiteName -appPoolName $AppPoolName -physicalPath $WebsitePhysicalPath -authType $WebsitePhysicalPathAuth -websitePhysicalPathAuthCredentials $websitePhysicalPathAuthCredentials `
+        Create-And-Update-Website -siteName $WebsiteName -appPoolName $AppPoolName -physicalPath $WebsitePhysicalPath -authType $WebsitePhysicalPathAuth -websitePhysicalPathAuthCredentials $WebsitePhysicalPathAuthCredentials `
          -addBinding $AddBinding -protocol $Protocol -ipAddress $IpAddress -port $Port -hostname $HostName
 
         if($Protocol -ieq "https" -and $AddBinding -ieq "true")
