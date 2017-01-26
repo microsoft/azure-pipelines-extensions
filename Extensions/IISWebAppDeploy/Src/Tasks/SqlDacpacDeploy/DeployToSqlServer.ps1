@@ -133,9 +133,24 @@ function GetScriptToRun
                 sqlServerCredentials="`$sqlServerCredentials"
                 additionalArguments=$additionalArguments
             }
-            $jsonSqlSplatArguments = $sqlSplatArguments | ConvertTo-Json
+            if (Get-Command ConvertTo-Json -ErrorAction SilentlyContinue)
+            {
+                $jsonSqlSplatArguments = $sqlSplatArguments | ConvertTo-Json
+            } 
+            else
+            {
+                $jsonSqlSplatArguments = $sqlSplatArguments | ConvertTo-Json20
+            }
+            
             $remoteArgsInit = "`$remoteJsonSqlSplattedArgs = '$jsonSqlSplatArguments'
-                `$splattedArgsOject = `$remoteJsonSqlSplattedArgs | ConvertFrom-Json
+                if (Get-Command ConvertTo-Json -ErrorAction SilentlyContinue)
+                {
+                    `$splattedArgsOject = `$remoteJsonSqlSplattedArgs | ConvertFrom-Json
+                } 
+                else
+                {
+                    `$splattedArgsOject = `$remoteJsonSqlSplattedArgs | ConvertFrom-Json20
+                }
                 `$remoteSplattedSql = @{
                     taskType=`$splattedArgsOject.taskType
                     sqlFile=`$splattedArgsOject.sqlFile
@@ -236,4 +251,10 @@ function Main
     }
 
     RunRemoteDeployment @remoteDeploymentArgs
+}
+
+function ConvertTo-Json20([object] $item){
+    add-type -assembly system.web.extensions
+    $ps_js=new-object system.web.script.serialization.javascriptSerializer
+    return $ps_js.Serialize($item)
 }
