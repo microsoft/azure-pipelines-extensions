@@ -54,55 +54,8 @@ function Execute-SqlQueryDeployment
             InputFile=$sqlFile
         }
 
-        # Process Additional arguments 
-        if($additionalArguments) 
-        {
-            $args = $additionalArguments.Split()
-            $argScope = $null
-            foreach($arg in $args) {
-                $arg = $arg.Trim()
-                if($arg)
-                {
-                    if ($arg.StartsWith("-") -and ($arg.Length -gt 1)){
-                        $argVal = $arg.SubString(1)
-                        if($argScope)
-                        {
-                            $spaltArguments.Add($argScope, $null)
-                        }
-                        $argScope = $argVal
-                    } 
-                    elseif (-not $arg.StartsWith("-")) 
-                    {
-                        if($argScope)
-                        {
-                            $spaltArguments.Add($argScope, $arg);
-                        }
-                        $argScope = $null
-                    } 
-                    else
-                    {
-                        #Ignore argument
-                        Write-Verbose "Ignoring argument $arg"
-                    }
-                }
-            }
-            if ($argScope) {
-                $spaltArguments.Add($argScope, $null)
-            }
-        }
-
-        # Special handing for argument variable
-        if($spaltArguments.Contains("variable")) {
-            $paramString = $spaltArguments.Item("variable")
-            if($paramString) {
-                $params = $paramString.Split(',')
-                $spaltArguments.set_Item("variable", $params)
-            }
-        }
-
         $spaltArgumentsToLog = $spaltArguments
         $spaltArgumentsToLogJson = $spaltArgumentsToLog | ConvertTo-Json
-        Write-Verbose "Arguments : $spaltArgumentsToLogJson"
 
         if($authscheme -eq "sqlServerAuthentication")
         {
@@ -115,7 +68,8 @@ function Execute-SqlQueryDeployment
             }
         }
 
-        Invoke-Sqlcmd @spaltArguments
+        Write-Verbose "Invoke-SqlCmd arguments : $spaltArgumentsToLogJson  $additionalArguments"
+        Invoke-Expression "Invoke-SqlCmd @spaltArguments $additionalArguments"
 
     } # End of Try
     Finally
