@@ -95,6 +95,11 @@ Describe "Tests for verifying Execute-SqlQueryDeployment functionality" {
 
     Context "When execute sql is invoked with Wrong Extension Sql File"{
 
+        function Find-VstsFiles 
+        {
+            return "SampleFile.temp"
+        }
+
         Mock Import-SqlPs { return }
         Mock Invoke-Expression -Verifiable { return } -ParameterFilter {$Command -and $Command.StartsWith("Invoke-Sqlcmd")}
 
@@ -188,6 +193,11 @@ Describe "Tests for verifying Execute-SqlQueryDeployment functionality" {
     }
 
     Context "When execute sql is invoked with Sql File, Finally is no Op"{
+
+        function Find-VstsFiles 
+        {
+            return "SampleFile.temp"
+        }
 
         Mock Import-SqlPs { throw }
 
