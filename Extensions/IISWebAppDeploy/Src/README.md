@@ -31,7 +31,8 @@ The extension installs the following tasks:
 
 ### **Note**
 
-This extension is **supported in TFS 2015 Update 2** onwards.
+- This extension is **supported in TFS 2015 Update 2** onwards.
+- All the WinRM Tasks can also be used for Azure VMs as with https protocal
 
 ### **Contact Information**
 
