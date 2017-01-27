@@ -1,7 +1,7 @@
 ﻿# Function to import SqlPS module & avoid directory switch
 function Import-SqlPs {
     push-location
-    Import-Module SqlPS -ErrorAction 'SilentlyContinue' 3>&1 | out-null
+    Import-Module SqlPS -ErrorAction 'SilentlyContinue' | out-null
     pop-location
 }
 
@@ -92,7 +92,7 @@ function Execute-SqlQueryDeployment
         }
 
         $spaltArgumentsToLog = $spaltArguments
-        $spaltArgumentsToLogJson = $spaltArgumentsToLog | ConvertTo-Json
+        $spaltArgumentsToLogJson = ConvertTo-JsonFormat -InputObject $spaltArgumentsToLog  
         Write-Verbose "Arguments : $spaltArgumentsToLogJson"
 
         if($authscheme -eq "sqlServerAuthentication")
@@ -118,11 +118,4 @@ function Execute-SqlQueryDeployment
             Remove-Item $sqlFile -ErrorAction 'SilentlyContinue'
         }
     }
-}
-
-function ConvertFrom-Json20([object] $item){ 
-    add-type -assembly system.web.extensions
-    $ps_js=new-object system.web.script.serialization.javascriptSerializer
-    #The comma operator is the array construction operator in PowerShell
-    return ,$ps_js.DeserializeObject($item)
 }

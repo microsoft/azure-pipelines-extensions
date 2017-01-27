@@ -1,4 +1,5 @@
 ﻿Import-Module $env:CURRENT_TASK_ROOTDIR\DeploymentSDK\InvokeRemoteDeployment.ps1
+Import-Module $env:CURRENT_TASK_ROOTDIR\TaskModuleSqlUtility\SqlUtility.ps1
 
 function EscapeSpecialChars
 {
@@ -73,10 +74,12 @@ function GetScriptToRun
         $initScript = [string]::Format("{0} {1} {2}", $securePasswordScript, [Environment]::NewLine,  $psCredentialCreationScript)
     }
 
+    $sqlUtilityScript = Get-Content TaskModuleSqlUtility\SqlUtility.ps1 | Out-String
     if ($taskType -eq "dacpac")
     {
         
         $sqlPackageScript = Get-Content TaskModuleSqlUtility\SqlPackageOnTargetMachines.ps1 | Out-String
+        $sqlPackageScript = [string]::Format("{0} {1} {2}", $sqlPackageScript, [Environment]::NewLine, $sqlUtilityScript)
 
         try{
             $sqlSplatArguments = @{
@@ -90,19 +93,19 @@ function GetScriptToRun
                 publishProfile=$publishProfile 
                 additionalArguments=$additionalArguments
             }
-            $jsonSqlSplatArguments = $sqlSplatArguments | ConvertTo-Json
+            $jsonSqlSplatArguments = convertTo-JsonFormat -InputObject $sqlSplatArguments
             $remoteArgsInit = "`$remoteJsonSqlSplattedArgs = '$jsonSqlSplatArguments'
-                `$splattedArgsOject = `$remoteJsonSqlSplattedArgs | ConvertFrom-Json
+                `$splattedArgsObject = ConvertFrom-JsonFormat -InputObject `$remoteJsonSqlSplattedArgs 
                 `$remoteSqlDacpacArgs = @{
-                    dacpacFile=`$splattedArgsOject.dacpacFile
-                    targetMethod=`$splattedArgsOject.targetMethod
-                    serverName=`$splattedArgsOject.serverName
-                    databaseName=`$splattedArgsOject.databaseName
-                    authscheme=`$splattedArgsOject.authscheme
+                    dacpacFile=`$splattedArgsObject.dacpacFile
+                    targetMethod=`$splattedArgsObject.targetMethod
+                    serverName=`$splattedArgsObject.serverName
+                    databaseName=`$splattedArgsObject.databaseName
+                    authscheme=`$splattedArgsObject.authscheme
                     sqlServerCredentials=`$sqlServerCredentials
-                    connectionString=`$splattedArgsOject.connectionString
-                    publishProfile=`$splattedArgsOject.publishProfile
-                    additionalArguments=`$splattedArgsOject.additionalArguments
+                    connectionString=`$splattedArgsObject.connectionString
+                    publishProfile=`$splattedArgsObject.publishProfile
+                    additionalArguments=`$splattedArgsObject.additionalArguments
                 }"
 
             $invokeMain = "Execute-DacpacDeployment @remoteSqlDacpacArgs"
@@ -121,6 +124,7 @@ function GetScriptToRun
     else
     {
         $sqlQueryScript = Get-Content TaskModuleSqlUtility\SqlQueryOnTargetMachines.ps1 | Out-String
+        $sqlQueryScript = [string]::Format("{0} {1} {2}", $sqlQueryScript, [Environment]::NewLine, $sqlUtilityScript)
 
         try{
             $sqlSplatArguments = @{
@@ -133,33 +137,18 @@ function GetScriptToRun
                 sqlServerCredentials="`$sqlServerCredentials"
                 additionalArguments=$additionalArguments
             }
-            if (Get-Command ConvertTo-Json -ErrorAction SilentlyContinue)
-            {
-                $jsonSqlSplatArguments = $sqlSplatArguments | ConvertTo-Json
-            } 
-            else
-            {
-                $jsonSqlSplatArguments = $sqlSplatArguments | ConvertTo-Json20
-            }
-            
+            $jsonSqlSplatArguments = ConvertTo-JsonFormat -InputObject $sqlSplatArguments
             $remoteArgsInit = "`$remoteJsonSqlSplattedArgs = '$jsonSqlSplatArguments'
-                if (Get-Command ConvertTo-Json -ErrorAction SilentlyContinue)
-                {
-                    `$splattedArgsOject = `$remoteJsonSqlSplattedArgs | ConvertFrom-Json
-                } 
-                else
-                {
-                    `$splattedArgsOject = `$remoteJsonSqlSplattedArgs | ConvertFrom-Json20
-                }
+                `$splattedArgsObject = ConvertFrom-JsonFormat -InputObject `$remoteJsonSqlSplattedArgs
                 `$remoteSplattedSql = @{
-                    taskType=`$splattedArgsOject.taskType
-                    sqlFile=`$splattedArgsOject.sqlFile
-                    inlineSql=`$splattedArgsOject.inlineSql
-                    serverName=`$splattedArgsOject.serverName
-                    databaseName=`$splattedArgsOject.databaseName
-                    authscheme=`$splattedArgsOject.authscheme
+                    taskType=`$splattedArgsObject.taskType
+                    sqlFile=`$splattedArgsObject.sqlFile
+                    inlineSql=`$splattedArgsObject.inlineSql
+                    serverName=`$splattedArgsObject.serverName
+                    databaseName=`$splattedArgsObject.databaseName
+                    authscheme=`$splattedArgsObject.authscheme
                     sqlServerCredentials=`$sqlServerCredentials
-                    additionalArguments=`$splattedArgsOject.additionalArguments
+                    additionalArguments=`$splattedArgsObject.additionalArguments
                 }"
             $invokeExecute = "Execute-SqlQueryDeployment @remoteSplattedSql"
         }

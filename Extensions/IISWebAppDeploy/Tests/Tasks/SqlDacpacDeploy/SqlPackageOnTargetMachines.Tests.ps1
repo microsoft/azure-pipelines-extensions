@@ -4,6 +4,7 @@ $sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path).Replace(".Tests.", ".")
 $VerbosePreference = 'Continue'
 
 $sqlPackageOnTargetMachinesPath = "$currentScriptPath\..\..\..\Src\Tasks\$scriptDirName\TaskModuleSqlUtility\$sut"
+$sqlUtility = "$currentScriptPath\..\..\..\Src\Tasks\$scriptDirName\TaskModuleSqlUtility\sqlUtility.ps1"
 
 if(-not (Test-Path -Path $sqlPackageOnTargetMachinesPath ))
 {
@@ -11,6 +12,7 @@ if(-not (Test-Path -Path $sqlPackageOnTargetMachinesPath ))
 }
 
 . "$sqlPackageOnTargetMachinesPath"
+. "$sqlUtility"
 
 mkdir $currentScriptPath\SQL\110
 mkdir $currentScriptPath\SQL\120

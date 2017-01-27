@@ -468,7 +468,42 @@ function Execute-DacpacDeployment
     Write-Verbose -Verbose $sqlPackageArguments
     
     Write-Verbose "Executing command: $sqlPackage $sqlPackageArguments"
-    Execute-Command -FileName "$sqlPackage"  -Arguments $sqlPackageArguments
+    if($PSVersionTable.PSVersion.Major -lt 4)
+    {
+        Run-Command "`"$sqlPackage`" $sqlPackageArguments"
+    }
+    else
+    {
+        Execute-Command -FileName "$sqlPackage"  -Arguments $sqlPackageArguments
+    }
+}
+
+function Run-Command
+{
+    param(
+        [string]$command,
+        [bool] $failOnErr = $true
+    )
+
+    $ErrorActionPreference = 'Continue'
+
+    if( $psversiontable.PSVersion.Major -le 4)
+    {
+        $result = cmd.exe /c "`"$command`""
+    }
+    else
+    {
+        $result = cmd.exe /c "$command"
+    }
+
+    $ErrorActionPreference = 'Stop'
+
+    if($failOnErr -and $LASTEXITCODE -ne 0)
+    {
+        throw $result
+    }
+
+    return $result
 }
 
 function Execute-Command
@@ -498,10 +533,4 @@ function Execute-Command
     }
 }
 
-function ConvertFrom-Json20([object] $item){ 
-    add-type -assembly system.web.extensions
-    $ps_js=new-object system.web.script.serialization.javascriptSerializer
-    #The comma operator is the array construction operator in PowerShell
-    return ,$ps_js.DeserializeObject($item)
-}
 

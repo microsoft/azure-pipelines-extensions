@@ -2,6 +2,10 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.4.3] - 
+### Fixed
+- Fixing convertTo/From-Json cmdlet not found for PSVersion 2.0
+
 ## [1.4.2] - 4th January 2017
 ### Fixed
 - Assign SSL certificate to HTTPS binding when passing IP and port
