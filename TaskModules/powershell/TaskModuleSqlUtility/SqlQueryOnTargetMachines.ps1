@@ -68,6 +68,8 @@ function Execute-SqlQueryDeployment
             }
         }
 
+        $additionalArguments = $additionalArguments.Replace("`$", "```$")
+
         Write-Verbose "Invoke-SqlCmd arguments : $spaltArgumentsToLogJson  $additionalArguments"
         Invoke-Expression "Invoke-SqlCmd @spaltArguments $additionalArguments"
 
