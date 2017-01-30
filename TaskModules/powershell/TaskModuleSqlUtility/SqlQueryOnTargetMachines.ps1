@@ -29,6 +29,14 @@ function Execute-SqlQueryDeployment
     )
 
     Write-Verbose "Entering script SqlQueryOnTargetMachines.ps1"
+    Write-Verbose "taskType = $taskType"
+    Write-Verbose "sqlFile = $sqlFile"
+    Write-Verbose "inlineSql = $inlineSql"
+    Write-Verbose "serverName = $serverName"
+    Write-Verbose "databaseName = $databaseName"
+    Write-Verbose "authscheme = $authscheme"
+    Write-Verbose "additionalArguments = $additionalArguments"
+
     try 
     {
         if($taskType -eq "sqlInline")
@@ -54,46 +62,8 @@ function Execute-SqlQueryDeployment
             InputFile=$sqlFile
         }
 
-        # Process Additional arguments 
-        if($additionalArguments) 
-        {
-            $args = $additionalArguments.Split()
-            $argScope = $null
-            foreach($arg in $args) {
-                $arg = $arg.Trim()
-                if($arg)
-                {
-                    if ($arg.StartsWith("-") -and ($arg.Length -gt 1)){
-                        $argVal = $arg.SubString(1)
-                        if($argScope)
-                        {
-                            $spaltArguments.Add($argScope, $null)
-                        }
-                        $argScope = $argVal
-                    } 
-                    elseif (-not $arg.StartsWith("-")) 
-                    {
-                        if($argScope)
-                        {
-                            $spaltArguments.Add($argScope, $arg);
-                        }
-                        $argScope = $null
-                    } 
-                    else
-                    {
-                        #Ignore argument
-                        Write-Verbose "Ignoring argument $arg"
-                    }
-                }
-            }
-            if ($argScope) {
-                $spaltArguments.Add($argScope, $null)
-            }
-        }
-
         $spaltArgumentsToLog = $spaltArguments
         $spaltArgumentsToLogJson = $spaltArgumentsToLog | ConvertTo-Json
-        Write-Verbose "Arguments : $spaltArgumentsToLogJson"
 
         if($authscheme -eq "sqlServerAuthentication")
         {
@@ -106,7 +76,10 @@ function Execute-SqlQueryDeployment
             }
         }
 
-        Invoke-Sqlcmd @spaltArguments
+        $additionalArguments = EscapeSpecialChars $additionalArguments
+
+        Write-Verbose "Invoke-SqlCmd arguments : $spaltArgumentsToLogJson  $additionalArguments"
+        Invoke-Expression "Invoke-SqlCmd @spaltArguments $additionalArguments"
 
     } # End of Try
     Finally
@@ -118,4 +91,13 @@ function Execute-SqlQueryDeployment
             Remove-Item $sqlFile -ErrorAction 'SilentlyContinue'
         }
     }
+}
+
+function EscapeSpecialChars
+{
+    param(
+        [string]$str
+    )
+
+    return $str.Replace('`', '``').Replace('$', '`$')
 }

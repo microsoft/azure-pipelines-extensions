@@ -181,7 +181,7 @@ function Is-Directory
 
     if(-not (Test-Path -Path $Path))
     {
-        throw "$packageFile doesn't exists."
+        throw "$Path doesn't exists."
     }
     if((Get-Item $Path) -is [System.IO.DirectoryInfo])
     {
