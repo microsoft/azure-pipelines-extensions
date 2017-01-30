@@ -468,52 +468,7 @@ function Execute-DacpacDeployment
     Write-Verbose -Verbose $sqlPackageArguments
     
     Write-Verbose "Executing command: $sqlPackage $sqlPackageArguments"
-    Run-SqlCommand -sqlPackage $sqlPackage -sqlPackageArguments $sqlPackageArguments
-}
-
-function Run-SqlCommand
-{
-    param(
-         [String][Parameter(Mandatory=$true)] $sqlPackage,
-         [String][Parameter(Mandatory=$true)] $sqlPackageArguments
-    )
-
-    if($PSVersionTable.PSVersion.Major -lt 4)
-    {
-        Run-Command "`"$sqlPackage`" $sqlPackageArguments"
-    }
-    else
-    {
-        Execute-Command -FileName "$sqlPackage"  -Arguments $sqlPackageArguments
-    }
-}
-
-function Run-Command
-{
-    param(
-        [string]$command,
-        [bool] $failOnErr = $true
-    )
-
-    $ErrorActionPreference = 'Continue'
-
-    if( $psversiontable.PSVersion.Major -le 4)
-    {
-        $result = cmd.exe /c "`"$command`""
-    }
-    else
-    {
-        $result = cmd.exe /c "$command"
-    }
-
-    $ErrorActionPreference = 'Stop'
-
-    if($failOnErr -and $LASTEXITCODE -ne 0)
-    {
-        throw $result
-    }
-
-    return $result
+    Execute-Command -FileName "$sqlPackage"  -Arguments $sqlPackageArguments
 }
 
 function Execute-Command
@@ -523,23 +478,33 @@ function Execute-Command
         [String][Parameter(Mandatory=$true)] $Arguments
     )
 
-    $ErrorActionPreference = 'SilentlyContinue'
-    $finalErrorMessage = ""
-    Invoke-Expression "& '$FileName' --% $Arguments"  -ErrorVariable errors | ForEach-Object {
-        if ($_ -is [System.Management.Automation.ErrorRecord]) {
-            $finalErrorMessage +=  "$_ "
-        } else {
-            Write-Host $_
-        }
-    } 
-    
-    foreach($errorMsg in $errors){
-        $finalErrorMessage +=  "$errorMsg "
+    if( $psversiontable.PSVersion.Major -le 4)
+    {
+        $ErrorActionPreference = 'Continue'
+        $command = "`"$FileName`" $Arguments"
+        $result = cmd.exe /c "`"$command`""
     }
+    else
+    {
+        $ErrorActionPreference = 'SilentlyContinue'
+        $result = ""
+        Invoke-Expression "& '$FileName' --% $Arguments"  -ErrorVariable errors | ForEach-Object {
+            if ($_ -is [System.Management.Automation.ErrorRecord]) {
+                $result +=  "$_ "
+            } else {
+                Write-Host $_
+            }
+        } 
+        
+        foreach($errorMsg in $errors){
+            $result +=  "$errorMsg "
+        }
+    }
+
     $ErrorActionPreference = 'Stop'
     if($LASTEXITCODE -ne 0)
     {
-         throw  $finalErrorMessage
+         throw  $result
     }
 }
 
