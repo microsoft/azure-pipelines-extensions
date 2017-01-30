@@ -18,7 +18,20 @@ function convertTo-JsonFormat($InputObject) {
     } 
     else
     {
-        $jsonOutput = ConvertTo-Json20 -InputObject $InputObject
+        try
+        {
+            $jsonOutput = ConvertTo-Json20 -InputObject $InputObject
+        }
+        catch
+        {
+            Write-Verbose $_.Exception
+            $errorMessage = "Unable to convert json string to object. Please install WMF 4.0 and try again."
+            if($_.Exception.Message)
+            {
+                $errorMessage = [string]::Format("{0} {1} {2}", $errorMessage, [Environment]::NewLine, $_.Exception.Message)
+            }
+            throw $errorMessage
+        }
     }
     return $jsonOutput
 }
@@ -30,7 +43,21 @@ function convertFrom-JsonFormat($InputObject) {
     } 
     else
     {
-        $convertedObject = ConvertFrom-Json20 -InputObject $InputObject
+        try
+        {
+            $convertedObject = ConvertFrom-Json20 -InputObject $InputObject
+        }
+        catch
+        {
+            Write-Verbose $_.Exception
+            $errorMessage = "Unable to convert json string to object. Please install WMF 4.0 and try again."
+            if($_.Exception.Message)
+            {
+                $errorMessage = [string]::Format("{0} {1} {2}", $errorMessage, [Environment]::NewLine, $_.Exception.Message)
+            }
+            throw $errorMessage
+        }
+        
     }
     return $convertedObject
 }

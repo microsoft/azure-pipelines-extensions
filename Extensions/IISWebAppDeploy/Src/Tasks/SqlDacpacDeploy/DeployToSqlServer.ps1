@@ -1,5 +1,5 @@
 ﻿Import-Module $env:CURRENT_TASK_ROOTDIR\DeploymentSDK\InvokeRemoteDeployment.ps1
-Import-Module $env:CURRENT_TASK_ROOTDIR\TaskModuleSqlUtility\SqlUtility.ps1
+Import-Module $env:CURRENT_TASK_ROOTDIR\TaskModuleSqlUtility\JsonConvertionUtility.ps1
 
 function EscapeSpecialChars
 {
@@ -74,12 +74,12 @@ function GetScriptToRun
         $initScript = [string]::Format("{0} {1} {2}", $securePasswordScript, [Environment]::NewLine,  $psCredentialCreationScript)
     }
 
-    $sqlUtilityScript = Get-Content TaskModuleSqlUtility\SqlUtility.ps1 | Out-String
+    $jsonConversionUtilityScript = Get-Content TaskModuleSqlUtility\JsonConvertionUtility.ps1 | Out-String
     if ($taskType -eq "dacpac")
     {
         
         $sqlPackageScript = Get-Content TaskModuleSqlUtility\SqlPackageOnTargetMachines.ps1 | Out-String
-        $sqlPackageScript = [string]::Format("{0} {1} {2}", $sqlPackageScript, [Environment]::NewLine, $sqlUtilityScript)
+        $sqlPackageScript = [string]::Format("{0} {1} {2}", $sqlPackageScript, [Environment]::NewLine, $jsonConversionUtilityScript)
 
         try{
             $sqlSplatArguments = @{
@@ -124,7 +124,7 @@ function GetScriptToRun
     else
     {
         $sqlQueryScript = Get-Content TaskModuleSqlUtility\SqlQueryOnTargetMachines.ps1 | Out-String
-        $sqlQueryScript = [string]::Format("{0} {1} {2}", $sqlQueryScript, [Environment]::NewLine, $sqlUtilityScript)
+        $sqlQueryScript = [string]::Format("{0} {1} {2}", $sqlQueryScript, [Environment]::NewLine, $jsonConversionUtilityScript)
 
         try{
             $sqlSplatArguments = @{
@@ -240,10 +240,4 @@ function Main
     }
 
     RunRemoteDeployment @remoteDeploymentArgs
-}
-
-function ConvertTo-Json20([object] $item){
-    add-type -assembly system.web.extensions
-    $ps_js=new-object system.web.script.serialization.javascriptSerializer
-    return $ps_js.Serialize($item)
 }

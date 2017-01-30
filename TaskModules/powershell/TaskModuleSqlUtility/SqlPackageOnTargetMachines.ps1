@@ -468,6 +468,16 @@ function Execute-DacpacDeployment
     Write-Verbose -Verbose $sqlPackageArguments
     
     Write-Verbose "Executing command: $sqlPackage $sqlPackageArguments"
+    Run-SqlCommand -sqlPackage $sqlPackage -sqlPackageArguments $sqlPackageArguments
+}
+
+function Run-SqlCommand
+{
+    param(
+         [String][Parameter(Mandatory=$true)] $sqlPackage,
+         [String][Parameter(Mandatory=$true)] $sqlPackageArguments
+    )
+
     if($PSVersionTable.PSVersion.Major -lt 4)
     {
         Run-Command "`"$sqlPackage`" $sqlPackageArguments"
