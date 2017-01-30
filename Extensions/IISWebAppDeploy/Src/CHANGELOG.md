@@ -2,7 +2,7 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
-## [1.4.3] - 13th January 2017
+## [1.4.3] - 31st January 2017
 ### Fixed
 - Fixing issue for variable as additional arguments
 
