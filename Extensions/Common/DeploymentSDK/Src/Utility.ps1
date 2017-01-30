@@ -8,7 +8,7 @@ function convertTo-JsonFormat($InputObject) {
         try
         {
             add-type -assembly system.web.extensions
-            $scriptSerializer=new-object system.web.script.serialization.javascriptSerializer
+            $scriptSerializer = new-object system.web.script.serialization.javascriptSerializer
             $jsonOutput = $scriptSerializer.Serialize($InputObject)
         }
         catch
@@ -35,8 +35,7 @@ function convertFrom-JsonFormat($InputObject) {
         try
         {
             add-type -assembly system.web.extensions
-            $scriptSerializer=new-object system.web.script.serialization.javascriptSerializer
-            #The comma operator is the array construction operator in PowerShell
+            $scriptSerializer = new-object system.web.script.serialization.javascriptSerializer
             $convertedObject = ,$scriptSerializer.DeserializeObject($InputObject)
         }
         catch
