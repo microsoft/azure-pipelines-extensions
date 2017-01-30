@@ -29,6 +29,14 @@ function Execute-SqlQueryDeployment
     )
 
     Write-Verbose "Entering script SqlQueryOnTargetMachines.ps1"
+    Write-Verbose "taskType = $taskType"
+    Write-Verbose "sqlFile = $sqlFile"
+    Write-Verbose "inlineSql = $inlineSql"
+    Write-Verbose "serverName = $serverName"
+    Write-Verbose "databaseName = $databaseName"
+    Write-Verbose "authscheme = $authscheme"
+    Write-Verbose "additionalArguments = $additionalArguments"
+
     try 
     {
         if($taskType -eq "sqlInline")
