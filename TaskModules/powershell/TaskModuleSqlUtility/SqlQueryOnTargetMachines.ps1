@@ -91,10 +91,6 @@ function Execute-SqlQueryDeployment
             }
         }
 
-        $spaltArgumentsToLog = $spaltArguments
-        $spaltArgumentsToLogJson = ConvertTo-JsonFormat -InputObject $spaltArgumentsToLog  
-        Write-Verbose "Arguments : $spaltArgumentsToLogJson"
-
         if($authscheme -eq "sqlServerAuthentication")
         {
             if($sqlServerCredentials)
@@ -105,6 +101,19 @@ function Execute-SqlQueryDeployment
                 $spaltArguments.Add("Password", $sqlPassword)
             }
         }
+
+        $commandToLog = "Invoke-SqlCmd"
+        foreach ($arg in $spaltArguments.Keys) {
+            if($arg -ne "Password")
+            {
+                $commandToLog += " -${arg} $($spaltArguments.Item($arg))"
+            }
+            else
+            {
+                $commandToLog += " -${arg} *******"
+            }
+        }
+        Write-Verbose "Executing command : $commandToLog"
 
         Invoke-Sqlcmd @spaltArguments
 

@@ -1,5 +1,5 @@
 ﻿Import-Module $env:CURRENT_TASK_ROOTDIR\DeploymentSDK\InvokeRemoteDeployment.ps1
-Import-Module $env:CURRENT_TASK_ROOTDIR\TaskModuleSqlUtility\JsonConvertionUtility.ps1
+Import-Module $env:CURRENT_TASK_ROOTDIR\DeploymentSDK\Utility.ps1
 
 function EscapeSpecialChars
 {
@@ -74,12 +74,12 @@ function GetScriptToRun
         $initScript = [string]::Format("{0} {1} {2}", $securePasswordScript, [Environment]::NewLine,  $psCredentialCreationScript)
     }
 
-    $jsonConversionUtilityScript = Get-Content TaskModuleSqlUtility\JsonConvertionUtility.ps1 | Out-String
+    $utilityScript = Get-Content DeploymentSDK\Utility.ps1 | Out-String
     if ($taskType -eq "dacpac")
     {
         
         $sqlPackageScript = Get-Content TaskModuleSqlUtility\SqlPackageOnTargetMachines.ps1 | Out-String
-        $sqlPackageScript = [string]::Format("{0} {1} {2}", $sqlPackageScript, [Environment]::NewLine, $jsonConversionUtilityScript)
+        $sqlPackageScript = [string]::Format("{0} {1} {2}", $sqlPackageScript, [Environment]::NewLine, $utilityScript)
 
         try{
             $sqlSplatArguments = @{
@@ -124,7 +124,7 @@ function GetScriptToRun
     else
     {
         $sqlQueryScript = Get-Content TaskModuleSqlUtility\SqlQueryOnTargetMachines.ps1 | Out-String
-        $sqlQueryScript = [string]::Format("{0} {1} {2}", $sqlQueryScript, [Environment]::NewLine, $jsonConversionUtilityScript)
+        $sqlQueryScript = [string]::Format("{0} {1} {2}", $sqlQueryScript, [Environment]::NewLine, $utilityScript)
 
         try{
             $sqlSplatArguments = @{

@@ -11,7 +11,7 @@ if(-not (Test-Path -Path $deploySqlDacpacPath ))
 }
 
 $invokeRemoteDeploymentPath = "$currentScriptPath\..\..\..\Src\Tasks\$scriptDirName\DeploymentSDK\InvokeRemoteDeployment.ps1"
-$JsonConvertionUtilityScriptPath = "$currentScriptPath\..\..\..\Src\Tasks\$scriptDirName\TaskModuleSqlUtility\JsonConvertionUtility.ps1"
+$utilityScriptPath = "$currentScriptPath\..\..\..\Src\Tasks\$scriptDirName\DeploymentSDK\Utility.ps1"
 
 if(-not (Test-Path -Path $invokeRemoteDeploymentPath ))
 {
@@ -28,7 +28,7 @@ function Import-Module
 
 . "$deploySqlDacpacPath"
 . "$invokeRemoteDeploymentPath"
-. "$JsonConvertionUtilityScriptPath"
+. "$utilityScriptPath"
 
 Describe "Tests for testing EscapeSpecialChars functionality" {
 

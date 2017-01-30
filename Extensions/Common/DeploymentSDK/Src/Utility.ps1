@@ -1,16 +1,3 @@
-function ConvertFrom-Json20([object] $InputObject){ 
-    add-type -assembly system.web.extensions
-    $scriptSerializer=new-object system.web.script.serialization.javascriptSerializer
-    #The comma operator is the array construction operator in PowerShell
-    return ,$scriptSerializer.DeserializeObject($InputObject)
-}
-
-function ConvertTo-Json20([object] $InputObject){
-    add-type -assembly system.web.extensions
-    $scriptSerializer=new-object system.web.script.serialization.javascriptSerializer
-    return $scriptSerializer.Serialize($InputObject)
-}
-
 function convertTo-JsonFormat($InputObject) {
     if (Get-Command ConvertTo-Json -ErrorAction SilentlyContinue)
     {
@@ -20,7 +7,9 @@ function convertTo-JsonFormat($InputObject) {
     {
         try
         {
-            $jsonOutput = ConvertTo-Json20 -InputObject $InputObject
+            add-type -assembly system.web.extensions
+            $scriptSerializer=new-object system.web.script.serialization.javascriptSerializer
+            $jsonOutput = $scriptSerializer.Serialize($InputObject)
         }
         catch
         {
@@ -45,7 +34,10 @@ function convertFrom-JsonFormat($InputObject) {
     {
         try
         {
-            $convertedObject = ConvertFrom-Json20 -InputObject $InputObject
+            add-type -assembly system.web.extensions
+            $scriptSerializer=new-object system.web.script.serialization.javascriptSerializer
+            #The comma operator is the array construction operator in PowerShell
+            $convertedObject = ,$scriptSerializer.DeserializeObject($InputObject)
         }
         catch
         {
