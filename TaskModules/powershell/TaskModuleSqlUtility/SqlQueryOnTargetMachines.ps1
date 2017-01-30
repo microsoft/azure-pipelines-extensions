@@ -68,7 +68,7 @@ function Execute-SqlQueryDeployment
             }
         }
 
-        $additionalArguments = $additionalArguments.Replace("`$", "```$")
+        $additionalArguments = EscapeSpecialChars $additionalArguments
 
         Write-Verbose "Invoke-SqlCmd arguments : $spaltArgumentsToLogJson  $additionalArguments"
         Invoke-Expression "Invoke-SqlCmd @spaltArguments $additionalArguments"
@@ -83,4 +83,13 @@ function Execute-SqlQueryDeployment
             Remove-Item $sqlFile -ErrorAction 'SilentlyContinue'
         }
     }
+}
+
+function EscapeSpecialChars
+{
+    param(
+        [string]$str
+    )
+
+    return $str.Replace('`', '``').Replace('$', '`$')
 }
