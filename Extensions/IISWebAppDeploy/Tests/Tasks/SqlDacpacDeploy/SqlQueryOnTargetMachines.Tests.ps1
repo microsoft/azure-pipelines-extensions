@@ -93,6 +93,24 @@ Describe "Tests for verifying Execute-SqlQueryDeployment functionality" {
         }
     }
 
+     Context "When execute sql is invoked with additional arguments with special character for Inline Sql"{
+
+        Mock Test-Path { return $true }
+        Mock Import-SqlPs { return }
+        Mock Get-SqlFilepathOnTargetMachine { return "C:\sample.temp" }
+        Mock Invoke-Sqlcmd -Verifiable { return } -ParameterFilter {$variable -eq "var1=user`$test"}
+        Mock Remove-Item { return }
+
+        Execute-SqlQueryDeployment -taskType "sqlInline" -inlineSql "SampleQuery" -targetMethod "server" -serverName "localhost" -databaseName "SampleDB" -additionalArguments "-variable var1=user`$test"
+
+        It "Should have valid additional arguments with special character"{
+            Assert-VerifiableMocks
+            Assert-MockCalled Import-SqlPs -Times 1
+            Assert-MockCalled Get-SqlFilepathOnTargetMachine -Times 1
+            Assert-MockCalled Invoke-Sqlcmd -Times 1
+        }
+    }
+
     Context "When execute sql is invoked with Wrong Extension Sql File"{
 
         Mock Import-SqlPs { return }
