@@ -5,6 +5,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ## [1.4.3] - 31st January 2017
 ### Fixed
 - Fixing issue for variable as additional arguments
+- Fixing convertTo/From-Json cmdlet not found for PSVersion 2.0
 
 ## [1.4.2] - 4th January 2017
 ### Fixed

@@ -1,7 +1,7 @@
 ﻿# Function to import SqlPS module & avoid directory switch
 function Import-SqlPs {
     push-location
-    Import-Module SqlPS -ErrorAction 'SilentlyContinue' 3>&1 | out-null
+    Import-Module SqlPS -ErrorAction 'SilentlyContinue' | out-null
     pop-location
 }
 
@@ -62,9 +62,6 @@ function Execute-SqlQueryDeployment
             InputFile=$sqlFile
         }
 
-        $spaltArgumentsToLog = $spaltArguments
-        $spaltArgumentsToLogJson = $spaltArgumentsToLog | ConvertTo-Json
-
         if($authscheme -eq "sqlServerAuthentication")
         {
             if($sqlServerCredentials)
@@ -76,9 +73,21 @@ function Execute-SqlQueryDeployment
             }
         }
 
+        $commandToLog = "Invoke-SqlCmd"
+        foreach ($arg in $spaltArguments.Keys) {
+            if($arg -ne "Password")
+            {
+                $commandToLog += " -${arg} $($spaltArguments.Item($arg))"
+            }
+            else
+            {
+                $commandToLog += " -${arg} *******"
+            }
+        }
+
         $additionalArguments = EscapeSpecialChars $additionalArguments
 
-        Write-Verbose "Invoke-SqlCmd arguments : $spaltArgumentsToLogJson  $additionalArguments"
+        Write-Verbose "Invoke-SqlCmd arguments : $commandToLog  $additionalArguments"
         Invoke-Expression "Invoke-SqlCmd @spaltArguments $additionalArguments"
 
     } # End of Try

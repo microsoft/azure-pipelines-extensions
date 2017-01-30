@@ -478,23 +478,34 @@ function Execute-Command
         [String][Parameter(Mandatory=$true)] $Arguments
     )
 
-    $ErrorActionPreference = 'SilentlyContinue'
-    $finalErrorMessage = ""
-    Invoke-Expression "& '$FileName' --% $Arguments"  -ErrorVariable errors | ForEach-Object {
-        if ($_ -is [System.Management.Automation.ErrorRecord]) {
-            $finalErrorMessage +=  "$_ "
-        } else {
-            Write-Host $_
-        }
-    } 
-    
-    foreach($errorMsg in $errors){
-        $finalErrorMessage +=  "$errorMsg "
+    if( $psversiontable.PSVersion.Major -le 4)
+    {
+        $ErrorActionPreference = 'Continue'
+        $command = "`"$FileName`" $Arguments"
+        $result = cmd.exe /c "`"$command`""
     }
+    else
+    {
+        $ErrorActionPreference = 'SilentlyContinue'
+        $result = ""
+        Invoke-Expression "& '$FileName' --% $Arguments"  -ErrorVariable errors | ForEach-Object {
+            if ($_ -is [System.Management.Automation.ErrorRecord]) {
+                $result +=  "$_ "
+            } else {
+                Write-Host $_
+            }
+        } 
+        
+        foreach($errorMsg in $errors){
+            $result +=  "$errorMsg "
+        }
+    }
+
     $ErrorActionPreference = 'Stop'
     if($LASTEXITCODE -ne 0)
     {
-         throw  $finalErrorMessage
+         throw  $result
     }
 }
+
 
