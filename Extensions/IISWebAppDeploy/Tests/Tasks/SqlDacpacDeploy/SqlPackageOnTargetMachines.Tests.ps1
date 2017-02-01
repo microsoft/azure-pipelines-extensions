@@ -494,7 +494,7 @@ Describe "Tests for verifying Execute-DacpacDeployment functionality" {
 
         Mock Get-SqlPackageOnTargetMachine { return "sqlpackage.exe" }
         Mock Get-SqlPackageCmdArgs -Verifiable { return "args" } -ParameterFilter { $DacpacFile -eq "sample.dacpac" }
-        Mock Invoke-Expression -Verifiable { return }
+        Mock Execute-Command -Verifiable { return }
 
         Execute-DacpacDeployment -dacpacFile "sample.dacpac" -targetMethod "server" -serverName "localhost"
 
