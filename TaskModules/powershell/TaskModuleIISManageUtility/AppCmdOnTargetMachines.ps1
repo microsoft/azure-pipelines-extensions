@@ -38,7 +38,6 @@ function Get-AppCmdLocation
     $appCmdNotFoundError = "Cannot find appcmd.exe location. Verify IIS is configured on $env:ComputerName and try operation again."
     $appCmdMinVersionError = "Version of IIS is less than 7.0 on machine $env:ComputerName. Minimum version of IIS required is 7.0"
     
-    
     if(-not (Test-Path -Path $regKeyPath))
     {
         throw $appCmdNotFoundError
@@ -74,7 +73,7 @@ function Test-WebsiteExist
 
     $website = Invoke-Appcmd -command $command -failOnErr $false
 
-    if($null -ne $website)
+    if($null -ne $website -and $website -like "SITE `"$siteName`"*")
     {
         Write-Verbose "Website (`"$siteName`") already exists"
         return $true
@@ -137,7 +136,7 @@ function Test-AppPoolExist
 
     $appPool = Invoke-Appcmd -command $command -failOnErr $false
 
-    if($null -ne $appPool)
+    if($null -ne $appPool -and $appPool -like "APPPOOL `"$appPoolName`"*")
     {
         Write-Verbose "Application Pool (`"$appPoolName`") already exists"
         return $true
@@ -286,6 +285,31 @@ function Invoke-AdditionalCommand
         }
     }
 }
+function Get-HostName
+{
+    param(
+        [string]$protocol,
+        [string]$hostNameWithHttp,
+        [string]$hostNameWithSNI,
+        [string]$hostNameWithOutSNI,
+        [string]$sni
+    )
+    $hostName = [string]::Empty
+
+    if($protocol -eq "http")
+    {
+        $hostName = $hostNameWithHttp
+    }
+    elseif($sni -eq "true")
+    {
+        $hostName = $hostNameWithSNI
+    }
+    else
+    {
+        $hostName = $hostNameWithOutSNI
+    }
+    return $hostName
+}
 
 function Update-Website
 {
@@ -328,12 +352,12 @@ function Update-Website
 
         if(-not [string]::IsNullOrWhiteSpace($userName))
         {
-            $appCmdArgs = [string]::Format("{0} -[path='/'].[path='/'].userName:{1}", $appCmdArgs, $userName)
+            $appCmdArgs = [string]::Format("{0} -[path='/'].[path='/'].userName:`"{1}`"", $appCmdArgs, $userName)
         }
 
         if(-not [string]::IsNullOrWhiteSpace($password))
         {
-            $appCmdArgs = [string]::Format("{0} -[path='/'].[path='/'].password:{1}", $appCmdArgs, $password)
+            $appCmdArgs = [string]::Format("{0} -[path='/'].[path='/'].password:`"{1}`"", $appCmdArgs, $password)
         }
     }
     else 
@@ -373,46 +397,47 @@ function Update-AppPool
         [System.Management.Automation.PSCredential] $appPoolCredentials
     )
 
-    $appCmdArgs = ' set config  -section:system.applicationHost/applicationPools'
+    $appCmdArgs = [string]::Format(' set apppool /apppool.name:"{0}"', $appPoolName)
 
     if($clrVersion -ieq "No Managed Code")
     {
-        $appCmdArgs = [string]::Format('{0} /[name=''"{1}"''].managedRuntimeVersion:', $appCmdArgs, $appPoolName)
+        $appCmdArgs = [string]::Format('{0} -managedRuntimeVersion:', $appCmdArgs)
     }
     elseif(-not [string]::IsNullOrWhiteSpace($clrVersion))
     {
-        $appCmdArgs = [string]::Format('{0} /[name=''"{1}"''].managedRuntimeVersion:{2}', $appCmdArgs, $appPoolName, $clrVersion)
+        $appCmdArgs = [string]::Format('{0} -managedRuntimeVersion:{1}', $appCmdArgs, $clrVersion)
     }
 
     if(-not [string]::IsNullOrWhiteSpace($pipeLineMode))
     {
-        $appCmdArgs = [string]::Format('{0} /[name=''"{1}"''].managedPipelineMode:{2}', $appCmdArgs, $appPoolName, $pipeLineMode)
+        $appCmdArgs = [string]::Format('{0} -managedPipelineMode:{1}', $appCmdArgs, $pipeLineMode)
     }
 
     if($identity -eq "SpecificUser" -and $appPoolCredentials)
     {
         $userName = $appPoolCredentials.UserName
         $password = $appPoolCredentials.GetNetworkCredential().password
-
+        
+        $appCmdArgs = [string]::Format('{0} -processModel.identityType:SpecificUser', $appCmdArgs)
         if (-not [string]::IsNullOrWhiteSpace($userName)) {
-            $appCmdArgs = [string]::Format('{0} /[name=''"{1}"''].processModel.identityType:SpecificUser /[name=''"{1}"''].processModel.userName:"{2}"',`
-                                $appCmdArgs, $appPoolName, $userName)
+            $appCmdArgs = [string]::Format('{0} -processModel.userName:"{1}"',`
+                                $appCmdArgs, $userName)
         }
         if (-not [string]::IsNullOrWhiteSpace($password)) {
-            $appCmdArgs = [string]::Format('{0} /[name=''"{1}"''].processModel.identityType:SpecificUser /[name=''"{1}"''].processModel.password:"{2}"',`
-                                $appCmdArgs, $appPoolName, $password)
+            $appCmdArgs = [string]::Format('{0} -processModel.password:"{1}"',`
+                                $appCmdArgs, $password)
         }
     }
     else
     {
-        $appCmdArgs = [string]::Format('{0} /[name=''"{1}"''].processModel.identityType:{2}', $appCmdArgs, $appPoolName, $identity)
+        $appCmdArgs = [string]::Format('{0} -processModel.identityType:{1}', $appCmdArgs, $identity)
     }
 
     $appCmdPath, $iisVersion = Get-AppCmdLocation -regKeyPath $AppCmdRegKey
     $command = "`"$appCmdPath`" $appCmdArgs"
 
     Write-Verbose "Updating application pool properties. Running command : $command"
-    Invoke-Appcmd -command $command
+    Invoke-Appcmd -command $command -appCmdArgs $appCmdArgs
 }
 
 function Add-And-Update-Website
@@ -474,7 +499,7 @@ function Test-ApplicationExist {
 
     $application = Invoke-Appcmd -command $command -failOnErr $false
 
-    if($null -ne $application -and $application -match $applicationName)
+    if($null -ne $application -and $application -like "APP `"$applicationName`"*")
     {
         Write-Verbose -verbose "Application (`"$applicationName`") already exists"
         return $true
@@ -491,14 +516,6 @@ function Add-Application
         [string] [Parameter(Mandatory=$true)] $virtualPath,
         [string] [Parameter(Mandatory=$true)] $physicalPath
     )
-
-    $tmpPhysicalPath = $physicalPath.Replace("%SystemDrive%", "$env:SystemDrive")
-    Write-Verbose -verbose "Checking website physical path exists $tmpPhysicalPath"
-    if(!(Test-Path -Path $tmpPhysicalPath))
-    {
-        Write-Verbose -verbose "Creating application physical path $tmpPhysicalPath"
-        New-Item -ItemType Directory -Path $tmpPhysicalPath
-    }
 
     $appCmdPath, $iisVersion = Get-AppCmdLocation -regKeyPath $AppCmdRegKey
     $appCmdArgs = [string]::Format(' add app /site.name:"{0}" /path:"/{1}" /physicalPath:"{2}"',$siteName, $virtualPath, $physicalPath)
@@ -545,12 +562,12 @@ function Update-Application
 
         if(-not [string]::IsNullOrWhiteSpace($userName))
         {
-            $appCmdArgs = [string]::Format("{0} -[path='/'].userName:{1}", $appCmdArgs, $userName)
+            $appCmdArgs = [string]::Format("{0} -[path='/'].userName:`"{1}`"", $appCmdArgs, $userName)
         }
 
         if(-not [string]::IsNullOrWhiteSpace($password))
         {
-            $appCmdArgs = [string]::Format("{0} -[path='/'].password:{1}", $appCmdArgs, $password)
+            $appCmdArgs = [string]::Format("{0} -[path='/'].password:`"{1}`"", $appCmdArgs, $password)
         }
     }
     else 
@@ -595,12 +612,13 @@ function Test-VirtualDirectoryExist
 
     $appCmdPath, $iisVersion = Get-AppCmdLocation -regKeyPath $AppCmdRegKey
     $appCmdArgs = [string]::Format(' list vdir -vdir.name:"{0}"', $virtualDirectoryName)
+    Write-Verbose "Args = $appCmdArgs"
     $command = "`"$appCmdPath`" $appCmdArgs"
     Write-Verbose -verbose "Checking virtual directory exists. Running command : $command"
 
     $virtualDirectory = Invoke-Appcmd -command $command -failOnErr $false
 
-    if($null -ne $virtualDirectory -and $virtualDirectory -match $virtualDirectoryName)
+    if($null -ne $virtualDirectory -and $virtualDirectory -like "VDIR `"$virtualDirectoryName`"*")
     {
         Write-Verbose -verbose "Virtual Directory (`"$virtualDirectoryName`") already exists"
         return $true
@@ -618,19 +636,11 @@ function Add-VirtualDirectory
         [string] [Parameter(Mandatory=$true)] $physicalPath
     )
 
-    $tmpPhysicalPath = $physicalPath.Replace("%SystemDrive%", "$env:SystemDrive")
-    Write-Verbose -verbose "Checking virtual directory physical path exists $tmpPhysicalPath"
-    if(!(Test-Path -Path $tmpPhysicalPath))
-    {
-        Write-Verbose -verbose "Creating virtual directory physical path $tmpPhysicalPath"
-        New-Item -ItemType Directory -Path $tmpPhysicalPath
-    }
-
     $appCmdPath, $iisVersion = Get-AppCmdLocation -regKeyPath $AppCmdRegKey
     $appCmdArgs = [string]::Format(' add vdir /app.name:"{0}" /path:"/{1}" /physicalPath:"{2}"',$applicationName, $virtualPath, $physicalPath)
     $command = "`"$appCmdPath`" $appCmdArgs"
 
-    Write-Verbose -verbose "Creating web application. Running command : $command"
+    Write-Verbose -verbose "Creating virtual directory. Running command : $command"
     Invoke-Appcmd -command $command
 }
 
@@ -664,12 +674,12 @@ function Update-VirtualDirectory
 
         if(-not [string]::IsNullOrWhiteSpace($userName))
         {
-            $appCmdArgs = [string]::Format("{0} -userName:{1}", $appCmdArgs, $userName)
+            $appCmdArgs = [string]::Format("{0} -userName:`"{1}`"", $appCmdArgs, $userName)
         }
 
         if(-not [string]::IsNullOrWhiteSpace($password))
         {
-            $appCmdArgs = [string]::Format("{0} -password:{1}", $appCmdArgs, $password)
+            $appCmdArgs = [string]::Format("{0} -password:`"{1}`"", $appCmdArgs, $password)
         }
     }
     else 
@@ -736,7 +746,9 @@ function Execute-Main
         [string]$Protocol,
         [string]$IpAddress,
         [string]$Port,
-        [string]$HostName,
+        [string]$HostNameWithOutSNI,
+        [string]$HostNameWithHttp,
+        [string]$HostNameWithSNI,
         [string]$ServerNameIndication,
         [string]$SslCertThumbPrint,
         
@@ -767,7 +779,9 @@ function Execute-Main
     Write-Verbose "Protocol = $Protocol"
     Write-Verbose "IpAddress = $IpAddress"
     Write-Verbose "Port = $Port"
-    Write-Verbose "HostName = $HostName"
+    Write-Verbose "HostNameWithOutSNI = $HostNameWithOutSNI"
+    Write-Verbose "HostNameWithHttp = $HostNameWithHttp"
+    Write-Verbose "HostNameWithSNI = $HostNameWithSNI"
     Write-Verbose "ServerNameIndication = $ServerNameIndication"
 
     Write-Verbose "CreateAppPool = $CreateAppPool"
@@ -787,6 +801,8 @@ function Execute-Main
 
     if($CreateWebsite -ieq "true" -or $ActionIISWebsite -ieq "CreateOrUpdateWebsite")
     {
+        $HostName = Get-HostName -protocol $Protocol -hostNameWithHttp $HostNameWithHttp -hostNameWithSNI $HostNameWithSNI -hostNameWithOutSNI $HostNameWithOutSNI -sni $ServerNameIndication
+    
         Add-And-Update-Website -siteName $WebsiteName -appPoolName $AppPoolName -physicalPath $PhysicalPath -authType $PhysicalPathAuth -websitePhysicalPathAuthCredentials $PhysicalPathAuthCredentials `
          -addBinding $AddBinding -protocol $Protocol -ipAddress $IpAddress -port $Port -hostname $HostName
 
