@@ -1,22 +1,24 @@
 Write-Verbose "Entering script AppCmdOnTargetMachines.ps1"
 $AppCmdRegKey = "HKLM:\SOFTWARE\Microsoft\InetStp"
 
-function Invoke-Appcmd
+function Invoke-CmdTool
 {
     param(
-        [string]$command,
+        [string]$toolPath,
+        [string]$toolArgs,
         [bool] $failOnErr = $true
     )
 
     $ErrorActionPreference = 'Continue'
+    $appCmdPath, $iisVersion = Get-AppCmdLocation -regKeyPath $AppCmdRegKey
 
     if( $psversiontable.PSVersion.Major -le 4)
     {
-        $result = cmd.exe /c "`"$command`""
+        $result = Invoke-VstsTool -Filename $toolPath -Arguments $toolArgs
     }
     else
     {
-        $result = cmd.exe /c "$command"
+        $result = Invoke-VstsTool -Filename $toolPath -Arguments $toolArgs
     }
 
     $ErrorActionPreference = 'Stop'
@@ -71,7 +73,7 @@ function Test-WebsiteExist
     $command = "`"$appCmdPath`" $appCmdArgs"
     Write-Verbose "Checking website exists. Running command : $command"
 
-    $website = Invoke-Appcmd -command $command -failOnErr $false
+    $website = Invoke-CmdTool -toolPath $appCmdPath -toolArgs $appCmdArgs -failOnErr $false
 
     if($null -ne $website -and $website -like "SITE `"$siteName`"*")
     {
@@ -99,7 +101,7 @@ function Test-BindingExist
 
     Write-Verbose "Checking binding exists for website (`"$siteName`"). Running command : $command"
 
-    $sites = Invoke-Appcmd -command $command -failOnErr $false
+    $sites = Invoke-CmdTool -toolPath $appCmdPath -toolArgs $appCmdArgs -failOnErr $false
     $binding = [string]::Format("{0}/{1}:{2}:{3},", $protocol, $ipAddress, $port, $hostname)
 
     $isBindingExists = $false
@@ -134,8 +136,9 @@ function Test-AppPoolExist
 
     Write-Verbose "Checking application pool exists. Running command : $command"
 
-    $appPool = Invoke-Appcmd -command $command -failOnErr $false
+    $appPool = Invoke-CmdTool -toolPath $appCmdPath -toolArgs $appCmdArgs -failOnErr $false
 
+    $appPoolName = $appPoolName.Replace('`', '``').Replace('"', '`"').Replace('$', '`$')
     if($null -ne $appPool -and $appPool -like "APPPOOL `"$appPoolName`"*")
     {
         Write-Verbose "Application Pool (`"$appPoolName`") already exists"
@@ -173,7 +176,7 @@ function Enable-SNI
     $command = "`"$appCmdPath`" $appCmdArgs"
 
     Write-Verbose "Enabling SNI by setting SslFlags=1 for binding. Running command : $command"
-    Invoke-Appcmd -command $command
+    Invoke-CmdTool -toolPath $appCmdPath -toolArgs $appCmdArgs
 }
 
 function Add-SslCert
@@ -205,23 +208,23 @@ function Add-SslCert
     #SNI is supported IIS 8 and above. To enable SNI hostnameport option should be used
     if($sni -eq "true" -and $iisVersion -ge 8 -and -not [string]::IsNullOrWhiteSpace($hostname))
     {
-        $showCertCmd = [string]::Format("netsh http show sslcert hostnameport={0}:{1}", $hostname, $port)
-        Write-Verbose "Checking if SslCert binding is already present. Running command : $showCertCmd"
+        $showCertCmd = [string]::Format("http show sslcert hostnameport={0}:{1}", $hostname, $port)
+        Write-Verbose "Checking if SslCert binding is already present. Running command : netsh $showCertCmd"
 
-        $result = Invoke-Appcmd -command $showCertCmd -failOnErr $false
+        $result = Invoke-CmdTool -toolPath "netsh" -toolArgs $showCertCmd -failOnErr $false
         $isItSameBinding = $result.Get(4).Contains([string]::Format("{0}:{1}", $hostname, $port))
 
-        $addCertCmd = [string]::Format("netsh http add sslcert hostnameport={0}:{1} certhash={2} appid={{{3}}} certstorename=MY", $hostname, $port, $certhash, [System.Guid]::NewGuid().toString())
+        $addCertCmd = [string]::Format("http add sslcert hostnameport={0}:{1} certhash={2} appid={{{3}}} certstorename=MY", $hostname, $port, $certhash, [System.Guid]::NewGuid().toString())
     }
     else
     {
-        $showCertCmd = [string]::Format("netsh http show sslcert ipport={0}:{1}", $ipAddress, $port)
-        Write-Verbose "Checking if SslCert binding is already present. Running command : $showCertCmd"
+        $showCertCmd = [string]::Format("http show sslcert ipport={0}:{1}", $ipAddress, $port)
+        Write-Verbose "Checking if SslCert binding is already present. Running command : netsh $showCertCmd"
 
-        $result = Invoke-Appcmd -command $showCertCmd -failOnErr $false
+        $result = Invoke-CmdTool -toolPath "netsh" -toolArgs $showCertCmd -failOnErr $false
         $isItSameBinding = $result.Get(4).Contains([string]::Format("{0}:{1}", $ipAddress, $port))
         
-        $addCertCmd = [string]::Format("netsh http add sslcert ipport={0}:{1} certhash={2} appid={{{3}}} certstorename=MY", $ipAddress, $port, $certhash, [System.Guid]::NewGuid().toString())
+        $addCertCmd = [string]::Format("http add sslcert ipport={0}:{1} certhash={2} appid={{{3}}} certstorename=MY", $ipAddress, $port, $certhash, [System.Guid]::NewGuid().toString())
     }
 
     $isItSameCert = $result.Get(5).ToLower().Contains($certhash.ToLower())
@@ -233,7 +236,7 @@ function Add-SslCert
     }
 
     Write-Verbose "Setting SslCert for website."
-    Invoke-Appcmd -command $addCertCmd
+    Invoke-CmdTool -toolPath "netsh" -toolArgs $addCertCmd
 }
 
 function Add-Website
@@ -248,7 +251,7 @@ function Add-Website
     $command = "`"$appCmdPath`" $appCmdArgs"
 
     Write-Verbose "Creating website. Running command : $command"
-    Invoke-Appcmd -command $command
+    Invoke-CmdTool -toolPath $appCmdPath -toolArgs $appCmdArgs
 }
 
 function Add-AppPool
@@ -262,7 +265,7 @@ function Add-AppPool
     $command = "`"$appCmdPath`" $appCmdArgs"
 
     Write-Verbose "Creating application Pool. Running command : $command"
-    Invoke-Appcmd -command $command
+    Invoke-CmdTool -toolPath $appCmdPath -toolArgs $appCmdArgs
 }
 
 function Invoke-AdditionalCommand
@@ -281,7 +284,7 @@ function Invoke-AdditionalCommand
             $command = "`"$appCmdPath`" $appCmdCommand"
 
             Write-Verbose "Running additional command. $command"
-            Invoke-Appcmd -command $command
+            Invoke-CmdTool -toolPath $appCmdPath -toolArgs $appCmdCommand 
         }
     }
 }
@@ -384,7 +387,7 @@ function Update-Website
     $command = "`"$appCmdPath`" $appCmdArgs"
 
     Write-Verbose "Updating website properties. Running command : $command"
-    Invoke-Appcmd -command $command
+    Invoke-CmdTool -toolPath $appCmdPath -toolArgs $appCmdArgs 
 }
 
 function Update-AppPool
@@ -437,7 +440,7 @@ function Update-AppPool
     $command = "`"$appCmdPath`" $appCmdArgs"
 
     Write-Verbose "Updating application pool properties. Running command : $command"
-    Invoke-Appcmd -command $command -appCmdArgs $appCmdArgs
+    Invoke-CmdTool -toolPath $appCmdPath -toolArgs $appCmdArgs 
 }
 
 function Add-And-Update-Website
@@ -497,7 +500,7 @@ function Test-ApplicationExist {
     $command = "`"$appCmdPath`" $appCmdArgs"
     Write-Verbose -verbose "Checking application exists. Running command : $command"
 
-    $application = Invoke-Appcmd -command $command -failOnErr $false
+    $application = Invoke-CmdTool -toolPath $appCmdPath -toolArgs $appCmdArgs -failOnErr $false
 
     if($null -ne $application -and $application -like "APP `"$applicationName`"*")
     {
@@ -522,7 +525,7 @@ function Add-Application
     $command = "`"$appCmdPath`" $appCmdArgs"
 
     Write-Verbose -verbose "Creating web application. Running command : $command"
-    Invoke-Appcmd -command $command
+    Invoke-CmdTool -toolPath $appCmdPath -toolArgs $appCmdArgs
 }
 
 
@@ -579,7 +582,7 @@ function Update-Application
     $command = "`"$appCmdPath`" $appCmdArgs"
 
     Write-Verbose -verbose "Updating application properties. Running command : $command"
-    Invoke-Appcmd -command $command
+    Invoke-CmdTool -toolPath $appCmdPath -toolArgs $appCmdArgs
 }
 
 function Add-And-Update-Application 
@@ -616,7 +619,7 @@ function Test-VirtualDirectoryExist
     $command = "`"$appCmdPath`" $appCmdArgs"
     Write-Verbose -verbose "Checking virtual directory exists. Running command : $command"
 
-    $virtualDirectory = Invoke-Appcmd -command $command -failOnErr $false
+    $virtualDirectory = Invoke-CmdTool -toolPath $appCmdPath -toolArgs $appCmdArgs -failOnErr $false
 
     if($null -ne $virtualDirectory -and $virtualDirectory -like "VDIR `"$virtualDirectoryName`"*")
     {
@@ -641,7 +644,7 @@ function Add-VirtualDirectory
     $command = "`"$appCmdPath`" $appCmdArgs"
 
     Write-Verbose -verbose "Creating virtual directory. Running command : $command"
-    Invoke-Appcmd -command $command
+    Invoke-CmdTool -toolPath $appCmdPath -toolArgs $appCmdArgs
 }
 
 function Update-VirtualDirectory 
@@ -691,7 +694,7 @@ function Update-VirtualDirectory
     $command = "`"$appCmdPath`" $appCmdArgs"
 
     Write-Verbose -verbose "Updating virtual directory properties. Running command : $command"
-    Invoke-Appcmd -command $command
+    Invoke-CmdTool -toolPath $appCmdPath -toolArgs $appCmdArgs
 }
 
 function Add-And-Update-VirtualDirectory 
