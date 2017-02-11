@@ -1,36 +1,6 @@
 Write-Verbose "Entering script AppCmdOnTargetMachines.ps1"
 $AppCmdRegKey = "HKLM:\SOFTWARE\Microsoft\InetStp"
 
-function Invoke-CmdTool
-{
-    param(
-        [string]$toolPath,
-        [string]$toolArgs,
-        [bool] $failOnErr = $true
-    )
-
-    $ErrorActionPreference = 'Continue'
-    $appCmdPath, $iisVersion = Get-AppCmdLocation -regKeyPath $AppCmdRegKey
-
-    if( $psversiontable.PSVersion.Major -le 4)
-    {
-        $result = Invoke-VstsTool -Filename $toolPath -Arguments $toolArgs
-    }
-    else
-    {
-        $result = Invoke-VstsTool -Filename $toolPath -Arguments $toolArgs
-    }
-
-    $ErrorActionPreference = 'Stop'
-
-    if($failOnErr -and $LASTEXITCODE -ne 0)
-    {
-        throw $result
-    }
-
-    return $result
-}
-
 function Get-AppCmdLocation
 {
     param(
@@ -73,9 +43,9 @@ function Test-WebsiteExist
     $command = "`"$appCmdPath`" $appCmdArgs"
     Write-Verbose "Checking website exists. Running command : $command"
 
-    $website = Invoke-CmdTool -toolPath $appCmdPath -toolArgs $appCmdArgs -failOnErr $false
+    $website = Invoke-VstsTool -Filename $appCmdPath -Arguments $appCmdArgs
 
-    if($null -ne $website -and $website -like "SITE `"$siteName`"*")
+    if($null -ne $website -and $website -like "*`"$siteName`"*")
     {
         Write-Verbose "Website (`"$siteName`") already exists"
         return $true
@@ -101,7 +71,8 @@ function Test-BindingExist
 
     Write-Verbose "Checking binding exists for website (`"$siteName`"). Running command : $command"
 
-    $sites = Invoke-CmdTool -toolPath $appCmdPath -toolArgs $appCmdArgs -failOnErr $false
+    $sites = Invoke-VstsTool -Filename $appCmdPath -Arguments $appCmdArgs
+
     $binding = [string]::Format("{0}/{1}:{2}:{3},", $protocol, $ipAddress, $port, $hostname)
 
     $isBindingExists = $false
@@ -136,10 +107,10 @@ function Test-AppPoolExist
 
     Write-Verbose "Checking application pool exists. Running command : $command"
 
-    $appPool = Invoke-CmdTool -toolPath $appCmdPath -toolArgs $appCmdArgs -failOnErr $false
+    $appPool = Invoke-VstsTool -Filename $appCmdPath -Arguments $appCmdArgs
 
     $appPoolName = $appPoolName.Replace('`', '``').Replace('"', '`"').Replace('$', '`$')
-    if($null -ne $appPool -and $appPool -like "APPPOOL `"$appPoolName`"*")
+    if($null -ne $appPool -and $appPool -like "*`"$appPoolName`"*")
     {
         Write-Verbose "Application Pool (`"$appPoolName`") already exists"
         return $true
@@ -176,7 +147,7 @@ function Enable-SNI
     $command = "`"$appCmdPath`" $appCmdArgs"
 
     Write-Verbose "Enabling SNI by setting SslFlags=1 for binding. Running command : $command"
-    Invoke-CmdTool -toolPath $appCmdPath -toolArgs $appCmdArgs
+    Invoke-VstsTool -Filename $appCmdPath -Arguments $appCmdArgs -RequireExitCodeZero
 }
 
 function Add-SslCert
@@ -211,7 +182,7 @@ function Add-SslCert
         $showCertCmd = [string]::Format("http show sslcert hostnameport={0}:{1}", $hostname, $port)
         Write-Verbose "Checking if SslCert binding is already present. Running command : netsh $showCertCmd"
 
-        $result = Invoke-CmdTool -toolPath "netsh" -toolArgs $showCertCmd -failOnErr $false
+        Invoke-VstsTool -Filename "netsh" -Arguments $showCertCmd
         $isItSameBinding = $result.Get(4).Contains([string]::Format("{0}:{1}", $hostname, $port))
 
         $addCertCmd = [string]::Format("http add sslcert hostnameport={0}:{1} certhash={2} appid={{{3}}} certstorename=MY", $hostname, $port, $certhash, [System.Guid]::NewGuid().toString())
@@ -221,7 +192,7 @@ function Add-SslCert
         $showCertCmd = [string]::Format("http show sslcert ipport={0}:{1}", $ipAddress, $port)
         Write-Verbose "Checking if SslCert binding is already present. Running command : netsh $showCertCmd"
 
-        $result = Invoke-CmdTool -toolPath "netsh" -toolArgs $showCertCmd -failOnErr $false
+        Invoke-VstsTool -Filename "netsh" -Arguments $showCertCmd
         $isItSameBinding = $result.Get(4).Contains([string]::Format("{0}:{1}", $ipAddress, $port))
         
         $addCertCmd = [string]::Format("http add sslcert ipport={0}:{1} certhash={2} appid={{{3}}} certstorename=MY", $ipAddress, $port, $certhash, [System.Guid]::NewGuid().toString())
@@ -236,7 +207,7 @@ function Add-SslCert
     }
 
     Write-Verbose "Setting SslCert for website."
-    Invoke-CmdTool -toolPath "netsh" -toolArgs $addCertCmd
+    Invoke-VstsTool -Filename "netsh" -Arguments $addCertCmd -RequireExitCodeZero
 }
 
 function Add-Website
@@ -251,7 +222,7 @@ function Add-Website
     $command = "`"$appCmdPath`" $appCmdArgs"
 
     Write-Verbose "Creating website. Running command : $command"
-    Invoke-CmdTool -toolPath $appCmdPath -toolArgs $appCmdArgs
+    Invoke-VstsTool -Filename $appCmdPath -Arguments $appCmdArgs -RequireExitCodeZero
 }
 
 function Add-AppPool
@@ -265,7 +236,7 @@ function Add-AppPool
     $command = "`"$appCmdPath`" $appCmdArgs"
 
     Write-Verbose "Creating application Pool. Running command : $command"
-    Invoke-CmdTool -toolPath $appCmdPath -toolArgs $appCmdArgs
+    Invoke-VstsTool -Filename $appCmdPath -Arguments $appCmdArgs -RequireExitCodeZero
 }
 
 function Invoke-AdditionalCommand
@@ -284,7 +255,7 @@ function Invoke-AdditionalCommand
             $command = "`"$appCmdPath`" $appCmdCommand"
 
             Write-Verbose "Running additional command. $command"
-            Invoke-CmdTool -toolPath $appCmdPath -toolArgs $appCmdCommand 
+            Invoke-VstsTool -Filename $appCmdPath -Arguments $appCmdCommand -RequireExitCodeZero
         }
     }
 }
@@ -375,8 +346,9 @@ function Update-Website
 
     if($addBinding -eq "true")
     {
-        $isBindingExists = Test-BindingExist -siteName $siteName -protocol $protocol -ipAddress $ipAddress -port $port -hostname $hostname
 
+        $isBindingExists = Test-BindingExist -siteName $siteName -protocol $protocol -ipAddress $ipAddress -port $port -hostname $hostname
+        
         if($isBindingExists -eq $false)
         {
             $appCmdArgs = [string]::Format("{0} /+bindings.[protocol='{1}',bindingInformation='{2}:{3}:{4}']", $appCmdArgs, $protocol, $ipAddress, $port, $hostname)
@@ -387,7 +359,7 @@ function Update-Website
     $command = "`"$appCmdPath`" $appCmdArgs"
 
     Write-Verbose "Updating website properties. Running command : $command"
-    Invoke-CmdTool -toolPath $appCmdPath -toolArgs $appCmdArgs 
+    Invoke-VstsTool -Filename $appCmdPath -Arguments $appCmdArgs -RequireExitCodeZero
 }
 
 function Update-AppPool
@@ -440,7 +412,7 @@ function Update-AppPool
     $command = "`"$appCmdPath`" $appCmdArgs"
 
     Write-Verbose "Updating application pool properties. Running command : $command"
-    Invoke-CmdTool -toolPath $appCmdPath -toolArgs $appCmdArgs 
+    Invoke-VstsTool -Filename $appCmdPath -Arguments $appCmdArgs -RequireExitCodeZero
 }
 
 function Add-And-Update-Website
@@ -498,17 +470,17 @@ function Test-ApplicationExist {
     $appCmdPath, $iisVersion = Get-AppCmdLocation -regKeyPath $AppCmdRegKey
     $appCmdArgs = [string]::Format(' list app "{0}"', $applicationName)
     $command = "`"$appCmdPath`" $appCmdArgs"
-    Write-Verbose -verbose "Checking application exists. Running command : $command"
+    Write-Verbose "Checking application exists. Running command : $command"
 
-    $application = Invoke-CmdTool -toolPath $appCmdPath -toolArgs $appCmdArgs -failOnErr $false
+    $application = Invoke-VstsTool -Filename $appCmdPath -Arguments $appCmdArgs 
 
-    if($null -ne $application -and $application -like "APP `"$applicationName`"*")
+    if($null -ne $application -and $application -like "*`"$applicationName`"*")
     {
-        Write-Verbose -verbose "Application (`"$applicationName`") already exists"
+        Write-Verbose "Application (`"$applicationName`") already exists"
         return $true
     }
 
-    Write-Verbose -verbose "Application (`"$applicationName`") does not exist"
+    Write-Verbose "Application (`"$applicationName`") does not exist"
     return $false
 }
 
@@ -521,11 +493,11 @@ function Add-Application
     )
 
     $appCmdPath, $iisVersion = Get-AppCmdLocation -regKeyPath $AppCmdRegKey
-    $appCmdArgs = [string]::Format(' add app /site.name:"{0}" /path:"/{1}" /physicalPath:"{2}"',$siteName, $virtualPath, $physicalPath)
+    $appCmdArgs = [string]::Format(' add app /site.name:"{0}" /path:"{1}" /physicalPath:"{2}"',$siteName, $virtualPath, $physicalPath)
     $command = "`"$appCmdPath`" $appCmdArgs"
 
-    Write-Verbose -verbose "Creating web application. Running command : $command"
-    Invoke-CmdTool -toolPath $appCmdPath -toolArgs $appCmdArgs
+    Write-Verbose "Creating web application. Running command : $command"
+    Invoke-VstsTool -Filename $appCmdPath -Arguments $appCmdArgs -RequireExitCodeZero
 }
 
 
@@ -549,10 +521,10 @@ function Update-Application
     if(-not [string]::IsNullOrWhiteSpace($physicalPath))
     {
         $tmpPhysicalPath = $physicalPath.Replace("%SystemDrive%", "$env:SystemDrive")
-        Write-Verbose -verbose "Checking application physical path exists $tmpPhysicalPath"
+        Write-Verbose "Checking application physical path exists $tmpPhysicalPath"
         if(!(Test-Path -Path $tmpPhysicalPath))
         {
-            Write-Verbose -verbose "Creating application physical path $tmpPhysicalPath"
+            Write-Verbose "Creating application physical path $tmpPhysicalPath"
             New-Item -ItemType Directory -Path $tmpPhysicalPath
         }
         $appCmdArgs = [string]::Format("{0} -[path='/'].physicalPath:`"{1}`"", $appCmdArgs, $physicalPath)
@@ -581,8 +553,8 @@ function Update-Application
     $appCmdPath, $iisVersion = Get-AppCmdLocation -regKeyPath $AppCmdRegKey
     $command = "`"$appCmdPath`" $appCmdArgs"
 
-    Write-Verbose -verbose "Updating application properties. Running command : $command"
-    Invoke-CmdTool -toolPath $appCmdPath -toolArgs $appCmdArgs
+    Write-Verbose "Updating application properties. Running command : $command"
+    Invoke-VstsTool -Filename $appCmdPath -Arguments $appCmdArgs -RequireExitCodeZero
 }
 
 function Add-And-Update-Application 
@@ -596,7 +568,7 @@ function Add-And-Update-Application
         [System.Management.Automation.PSCredential] $physicalPathAuthenticationCredentials
     )
 
-    $applicationName = "$siteName/$virtualPath"
+    $applicationName = "$siteName$virtualPath"
     $applicationExist = Test-ApplicationExist -applicationName $applicationName
 
     if( -not $applicationExist)
@@ -615,19 +587,19 @@ function Test-VirtualDirectoryExist
 
     $appCmdPath, $iisVersion = Get-AppCmdLocation -regKeyPath $AppCmdRegKey
     $appCmdArgs = [string]::Format(' list vdir -vdir.name:"{0}"', $virtualDirectoryName)
-    Write-Verbose "Args = $appCmdArgs"
     $command = "`"$appCmdPath`" $appCmdArgs"
-    Write-Verbose -verbose "Checking virtual directory exists. Running command : $command"
+    Write-Verbose "Checking virtual directory exists. Running command : $command"
 
-    $virtualDirectory = Invoke-CmdTool -toolPath $appCmdPath -toolArgs $appCmdArgs -failOnErr $false
+    $virtualDirectory = Invoke-VstsTool -Filename $appCmdPath -Arguments $appCmdArgs
 
-    if($null -ne $virtualDirectory -and $virtualDirectory -like "VDIR `"$virtualDirectoryName`"*")
+    if($null -ne $virtualDirectory -and $virtualDirectory -like "*`"$virtualDirectoryName`"*")
     {
-        Write-Verbose -verbose "Virtual Directory (`"$virtualDirectoryName`") already exists"
+        Write-Verbose "virtualDirectory = $virtualDirectory"
+        Write-Verbose "Virtual Directory (`"$virtualDirectoryName`") already exists"
         return $true
     }
 
-    Write-Verbose -verbose "Virtual Directory (`"$virtualDirectoryName`") does not exist"
+    Write-Verbose "Virtual Directory (`"$virtualDirectoryName`") does not exist"
     return $false
 }
 
@@ -640,11 +612,11 @@ function Add-VirtualDirectory
     )
 
     $appCmdPath, $iisVersion = Get-AppCmdLocation -regKeyPath $AppCmdRegKey
-    $appCmdArgs = [string]::Format(' add vdir /app.name:"{0}" /path:"/{1}" /physicalPath:"{2}"',$applicationName, $virtualPath, $physicalPath)
+    $appCmdArgs = [string]::Format(' add vdir /app.name:"{0}" /path:"{1}" /physicalPath:"{2}"',$applicationName, $virtualPath, $physicalPath)
     $command = "`"$appCmdPath`" $appCmdArgs"
 
-    Write-Verbose -verbose "Creating virtual directory. Running command : $command"
-    Invoke-CmdTool -toolPath $appCmdPath -toolArgs $appCmdArgs
+    Write-Verbose "Creating virtual directory. Running command : $command"
+    Invoke-VstsTool -Filename $appCmdPath -Arguments $appCmdArgs -RequireExitCodeZero
 }
 
 function Update-VirtualDirectory 
@@ -661,10 +633,10 @@ function Update-VirtualDirectory
     if(-not [string]::IsNullOrWhiteSpace($physicalPath))
     {
         $tmpPhysicalPath = $physicalPath.Replace("%SystemDrive%", "$env:SystemDrive")
-        Write-Verbose -verbose "Checking virtual directory physical path exists $tmpPhysicalPath"
+        Write-Verbose "Checking virtual directory physical path exists $tmpPhysicalPath"
         if(!(Test-Path -Path $tmpPhysicalPath))
         {
-            Write-Verbose -verbose "Creating virtual directory physical path $tmpPhysicalPath"
+            Write-Verbose "Creating virtual directory physical path $tmpPhysicalPath"
             New-Item -ItemType Directory -Path $tmpPhysicalPath
         }
         $appCmdArgs = [string]::Format("{0} -physicalPath:`"{1}`"", $appCmdArgs, $physicalPath)
@@ -693,29 +665,33 @@ function Update-VirtualDirectory
     $appCmdPath, $iisVersion = Get-AppCmdLocation -regKeyPath $AppCmdRegKey
     $command = "`"$appCmdPath`" $appCmdArgs"
 
-    Write-Verbose -verbose "Updating virtual directory properties. Running command : $command"
-    Invoke-CmdTool -toolPath $appCmdPath -toolArgs $appCmdArgs
+    Write-Verbose "Updating virtual directory properties. Running command : $command"
+    Invoke-VstsTool -Filename $appCmdPath -Arguments $appCmdArgs -RequireExitCodeZero
 }
 
 function Add-And-Update-VirtualDirectory 
 {
     param (
         [string] [Parameter(Mandatory=$true)] $siteName,
-        [string] $applicationPath,
         [string] [Parameter(Mandatory=$true)] $virtualPath,
         [string] [Parameter(Mandatory=$true)] $physicalPath,
         [string] $physicalPathAuthentication,
         [System.Management.Automation.PSCredential] $physicalPathAuthenticationCredentials
     )
 
-    $applicationName = "$siteName/$applicationPath"
-    $virtualDirectoryName = "$applicationName/$virtualPath"
-    if([string]::IsNullOrWhiteSpace($applicationPath))
+    $splittedVirtualPath = $virtualPath.Split("/")
+    $applicationName = "$siteName/"
+    $virtualDirectoryName = "$siteName$virtualPath"
+    if($splittedVirtualPath.Count -gt 2) 
     {
-        $applicationName = "$siteName/"
-        $virtualDirectoryName = "$applicationName$virtualPath"
+        $app = $splittedVirtualPath[1]
+        $applicationName = "$siteName/$app"
+        $virtualPath = $virtualPath.trimStart("/$app")
+        $virtualDirectoryName = "$applicationName/$virtualPath"
     }
-
+    
+    Write-Verbose "applicationName = $applicationName"
+    Write-Verbose "virtualDirectoryName = $virtualDirectoryName"
     $virtualDirectoryExist = Test-VirtualDirectoryExist -virtualDirectoryName $virtualDirectoryName
 
     if(-not $virtualDirectoryExist) 
@@ -737,7 +713,6 @@ function Execute-Main
         [string]$ActionIISWebsite,
         [string]$ActionIISApplicationPool,
        
-        [string]$ApplicationPath,
         [string]$VirtualPath,
         
         [string]$WebsiteName,
@@ -772,7 +747,6 @@ function Execute-Main
     Write-Verbose "ActionIISWebsite = $ActionIISWebsite"
     Write-Verbose "ActionIISApplicationPool = $ActionIISApplicationPool"
 
-    Write-Verbose "ApplicationPath = $ApplicationPath"
     Write-Verbose "VirtualPath = $VirtualPath"
 
     Write-Verbose "WebsiteName = $WebsiteName"
@@ -824,7 +798,7 @@ function Execute-Main
 
     if($CreateVirtualDirectory -ieq "true")
     {
-        Add-And-Update-VirtualDirectory -siteName $WebsiteName -applicationPath $ApplicationPath -virtualPath $VirtualPath -physicalPath $physicalPath -physicalPathAuthentication $PhysicalPathAuth -physicalPathAuthenticationCredentials $PhysicalPathAuthCredentials
+        Add-And-Update-VirtualDirectory -siteName $WebsiteName -virtualPath $VirtualPath -physicalPath $physicalPath -physicalPathAuthentication $PhysicalPathAuth -physicalPathAuthenticationCredentials $PhysicalPathAuthCredentials
     }
 
     Invoke-AdditionalCommand -additionalCommands $AppCmdCommands
