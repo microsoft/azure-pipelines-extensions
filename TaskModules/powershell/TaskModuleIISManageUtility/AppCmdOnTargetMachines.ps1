@@ -688,7 +688,7 @@ function Add-And-Update-VirtualDirectory
         $applicationName = "$siteName/$app"
         $virtualPath = $virtualPath.trimStart("/$app")
         $virtualPath = "/$virtualPath"
-        $virtualDirectoryName = "$applicationName/$virtualPath"
+        $virtualDirectoryName = "$applicationName$virtualPath"
     }
     
     Write-Verbose "applicationName = $applicationName"
