@@ -687,6 +687,7 @@ function Add-And-Update-VirtualDirectory
         $app = $splittedVirtualPath[1]
         $applicationName = "$siteName/$app"
         $virtualPath = $virtualPath.trimStart("/$app")
+        $virtualPath = "/$virtualPath"
         $virtualDirectoryName = "$applicationName/$virtualPath"
     }
     
