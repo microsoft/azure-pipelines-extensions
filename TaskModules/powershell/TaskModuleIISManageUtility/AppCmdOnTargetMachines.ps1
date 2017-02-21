@@ -703,6 +703,34 @@ function Add-And-Update-VirtualDirectory
     Update-VirtualDirectory -virtualDirectoryName $virtualDirectoryName -physicalPath $physicalPath -physicalPathAuthentication $physicalPathAuthentication -physicalPathAuthenticationCredentials $physicalPathAuthenticationCredentials
 }
 
+function Start-Stop-Website {
+    param (
+        [string][Parameter(Mandatory=$true)] $sitename,
+        [string][Parameter(Mandatory=$true)] $action
+    )
+    
+    $appCmdPath, $iisVersion = Get-AppCmdLocation -regKeyPath $AppCmdRegKey
+    $appCmdArgs = [string]::Format('{0} site /site.name:"{1}"', $action, $siteName)
+    $command = "`"$appCmdPath`" $appCmdArgs"
+
+    Write-Verbose "Performing action '$action' on website '$sitename'. Running command $command"
+    Invoke-VstsTool -Filename $appCmdPath -Arguments $appCmdArgs -RequireExitCodeZero
+}
+
+function Start-Stop-Recycle-ApplicationPool {
+    param (
+        [string][Parameter(Mandatory=$true)] $appPoolName,
+        [string][Parameter(Mandatory=$true)] $action
+    )
+    
+    $appCmdPath, $iisVersion = Get-AppCmdLocation -regKeyPath $AppCmdRegKey
+    $appCmdArgs = [string]::Format('{0} apppool /apppool.name:"{1}"', $action, $appPoolName)
+    $command = "`"$appCmdPath`" $appCmdArgs"
+
+    Write-Verbose "Performing action '$action' on application pool '$appPoolName'. Running command $command"
+    Invoke-VstsTool -Filename $appCmdPath -Arguments $appCmdArgs -RequireExitCodeZero
+}
+
 function Execute-Main
 {
     param (
@@ -773,7 +801,7 @@ function Execute-Main
     {
         Add-And-Update-AppPool -appPoolName $AppPoolName -clrVersion $DotNetVersion -pipeLineMode $PipeLineMode -identity $AppPoolIdentity -appPoolCredentials $AppPoolCredentials 
     }
-    else {
+    elseif($ActionIISApplicationPool -eq $null) {
         $AppPoolName = $null
     }
 
@@ -792,14 +820,36 @@ function Execute-Main
         }
     }
 
-    if($CreateApplication -ieq "true")
+    if($CreateApplication -eq "true")
     {
         Add-And-Update-Application -siteName $WebsiteName -virtualPath $VirtualPath -physicalPath $physicalPath -applicationPool $AppPoolName -physicalPathAuthentication $PhysicalPathAuth -physicalPathAuthenticationCredentials $PhysicalPathAuthCredentials
     }
 
-    if($CreateVirtualDirectory -ieq "true")
+    if($CreateVirtualDirectory -eq "true")
     {
         Add-And-Update-VirtualDirectory -siteName $WebsiteName -virtualPath $VirtualPath -physicalPath $physicalPath -physicalPathAuthentication $PhysicalPathAuth -physicalPathAuthenticationCredentials $PhysicalPathAuthCredentials
+    }
+
+    if($ActionIISWebsite -eq "StartWebsite") 
+    {
+        Start-Stop-Website -sitename $WebsiteName -action "start"
+    }
+    elseif ($ActionIISWebsite -eq "StopWebsite") 
+    {
+        Start-Stop-Website -sitename $WebsiteName -action "stop"
+    }
+
+    if($ActionIISApplicationPool -eq "StartAppPool") 
+    {
+        Start-Stop-Recycle-ApplicationPool -appPoolName $AppPoolName -action "start"
+    }
+    elseif ($ActionIISApplicationPool -eq "StopAppPool") 
+    {
+        Start-Stop-Recycle-ApplicationPool -appPoolName $AppPoolName -action "stop"
+    }
+    elseif ($ActionIISApplicationPool -eq "RecycleAppPool") 
+    {
+        Start-Stop-Recycle-ApplicationPool -appPoolName $AppPoolName -action "recycle"
     }
 
     Invoke-AdditionalCommand -additionalCommands $AppCmdCommands
