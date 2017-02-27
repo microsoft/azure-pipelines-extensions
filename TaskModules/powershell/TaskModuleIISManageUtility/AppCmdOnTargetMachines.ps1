@@ -734,13 +734,12 @@ function Start-Stop-Recycle-ApplicationPool {
 function Execute-Main
 {
     param (
-        [string]$CreateWebsite,
-        [string]$CreateApplication,
-        [string]$CreateVirtualDirectory,
-        [string]$CreateAppPool,
 
         [string]$ActionIISWebsite,
         [string]$ActionIISApplicationPool,
+       
+        [string]$CreateApplication,
+        [string]$CreateVirtualDirectory,
        
         [string]$VirtualPath,
         
@@ -769,12 +768,12 @@ function Execute-Main
     )
 
     Write-Verbose "Entering Execute-Main function"
-    Write-Verbose "CreateWebsite = $CreateWebsite"
-    Write-Verbose "CreateApplication = $CreateApplication"
-    Write-Verbose "CreateVirtualDirectory = $CreateVirtualDirectory"
 
     Write-Verbose "ActionIISWebsite = $ActionIISWebsite"
     Write-Verbose "ActionIISApplicationPool = $ActionIISApplicationPool"
+
+    Write-Verbose "CreateApplication = $CreateApplication"
+    Write-Verbose "CreateVirtualDirectory = $CreateVirtualDirectory"
 
     Write-Verbose "VirtualPath = $VirtualPath"
 
@@ -790,33 +789,60 @@ function Execute-Main
     Write-Verbose "HostNameWithSNI = $HostNameWithSNI"
     Write-Verbose "ServerNameIndication = $ServerNameIndication"
 
-    Write-Verbose "CreateAppPool = $CreateAppPool"
     Write-Verbose "AppPoolName = $AppPoolName"
     Write-Verbose "DotNetVersion = $DotNetVersion"
     Write-Verbose "PipeLineMode = $PipeLineMode"
     Write-Verbose "AppPoolIdentity = $AppPoolIdentity"
     Write-Verbose "AppCmdCommands = $AppCmdCommands"
 
-    if($CreateAppPool -ieq "true" -or $ActionIISApplicationPool -ieq "CreateOrUpdateAppPool")
+    switch ($ActionIISApplicationPool) 
     {
-        Add-And-Update-AppPool -appPoolName $AppPoolName -clrVersion $DotNetVersion -pipeLineMode $PipeLineMode -identity $AppPoolIdentity -appPoolCredentials $AppPoolCredentials 
-    }
-    elseif($ActionIISApplicationPool -eq $null) {
-        $AppPoolName = $null
-    }
-
-    if($CreateWebsite -ieq "true" -or $ActionIISWebsite -ieq "CreateOrUpdateWebsite")
-    {
-        $HostName = Get-HostName -protocol $Protocol -hostNameWithHttp $HostNameWithHttp -hostNameWithSNI $HostNameWithSNI -hostNameWithOutSNI $HostNameWithOutSNI -sni $ServerNameIndication
-    
-        Add-And-Update-Website -siteName $WebsiteName -appPoolName $AppPoolName -physicalPath $PhysicalPath -authType $PhysicalPathAuth -websitePhysicalPathAuthCredentials $PhysicalPathAuthCredentials `
-         -addBinding $AddBinding -protocol $Protocol -ipAddress $IpAddress -port $Port -hostname $HostName
-
-        if($Protocol -ieq "https" -and $AddBinding -ieq "true")
+        "CreateOrUpdateAppPool"
         {
-            $appCmdPath, $iisVersion = Get-AppCmdLocation -regKeyPath $AppCmdRegKey
-            Add-SslCert -ipAddress $IpAddress -port $Port -certhash $SslCertThumbPrint -hostname $HostName -sni $ServerNameIndication -iisVersion $iisVersion
-            Enable-SNI -siteName $WebsiteName -sni $ServerNameIndication -ipAddress $IpAddress -port $Port -hostname $HostName
+            Add-And-Update-AppPool -appPoolName $AppPoolName -clrVersion $DotNetVersion -pipeLineMode $PipeLineMode -identity $AppPoolIdentity -appPoolCredentials $AppPoolCredentials 
+        }
+
+        "StartAppPool"
+        {
+            Start-Stop-Recycle-ApplicationPool -appPoolName $AppPoolName -action "start"
+        }
+
+        "StopAppPool"
+        {
+            Start-Stop-Recycle-ApplicationPool -appPoolName $AppPoolName -action "stop"
+        }
+
+        "RecycleAppPool"
+        {
+            Start-Stop-Recycle-ApplicationPool -appPoolName $AppPoolName -action "recycle"
+        }
+    }
+
+    switch ($ActionIISWebsite) 
+    {
+        "CreateOrUpdateWebsite"
+        {
+            $HostName = Get-HostName -protocol $Protocol -hostNameWithHttp $HostNameWithHttp -hostNameWithSNI $HostNameWithSNI -hostNameWithOutSNI $HostNameWithOutSNI -sni $ServerNameIndication
+        
+            Add-And-Update-Website -siteName $WebsiteName -appPoolName $AppPoolName -physicalPath $PhysicalPath -authType $PhysicalPathAuth -websitePhysicalPathAuthCredentials $PhysicalPathAuthCredentials `
+             -addBinding $AddBinding -protocol $Protocol -ipAddress $IpAddress -port $Port -hostname $HostName
+
+            if($Protocol -ieq "https" -and $AddBinding -ieq "true")
+            {
+                $appCmdPath, $iisVersion = Get-AppCmdLocation -regKeyPath $AppCmdRegKey
+                Add-SslCert -ipAddress $IpAddress -port $Port -certhash $SslCertThumbPrint -hostname $HostName -sni $ServerNameIndication -iisVersion $iisVersion
+                Enable-SNI -siteName $WebsiteName -sni $ServerNameIndication -ipAddress $IpAddress -port $Port -hostname $HostName
+            }
+        }
+
+        "StartWebsite"
+        {
+            Start-Stop-Website -sitename $WebsiteName -action "start"
+        }
+
+        "StopWebsite"
+        {
+            Start-Stop-Website -sitename $WebsiteName -action "stop"
         }
     }
 
@@ -828,28 +854,6 @@ function Execute-Main
     if($CreateVirtualDirectory -eq "true")
     {
         Add-And-Update-VirtualDirectory -siteName $WebsiteName -virtualPath $VirtualPath -physicalPath $physicalPath -physicalPathAuthentication $PhysicalPathAuth -physicalPathAuthenticationCredentials $PhysicalPathAuthCredentials
-    }
-
-    if($ActionIISWebsite -eq "StartWebsite") 
-    {
-        Start-Stop-Website -sitename $WebsiteName -action "start"
-    }
-    elseif ($ActionIISWebsite -eq "StopWebsite") 
-    {
-        Start-Stop-Website -sitename $WebsiteName -action "stop"
-    }
-
-    if($ActionIISApplicationPool -eq "StartAppPool") 
-    {
-        Start-Stop-Recycle-ApplicationPool -appPoolName $AppPoolName -action "start"
-    }
-    elseif ($ActionIISApplicationPool -eq "StopAppPool") 
-    {
-        Start-Stop-Recycle-ApplicationPool -appPoolName $AppPoolName -action "stop"
-    }
-    elseif ($ActionIISApplicationPool -eq "RecycleAppPool") 
-    {
-        Start-Stop-Recycle-ApplicationPool -appPoolName $AppPoolName -action "recycle"
     }
 
     Invoke-AdditionalCommand -additionalCommands $AppCmdCommands
