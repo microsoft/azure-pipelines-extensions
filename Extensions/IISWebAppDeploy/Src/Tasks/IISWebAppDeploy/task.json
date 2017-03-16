@@ -16,7 +16,7 @@
   "version": {
     "Major": 1,
     "Minor": 4,
-    "Patch": 3
+    "Patch": 4
   },
   "demands": [
   ],
@@ -109,7 +109,7 @@
       "required": false,
       "groupName": "deployment",
       "defaultValue": "",
-      "helpMarkDown": "Specify parameters here to override the ones in the Web Deploy zip file and in the Parameter file. To override more than one parameter use line separator, e.g., <br/> name=\"IIS Web Application Name\",value=\"Fabrikam\" <br/> name=\"ConnectionString\", value=\"Server=localhost;Database=Fabrikam;\""
+      "helpMarkDown": "Specify parameters here to override the ones in the Web Deploy zip file and in the Parameter file. To override more than one parameter use line separator, e.g., <br/> name=\"IIS Web Application Name\",value=\"Fabrikam\" <br/> name=\"ConnectionString\",value=\"Server=localhost;Database=Fabrikam;\""
     },
     {
       "name": "WebsiteName",
