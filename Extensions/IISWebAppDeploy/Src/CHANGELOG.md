@@ -1,8 +1,8 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
-
-## [Unreleased]
+ 
+## [1.4.4] 2nd March 2017
 ### Fixed
 - Fixing if physical path is UNC trimming issue.
 
