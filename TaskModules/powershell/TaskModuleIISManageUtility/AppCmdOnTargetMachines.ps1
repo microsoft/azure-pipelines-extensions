@@ -731,6 +731,35 @@ function Start-Stop-Recycle-ApplicationPool {
     Invoke-VstsTool -Filename $appCmdPath -Arguments $appCmdArgs -RequireExitCodeZero
 }
 
+function ConfigureWebsiteAuthentication {
+    param (
+        [string]$basicAuthentication,
+        [string]$windowsAuthentication,
+        [string]$websiteName
+    )
+
+    Write-Verbose "Configuring website authentication"
+    $appCmdPath, $iisVersion = Get-AppCmdLocation -regKeyPath $AppCmdRegKey
+
+    $anonymousAuthentication = $basicAuthentication -ieq "false" -and $windowsAuthentication -ieq "false"
+
+    $appCmdArgs = [string]::Format('set config "{0}" /section:anonymousAuthentication /enabled:{1} /commit:apphost', $websiteName, $anonymousAuthentication)
+    $command = "`"$appCmdPath`" $appCmdArgs"
+    Write-Verbose "Setting anonymous authentication for website '$websiteName'. Running command $command"
+    Invoke-VstsTool -Filename $appCmdPath -Arguments $appCmdArgs -RequireExitCodeZero
+
+
+    $appCmdArgs = [string]::Format('set config "{0}" /section:basicAuthentication /enabled:{1} /commit:apphost', $websiteName, $basicAuthentication)
+    $command = "`"$appCmdPath`" $appCmdArgs"
+    Write-Verbose "Setting basic authentication for website '$websiteName'. Running command $command"
+    Invoke-VstsTool -Filename $appCmdPath -Arguments $appCmdArgs -RequireExitCodeZero
+
+    $appCmdArgs = [string]::Format('set config "{0}" /section:windowsAuthentication /enabled:{1} /commit:apphost', $websiteName, $windowsAuthentication)
+    $command = "`"$appCmdPath`" $appCmdArgs"
+    Write-Verbose "Enabling windows authentication for website '$websiteName'. Running command $command"
+    Invoke-VstsTool -Filename $appCmdPath -Arguments $appCmdArgs -RequireExitCodeZero
+}
+
 function Execute-Main
 {
     param (
@@ -763,6 +792,10 @@ function Execute-Main
         [string]$PipeLineMode,
         [string]$AppPoolIdentity,
         [System.Management.Automation.PSCredential] $AppPoolCredentials,
+
+        [string]$ConfigureAuthentication,
+        [string]$BasicAuthentication,
+        [string]$WindowsAuthentication,
         
         [string]$AppCmdCommands
     )
@@ -793,6 +826,11 @@ function Execute-Main
     Write-Verbose "DotNetVersion = $DotNetVersion"
     Write-Verbose "PipeLineMode = $PipeLineMode"
     Write-Verbose "AppPoolIdentity = $AppPoolIdentity"
+
+    Write-Verbose "ConfigureAuthentication = $ConfigureAuthentication"
+    Write-Verbose "BasicAuthentication = $BasicAuthentication"
+    Write-Verbose "WindowsAuthentication = $WindowsAuthentication"
+
     Write-Verbose "AppCmdCommands = $AppCmdCommands"
 
     switch ($ActionIISApplicationPool) 
@@ -832,6 +870,11 @@ function Execute-Main
                 $appCmdPath, $iisVersion = Get-AppCmdLocation -regKeyPath $AppCmdRegKey
                 Add-SslCert -ipAddress $IpAddress -port $Port -certhash $SslCertThumbPrint -hostname $HostName -sni $ServerNameIndication -iisVersion $iisVersion
                 Enable-SNI -siteName $WebsiteName -sni $ServerNameIndication -ipAddress $IpAddress -port $Port -hostname $HostName
+            }
+
+            if($ConfigureAuthentication -ieq "true")
+            {
+                ConfigureWebsiteAuthentication -basicAuthentication $BasicAuthentication -windowsAuthentication $WindowsAuthentication -websiteName $WebsiteName
             }
         }
 
