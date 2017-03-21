@@ -745,18 +745,17 @@ function ConfigureWebsiteAuthentication {
 
     $appCmdArgs = [string]::Format('set config "{0}" /section:anonymousAuthentication /enabled:{1} /commit:apphost', $websiteName, $anonymousAuthentication)
     $command = "`"$appCmdPath`" $appCmdArgs"
-    Write-Verbose "Setting anonymous authentication for website '$websiteName'. Running command $command"
+    Write-Verbose "Setting anonymous authentication for website '$websiteName' to $anonymousAuthentication. Running command $command"
     Invoke-VstsTool -Filename $appCmdPath -Arguments $appCmdArgs -RequireExitCodeZero
-
 
     $appCmdArgs = [string]::Format('set config "{0}" /section:basicAuthentication /enabled:{1} /commit:apphost', $websiteName, $basicAuthentication)
     $command = "`"$appCmdPath`" $appCmdArgs"
-    Write-Verbose "Setting basic authentication for website '$websiteName'. Running command $command"
+    Write-Verbose "Setting basic authentication for website '$websiteName' to $basicAuthentication. Running command $command"
     Invoke-VstsTool -Filename $appCmdPath -Arguments $appCmdArgs -RequireExitCodeZero
 
     $appCmdArgs = [string]::Format('set config "{0}" /section:windowsAuthentication /enabled:{1} /commit:apphost', $websiteName, $windowsAuthentication)
     $command = "`"$appCmdPath`" $appCmdArgs"
-    Write-Verbose "Enabling windows authentication for website '$websiteName'. Running command $command"
+    Write-Verbose "Setting windows authentication for website '$websiteName' to $windowsAuthentication. Running command $command"
     Invoke-VstsTool -Filename $appCmdPath -Arguments $appCmdArgs -RequireExitCodeZero
 }
 
@@ -872,10 +871,13 @@ function Execute-Main
                 Enable-SNI -siteName $WebsiteName -sni $ServerNameIndication -ipAddress $IpAddress -port $Port -hostname $HostName
             }
 
-            if($ConfigureAuthentication -ieq "true")
+            if($ConfigureAuthentication -ieq "false")
             {
-                ConfigureWebsiteAuthentication -basicAuthentication $BasicAuthentication -windowsAuthentication $WindowsAuthentication -websiteName $WebsiteName
+                $BasicAuthentication = "false"
+                $WindowsAuthentication = "false"
             }
+
+            ConfigureWebsiteAuthentication -basicAuthentication $BasicAuthentication -windowsAuthentication $WindowsAuthentication -websiteName $WebsiteName
         }
 
         "StartWebsite"
