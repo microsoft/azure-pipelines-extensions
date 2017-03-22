@@ -732,6 +732,7 @@ function Start-Stop-Recycle-ApplicationPool {
 
 function Set-WebsiteAuthentication {
     param (
+        [string]$anonymousAuthentication,
         [string]$basicAuthentication,
         [string]$windowsAuthentication,
         [string]$websiteName
@@ -740,21 +741,22 @@ function Set-WebsiteAuthentication {
     Write-Verbose "Configuring website authentication"
     $appCmdPath, $iisVersion = Get-AppCmdLocation -regKeyPath $AppCmdRegKey
 
-    $anonymousAuthentication = $basicAuthentication -ieq "false" -and $windowsAuthentication -ieq "false"
-
     $appCmdArgs = [string]::Format('set config "{0}" /section:anonymousAuthentication /enabled:{1} /commit:apphost', $websiteName, $anonymousAuthentication)
     $command = "`"$appCmdPath`" $appCmdArgs"
-    Write-Verbose "Setting anonymous authentication for website '$websiteName' to $anonymousAuthentication. Running command $command"
+    Write-Verbose "Setting anonymous authentication for website '$websiteName' to $anonymousAuthentication."
+    Write-Verbose "Running command $command"
     Invoke-VstsTool -Filename $appCmdPath -Arguments $appCmdArgs -RequireExitCodeZero
 
     $appCmdArgs = [string]::Format('set config "{0}" /section:basicAuthentication /enabled:{1} /commit:apphost', $websiteName, $basicAuthentication)
     $command = "`"$appCmdPath`" $appCmdArgs"
-    Write-Verbose "Setting basic authentication for website '$websiteName' to $basicAuthentication. Running command $command"
+    Write-Verbose "Setting basic authentication for website '$websiteName' to $basicAuthentication."
+    Write-Verbose "Running command $command"
     Invoke-VstsTool -Filename $appCmdPath -Arguments $appCmdArgs -RequireExitCodeZero
 
     $appCmdArgs = [string]::Format('set config "{0}" /section:windowsAuthentication /enabled:{1} /commit:apphost', $websiteName, $windowsAuthentication)
     $command = "`"$appCmdPath`" $appCmdArgs"
-    Write-Verbose "Setting windows authentication for website '$websiteName' to $windowsAuthentication. Running command $command"
+    Write-Verbose "Setting windows authentication for website '$websiteName' to $windowsAuthentication."
+    Write-Verbose "Running command $command"
     Invoke-VstsTool -Filename $appCmdPath -Arguments $appCmdArgs -RequireExitCodeZero
 }
 
@@ -791,6 +793,7 @@ function Invoke-Main
         [System.Management.Automation.PSCredential] $AppPoolCredentials,
 
         [string]$ConfigureAuthentication,
+        [string]$AnonymousAuthentication,
         [string]$BasicAuthentication,
         [string]$WindowsAuthentication,
         
@@ -825,6 +828,7 @@ function Invoke-Main
     Write-Verbose "AppPoolIdentity = $AppPoolIdentity"
 
     Write-Verbose "ConfigureAuthentication = $ConfigureAuthentication"
+    Write-Verbose "AnonymousAuthentication = $AnonymousAuthentication"
     Write-Verbose "BasicAuthentication = $BasicAuthentication"
     Write-Verbose "WindowsAuthentication = $WindowsAuthentication"
 
@@ -869,13 +873,10 @@ function Invoke-Main
                 Enable-SNI -siteName $WebsiteName -sni $ServerNameIndication -ipAddress $IpAddress -port $Port -hostname $HostName
             }
 
-            if($ConfigureAuthentication -ieq "false")
+            if($ConfigureAuthentication -ieq "true")
             {
-                $BasicAuthentication = "false"
-                $WindowsAuthentication = "false"
+                Set-WebsiteAuthentication -anonymousAuthentication $AnonymousAuthentication -basicAuthentication $BasicAuthentication -windowsAuthentication $WindowsAuthentication -websiteName $WebsiteName
             }
-
-            Set-WebsiteAuthentication -basicAuthentication $BasicAuthentication -windowsAuthentication $WindowsAuthentication -websiteName $WebsiteName
         }
 
         "StartWebsite"
