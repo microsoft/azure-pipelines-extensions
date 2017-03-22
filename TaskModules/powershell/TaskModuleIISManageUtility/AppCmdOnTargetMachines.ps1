@@ -500,7 +500,6 @@ function Add-Application
     Invoke-VstsTool -Filename $appCmdPath -Arguments $appCmdArgs -RequireExitCodeZero
 }
 
-
 function Update-Application 
 {
     param (
@@ -731,7 +730,7 @@ function Start-Stop-Recycle-ApplicationPool {
     Invoke-VstsTool -Filename $appCmdPath -Arguments $appCmdArgs -RequireExitCodeZero
 }
 
-function ConfigureWebsiteAuthentication {
+function Set-WebsiteAuthentication {
     param (
         [string]$basicAuthentication,
         [string]$windowsAuthentication,
@@ -759,10 +758,9 @@ function ConfigureWebsiteAuthentication {
     Invoke-VstsTool -Filename $appCmdPath -Arguments $appCmdArgs -RequireExitCodeZero
 }
 
-function Execute-Main
+function Invoke-Main
 {
     param (
-
         [string]$ActionIISWebsite,
         [string]$ActionIISApplicationPool,
        
@@ -877,7 +875,7 @@ function Execute-Main
                 $WindowsAuthentication = "false"
             }
 
-            ConfigureWebsiteAuthentication -basicAuthentication $BasicAuthentication -windowsAuthentication $WindowsAuthentication -websiteName $WebsiteName
+            Set-WebsiteAuthentication -basicAuthentication $BasicAuthentication -windowsAuthentication $WindowsAuthentication -websiteName $WebsiteName
         }
 
         "StartWebsite"
