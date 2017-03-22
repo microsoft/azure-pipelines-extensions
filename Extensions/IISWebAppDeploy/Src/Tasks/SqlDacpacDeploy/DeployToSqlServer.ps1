@@ -108,7 +108,7 @@ function GetScriptToRun
                     additionalArguments=`$splattedArgsObject.additionalArguments
                 }"
 
-            $invokeMain = "Execute-DacpacDeployment @remoteSqlDacpacArgs"
+            $invokeMain = "Invoke-DacpacDeployment@remoteSqlDacpacArgs"
         }
         catch
         {
@@ -150,7 +150,7 @@ function GetScriptToRun
                     sqlServerCredentials=`$sqlServerCredentials
                     additionalArguments=`$splattedArgsObject.additionalArguments
                 }"
-            $invokeExecute = "Execute-SqlQueryDeployment @remoteSplattedSql"
+            $invokeExecute = "Invoke-SqlQueryDeployment @remoteSplattedSql"
         }
         catch
         {

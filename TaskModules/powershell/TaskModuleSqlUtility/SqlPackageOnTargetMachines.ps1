@@ -448,7 +448,7 @@ function Get-SqlPackageCmdArgs
     return $sqlPkgCmdArgs
 }
 
-function Execute-DacpacDeployment
+function Invoke-DacpacDeployment
 {
     param (
      [string]$dacpacFile,
@@ -468,10 +468,10 @@ function Execute-DacpacDeployment
     Write-Verbose -Verbose $sqlPackageArguments
     
     Write-Verbose "Executing command: $sqlPackage $sqlPackageArguments"
-    Execute-Command -FileName "$sqlPackage"  -Arguments $sqlPackageArguments
+    ExecuteCommand -FileName "$sqlPackage"  -Arguments $sqlPackageArguments
 }
 
-function Execute-Command
+function ExecuteCommand
 {
     param(
         [String][Parameter(Mandatory=$true)] $FileName,

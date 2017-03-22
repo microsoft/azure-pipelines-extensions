@@ -488,15 +488,15 @@ Describe "Tests for Get-SqlPackageCmdArgs functionality" {
 
 }
 
-Describe "Tests for verifying Execute-DacpacDeployment functionality" {
+Describe "Tests for verifying Invoke-DacpacDeploymentfunctionality" {
 
     Context "When execute DacpacDeployment is invoked with all inputs"{
 
         Mock Get-SqlPackageOnTargetMachine { return "sqlpackage.exe" }
         Mock Get-SqlPackageCmdArgs -Verifiable { return "args" } -ParameterFilter { $DacpacFile -eq "sample.dacpac" }
-        Mock Execute-Command -Verifiable { return }
+        Mock ExecuteCommand -Verifiable { return }
 
-        Execute-DacpacDeployment -dacpacFile "sample.dacpac" -targetMethod "server" -serverName "localhost"
+        Invoke-DacpacDeployment -dacpacFile "sample.dacpac" -targetMethod "server" -serverName "localhost"
 
         It "Should deploy dacpac file"{
             Assert-VerifiableMocks

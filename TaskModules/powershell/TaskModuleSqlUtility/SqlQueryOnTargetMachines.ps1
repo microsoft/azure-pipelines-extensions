@@ -15,7 +15,7 @@ function Get-SqlFilepathOnTargetMachine
     return $tempFilePath
 }
 
-function Execute-SqlQueryDeployment
+function Invoke-SqlQueryDeployment
 {
     param (
         [string]$taskType,
