@@ -16,7 +16,7 @@ Write-Verbose "NonInteractive: $script:nonInteractive"
 . "$PSScriptRoot\AppCmdOnTargetMachines.ps1"
 
 Export-ModuleMember -Function @(
-        'Execute-Main'
+        'Invoke-Main'
     )
 
 # Special internal exception type to control the flow. Not currently intended
