@@ -488,7 +488,7 @@ Describe "Tests for Get-SqlPackageCmdArgs functionality" {
 
 }
 
-Describe "Tests for verifying Invoke-DacpacDeploymentfunctionality" {
+Describe "Tests for verifying Invoke-DacpacDeployment functionality" {
 
     Context "When execute DacpacDeployment is invoked with all inputs"{
 

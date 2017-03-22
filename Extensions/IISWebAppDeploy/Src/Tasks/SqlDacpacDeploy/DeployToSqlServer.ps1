@@ -108,7 +108,7 @@ function GetScriptToRun
                     additionalArguments=`$splattedArgsObject.additionalArguments
                 }"
 
-            $invokeMain = "Invoke-DacpacDeployment@remoteSqlDacpacArgs"
+            $invokeMain = "Invoke-DacpacDeployment @remoteSqlDacpacArgs"
         }
         catch
         {

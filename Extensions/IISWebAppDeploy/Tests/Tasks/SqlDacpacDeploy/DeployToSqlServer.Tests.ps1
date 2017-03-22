@@ -151,7 +151,7 @@ Describe "Tests for testing GetScriptToRun functionality" {
             ($script.Contains('"additionalArguments":  ""')) | Should Be $true
             ($script.Contains('"sqlServerCredentials":  "$sqlServerCredentials"')) | Should Be $true
             ($script.Contains('"databaseName":  "SampleDB"')) | Should Be $true
-            ($script.Contains('Invoke-DacpacDeployment@remoteSqlDacpacArgs')) | Should Be $true
+            ($script.Contains('Invoke-DacpacDeployment @remoteSqlDacpacArgs')) | Should Be $true
         }
 
         $script = GetScriptToRun -dacpacFile "" -targetMethod "server" -serverName "localhost" -databaseName "SampleDB" -authscheme "sqlServerAuthentication" -sqlUserName "sampleuser" -sqlPassword "dummypassword" -connectionString "" -publishProfile "" -additionalArguments "" -taskType "sqlQuery" -inlineSql "" -sqlFile "sample.sql"
