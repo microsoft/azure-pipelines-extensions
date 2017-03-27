@@ -151,7 +151,7 @@ Describe "Tests for testing GetScriptToRun functionality" {
             ($script.Contains('"additionalArguments":  ""')) | Should Be $true
             ($script.Contains('"sqlServerCredentials":  "$sqlServerCredentials"')) | Should Be $true
             ($script.Contains('"databaseName":  "SampleDB"')) | Should Be $true
-            ($script.Contains('Execute-DacpacDeployment @remoteSqlDacpacArgs')) | Should Be $true
+            ($script.Contains('Invoke-DacpacDeployment @remoteSqlDacpacArgs')) | Should Be $true
         }
 
         $script = GetScriptToRun -dacpacFile "" -targetMethod "server" -serverName "localhost" -databaseName "SampleDB" -authscheme "sqlServerAuthentication" -sqlUserName "sampleuser" -sqlPassword "dummypassword" -connectionString "" -publishProfile "" -additionalArguments "" -taskType "sqlQuery" -inlineSql "" -sqlFile "sample.sql"
@@ -166,7 +166,7 @@ Describe "Tests for testing GetScriptToRun functionality" {
             ($script.Contains('"additionalArguments":  ""')) | Should Be $true
             ($script.Contains('"sqlServerCredentials":  "$sqlServerCredentials"')) | Should Be $true
             ($script.Contains('"sqlFile":  "sample.sql"')) | Should Be $true
-            ($script.Contains('Execute-SqlQueryDeployment @remoteSplattedSql')) | Should Be $true
+            ($script.Contains('Invoke-SqlQueryDeployment @remoteSplattedSql')) | Should Be $true
         }
 
         $script = GetScriptToRun -dacpacFile "" -targetMethod "server" -serverName "localhost" -databaseName "SampleDB" -authscheme "sqlServerAuthentication" -sqlUserName "sampleuser" -sqlPassword "dummypassword" -connectionString "" -publishProfile "" -additionalArguments "" -taskType "sqlInline" -inlineSql "Testing Inline SQL" -sqlFile ""
@@ -179,7 +179,7 @@ Describe "Tests for testing GetScriptToRun functionality" {
             ($script.Contains('"additionalArguments":  ""')) | Should Be $true
             ($script.Contains('"sqlServerCredentials":  "$sqlServerCredentials"')) | Should Be $true
             ($script.Contains('"sqlFile":  ""')) | Should Be $true
-            ($script.Contains('Execute-SqlQueryDeployment @remoteSplattedSql')) | Should Be $true
+            ($script.Contains('Invoke-SqlQueryDeployment @remoteSplattedSql')) | Should Be $true
         }
     }
 }

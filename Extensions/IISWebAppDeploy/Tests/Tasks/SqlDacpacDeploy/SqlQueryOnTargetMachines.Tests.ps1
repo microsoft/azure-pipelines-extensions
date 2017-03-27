@@ -54,7 +54,7 @@ Describe "Tests for verifying Import-SqlPs functionality" {
     }
 }
 
-Describe "Tests for verifying Execute-SqlQueryDeployment functionality" {
+Describe "Tests for verifying Invoke-SqlQueryDeployment functionality" {
 
     Context "When execute sql is invoked with all inputs for Inline Sql"{
 
@@ -64,7 +64,7 @@ Describe "Tests for verifying Execute-SqlQueryDeployment functionality" {
         Mock Get-SqlFilepathOnTargetMachine { return "C:\sample.temp" }
         Mock Invoke-Sqlcmd -Verifiable { return }
     
-        Execute-SqlQueryDeployment -taskType "sqlInline" -inlineSql "SampleQuery" -targetMethod "server" -serverName "localhost" -databaseName "SampleDB" 
+        Invoke-SqlQueryDeployment -taskType "sqlInline" -inlineSql "SampleQuery" -targetMethod "server" -serverName "localhost" -databaseName "SampleDB" 
 
         It "Should deploy inline Sql"{
             Assert-VerifiableMocks
@@ -83,7 +83,7 @@ Describe "Tests for verifying Execute-SqlQueryDeployment functionality" {
         Mock Get-SqlFilepathOnTargetMachine { return "C:\sample.temp" }
         Mock Invoke-Sqlcmd -Verifiable { return } -ParameterFilter {$QueryTimeout -eq 50}
     
-        Execute-SqlQueryDeployment -taskType "sqlInline" -inlineSql "SampleQuery" -targetMethod "server" -serverName "localhost" -databaseName "SampleDB" -additionalArguments "-QueryTimeout 50 wrongParam"
+        Invoke-SqlQueryDeployment -taskType "sqlInline" -inlineSql "SampleQuery" -targetMethod "server" -serverName "localhost" -databaseName "SampleDB" -additionalArguments "-QueryTimeout 50 wrongParam"
 
         It "Should have valid additional arguments"{
             Assert-VerifiableMocks
@@ -101,7 +101,7 @@ Describe "Tests for verifying Execute-SqlQueryDeployment functionality" {
         Mock Invoke-Sqlcmd -Verifiable { return } -ParameterFilter {$variable -eq "var1=user`$test"}
         Mock Remove-Item { return }
 
-        Execute-SqlQueryDeployment -taskType "sqlInline" -inlineSql "SampleQuery" -targetMethod "server" -serverName "localhost" -databaseName "SampleDB" -additionalArguments "-variable var1=user`$test"
+        Invoke-SqlQueryDeployment -taskType "sqlInline" -inlineSql "SampleQuery" -targetMethod "server" -serverName "localhost" -databaseName "SampleDB" -additionalArguments "-variable var1=user`$test"
 
         It "Should have valid additional arguments with special character"{
             Assert-VerifiableMocks
@@ -121,7 +121,7 @@ Describe "Tests for verifying Execute-SqlQueryDeployment functionality" {
 
         try
         {
-            Execute-SqlQueryDeployment -taskType "sqlQuery" -sqlFile "SampleFile.temp" -targetMethod "server" -serverName "localhost" -databaseName "SampleDB" 
+            Invoke-SqlQueryDeployment -taskType "sqlQuery" -sqlFile "SampleFile.temp" -targetMethod "server" -serverName "localhost" -databaseName "SampleDB" 
         }
         catch
         {
@@ -143,7 +143,7 @@ Describe "Tests for verifying Execute-SqlQueryDeployment functionality" {
         Mock Get-SqlFilepathOnTargetMachine { return "C:\sample.temp" }
         Mock Invoke-Sqlcmd -Verifiable { return } -ParameterFilter {($Username -eq "SqlUser") -and ($Password -eq "SqlPass")}
 
-        Execute-SqlQueryDeployment -taskType "sqlInline" -inlineSql "SampleQuery" -targetMethod "server" -serverName "localhost" -databaseName "SampleDB" -sqlServerCredentials $psCredential -authscheme sqlServerAuthentication
+        Invoke-SqlQueryDeployment -taskType "sqlInline" -inlineSql "SampleQuery" -targetMethod "server" -serverName "localhost" -databaseName "SampleDB" -sqlServerCredentials $psCredential -authscheme sqlServerAuthentication
 
         It "Should deploy inline Sql with Server Authetication"{
             Assert-VerifiableMocks
@@ -165,7 +165,7 @@ Describe "Tests for verifying Execute-SqlQueryDeployment functionality" {
 
         try
         {
-            Execute-SqlQueryDeployment -taskType "sqlInline" -inlineSql "SampleQuery" -targetMethod "server" -serverName "localhost" -databaseName "SampleDB" 
+            Invoke-SqlQueryDeployment -taskType "sqlInline" -inlineSql "SampleQuery" -targetMethod "server" -serverName "localhost" -databaseName "SampleDB" 
         }
         catch
         {
@@ -191,7 +191,7 @@ Describe "Tests for verifying Execute-SqlQueryDeployment functionality" {
 
         try
         {
-            Execute-SqlQueryDeployment -taskType "sqlInline" -inlineSql "SampleQuery" -targetMethod "server" -serverName "localhost" -databaseName "SampleDB" 
+            Invoke-SqlQueryDeployment -taskType "sqlInline" -inlineSql "SampleQuery" -targetMethod "server" -serverName "localhost" -databaseName "SampleDB" 
         }
         catch
         {
@@ -214,7 +214,7 @@ Describe "Tests for verifying Execute-SqlQueryDeployment functionality" {
 
         try
         {
-            Execute-SqlQueryDeployment -taskType "sqlQuery" -sqlFile "SampleFile.temp" -targetMethod "server" -serverName "localhost" -databaseName "SampleDB"
+            Invoke-SqlQueryDeployment -taskType "sqlQuery" -sqlFile "SampleFile.temp" -targetMethod "server" -serverName "localhost" -databaseName "SampleDB"
         }
         catch
         {

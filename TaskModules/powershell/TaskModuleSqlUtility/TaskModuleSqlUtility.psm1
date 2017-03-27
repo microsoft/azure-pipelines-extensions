@@ -17,8 +17,8 @@ Write-Verbose "NonInteractive: $script:nonInteractive"
 . "$PSScriptRoot\SqlQueryOnTargetMachines.ps1"
 
 Export-ModuleMember -Function @(
-        'Execute-SqlQueryDeployment',
-        'Execute-DacpacDeployment'
+        'Invoke-SqlQueryDeployment',
+        'Invoke-DacpacDeployment'
     )
 
 # Special internal exception type to control the flow. Not currently intended

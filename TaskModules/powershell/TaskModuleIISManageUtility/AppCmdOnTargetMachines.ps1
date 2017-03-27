@@ -800,7 +800,7 @@ function Invoke-Main
         [string]$AppCmdCommands
     )
 
-    Write-Verbose "Entering Execute-Main function"
+    Write-Verbose "Entering Invoke-Main function"
 
     Write-Verbose "ActionIISWebsite = $ActionIISWebsite"
     Write-Verbose "ActionIISApplicationPool = $ActionIISApplicationPool"
