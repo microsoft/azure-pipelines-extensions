@@ -73,7 +73,7 @@
           },
           {
             "name": "Builds",
-            "endpointUrl": "{{endpoint.url}}httpAuth/app/rest/buildTypes/{{definition}}/builds",
+            "endpointUrl": "{{endpoint.url}}httpAuth/app/rest/buildTypes/{{definition}}/builds/?locator=branch:default:any",
             "resultSelector": "jsonpath:$.build[?(@.status=='SUCCESS')]"
           },
           {
