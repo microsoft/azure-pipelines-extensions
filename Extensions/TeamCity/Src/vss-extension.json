@@ -182,7 +182,7 @@
           {
             "target": "project",
             "dataSourceName": "Projects",
-            "resultTemplate": "{ Value : \"{{id}}\", DisplayValue : \"{{{name}}}\" }"
+            "resultTemplate": "{ Value : \"{{id}}\", DisplayValue : \"{{{name}}} ({{{id}}})\" }"
           },
           {
             "target": "definition",
