@@ -73,12 +73,12 @@
           },
           {
             "name": "Builds",
-            "endpointUrl": "{{endpoint.url}}httpAuth/app/rest/buildTypes/{{definition}}/builds",
+            "endpointUrl": "{{endpoint.url}}httpAuth/app/rest/buildTypes/{{definition}}/builds/?locator=branch:default:any",
             "resultSelector": "jsonpath:$.build[?(@.status=='SUCCESS')]"
           },
           {
             "name": "LatestBuild",
-            "endpointUrl": "{{endpoint.url}}httpAuth/app/rest/buildTypes/{{definition}}/builds?count=1&status=success",
+            "endpointUrl": "{{endpoint.url}}httpAuth/app/rest/buildTypes/{{definition}}/builds?locator=branch:default:any&count=1&status=success",
             "resultSelector": "jsonpath:$.build[*]"
           },
           {
