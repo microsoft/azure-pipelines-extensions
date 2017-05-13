@@ -1,0 +1,7 @@
+{
+  "name": "InputEditor",
+  "main":"editorExtension.js",
+  "devDependencies": {
+    "sync-request": "3.0.1"
+  }
+}
