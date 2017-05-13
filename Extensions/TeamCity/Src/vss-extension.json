@@ -87,6 +87,16 @@
             "resultSelector": "jsonpath:$.file[*]"
           },
           {
+            "name": "ArtifactDetails",
+            "endpointUrl": "{{endpoint.url}}httpAuth/app/rest/builds/id:{{version}}/artifacts/content/{{itemPath}}",
+            "resultSelector": "jsonpath:$"
+          },
+          {
+            "name": "ArtifactSize",
+            "endpointUrl": "{{endpoint.url}}httpAuth/app/rest/builds/id:{{version}}/artifacts/metadata/{{itemPath}}",
+            "resultSelector": "jsonpath:$"
+          },
+          {
             "name": "BranchName",
             "endpointUrl": "{{endpoint.url}}httpAuth/app/rest/builds/id:{{version}}",
             "resultSelector": "jsonpath:$.branchName"
@@ -201,7 +211,8 @@
           },
           {
             "target": "artifactDetails",
-            "resultTemplate": "{ Name: \"{{version}}\", StreamType: \"zip\", downloadUrl : \"{{endpoint.url}}downloadArtifacts.html?buildTypeId={{definition}}&buildId={{version}}\" }"
+            "dataSourceName": "ArtifactDetails",
+            "resultTemplate": "{ Value : \"{{this}}\", DisplayValue : \"{{{name}}}\" }"
           },
           {
             "target": "artifacts",
@@ -212,6 +223,11 @@
             "target": "artifactItems",
             "dataSourceName": "Artifacts",
             "resultTemplate": "{ Value : \"{{#if itemPath}}{{{itemPath}}}/{{{name}}}{{else}}{{{name}}}{{/if}}\", DisplayValue : \"{{{name}}}\", data: { itemType: \"{{#if children}}folder{{else}}file{{/if}}\" } }"
+          },
+          {
+            "target": "artifactSize",
+            "dataSourceName": "ArtifactSize",
+            "resultTemplate": "{ Value : \"{{{size}}}\", DisplayValue : \"{{{name}}}\" }"
           },
           {
             "target": "branchName",
