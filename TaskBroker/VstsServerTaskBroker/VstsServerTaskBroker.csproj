@@ -1,0 +1,187 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <ProjectGuid>{E40964B3-3B6A-48F2-8A3A-285C4CB2ADDB}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>VstsServerTaskBroker</RootNamespace>
+    <AssemblyName>VstsServerTaskBroker</AssemblyName>
+    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <AssemblyClsCompliant>false</AssemblyClsCompliant>
+    <StyleCopTreatErrorsAsWarnings>false</StyleCopTreatErrorsAsWarnings>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
+    <OutputPath>bin\Debug\</OutputPath>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
+    <OutputPath>bin\Release\</OutputPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="Microsoft.TeamFoundation.Build2.WebApi, Version=15.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Microsoft.TeamFoundationServer.Client.15.107.2-preview\lib\net45\Microsoft.TeamFoundation.Build2.WebApi.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.TeamFoundation.Chat.WebApi, Version=15.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Microsoft.TeamFoundationServer.Client.15.107.2-preview\lib\net45\Microsoft.TeamFoundation.Chat.WebApi.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.TeamFoundation.Common, Version=15.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Microsoft.VisualStudio.Services.Client.15.107.1-preview\lib\net45\Microsoft.TeamFoundation.Common.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.TeamFoundation.Core.WebApi, Version=15.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Microsoft.TeamFoundationServer.Client.15.107.2-preview\lib\net45\Microsoft.TeamFoundation.Core.WebApi.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.TeamFoundation.Dashboards.WebApi, Version=15.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Microsoft.TeamFoundationServer.Client.15.107.2-preview\lib\net45\Microsoft.TeamFoundation.Dashboards.WebApi.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.TeamFoundation.DistributedTask.Common.Contracts">
+      <HintPath>..\packages\Microsoft.VisualStudio.Services.DistributedTask.Client.15.107.2-preview\lib\net45\Microsoft.TeamFoundation.DistributedTask.Common.Contracts.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.TeamFoundation.DistributedTask.WebApi, Version=15.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Microsoft.VisualStudio.Services.DistributedTask.Client.15.107.2-preview\lib\net45\Microsoft.TeamFoundation.DistributedTask.WebApi.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.TeamFoundation.Policy.WebApi, Version=15.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Microsoft.TeamFoundationServer.Client.15.107.2-preview\lib\net45\Microsoft.TeamFoundation.Policy.WebApi.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.TeamFoundation.SourceControl.WebApi, Version=15.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Microsoft.TeamFoundationServer.Client.15.107.2-preview\lib\net45\Microsoft.TeamFoundation.SourceControl.WebApi.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.TeamFoundation.Test.WebApi, Version=15.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Microsoft.TeamFoundationServer.Client.15.107.2-preview\lib\net45\Microsoft.TeamFoundation.Test.WebApi.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.TeamFoundation.TestManagement.WebApi, Version=15.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Microsoft.TeamFoundationServer.Client.15.107.2-preview\lib\net45\Microsoft.TeamFoundation.TestManagement.WebApi.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.TeamFoundation.Work.WebApi, Version=15.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Microsoft.TeamFoundationServer.Client.15.107.2-preview\lib\net45\Microsoft.TeamFoundation.Work.WebApi.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.TeamFoundation.WorkItemTracking.WebApi, Version=15.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Microsoft.TeamFoundationServer.Client.15.107.2-preview\lib\net45\Microsoft.TeamFoundation.WorkItemTracking.WebApi.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.Services.Common, Version=15.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Microsoft.VisualStudio.Services.Client.15.107.1-preview\lib\net45\Microsoft.VisualStudio.Services.Common.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.Services.ReleaseManagement.WebApi, Version=15.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Microsoft.VisualStudio.Services.Release.Client.15.107.2-preview\lib\net45\Microsoft.VisualStudio.Services.ReleaseManagement.WebApi.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.Services.WebApi, Version=15.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Microsoft.VisualStudio.Services.Client.15.107.1-preview\lib\net45\Microsoft.VisualStudio.Services.WebApi.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.Web.XmlTransform">
+      <HintPath>..\packages\Microsoft.Web.Xdt.2.1.1\lib\net40\Microsoft.Web.XmlTransform.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=8.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Newtonsoft.Json.8.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="NuGet.Core">
+      <HintPath>..\packages\NuGet.Core.2.11.1\lib\net40-Client\NuGet.Core.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.IO.Compression" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Net.Http.Formatting">
+      <HintPath>..\packages\Microsoft.AspNet.WebApi.Client.5.2.2\lib\net45\System.Net.Http.Formatting.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Threading.Tasks.Dataflow">
+      <HintPath>..\packages\Microsoft.Tpl.Dataflow.4.5.24\lib\portable-net45+win8+wpa81\System.Threading.Tasks.Dataflow.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Web" />
+    <Reference Include="System.Web.Http">
+      <HintPath>..\packages\Microsoft.AspNet.WebApi.Core.5.2.2\lib\net45\System.Web.Http.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.XML" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="app.config" />
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="IGitHttpClientWrapper.cs" />
+    <Compile Include="IReleaseHttpClientWrapper.cs" />
+    <Compile Include="IRetryEventHandler.cs" />
+    <Compile Include="MockGitHttpClientWrapper.cs" />
+    <Compile Include="MockVstsReportingHelper.cs" />
+    <Compile Include="ReleaseHttpClientWrapper.cs" />
+    <Compile Include="RetryEventHandler.cs" />
+    <Compile Include="TaskHttpClientNoopPlanEventWrapper.cs" />
+    <Compile Include="TaskHttpClientWrapperFactory.cs" />
+    <Compile Include="VstsArtifactsHelper.cs" />
+    <Compile Include="AssemblyInfo.cs" />
+    <Compile Include="GitHttpClientWrapper.cs" />
+    <Compile Include="BuildHttpClientWrapper.cs" />
+    <Compile Include="IArtifactsHelper.cs" />
+    <Compile Include="IBuildHttpClientWrapper.cs" />
+    <Compile Include="IVstsReportingHelper.cs" />
+    <Compile Include="SchedulingBrokerSettings.cs" />
+    <Compile Include="HandlerWithInstrumentation.cs" />
+    <Compile Include="IBrokerInstrumentation.cs" />
+    <Compile Include="ITaskHttpClient.cs" />
+    <Compile Include="MockTaskHttpClient.cs" />
+    <Compile Include="TaskHttpClientWrapper.cs" />
+    <Compile Include="IVstsScheduleHandler.cs" />
+    <Compile Include="SchedulingBroker.cs" />
+    <Compile Include="VstsArtifactsNotFoundException.cs" />
+    <Compile Include="VstsBrokerInstrumentation.cs" />
+    <Compile Include="VstsMessageConstants.cs" />
+    <Compile Include="VstsReportingHelper.cs" />
+    <Compile Include="VstsTaskHttpRetryer.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\VstsServerTaskBroker.Azure\VstsServerTaskBroker.Azure.csproj">
+      <Project>{b973f4fd-75e6-49db-8177-5d9657465772}</Project>
+      <Name>VstsServerTaskBroker.Azure</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\VstsServerTaskBroker.Contracts\VstsServerTaskBroker.Contracts.csproj">
+      <Project>{e40964b3-3b6a-48f2-8a3a-285c4ca2ffdb}</Project>
+      <Name>VstsServerTaskBroker.Contracts</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <QCustomInput Include="$(BASEDIR)\private\Settings.StyleCop">
+      <Visible>false</Visible>
+    </QCustomInput>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>
