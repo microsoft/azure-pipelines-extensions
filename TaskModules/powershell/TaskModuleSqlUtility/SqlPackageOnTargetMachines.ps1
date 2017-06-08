@@ -184,7 +184,7 @@ function LocateHighestVersionSqlPackageWithSql()
         return $null, 0
     }
 
-    $keys = Get-Item $sqlRegKey | %{$_.GetSubKeyNames()} 
+    $keys = Get-Item $sqlRegKey | %{$_.GetSubKeyNames()}
     $versions = Get-SubKeysInFloatFormat $keys | Sort-Object -Descending
 
     Write-Verbose "Sql Versions installed on machine $env:COMPUTERNAME as read from registry: $versions"
@@ -204,7 +204,7 @@ function LocateHighestVersionSqlPackageWithSql()
         }
     }
 
-    Write-Verbose "Dac Framework (installed with SQL) not found on machine $env:COMPUTERNAME"      
+    Write-Verbose "Dac Framework (installed with SQL) not found on machine $env:COMPUTERNAME"
 
     return $null, 0
 }
@@ -221,7 +221,7 @@ function LocateHighestVersionSqlPackageWithDacMsi()
 
     if ((Test-Path $sqlDataTierFrameworkRegKey))
     {
-        $keys = Get-Item $sqlDataTierFrameworkRegKey | %{$_.GetSubKeyNames()} 
+        $keys = Get-Item $sqlDataTierFrameworkRegKey | %{$_.GetSubKeyNames()}
         $versions = Get-SubKeysInFloatFormat $keys | Sort-Object -Descending
 
         $installedMajorVersion = 0
@@ -320,7 +320,7 @@ function LocateSqlPackageInVS([string] $version)
 
     if ($vsInstallDir)
     {
-        Write-Verbose "Visual Studio install location: $vsInstallDir" 
+        Write-Verbose "Visual Studio install location: $vsInstallDir"
 
         $dacExtensionPath = [System.IO.Path]::Combine("Extensions", "Microsoft", "SQLDB", "DAC")
         $dacParentDir = [System.IO.Path]::Combine($vsInstallDir, $dacExtensionPath)
@@ -367,7 +367,7 @@ function LocateHighestVersionSqlPackageInVS()
     }
 
     $keys = Get-Item $vsRegKey | %{$_.GetSubKeyNames()}
-    $versions = Get-SubKeysInFloatFormat $keys | Sort-Object -Descending 
+    $versions = Get-SubKeysInFloatFormat $keys | Sort-Object -Descending
 
     Write-Verbose "Visual Studio versions found on machine $env:COMPUTERNAME as read from registry: $versions"
 
@@ -466,7 +466,7 @@ function Invoke-DacpacDeployment
     $sqlPackage = Get-SqlPackageOnTargetMachine
     $sqlPackageArguments = Get-SqlPackageCmdArgs -dacpacFile $dacpacFile -targetMethod $targetMethod -serverName $serverName -databaseName $databaseName -authscheme $authscheme -sqlServerCredentials $sqlServerCredentials -connectionString $connectionString -publishProfile $publishProfile -additionalArguments $additionalArguments
     Write-Verbose -Verbose $sqlPackageArguments
-    
+
     Write-Verbose "Executing command: $sqlPackage $sqlPackageArguments"
     ExecuteCommand -FileName "$sqlPackage"  -Arguments $sqlPackageArguments
 }
@@ -478,7 +478,7 @@ function ExecuteCommand
         [String][Parameter(Mandatory=$true)] $Arguments
     )
 
-    if( $psversiontable.PSVersion.Major -le 4)
+    if( $psversiontable.PSVersion.Major -lt 4)
     {
         $ErrorActionPreference = 'Continue'
         $command = "`"$FileName`" $Arguments"
@@ -489,13 +489,9 @@ function ExecuteCommand
         $ErrorActionPreference = 'SilentlyContinue'
         $result = ""
         Invoke-Expression "& '$FileName' --% $Arguments"  -ErrorVariable errors | ForEach-Object {
-            if ($_ -is [System.Management.Automation.ErrorRecord]) {
-                $result +=  "$_ "
-            } else {
-                Write-Host $_
-            }
-        } 
-        
+             $result +=  "$_ "
+        }
+
         foreach($errorMsg in $errors){
             $result +=  "$errorMsg "
         }
@@ -507,5 +503,3 @@ function ExecuteCommand
          throw  $result
     }
 }
-
-
