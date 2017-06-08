@@ -1,7 +1,11 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
- 
+
+## [1.4.5] 2nd March 2017
+### Fixed
+- Fixing issue of not getting complete error logs for PS version 4.0
+
 ## [1.4.4] 2nd March 2017
 ### Fixed
 - Fixing if physical path is UNC trimming issue.
@@ -60,7 +64,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 - Support for taking application offline
 - Support for excluding files from App_Data
 - Support for retaining extra files in target deployment folder
-- Additional arguments support for verb:sync 
+- Additional arguments support for verb:sync
 
 ## [1.1.0] - 15th June 2016
 ### Added
@@ -90,4 +94,3 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 - IIS web application deployment task.
 - IIS web application management task.
-

@@ -500,6 +500,7 @@ function ExecuteCommand
     $ErrorActionPreference = 'Stop'
     if($LASTEXITCODE -ne 0)
     {
+         Write-Verbose "Deployment failed with error : $result"
          throw  $result
     }
 }
