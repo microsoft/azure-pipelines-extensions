@@ -1,24 +1,25 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Microsoft.ServiceBus.Messaging;
+using System.IO;
+using System.Runtime.Serialization;
+using System.Runtime.Serialization.Formatters.Binary;
+using Microsoft.Azure.ServiceBus;
 
 namespace VstsServerTaskBroker.Azure.ServiceBus
 {
-    /// <summary>
-    /// This class provides a wrapper implementation around the 
-    /// Azure Service Bus brokered messageWrapper.
-    /// </summary>
-    public class BrokeredMessageWrapper : IBrokeredMessageWrapper
+	/// <summary>
+	/// This class provides a wrapper implementation around the 
+	/// Azure Service Bus brokered messageWrapper.
+	/// </summary>
+	public class BrokeredMessageWrapper : IBrokeredMessageWrapper
     {
-        private readonly BrokeredMessage message;
+        private readonly Message message;
 
         public BrokeredMessageWrapper()
         {
-            this.message = new BrokeredMessage();
+            this.message = new Message();
         }
 
-        public BrokeredMessageWrapper(BrokeredMessage message)
+        public BrokeredMessageWrapper(Message message)
         {
             this.message = message;
         }
@@ -27,13 +28,17 @@ namespace VstsServerTaskBroker.Azure.ServiceBus
         {
             get
             {
-                return message.LockedUntilUtc;
+                return message.SystemProperties.LockedUntilUtc;
             }
         }
 
         public T GetBody<T>()
         {
-            return message.GetBody<T>();
+			using (MemoryStream ms = new MemoryStream(message.Body))
+			{
+				IFormatter br = new BinaryFormatter();
+				return (T)br.Deserialize(ms);
+			}
         }
 
         public string GetMessageId()
@@ -44,7 +49,7 @@ namespace VstsServerTaskBroker.Azure.ServiceBus
         public object GetProperty(string key)
         {
             object value;
-            if (this.message.Properties.TryGetValue(key, out value))
+            if (this.message.UserProperties.TryGetValue(key, out value))
             {
                 return value;
             }
@@ -54,32 +59,7 @@ namespace VstsServerTaskBroker.Azure.ServiceBus
 
         public void SetProperty(string key, object value)
         {
-            this.message.Properties[key] = value;
-        }
-
-        public async Task RenewLockAsync()
-        {
-            await message.RenewLockAsync();
-        }
-
-        public Task CompleteAsync()
-        {
-            return message.CompleteAsync();
-        }
-
-        public Task DeadLetterAsync(Dictionary<string, object> updatedProperties)
-        {
-            return message.DeadLetterAsync(updatedProperties);
-        }
-
-        public Task AbandonAsync(Dictionary<string, object> updatedProperties)
-        {
-            return message.AbandonAsync(updatedProperties);
-        }
-
-        public Task AbandonAsync()
-        {
-            return message.AbandonAsync();
+            this.message.UserProperties[key] = value;
         }
     }
 }

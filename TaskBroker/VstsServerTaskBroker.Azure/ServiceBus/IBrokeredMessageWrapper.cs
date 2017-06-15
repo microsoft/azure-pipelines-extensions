@@ -18,15 +18,5 @@ namespace VstsServerTaskBroker.Azure.ServiceBus
         object GetProperty(string key);
 
         void SetProperty(string key, object value);
-
-        Task RenewLockAsync();
-
-        Task CompleteAsync();
-
-        Task AbandonAsync();
-
-        Task AbandonAsync(Dictionary<string, object> updatedProperties);
-
-        Task DeadLetterAsync(Dictionary<string, object> updatedProperties);
     }
 }

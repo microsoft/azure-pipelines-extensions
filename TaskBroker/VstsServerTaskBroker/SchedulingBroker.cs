@@ -78,7 +78,7 @@ namespace VstsServerTaskBroker
 
                 // process message
                 await this.ProcessMessage(message, this.scheduleHandler, cancellationToken, vstsMessage, eventProperties).ConfigureAwait(false);
-                await message.CompleteAsync().ConfigureAwait(false);
+                // await message.CompleteAsync().ConfigureAwait(false);
                 await this.StopTimer("MessageProcessingSucceeded", messageStopwatch, eventProperties, cancellationToken).ConfigureAwait(false);
                 return;
             }
@@ -347,13 +347,13 @@ namespace VstsServerTaskBroker
 
             while (delayMsecs > 0)
             {
-                await message.RenewLockAsync().ConfigureAwait(false);
+                // await message.RenewLockAsync().ConfigureAwait(false);
                 await Task.Delay(this.settings.LockRefreshDelayMsecs, cancellationToken);
                 delayMsecs -= this.settings.LockRefreshDelayMsecs;
                 cancellationToken.ThrowIfCancellationRequested();
             }
 
-            await message.AbandonAsync(eventProperties.ToDictionary(k => k.Key, v => (object)v.Value)).ConfigureAwait(false);
+            // await message.AbandonAsync(eventProperties.ToDictionary(k => k.Key, v => (object)v.Value)).ConfigureAwait(false);
         }
 
         private async Task DeadLetterMessage(T vstsMessage, IBrokeredMessageWrapper message, IDictionary<string, string> eventProperties, string errorMessage, CancellationToken cancellationToken, string eventProperty)
@@ -365,7 +365,7 @@ namespace VstsServerTaskBroker
             
             await this.TryFailOrchestrationPlan(vstsMessage, cancellationToken).ConfigureAwait(false);
             await this.baseInstrumentation.HandleErrorEvent("DeadLetterMessage", errorMessage, eventProperties, cancellationToken).ConfigureAwait(false);
-            await message.DeadLetterAsync(eventProperties.ToDictionary(k => k.Key, v => (object)v.Value)).ConfigureAwait(false);
+            // await message.DeadLetterAsync(eventProperties.ToDictionary(k => k.Key, v => (object)v.Value)).ConfigureAwait(false);
         }
 
         private async Task ProcessMessage(IBrokeredMessageWrapper message, IVstsScheduleHandler<T> handler, CancellationToken cancellationToken, T vstsMessage, IDictionary<string, string> eventProperties)

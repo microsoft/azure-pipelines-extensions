@@ -8,5 +8,11 @@ namespace VstsServerTaskBroker.Azure.ServiceBus
         void Start(Func<IBrokeredMessageWrapper, Task> messageHandlerFunc);
 
         void Stop();
-    }
+
+		Task CompleteAsync(string lockToken);
+		
+		Task AbandonAsync(string lockToken);
+
+		Task DeadLetterAsync(string lockToken);
+	}
 }

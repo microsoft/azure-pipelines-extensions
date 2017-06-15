@@ -2,8 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net;
-using System.Threading.Tasks;
-using System.Web;                    
+using System.Threading.Tasks;   
 
 namespace VstsServerTaskBroker
 {
@@ -40,14 +39,20 @@ namespace VstsServerTaskBroker
 
         private bool IsTrasientException(Exception e)
         {
-            var ex = e as HttpException;
+			var ex = e as WebException;
 
             if (ex == null)
             {
                 return false;
             }
 
-            return trasientHttpCodes.Contains((HttpStatusCode) ex.GetHttpCode());
+			var response = ex.Response as HttpWebResponse;
+			if (response == null)
+			{
+				return false;
+			}
+
+			return trasientHttpCodes.Contains(response.StatusCode);
         }
 
         /// <summary>

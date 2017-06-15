@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace VstsServerTaskBroker
+﻿namespace VstsServerTaskBroker.Contracts
 {
-    public class VstsDropBuildArtifactWrapper
+	public class VstsDropBuildArtifactWrapper
     {
         /// <summary>
         /// Gets or sets legacy drop url for backcompat only. Can be removed once CB agentless is updated to output the correct JSON

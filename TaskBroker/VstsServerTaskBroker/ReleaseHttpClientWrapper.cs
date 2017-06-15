@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Services.Common;
@@ -10,7 +9,7 @@ using Microsoft.VisualStudio.Services.ReleaseManagement.WebApi.Contracts;
 
 namespace VstsServerTaskBroker
 {
-    public class MockReleaseClient : IReleaseHttpClientWrapper
+	public class MockReleaseClient : IReleaseHttpClientWrapper
     {
         public List<AgentArtifactDefinition> MockArtifactDefinitions { get; set; }
 

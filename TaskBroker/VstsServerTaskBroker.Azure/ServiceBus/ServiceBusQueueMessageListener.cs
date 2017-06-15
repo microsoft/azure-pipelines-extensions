@@ -1,7 +1,8 @@
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 
-using Microsoft.ServiceBus.Messaging;
+using Microsoft.Azure.ServiceBus;
 
 namespace VstsServerTaskBroker.Azure.ServiceBus
 {
@@ -30,9 +31,9 @@ namespace VstsServerTaskBroker.Azure.ServiceBus
         public void Start(Func<IBrokeredMessageWrapper, Task> messageHandlerFunc)
         {
             this.messageHandlerFunc = messageHandlerFunc;
-            this.queueClient = QueueClient.CreateFromConnectionString(this.connectionString, this.queueName);
+            this.queueClient = new QueueClient(this.connectionString, this.queueName);
             this.queueClient.PrefetchCount = this.prefetchCount;
-            this.queueClient.OnMessageAsync(this.ReceiveMessage, new OnMessageOptions { AutoComplete = false, MaxConcurrentCalls = this.maxConcurrentCalls });
+            this.queueClient.RegisterMessageHandler(this.ReceiveMessage, new MessageHandlerOptions { AutoComplete = false, MaxConcurrentCalls = this.maxConcurrentCalls });
         }
 
         public void Stop()
@@ -44,12 +45,27 @@ namespace VstsServerTaskBroker.Azure.ServiceBus
         {
             if (this.queueClient != null)
             {
-                this.queueClient.Close();
+                this.queueClient.CloseAsync();
                 this.queueClient = null;
             }
         }
 
-        private Task ReceiveMessage(BrokeredMessage message)
+		public Task CompleteAsync(string lockToken)
+		{
+			return queueClient.CompleteAsync(lockToken);
+		}
+
+		public Task DeadLetterAsync(string lockToken)
+		{
+			return queueClient.DeadLetterAsync(lockToken);
+		}
+
+		public Task AbandonAsync(string lockToken)
+		{
+			return queueClient.AbandonAsync(lockToken);
+		}
+
+		private Task ReceiveMessage(Message message, CancellationToken token)
         {
             var wrappedMessage = new BrokeredMessageWrapper(message);
             return this.messageHandlerFunc(wrappedMessage);
@@ -60,7 +76,13 @@ namespace VstsServerTaskBroker.Azure.ServiceBus
     {
         public Func<IBrokeredMessageWrapper, Task> MessageHandlerFunc { get; set; }
 
-        public void Start(Func<IBrokeredMessageWrapper, Task> messageHandlerFunc)
+		public bool IsCompleted { get; set; }
+
+		public bool IsAbandoned { get; set; }
+
+		public bool IsDeadLettered { get; set; }
+
+		public void Start(Func<IBrokeredMessageWrapper, Task> messageHandlerFunc)
         {
             this.MessageHandlerFunc = messageHandlerFunc;
         }
@@ -68,5 +90,24 @@ namespace VstsServerTaskBroker.Azure.ServiceBus
         public void Stop()
         {
         }
-    }
+
+		public Task CompleteAsync(string lockToken)
+		{
+			this.IsCompleted = true;
+			return Task.FromResult<object>(null);
+		}
+
+		public Task AbandonAsync(string lockToken)
+		{
+			this.IsAbandoned = true;
+			return Task.FromResult<object>(null);
+		}
+		
+		public Task DeadLetterAsync(string lockToken)
+		{
+			this.IsDeadLettered = true;
+			return Task.FromResult<object>(null);
+		}
+
+	}
 }
