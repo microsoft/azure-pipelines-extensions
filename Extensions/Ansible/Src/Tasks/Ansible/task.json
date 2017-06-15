@@ -104,7 +104,7 @@
         },
         {
             "name": "jobTemplateName",
-            "type": "string",
+            "type": "pickList",
             "label": "Job Template Name",
             "defaultValue": "",
             "required": true,
@@ -119,6 +119,13 @@
             "defaultValue": true,
             "helpMarkDown": "If this option is selected, the build will fail when the remote commands or script write to STDERR.",
             "groupName": "advanced"
+        }
+    ],
+    "dataSourceBindings": [
+        {
+            "target": "jobTemplateName",
+            "endpointId": "$(connectionAnsibleTower)",
+            "dataSourceName": "JobTemplate"
         }
     ],
     "execution": {
