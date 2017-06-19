@@ -2,7 +2,7 @@
   "manifestVersion": 1.0,
   "id": "vss-services-ansible",
   "name": "Ansible",
-  "publisher": "Microsoft",
+  "publisher": "ms-devlabs",
   "version": "0.0.1",
   "public": false,
   "description": "Execution of ansible playbook via cli using remote machine over ssh, or via ansible tower using REST API",
