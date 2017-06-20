@@ -1,7 +1,8 @@
 import tl = require("vsts-task-lib/task");
 import path = require("path");
 import Q = require("q");
-import {AnsibleInterface} from './AnsibleInterface';
+var os = require('os');
+import { AnsibleInterface } from './AnsibleInterface';
 
 var Ssh2Client = require('ssh2').Client;
 var Scp2Client = require('scp2');
@@ -17,7 +18,7 @@ export class AnsibleCommandLineInterface extends AnsibleInterface {
         super();
     }
 
-    public execute(): void {
+    public async execute() {
         this.sshRun();
     }
     private async sshRun() {
@@ -214,30 +215,37 @@ export class AnsibleCommandLineInterface extends AnsibleInterface {
         sshClient.exec(cmdToRun, (err, stream) => {
             if (err) {
                 defer.reject(tl.loc('RemoteCmdExecutionErr', err))
-            }
-            stream.on('close', (code, signal) => {
-                tl.debug('code = ' + code + ', signal = ' + signal);
+            } else {
+                stream.on('close', (code, signal) => {
+                    tl.debug('code = ' + code + ', signal = ' + signal);
 
-                //based on the options decide whether to fail the build or not if data was written to STDERR
-                if (stdErrWritten === true && options.failOnStdErr === true) {
-                    defer.reject(tl.loc('RemoteCmdExecutionErr'));
-                } else if (code && code != 0) {
-                    defer.reject(tl.loc('RemoteCmdNonZeroExitCode', cmdToRun, code));
-                } else {
-                    //success case - code is undefined or code is 0
-                    defer.resolve('0');
-                }
-            }).on('data', (data) => {
-                this._writeLine(data);
-            }).stderr.on('data', (data) => {
-                stdErrWritten = true;
-                tl.debug('stderr = ' + data);
-                if (data && data.toString().trim() !== '') {
-                    tl.error(data);
-                }
-            });
+                    //based on the options decide whether to fail the build or not if data was written to STDERR
+                    if (stdErrWritten === true && options.failOnStdErr === true) {
+                        defer.reject(tl.loc('RemoteCmdExecutionErr'));
+                    } else if (code && code != 0) {
+                        defer.reject(tl.loc('RemoteCmdNonZeroExitCode', cmdToRun, code));
+                    } else {
+                        //success case - code is undefined or code is 0
+                        defer.resolve('0');
+                    }
+                }).on('data', (data) => {
+                    this._writeLine(data);
+                }).stderr.on('data', (data) => {
+                    stdErrWritten = true;
+                    tl.debug('stderr = ' + data);
+                    if (data && data.toString().trim() !== '') {
+                        tl.error(data);
+                    }
+                });
+            }
         });
         return defer.promise;
     }
+
+    private _writeLine(str) : void {
+        this._outStream.write(str + os.EOL);
+    }
+
+    private _outStream = process.stdout;
 
 }
