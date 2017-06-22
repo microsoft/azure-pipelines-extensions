@@ -3,7 +3,7 @@
   "id": "vss-services-teamcity",
   "name": "TeamCity artifacts for Release Management",
   "publisher": "ms-devlabs",
-  "version": "15.105.4",
+  "version": "15.105.5",
   "public": true,
   "description": "Tools related to connecting with TeamCity",
   "_description.comment": "The below format to define artifact extensions is currently in preview and may change in future.",
@@ -73,12 +73,12 @@
           },
           {
             "name": "Builds",
-            "endpointUrl": "{{endpoint.url}}httpAuth/app/rest/buildTypes/{{definition}}/builds",
+            "endpointUrl": "{{endpoint.url}}httpAuth/app/rest/buildTypes/{{definition}}/builds/?locator=branch:default:any",
             "resultSelector": "jsonpath:$.build[?(@.status=='SUCCESS')]"
           },
           {
             "name": "LatestBuild",
-            "endpointUrl": "{{endpoint.url}}httpAuth/app/rest/buildTypes/{{definition}}/builds?count=1&status=success",
+            "endpointUrl": "{{endpoint.url}}httpAuth/app/rest/buildTypes/{{definition}}/builds?locator=branch:default:any&count=1&status=success",
             "resultSelector": "jsonpath:$.build[*]"
           },
           {
@@ -182,7 +182,7 @@
           {
             "target": "project",
             "dataSourceName": "Projects",
-            "resultTemplate": "{ Value : \"{{id}}\", DisplayValue : \"{{{name}}}\" }"
+            "resultTemplate": "{ Value : \"{{id}}\", DisplayValue : \"{{{name}}} ({{{id}}})\" }"
           },
           {
             "target": "definition",
