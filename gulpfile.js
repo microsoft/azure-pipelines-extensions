@@ -119,21 +119,42 @@ gulp.task("clean:TaskModuleTest", function(cb) {
 
 gulp.task('compile:TaskModuleTest', ['clean:TaskModuleTest'], function (cb) {
     var testsPath = path.join('TaskModules', 'powershell', 'Tests', '**/*.ts');
-    return gulp.src([TaskModulesTestRoot, 'definitions/*.d.ts'])
-        .pipe(tsc())
-        .pipe(gulp.dest(TaskModulesTestRoot));
+    var testsLibPath = path.join('Extensions', 'Common', 'lib', '**/*.ts');
+    
+    var tsconfigPath = path.join('TaskModules', 'powershell', 'Tests', 'tsconfig.json');
+    if (fs.existsSync(tsconfigPath)) {
+        var projLocal = gts.createProject(tsconfigPath, { typescript: typescript });
+        var tsLocal = gts(projLocal);
+        
+        gulp.src([testsLibPath, 'definitions/*.d.ts'])
+            .pipe(ts)
+            .on("error", errorHandler)
+            .pipe(gulp.dest(path.join(_extnBuildRoot, 'Common', 'lib')));
+        
+        return gulp.src([testsPath, 'definitions/*.d.ts'])
+            .pipe(tsLocal)
+            .on('error', errorHandler)
+            .pipe(gulp.dest(TaskModulesTestRoot));
+    }
 });
 
 gulp.task('copy:TaskModuleTest', ['compile:TaskModuleTest'], function (cb) {
+    gulp.src([path.join('Extensions', 'Common', 'lib', '**/*')])
+        .pipe(gulp.dest(path.join(_extnBuildRoot, 'Common', 'lib'))); 
     return gulp.src([path.join('TaskModules', 'powershell', 'Tests', '**/*')])
         .pipe(gulp.dest(TaskModulesTestRoot));
 });
 
 gulp.task("TaskModuleTest", ['copy:TaskModuleTest'], function() {
-    process.env['TASK_TEST_TEMP'] = TaskModulesTestRoot;
-    shell.rm('-rf', TaskModulesTestRoot);
-    shell.mkdir('-p', TaskModulesTestRoot);
+    process.env['TASK_TEST_TEMP'] = TaskModulesTestTemp;
+    shell.rm('-rf', TaskModulesTestTemp);
+    shell.mkdir('-p', TaskModulesTestTemp);
+
+    var testSuitePath = path.join(TaskModulesTestRoot, options.suite + '/L0.js');
+    var tfBuild = ('' + process.env['TF_BUILD']).toLowerCase() == 'true'
     
+    gulp.src([testSuitePath])
+        .pipe(mocha({ reporter: 'spec', ui: 'bdd', useColors: !tfBuild }));
 });
 
 gulp.task('prepublish:TaskModulePublish', function (done) {

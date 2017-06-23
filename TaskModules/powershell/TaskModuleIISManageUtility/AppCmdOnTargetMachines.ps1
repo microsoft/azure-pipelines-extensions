@@ -82,16 +82,16 @@ function Test-BindingExist
         $site = $site.ToLower()
         if($site.Contains($siteName.ToLower()) -and $site.Contains($binding.ToLower()))
         {
-            Write-Verbose "Given binding already exists for the current website (`"$siteName`")."
+            Write-Verbose "Binding ($protocol / $ipAddress : $port : $hostname) already exists for the current website (`"$siteName`")."
             $isBindingExists = $true
         }
         elseif($site.Contains($binding.ToLower()))
         {
-            throw "Given binding already exists for a different website (`"$site`"), change the port and retry the operation."
+            throw "Binding ($protocol / $ipAddress : $port : $hostname) already exists for a different website (`"$site`"), change the port and retry the operation."
         }
     }
 
-    Write-Verbose "Does bindings exist for website (`"$siteName`") is : $isBindingExists"
+    Write-Verbose "Does binding ($protocol / $ipAddress : $port : $hostname) exist for website (`"$siteName`") is : $isBindingExists"
     return $isBindingExists
 }
 
@@ -167,7 +167,7 @@ function Add-SslCert
         return
     }
 
-    if($ipAddress -eq "All Unassigned")
+    if($ipAddress -eq "All Unassigned" -or $ipAddress -eq "*")
     {
         $ipAddress = "0.0.0.0"
     }
@@ -259,30 +259,38 @@ function Invoke-AdditionalCommand
         }
     }
 }
-function Get-HostName
-{
-    param(
-        [string]$protocol,
-        [string]$hostNameWithHttp,
-        [string]$hostNameWithSNI,
-        [string]$hostNameWithOutSNI,
-        [string]$sni
-    )
-    $hostName = [string]::Empty
 
-    if($protocol -eq "http")
-    {
-        $hostName = $hostNameWithHttp
+function Add-WebsiteBindings {
+    param (
+        [string] $siteName,
+        [Object[]] $bindings
+    )
+
+    $appCmdPath, $iisVersion = Get-AppCmdLocation -regKeyPath $AppCmdRegKey
+
+    foreach ($binding in $bindings) {
+        $appCmdArgs = [string]::Format(' set site /site.name:"{0}"', $siteName)
+        
+        if($binding.ipAddress -eq "All Unassigned") {
+            $binding.ipAddress = "*"
+        }
+
+        $isBindingExists = Test-BindingExist -siteName $siteName -protocol $binding.protocol -ipAddress $binding.ipAddress -port $binding.port -hostname $binding.hostname
+        
+        if($isBindingExists -eq $false)
+        {
+            $appCmdArgs = [string]::Format("{0} /+bindings.[protocol='{1}',bindingInformation='{2}:{3}:{4}']", $appCmdArgs, $binding.protocol, $binding.ipAddress, $binding.port, $binding.hostname)
+            $command = "`"$appCmdPath`" $appCmdArgs"
+
+            Write-Verbose "Updating website bindings. Running command : $command"
+            Invoke-VstsTool -Filename $appCmdPath -Arguments $appCmdArgs -RequireExitCodeZero
+        }
+
+        if($binding.protocol -eq "https") {
+            Add-SslCert -ipAddress $binding.ipAddress -port $binding.port -certhash $binding.sslThumbPrint -hostname $binding.hostName -sni $binding.sniFlag -iisVersion $iisVersion
+            Enable-SNI -siteName $siteName -sni $binding.sniFlag -ipAddress $binding.ipAddress -port $binding.port -hostname $binding.hostName
+        }
     }
-    elseif($sni -eq "true")
-    {
-        $hostName = $hostNameWithSNI
-    }
-    else
-    {
-        $hostName = $hostNameWithOutSNI
-    }
-    return $hostName
 }
 
 function Update-Website
@@ -292,12 +300,7 @@ function Update-Website
         [string]$appPoolName,
         [string]$physicalPath,
         [string]$authType,
-        [System.Management.Automation.PSCredential] $websitePhysicalPathAuthCredentials,
-        [string]$addBinding,
-        [string]$protocol,
-        [string]$ipAddress,
-        [string]$port,
-        [string]$hostname
+        [System.Management.Automation.PSCredential] $websitePhysicalPathAuthCredentials
     )
 
     $appCmdArgs = [string]::Format(' set site /site.name:"{0}"', $siteName)
@@ -339,22 +342,7 @@ function Update-Website
         $appCmdArgs = [string]::Format("{0} -[path='/'].[path='/'].userName:{1} -[path='/'].[path='/'].password:{2}", $appCmdArgs, $null, $null)
     }
 
-    if($ipAddress -eq "All Unassigned")
-    {
-        $ipAddress = "*"
-    }
-
-    if($addBinding -eq "true")
-    {
-
-        $isBindingExists = Test-BindingExist -siteName $siteName -protocol $protocol -ipAddress $ipAddress -port $port -hostname $hostname
-        
-        if($isBindingExists -eq $false)
-        {
-            $appCmdArgs = [string]::Format("{0} /+bindings.[protocol='{1}',bindingInformation='{2}:{3}:{4}']", $appCmdArgs, $protocol, $ipAddress, $port, $hostname)
-        }
-    }
-
+   
     $appCmdPath, $iisVersion = Get-AppCmdLocation -regKeyPath $AppCmdRegKey
     $command = "`"$appCmdPath`" $appCmdArgs"
 
@@ -422,12 +410,7 @@ function Add-And-Update-Website
         [string]$appPoolName,
         [string]$physicalPath,
         [string]$authType,
-        [System.Management.Automation.PSCredential] $websitePhysicalPathAuthCredentials,
-        [string]$addBinding,
-        [string]$protocol,
-        [string]$ipAddress,
-        [string]$port,
-        [string]$hostname
+        [System.Management.Automation.PSCredential] $websitePhysicalPathAuthCredentials
     )
 
     $doesWebsiteExists = Test-WebsiteExist -siteName $siteName
@@ -437,8 +420,7 @@ function Add-And-Update-Website
         Add-Website -siteName $siteName -physicalPath $physicalPath
     }
 
-    Update-Website -siteName $siteName -appPoolName $appPoolName -physicalPath $physicalPath -authType $authType -websitePhysicalPathAuthCredentials $websitePhysicalPathAuthCredentials `
-    -addBinding $addBinding -protocol $protocol -ipAddress $ipAddress -port $port -hostname $hostname
+    Update-Website -siteName $siteName -appPoolName $appPoolName -physicalPath $physicalPath -authType $authType -websitePhysicalPathAuthCredentials $websitePhysicalPathAuthCredentials 
 }
 
 function Add-And-Update-AppPool
@@ -777,14 +759,7 @@ function Invoke-Main
         [System.Management.Automation.PSCredential] $PhysicalPathAuthCredentials,
         
         [string]$AddBinding,
-        [string]$Protocol,
-        [string]$IpAddress,
-        [string]$Port,
-        [string]$HostNameWithOutSNI,
-        [string]$HostNameWithHttp,
-        [string]$HostNameWithSNI,
-        [string]$ServerNameIndication,
-        [string]$SslCertThumbPrint,
+        [Object[]]$Bindings,
         
         [string]$AppPoolName,
         [string]$DotNetVersion,
@@ -814,14 +789,7 @@ function Invoke-Main
     Write-Verbose "PhysicalPath = $PhysicalPath"
     Write-Verbose "PhysicalPathAuth = $PhysicalPathAuth"
     Write-Verbose "AddBinding = $AddBinding"
-    Write-Verbose "Protocol = $Protocol"
-    Write-Verbose "IpAddress = $IpAddress"
-    Write-Verbose "Port = $Port"
-    Write-Verbose "HostNameWithOutSNI = $HostNameWithOutSNI"
-    Write-Verbose "HostNameWithHttp = $HostNameWithHttp"
-    Write-Verbose "HostNameWithSNI = $HostNameWithSNI"
-    Write-Verbose "ServerNameIndication = $ServerNameIndication"
-
+   
     Write-Verbose "AppPoolName = $AppPoolName"
     Write-Verbose "DotNetVersion = $DotNetVersion"
     Write-Verbose "PipeLineMode = $PipeLineMode"
@@ -861,16 +829,11 @@ function Invoke-Main
     {
         "CreateOrUpdateWebsite"
         {
-            $HostName = Get-HostName -protocol $Protocol -hostNameWithHttp $HostNameWithHttp -hostNameWithSNI $HostNameWithSNI -hostNameWithOutSNI $HostNameWithOutSNI -sni $ServerNameIndication
-        
-            Add-And-Update-Website -siteName $WebsiteName -appPoolName $AppPoolName -physicalPath $PhysicalPath -authType $PhysicalPathAuth -websitePhysicalPathAuthCredentials $PhysicalPathAuthCredentials `
-             -addBinding $AddBinding -protocol $Protocol -ipAddress $IpAddress -port $Port -hostname $HostName
+            Add-And-Update-Website -siteName $WebsiteName -appPoolName $AppPoolName -physicalPath $PhysicalPath -authType $PhysicalPathAuth -websitePhysicalPathAuthCredentials $PhysicalPathAuthCredentials 
 
-            if($Protocol -ieq "https" -and $AddBinding -ieq "true")
+            if($AddBinding -eq "true") 
             {
-                $appCmdPath, $iisVersion = Get-AppCmdLocation -regKeyPath $AppCmdRegKey
-                Add-SslCert -ipAddress $IpAddress -port $Port -certhash $SslCertThumbPrint -hostname $HostName -sni $ServerNameIndication -iisVersion $iisVersion
-                Enable-SNI -siteName $WebsiteName -sni $ServerNameIndication -ipAddress $IpAddress -port $Port -hostname $HostName
+                Add-WebsiteBindings -siteName $WebsiteName -bindings $Bindings
             }
 
             if($ConfigureAuthentication -ieq "true")
