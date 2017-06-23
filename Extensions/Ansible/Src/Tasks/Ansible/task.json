@@ -1,0 +1,150 @@
+{
+    "id": "6f650d20-9c5d-4cce-ad66-e68742ceadf5",
+    "name": "Ansible",
+    "friendlyName": "Ansible",
+    "description": "Executing ansible playbook",
+    "helpMarkDown": "[More Information](http://go.microsoft.com/fwlink/?LinkId=821892)",
+    "category": "Deploy",
+    "visibility": [
+        "Build",
+        "Release"
+    ],
+	"runsOn": [
+        "Agent"
+    ],
+    "author": "Microsoft Corporation",
+    "version": {
+        "Major": 0,
+        "Minor": 0,
+        "Patch": 1
+    },
+    "demands": [],
+    "instanceNameFormat": "Run playbook",
+    "groups": [
+        {
+            "name": "advanced",
+            "displayName": "Advanced",
+            "isExpanded": false
+        }
+    ],
+    "inputs": [
+        {
+            "name": "ansibleInterface",
+            "type": "pickList",
+            "label": "Execution target",
+            "required": true,
+            "defaultValue": "ansibleTower",
+            "options": {
+                "cli": "Remote machine over SSH",
+                "ansibleTower": "Ansible Tower"
+            },
+            "helpMarkDown": "Select either command line or ansible tower to run playbook."
+        },
+        {
+            "name": "connectionAnsibleTower",
+            "type": "connectedService:AnsibleTower",
+             "label": "Tower endpoint",
+            "defaultValue": "",
+            "required": true,
+            "visibleRule": "ansibleInterface = ansibleTower",
+            "helpMarkDown": "Ansible Tower server URL"
+        },
+        {
+            "name": "connectionOverSsh",
+            "type": "connectedService:ssh",
+             "label": "SSH endpoint",
+            "defaultValue": "",
+            "required": true,
+            "visibleRule": "ansibleInterface = cli",
+            "helpMarkDown": "Remote machine URL"
+        },
+        {
+            "name": "cliRunOptions",
+            "type": "radio",
+            "label": "Run",
+            "required": true,
+            "defaultValue": "commands",
+            "visibleRule": "ansibleInterface = cli",
+            "options": {
+                "commands": "Commands",
+                "script": "Shell script"
+            },
+            "helpMarkDown": "Choose to either run shell commands or a shell script on the remote machine."
+        },
+        {
+            "name": "commands",
+            "type": "multiLine",
+            "label": "Commands",
+            "defaultValue": "",
+            "required": true,
+            "visibleRule": "cliRunOptions = commands",
+            "helpMarkDown": "Specify the shell commands to run on the remote machine. Enter each command along with its arguments on a new line. To run multiple commands together, enter them on the same line separated by semi-colons (e.g. cd /home/user/myFolder;build).",
+            "properties": {
+                "resizable": "true",
+                "rows": "10"
+            }
+        },
+        {
+            "name": "scriptPath",
+            "type": "filePath",
+            "label": "Shell script path",
+            "defaultValue": "",
+            "required": true,
+            "visibleRule": "cliRunOptions = script",
+            "helpMarkDown": "Path to the shell script file to run on the remote machine."
+        },
+        {
+            "name": "args",
+            "type": "string",
+            "label": "Arguments",
+            "defaultValue": "",
+            "required": false,
+            "visibleRule": "cliRunOptions = script",
+            "helpMarkDown": "Arguments to pass to the shell script."
+        },
+        {
+            "name": "jobTemplateName",
+            "type": "pickList",
+            "label": "Job Template Name",
+            "defaultValue": "",
+            "required": true,
+            "visibleRule": "ansibleInterface = ansibleTower",
+            "helpMarkDown": "Arguments to pass to the shell script."
+        },
+        {
+            "name": "failOnStdErr",
+            "type": "boolean",
+            "label": "Fail on STDERR",
+            "required": false,
+            "defaultValue": true,
+            "helpMarkDown": "If this option is selected, the build will fail when the remote commands or script write to STDERR.",
+            "groupName": "advanced"
+        }
+    ],
+    "dataSourceBindings": [
+        {
+            "target": "jobTemplateName",
+            "endpointId": "$(connectionAnsibleTower)",
+            "dataSourceName": "JobTemplate"
+        }
+    ],
+    "execution": {
+        "Node": {
+            "target": "main.js",
+            "argumentFormat": ""
+        }
+    },
+    "messages": {
+        "UseDefaultPort": "Using port 22 which is the default for SSH since no port was specified.",
+        "SettingUpSshConnection": "Trying to setup SSH connection to %s@%s:%s",
+        "ConnectionFailed": "Failed to connect to remote machine. Verify the SSH endpoint details. Error: %s.",
+        "RemoteCopyFailed": "Failed to copy script to remote machine. Error: %s.",
+        "RemoteCmdExecutionErr": "Command failed with errors on remote machine.",
+        "RemoteCmdNonZeroExitCode": "Command %s exited with code %s.",
+        "RemoteScriptFileCleanUpFailed": "Failed to delete the script file copied to the remote machine. Error = %s.",
+        "JobTemplateNotPresent": "Failed to locate job template. Job template with name %s is not present.",
+        "Ansible_ConstructorFailed": "Cannot initialize ansible: %s.",
+        "FailedToGetJobDetails": "Failed to get job details. Ansible returns with error code %s and message %s.",
+        "CouldnotLaunchJob": "Failed to launch job. Anisble returns with error code %s and message %s."
+    }
+}
