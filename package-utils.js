@@ -1,3 +1,5 @@
+// this code is partitially copied from vsts-task repo
+
 var fs = require('fs');
 var path = require('path');
 var shell = require('shelljs');
