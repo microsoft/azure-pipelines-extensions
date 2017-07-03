@@ -11,6 +11,7 @@ var gulp = require('gulp');
 var request = require('request');
 var unzip = require('gulp-unzip');
 var stream = require('stream');
+var util = require('./package-utils');
 
 var createError = function(msg) {
     return new gutil.PluginError('PackageTask', msg);
@@ -92,24 +93,34 @@ function copyCommonModules(currentExtnRoot, commonDeps, commonSrc){
                     })
                 }
                 var externals = require('./externals.json');
-                
                 if (task.execution['Node']) {
-                    // Determine the vsts-task-lib version.
-                    var libVer = externals.npm['vsts-task-lib'];
-                    if (!libVer) {
-                        throw new Error('External vsts-task-lib not defined in externals.json.');
+                     var doNotCache = false;
+                     externals['no-cache'].forEach(function(ext){
+                         if(ext == task.name) {
+                             doNotCache = true;
+                         }
+                     });
+                     
+                     if(doNotCache) {
+                        util.buildNodeTask(taskDirPath, targetPath);  
+                     } else {
+
+                        // Determine the vsts-task-lib version.
+                        var libVer = externals.npm['vsts-task-lib'];
+                        if (!libVer) {
+                            throw new Error('External vsts-task-lib not defined in externals.json.');
+                        }
+
+                        // Copy the lib from the cache.
+                        
+                        gutil.log('Linking vsts-task-lib ' + libVer);
+                        var copySource = path.join(_tempPath, 'npm', 'vsts-task-lib', libVer, 'node_modules', '**');
+                        var copyTarget = path.join(targetPath, 'node_modules');
+                        shell.mkdir('-p', copyTarget);
+                        gulp.src([copySource])
+                            .pipe(gulp.dest(copyTarget));  
                     }
-
-                    // Copy the lib from the cache.
-                    
-                    gutil.log('Linking vsts-task-lib ' + libVer);
-                    var copySource = path.join(_tempPath, 'npm', 'vsts-task-lib', libVer, 'node_modules', '**');
-                    var copyTarget = path.join(targetPath, 'node_modules');
-                    shell.mkdir('-p', copyTarget);
-                    gulp.src([copySource])
-                        .pipe(gulp.dest(copyTarget));
                 }
-
                 return;
             })
             .then(function() {
