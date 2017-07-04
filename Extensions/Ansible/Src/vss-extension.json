@@ -1,0 +1,90 @@
+{
+  "manifestVersion": 1.0,
+  "id": "vss-services-ansible",
+  "name": "Ansible",
+  "publisher": "ms-devlabs",
+  "version": "0.0.1",
+  "public": false,
+  "description": "Execution of ansible playbook via cli using remote machine over ssh, or via ansible tower using REST API",
+  "_description.comment": "The below format to define extensions is currently in preview and may change in future.",
+  "categories": [ "Build and release" ],
+  "Tags": [ "Ansible", "Release", "DevOps" ],
+  "targets": [
+    {
+      "id": "Microsoft.VisualStudio.Services"
+    }
+  ],
+  "scopes": [
+    "vso.release",
+    "vso.serviceendpoint_query"
+  ],
+  "demands": [],
+  "icons": {
+    "default": "images\\icon.png"
+  },
+  "branding": {
+    "color": "#3B3E43",
+    "theme": "dark"
+  },
+  "screenshots": [
+    {
+      "path": "images/ServiceEndpoint.png"
+    },
+    {
+      "path": "images/AnsibleCLI.png"
+    },
+    {
+      "path": "images/AnisbleTower.png"
+    }
+  ],
+  "content": {
+    "details": {
+      "path": "readme.md"
+    }
+  },
+  "files": [
+    {
+      "path": "images/ServiceEndpoint.png",
+      "addressable": true
+    },
+    {
+      "path": "Tasks/Ansible"
+    }
+  ],
+  "contributions": [
+    {
+      "id": "ansible-task",
+      "type": "ms.vss-distributed-task.task",
+      "targets": [
+        "ms.vss-distributed-task.tasks"
+      ],
+      "properties": {
+        "name": "Tasks/Ansible"
+      }
+    },
+    {
+      "id": "ansibletower-endpoint-type",
+      "description": "Service Endpoint type for Ansible Tower",
+      "_description.comment": "Don't Localize the word 'Ansible Tower'",
+      "type": "ms.vss-endpoint.service-endpoint-type",
+      "targets": [ "ms.vss-endpoint.endpoint-types" ],
+      "properties": {
+        "name": "ansibletower",
+        "displayName": "Ansible Tower",
+        "endpointTypeId": "AnsibleTower",
+        "authenticationSchemes": [
+          {
+            "type": "ms.vss-endpoint.endpoint-auth-scheme-basic"
+          }
+        ],
+        "dataSources": [
+          {
+            "name": "JobTemplate",
+            "endpointUrl": "{{{endpoint.url}}}/api/v1/job_templates/",
+            "resultSelector": "jsonpath:$.results[*].name"
+          }
+        ]
+      }
+    }
+  ]
+}
