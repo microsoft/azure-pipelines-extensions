@@ -1,0 +1,10 @@
+{
+  "name": "item-level-downloader",
+  "version": "0.0.0",
+  "description": "ItemLevelDownloader",
+  "main": "app.js",
+  "author": {
+    "name": "omeshp",
+    "email": ""
+  }
+}
