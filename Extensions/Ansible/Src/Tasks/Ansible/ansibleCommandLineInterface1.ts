@@ -1,10 +1,10 @@
 import tl = require("vsts-task-lib/task");
 import path = require("path");
 import Q = require("q");
-import { AnsibleInterface } from './AnsibleInterface';
+import { AnsibleInterface } from './ansibleInterface';
 
-import * as sshUtils from './sshutils';
-import {RemoteCommandOptions} from './sshutils'
+import * as ansibleUtils from './ansibleUtils';
+import {RemoteCommandOptions} from './ansibleUtils'
 
 export class AnsibleCommandLineInterface extends AnsibleInterface {
     constructor(params) {
@@ -29,7 +29,7 @@ export class AnsibleCommandLineInterface extends AnsibleInterface {
             var hostname: string = this.taskParameter.hostname;
             var port: string = this.taskParameter.port; //port is optional, will use 22 as default port if not specified
             if (!port || port === '') {
-                sshUtils._writeLine(tl.loc('UseDefaultPort'));
+                ansibleUtils._writeLine(tl.loc('UseDefaultPort'));
                 port = '22';
             }
 
@@ -72,9 +72,9 @@ export class AnsibleCommandLineInterface extends AnsibleInterface {
             remoteCmdOptions.failOnStdErr = failOnStdErr;
 
             //setup the SSH connection
-            sshUtils._writeLine(tl.loc('SettingUpSshConnection', sshConfig.username, sshConfig.host, sshConfig.port));
+            ansibleUtils._writeLine(tl.loc('SettingUpSshConnection', sshConfig.username, sshConfig.host, sshConfig.port));
             try {
-                sshClientConnection = await sshUtils.setupSshClientConnection(sshConfig);
+                sshClientConnection = await ansibleUtils.setupSshClientConnection(sshConfig);
             } catch (err) {
                 tl.setResult(tl.TaskResult.Failed, tl.loc('ConnectionFailed', err));
             }
@@ -84,8 +84,8 @@ export class AnsibleCommandLineInterface extends AnsibleInterface {
                     //run commands specified by the user
                     for (var i: number = 0; i < commands.length; i++) {
                         tl.debug('Running command ' + commands[i] + ' on remote machine.');
-                        sshUtils._writeLine(commands[i]);
-                        var returnCode: string = await sshUtils.runCommandOnRemoteMachine(
+                        ansibleUtils._writeLine(commands[i]);
+                        var returnCode: string = await ansibleUtils.runCommandOnRemoteMachine(
                             commands[i], sshClientConnection, remoteCmdOptions);
                         tl.debug('Command ' + commands[i] + ' completed with return code = ' + returnCode);
                     }
@@ -99,12 +99,12 @@ export class AnsibleCommandLineInterface extends AnsibleInterface {
                     var scpConfig = sshConfig;
                     scpConfig.path = remoteScript;
                     tl.debug('Copying script to remote machine.');
-                    await sshUtils.copyScriptToRemoteMachine(scriptFile, scpConfig);
+                    await ansibleUtils.copyScriptToRemoteMachine(scriptFile, scpConfig);
 
                     //set execute permissions on the script
                     tl.debug('Setting execute permisison on script copied to remote machine');
-                    sshUtils._writeLine('chmod +x ' + remoteScriptPath);
-                    await sshUtils.runCommandOnRemoteMachine(
+                    ansibleUtils._writeLine('chmod +x ' + remoteScriptPath);
+                    await ansibleUtils.runCommandOnRemoteMachine(
                         'chmod +x ' + remoteScriptPath, sshClientConnection, remoteCmdOptions);
 
                     //run remote script file with args on the remote machine
@@ -116,8 +116,8 @@ export class AnsibleCommandLineInterface extends AnsibleInterface {
                     //setup command to clean up script file
                     cleanUpScriptCmd = 'rm -f ' + remoteScriptPath;
 
-                    sshUtils._writeLine(runScriptCmd);
-                    await sshUtils.runCommandOnRemoteMachine(
+                    ansibleUtils._writeLine(runScriptCmd);
+                    await ansibleUtils.runCommandOnRemoteMachine(
                         runScriptCmd, sshClientConnection, remoteCmdOptions);
                 }
             }
@@ -129,7 +129,7 @@ export class AnsibleCommandLineInterface extends AnsibleInterface {
             if (cleanUpScriptCmd) {
                 try {
                     tl.debug('Deleting the script file copied to the remote machine.');
-                    await sshUtils.runCommandOnRemoteMachine(
+                    await ansibleUtils.runCommandOnRemoteMachine(
                         cleanUpScriptCmd, sshClientConnection, remoteCmdOptions);
                 } catch (err) {
                     tl.warning(tl.loc('RemoteScriptFileCleanUpFailed', err));

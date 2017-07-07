@@ -6,29 +6,18 @@ import path = require("path");
 import querystring = require('querystring');
 import util = require("util");
 
-import { AnsibleInterface } from './AnsibleInterface';
+import { AnsibleInterface } from './ansibleInterface';
+import {AnsibleParameters} from './ansibleParameter';
+import {WebRequest, WebResponse, beginRequest} from './ansibleUtils';
 
-var httpClient = require('vso-node-api/HttpClient');
-var httpObj = new httpClient.HttpCallbackClient(tl.getVariable("AZURE_HTTP_USER_AGENT"));
 
-class WebRequest {
-    public method: string;
-    public uri: string;
-    public body: any;
-    public headers: any;
-}
-
-class WebResponse {
-    public statusCode: number;
-    public headers: any;
-    public body: any;
-    public statusMessage: string;
-}
 
 export class AnsibleTowerInterface extends AnsibleInterface {
     constructor(params) {
         super();
-        this.initializeTaskContants();
+        this._jobTemplateId = null;
+        this._lastPolledEvent = 0;
+        this._taskParameters = params;
     }
 
     public async execute() {
@@ -47,44 +36,29 @@ export class AnsibleTowerInterface extends AnsibleInterface {
         }
     }
 
-    private initializeTaskContants() {
-        try {
-            var connectedService = tl.getInput("connectionAnsibleTower", true);
-            var endpointAuth = tl.getEndpointAuthorization(connectedService, true);
-            this._username = endpointAuth.parameters["username"];
-            this._password = endpointAuth.parameters["password"];
-            this._hostname = tl.getEndpointUrl(connectedService, true);
-            this._jobTemplateName = tl.getInput("jobTemplateName");
-            this._lastPolledEvent = 0;
-
-        } catch (error) {
-            tl.setResult(tl.TaskResult.Failed, tl.loc("Ansible_ConstructorFailed", error.message));
-        }
-    }
-
     private getEmptyRequestData(): string {
         return querystring.stringify({});
     }
 
     private getBasicRequestHeader(): any {
         var requestHeader: any = {
-            "Authorization": "Basic " + new Buffer(this._username + ":" + this._password).toString('base64')
+            "Authorization": "Basic " + new Buffer(this._taskParameters.username + ":" + this._taskParameters.password).toString('base64')
         };
         return requestHeader;
     }
 
     private getJobLaunchApi(): string {
-        var ansibleJobLaunchUrl: string = util.format(this._jobLaunchUrlFormat, this._hostname, this._jobTemplateId);
+        var ansibleJobLaunchUrl: string = util.format(this._jobLaunchUrlFormat, this._taskParameters.hostname, this._jobTemplateId);
         return ansibleJobLaunchUrl;
     }
 
     private getJobApi(jobId: string): string {
-        var ansibleJobUrl: string = util.format(this._jobUrlFormat, this._hostname, jobId);
+        var ansibleJobUrl: string = util.format(this._jobUrlFormat, this._taskParameters.hostname, jobId);
         return ansibleJobUrl;
     }
 
     private getJobEventApi(jobId: string, pageSize: number, pageNumber: number): string {
-        var ansibleJobEventUrl: string = util.format(this._jobEventUrlFormat, this._hostname, jobId, pageSize, pageNumber);
+        var ansibleJobEventUrl: string = util.format(this._jobEventUrlFormat, this._taskParameters.hostname, jobId, pageSize, pageNumber);
         return ansibleJobEventUrl;
     }
 
@@ -93,13 +67,13 @@ export class AnsibleTowerInterface extends AnsibleInterface {
         var jobTemplateId: string = null;
         var request = new WebRequest();
         request.method = 'GET';
-        request.uri = util.format(this._jobTemplateIdUrlFormat, this._hostname, this._jobTemplateName);
-
-        var response = await this.beginRequest(request);
+        request.uri = util.format(this._jobTemplateIdUrlFormat, this._taskParameters.hostname, this._taskParameters.jobTemplateName);
+        request.headers = this.getBasicRequestHeader();
+        var response = await beginRequest(request);
         if (response.statusCode === 200) {
             jobTemplateId = response.body['results'][0]['id'];
         } else {
-            throw (tl.loc('JobTemplateNotPresent', this._jobTemplateName));
+            throw (tl.loc('JobTemplateNotPresent', this._taskParameters.jobTemplateName));
         }
         return jobTemplateId;
     }
@@ -109,8 +83,8 @@ export class AnsibleTowerInterface extends AnsibleInterface {
         var request = new WebRequest();
         request.method = 'GET';
         request.uri = this.getJobApi(jobId);
-
-        var response = await this.beginRequest(request);
+        request.headers = this.getBasicRequestHeader();
+        var response = await beginRequest(request);
         if (response.statusCode === 200) {
             status = response.body['status'];
         } else {
@@ -125,12 +99,12 @@ export class AnsibleTowerInterface extends AnsibleInterface {
         var pageNumber = Math.floor(lastDisplayedEvent / pageSize + 1);
         var request = new WebRequest();
         request.method = 'GET';
-
+        request.headers = this.getBasicRequestHeader();
         var jobEventUrl = this.getJobEventApi(jobId, pageSize, pageNumber);
 
         while (jobEventUrl) {
             request.uri = jobEventUrl;
-            var response = await this.beginRequest(request);
+            var response = await beginRequest(request);
             if (response.statusCode === 200) {
                 var totalEvents = response.body['count'];
                 var results: any[] = response.body['results'];
@@ -139,7 +113,7 @@ export class AnsibleTowerInterface extends AnsibleInterface {
                     if (event['counter'] > lastDisplayedEvent)
                         stdoutArray[event['counter']] = event['stdout'];
                 });
-                jobEventUrl = (nextPageUrl != null) ? (this._hostname + nextPageUrl) : null;
+                jobEventUrl = (nextPageUrl != null) ? (this._taskParameters.hostname + nextPageUrl) : null;
             } else {
                 throw (tl.loc('FailedToGetJobDetails', response.statusCode, response.statusMessage));
             }
@@ -147,7 +121,6 @@ export class AnsibleTowerInterface extends AnsibleInterface {
 
         return stdoutArray;
     }
-
 
     private isJobInTerminalState(status: string): boolean {
         return status === 'successful' || status === 'failed';
@@ -165,7 +138,8 @@ export class AnsibleTowerInterface extends AnsibleInterface {
                 var events = await this.getJobEvents(jobId, lastDisplayedEvent);
                 events.forEach((value, index) => {
                     lastDisplayedEvent = index;
-                    console.log(value, '\n');
+                    console.log(value);
+                    console.log();
                 });
             }
             if (this.isJobInTerminalState(status)) {
@@ -189,8 +163,8 @@ export class AnsibleTowerInterface extends AnsibleInterface {
         request.method = 'POST';
         request.uri = this.getJobLaunchApi();
         request.body = this.getEmptyRequestData();
-
-        var response = await this.beginRequest(request);
+        request.headers = this.getBasicRequestHeader();
+        var response = await beginRequest(request);
 
         if (response.statusCode === 201) {
             jobId = response.body['id'];
@@ -200,55 +174,10 @@ export class AnsibleTowerInterface extends AnsibleInterface {
         return jobId;
     }
 
-    private async beginRequest(request: WebRequest): Promise<WebResponse> {
-        request.headers = request.headers || {};
-        request.body = request.body || this.getEmptyRequestData();
-        request.headers["Authorization"] = "Basic " + new Buffer(this._username + ":" + this._password).toString('base64');
-
-        var httpResponse = await this.beginRequestInternal(request);
-        return httpResponse;
-    }
-
-    private beginRequestInternal(request: WebRequest): Promise<WebResponse> {
-        
-        tl.debug(util.format("[%s]%s", request.method, request.uri));
-
-        return new Promise<WebResponse>((resolve, reject) => {
-            httpObj.send(request.method, request.uri, request.body, request.headers, (error, response, body) => {
-                if (error) {
-                    reject(error);
-                }
-                else {
-                    var httpResponse = this.toWebResponse(response, body);
-                    resolve(httpResponse);
-                }
-            });
-        });
-    }
-
     private sleepFor(sleepDurationInSeconds): Promise<any> {
         return new Promise((resolve, reeject) => {
             setTimeout(resolve, sleepDurationInSeconds * 1000);
         });
-    }
-
-    private toWebResponse(response, body): WebResponse {
-        var res = new WebResponse();
-
-        if (response) {
-            res.statusCode = response.statusCode;
-            res.headers = response.headers;
-            res.statusMessage = response.statusMessage;
-            if (body) {
-                try {
-                    res.body = JSON.parse(body);
-                }
-                catch (error) {
-                    res.body = body;
-                }
-            }
-        }
-        return res;
     }
 
     private _jobLaunchUrlFormat: string = "%s/api/v1/job_templates/%s/launch/";
@@ -256,11 +185,7 @@ export class AnsibleTowerInterface extends AnsibleInterface {
     private _jobEventUrlFormat: string = "%s/api/v1/jobs/%s/job_events/?page_size=%s&page=%s";
     private _jobTemplateIdUrlFormat: string = "%s/api/v1/job_templates/?name__exact=%s";
 
-    private _connectedService: string;
-    private _jobTemplateName: string;
+    private _taskParameters: AnsibleParameters;
     private _jobTemplateId: string;
-    private _username: string;
-    private _password: string;
-    private _hostname: string;
     private _lastPolledEvent: number;
 }

@@ -1,5 +1,9 @@
 import tl = require("vsts-task-lib/task");
 import Q = require("q");
+import util = require("util");
+import querystring = require('querystring');
+var httpClient = require('vso-node-api/HttpClient');
+var httpObj = new httpClient.HttpCallbackClient(tl.getVariable("AZURE_HTTP_USER_AGENT"));
 
 var os = require('os');
 var Ssh2Client = require('ssh2').Client;
@@ -14,6 +18,7 @@ export function _writeLine(str): void {
 export class RemoteCommandOptions {
     public failOnStdErr: boolean;
 }
+
 /**
 * Uses scp2 to copy a file to remote machine
 * @param scriptFile
@@ -103,4 +108,67 @@ export function runCommandOnRemoteMachine(command: string, sshClient: any, optio
         }
     });
     return defer.promise;
+}
+
+export class WebRequest {
+    public method: string;
+    public uri: string;
+    public body: any;
+    public headers: any;
+    constructor() {
+        this.headers = {};
+        this.body = querystring.stringify({});
+        this.method = 'GET';
+        this.uri = "";
+    }
+}
+
+export class WebResponse {
+    public statusCode: number;
+    public headers: any;
+    public body: any;
+    public statusMessage: string;
+}
+
+export async function beginRequest(request: WebRequest): Promise < WebResponse > {
+    request.headers = request.headers || {};
+    request.body = request.body || querystring.stringify({});
+    var httpResponse = await beginRequestInternal(request);
+    return httpResponse;
+}
+
+function beginRequestInternal(request: WebRequest): Promise<WebResponse> {
+
+    tl.debug(util.format("[%s]%s", request.method, request.uri));
+
+    return new Promise<WebResponse>((resolve, reject) => {
+        httpObj.send(request.method, request.uri, request.body, request.headers, (error, response, body) => {
+            if (error) {
+                reject(error);
+            }
+            else {
+                var httpResponse = toWebResponse(response, body);
+                resolve(httpResponse);
+            }
+        });
+    });
+}
+
+function toWebResponse(response, body): WebResponse {
+    var res = new WebResponse();
+
+    if (response) {
+        res.statusCode = response.statusCode;
+        res.headers = response.headers;
+        res.statusMessage = response.statusMessage;
+        if (body) {
+            try {
+                res.body = JSON.parse(body);
+            }
+            catch (error) {
+                res.body = body;
+            }
+        }
+    }
+    return res;
 }

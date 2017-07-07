@@ -3,10 +3,10 @@
 
 import path = require("path");
 import tl = require("vsts-task-lib/task");
-import {AnsibleInterface}  from './AnsibleInterface';
-import {AnsibleCommandLineInterface} from './AnsibleCommandLineInterface';
-import {AnsibleTowerInterface} from './AnsibleTowerInterface';
-import {AnsibleParameters} from './AnsibleParameter';
+import {AnsibleInterface}  from './ansibleInterface';
+import {AnsibleCommandLineInterface} from './ansibleCommandLineInterface';
+import {AnsibleTowerInterface} from './ansibleTowerInterface';
+import {AnsibleParameters} from './ansibleParameter';
 
 try {
     tl.setResourcePath(path.join(__dirname, "task.json"));
