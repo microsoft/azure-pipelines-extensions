@@ -26,7 +26,7 @@ class WebResponse {
 }
 
 export class AnsibleTowerInterface extends AnsibleInterface {
-    constructor() {
+    constructor(params) {
         super();
         this.initializeTaskContants();
     }

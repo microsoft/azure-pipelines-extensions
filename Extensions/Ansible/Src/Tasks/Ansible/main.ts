@@ -6,19 +6,20 @@ import tl = require("vsts-task-lib/task");
 import {AnsibleInterface}  from './AnsibleInterface';
 import {AnsibleCommandLineInterface} from './AnsibleCommandLineInterface';
 import {AnsibleTowerInterface} from './AnsibleTowerInterface';
+import {AnsibleParameters} from './AnsibleParameter';
 
 try {
-tl.setResourcePath(path.join(__dirname, "task.json"));
+    tl.setResourcePath(path.join(__dirname, "task.json"));
 } catch (error) {
     tl.setResult(tl.TaskResult.Failed, error);
 }
 
 export class AnsibleInterfaceFactory {
-    public static GetAnsibleInterface(interfaceValue: string): AnsibleInterface {
-        if (interfaceValue == "cli") {
-            return new AnsibleCommandLineInterface();
-        } else if (interfaceValue == "ansibleTower") {
-            return new AnsibleTowerInterface();
+    public static GetAnsibleInterface(params: AnsibleParameters): AnsibleInterface {
+        if (params.ansibleInterface == "cli") {
+            return new AnsibleCommandLineInterface(params);
+        } else if (params.ansibleInterface == "ansibleTower") {
+            return new AnsibleTowerInterface(params);
         }
         return null;
     }
@@ -26,7 +27,8 @@ export class AnsibleInterfaceFactory {
 
 function run() {
     try {
-        var ansibleInterface: AnsibleInterface = AnsibleInterfaceFactory.GetAnsibleInterface(tl.getInput("ansibleInterface", true));
+        var taskParameter: AnsibleParameters = new AnsibleParameters;
+        var ansibleInterface: AnsibleInterface = AnsibleInterfaceFactory.GetAnsibleInterface(taskParameter);
         if (ansibleInterface) {
             ansibleInterface.execute();
         } else {

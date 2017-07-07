@@ -1,21 +1,15 @@
 import tl = require("vsts-task-lib/task");
 import path = require("path");
 import Q = require("q");
-var os = require('os');
 import { AnsibleInterface } from './AnsibleInterface';
 
-var Ssh2Client = require('ssh2').Client;
-var Scp2Client = require('scp2');
-
-tl.setResourcePath(path.join(__dirname, "task.json"));
-
-class RemoteCommandOptions {
-    public failOnStdErr: boolean;
-}
+import * as sshUtils from './sshutils';
+import {RemoteCommandOptions} from './sshutils'
 
 export class AnsibleCommandLineInterface extends AnsibleInterface {
-    constructor() {
+    constructor(params) {
         super();
+        this.taskParameter = params;
     }
 
     public async execute() {
@@ -28,14 +22,14 @@ export class AnsibleCommandLineInterface extends AnsibleInterface {
 
         try {
             //read SSH endpoint input
-            var sshEndpoint = tl.getInput('connectionOverSsh', true);
-            var username: string = tl.getEndpointAuthorizationParameter(sshEndpoint, 'username', false);
-            var password: string = tl.getEndpointAuthorizationParameter(sshEndpoint, 'password', true); //passphrase is optional
+            var sshEndpoint = this.taskParameter.sshEndpoint;
+            var username: string = this.taskParameter.username;
+            var password: string = this.taskParameter.password;
             var privateKey: string = process.env['ENDPOINT_DATA_' + sshEndpoint + '_PRIVATEKEY']; //private key is optional, password can be used for connecting
-            var hostname: string = tl.getEndpointDataParameter(sshEndpoint, 'host', false);
-            var port: string = tl.getEndpointDataParameter(sshEndpoint, 'port', true); //port is optional, will use 22 as default port if not specified
+            var hostname: string = this.taskParameter.hostname;
+            var port: string = this.taskParameter.port; //port is optional, will use 22 as default port if not specified
             if (!port || port === '') {
-                this._writeLine(tl.loc('UseDefaultPort'));
+                sshUtils._writeLine(tl.loc('UseDefaultPort'));
                 port = '22';
             }
 
@@ -62,37 +56,36 @@ export class AnsibleCommandLineInterface extends AnsibleInterface {
             }
 
             //read the run options
-            var runOptions: string = tl.getInput('cliRunOptions', true);
+            var runOptions: string = this.taskParameter.cliRunOptions;
             var commands: string[];
             var scriptFile: string;
             var args: string;
 
             if (runOptions === 'commands') {
-                commands = tl.getDelimitedInput('commands', '\n', true);
+                commands = this.taskParameter.commands;
             } else {
-                scriptFile = tl.getPathInput('scriptPath', true, true);
-                args = tl.getInput('args')
+                scriptFile = this.taskParameter.scriptFile;
+                args = this.taskParameter.scriptArgs;
             }
 
-            var failOnStdErr: boolean = tl.getBoolInput('failOnStdErr');
+            var failOnStdErr: boolean = this.taskParameter.failOnStdErr;
             remoteCmdOptions.failOnStdErr = failOnStdErr;
 
             //setup the SSH connection
-            this._writeLine(tl.loc('SettingUpSshConnection', sshConfig.username, sshConfig.host, sshConfig.port));
+            sshUtils._writeLine(tl.loc('SettingUpSshConnection', sshConfig.username, sshConfig.host, sshConfig.port));
             try {
-                sshClientConnection = await this.setupSshClientConnection(sshConfig);
+                sshClientConnection = await sshUtils.setupSshClientConnection(sshConfig);
             } catch (err) {
                 tl.setResult(tl.TaskResult.Failed, tl.loc('ConnectionFailed', err));
             }
-
             if (sshClientConnection) {
                 //SSH connection successful
                 if (runOptions === 'commands') {
                     //run commands specified by the user
                     for (var i: number = 0; i < commands.length; i++) {
                         tl.debug('Running command ' + commands[i] + ' on remote machine.');
-                        this._writeLine(commands[i]);
-                        var returnCode: string = await this.runCommandOnRemoteMachine(
+                        sshUtils._writeLine(commands[i]);
+                        var returnCode: string = await sshUtils.runCommandOnRemoteMachine(
                             commands[i], sshClientConnection, remoteCmdOptions);
                         tl.debug('Command ' + commands[i] + ' completed with return code = ' + returnCode);
                     }
@@ -106,12 +99,12 @@ export class AnsibleCommandLineInterface extends AnsibleInterface {
                     var scpConfig = sshConfig;
                     scpConfig.path = remoteScript;
                     tl.debug('Copying script to remote machine.');
-                    await this.copyScriptToRemoteMachine(scriptFile, scpConfig);
+                    await sshUtils.copyScriptToRemoteMachine(scriptFile, scpConfig);
 
                     //set execute permissions on the script
                     tl.debug('Setting execute permisison on script copied to remote machine');
-                    this._writeLine('chmod +x ' + remoteScriptPath);
-                    await this.runCommandOnRemoteMachine(
+                    sshUtils._writeLine('chmod +x ' + remoteScriptPath);
+                    await sshUtils.runCommandOnRemoteMachine(
                         'chmod +x ' + remoteScriptPath, sshClientConnection, remoteCmdOptions);
 
                     //run remote script file with args on the remote machine
@@ -123,8 +116,8 @@ export class AnsibleCommandLineInterface extends AnsibleInterface {
                     //setup command to clean up script file
                     cleanUpScriptCmd = 'rm -f ' + remoteScriptPath;
 
-                    this._writeLine(runScriptCmd);
-                    await this.runCommandOnRemoteMachine(
+                    sshUtils._writeLine(runScriptCmd);
+                    await sshUtils.runCommandOnRemoteMachine(
                         runScriptCmd, sshClientConnection, remoteCmdOptions);
                 }
             }
@@ -136,7 +129,7 @@ export class AnsibleCommandLineInterface extends AnsibleInterface {
             if (cleanUpScriptCmd) {
                 try {
                     tl.debug('Deleting the script file copied to the remote machine.');
-                    await this.runCommandOnRemoteMachine(
+                    await sshUtils.runCommandOnRemoteMachine(
                         cleanUpScriptCmd, sshClientConnection, remoteCmdOptions);
                 } catch (err) {
                     tl.warning(tl.loc('RemoteScriptFileCleanUpFailed', err));
@@ -151,101 +144,5 @@ export class AnsibleCommandLineInterface extends AnsibleInterface {
         }
     }
 
-    /**
- * Uses scp2 to copy a file to remote machine
- * @param scriptFile
- * @param scpConfig
- * @returns {Promise<string>|Promise<T>}
- */
-    private copyScriptToRemoteMachine(scriptFile: string, scpConfig: any): Q.Promise<string> {
-        var defer = Q.defer<string>();
-
-        Scp2Client.scp(scriptFile, scpConfig, (err) => {
-            if (err) {
-                defer.reject(tl.loc('RemoteCopyFailed', err));
-            } else {
-                tl.debug('Copied script file to remote machine at: ' + scpConfig.path);
-                defer.resolve(scpConfig.path);
-            }
-        });
-
-        return defer.promise;
-    }
-
-    /**
-     * Sets up an SSH client connection, when promise is fulfilled, returns the connection object
-     * @param sshConfig
-     * @returns {Promise<any>|Promise<T>}
-     */
-    private setupSshClientConnection(sshConfig: any): Q.Promise<any> {
-        var defer = Q.defer<any>();
-        var client = new Ssh2Client();
-        client.on('ready', () => {
-            defer.resolve(client);
-        }).on('error', (err) => {
-            defer.reject(err);
-        }).connect(sshConfig);
-        return defer.promise;
-    }
-
-    /**
-     * Runs command on remote machine and returns success or failure
-     * @param command
-     * @param sshClient
-     * @param options
-     * @returns {Promise<string>|Promise<T>}
-     */
-    private runCommandOnRemoteMachine(command: string, sshClient: any, options: RemoteCommandOptions): Q.Promise<string> {
-        var defer = Q.defer<string>();
-        var stdErrWritten: boolean = false;
-
-        if (!options) {
-            tl.debug('Options not passed to runCommandOnRemoteMachine, setting defaults.');
-            var options = new RemoteCommandOptions();
-            options.failOnStdErr = true;
-        }
-
-        var cmdToRun = command;
-        if (cmdToRun.indexOf(';') > 0) {
-            //multiple commands were passed separated by ;
-            cmdToRun = cmdToRun.replace(/;/g, '\n');
-        }
-        tl.debug('cmdToRun = ' + cmdToRun);
-
-        sshClient.exec(cmdToRun, (err, stream) => {
-            if (err) {
-                defer.reject(tl.loc('RemoteCmdExecutionErr', err))
-            } else {
-                stream.on('close', (code, signal) => {
-                    tl.debug('code = ' + code + ', signal = ' + signal);
-
-                    //based on the options decide whether to fail the build or not if data was written to STDERR
-                    if (stdErrWritten === true && options.failOnStdErr === true) {
-                        defer.reject(tl.loc('RemoteCmdExecutionErr'));
-                    } else if (code && code != 0) {
-                        defer.reject(tl.loc('RemoteCmdNonZeroExitCode', cmdToRun, code));
-                    } else {
-                        //success case - code is undefined or code is 0
-                        defer.resolve('0');
-                    }
-                }).on('data', (data) => {
-                    this._writeLine(data);
-                }).stderr.on('data', (data) => {
-                    stdErrWritten = true;
-                    tl.debug('stderr = ' + data);
-                    if (data && data.toString().trim() !== '') {
-                        tl.error(data);
-                    }
-                });
-            }
-        });
-        return defer.promise;
-    }
-
-    private _writeLine(str) : void {
-        this._outStream.write(str + os.EOL);
-    }
-
-    private _outStream = process.stdout;
-
+    private taskParameter: any;
 }
