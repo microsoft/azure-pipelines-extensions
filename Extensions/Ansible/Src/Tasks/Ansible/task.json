@@ -24,7 +24,8 @@
         {
             "name": "advanced",
             "displayName": "Advanced",
-            "isExpanded": false
+            "isExpanded": false,
+            "visibleRule": "ansibleInterface = cli"
         }
     ],
     "inputs": [
