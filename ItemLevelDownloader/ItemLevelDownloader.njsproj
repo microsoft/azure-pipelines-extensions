@@ -28,6 +28,17 @@
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
+    <TypeScriptTarget>ES6</TypeScriptTarget>
+    <TypeScriptJSXEmit>None</TypeScriptJSXEmit>
+    <TypeScriptCompileOnSaveEnabled>True</TypeScriptCompileOnSaveEnabled>
+    <TypeScriptNoImplicitAny>False</TypeScriptNoImplicitAny>
+    <TypeScriptRemoveComments>False</TypeScriptRemoveComments>
+    <TypeScriptOutFile />
+    <TypeScriptOutDir />
+    <TypeScriptGeneratesDeclarations>False</TypeScriptGeneratesDeclarations>
+    <TypeScriptNoEmitOnError>True</TypeScriptNoEmitOnError>
+    <TypeScriptMapRoot />
+    <TypeScriptSourceRoot />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
     <DebugSymbols>true</DebugSymbols>
@@ -36,9 +47,23 @@
     <TypeScriptCompile Include="app.ts" />
     <Content Include="package.json" />
     <Content Include="README.md" />
+    <TypeScriptCompile Include="Engine\fetchEngine.ts" />
+    <TypeScriptCompile Include="Engine\fetchEngineOptions.ts" />
+    <TypeScriptCompile Include="Models\artifactItem.ts" />
+    <TypeScriptCompile Include="Models\artifactprovider.ts" />
+    <TypeScriptCompile Include="downloader.ts" />
+    <TypeScriptCompile Include="filecontainer.ts" />
+    <TypeScriptCompile Include="filepath.ts" />
+    <TypeScriptCompile Include="Models\index.ts" />
+    <TypeScriptCompile Include="Models\itemType.ts" />
+    <TypeScriptCompile Include="Providers\fileShareProvider.ts" />
+    <TypeScriptCompile Include="Providers\webProvider.ts" />
     <TypeScriptCompile Include="Scripts\typings\node\node.d.ts" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="Models\" />
+    <Folder Include="Engine\" />
+    <Folder Include="Providers\" />
     <Folder Include="Scripts\" />
     <Folder Include="Scripts\typings\" />
     <Folder Include="Scripts\typings\node\" />

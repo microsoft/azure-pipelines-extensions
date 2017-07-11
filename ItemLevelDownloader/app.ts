@@ -1,1 +1,4 @@
-﻿console.log('Hello world');
+﻿async function main(): Promise<void> {
+}
+
+main();
