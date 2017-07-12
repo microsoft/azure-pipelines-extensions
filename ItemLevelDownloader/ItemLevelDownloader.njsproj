@@ -49,15 +49,15 @@
     <Content Include="README.md" />
     <TypeScriptCompile Include="Engine\fetchEngine.ts" />
     <TypeScriptCompile Include="Engine\fetchEngineOptions.ts" />
+    <TypeScriptCompile Include="Engine\index.ts" />
     <TypeScriptCompile Include="Models\artifactItem.ts" />
     <TypeScriptCompile Include="Models\artifactprovider.ts" />
-    <TypeScriptCompile Include="downloader.ts" />
-    <TypeScriptCompile Include="filecontainer.ts" />
-    <TypeScriptCompile Include="filepath.ts" />
     <TypeScriptCompile Include="Models\index.ts" />
     <TypeScriptCompile Include="Models\itemType.ts" />
     <TypeScriptCompile Include="Providers\fileShareProvider.ts" />
+    <TypeScriptCompile Include="Providers\index.ts" />
     <TypeScriptCompile Include="Providers\webProvider.ts" />
+    <TypeScriptCompile Include="Providers\stubProvider.ts" />
     <TypeScriptCompile Include="Scripts\typings\node\node.d.ts" />
   </ItemGroup>
   <ItemGroup>

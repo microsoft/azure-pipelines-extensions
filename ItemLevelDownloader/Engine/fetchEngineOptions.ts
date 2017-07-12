@@ -1,6 +1,6 @@
 ﻿export class FetchEngineOptions {
     retryLimit: number;
-    retryInterval: number;
-    getFileTimeout: number;
+    retryIntervalInSeconds: number;
+    downloadFileTimeoutInMinutes: number;
     parallelDownloadLimit: number;
 }
