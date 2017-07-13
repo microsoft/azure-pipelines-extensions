@@ -1,0 +1,22 @@
+1. Add the following capabilities to Fetch Engine
+    - parallization
+    - retry 
+    - logging 
+    - cancellation
+    - partial download
+    - incremental download
+
+2. Implement the following providers
+    - web provider
+    - fileshare provider
+    - stub provider for testing
+
+3. Add the webprovider templates for the following services
+    - External Build
+    - Teamcity
+
+4. Add tests
+    - Setup testing framework
+    - Add fetch engine tests
+
+5. Publish package to npm gallery
