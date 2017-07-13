@@ -6,53 +6,33 @@ import {FetchEngineOptions} from "./fetchEngineOptions"
 
 export class FetchEngine {
     async fetchItems(artifactProvider: models.IArtifactProvider, targetPath: string, fetchEngineOptions: FetchEngineOptions): Promise<void> {
-        const items: models.ArtifactItem[] = await artifactProvider.getArtifactItems();
+        const downloaders: Promise<{}>[] = [];
+        const createdFolders: { [key: string]: boolean } = {};
 
-        let maxConcurrency = Math.min(fetchEngineOptions.parallelDownloadLimit, items.length);
-        let fileCount: number = items.length;
-        let downloaders: Promise<{}>[] = [];
-        let createdFolders: { [key: string]: boolean } = {};
+        const items: models.ArtifactItem[] = await artifactProvider.getArtifactItems();
+        const fileCount: number = items.length;
+        const maxConcurrency = Math.min(fetchEngineOptions.parallelDownloadLimit, fileCount);
+
         for (let i = 0; i < maxConcurrency; ++i) {
             downloaders.push(new Promise(async (resolve, reject) => {
                 try {
                     while (items.length > 0) {
-                        let item = items.pop();
-                        let fileIndex = fileCount - items.length;
+                        const item = items.pop();
+                        const fileIndex = fileCount - items.length;
+                        const outputFilename = path.join(targetPath, item.path);
+                        const folder = path.dirname(outputFilename);
 
-                        // the full path of the downloaded file
-                        let outputFilename = path.join(targetPath, item.path);
-
-                        // create the folder if necessary
-                        let folder = path.dirname(outputFilename);
                         if (!createdFolders.hasOwnProperty(folder)) {
-                            if (!fs.exists(folder)) {
+                            if (!fs.existsSync(folder)) {
                                 fs.mkdir(folder);
                             }
                             createdFolders[folder] = true;
                         }
 
-                        this.logProgressFilename(item.path, outputFilename, fileIndex, fileCount);
-                        await new Promise(async (downloadResolve, downloadReject) => {
-                            try {
-                                // get the content stream from the provider
-                                let contentStream = await artifactProvider.getArtifactItem(item);
-
-                                // create the target stream
-                                let outputStream = fs.createWriteStream(outputFilename);
-
-                                // pipe the content to the target
-                                contentStream.pipe(outputStream);
-                                contentStream.on('end', () => {
-                                    console.log(`Downloaded '${item.path}' to '${outputFilename}'`);
-                                    downloadResolve();
-                                });
-                            }
-                            catch (err) {
-                                console.log("Error downloading file %s", item.path);
-                                downloadReject(err);
-                            }
-                        });
+                        this.logProgress(item.path, outputFilename, fileIndex, fileCount);
+                        await this.downloadArtifactItem(artifactProvider, item, outputFilename, 2);
                     }
+
                     resolve();
                 }
                 catch (err) {
@@ -64,7 +44,36 @@ export class FetchEngine {
         await Promise.all(downloaders);
     }
 
-    logProgressFilename(relativePath: string, outputFilename: string, fileIndex: number, fileCount: number): void {
+    downloadArtifactItem(artifactProvider: models.IArtifactProvider,
+        item: models.ArtifactItem,
+        outputFilename: string,
+        retryLimit: number,
+        retryCount?: number): Promise<{}> {
+        return new Promise(async (downloadResolve, downloadReject) => {
+            try {
+                retryCount = retryCount ? retryCount : 0;
+                const contentStream = await artifactProvider.getArtifactItem(item);
+                const outputStream = fs.createWriteStream(outputFilename);
+
+                contentStream.pipe(outputStream);
+                contentStream.on("end",
+                    () => {
+                        console.log(`Downloaded '${item.path}' to '${outputFilename}'`);
+                        downloadResolve();
+                    });
+            } catch (err) {
+                console.log("Error downloading file %s: %s", item.path, err);
+                if (retryCount === retryLimit - 1) {
+                    downloadReject(err);
+                } else {
+                    process.nextTick(() => this
+                        .downloadArtifactItem(artifactProvider, item, outputFilename, retryLimit, retryCount + 1));
+                }
+            }
+        });
+    }
+
+    logProgress(relativePath: string, outputFilename: string, fileIndex: number, fileCount: number): void {
         console.log("Downloading '%s' to '%s' (file %d of %d)", relativePath, outputFilename, fileIndex, fileCount);
     }
 }
