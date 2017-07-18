@@ -22,9 +22,22 @@
     "instanceNameFormat": "Run playbook",
     "groups": [
         {
+            "name": "playbook",
+            "displayName": "Playbook",
+            "isExpanded": true,
+            "visibleRule": "ansibleInterface = cli"
+        },
+        {
+            "name": "inventory",
+            "displayName": "Inventory",
+            "isExpanded": true,
+            "visibleRule": "ansibleInterface = cli"
+        },
+        {
             "name": "advanced",
             "displayName": "Advanced",
-            "isExpanded": false
+            "isExpanded": true,
+            "visibleRule": "ansibleInterface = cli"
         }
     ],
     "inputs": [
@@ -35,19 +48,10 @@
             "required": true,
             "defaultValue": "ansibleTower",
             "options": {
-                "cli": "Remote machine over SSH",
+                "cli": "Command line on Ansible machine",
                 "ansibleTower": "Ansible Tower"
             },
             "helpMarkDown": "Select either command line or ansible tower to run playbook."
-        },
-        {
-            "name": "connectionAnsibleTower",
-            "type": "connectedService:AnsibleTower",
-             "label": "Tower endpoint",
-            "defaultValue": "",
-            "required": true,
-            "visibleRule": "ansibleInterface = ansibleTower",
-            "helpMarkDown": "Ansible Tower server URL"
         },
         {
             "name": "connectionOverSsh",
@@ -56,51 +60,166 @@
             "defaultValue": "",
             "required": true,
             "visibleRule": "ansibleInterface = cli",
-            "helpMarkDown": "Remote machine URL"
+            "helpMarkDown": "Ansible machine endpoint"
         },
         {
-            "name": "cliRunOptions",
-            "type": "radio",
-            "label": "Run",
-            "required": true,
-            "defaultValue": "commands",
-            "visibleRule": "ansibleInterface = cli",
+            "name": "playbookSource",
+            "type": "pickList",
+            "label": "Source",
+            "defaultValue": "agentMachine",
             "options": {
-                "commands": "Commands",
-                "script": "Shell script"
+                "agentMachine": "Agent machine",
+                "ansibleMachine": "Ansible machine"
             },
-            "helpMarkDown": "Choose to either run shell commands or a shell script on the remote machine."
-        },
-        {
-            "name": "commands",
-            "type": "multiLine",
-            "label": "Commands",
-            "defaultValue": "",
             "required": true,
-            "visibleRule": "cliRunOptions = commands",
-            "helpMarkDown": "Specify the shell commands to run on the remote machine. Enter each command along with its arguments on a new line. To run multiple commands together, enter them on the same line separated by semi-colons (e.g. cd /home/user/myFolder;build).",
-            "properties": {
-                "resizable": "true",
-                "rows": "10"
-            }
+            "helpMarkDown": "Select agent machine, if playbook is located on automation agent. In this case playbook is copied to ansible machine. Otherwise, select ansible machine.",
+            "groupName": "playbook"
         },
         {
-            "name": "scriptPath",
+            "name": "playbookRoot",
             "type": "filePath",
-            "label": "Shell script path",
+            "label": "Root",
             "defaultValue": "",
             "required": true,
-            "visibleRule": "cliRunOptions = script",
-            "helpMarkDown": "Path to the shell script file to run on the remote machine."
+            "helpMarkDown": "Root path of the playbook files on the automation agent.",
+            "visibleRule": "playbookSource = agentMachine",
+            "groupName": "playbook"
         },
         {
-            "name": "args",
+            "name": "playbookPathAgentMachine",
+            "type": "filePath",
+            "label": "Path",
+            "defaultValue": "",
+            "required": true,
+            "helpMarkDown": "Path to the playbook file on the automation agent.",
+            "visibleRule": "playbookSource = agentMachine",
+            "groupName": "playbook"
+        },
+        {
+            "name": "playbookPathAnsibleMachine",
             "type": "string",
-            "label": "Arguments",
+            "label": "Path",
+            "defaultValue": "",
+            "required": true,
+            "helpMarkDown": "Path of the playbook files on the ansible machine.",
+            "visibleRule": "playbookSource = ansibleMachine",
+            "groupName": "playbook"
+        },
+        {
+            "name": "inventories",
+            "type": "pickList",
+            "label": "Inventory",
+            "defaultValue": "noInventory",
+            "options": {
+                "noInventory": "Do not specify inventory",
+                "file": "File",
+                "hostList": "Host list",
+                "inlineContent": "Inline"
+            },
+            "required": true,
+            "helpMarkDown": "Select the source of inventories",
+            "groupName": "inventory"
+        },
+        {
+            "name": "inventoryFileSource",
+            "type": "pickList",
+            "label": "Source",
+            "defaultValue": "agentMachine",
+            "options": {
+                "agentMachine": "Agent machine",
+                "ansibleMachine": "Ansible machine"
+            },
+            "required": true,
+            "helpMarkDown": "Specify the location of inventory either on agent machine or ansible machine",
+            "visibleRule": "inventories = file",
+            "groupName": "inventory"
+        },
+        {
+            "name": "inventoryFileAgentMachine",
+            "type": "filePath",
+            "label": "Path",
+            "defaultValue": "",
+            "required": true,
+            "helpMarkDown": "Specify the path to inventory host file on automation agent.",
+            "visibleRule": "inventoryFileSource = agentMachine",
+            "groupName": "inventory"
+        },
+        {
+            "name": "inventoryFileAnsibleMachine",
+            "type": "string",
+            "label": "Path",
+            "defaultValue": "",
+            "required": true,
+            "helpMarkDown": "Specify the path to inventory host file on ansible machine",
+            "visibleRule": "inventoryFileSource = ansibleMachine",
+            "groupName": "inventory"
+        },
+        {
+            "name": "inventoryHostList",
+            "type": "string",
+            "label": "Host list",
+            "defaultValue": "",
+            "required": true,
+            "helpMarkDown": "Specify the comma separated host list",
+            "visibleRule": "inventories = hostList",
+            "groupName": "inventory"
+        },
+        {
+            "name": "inventoryInlineDynamic",
+            "type": "boolean",
+            "label": "Dynamic inventory",
+            "defaultValue": false,
+            "required": false,
+            "helpMarkDown": "Check this box if a dynamic inventory is used. For more details see the ansible documentation for Dynamic Inventory",
+            "visibleRule": "inventories = inlineContent",
+            "groupName": "inventory"
+        },
+        {
+            "name": "inventoryInlineContent",
+            "type": "multiLine",
+            "label": "Content",
+            "defaultValue": "",
+            "required": true,
+            "helpMarkDown": "Mention Inventories inline",
+            "visibleRule": "inventories = inlineContent",
+            "groupName": "inventory"
+        },  
+        {
+            "name": "sudoEnabled",
+            "type": "boolean",
+            "label": "Sudo",
+            "defaultValue": false,
+            "required": false,
+            "helpMarkDown": "Run operations with sudo. It works only when the ansible user is sudoer with nopasswd option.",
+            "groupName": "advanced"
+        },     
+        {
+            "name": "sudoUser",
+            "type": "string",
+            "label": "Sudo user",
             "defaultValue": "",
             "required": false,
-            "visibleRule": "cliRunOptions = script",
-            "helpMarkDown": "Arguments to pass to the shell script."
+            "helpMarkDown": "Desired sudo user. \"root\" is used when this field is empty.",
+            "visibleRule": "sudoEnabled = true",
+            "groupName": "advanced"
+        },  
+        {
+            "name": "args",
+            "type": "multiLine",
+            "label": "Additional Parameters",
+            "defaultValue": "",
+            "required": false,
+            "helpMarkDown": "Any additional parameters to pass to the ansible command. The content of this textbox will be passed as is to the command line",
+            "groupName": "advanced"
+        },
+        {
+            "name": "connectionAnsibleTower",
+            "type": "connectedService:AnsibleTower",
+             "label": "Tower endpoint",
+            "defaultValue": "",
+            "required": true,
+            "visibleRule": "ansibleInterface = ansibleTower",
+            "helpMarkDown": "Ansible Tower server endpoint"
         },
         {
             "name": "jobTemplateName",
@@ -110,15 +229,6 @@
             "required": true,
             "visibleRule": "ansibleInterface = ansibleTower",
             "helpMarkDown": "Arguments to pass to the shell script."
-        },
-        {
-            "name": "failOnStdErr",
-            "type": "boolean",
-            "label": "Fail on STDERR",
-            "required": false,
-            "defaultValue": true,
-            "helpMarkDown": "If this option is selected, the build will fail when the remote commands or script write to STDERR.",
-            "groupName": "advanced"
         }
     ],
     "dataSourceBindings": [
@@ -137,14 +247,14 @@
     "messages": {
         "UseDefaultPort": "Using port 22 which is the default for SSH since no port was specified.",
         "SettingUpSshConnection": "Trying to setup SSH connection to %s@%s:%s",
-        "ConnectionFailed": "Failed to connect to remote machine. Verify the SSH endpoint details. Error: %s.",
-        "RemoteCopyFailed": "Failed to copy script to remote machine. Error: %s.",
-        "RemoteCmdExecutionErr": "Command failed with errors on remote machine.",
+        "ConnectionFailed": "Failed to connect to ansible machine. Verify the SSH endpoint details. Error: %s.",
+        "RemoteCopyFailed": "Failed to copy script to ansible machine. Error: %s.",
+        "RemoteCmdExecutionErr": "Command failed with errors on ansible machine.",
         "RemoteCmdNonZeroExitCode": "Command %s exited with code %s.",
-        "RemoteScriptFileCleanUpFailed": "Failed to delete the script file copied to the remote machine. Error = %s.",
+        "RemoteFileCleanUpFailed": "Failed to delete the script file copied to the ansible machine. Error = %s.",
         "JobTemplateNotPresent": "Failed to locate job template. Job template with name %s is not present.",
         "Ansible_ConstructorFailed": "Cannot initialize ansible: %s.",
         "FailedToGetJobDetails": "Failed to get job details. Ansible returns with error code %s and message %s.",
-        "CouldnotLaunchJob": "Failed to launch job. Anisble returns with error code %s and message %s."
+        "CouldnotLaunchJob": "Failed to launch job. Ansible returns with error code %s and message %s."
     }
 }
