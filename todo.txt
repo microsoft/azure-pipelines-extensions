@@ -3,7 +3,7 @@
     - retry (done)
     - logging 
     - cancellation
-    - partial download
+    - partial download (done)
     x incremental download
 
 2. Implement the following providers
