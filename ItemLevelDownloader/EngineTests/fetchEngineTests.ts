@@ -28,10 +28,24 @@ describe('fetchItems', () => {
     });
 });
 
+describe('fetchItems', () => {
+    it('should call getArtifactItem only for artifact that match the download pattern', async () => {
+        var testProvider = new TestProvider();
+        var downloadOptions = new engine.FetchEngineOptions();
+        downloadOptions.downloadPattern = '*{path4,path5}*';
+
+        await new engine.FetchEngine().fetchItems(testProvider, "c:\\drop", downloadOptions);
+
+        assert.equal(testProvider.getArtifactItemCalledCount, 2);
+    });
+});
+
 export class TestProvider extends providers.StubProvider {
 
     public getArtifactItemCalledCount = 0;
     public getArtifactItemsCalledCount = 0;
+
+    public itemsDownloaded: models.ArtifactItem[] = [];
 
     async getArtifactItems(){
         this.getArtifactItemsCalledCount++;
@@ -40,6 +54,7 @@ export class TestProvider extends providers.StubProvider {
 
     async getArtifactItem(artifactItem: models.ArtifactItem){
         this.getArtifactItemCalledCount++;
+        this.itemsDownloaded.push(artifactItem);
         return super.getArtifactItem(artifactItem);
     }
 }

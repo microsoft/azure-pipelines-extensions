@@ -16,7 +16,7 @@
     - Teamcity
 
 4. Add tests
-    - Setup testing framework
+    - Setup testing framework (done)
     - Add fetch engine tests
 
 5. Publish package to npm gallery

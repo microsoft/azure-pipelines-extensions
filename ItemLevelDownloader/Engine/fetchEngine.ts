@@ -1,5 +1,9 @@
-﻿import * as path from 'path';
+﻿/// <reference path="../../typings/modules/minimatch/index.d.ts" />
+
+import * as path from 'path';
 import * as fs from 'fs';
+
+import * as minimatch from 'minimatch'
 
 import * as models from "../Models"
 import {FetchEngineOptions} from "./fetchEngineOptions"
@@ -10,15 +14,16 @@ export class FetchEngine {
         const createdFolders: { [key: string]: boolean } = {};
 
         const items: models.ArtifactItem[] = await artifactProvider.getArtifactItems();
-        const fileCount: number = items.length;
+        const itemsToDownload: models.ArtifactItem[] = items.filter(item => minimatch(item.path, fetchEngineOptions.downloadPattern));
+        const fileCount: number = itemsToDownload.length;
         const maxConcurrency = Math.min(fetchEngineOptions.parallelDownloadLimit, fileCount);
 
         for (let i = 0; i < maxConcurrency; ++i) {
             downloaders.push(new Promise(async (resolve, reject) => {
                 try {
-                    while (items.length > 0) {
-                        const item = items.pop();
-                        const fileIndex = fileCount - items.length;
+                    while (itemsToDownload.length > 0) {
+                        const item = itemsToDownload.pop();
+                        const fileIndex = fileCount - itemsToDownload.length;
                         const outputFilename = path.join(targetPath, item.path);
                         const folder = path.dirname(outputFilename);
 

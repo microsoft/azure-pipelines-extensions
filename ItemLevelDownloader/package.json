@@ -12,6 +12,7 @@
     "handlebars-helpers": "0.9.3",
     "mocha": "2.3.3",
     "typescript": "1.8.7",
-    "assert": "1.4.1"
+    "assert": "1.4.1",
+    "minimatch": "3.0.2"
   }
 }
