@@ -1,15 +1,15 @@
 1. Add the following capabilities to Fetch Engine
-    - parallization
-    - retry 
+    - parallization (done)
+    - retry (done)
     - logging 
     - cancellation
     - partial download
-    - incremental download
+    x incremental download
 
 2. Implement the following providers
     - web provider
-    - fileshare provider
-    - stub provider for testing
+    x fileshare provider
+    - stub provider for testing (in progress)
 
 3. Add the webprovider templates for the following services
     - External Build

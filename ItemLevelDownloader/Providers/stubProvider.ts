@@ -16,9 +16,6 @@ export class StubProvider implements models.IArtifactProvider {
         s._read = () => { };
         s.push(`stub content for ${artifactItem.path}`);
         s.push(null);
-        if (artifactItem.fileLength === 2) {
-            return null;
-        }
 
         console.log(`Finished Downloading ${artifactItem.path}`);
         return s;

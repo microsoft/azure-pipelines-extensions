@@ -44,6 +44,8 @@
     <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
   <ItemGroup>
+    <Content Include="typings\modules\chai\typings.json" />
+    <Content Include="typings\globals\mocha\typings.json" />
     <TypeScriptCompile Include="app.ts" />
     <Content Include="package.json" />
     <Content Include="README.md" />
@@ -58,15 +60,25 @@
     <TypeScriptCompile Include="Providers\index.ts" />
     <TypeScriptCompile Include="Providers\webProvider.ts" />
     <TypeScriptCompile Include="Providers\stubProvider.ts" />
-    <TypeScriptCompile Include="Scripts\typings\node\node.d.ts" />
+    <TypeScriptCompile Include="typings\modules\chai\index.d.ts" />
+    <TypeScriptCompile Include="typings\node\node.d.ts" />
+    <TypeScriptCompile Include="typings\globals\mocha\index.d.ts" />
+    <TypeScriptCompile Include="typings\index.d.ts" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Models\" />
     <Folder Include="Engine\" />
+    <Folder Include="EngineTests\" />
     <Folder Include="Providers\" />
-    <Folder Include="Scripts\" />
-    <Folder Include="Scripts\typings\" />
-    <Folder Include="Scripts\typings\node\" />
+    <Folder Include="typings\modules\" />
+    <Folder Include="typings\modules\chai\" />
+    <Folder Include="typings\node\" />
+    <Folder Include="typings\" />
+    <Folder Include="typings\globals\" />
+    <Folder Include="typings\globals\mocha\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="EngineTests\fetchEngineTests.ts" />
   </ItemGroup>
   <!-- Do not delete the following Import Project.  While this appears to do nothing it is a marker for setting TypeScript properties before our import that depends on them. -->
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.targets" Condition="False" />
