@@ -20,3 +20,5 @@
     - Add fetch engine tests
 
 5. Publish package to npm gallery
+
+6. Add localization support
