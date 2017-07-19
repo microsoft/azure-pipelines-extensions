@@ -2,10 +2,10 @@
   "manifestVersion": 1.0,
   "id": "vss-services-ansible",
   "name": "Ansible",
-  "publisher": "ms-devlabs",
+  "publisher": "ms-vscs-rm",
   "version": "0.0.1",
   "public": false,
-  "description": "Execution of ansible playbook via cli using remote machine over ssh, or via ansible tower using REST API",
+  "description": "This extension helps dev-ops to execute the ansible playbook using release management. It can execute the playbook using ansible tower, or via command line interface",
   "_description.comment": "The below format to define extensions is currently in preview and may change in future.",
   "categories": [ "Build and release" ],
   "Tags": [ "Ansible", "Release", "DevOps" ],
@@ -16,7 +16,8 @@
   ],
   "demands": [],
   "icons": {
-    "default": "images\\icon.png"
+    "default": "images\\icon_default.png",
+    "large": "images\\icon_wide.png"
   },
   "branding": {
     "color": "#3B3E43",
@@ -24,7 +25,13 @@
   },
   "screenshots": [
     {
-      "path": "images/icon.png"
+      "path": "images\\ansible_screen_1.png"
+    },
+    {
+      "path": "images\\ansible_screen_2.png"
+    },
+    {
+      "path": "images\\ansible_screen_3.png"
     }
   ],
   "content": {
@@ -34,7 +41,7 @@
   },
   "files": [
     {
-      "path": "images/icon.png",
+      "path": "images\\icon_wide.png",
       "addressable": true
     },
     {

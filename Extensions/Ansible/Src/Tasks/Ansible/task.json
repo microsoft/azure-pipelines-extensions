@@ -2,7 +2,7 @@
     "id": "6f650d20-9c5d-4cce-ad66-e68742ceadf5",
     "name": "Ansible",
     "friendlyName": "Ansible",
-    "description": "Executing ansible playbook",
+    "description": "This task helps dev-ops to execute the ansible playbook using release management. It can execute the playbook using ansible tower, or take the playbook and inventory to execute via command line interface",
     "helpMarkDown": "[More Information](http://go.microsoft.com/fwlink/?LinkId=821892)",
     "category": "Deploy",
     "visibility": [
@@ -46,12 +46,12 @@
             "type": "pickList",
             "label": "Execution target",
             "required": true,
-            "defaultValue": "ansibleTower",
+            "defaultValue": "cli",
             "options": {
                 "cli": "Command line on Ansible machine",
                 "ansibleTower": "Ansible Tower"
             },
-            "helpMarkDown": "Select either command line or ansible tower to run playbook."
+            "helpMarkDown": "Select either command line execution on Ansible machine or Ansible tower execution to run playbook."
         },
         {
             "name": "connectionOverSsh",
@@ -81,7 +81,7 @@
             "label": "Root",
             "defaultValue": "",
             "required": true,
-            "helpMarkDown": "Root path of the playbook files on the automation agent.",
+            "helpMarkDown": "Root path of the playbook files on the automation agent. This is the folder where playbook and associated files are located. All the files in this folder will be copied to Ansible machine",
             "visibleRule": "playbookSource = agentMachine",
             "groupName": "playbook"
         },
@@ -91,7 +91,7 @@
             "label": "Path",
             "defaultValue": "",
             "required": true,
-            "helpMarkDown": "Path to the playbook file on the automation agent.",
+            "helpMarkDown": "Path to the playbook file to execute on the automation agent.",
             "visibleRule": "playbookSource = agentMachine",
             "groupName": "playbook"
         },
@@ -101,7 +101,7 @@
             "label": "Path",
             "defaultValue": "",
             "required": true,
-            "helpMarkDown": "Path of the playbook files on the ansible machine.",
+            "helpMarkDown": "Path of the playbook files on execute on the ansible machine.",
             "visibleRule": "playbookSource = ansibleMachine",
             "groupName": "playbook"
         },
