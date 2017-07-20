@@ -2,7 +2,7 @@
   "id": "063c7649-4934-49e8-9eac-37121fe7e350",
   "name": "SqlDacpacDeploy",
   "friendlyName": "WinRM - SQL Server DB Deployment",
-  "description": "Using WinRM connect to host, and deploy DB using sqlpackage.exe or Invoke-Sqlcmd",
+  "description": "Using WinRM connect to host, and deploy database using sqlpackage.exe or Invoke-Sqlcmd",
   "helpMarkDown": "[More Information](http://aka.ms/sqlserverdacpackreadme)",
   "category": "Deploy",
   "visibility": [
