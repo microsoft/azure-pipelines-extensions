@@ -4,7 +4,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [1.4.5] 24th July 2017
 ### Fixed
-- Fixing issue of surfacing inner exception for SQL task
+- Fixing issue of surfacing inner exception for WinRM - SQL Dacpac Deploy task
 
 ## [1.4.4] 2nd March 2017
 ### Fixed
