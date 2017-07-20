@@ -213,6 +213,15 @@
             "groupName": "advanced"
         },
         {
+            "name": "failOnStdErr",
+            "type": "boolean",
+            "label": "Fail on STDERR",
+            "required": false,
+            "defaultValue": true,
+            "helpMarkDown": "If this option is selected, the task will fail when the remote commands or script write to STDERR.",
+            "groupName": "advanced"
+        },
+        {
             "name": "connectionAnsibleTower",
             "type": "connectedService:AnsibleTower",
              "label": "Tower endpoint",

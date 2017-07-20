@@ -5,6 +5,7 @@ var os = require('os');
 import util = require("util");
 import { AnsibleInterface } from './ansibleInterface';
 import * as ansibleUtils from './ansibleUtils';
+import {RemoteCommandOptions} from './ansibleUtils'
 
 var Ssh2Client = require('ssh2').Client;
 var Scp2Client = require('scp2');
@@ -22,6 +23,7 @@ export class AnsibleCommandLineInterface extends AnsibleInterface {
     private async sshRun() {
         var sshClientConnection: any;
         var cleanUpScriptCmd: string;
+        var remoteCmdOptions: RemoteCommandOptions = new RemoteCommandOptions();
 
         try {
             //read SSH endpoint input
@@ -63,6 +65,10 @@ export class AnsibleCommandLineInterface extends AnsibleInterface {
             var inventoryLocation: string = tl.getInput('inventories', true);
             var sudoEnabled: boolean = tl.getBoolInput('sudoEnabled', false);
             var args: string = tl.getInput('args', false);
+
+
+            var failOnStdErr : boolean = tl.getBoolInput('failOnStdErr');
+            remoteCmdOptions.failOnStdErr = failOnStdErr;
 
             var cleanupCmd: string[] = [];
 
@@ -142,12 +148,12 @@ export class AnsibleCommandLineInterface extends AnsibleInterface {
                     tl.debug('RemoteInventoryPath = ' + remoteInventoryPath);
 
                     let inventoryCmd: string = 'echo ' + '"' + content + '"' + ' > ' + remoteInventory;
-                    await ansibleUtils.runCommandOnRemoteMachine(inventoryCmd, sshClientConnection);
+                    await ansibleUtils.runCommandOnRemoteMachine(inventoryCmd, sshClientConnection, remoteCmdOptions);
 
                     let dynamicInventory: boolean = tl.getBoolInput('inventoryInlineDynamic', true);
 
                     if (dynamicInventory == true) {
-                        await ansibleUtils.runCommandOnRemoteMachine('chmod +x ' + remoteInventory, sshClientConnection);
+                        await ansibleUtils.runCommandOnRemoteMachine('chmod +x ' + remoteInventory, sshClientConnection, remoteCmdOptions);
                     }
 
                     remoteCommand = remoteCommand.concat(' -i ' + remoteInventory);
@@ -172,7 +178,7 @@ export class AnsibleCommandLineInterface extends AnsibleInterface {
 
                 tl.debug('Running ' + remoteCommand);
 
-                await ansibleUtils.runCommandOnRemoteMachine(remoteCommand, sshClientConnection);
+                await ansibleUtils.runCommandOnRemoteMachine(remoteCommand, sshClientConnection, remoteCmdOptions);
             }
         } catch (err) {
             tl.setResult(tl.TaskResult.Failed, err);
@@ -181,7 +187,7 @@ export class AnsibleCommandLineInterface extends AnsibleInterface {
             if (cleanupCmd && cleanupCmd.length > 0) {
                 try {
                     for (var i: number = 0; i < cleanupCmd.length; i++) {
-                        await ansibleUtils.runCommandOnRemoteMachine(cleanupCmd[i], sshClientConnection);
+                        await ansibleUtils.runCommandOnRemoteMachine(cleanupCmd[i], sshClientConnection, remoteCmdOptions);
                     }
                 } catch (err) {
                     tl.warning(tl.loc('RemoteFileCleanUpFailed', err));

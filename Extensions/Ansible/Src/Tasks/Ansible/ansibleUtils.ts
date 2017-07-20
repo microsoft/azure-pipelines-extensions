@@ -14,6 +14,10 @@ export function _writeLine(str): void {
     _outStream.write(str + os.EOL);
 }
 
+export class RemoteCommandOptions {
+    public failOnStdErr : boolean;
+}
+
 /**
 * Uses scp2 to copy a file to remote machine
 * @param scriptFile
@@ -58,11 +62,15 @@ export function setupSshClientConnection(sshConfig: any): Q.Promise<any> {
  * @param options
  * @returns {Promise<string>|Promise<T>}
  */
-export function runCommandOnRemoteMachine(command: string, sshClient: any): Q.Promise<string> {
+export function runCommandOnRemoteMachine(command: string, sshClient: any, options: RemoteCommandOptions): Q.Promise<string> {
     var defer = Q.defer<string>();
     var stdErrWritten: boolean = false;
 
-    var options = {failOnStdErr: true};
+    if(!options) {
+        tl.debug('Options not passed to runCommandOnRemoteMachine, setting defaults.');
+        var options = new RemoteCommandOptions();
+        options.failOnStdErr = true;
+    }
     
     var cmdToRun = command;
     tl.debug('cmdToRun = ' + cmdToRun);

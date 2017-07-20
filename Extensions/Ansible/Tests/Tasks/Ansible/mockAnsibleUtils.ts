@@ -3,6 +3,11 @@ import Q = require("q");
 export function _writeLine(str) {
     console.log(str);
 }
+
+export class RemoteCommandOptions {
+    public failOnStdErr : boolean;
+}
+
 export class DummyClient {
     constructor() {
         console.log("connection to dummy client established");
@@ -11,12 +16,14 @@ export class DummyClient {
         console.log("connection to dummy client terminated");
     }
 }
+
 export function setupSshClientConnection(cfg) {
     var defer = Q.defer<any>();
     var client = new this.DummyClient();
     defer.resolve(client);
     return defer.promise;
 }
+
 export function runCommandOnRemoteMachine(cmd: string, sshClient: any) {
     var defer = Q.defer<string>();
     this._writeLine("cmd run on remote machine = " + cmd);
@@ -44,6 +51,7 @@ export class WebRequest {
     public body: any;
     public headers: any;
 }
+
 export function beginRequest(request) {
     var paths = request.uri.split('/');
 
