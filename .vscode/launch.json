@@ -9,7 +9,7 @@
             "request": "launch",
             "preLaunchTask": "build",
             "name": "Launch Program",
-            "program": "${workspaceRoot}\\ItemLevelDownloader\\app.js",
+            "program": "${workspaceRoot}\\src\\task.js",
             "outFiles": [
                 "${workspaceRoot}/out/**/*.js"
             ]

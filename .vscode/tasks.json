@@ -6,7 +6,7 @@
         {
             "type": "typescript",
             "identifier": "build",
-            "tsconfig": "ItemLevelDownloader\\tsconfig.json",
+            "tsconfig": "src\\tsconfig.json",
             "group": {
                 "kind": "build",
                 "isDefault": true
