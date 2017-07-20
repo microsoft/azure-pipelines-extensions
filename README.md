@@ -7,4 +7,4 @@ ItemLevelDownloader is a generic framework which supports download of artifacts 
 To use ItemLevelDownloader in your tasks or app have a look at [task.ts](src/task.ts).
 
 ## Architecture
-<img src="https://cdn.rawgit.com/omeshp/ItemLevelDownloader/0e9159a3/src/sequence.svg" />
+<img src="https://cdn.rawgit.com/omeshp/ItemLevelDownloader/0e9159a3/src/sequence.svg" height=600 width=800/>
