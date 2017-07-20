@@ -137,7 +137,7 @@ Describe "Tests for testing Invoke-RemoteDeployment functionality" {
 
         It "Should process jobs in parallel and wait for their completion"{
             Assert-VerifiableMocks
-            ($errMsg) | Should Be "Deployment on one or more machines failed."
+            ($errMsg) | Should Be "Deployment on one or more machines failed. "
             Assert-MockCalled Write-Host -Times 8 -Exactly
         }
     }
