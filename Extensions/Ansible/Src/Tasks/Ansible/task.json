@@ -101,7 +101,7 @@
             "label": "Path",
             "defaultValue": "",
             "required": true,
-            "helpMarkDown": "Path of the playbook files on execute on the ansible machine.",
+            "helpMarkDown": "Path of the playbook file to execute on the ansible machine.",
             "visibleRule": "playbookSource = ansibleMachine",
             "groupName": "playbook"
         },

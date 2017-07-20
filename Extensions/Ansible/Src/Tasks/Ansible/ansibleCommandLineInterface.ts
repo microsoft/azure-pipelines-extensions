@@ -76,11 +76,11 @@ export class AnsibleCommandLineInterface extends AnsibleInterface {
 
             if (sshClientConnection) {
 
-                if(playbookSource == 'agentMachine') {
-                    
+                if (playbookSource == 'agentMachine') {
+
                     let playbookRoot: string = tl.getInput('playbookRoot', true);
                     let playbook: string = tl.getInput('playbookPathAgentMachine', true);
-                    
+
                     let remotePlaybookRoot = '/tmp/' + path.basename(playbookRoot);
                     let remotePlaybookRootPath = '"' + remotePlaybookRoot + '"';
                     tl.debug('ansiblePlaybookRootPath = ' + remotePlaybookRootPath);
@@ -90,27 +90,26 @@ export class AnsibleCommandLineInterface extends AnsibleInterface {
                     tl.debug('Copying playbook to ansible machine.');
                     await ansibleUtils.copyFileToRemoteMachine(playbookRoot, scpConfig);
 
-                    let remotePlaybookPath = remotePlaybookRoot + "/" + path.basename(playbook);
-
-                    remoteCommand = remoteCommand.concat(" " + remotePlaybookPath)
+                    var remotePlaybookPath = remotePlaybookRoot + "/" + path.basename(playbook);
 
                     cleanupCmd.push('rm -rf ' + remotePlaybookRoot);
 
-                } else if(playbookSource == 'ansibleMachine') {
+                } else if (playbookSource == 'ansibleMachine') {
 
-                    let playbook = tl.getInput('playbookPathAnsibleMachine', true);
-                    tl.debug('PlaybookPath = ' + playbook);
-                    remoteCommand = remoteCommand.concat(" " + playbook);
+                    var remotePlaybookPath = tl.getInput('playbookPathAnsibleMachine', true);
+                    tl.debug('PlaybookPath = ' + remotePlaybookPath);
 
                 }
 
-                if(inventoryLocation == 'file') {
-                    
-                    let inventoryFileSource = tl.getInput('inventoryFileSource', true);
-                    if(inventoryFileSource == 'agentMachine') {
-                        let inventoryFile: string = tl.getInput('inventoryFileAgentMachine', true);
+                remoteCommand = remoteCommand.concat(" " + remotePlaybookPath);
 
-                        let remoteInventory = '/tmp/' + path.basename(inventoryFile);
+                if (inventoryLocation == 'file') {
+
+                    let inventoryFileSource = tl.getInput('inventoryFileSource', true);
+                    if (inventoryFileSource == 'agentMachine') {
+
+                        let inventoryFile: string = tl.getInput('inventoryFileAgentMachine', true);
+                        var remoteInventory = '/tmp/' + path.basename(inventoryFile);
                         let remoteInventoryPath = '"' + remoteInventory + '"';
                         tl.debug('RemoteInventoryPath = ' + remoteInventoryPath);
 
@@ -123,23 +122,21 @@ export class AnsibleCommandLineInterface extends AnsibleInterface {
 
                         cleanupCmd.push('rm -f ' + remoteInventory);
 
-                    } else if(inventoryFileSource == 'ansibleMachine') {
-
-                        let inventoryFile: string = tl.getInput('inventoryFileAnsibleMachine', true);
-                        tl.debug('InventoryFile = ' + inventoryFile);
-                        remoteCommand = remoteCommand.concat(' -i ' + inventoryFile);
-
+                    } else if (inventoryFileSource == 'ansibleMachine') {
+                        var remoteInventory: string = tl.getInput('inventoryFileAnsibleMachine', true);
+                        tl.debug('InventoryFile = ' + remoteInventory);
                     }
-                } else if(inventoryLocation == 'hostList') {
+                    remoteCommand = remoteCommand.concat(' -i ' + remoteInventory);
+                } else if (inventoryLocation == 'hostList') {
 
                     let hostList = tl.getInput('inventoryHostList', true).trim();
                     tl.debug("Host List = " + hostList);
                     remoteCommand = remoteCommand.concat(' -i ' + hostList);
 
-                } else if(inventoryLocation == 'inlineContent') {
-                    
+                } else if (inventoryLocation == 'inlineContent') {
+
                     let content = tl.getInput('inventoryInlineContent', true).trim();
-                    
+
                     let remoteInventory = '/tmp/' + 'inventory.ini';
                     let remoteInventoryPath = '"' + remoteInventory + '"';
                     tl.debug('RemoteInventoryPath = ' + remoteInventoryPath);
@@ -148,20 +145,20 @@ export class AnsibleCommandLineInterface extends AnsibleInterface {
                     await ansibleUtils.runCommandOnRemoteMachine(inventoryCmd, sshClientConnection);
 
                     let dynamicInventory: boolean = tl.getBoolInput('inventoryInlineDynamic', true);
-                    
-                    if(dynamicInventory == true) {
+
+                    if (dynamicInventory == true) {
                         await ansibleUtils.runCommandOnRemoteMachine('chmod +x ' + remoteInventory, sshClientConnection);
                     }
 
-                   remoteCommand = remoteCommand.concat(' -i ' + remoteInventory);
-                   cleanupCmd.push('rm -f ' + remoteInventory);
+                    remoteCommand = remoteCommand.concat(' -i ' + remoteInventory);
+                    cleanupCmd.push('rm -f ' + remoteInventory);
 
                 }
 
-                if(sudoEnabled == true) {
+                if (sudoEnabled == true) {
 
                     let sudoUser = tl.getInput('sudoUser', false);
-                    if(!sudoUser || sudoUser.trim() == "") {
+                    if (!sudoUser || sudoUser.trim() == "") {
                         sudoUser = 'root';
                     }
                     tl.debug('Sudo User = ' + sudoUser);
@@ -169,8 +166,8 @@ export class AnsibleCommandLineInterface extends AnsibleInterface {
 
                 }
 
-                if(args && args.trim()) {
-                     remoteCommand = remoteCommand.concat(' ' + args.trim());
+                if (args && args.trim()) {
+                    remoteCommand = remoteCommand.concat(' ' + args.trim());
                 }
 
                 tl.debug('Running ' + remoteCommand);
@@ -183,7 +180,7 @@ export class AnsibleCommandLineInterface extends AnsibleInterface {
             //clean up script file if needed
             if (cleanupCmd && cleanupCmd.length > 0) {
                 try {
-                    for(var i:number = 0; i < cleanupCmd.length; i++) {
+                    for (var i: number = 0; i < cleanupCmd.length; i++) {
                         await ansibleUtils.runCommandOnRemoteMachine(cleanupCmd[i], sshClientConnection);
                     }
                 } catch (err) {
