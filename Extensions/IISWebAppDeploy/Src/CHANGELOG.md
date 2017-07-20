@@ -2,9 +2,9 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
-## [1.4.5] 2nd March 2017
+## [1.4.5] 24th July 2017
 ### Fixed
-- Fixing issue of not getting complete error logs for PS version 4.0
+- Fixing issue of surfacing inner exception for SQL task
 
 ## [1.4.4] 2nd March 2017
 ### Fixed
