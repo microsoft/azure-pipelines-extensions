@@ -6,24 +6,8 @@ import path = require("path");
 import querystring = require('querystring');
 import util = require("util");
 
-import { AnsibleInterface } from './AnsibleInterface';
-
-var httpClient = require('vso-node-api/HttpClient');
-var httpObj = new httpClient.HttpCallbackClient(tl.getVariable("AZURE_HTTP_USER_AGENT"));
-
-class WebRequest {
-    public method: string;
-    public uri: string;
-    public body: any;
-    public headers: any;
-}
-
-class WebResponse {
-    public statusCode: number;
-    public headers: any;
-    public body: any;
-    public statusMessage: string;
-}
+import { AnsibleInterface } from './ansibleInterface';
+import {WebRequest, WebResponse, beginRequest} from './ansibleUtils';
 
 export class AnsibleTowerInterface extends AnsibleInterface {
     constructor() {
@@ -94,8 +78,9 @@ export class AnsibleTowerInterface extends AnsibleInterface {
         var request = new WebRequest();
         request.method = 'GET';
         request.uri = util.format(this._jobTemplateIdUrlFormat, this._hostname, this._jobTemplateName);
-
-        var response = await this.beginRequest(request);
+        request.headers = this.getBasicRequestHeader();
+        
+        var response = await beginRequest(request);
         if (response.statusCode === 200) {
             jobTemplateId = response.body['results'][0]['id'];
         } else {
@@ -109,8 +94,9 @@ export class AnsibleTowerInterface extends AnsibleInterface {
         var request = new WebRequest();
         request.method = 'GET';
         request.uri = this.getJobApi(jobId);
-
-        var response = await this.beginRequest(request);
+        request.headers = this.getBasicRequestHeader();
+        
+        var response = await beginRequest(request);
         if (response.statusCode === 200) {
             status = response.body['status'];
         } else {
@@ -125,12 +111,12 @@ export class AnsibleTowerInterface extends AnsibleInterface {
         var pageNumber = Math.floor(lastDisplayedEvent / pageSize + 1);
         var request = new WebRequest();
         request.method = 'GET';
-
+        request.headers = this.getBasicRequestHeader();
         var jobEventUrl = this.getJobEventApi(jobId, pageSize, pageNumber);
 
         while (jobEventUrl) {
             request.uri = jobEventUrl;
-            var response = await this.beginRequest(request);
+            var response = await beginRequest(request);
             if (response.statusCode === 200) {
                 var totalEvents = response.body['count'];
                 var results: any[] = response.body['results'];
@@ -165,7 +151,8 @@ export class AnsibleTowerInterface extends AnsibleInterface {
                 var events = await this.getJobEvents(jobId, lastDisplayedEvent);
                 events.forEach((value, index) => {
                     lastDisplayedEvent = index;
-                    console.log(value, '\n');
+                    console.log(value);
+                    console.log();
                 });
             }
             if (this.isJobInTerminalState(status)) {
@@ -189,8 +176,9 @@ export class AnsibleTowerInterface extends AnsibleInterface {
         request.method = 'POST';
         request.uri = this.getJobLaunchApi();
         request.body = this.getEmptyRequestData();
+        request.headers = this.getBasicRequestHeader();
 
-        var response = await this.beginRequest(request);
+        var response = await beginRequest(request);
 
         if (response.statusCode === 201) {
             jobId = response.body['id'];
@@ -200,55 +188,10 @@ export class AnsibleTowerInterface extends AnsibleInterface {
         return jobId;
     }
 
-    private async beginRequest(request: WebRequest): Promise<WebResponse> {
-        request.headers = request.headers || {};
-        request.body = request.body || this.getEmptyRequestData();
-        request.headers["Authorization"] = "Basic " + new Buffer(this._username + ":" + this._password).toString('base64');
-
-        var httpResponse = await this.beginRequestInternal(request);
-        return httpResponse;
-    }
-
-    private beginRequestInternal(request: WebRequest): Promise<WebResponse> {
-        
-        tl.debug(util.format("[%s]%s", request.method, request.uri));
-
-        return new Promise<WebResponse>((resolve, reject) => {
-            httpObj.send(request.method, request.uri, request.body, request.headers, (error, response, body) => {
-                if (error) {
-                    reject(error);
-                }
-                else {
-                    var httpResponse = this.toWebResponse(response, body);
-                    resolve(httpResponse);
-                }
-            });
-        });
-    }
-
     private sleepFor(sleepDurationInSeconds): Promise<any> {
         return new Promise((resolve, reeject) => {
             setTimeout(resolve, sleepDurationInSeconds * 1000);
         });
-    }
-
-    private toWebResponse(response, body): WebResponse {
-        var res = new WebResponse();
-
-        if (response) {
-            res.statusCode = response.statusCode;
-            res.headers = response.headers;
-            res.statusMessage = response.statusMessage;
-            if (body) {
-                try {
-                    res.body = JSON.parse(body);
-                }
-                catch (error) {
-                    res.body = body;
-                }
-            }
-        }
-        return res;
     }
 
     private _jobLaunchUrlFormat: string = "%s/api/v1/job_templates/%s/launch/";
