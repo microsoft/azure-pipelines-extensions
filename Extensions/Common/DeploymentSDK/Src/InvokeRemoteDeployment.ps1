@@ -178,7 +178,7 @@ function Invoke-RemoteDeployment
             foreach ($error in $dtlsdkErrors) {
                 Write-Telemetry "DTLSDK_Error" $error
             }            
-            $errorMsg = 'Deployment on one or more machines failed.'
+            $errorMsg = [string]::Format("Deployment on one or more machines failed. {0}", $errorMsg)
         }
     }
     else

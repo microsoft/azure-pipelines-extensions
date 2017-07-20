@@ -124,7 +124,7 @@
       "properties": {
           "resizable": "true",
           "rows": "10"
-          },      
+          },
       "helpMarkDown": "Sql Queries inline"
     },
     {
@@ -235,7 +235,7 @@
       "defaultValue": "",
       "visibleRule": "TaskType = sqlQuery || TaskType = sqlInline",
       "helpMarkDown": "Additional Invoke-Sqlcmd arguments that will be applied when deploying the SQL Server database."
-    },    
+    },
     {
       "name": "DeployInParallel",
       "type": "boolean",
