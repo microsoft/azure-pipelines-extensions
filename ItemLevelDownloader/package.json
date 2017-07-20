@@ -8,11 +8,17 @@
     "email": "omeshp@microsoft.com"
   },
   "dependencies": {
+    "assert": "1.4.1",
     "handlebars": "4.0.10",
     "handlebars-helpers": "0.9.3",
+    "minimatch": "3.0.2",
     "mocha": "2.3.3",
-    "typescript": "1.8.7",
-    "assert": "1.4.1",
-    "minimatch": "3.0.2"
+    "typescript": "1.8.7"
+  },
+  "devDependencies": {
+    "@types/handlebars": "^3.0.28",
+    "@types/minimatch": "^2.0.29",
+    "@types/mocha": "^2.2.5",
+    "@types/node": "^8.0.14"
   }
 }

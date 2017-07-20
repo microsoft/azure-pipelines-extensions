@@ -1,7 +1,4 @@
-﻿/// <reference path="../../typings/globals/mocha/index.d.ts" />
-/// <reference path="../../typings/modules/chai/index.d.ts" />
-
-import * as mocha from "mocha";
+﻿import * as mocha from "mocha";
 import * as assert from "assert"
 
 import * as engine from "../Engine"
@@ -32,7 +29,7 @@ describe('fetchItems', () => {
     it('should call getArtifactItem only for artifact that match the download pattern', async () => {
         var testProvider = new TestProvider();
         var downloadOptions = new engine.FetchEngineOptions();
-        downloadOptions.downloadPattern = '*{path4,path5}*';
+        downloadOptions.downloadPattern = '*path{4,5}\\**';
 
         await new engine.FetchEngine().fetchItems(testProvider, "c:\\drop", downloadOptions);
 

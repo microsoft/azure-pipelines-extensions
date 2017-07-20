@@ -5,5 +5,5 @@ export class ArtifactItem {
     path: string;
     fileLength: number;
     lastModified: Date;
-    metaData: { [key: string]: string }
+    metadata: { [key: string]: string }
 }
