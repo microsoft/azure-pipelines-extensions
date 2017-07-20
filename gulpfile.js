@@ -22,7 +22,7 @@ var del = require('del');
 var gts = require('gulp-typescript');
 var gulp = require('gulp');
 var gutil = require('gulp-util');
-var nuget = require('gulp-nuget');
+var nuget = null;//require('gulp-nuget');
 var pkgm = require('./package');
 var typescript = require('typescript');
 var args   = require('yargs').argv;
@@ -296,6 +296,11 @@ gulp.task('copyTestData', ['compileTests'], function () {
         .pipe(gulp.dest(_testRoot+"\\Extensions"));
 });
 
+gulp.task('tstests', ['compileTests'], function () {
+    return gulp.src(['Extensions/**/Tests/**/*.ts', 'Extensions/**/Tests/**/*.json', 'Extensions/**/Tests/**/*.js'])
+        .pipe(gulp.dest(_testRoot+"\\Extensions"));
+});
+
 gulp.task('ps1tests', ['compileTests'], function () {
     return gulp.src(['Extensions/**/Tests/**/*.ps1', 'Extensions/**/Tests/**/*.json'])
         .pipe(gulp.dest(_testRoot+"\\Extensions"));
@@ -306,13 +311,14 @@ gulp.task('testLib_NodeModules', ['testLib'], function () {
         .pipe(gulp.dest(path.join(_testRoot, 'Extensions/Common/lib/node_modules/vsts-task-lib')));
 });
 
-gulp.task('testResources', ['testLib_NodeModules', 'ps1tests', 'copyTestData']);
+gulp.task('testResources', ['testLib_NodeModules', 'ps1tests', 'tstests', 'copyTestData']);
 
 gulp.task("_mochaTests", ["testResources"], function(){
     process.env['TASK_TEST_TEMP'] =path.join(__dirname, _testTemp);
     shell.rm('-rf', _testTemp);
     shell.mkdir('-p', _testTemp);
-    var suitePath = path.join(_testRoot,"Extensions/**/Tests/", options.suite + '/_suite.js');
+    var suitePath = path.join(_testRoot,"Extensions/" + options.suite + "/Tests/Tasks", options.suite + '/_suite.js');
+    console.log(suitePath);
     var tfBuild = ('' + process.env['TF_BUILD']).toLowerCase() == 'true'
     return gulp.src([suitePath])
         .pipe(mocha({ reporter: 'spec', ui: 'bdd', useColors: !tfBuild }));
