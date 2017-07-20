@@ -1,24 +1,25 @@
 1. Add the following capabilities to Fetch Engine
-    - parallization (done)
-    - retry (done)
-    - logging 
-    - cancellation
-    - partial download (done)
-    x incremental download
+    - [x] parallization
+    - [x] retry
+    - [x] partial download
+    - [ ] logging 
+    - [ ] cancellation
+    - [ ] incremental download
 
 2. Implement the following providers
-    - web provider
-    x fileshare provider
-    - stub provider for testing (in progress)
+    - [x] web provider
+    - [ ] fileshare provider
+    - [x] stub provider for testing
 
 3. Add the webprovider templates for the following services
-    - External Build
-    - Teamcity
+    - [x] Jenkins
+    - [ ] Teamcity
+    - [ ] External Build
 
 4. Add tests
-    - Setup testing framework (done)
-    - Add fetch engine tests
+    - [x] Setup testing framework
+    - [ ] Add fetch engine tests
 
-5. Publish package to npm gallery
+5. - [ ] Publish package to npm gallery
 
-6. Add localization support
+6. - [ ] Add localization support
