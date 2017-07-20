@@ -6,11 +6,11 @@ export class FileShareProvider implements models.IArtifactProvider {
         this._droplocation = droplocation;
     }
 
-    getArtifactItems(): Promise<Object[]> {
+    getArtifactItems(): Promise<models.ArtifactItem[]> {
         throw new Error("Not implemented");
     }
 
-    getArtifactItem(artifactItem: models.ArtifactItem): Promise<Stream.Stream> {
+    getArtifactItem(artifactItem: models.ArtifactItem): Promise<Stream.Readable> {
         throw new Error("Not implemented");
     }
 
