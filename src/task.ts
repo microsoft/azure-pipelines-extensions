@@ -20,8 +20,10 @@ async function main(): Promise<void> {
         "definition": "ArtifactJob",
         "version": "5"
     };
-
-    await downloader.fetchItems(new providers.WebProvider(itemsUrl, "jenkins.handlebars", "admin", "jenkins123", variables), "c:\\drop1", downloaderOptions);
+    
+    var webProvider = new providers.WebProvider(itemsUrl, "jenkins.handlebars", "admin", "jenkins123", variables);
+    
+    await downloader.fetchItems(webProvider, "c:\\drop1", downloaderOptions);
 }
 
 main();
