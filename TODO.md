@@ -24,4 +24,5 @@
 5. Others
     - [ ] Publish package to npm gallery
     - [ ] Setup CI
+    - [ ] Support proxy
     - [ ] Enable localization
