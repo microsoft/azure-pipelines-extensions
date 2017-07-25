@@ -3,6 +3,7 @@
     - [x] parallization
     - [x] retry
     - [x] partial download
+    - [x] level by level download
     - [ ] logging 
     - [ ] cancellation
     - [ ] incremental download
@@ -14,8 +15,8 @@
 
 3. Add the webprovider templates for the following services
     - [x] Jenkins
-    - [ ] Teamcity
-    - [ ] External Build
+    - [x] Teamcity
+    - [x] External Build
 
 4. Add tests
     - [x] Setup testing framework
