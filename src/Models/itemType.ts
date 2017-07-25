@@ -1,5 +1,5 @@
 ﻿export enum ItemType {
-    Any,
-    Folder,
-    File
+    Any = <any>"any",
+    Folder = <any>"folder",
+    File = <any>"file"
 }
