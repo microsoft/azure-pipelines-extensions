@@ -2,7 +2,7 @@
     "id": "6f650d20-9c5d-4cce-ad66-e68742ceadf5",
     "name": "Ansible",
     "friendlyName": "Ansible",
-    "description": "This task helps dev-ops to execute the ansible playbook using release management. It can execute the playbook using ansible tower, or take the playbook and inventory to execute via command line interface",
+    "description": "This task executes an Ansible playbook using a specified inventory via command line interface",
     "helpMarkDown": "[More Information](http://go.microsoft.com/fwlink/?LinkId=821892)",
     "category": "Deploy",
     "visibility": [
@@ -22,36 +22,47 @@
     "instanceNameFormat": "Run playbook",
     "groups": [
         {
-            "name": "playbook",
+            "name": "playbookRemoteMachine",
             "displayName": "Playbook",
             "isExpanded": true,
-            "visibleRule": "ansibleInterface = cli"
+            "visibleRule": "ansibleInterface = remoteMachine"
         },
         {
-            "name": "inventory",
+            "name": "inventoryRemoteMachine",
             "displayName": "Inventory",
             "isExpanded": true,
-            "visibleRule": "ansibleInterface = cli"
+            "visibleRule": "ansibleInterface = remoteMachine"
+        },
+        {
+            "name": "playbookAgentMachine",
+            "displayName": "Playbook",
+            "isExpanded": true,
+            "visibleRule": "ansibleInterface = agentMachine"
+        },
+        {
+            "name": "inventoryAgentMachine",
+            "displayName": "Inventory",
+            "isExpanded": true,
+            "visibleRule": "ansibleInterface = agentMachine"
         },
         {
             "name": "advanced",
             "displayName": "Advanced",
-            "isExpanded": true,
-            "visibleRule": "ansibleInterface = cli"
+            "isExpanded": true
         }
     ],
     "inputs": [
         {
             "name": "ansibleInterface",
-            "type": "pickList",
-            "label": "Execution target",
+            "type": "radio",
+            "label": "Ansible location",
             "required": true,
-            "defaultValue": "cli",
+            "defaultValue": "agentMachine",
             "options": {
-                "cli": "Command line on Ansible machine",
-                "ansibleTower": "Ansible Tower"
+                "remoteMachine": "Remote machine",
+                "agentMachine": "Agent machine"
             },
-            "helpMarkDown": "Select either command line execution on Ansible machine or Ansible tower execution to run playbook."
+            "helpMarkDown": "Select if Ansible client is on a remote machine or on the agent machine."
         },
         {
             "name": "connectionOverSsh",
@@ -59,12 +70,12 @@
              "label": "SSH endpoint",
             "defaultValue": "",
             "required": true,
-            "visibleRule": "ansibleInterface = cli",
-            "helpMarkDown": "Ansible machine endpoint"
+            "visibleRule": "ansibleInterface = remoteMachine",
+            "helpMarkDown": " Select the Ansible machine endpoint to be used to run the playbook"
         },
         {
-            "name": "playbookSource",
-            "type": "pickList",
+            "name": "playbookSourceRemoteMachine",
+            "type": "radio",
             "label": "Source",
             "defaultValue": "agentMachine",
             "options": {
@@ -72,43 +83,52 @@
                 "ansibleMachine": "Ansible machine"
             },
             "required": true,
-            "helpMarkDown": "Select agent machine, if playbook is located on automation agent. In this case playbook is copied to ansible machine. Otherwise, select ansible machine.",
-            "groupName": "playbook"
+            "helpMarkDown": "Select agent machine if playbook is part of a linked artifact and should be copied to the Ansible machine. Otherwise, select Ansible machine.",
+            "groupName": "playbookRemoteMachine"
         },
         {
-            "name": "playbookRoot",
+            "name": "playbookRootRemoteMachine",
             "type": "filePath",
             "label": "Root",
             "defaultValue": "",
             "required": true,
-            "helpMarkDown": "Root path of the playbook files on the automation agent. This is the folder where playbook and associated files are located. All the files in this folder will be copied to Ansible machine",
-            "visibleRule": "playbookSource = agentMachine",
-            "groupName": "playbook"
+            "helpMarkDown": "Working directory path where playbook and associated files are located on the agent machine. All the files in this folder will be copied to Ansible machine",
+            "visibleRule": "playbookSourceRemoteMachine = agentMachine",
+            "groupName": "playbookRemoteMachine"
         },
         {
-            "name": "playbookPathAgentMachine",
+            "name": "playbookPathLinkedArtifactOnRemoteMachine",
             "type": "filePath",
             "label": "Path",
             "defaultValue": "",
             "required": true,
-            "helpMarkDown": "Path to the playbook file to execute on the automation agent.",
-            "visibleRule": "playbookSource = agentMachine",
-            "groupName": "playbook"
+            "helpMarkDown": "Path to the playbook file to be executed on the Ansible machine.",
+            "visibleRule": "playbookSourceRemoteMachine = agentMachine",
+            "groupName": "playbookRemoteMachine"
         },
         {
-            "name": "playbookPathAnsibleMachine",
+            "name": "playbookPathAnsibleMachineOnRemoteMachine",
             "type": "string",
             "label": "Path",
             "defaultValue": "",
             "required": true,
-            "helpMarkDown": "Path of the playbook file to execute on the ansible machine.",
-            "visibleRule": "playbookSource = ansibleMachine",
-            "groupName": "playbook"
+            "helpMarkDown": "Path of the playbook file to be executed on the Ansible machine.",
+            "visibleRule": "playbookSourceRemoteMachine = ansibleMachine",
+            "groupName": "playbookRemoteMachine"
         },
         {
-            "name": "inventories",
+            "name": "playbookPathOnAgentMachine",
+            "type": "filePath",
+            "label": "Path",
+            "defaultValue": "",
+            "required": true,
+            "helpMarkDown": "Path of the playbook file to be executed on the Ansible machine.",
+            "groupName": "playbookAgentMachine"
+        },
+        {
+            "name": "inventoriesRemoteMachine",
             "type": "pickList",
-            "label": "Inventory",
+            "label": "Inventory location",
             "defaultValue": "noInventory",
             "options": {
                 "noInventory": "Do not specify inventory",
@@ -117,72 +137,127 @@
                 "inlineContent": "Inline"
             },
             "required": true,
-            "helpMarkDown": "Select the source of inventories",
-            "groupName": "inventory"
+            "helpMarkDown": "Select the source of inventory",
+            "groupName": "inventoryRemoteMachine"
         },
         {
-            "name": "inventoryFileSource",
-            "type": "pickList",
-            "label": "Source",
+            "name": "inventoryFileSourceRemoteMachine",
+            "type": "radio",
+            "label": "File source",
             "defaultValue": "agentMachine",
             "options": {
                 "agentMachine": "Agent machine",
                 "ansibleMachine": "Ansible machine"
             },
             "required": true,
-            "helpMarkDown": "Specify the location of inventory either on agent machine or ansible machine",
-            "visibleRule": "inventories = file",
-            "groupName": "inventory"
+            "helpMarkDown": "Specify if the location of inventory file is on agent machine or Ansible machine",
+            "visibleRule": "inventoriesRemoteMachine = file",
+            "groupName": "inventoryRemoteMachine"
         },
         {
-            "name": "inventoryFileAgentMachine",
+            "name": "inventoryFileLinkedArtifactOnRemoteMachine",
             "type": "filePath",
-            "label": "Path",
+            "label": "File path",
             "defaultValue": "",
             "required": true,
-            "helpMarkDown": "Specify the path to inventory host file on automation agent.",
-            "visibleRule": "inventoryFileSource = agentMachine",
-            "groupName": "inventory"
+            "helpMarkDown": "Specify the path to inventory host file on agent machine.",
+            "visibleRule": "inventoryFileSourceRemoteMachine = agentMachine",
+            "groupName": "inventoryRemoteMachine"
         },
         {
-            "name": "inventoryFileAnsibleMachine",
+            "name": "inventoryFileAnsibleMachineOnRemoteMachine",
             "type": "string",
-            "label": "Path",
+            "label": "File path",
             "defaultValue": "",
             "required": true,
-            "helpMarkDown": "Specify the path to inventory host file on ansible machine",
-            "visibleRule": "inventoryFileSource = ansibleMachine",
-            "groupName": "inventory"
+            "helpMarkDown": "Specify the path to inventory host file on Ansible machine",
+            "visibleRule": "inventoryFileSourceRemoteMachine = ansibleMachine",
+            "groupName": "inventoryRemoteMachine"
         },
         {
-            "name": "inventoryHostList",
+            "name": "inventoryHostListRemoteMachine",
+            "type": "string",
+            "label": "Host list",
+            "defaultValue": "",
+            "required": true,
+            "helpMarkDown": "Specify a list of comma separated hosts",
+            "visibleRule": "inventoriesRemoteMachine = hostList",
+            "groupName": "inventoryRemoteMachine"
+        },
+        {
+            "name": "inventoryInlineDynamicRemoteMachine",
+            "type": "boolean",
+            "label": "Dynamic inventory",
+            "defaultValue": false,
+            "required": false,
+            "helpMarkDown": "Check this box if dynamic inventory is used. For more details see the Ansible documentation",
+            "visibleRule": "inventoriesRemoteMachine = inlineContent",
+            "groupName": "inventoryRemoteMachine"
+        },
+        {
+            "name": "inventoryInlineContentRemoteMachine",
+            "type": "multiLine",
+            "label": "Content",
+            "defaultValue": "",
+            "required": true,
+            "helpMarkDown": "Mention inventory inline",
+            "visibleRule": "inventoriesRemoteMachine = inlineContent",
+            "groupName": "inventoryRemoteMachine"
+        },  
+        {
+            "name": "inventoriesAgentMachine",
+            "type": "pickList",
+            "label": "Inventory location",
+            "defaultValue": "noInventory",
+            "options": {
+                "noInventory": "Do not specify inventory",
+                "file": "File",
+                "hostList": "Host list",
+                "inlineContent": "Inline"
+            },
+            "required": true,
+            "helpMarkDown": "Select the source of inventory",
+            "groupName": "inventoryAgentMachine"
+        },
+        {
+            "name": "inventoryFileOnAgentMachine",
+            "type": "filePath",
+            "label": "File path",
+            "defaultValue": "",
+            "required": true,
+            "helpMarkDown": "Specify the path to inventory host file on agent machine.",
+            "visibleRule": "inventoriesAgentMachine = file",
+            "groupName": "inventoryAgentMachine"
+        },
+        {
+            "name": "inventoryHostListAgentMachine",
             "type": "string",
             "label": "Host list",
             "defaultValue": "",
             "required": true,
             "helpMarkDown": "Specify the comma separated host list",
-            "visibleRule": "inventories = hostList",
-            "groupName": "inventory"
+            "visibleRule": "inventoriesAgentMachine = hostList",
+            "groupName": "inventoryAgentMachine"
         },
         {
-            "name": "inventoryInlineDynamic",
+            "name": "inventoryInlineDynamicAgentMachine",
             "type": "boolean",
             "label": "Dynamic inventory",
             "defaultValue": false,
             "required": false,
-            "helpMarkDown": "Check this box if a dynamic inventory is used. For more details see the ansible documentation for Dynamic Inventory",
-            "visibleRule": "inventories = inlineContent",
-            "groupName": "inventory"
+            "helpMarkDown": "Check this box if dynamic inventory is used. For more details see the Ansible documentation",
+            "visibleRule": "inventoriesAgentMachine = inlineContent",
+            "groupName": "inventoryAgentMachine"
         },
         {
-            "name": "inventoryInlineContent",
+            "name": "inventoryInlineContentAgentMachine",
             "type": "multiLine",
             "label": "Content",
             "defaultValue": "",
             "required": true,
             "helpMarkDown": "Mention Inventories inline",
-            "visibleRule": "inventories = inlineContent",
-            "groupName": "inventory"
+            "visibleRule": "inventoriesAgentMachine = inlineContent",
+            "groupName": "inventoryAgentMachine"
         },  
         {
             "name": "sudoEnabled",
@@ -190,7 +265,7 @@
             "label": "Sudo",
             "defaultValue": false,
             "required": false,
-            "helpMarkDown": "Run operations with sudo. It works only when the ansible user is sudoer with nopasswd option.",
+            "helpMarkDown": "Run operations with sudo. It works only when the Ansible user is sudoer with nopasswd option.",
             "groupName": "advanced"
         },     
         {
@@ -206,10 +281,10 @@
         {
             "name": "args",
             "type": "multiLine",
-            "label": "Additional Parameters",
+            "label": "Additional parameters",
             "defaultValue": "",
             "required": false,
-            "helpMarkDown": "Any additional parameters to pass to the ansible command. The content of this textbox will be passed as is to the command line",
+            "helpMarkDown": "Any additional parameters to pass to the Ansible command. The content of this textbox will be passed as is to the command line",
             "groupName": "advanced"
         },
         {
@@ -256,14 +331,19 @@
     "messages": {
         "UseDefaultPort": "Using port 22 which is the default for SSH since no port was specified.",
         "SettingUpSshConnection": "Trying to setup SSH connection to %s@%s:%s",
-        "ConnectionFailed": "Failed to connect to ansible machine. Verify the SSH endpoint details. Error: %s.",
-        "RemoteCopyFailed": "Failed to copy script to ansible machine. Error: %s.",
-        "RemoteCmdExecutionErr": "Command failed with errors on ansible machine.",
+        "ConnectionFailed": "Failed to connect to Ansible machine. Verify the SSH endpoint details. Error: %s.",
+        "RemoteCopyFailed": "Failed to copy script to Ansible machine. Error: %s.",
+        "RemoteCmdExecutionErr": "Command failed with errors on Ansible machine.",
         "RemoteCmdNonZeroExitCode": "Command %s exited with code %s.",
-        "RemoteFileCleanUpFailed": "Failed to delete the script file copied to the ansible machine. Error = %s.",
+        "RemoteFileCleanUpFailed": "Failed to delete the script file copied to the Ansible machine. Error: %s.",
         "JobTemplateNotPresent": "Failed to locate job template. Job template with name %s is not present.",
-        "Ansible_ConstructorFailed": "Cannot initialize ansible: %s.",
+        "Ansible_ConstructorFailed": "Cannot initialize Ansible: %s.",
         "FailedToGetJobDetails": "Failed to get job details. Ansible returns with error code %s and message %s.",
-        "CouldnotLaunchJob": "Failed to launch job. Ansible returns with error code %s and message %s."
+        "CouldnotLaunchJob": "Failed to launch job. Ansible returns with error code %s and message %s.",
+        "AgentOnWindowsMachine": "Both agent and Ansible should be on linux machine",
+        "AnisbleNotPresent": "Could not locate Ansible. Either it is not installed or its path is not present on ENVIRONMENT PATH variable",
+        "PlaybookRootNotDirectory": "Playbook root %s should be a directory",
+        "PlaybookNotPresent": "Playbook file %s doesn't exist inside playbook root directory %s",
+        "InventoryFileNotPresent": "Inventory file %s doest not exist"
     }
 }

@@ -1,5 +1,5 @@
 
-export class AnsibleInterface {
+export class ansibleInterface {
     constructor() {
     }
     public async execute() {
