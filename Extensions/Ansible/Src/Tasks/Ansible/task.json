@@ -59,19 +59,20 @@
             "required": true,
             "defaultValue": "agentMachine",
             "options": {
-                "remoteMachine": "Remote machine",
-                "agentMachine": "Agent machine"
+                "agentMachine": "Agent machine",
+				"remoteMachine": "Remote machine"
+                
             },
-            "helpMarkDown": "Select if Ansible client is on a remote machine or on the agent machine."
+            "helpMarkDown": "Select if Ansible automation engine is installed on a remote machine or on a private agent machine."
         },
         {
             "name": "connectionOverSsh",
             "type": "connectedService:ssh",
-             "label": "SSH endpoint",
+             "label": "Ansible SSH endpoint",
             "defaultValue": "",
             "required": true,
             "visibleRule": "ansibleInterface = remoteMachine",
-            "helpMarkDown": " Select the Ansible machine endpoint to be used to run the playbook"
+            "helpMarkDown": " Ansible communicates with remote machines over SSH. Select the SSH endpoint to be used to run the Ansible playbook"
         },
         {
             "name": "playbookSourceRemoteMachine",
@@ -92,37 +93,37 @@
             "label": "Root",
             "defaultValue": "",
             "required": true,
-            "helpMarkDown": "Working directory path where playbook and associated files are located on the agent machine. All the files in this folder will be copied to Ansible machine",
+            "helpMarkDown": "Specify the working directory path where playbook and associated files are located on the agent machine. All the files in this folder will be copied to Ansible machine.",
             "visibleRule": "playbookSourceRemoteMachine = agentMachine",
             "groupName": "playbookRemoteMachine"
         },
         {
             "name": "playbookPathLinkedArtifactOnRemoteMachine",
             "type": "filePath",
-            "label": "Path",
+            "label": "File path",
             "defaultValue": "",
             "required": true,
-            "helpMarkDown": "Path to the playbook file to be executed on the Ansible machine.",
+            "helpMarkDown": "Specify the path to the playbook file to be executed on the Ansible machine. [Playbooks](http://docs.ansible.com/ansible/latest/playbooks.html) declare Ansible’s configuration, deployment, and orchestration steps in YAML format.",
             "visibleRule": "playbookSourceRemoteMachine = agentMachine",
             "groupName": "playbookRemoteMachine"
         },
         {
             "name": "playbookPathAnsibleMachineOnRemoteMachine",
             "type": "string",
-            "label": "Path",
+            "label": "File path",
             "defaultValue": "",
             "required": true,
-            "helpMarkDown": "Path of the playbook file to be executed on the Ansible machine.",
+            "helpMarkDown": "Specify the path to the playbook file to be executed on the Ansible machine. [Playbooks](http://docs.ansible.com/ansible/latest/playbooks.html) declare Ansible’s configuration, deployment, and orchestration steps in YAML format.",
             "visibleRule": "playbookSourceRemoteMachine = ansibleMachine",
             "groupName": "playbookRemoteMachine"
         },
         {
             "name": "playbookPathOnAgentMachine",
             "type": "filePath",
-            "label": "Path",
+            "label": "File path",
             "defaultValue": "",
             "required": true,
-            "helpMarkDown": "Path of the playbook file to be executed on the Ansible machine.",
+            "helpMarkDown": "Specify the path to the playbook file to be executed on the Ansible machine. [Playbooks](http://docs.ansible.com/ansible/latest/playbooks.html) declare Ansible’s configuration, deployment, and orchestration steps in YAML format.",
             "groupName": "playbookAgentMachine"
         },
         {
@@ -131,13 +132,13 @@
             "label": "Inventory location",
             "defaultValue": "noInventory",
             "options": {
-                "noInventory": "Do not specify inventory",
+                "noInventory": "Use default inventory file",
                 "file": "File",
                 "hostList": "Host list",
                 "inlineContent": "Inline"
             },
             "required": true,
-            "helpMarkDown": "Select the source of inventory",
+            "helpMarkDown": "Select the source of Ansible's [inventory](http://docs.ansible.com/ansible/latest/intro_inventory.html)",
             "groupName": "inventoryRemoteMachine"
         },
         {
@@ -150,7 +151,7 @@
                 "ansibleMachine": "Ansible machine"
             },
             "required": true,
-            "helpMarkDown": "Specify if the location of inventory file is on agent machine or Ansible machine",
+            "helpMarkDown": "Specify if the location of [inventory](http://docs.ansible.com/ansible/latest/intro_inventory.html) file is on agent machine or Ansible machine",
             "visibleRule": "inventoriesRemoteMachine = file",
             "groupName": "inventoryRemoteMachine"
         },
@@ -160,7 +161,7 @@
             "label": "File path",
             "defaultValue": "",
             "required": true,
-            "helpMarkDown": "Specify the path to inventory host file on agent machine.",
+            "helpMarkDown": "Specify the path to [inventory](http://docs.ansible.com/ansible/latest/intro_inventory.html) host file on agent machine.",
             "visibleRule": "inventoryFileSourceRemoteMachine = agentMachine",
             "groupName": "inventoryRemoteMachine"
         },
@@ -170,7 +171,7 @@
             "label": "File path",
             "defaultValue": "",
             "required": true,
-            "helpMarkDown": "Specify the path to inventory host file on Ansible machine",
+            "helpMarkDown": "Specify the path to [inventory](http://docs.ansible.com/ansible/latest/intro_inventory.html) host file on Ansible machine",
             "visibleRule": "inventoryFileSourceRemoteMachine = ansibleMachine",
             "groupName": "inventoryRemoteMachine"
         },
@@ -180,7 +181,7 @@
             "label": "Host list",
             "defaultValue": "",
             "required": true,
-            "helpMarkDown": "Specify a list of comma separated hosts",
+            "helpMarkDown": "Specify a list of comma separated hosts. Example - foo.example.com, bar.example.com. If you have hosts that run on non-standard SSH ports you can put the port number after the hostname with a colon.",
             "visibleRule": "inventoriesRemoteMachine = hostList",
             "groupName": "inventoryRemoteMachine"
         },
@@ -190,7 +191,7 @@
             "label": "Dynamic inventory",
             "defaultValue": false,
             "required": false,
-            "helpMarkDown": "Check this box if dynamic inventory is used. For more details see the Ansible documentation",
+            "helpMarkDown": "Check this box if [dynamic inventory](http://docs.ansible.com/ansible/latest/intro_dynamic_inventory.html) is used.",
             "visibleRule": "inventoriesRemoteMachine = inlineContent",
             "groupName": "inventoryRemoteMachine"
         },
@@ -200,7 +201,7 @@
             "label": "Content",
             "defaultValue": "",
             "required": true,
-            "helpMarkDown": "Mention inventory inline",
+            "helpMarkDown": "Specify [inventory](http://docs.ansible.com/ansible/latest/intro_inventory.html) inline",
             "visibleRule": "inventoriesRemoteMachine = inlineContent",
             "groupName": "inventoryRemoteMachine"
         },  
@@ -210,13 +211,13 @@
             "label": "Inventory location",
             "defaultValue": "noInventory",
             "options": {
-                "noInventory": "Do not specify inventory",
+                "noInventory": "Use default inventory file",
                 "file": "File",
                 "hostList": "Host list",
                 "inlineContent": "Inline"
             },
             "required": true,
-            "helpMarkDown": "Select the source of inventory",
+            "helpMarkDown": "Select the source of [inventory](http://docs.ansible.com/ansible/latest/intro_inventory.html) ",
             "groupName": "inventoryAgentMachine"
         },
         {
@@ -225,7 +226,7 @@
             "label": "File path",
             "defaultValue": "",
             "required": true,
-            "helpMarkDown": "Specify the path to inventory host file on agent machine.",
+            "helpMarkDown": "Specify the path to [inventory](http://docs.ansible.com/ansible/latest/intro_inventory.html)  host file on agent machine.",
             "visibleRule": "inventoriesAgentMachine = file",
             "groupName": "inventoryAgentMachine"
         },
@@ -235,7 +236,7 @@
             "label": "Host list",
             "defaultValue": "",
             "required": true,
-            "helpMarkDown": "Specify the comma separated host list",
+            "helpMarkDown": "Specify a list of comma separated hosts. Example - foo.example.com, bar.example.com. If you have hosts that run on non-standard SSH ports you can put the port number after the hostname with a colon.",
             "visibleRule": "inventoriesAgentMachine = hostList",
             "groupName": "inventoryAgentMachine"
         },
@@ -245,7 +246,7 @@
             "label": "Dynamic inventory",
             "defaultValue": false,
             "required": false,
-            "helpMarkDown": "Check this box if dynamic inventory is used. For more details see the Ansible documentation",
+            "helpMarkDown": "Check this box if dynamic inventory](http://docs.ansible.com/ansible/latest/intro_dynamic_inventory.html) is used.",
             "visibleRule": "inventoriesAgentMachine = inlineContent",
             "groupName": "inventoryAgentMachine"
         },
@@ -255,7 +256,7 @@
             "label": "Content",
             "defaultValue": "",
             "required": true,
-            "helpMarkDown": "Mention Inventories inline",
+            "helpMarkDown": "Specify [inventory](http://docs.ansible.com/ansible/latest/intro_inventory.html) inline",
             "visibleRule": "inventoriesAgentMachine = inlineContent",
             "groupName": "inventoryAgentMachine"
         },  
