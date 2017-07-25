@@ -2,6 +2,8 @@
 import {Readable} from "stream";
 
 export interface IArtifactProvider {
-    getArtifactItems(): Promise<ArtifactItem[]>;
+
+    getRootItems(): Promise<ArtifactItem[]>;
+    getArtifactItems(artifactItem: ArtifactItem): Promise<ArtifactItem[]>;
     getArtifactItem(artifactItem: ArtifactItem): Promise<Readable>;
 }

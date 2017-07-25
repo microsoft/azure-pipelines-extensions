@@ -21,8 +21,22 @@ async function main(): Promise<void> {
         "version": "5"
     };
     
-    var webProvider = new providers.WebProvider(itemsUrl, "jenkins.handlebars", "admin", "jenkins123", variables);
+    var webProvider = new providers.WebProvider(itemsUrl, "jenkins.handlebars", "", "", variables);
+
+
+    itemsUrl = "https://panditaomesh.visualstudio.com/_apis/resources/Containers/573756?itemPath=sources&isShallow=true"
+    var vstsVariables = {};
+    var webProvider = new providers.WebProvider(itemsUrl, "vsts.handlebars", "", "", vstsVariables);
     
+    itemsUrl = "https://teamcity.jetbrains.com/httpAuth/app/rest/builds/id:1111970/artifacts/children/"
+    var teamcityVariables = {
+        "endpoint": {
+            "url": "https://teamcity.jetbrains.com"
+        },
+        "version": "12345"
+    };
+    var webProvider = new providers.WebProvider(itemsUrl, "teamcity.handlebars", "", "", teamcityVariables);
+
     await downloader.fetchItems(webProvider, "c:\\drop1", downloaderOptions);
 }
 

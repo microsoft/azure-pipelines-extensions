@@ -8,11 +8,21 @@
             "type": "node",
             "request": "launch",
             "preLaunchTask": "build",
-            "name": "Launch Program",
+            "name": "Run task.ts",
             "program": "${workspaceRoot}\\src\\task.js",
             "outFiles": [
                 "${workspaceRoot}/out/**/*.js"
             ]
+        },
+        {
+            "name": "Run mocha",
+            "type": "node",
+            "request": "launch",
+            "program": "${workspaceRoot}/src/node_modules/mocha/bin/_mocha",
+            "stopOnEntry": false,
+            "args": ["src/**/*Tests.js"],
+            "runtimeExecutable": null,
+            "env": { "NODE_ENV": "production"}
         }
     ]
 }

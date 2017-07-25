@@ -3,7 +3,7 @@ import * as models from "../Models"
 export class ArtifactItemStore {
     _downloadTickets: models.ArtifactDownloadTicket[] = [];
 
-    public add(item: models.ArtifactItem) {
+    public addItem(item: models.ArtifactItem) {
         if (this._downloadTickets.find(x => x.artifactItem.path === item.path)) {
             return;
         }
@@ -16,6 +16,12 @@ export class ArtifactItemStore {
         };
 
         this._downloadTickets.push(artifactDownloadTicket);
+    }
+
+    public addItems(items: models.ArtifactItem[]): void {
+        items.map((value: models.ArtifactItem, index: number) => {
+            this.addItem(value);
+        });
     }
 
     public getNextItemToProcess(): models.ArtifactItem | undefined {

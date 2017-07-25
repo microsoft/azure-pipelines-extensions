@@ -6,6 +6,10 @@ export class FileShareProvider implements models.IArtifactProvider {
         this._droplocation = droplocation;
     }
 
+    getRootItems(): Promise<models.ArtifactItem[]> {
+        throw new Error("Method not implemented.");
+    }
+    
     getArtifactItems(): Promise<models.ArtifactItem[]> {
         throw new Error("Not implemented");
     }

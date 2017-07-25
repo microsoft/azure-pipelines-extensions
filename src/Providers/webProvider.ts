@@ -3,24 +3,45 @@ import * as https from 'https';
 import * as url from 'url';
 import * as fs from 'fs';
 import * as path from 'path';
+import * as Stream from 'stream';
 
 import * as handlebars from 'handlebars';
 
 import * as models from '../Models';
-import * as Stream from 'stream';
 
 export class WebProvider implements models.IArtifactProvider {
-    constructor(itemsUrl: string, templateFile: string, username: string, password: string, variables: any) {
-        this._itemsUrl = itemsUrl;
+
+    constructor(rootItemsLocation, templateFile: string, username: string, password: string, variables: any) {
+        this._rootItemsLocation = rootItemsLocation;
         this._templateFile = templateFile;
         this._username = username;
         this._password = password;
         this._variables = variables;
     }
 
-    getArtifactItems(): Promise<models.ArtifactItem[]> {
+    getRootItems(): Promise<models.ArtifactItem[]> {
+        return this.getItems(this._rootItemsLocation);
+    }
+
+    getArtifactItems(artifactItem: models.ArtifactItem): Promise<models.ArtifactItem[]> {
+        var itemsUrl = artifactItem.metadata["downloadUrl"];
+        return this.getItems(itemsUrl);
+    }
+
+    getArtifactItem(artifactItem: models.ArtifactItem): Promise<Stream.Readable> {
+        var promise = new Promise<Stream.Readable>((resolve, reject) => {
+            var itemUrl: string = artifactItem.metadata['downloadUrl'];
+            this.getRequestHandler(itemUrl).get(this.getRequestOptions(itemUrl), (resp) => {
+                resolve(resp);
+            });
+        });
+
+        return promise;
+    }
+
+    private getItems(itemsUrl: string): Promise<models.ArtifactItem[]> {
         var promise = new Promise<models.ArtifactItem[]>((resolve, reject) => {
-            this.getRequestHandler(this._itemsUrl).get(this.getRequestOptions(this._itemsUrl), (resp) => {
+            this.getRequestHandler(itemsUrl).get(this.getRequestOptions(itemsUrl), (resp) => {
                 var body = '';
                 resp.setEncoding('utf8');
                 resp.on('data', (chunk) => {
@@ -29,33 +50,19 @@ export class WebProvider implements models.IArtifactProvider {
                     console.log('Error ' + e);
                     reject(e);
                 }).on('end', () => {
-                    fs.readFile(this.getTemplateFilePath(), 'utf8', (err,data) => {
+                    fs.readFile(this.getTemplateFilePath(), 'utf8', (err, data) => {
                         if (err) {
                             console.log(err);
                             reject(err);
                         }
                         var template = handlebars.compile(data);
-                        console.log(data);
-                        console.log('Response body: ' + body);         
                         var response = JSON.parse(body);
                         var context = this.extend({}, response, this._variables)
                         var result = template(context);
                         var items = JSON.parse(result);
                         resolve(items);
-                        console.log('Response json: ' + response);   
-                    });             
+                    });
                 })
-            });
-        });
-
-        return promise;
-    }
-
-    getArtifactItem(artifactItem: models.ArtifactItem): Promise<Stream.Readable> {
-        var promise = new Promise<Stream.Readable>((resolve, reject) => {
-            var itemUrl: string = artifactItem.metadata['downloadUrl'];
-            this.getRequestHandler(itemUrl).get(this.getRequestOptions(itemUrl), (resp) => {
-                resolve(resp);
             });
         });
 
@@ -80,7 +87,8 @@ export class WebProvider implements models.IArtifactProvider {
             'hostname': url.parse(inputUrl).hostname,
             'port': url.parse(inputUrl).port,
             'auth': this._username + ":" + this._password,
-            'path': inputUrl
+            'path': inputUrl,
+            'headers': { 'Accept': 'application/json' }
         }
 
         return options;
@@ -96,7 +104,7 @@ export class WebProvider implements models.IArtifactProvider {
         return target;
     }
 
-    private _itemsUrl: string;
+    private _rootItemsLocation: string;
     private _templateFile: string;
     private _username: string;
     private _password: string;

@@ -6,26 +6,40 @@ import * as models from '../Models';
 import * as providers from '../Providers';
 import { ArtifactItemStore } from '../Store/artifactItemStore';
 
-describe('artifactItemStore.add', () => {
+describe('artifactItemStore.addItem', () => {
     it('should add artifact item to the artifact store', () => {
         var artifactItemStore = new ArtifactItemStore();
 
-        artifactItemStore.add(new models.ArtifactItem());
+        artifactItemStore.addItem(new models.ArtifactItem());
 
         assert.equal(artifactItemStore.size(), 1);
     });
 });
 
-describe('artifactItemStore.add', () => {
+describe('artifactItemStore.addItem', () => {
     it('should not re-add same artifact item to the artifact store', () => {
         var artifactItemStore = new ArtifactItemStore();
         var artifactItem = new models.ArtifactItem();
         artifactItem.path = "path1";
 
-        artifactItemStore.add(artifactItem);
-        artifactItemStore.add(artifactItem);
+        artifactItemStore.addItem(artifactItem);
+        artifactItemStore.addItem(artifactItem);
 
         assert.equal(artifactItemStore.size(), 1);
+    });
+});
+
+describe('artifactItemStore.addItems', () => {
+    it('should add artifact items to the artifact store', () => {
+        var artifactItemStore = new ArtifactItemStore();
+        var artifactItem1 = new models.ArtifactItem();
+        artifactItem1.path = "path1";
+        var artifactItem2 = new models.ArtifactItem();
+        artifactItem2.path = "path2";
+
+        artifactItemStore.addItems([artifactItem1, artifactItem2]);
+
+        assert.equal(artifactItemStore.size(), 2);
     });
 });
 
@@ -35,7 +49,7 @@ describe('artifactItemStore.getNextItemToProcess', () => {
         var artifactItem = new models.ArtifactItem();
         artifactItem.path = "path1";
 
-        artifactItemStore.add(artifactItem);
+        artifactItemStore.addItem(artifactItem);
 
         assert.equal(artifactItemStore.getNextItemToProcess().path, artifactItem.path);
     });
@@ -58,8 +72,8 @@ describe('artifactItemStore.getNextItemToProcess', () => {
         artifactItem1.path = "path1";
         var artifactItem2 = new models.ArtifactItem();
         artifactItem2.path = "path2";
-        artifactItemStore.add(artifactItem1);
-        artifactItemStore.add(artifactItem2);
+        artifactItemStore.addItem(artifactItem1);
+        artifactItemStore.addItem(artifactItem2);
 
         artifactItemStore.getNextItemToProcess();
 
@@ -72,7 +86,7 @@ describe('artifactItemStore.getNextItemToProcess', () => {
         var artifactItemStore = new ArtifactItemStore();
         var artifactItem1 = new models.ArtifactItem();
         artifactItem1.path = "path1";
-        artifactItemStore.add(artifactItem1);
+        artifactItemStore.addItem(artifactItem1);
 
         artifactItemStore.getNextItemToProcess();
 
@@ -85,7 +99,7 @@ describe('artifactItemStore.markAsProcessed', () => {
         var artifactItemStore = new ArtifactItemStore();
         var artifactItem1 = new models.ArtifactItem();
         artifactItem1.path = "path1";
-        artifactItemStore.add(artifactItem1);
+        artifactItemStore.addItem(artifactItem1);
 
         artifactItemStore.markAsProcessed(artifactItem1);
 

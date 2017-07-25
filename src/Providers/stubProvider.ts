@@ -1,13 +1,36 @@
-﻿import * as models from "../Models"
-import * as Stream from "stream";
+﻿import * as Stream from 'stream';
+
+import * as models from '../Models';
+import { ItemType } from '../Models';
 
 export class StubProvider implements models.IArtifactProvider {
-    
-    async getArtifactItems(): Promise<models.ArtifactItem[]> {
-        return [this.getItem(1, 2), this.getItem(2, 1), this.getItem(3, 5), this.getItem(4, 3), this.getItem(5, 4)];
+
+    public getArtifactItemCalledCount = 0;
+    public getArtifactItemsCalledCount = 0;
+
+    public getRootItemsCalledCount = 0;
+
+    public itemsDownloaded: models.ArtifactItem[] = [];
+
+    async getRootItems(): Promise<models.ArtifactItem[]> {
+        this.getRootItemsCalledCount++;
+        return [this.getItem(1, 2, ItemType.File), this.getItem(2, 1, ItemType.Folder), this.getItem(3, 5, ItemType.File), this.getItem(4, 3, ItemType.File), this.getItem(5, 4, ItemType.Folder)];
+    }
+
+    async getArtifactItems(artifactItem: models.ArtifactItem): Promise<models.ArtifactItem[]> {
+        this.getArtifactItemsCalledCount++;
+
+        if(artifactItem.path === 'path5'){
+            return [this.getItem(5, 2, ItemType.File)];    
+        }
+
+        return [];
     }
 
     async getArtifactItem(artifactItem: models.ArtifactItem): Promise<Stream.Readable> {
+        this.getArtifactItemCalledCount++;
+        this.itemsDownloaded.push(artifactItem);
+
         console.log(`Downloading ${artifactItem.path}`);
         await this.delay(artifactItem.fileLength * 100);
 
@@ -20,10 +43,12 @@ export class StubProvider implements models.IArtifactProvider {
         return s;
     }
 
-    getItem(index: number, length: number): models.ArtifactItem {
+    getItem(index: number, length: number, itemType: ItemType): models.ArtifactItem {
         const artifactItem = new models.ArtifactItem();
-        artifactItem.path = `path${index}\\file${index}`;
+        const path = itemType === ItemType.File ? `path${index}\\file${index}`: `path${index}`
+        artifactItem.path = path;
         artifactItem.fileLength = length;
+        artifactItem.itemType = itemType;
 
         return artifactItem;
     }
