@@ -6,10 +6,10 @@ import path = require("path");
 import querystring = require('querystring');
 import util = require("util");
 
-import { AnsibleInterface } from './ansibleInterface';
+import { ansibleInterface } from './ansibleInterface';
 import {WebRequest, WebResponse, beginRequest} from './ansibleUtils';
 
-export class AnsibleTowerInterface extends AnsibleInterface {
+export class ansibleTowerInterface extends ansibleInterface {
     constructor() {
         super();
         this.initializeTaskContants();

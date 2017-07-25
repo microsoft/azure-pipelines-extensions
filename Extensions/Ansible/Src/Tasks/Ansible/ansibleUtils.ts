@@ -8,6 +8,7 @@ var httpObj = new httpClient.HttpCallbackClient(tl.getVariable("AZURE_HTTP_USER_
 var os = require('os');
 var Ssh2Client = require('ssh2').Client;
 var Scp2Client = require('scp2');
+var shell = require('shelljs');
 
 var _outStream = process.stdout;
 export function _writeLine(str): void {
@@ -19,11 +20,11 @@ export class RemoteCommandOptions {
 }
 
 /**
-* Uses scp2 to copy a file to remote machine
-* @param scriptFile
-* @param scpConfig
-* @returns {Promise<string>|Promise<T>}
-*/
+    * Uses scp2 to copy a file to remote machine
+    * @param scriptFile
+    * @param scpConfig
+    * @returns {Promise<string>|Promise<T>}
+    */
 export function copyFileToRemoteMachine(scriptFile: string, scpConfig: any): Q.Promise<string> {
     var defer = Q.defer<string>();
 
@@ -66,12 +67,12 @@ export function runCommandOnRemoteMachine(command: string, sshClient: any, optio
     var defer = Q.defer<string>();
     var stdErrWritten: boolean = false;
 
-    if(!options) {
+    if (!options) {
         tl.debug('Options not passed to runCommandOnRemoteMachine, setting defaults.');
         var options = new RemoteCommandOptions();
         options.failOnStdErr = true;
     }
-    
+
     var cmdToRun = command;
     tl.debug('cmdToRun = ' + cmdToRun);
 
@@ -105,6 +106,35 @@ export function runCommandOnRemoteMachine(command: string, sshClient: any, optio
     return defer.promise;
 }
 
+export function runCommandOnSameMachine(command: string, options: RemoteCommandOptions): Q.Promise<string> {
+    var defer = Q.defer<string>();
+    var stdErrWritten: boolean = false;
+
+    if (!options) {
+        tl.debug('Options not passed to runCommandOnRemoteMachine, setting defaults.');
+        var options = new RemoteCommandOptions();
+        options.failOnStdErr = true;
+    }
+
+    var cmdToRun = command;
+    tl.debug('cmdToRun = ' + cmdToRun);
+
+    shell.exec(cmdToRun, (err, stdout, stderr) => {
+        if (err) {
+            tl.debug('code = ' + err);
+            defer.reject(tl.loc('RemoteCmdNonZeroExitCode', cmdToRun, err))
+        } else {
+            tl.debug('code = 0');
+            if (stderr != '' && options.failOnStdErr === true) {
+                defer.reject(tl.loc('RemoteCmdExecutionErr'));
+            } else {
+                defer.resolve('0');
+            }
+        }
+    });
+    return defer.promise;
+}
+
 export class WebRequest {
     public method: string;
     public uri: string;
@@ -125,7 +155,7 @@ export class WebResponse {
     public statusMessage: string;
 }
 
-export async function beginRequest(request: WebRequest): Promise < WebResponse > {
+export async function beginRequest(request: WebRequest): Promise<WebResponse> {
     request.headers = request.headers || {};
     request.body = request.body || querystring.stringify({});
     var httpResponse = await beginRequestInternal(request);
