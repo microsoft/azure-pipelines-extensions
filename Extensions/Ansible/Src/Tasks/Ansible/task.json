@@ -60,10 +60,9 @@
             "defaultValue": "agentMachine",
             "options": {
                 "agentMachine": "Agent machine",
-				"remoteMachine": "Remote machine"
-                
+                "remoteMachine": "Remote machine"
             },
-            "helpMarkDown": "Select if Ansible automation engine is installed on a remote machine or on a private agent machine."
+            "helpMarkDown": "Select if Ansible automation engine is installed on a private Linux agent machine or on a remote machine."
         },
         {
             "name": "connectionOverSsh",
@@ -99,11 +98,11 @@
         },
         {
             "name": "playbookPathLinkedArtifactOnRemoteMachine",
-            "type": "filePath",
+            "type": "string",
             "label": "File path",
             "defaultValue": "",
             "required": true,
-            "helpMarkDown": "Specify the path to the playbook file to be executed on the Ansible machine. [Playbooks](http://docs.ansible.com/ansible/latest/playbooks.html) declare Ansible’s configuration, deployment, and orchestration steps in YAML format.",
+            "helpMarkDown": "Specify the path to the playbook file to be executed on the Ansible machine relative to root path. [Playbooks](http://docs.ansible.com/ansible/latest/playbooks.html) declare Ansible’s configuration, deployment, and orchestration steps in YAML format.",
             "visibleRule": "playbookSourceRemoteMachine = agentMachine",
             "groupName": "playbookRemoteMachine"
         },
@@ -246,7 +245,7 @@
             "label": "Dynamic inventory",
             "defaultValue": false,
             "required": false,
-            "helpMarkDown": "Check this box if dynamic inventory](http://docs.ansible.com/ansible/latest/intro_dynamic_inventory.html) is used.",
+            "helpMarkDown": "Check this box if [dynamic inventory](http://docs.ansible.com/ansible/latest/intro_dynamic_inventory.html) is used.",
             "visibleRule": "inventoriesAgentMachine = inlineContent",
             "groupName": "inventoryAgentMachine"
         },
