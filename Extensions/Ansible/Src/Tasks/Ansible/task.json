@@ -3,7 +3,7 @@
     "name": "Ansible",
     "friendlyName": "Ansible",
     "description": "This task executes an Ansible playbook using a specified inventory via command line interface",
-    "helpMarkDown": "[More Information](http://go.microsoft.com/fwlink/?LinkId=821892)",
+    "helpMarkDown": "[More Information](https://go.microsoft.com/fwlink/?linkid=853778)",
     "category": "Deploy",
     "visibility": [
         "Build",
@@ -16,7 +16,7 @@
     "version": {
         "Major": 0,
         "Minor": 0,
-        "Patch": 1
+        "Patch": 2
     },
     "demands": [],
     "instanceNameFormat": "Run playbook",
