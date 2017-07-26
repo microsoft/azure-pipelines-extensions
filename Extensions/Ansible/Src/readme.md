@@ -25,6 +25,8 @@ The task supports use of an SSH key pair to connect to the remote machine(s). Be
 ## ** Task ** 
 Installing the extension adds the following Ansible task which runs a given Playbook:
  ![Run Ansible Playbook](Images/ansible_screen_1.png)
+
+ 
  ![Run Ansible Playbook](Images/ansible_screen_2.png)
 
  ## ** Task arguments** 
