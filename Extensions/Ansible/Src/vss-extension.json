@@ -7,8 +7,14 @@
   "public": false,
   "description": "This extension executes an Ansible playbook using a specified inventory via command line interface",
   "_description.comment": "The below format to define extensions is currently in preview and may change in future.",
-  "categories": [ "Build and release" ],
-  "Tags": [ "Ansible", "Release", "DevOps" ],
+  "categories": [
+    "Build and release"
+  ],
+  "Tags": [
+    "Ansible",
+    "Release",
+    "DevOps"
+  ],
   "targets": [
     {
       "id": "Microsoft.VisualStudio.Services"
@@ -31,12 +37,19 @@
       "path": "images\\ansible_screen_2.png"
     }
   ],
-  "content": {
-    "details": {
-      "path": "readme.md"
-    }
-  },
   "files": [
+    {
+      "path": "images\\ansible_screen_1.png",
+      "addressable": true
+    },
+    {
+      "path": "images\\ansible_screen_2.png",
+      "addressable": true
+    },
+    {
+      "path": "images\\ansible_endpoint.png",
+      "addressable": true
+    },
     {
       "path": "images\\icon_wide.png",
       "addressable": true
@@ -45,6 +58,11 @@
       "path": "Tasks/Ansible"
     }
   ],
+  "content": {
+    "details": {
+      "path": "readme.md"
+    }
+  },
   "contributions": [
     {
       "id": "ansible-task",
