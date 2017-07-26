@@ -3,7 +3,7 @@
   "id": "vss-services-ansible",
   "name": "Ansible",
   "publisher": "ms-vscs-rm",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "public": false,
   "description": "This extension executes an Ansible playbook using a specified inventory via command line interface",
   "_description.comment": "The below format to define extensions is currently in preview and may change in future.",
