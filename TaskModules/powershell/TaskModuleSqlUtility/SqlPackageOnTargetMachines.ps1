@@ -122,6 +122,36 @@ function Get-RegistryValueIgnoreError
     return $null
 }
 
+function Get-RegistrySubKeysIgnoreError
+{
+    param
+    (
+        [parameter(Mandatory = $true)]
+        [Microsoft.Win32.RegistryHive]
+        $RegistryHive,
+
+        [parameter(Mandatory = $true)]
+        [System.String]
+        $Key,
+
+        [parameter(Mandatory = $true)]
+        [Microsoft.Win32.RegistryView]
+        $RegistryView
+    )
+
+    try
+    {
+        $baseKey = [Microsoft.Win32.RegistryKey]::OpenBaseKey($RegistryHive, $RegistryView)
+        $subKey =  $baseKey.OpenSubKey($Key)
+        return $subKey
+    }
+    catch
+    {
+    }
+
+    return $null
+}
+
 function Get-SubKeysInFloatFormat($keys)
 {
     $targetKeys = @()
@@ -307,6 +337,40 @@ function LocateHighestVersionSqlPackageWithDacMsi()
     return $null, 0
 }
 
+function Locate-SqlPackageInVSLatest()
+{
+    $vsRegKeyForVersion = "SOFTWARE", "WOW6432Node", "Microsoft", "VisualStudio", "SxS", "VS7"  -join [System.IO.Path]::DirectorySeparatorChar
+
+    $vsInstallVersionSubKey = Get-RegistrySubKeysIgnoreError LocalMachine "$vsRegKeyForVersion" Registry64
+
+    if($vsInstallVersionSubKey -eq $null)
+    {
+        $vsInstallVersionSubKey = Get-RegistrySubKeysIgnoreError LocalMachine "$vsRegKeyForVersion" Registry32
+    }
+
+    if($vsInstallVersionSubKey)
+    {
+        $vsInstallVersionKeys = $vsInstallVersionSubKey.GetValueNames()
+        $vsVersionkeys = $vsInstallVersionKeys | Sort-Object @{e={$_ -as [int]}} -Descending
+        $dacExtensionPath = [System.IO.Path]::Combine("Common7", "IDE", "Extensions", "Microsoft", "SQLDB", "DAC")
+
+        # Iterate over each version and extract the path
+        foreach($key in $vsVersionkeys)
+        {
+            $vsInstallDir = $vsInstallVersionSubKey.GetValue($key)
+            $dacParentDir = $dacParentDir = [System.IO.Path]::Combine($vsInstallDir, $dacExtensionPath)
+            $dacInstallPath, $dacInstallVersion = Get-LatestVersionSqlPackageInDacDirectory -dacParentDir $dacParentDir
+            
+            if($dacInstallPath)
+            {
+                return $dacInstallPath, $dacInstallVersion
+            }
+        }
+    }
+
+    return $null, 0
+}
+
 function LocateSqlPackageInVS([string] $version)
 {
     $vsRegKeyForVersion = "SOFTWARE", "Microsoft", "VisualStudio", $version -join [System.IO.Path]::DirectorySeparatorChar
@@ -324,25 +388,36 @@ function LocateSqlPackageInVS([string] $version)
 
         $dacExtensionPath = [System.IO.Path]::Combine("Extensions", "Microsoft", "SQLDB", "DAC")
         $dacParentDir = [System.IO.Path]::Combine($vsInstallDir, $dacExtensionPath)
-
-        if (Test-Path $dacParentDir)
+        $dacInstallPath, $dacInstallVersion = Get-LatestVersionSqlPackageInDacDirectory -dacParentDir $dacParentDir
+            
+        if($dacInstallPath)
         {
-            $dacVersionDirs = Get-ChildItem $dacParentDir | Sort-Object @{e={$_.Name -as [int]}} -Descending
+            return $dacInstallPath, $dacInstallVersion
+        }
+    }
 
-            foreach ($dacVersionDir in $dacVersionDirs)
+    return $null, 0
+}
+
+function Get-LatestVersionSqlPackageInDacDirectory([string] $dacParentDir)
+{
+    if (Test-Path $dacParentDir)
+    {
+        $dacVersionDirs = Get-ChildItem $dacParentDir | Sort-Object @{e={$_.Name -as [int]}} -Descending
+
+        foreach ($dacVersionDir in $dacVersionDirs) 
+        {
+            $dacVersion = $dacVersionDir.Name
+            $dacFullPath = [System.IO.Path]::Combine($dacVersionDir.FullName, "SqlPackage.exe")
+
+            if(Test-Path $dacFullPath -pathtype leaf)
             {
-                $dacVersion = $dacVersionDir.Name
-                $dacFullPath = [System.IO.Path]::Combine($dacVersionDir.FullName, "SqlPackage.exe")
-
-                if(Test-Path $dacFullPath -pathtype leaf)
-                {
-                    Write-Verbose "Dac Framework installed with Visual Studio found at $dacFullPath on machine $env:COMPUTERNAME"
-                    return $dacFullPath, $dacVersion
-                }
-                else
-                {
-                    Write-Verbose "Unable to find Dac framework installed with Visual Studio at $($dacVersionDir.FullName) on machine $env:COMPUTERNAME"
-                }
+                Write-Verbose "Dac Framework installed with Visual Studio found at $dacFullPath on machine $env:COMPUTERNAME"
+                return $dacFullPath, $dacVersion
+            }
+            else
+            {
+                Write-Verbose "Unable to find Dac framework installed with Visual Studio at $($dacVersionDir.FullName) on machine $env:COMPUTERNAME"
             }
         }
     }
@@ -352,6 +427,15 @@ function LocateSqlPackageInVS([string] $version)
 
 function LocateHighestVersionSqlPackageInVS()
 {
+    # Locate SqlPackage.exe in VS 2017 or above
+    $dacFullPath, $dacVersion = Locate-SqlPackageInVSLatest 
+
+    if ($dacFullPath -ne $null)
+    {
+        return $dacFullPath, $dacVersion
+    }
+
+    #Locate SqlPackage.exe in older version 
     $vsRegKey = "HKLM:", "SOFTWARE", "Wow6432Node", "Microsoft", "VisualStudio" -join [System.IO.Path]::DirectorySeparatorChar
     $vsRegKey64 = "HKLM:", "SOFTWARE", "Microsoft", "VisualStudio" -join [System.IO.Path]::DirectorySeparatorChar
 
