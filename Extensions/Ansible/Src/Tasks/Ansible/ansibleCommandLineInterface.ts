@@ -127,8 +127,8 @@ export class ansibleRemoteMachineInterface extends ansibleCommandLineInterface {
                 throw tl.loc('PlaybookRootNotDirectory', playbookRoot);
             }
 
-            if (!shell.test('-f', playbookFile)) {
-                throw tl.loc('PlaybookNotPresent', path.basename(playbookFile), playbookRoot);
+            if (!shell.test('-f', path.join(playbookRoot,playbookFile))) {
+                throw tl.loc('PlaybookNotPresent', playbookFile, playbookRoot);
             }
 
             let remotePlaybookRoot = '/tmp/' + path.basename(playbookRoot);
@@ -140,7 +140,7 @@ export class ansibleRemoteMachineInterface extends ansibleCommandLineInterface {
 
             await ansibleUtils.copyFileToRemoteMachine(playbookRoot, scpConfig);
 
-            var remotePlaybookPath = remotePlaybookRoot + "/" + path.basename(playbookFile);
+            var remotePlaybookPath = remotePlaybookRoot + "/" + playbookFile;
 
             this._cleanupCmd.push('rm -rf ' + remotePlaybookRoot);
 
