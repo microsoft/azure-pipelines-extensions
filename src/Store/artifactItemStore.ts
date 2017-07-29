@@ -24,7 +24,7 @@ export class ArtifactItemStore {
         });
     }
 
-    public getNextItemToProcess(): models.ArtifactItem | undefined {
+    public getNextItemToProcess(): models.ArtifactItem {
         var nextItemToProcess = this._downloadTickets.find(x => x.state === models.TicketState.InQueue);
         if (nextItemToProcess) {
             nextItemToProcess.state = models.TicketState.Processing;

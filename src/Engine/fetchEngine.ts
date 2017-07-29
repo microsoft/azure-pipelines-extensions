@@ -1,7 +1,7 @@
 ﻿import * as path from 'path';
 import * as fs from 'fs';
 
-import * as minimatch from 'minimatch';
+var minimatch = require('minimatch');
 
 import * as models from '../Models';
 import { ArtifactItemStore } from '../Store/artifactItemStore';

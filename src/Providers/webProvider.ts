@@ -3,9 +3,9 @@ import * as https from 'https';
 import * as url from 'url';
 import * as fs from 'fs';
 import * as path from 'path';
-import * as Stream from 'stream';
+import * as stream from 'stream';
 
-import * as handlebars from 'handlebars';
+var handlebars = require('handlebars');
 
 import * as models from '../Models';
 
@@ -28,8 +28,8 @@ export class WebProvider implements models.IArtifactProvider {
         return this.getItems(itemsUrl);
     }
 
-    getArtifactItem(artifactItem: models.ArtifactItem): Promise<Stream.Readable> {
-        var promise = new Promise<Stream.Readable>((resolve, reject) => {
+    getArtifactItem(artifactItem: models.ArtifactItem): Promise<stream.Readable> {
+        var promise = new Promise<stream.Readable>((resolve, reject) => {
             var itemUrl: string = artifactItem.metadata['downloadUrl'];
             this.getRequestHandler(itemUrl).get(this.getRequestOptions(itemUrl), (resp) => {
                 resolve(resp);
@@ -55,6 +55,7 @@ export class WebProvider implements models.IArtifactProvider {
                             console.log(err);
                             reject(err);
                         }
+                        
                         var template = handlebars.compile(data);
                         var response = JSON.parse(body);
                         var context = this.extend({}, response, this._variables)
@@ -83,6 +84,8 @@ export class WebProvider implements models.IArtifactProvider {
     }
 
     private getRequestOptions(inputUrl: string) {
+        inputUrl = inputUrl.replace(/([^:]\/)\/+/g, "$1");
+
         var options = {
             'hostname': url.parse(inputUrl).hostname,
             'port': url.parse(inputUrl).port,
