@@ -1,0 +1,19 @@
+{
+  "artifacts": [
+    {
+      "displayPath": "ConsoleApplication1.pdb",
+      "fileName": "ConsoleApplication1.pdb",
+      "relativePath": "ConsoleApplication1.pdb"
+    },
+    {
+      "displayPath": "FolderName/ConsoleApplication1.pdb",
+      "fileName": "ConsoleApplication1.pdb",
+      "relativePath": "FolderName/ConsoleApplication1.pdb"
+    }
+  ],
+  "endpoint" : {
+    "url": "http://redvstt-lab43:8080"
+  },
+  "definition" : "ArtifactJob",
+  "version" : "5"
+}
