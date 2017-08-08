@@ -13,20 +13,23 @@ This task requires that the Playbook and Inventory files be located either on a 
 Follow the [installation guidance](http://docs.ansible.com/ansible/latest/intro_installation.html) to install Ansible on a private Linux agent or on a remote machine. Currently Ansible can be run from any machine with Python 2.6 or 2.7 installed (Windows isn’t supported for the control machine).
 	
 ### **Create an SSH endpoint**
-The task supports use of an SSH key pair to connect to the remote machine(s). Before you can add this Ansible task to your Build/Release definition, configure an [SSH endpoint](https://www.visualstudio.com/en-us/docs/build/concepts/library/service-endpoints#sep-ssh) in the administration section of your VSTS project.
-	
-	- The hostname or IP address of the remote machine, the port number, and the user name are required to create an SSH endpoint.
-	- The private key and the passphrase must be specified for authentication.
-	- A password can be used to authenticate to remote Linux machines, but this is not supported for Mac or OSX systems.
-	- The public key must be pre-installed or copied to the remote machine(s).
+If Ansible is installed on a remote machine, you would need to set up an [SSH endpoint](https://www.visualstudio.com/en-us/docs/build/concepts/library/service-endpoints#sep-ssh) in the administration section of your VSTS project.
+                
+                -  The hostname or IP address of the remote machine, the port number, and the user name are required
+                - The private key and the passphrase must be specified for authentication.
+                - A password can be used to authenticate to remote Linux machines, but this is not supported for Mac or OSX systems.
+- The public key must be pre-installed or copied to the remote machine.
 	
  ![Ansible SSH Endpoint](Images/ansible_endpoint.png)
 	
 ## ** Task ** 
 Installing the extension adds the following Ansible task which runs a given Playbook:
+
+When Ansible automation engine is located on an Agent machine:
  ![Run Ansible Playbook](Images/ansible_screen_1.png)
 
- 
+
+When Ansible automation engine is located on a remote machine:  
  ![Run Ansible Playbook](Images/ansible_screen_2.png)
 
  ## ** Task arguments** 
