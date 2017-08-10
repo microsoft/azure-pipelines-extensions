@@ -70,10 +70,10 @@ export class ansibleCommandLineInterface extends ansibleInterface {
     }
 
     protected async setupConnection() {
-        if (os.platform() === 'win32') {
+        if (ansibleUtils.getAgentPlatform() === 'win32') {
             throw tl.loc('AgentOnWindowsMachine');
         }
-        if (!shell.which('ansible')) {
+        if (!ansibleUtils.getShellWhich('ansible')) {
             throw tl.loc('AnisbleNotPresent');
         }
     }

@@ -33,10 +33,10 @@ export class ansibleRemoteMachineInterface extends ansibleCommandLineInterface {
         
         let playbookFile = this._taskParameters.playbookPath;
         let playbookRoot = this._taskParameters.playbookRoot;
-        if (!shell.test('-d', playbookRoot)) {
+        if (!ansibleUtils.testIfDirectoryExist(playbookRoot)) {
             throw tl.loc('PlaybookRootNotDirectory', playbookRoot);
         }
-        if (!shell.test('-f', path.join(playbookRoot,playbookFile))) {
+        if (!ansibleUtils.testIfFileExist(path.join(playbookRoot,playbookFile))) {
             throw tl.loc('PlaybookNotPresent', playbookFile, playbookRoot);
         }
 
@@ -53,7 +53,7 @@ export class ansibleRemoteMachineInterface extends ansibleCommandLineInterface {
 
     private async copyInventoryAndSetPathForAgentAsSource() {
         let inventoryFile: string = this._taskParameters.inventoryFilePath;
-        if (!shell.test('-f', inventoryFile)) {
+        if (!ansibleUtils.testIfFileExist(inventoryFile)) {
             throw tl.loc('InventoryFileNotPresent', inventoryFile);
         }
         var remoteInventory = '/tmp/' + path.basename(inventoryFile);

@@ -40,9 +40,25 @@ export function copyFileToRemoteMachine(scriptFile: string, scpConfig: any): Q.P
 
 export function runCommandOnSameMachine(cmd: string, options: RemoteCommandOptions) {
     var defer = Q.defer<string>();
-    this._writeLine("cmd run on same machine = " + cmd);
+    this._writeLine("cmd run on agent machine = " + cmd);
     defer.resolve("0");
     return defer.promise;
+}
+
+export function testIfFileExist(filePath: string): boolean {
+    return true;
+}
+
+export function testIfDirectoryExist(directoryPath: string): boolean {
+    return true;
+}
+
+export function getAgentPlatform(): string {
+    return 'linux';
+}
+
+export function getShellWhich(moduleName: string): string {
+    return "somePath";
 }
 
 export class WebResponse {
