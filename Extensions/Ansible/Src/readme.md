@@ -15,9 +15,9 @@ Follow the [installation guidance](http://docs.ansible.com/ansible/latest/intro_
 ### **Create an SSH endpoint**
 If Ansible is installed on a remote machine, you would need to set up an [SSH endpoint](https://www.visualstudio.com/en-us/docs/build/concepts/library/service-endpoints#sep-ssh) in the administration section of your VSTS project.
                 
-                -  The hostname or IP address of the remote machine, the port number, and the user name are required
-                - The private key and the passphrase must be specified for authentication.
-                - A password can be used to authenticate to remote Linux machines, but this is not supported for Mac or OSX systems.
+    - The hostname or IP address of the remote machine, the port number, and the user name are required
+    - The private key and the passphrase must be specified for authentication.
+    - A password can be used to authenticate to remote Linux machines, but this is not supported for Mac or OSX systems.
 - The public key must be pre-installed or copied to the remote machine.
 	
  ![Ansible SSH Endpoint](Images/ansible_endpoint.png)

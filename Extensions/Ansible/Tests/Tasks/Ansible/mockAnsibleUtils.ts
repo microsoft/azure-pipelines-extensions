@@ -24,7 +24,7 @@ export function setupSshClientConnection(cfg) {
     return defer.promise;
 }
 
-export function runCommandOnRemoteMachine(cmd: string, sshClient: any) {
+export function runCommandOnRemoteMachine(cmd: string, sshClient: any, options: RemoteCommandOptions) {
     var defer = Q.defer<string>();
     this._writeLine("cmd run on remote machine = " + cmd);
     defer.resolve("0");
@@ -35,6 +35,13 @@ export function copyFileToRemoteMachine(scriptFile: string, scpConfig: any): Q.P
     var defer = Q.defer<string>();
     this._writeLine("copied file to remote machine = " + scriptFile);
     defer.resolve(scpConfig.path);
+    return defer.promise;
+}
+
+export function runCommandOnSameMachine(cmd: string, options: RemoteCommandOptions) {
+    var defer = Q.defer<string>();
+    this._writeLine("cmd run on same machine = " + cmd);
+    defer.resolve("0");
     return defer.promise;
 }
 
