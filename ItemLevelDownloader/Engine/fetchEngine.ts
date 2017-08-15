@@ -1,4 +1,5 @@
-﻿import * as path from 'path';
+﻿import { setTimeout } from 'timers';
+import * as path from 'path';
 import * as fs from 'fs';
 
 var minimatch = require('minimatch');
@@ -13,30 +14,30 @@ export class FetchEngine {
         const createdFolders: { [key: string]: boolean } = {};
 
         const itemsToDownload: models.ArtifactItem[] = await artifactProvider.getRootItems();
-        this.artifactStore.addItems(itemsToDownload);
+        this.artifactItemStore.addItems(itemsToDownload);
 
         for (let i = 0; i < fetchEngineOptions.parallelDownloadLimit; ++i) {
             downloaders.push(new Promise(async (resolve, reject) => {
                 try {
                     while (true) {
-                        const item = this.artifactStore.getNextItemToProcess();
+                        const item = this.artifactItemStore.getNextItemToProcess();
                         if (!item) {
                             break;
                         }
 
-                        console.log("Dequeued item " + item.path + " to download queue for processing.");
-                        const outputFilename = path.join(targetPath, item.path);
-                        const folder = path.dirname(outputFilename);
-                        this.ensureDirectoryExistence(folder);
+                        console.log("Dequeued item " + item.path + " from download queue for processing.");
+                        const targetItemPath = path.join(targetPath, item.path);
+                        const targetItemFolder = path.dirname(targetItemPath);
+                        this.ensureParentFoldersExist(targetItemFolder);
 
-                        if (!createdFolders.hasOwnProperty(folder)) {
-                            if (!fs.existsSync(folder)) {
-                                fs.mkdir(folder);
+                        if (!createdFolders.hasOwnProperty(targetItemFolder)) {
+                            if (!fs.existsSync(targetItemFolder)) {
+                                fs.mkdirSync(targetItemFolder);
                             }
-                            createdFolders[folder] = true;
+                            createdFolders[targetItemFolder] = true;
                         }
 
-                        await this.downloadArtifactItem(artifactProvider, item, outputFilename, fetchEngineOptions.downloadPattern, fetchEngineOptions.retryLimit);
+                        await this.downloadArtifactItem(artifactProvider, item, targetItemPath, fetchEngineOptions);
                     }
 
                     console.log("Exiting worker nothing more to process");
@@ -54,66 +55,74 @@ export class FetchEngine {
 
     downloadArtifactItem(artifactProvider: models.IArtifactProvider,
         item: models.ArtifactItem,
-        outputFilename: string,
-        downloadPattern: string,
-        retryLimit: number,
-        retryCount?: number): Promise<{}> {
+        targetItemPath: string,
+        fetchEngineOptions: FetchEngineOptions): Promise<{}> {
         return new Promise(async (downloadResolve, downloadReject) => {
-            try {
-                retryCount = retryCount ? retryCount : 0;
-                if (item.itemType === models.ItemType.File) {
-                    if (minimatch(item.path, downloadPattern)) {
-                        console.log("Downloading '%s' to '%s' (file %d of %d)", item.path, outputFilename);
-                        const contentStream = await artifactProvider.getArtifactItem(item);
-                        const outputStream = fs.createWriteStream(outputFilename);
-
-                        contentStream.pipe(outputStream);
-                        contentStream.on("end",
-                            () => {
-                                console.log(`Downloaded '${item.path}' to '${outputFilename}'`);
-                                downloadResolve();
-                            });
-                    }
-                    else {
-                        console.log("Skipping download of file " + item.path);
-                        downloadResolve();
-                    }
-                }
-                else {
-                    var items = await artifactProvider.getArtifactItems(item);
-                    items = items.map((value, index) => {
-                        if(!value.path.startsWith(item.path)){
-                            value.path = path.join(item.path, value.path);
-                        }
-
-                        return value;
-                    });
-
-                    this.artifactStore.addItems(items);
-
-                    console.log("Enqueued " + items.length + " to download queue for processing.");
-                    downloadResolve();
-                }
-            } catch (err) {
-                console.log("Error downloading file %s: %s", item.path, err);
-                if (retryCount === retryLimit - 1) {
-                    downloadReject(err);
-                } else {
-                    process.nextTick(() => this
-                        .downloadArtifactItem(artifactProvider, item, outputFilename, downloadPattern, retryLimit, retryCount + 1));
-                }
-            }
+            this.downloadArtifactItemImplementation(artifactProvider, item, targetItemPath, fetchEngineOptions, downloadResolve, downloadReject);
         });
     }
 
-    private ensureDirectoryExistence(filePath) {
+    async downloadArtifactItemImplementation(artifactProvider: models.IArtifactProvider,
+        item: models.ArtifactItem,
+        targetItemPath: string,
+        fetchEngineOptions: FetchEngineOptions,
+        downloadResolve,
+        downloadReject,
+        retryCount?: number) {
+        try {
+            retryCount = retryCount ? retryCount : 0;
+            if (item.itemType === models.ItemType.File) {
+                if (minimatch(item.path, fetchEngineOptions.itemPattern)) {
+                    console.log("Downloading '%s' to '%s'", item.path, targetItemPath);
+                    const contentStream = await artifactProvider.getArtifactItem(item);
+                    const outputStream = fs.createWriteStream(targetItemPath);
+
+                    contentStream.pipe(outputStream);
+                    contentStream.on("end",
+                        () => {
+                            console.log(`Downloaded '${item.path}' to '${targetItemPath}'`);
+                            downloadResolve();
+                        });
+                }
+                else {
+                    console.log("Skipping download of file " + item.path);
+                    downloadResolve();
+                }
+            }
+            else {
+                var items = await artifactProvider.getArtifactItems(item);
+                items = items.map((value, index) => {
+                    if (!value.path.toLowerCase().startsWith(item.path.toLowerCase())) {
+                        value.path = path.join(item.path, value.path);
+                    }
+
+                    return value;
+                });
+
+                this.artifactItemStore.addItems(items);
+
+                console.log("Enqueued " + items.length + " to download queue for processing.");
+                downloadResolve();
+            }
+        } catch (err) {
+            console.log("Error downloading file %s: %s", item.path, err);
+            if (retryCount === fetchEngineOptions.retryLimit - 1) {
+                downloadReject(err);
+            } else {
+                setTimeout(() => this
+                    .downloadArtifactItemImplementation(artifactProvider, item, targetItemPath, fetchEngineOptions, downloadResolve, downloadReject, retryCount + 1), fetchEngineOptions.retryIntervalInSeconds * 1000);
+            }
+        }
+    }
+
+    private ensureParentFoldersExist(filePath) {
         var dirname = path.dirname(filePath);
         if (fs.existsSync(dirname)) {
             return true;
         }
-        this.ensureDirectoryExistence(dirname);
+        this.ensureParentFoldersExist(dirname);
         fs.mkdirSync(dirname);
     }
 
-    private artifactStore: ArtifactItemStore = new ArtifactItemStore();
+    private artifactItemStore: ArtifactItemStore = new ArtifactItemStore();
 }

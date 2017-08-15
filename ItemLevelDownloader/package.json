@@ -13,12 +13,12 @@
     "handlebars-helpers": "0.9.3",
     "minimatch": "3.0.2",
     "mocha": "2.3.3",
-    "typescript": "1.8.7"
+    "typescript": "2.4.2"
   },
   "devDependencies": {
     "@types/handlebars": "^3.0.28",
     "@types/minimatch": "^2.0.29",
     "@types/mocha": "^2.2.5",
-    "@types/node": "^8.0.14"
+    "@types/node": "^8.0.22"
   }
 }

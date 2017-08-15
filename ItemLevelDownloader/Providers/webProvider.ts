@@ -50,13 +50,13 @@ export class WebProvider implements models.IArtifactProvider {
                     console.log('Error ' + e);
                     reject(e);
                 }).on('end', () => {
-                    fs.readFile(this.getTemplateFilePath(), 'utf8', (err, data) => {
+                    fs.readFile(this.getTemplateFilePath(), 'utf8', (err, templateFileContent) => {
                         if (err) {
                             console.log(err);
                             reject(err);
                         }
                         
-                        var template = handlebars.compile(data);
+                        var template = handlebars.compile(templateFileContent);
                         var response = JSON.parse(body);
                         var context = this.extend({}, response, this._variables)
                         var result = template(context);

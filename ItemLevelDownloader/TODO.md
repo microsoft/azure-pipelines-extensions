@@ -23,6 +23,7 @@
     - [ ] Add fetch engine tests
     
 5. Others
+    - [ ] changing http timeout
     - [ ] Publish package to npm gallery
     - [ ] Setup CI
     - [ ] Support proxy

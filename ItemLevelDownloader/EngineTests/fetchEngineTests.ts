@@ -39,7 +39,7 @@ describe('fetchEngine.fetchItems', () => {
     it('should call getArtifactItem only for artifact that match the download pattern', async () => {
         var testProvider = new providers.StubProvider();
         var downloadOptions = new engine.FetchEngineOptions();
-        downloadOptions.downloadPattern = '*path{4,5}\\**';
+        downloadOptions.itemPattern = '*path{4,5}\\**';
 
         await new engine.FetchEngine().fetchItems(testProvider, "c:\\drop", downloadOptions);
 
