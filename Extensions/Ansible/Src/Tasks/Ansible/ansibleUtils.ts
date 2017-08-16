@@ -135,6 +135,22 @@ export function runCommandOnSameMachine(command: string, options: RemoteCommandO
     return defer.promise;
 }
 
+export function testIfFileExist(filePath: string): boolean {
+    return shell.test('-f', filePath)
+}
+
+export function testIfDirectoryExist(directoryPath: string): boolean {
+    return shell.test('-d', directoryPath)
+}
+
+export function getAgentPlatform(): string {
+    return os.platform();
+}
+
+export function getShellWhich(moduleName: string): string {
+    return shell.which(moduleName);
+}
+
 export class WebRequest {
     public method: string;
     public uri: string;
