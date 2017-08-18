@@ -1,0 +1,25 @@
+[
+{{#file}}
+  {
+    "path": "{{this.name}}",
+    "lastModified": "{{this.modificationTime}}",
+    {{#if size}}
+    "fileLength" : "{{this.size}}",
+    {{/if}}
+    {{#if children}}
+    "itemType": "folder",
+    {{/if}}
+    {{#if content}}
+    "itemType": "file",
+    {{/if}}
+    "metadata": {
+      {{#if content}}
+        "downloadUrl" : "{{../endpoint.url}}{{content.href}}"
+      {{/if}}
+      {{#if children}}
+        "downloadUrl": "{{../endpoint.url}}{{children.href}}"
+      {{/if}}
+    }
+  }{{#unless @last}},{{/unless}}
+{{/file}}
+]

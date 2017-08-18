@@ -1,0 +1,15 @@
+// To run tests locally updated the file with details and rename to config.json
+{
+    "dropLocation": "/Users/Omesh/Documents/drop",
+    "jenkins": {
+        "username": "",
+        "password": ""
+    },
+    "teamcity": {
+        "username": "",
+        "password": ""
+    },
+    "vsts": {
+        "pat": ""
+    }
+}
