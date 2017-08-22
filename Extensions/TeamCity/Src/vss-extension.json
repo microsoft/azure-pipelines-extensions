@@ -28,6 +28,9 @@
     },
     {
       "path": "images/screen2.png"
+    },
+    {
+      "path": "Tasks/DownloadTeamCityArtifacts"
     }
   ],
   "content": {
@@ -111,6 +114,7 @@
         "_displayName.comment": "Don't Localize the word 'TeamCity'",
         "endpointTypeId": "teamcity",
         "uniqueSourceIdentifier": "{{connection}}:{{project}}:{{definition}}",
+        "downloadTaskId": "15ECB9F3-C0F7-42CF-9CE3-C6DDED17DE81",
         "artifactType": "Build",
         "inputDescriptors": [
           {

@@ -2,6 +2,9 @@
     "compilerOptions": {
         "target": "ES6",
         "module": "commonjs",
-        "sourceMap": true
+        "sourceMap": true,
+        "moduleResolution": "node", // we target Node.js(v6)
+        "declaration": true, // generate TypeScript definitions
+        "rootDir": "."
     }
 }

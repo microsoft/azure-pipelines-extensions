@@ -28,5 +28,11 @@
             "module": "TelemetryHelper",
             "dest": "TelemetryHelper"
         }
+    ],
+    "TeamCity": [
+        {
+            "module": "item-level-downloader",
+            "dest": "item-level-downloader"
+        }
     ]
 }

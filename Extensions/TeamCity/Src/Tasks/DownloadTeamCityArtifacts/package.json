@@ -1,0 +1,11 @@
+{
+  "name": "DownloadTeamCityArtifacts",
+  "main": "download.js",
+  "dependencies": {
+    "vsts-task-lib" : "2.0.1-preview",
+    "vso-node-api": "6.0.1-preview",
+    "handlebars": "4.0.10",
+    "minimatch": "3.0.2",
+    "item-level-downloader": "1.0.3"
+  }
+}

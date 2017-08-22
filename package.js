@@ -71,7 +71,6 @@ function copyCommonModules(currentExtnRoot, commonDeps, commonSrc){
             }
 
             var targetPath;
-
             validateTask(folderName, task)
             .then(function() {
                 // Copy the task to the layout folder.
@@ -119,6 +118,12 @@ function copyCommonModules(currentExtnRoot, commonDeps, commonSrc){
                         shell.mkdir('-p', copyTarget);
                         gulp.src([copySource])
                             .pipe(gulp.dest(copyTarget));  
+
+                        // install packages in packages.json
+                        //var originalDir = pwd();
+                        //cd(targetPath);
+                        //run('npm install ');
+                        //cd(originalDir);
                     }
                 }
                 return;
