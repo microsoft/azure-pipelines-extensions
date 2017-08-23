@@ -44,4 +44,8 @@ export class ArtifactItemStore {
     public size(): number {
         return this._downloadTickets.length;
     }
+
+    public flush(): void {
+        this._downloadTickets  = [];
+    }
 }

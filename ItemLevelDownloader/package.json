@@ -9,7 +9,8 @@
   },
   "dependencies": {
     "handlebars": "4.0.10",
-    "minimatch": "3.0.2"
+    "minimatch": "3.0.2",
+    "azure-storage": "2.2.1"
   },
   "devDependencies": {
     "assert": "1.4.1",

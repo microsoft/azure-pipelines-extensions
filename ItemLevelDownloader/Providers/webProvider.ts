@@ -39,6 +39,10 @@ export class WebProvider implements models.IArtifactProvider {
         return promise;
     }
 
+    putArtifactItem(item: models.ArtifactItem, readStream: stream.Readable): Promise<models.ArtifactItem> {
+        throw new Error("Not implemented");
+    }
+
     private getItems(itemsUrl: string): Promise<models.ArtifactItem[]> {
         var promise = new Promise<models.ArtifactItem[]>((resolve, reject) => {
             this.getRequestHandler(itemsUrl).get(this.getRequestOptions(itemsUrl), (resp) => {
@@ -55,7 +59,7 @@ export class WebProvider implements models.IArtifactProvider {
                             console.log(err);
                             reject(err);
                         }
-                        
+
                         var template = handlebars.compile(templateFileContent);
                         try {
                             var response = JSON.parse(body);
