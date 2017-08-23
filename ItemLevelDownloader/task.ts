@@ -1,4 +1,6 @@
-﻿import * as models from "./Models"
+﻿import * as path from 'path'
+
+import * as models from "./Models"
 import * as engine from "./Engine"
 import * as providers from "./Providers"
 
@@ -16,8 +18,10 @@ async function main(): Promise<void> {
 
     await downloadVSTSDropWithMultipleFiles(downloaderOptions);
     await downloadTeamCityDropWithMultipleFiles(downloaderOptions);
-    await downloadBigTeamCityDrop(downloaderOptions);
     await downloadJenkinsDropWithMultipleFiles(downloaderOptions);
+
+    // Enable these to test big drops if required.
+    //await downloadBigTeamCityDrop(downloaderOptions);
 }
 
 async function downloadVSTSDropWithMultipleFiles(downloaderOptions) {
@@ -26,8 +30,8 @@ async function downloadVSTSDropWithMultipleFiles(downloaderOptions) {
     var itemsUrl = "https://panditaomesh.visualstudio.com/_apis/resources/Containers/573756?itemPath=sources&isShallow=true"
     var vstsVariables = {};
     var webProvider = new providers.WebProvider(itemsUrl, "vsts.handlebars", "", config.vsts.pat, vstsVariables);
-
-    await downloader.fetchItems(webProvider, config.dropLocation, downloaderOptions);
+    var dropLocation = path.join(config.dropLocation, "vstsDropWithMultipleFiles");
+    await downloader.fetchItems(webProvider, dropLocation, downloaderOptions);
 }
 
 async function downloadJenkinsDropWithMultipleFiles(downloaderOptions) {
@@ -43,8 +47,9 @@ async function downloadJenkinsDropWithMultipleFiles(downloaderOptions) {
     };
 
     var webProvider = new providers.WebProvider(itemsUrl, "jenkins.handlebars", config.jenkins.username, config.jenkins.password, variables);
+    var dropLocation = path.join(config.dropLocation, "jenkinsDropWithMultipleFiles");
 
-    await downloader.fetchItems(webProvider, config.dropLocation, downloaderOptions);
+    await downloader.fetchItems(webProvider, dropLocation, downloaderOptions);
 }
 
 async function downloadTeamCityDropWithMultipleFiles(downloaderOptions) {
@@ -57,22 +62,24 @@ async function downloadTeamCityDropWithMultipleFiles(downloaderOptions) {
         }
     };
     var webProvider = new providers.WebProvider(itemsUrl, "teamcity.handlebars", config.teamcity.username, config.teamcity.password, teamcityVariables);
+    var dropLocation = path.join(config.dropLocation, "teamCityDropWithMultipleFiles");
 
-    await downloader.fetchItems(webProvider, config.dropLocation, downloaderOptions);
+    await downloader.fetchItems(webProvider, dropLocation, downloaderOptions);
 }
 
 async function downloadBigTeamCityDrop(downloaderOptions) {
     let downloader = new engine.FetchEngine();
 
-    var itemsUrl = "https://teamcity.jetbrains.com/httpAuth/app/rest/builds/id:1141669/artifacts/children/"
+    var itemsUrl = "https://teamcity.jetbrains.com/httpAuth/app/rest/builds/id:1148795/artifacts/children/"
     var teamcityVariables = {
         "endpoint": {
             "url": "https://teamcity.jetbrains.com"
         }
     };
     var webProvider = new providers.WebProvider(itemsUrl, "teamcity.handlebars", config.teamcity.username, config.teamcity.password, teamcityVariables);
+    var dropLocation = path.join(config.dropLocation, "bigTeamCityDrop");
 
-    await downloader.fetchItems(webProvider, config.dropLocation, downloaderOptions);
+    await downloader.fetchItems(webProvider, dropLocation, downloaderOptions);
 }
 
 main();

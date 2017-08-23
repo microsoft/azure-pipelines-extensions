@@ -1,4 +1,4 @@
-import * as mocha from 'mocha';
+var mocha = require("mocha");
 import * as assert from 'assert';
 
 import * as engine from '../Engine';

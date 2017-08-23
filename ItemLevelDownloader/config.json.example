@@ -1,4 +1,4 @@
-// To run tests locally updated the file with details and rename to config.json
+// To run tests locally updated the file, remove this line and rename to config.json
 {
     "dropLocation": "/Users/Omesh/Documents/drop",
     "jenkins": {

@@ -57,11 +57,17 @@ export class WebProvider implements models.IArtifactProvider {
                         }
                         
                         var template = handlebars.compile(templateFileContent);
-                        var response = JSON.parse(body);
-                        var context = this.extend({}, response, this._variables)
-                        var result = template(context);
-                        var items = JSON.parse(result);
-                        resolve(items);
+                        try {
+                            var response = JSON.parse(body);
+                            var context = this.extend({}, response, this._variables)
+                            var result = template(context);
+                            var items = JSON.parse(result);    
+
+                            resolve(items);
+                        } catch (error) {
+                            console.log("Failed to parse response body: " + body + " , got error : " + error);
+                            reject(error);
+                        }
                     });
                 })
             });

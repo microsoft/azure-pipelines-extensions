@@ -1,5 +1,4 @@
-﻿import { setTimeout } from 'timers';
-import * as path from 'path';
+﻿import * as path from 'path';
 import * as fs from 'fs';
 
 var minimatch = require('minimatch');
