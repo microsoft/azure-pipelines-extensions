@@ -1,4 +1,5 @@
-﻿import {ArtifactItem} from "./artifactItem"
+﻿import {ArtifactItem} from "./artifactItem";
+
 import {Readable} from "stream";
 
 export interface IArtifactProvider {
