@@ -20,7 +20,7 @@ export class AzureBlobProvider implements models.IArtifactProvider {
             await this._ensureContainerExistence();
 
             var self = this;
-            console.log("Uploading '%s' (file %d of %d)", item.path);
+            console.log("Uploading '%s'", item.path);
             var writeStream = this._blobSvc.createWriteStreamToBlockBlob(this._container, item.path, null, function(error, result, response){
                 if(error) {
                     console.log("Failed to create blob " + item.path + ". Error: " + error.message);
@@ -58,7 +58,7 @@ export class AzureBlobProvider implements models.IArtifactProvider {
     }
 
     private _ensureContainerExistence(): Promise<void> {
-        return new Promise(async (resolve, reject) => {
+        return new Promise<void>(async (resolve, reject) => {
             if(!this._isContainerExists) {
                 var self = this;
                 this._blobSvc.createContainerIfNotExists(this._container, function(error, result, response){

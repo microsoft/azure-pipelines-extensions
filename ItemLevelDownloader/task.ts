@@ -36,7 +36,7 @@ async function downloadVSTSDropWithMultipleFiles(processorOptions) {
     var vstsVariables = {};
     var webProvider = new providers.WebProvider(itemsUrl, "vsts.handlebars", "", config.vsts.pat, vstsVariables);
     var dropLocation = path.join(config.dropLocation, "vstsDropWithMultipleFiles");
-    var localFileProvider = new providers.LocalFilesystemProvider(dropLocation);
+    var localFileProvider = new providers.FilesystemProvider(dropLocation);
 
     await processor.processItems(webProvider, localFileProvider, processorOptions);
 }
@@ -55,7 +55,7 @@ async function downloadJenkinsDropWithMultipleFiles(processorOptions) {
 
     var webProvider = new providers.WebProvider(itemsUrl, "jenkins.handlebars", config.jenkins.username, config.jenkins.password, variables);
     var dropLocation = path.join(config.dropLocation, "jenkinsDropWithMultipleFiles");
-    var localFileProvider = new providers.LocalFilesystemProvider(dropLocation);
+    var localFileProvider = new providers.FilesystemProvider(dropLocation);
 
     await processor.processItems(webProvider, localFileProvider, processorOptions);
 }
@@ -72,7 +72,7 @@ async function downloadTeamCityDropWithMultipleFiles(processorOptions) {
 
     var webProvider = new providers.WebProvider(itemsUrl, "teamcity.handlebars", config.teamcity.username, config.teamcity.password, teamcityVariables);
     var dropLocation = path.join(config.dropLocation, "teamCityDropWithMultipleFiles");
-    var localFileProvider = new providers.LocalFilesystemProvider(dropLocation);
+    var localFileProvider = new providers.FilesystemProvider(dropLocation);
 
     await processor.processItems(webProvider, localFileProvider, processorOptions);
 }
@@ -89,7 +89,7 @@ async function downloadBigTeamCityDrop(processorOptions) {
 
     var webProvider = new providers.WebProvider(itemsUrl, "teamcity.handlebars", config.teamcity.username, config.teamcity.password, teamcityVariables);
     var dropLocation = path.join(config.dropLocation, "bigTeamCityDrop");
-    var localFileProvider = new providers.LocalFilesystemProvider(dropLocation);
+    var localFileProvider = new providers.FilesystemProvider(dropLocation);
 
     await processor.processItems(webProvider, localFileProvider, processorOptions);
 }
@@ -98,7 +98,7 @@ async function uploadToAzureBlobs(processorOptions) {
     let processor = new engine.ArtifactEngine();
 
     var blobProvider = new providers.AzureBlobProvider(config.azureblobstorage.storageaccount, config.azureblobstorage.container, config.azureblobstorage.storagekey);
-    var localFileProvider = new providers.LocalFilesystemProvider(config.dropLocation);
+    var localFileProvider = new providers.FilesystemProvider(config.dropLocation);
 
     await processor.processItems(localFileProvider, blobProvider, processorOptions);
 }

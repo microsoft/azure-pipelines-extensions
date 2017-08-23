@@ -3,7 +3,7 @@ import * as fs from 'fs';
 import * as models from "../Models"
 import * as Stream from "stream";
 
-export class LocalFilesystemProvider implements models.IArtifactProvider {
+export class FilesystemProvider implements models.IArtifactProvider {
     constructor(rootLocation: string) {
         this._rootLocation = rootLocation;
     }
@@ -40,7 +40,7 @@ export class LocalFilesystemProvider implements models.IArtifactProvider {
             const folder = path.dirname(outputFilename);
             this.ensureDirectoryExistence(folder);
 
-            console.log("Downloading '%s' to '%s' (file %d of %d)", item.path, outputFilename);
+            console.log("Downloading '%s' to '%s'", item.path, outputFilename);
             const outputStream = fs.createWriteStream(outputFilename);
             stream.pipe(outputStream);
             stream.on("end",

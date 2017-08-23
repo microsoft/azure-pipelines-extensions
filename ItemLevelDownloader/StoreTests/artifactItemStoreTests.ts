@@ -117,3 +117,17 @@ describe('artifactItemStore.markAsProcessed', () => {
     });
 });
 
+describe('artifactItemStore.flush', () => {
+    it('should flush all artifact items from artifact store', () => {
+        var artifactItemStore = new ArtifactItemStore();
+        var artifactItem = new models.ArtifactItem();
+        artifactItem.path = "path1";
+        artifactItemStore.addItem(artifactItem);
+        artifactItemStore.addItem(artifactItem);
+
+        artifactItemStore.flush();
+
+        assert.equal(artifactItemStore.size(), 0);
+    });
+});
+
