@@ -63,7 +63,7 @@ export class WebProvider implements models.IArtifactProvider {
                         var template = handlebars.compile(templateFileContent);
                         try {
                             var response = JSON.parse(body);
-                            var context = this.extend({}, response, this._variables)
+                            var context = this.extend(response, this._variables);
                             var result = template(context);
                             var items = JSON.parse(result);    
 
@@ -107,13 +107,11 @@ export class WebProvider implements models.IArtifactProvider {
         return options;
     }
 
-    private extend(target, ...args: any[]) {
-        var sources = [].slice.call(arguments, 1);
-        sources.forEach(function (source) {
-            for (var prop in source) {
-                target[prop] = source[prop];
-            }
-        });
+    private extend(target, source) {
+        for (var prop in source) {
+            target[prop] = source[prop];
+        }
+
         return target;
     }
 
