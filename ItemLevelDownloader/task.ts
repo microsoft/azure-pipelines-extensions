@@ -16,18 +16,17 @@ async function main(): Promise<void> {
 
     await downloadVSTSDropWithMultipleFiles(processorOptions);
     await downloadTeamCityDropWithMultipleFiles(processorOptions);
-    await downloadBigTeamCityDrop(processorOptions);
     await downloadJenkinsDropWithMultipleFiles(processorOptions);
     await uploadToAzureBlobs(processorOptions);
+
+    // Enable these to test big drops if required.
+    // await downloadBigTeamCityDrop(processorOptions);
 }
 
 async function downloadVSTSDropWithMultipleFiles(processorOptions) {
     if(!config.vsts) {
         console.warn("Skipping downloadVSTSDropWithMultipleFiles");
         return;
-
-    // Enable these to test big drops if required.
-    //await downloadBigTeamCityDrop(downloaderOptions);
     }
 
     let processor = new engine.ArtifactEngine();
