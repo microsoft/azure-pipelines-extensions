@@ -39,6 +39,10 @@ export class WebProvider implements models.IArtifactProvider {
         return promise;
     }
 
+    putArtifactItem(item: models.ArtifactItem, readStream: stream.Readable): Promise<models.ArtifactItem> {
+        throw new Error("Not implemented");
+    }
+
     private getItems(itemsUrl: string): Promise<models.ArtifactItem[]> {
         var promise = new Promise<models.ArtifactItem[]>((resolve, reject) => {
             this.getRequestHandler(itemsUrl).get(this.getRequestOptions(itemsUrl), (resp) => {
@@ -55,13 +59,19 @@ export class WebProvider implements models.IArtifactProvider {
                             console.log(err);
                             reject(err);
                         }
-                        
+
                         var template = handlebars.compile(templateFileContent);
-                        var response = JSON.parse(body);
-                        var context = this.extend({}, response, this._variables)
-                        var result = template(context);
-                        var items = JSON.parse(result);
-                        resolve(items);
+                        try {
+                            var response = JSON.parse(body);
+                            var context = this.extend(response, this._variables);
+                            var result = template(context);
+                            var items = JSON.parse(result);    
+
+                            resolve(items);
+                        } catch (error) {
+                            console.log("Failed to parse response body: " + body + " , got error : " + error);
+                            reject(error);
+                        }
                     });
                 })
             });
@@ -97,13 +107,11 @@ export class WebProvider implements models.IArtifactProvider {
         return options;
     }
 
-    private extend(target, ...args: any[]) {
-        var sources = [].slice.call(arguments, 1);
-        sources.forEach(function (source) {
-            for (var prop in source) {
-                target[prop] = source[prop];
-            }
-        });
+    private extend(target, source) {
+        for (var prop in source) {
+            target[prop] = source[prop];
+        }
+
         return target;
     }
 
