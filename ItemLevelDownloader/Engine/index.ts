@@ -1,2 +1,2 @@
-﻿export { FetchEngineOptions } from "./fetchEngineOptions";
-export { FetchEngine } from "./fetchEngine";
+﻿export { ArtifactEngineOptions } from "./artifactEngineOptions";
+export { ArtifactEngine } from "./artifactEngine";

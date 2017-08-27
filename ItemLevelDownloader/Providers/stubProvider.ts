@@ -21,7 +21,7 @@ export class StubProvider implements models.IArtifactProvider {
         this.getArtifactItemsCalledCount++;
 
         if(artifactItem.path === 'path5'){
-            return [this.getItem(5, 2, ItemType.File)];    
+            return [this.getItem(5, 2, ItemType.File)];
         }
 
         return [];
@@ -49,8 +49,13 @@ export class StubProvider implements models.IArtifactProvider {
         artifactItem.path = path;
         artifactItem.fileLength = length;
         artifactItem.itemType = itemType;
+        artifactItem.metadata = {};
 
         return artifactItem;
+    }
+
+    putArtifactItem(item: models.ArtifactItem, readStream: Stream.Readable): Promise<models.ArtifactItem> {
+        return Promise.resolve(item);
     }
 
     delay(ms: number): Promise<{}> {

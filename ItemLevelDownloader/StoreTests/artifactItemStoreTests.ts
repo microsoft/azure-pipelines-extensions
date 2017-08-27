@@ -1,4 +1,4 @@
-import * as mocha from 'mocha';
+var mocha = require("mocha");
 import * as assert from 'assert';
 
 import * as engine from '../Engine';
@@ -114,6 +114,20 @@ describe('artifactItemStore.markAsProcessed', () => {
         artifactItem1.path = "path1";
 
         artifactItemStore.markAsProcessed(artifactItem1);
+    });
+});
+
+describe('artifactItemStore.flush', () => {
+    it('should flush all artifact items from artifact store', () => {
+        var artifactItemStore = new ArtifactItemStore();
+        var artifactItem = new models.ArtifactItem();
+        artifactItem.path = "path1";
+        artifactItemStore.addItem(artifactItem);
+        artifactItemStore.addItem(artifactItem);
+
+        artifactItemStore.flush();
+
+        assert.equal(artifactItemStore.size(), 0);
     });
 });
 

@@ -3,3 +3,5 @@
 node_modules
 config.json
 package-lock.json
+*.d.ts
+!definitions/*.d.ts
