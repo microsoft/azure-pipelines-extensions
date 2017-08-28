@@ -11,7 +11,7 @@ To use ItemLevelDownloader in your tasks or app have a look at [task.ts](task.ts
 
 ## Development
 *Build*
-1. Go to src folder and run npm install
+1. Run npm install in ItemLevelDownloader folder
 2. Use command ctrl-shift-b to build from vscode
 
 *Testing*
