@@ -24,7 +24,7 @@ async function main(): Promise<void> {
 }
 
 async function downloadVSTSDropWithMultipleFiles(processorOptions) {
-    if(!config.vsts) {
+    if (!config.vsts) {
         console.warn("Skipping downloadVSTSDropWithMultipleFiles");
         return;
     }
@@ -96,7 +96,7 @@ async function downloadBigTeamCityDrop(processorOptions) {
 async function uploadToAzureBlobs(processorOptions) {
     let processor = new engine.ArtifactEngine();
 
-    var blobProvider = new providers.AzureBlobProvider(config.azureblobstorage.storageaccount, config.azureblobstorage.container, config.azureblobstorage.storagekey);
+    var blobProvider = new providers.AzureBlobProvider(config.azureblobstorage.storageaccount, config.azureblobstorage.container, config.azureblobstorage.storagekey, "prefix");
     var localFileProvider = new providers.FilesystemProvider(config.dropLocation);
 
     await processor.processItems(localFileProvider, blobProvider, processorOptions);
