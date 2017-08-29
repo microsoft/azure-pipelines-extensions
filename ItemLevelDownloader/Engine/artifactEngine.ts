@@ -61,7 +61,7 @@ export class ArtifactEngine {
         try {
             retryCount = retryCount ? retryCount : 0;
             if (item.itemType === models.ItemType.File) {
-                if (minimatch(item.path, artifactEngineOptions.itemPattern)) {
+                if (minimatch(item.path, artifactEngineOptions.itemPattern, { dot: true })) {
                     console.log("Processing '%s'", item.path);
                     const contentStream = await sourceProvider.getArtifactItem(item);
                     console.log("got read stream for item: " + item.path);
