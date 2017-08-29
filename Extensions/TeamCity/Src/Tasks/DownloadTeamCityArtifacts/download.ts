@@ -17,7 +17,8 @@ async function main(): Promise<void> {
     let downloadPath = tl.getInput("downloadPath", true);
     
     var endpointUrl = tl.getEndpointUrl(connection, false);
-    var itemsUrl = url.resolve(endpointUrl, "/httpAuth/app/rest/builds/id:" + buildId + "/artifacts/children/");
+    var itemsUrl = endpointUrl + "/httpAuth/app/rest/builds/id:" + buildId + "/artifacts/children/";
+    itemsUrl = itemsUrl.replace(/([^:]\/)\/+/g, "$1");
     console.log(tl.loc("DownloadArtifacts", itemsUrl));
 
     var templatePath = path.join(__dirname, 'teamcity.handlebars');
