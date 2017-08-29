@@ -7,10 +7,11 @@ import * as models from "../Models"
 import * as Stream from "stream";
 
 export class AzureBlobProvider implements models.IArtifactProvider {
-    constructor(storageAccount: string, container: string, accessKey: string) {
+    constructor(storageAccount: string, container: string, accessKey: string, prefixFolderPath?: string) {
         this._storageAccount = storageAccount;
         this._accessKey = accessKey;
         this._container = container;
+        this._prefixFolderPath = prefixFolderPath;
         this._blobSvc = azureStorage.createBlobService(this._storageAccount, this._accessKey);
     }
 
@@ -21,12 +22,14 @@ export class AzureBlobProvider implements models.IArtifactProvider {
 
             var self = this;
             console.log("Uploading '%s'", item.path);
-            var writeStream = this._blobSvc.createWriteStreamToBlockBlob(this._container, item.path, null, function(error, result, response){
-                if(error) {
-                    console.log("Failed to create blob " + item.path + ". Error: " + error.message);
+            var blobPath = this._prefixFolderPath ? this._prefixFolderPath + "/" + item.path : item.path;
+
+            var writeStream = this._blobSvc.createWriteStreamToBlockBlob(this._container, blobPath, null, function (error, result, response) {
+                if (error) {
+                    console.log("Failed to create blob " + blobPath + ". Error: " + error.message);
                     reject(error);
                 } else {
-                    var blobUrl = self._blobSvc.getUrl(self._container, item.path);
+                    var blobUrl = self._blobSvc.getUrl(self._container, blobPath);
                     console.log("Created blob for item " + item.path + ". Blob uri: " + blobUrl);
                     newArtifactItem.metadata["downloadUrl"] = blobUrl;
                     resolve(newArtifactItem);
@@ -59,10 +62,10 @@ export class AzureBlobProvider implements models.IArtifactProvider {
 
     private _ensureContainerExistence(): Promise<void> {
         return new Promise<void>(async (resolve, reject) => {
-            if(!this._isContainerExists) {
+            if (!this._isContainerExists) {
                 var self = this;
-                this._blobSvc.createContainerIfNotExists(this._container, function(error, result, response){
-                    if(!!error){
+                this._blobSvc.createContainerIfNotExists(this._container, function (error, result, response) {
+                    if (!!error) {
                         console.log("Failed to create container " + self._container + ". Error: " + error.message);
                         reject(error);
                     } else {
@@ -72,7 +75,7 @@ export class AzureBlobProvider implements models.IArtifactProvider {
                     }
                 });
             } else {
-            resolve();
+                resolve();
             }
         });
     }
@@ -80,6 +83,7 @@ export class AzureBlobProvider implements models.IArtifactProvider {
     private _storageAccount: string;
     private _accessKey: string;
     private _container: string;
+    private _prefixFolderPath: string;
     private _isContainerExists: boolean = false;
     private _blobSvc: azureStorage.BlobService;
 }
