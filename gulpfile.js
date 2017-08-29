@@ -242,8 +242,13 @@ gulp.task("compileNode", ["compilePS"], function(cb){
         return fs.statSync(path.join(_extnBuildRoot, file)).isDirectory() && file != "Common";
     }).forEach(compileUIExtensions);
 
+    //Foreach task under extensions copy common modules
+    fs.readdirSync(_extnBuildRoot).filter(function (file) {
+        return fs.statSync(path.join(_extnBuildRoot, file)).isDirectory() && file != "Common";
+    }).forEach(copyCommonModules);
+
     // Compile tasks
-    var tasksPath = path.join(__dirname, 'Extensions/**/Tasks', '**/*.ts');
+    var tasksPath = path.join(__dirname, '_build/Extensions/**/Tasks', '**/*.ts');
     return gulp.src([tasksPath, 'definitions/*.d.ts'])
         .pipe(ts)
         .on('error', errorHandler)
@@ -265,10 +270,6 @@ function compileUIExtensions(extensionRoot) {
 }
 
 gulp.task("build", ["compileNode"], function() {
-    //Foreach task under extensions copy common modules
-    fs.readdirSync(_extnBuildRoot).filter(function (file) {
-        return fs.statSync(path.join(_extnBuildRoot, file)).isDirectory() && file != "Common";
-    }).forEach(copyCommonModules);
 });
 
 gulp.task("default", ["build"]);
@@ -455,7 +456,6 @@ gulp.task("locCommon",function(){
 });
 
 var copyCommonModules = function(extensionName) {
-
     var commonDeps = require('./common.json');
     var commonSrc = path.join(__dirname, 'Extensions/Common');
     var currentExtnRoot = path.join(__dirname, "_build/Extensions" ,extensionName);
