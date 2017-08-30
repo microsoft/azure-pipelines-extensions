@@ -112,34 +112,12 @@ function copyCommonModules(currentExtnRoot, commonDeps, commonSrc){
                             throw new Error('External vsts-task-lib not defined in externals.json.');
                         }
 
-                        var packageJson = path.join(targetPath, 'package.json');
-                        fs.exists(packageJson, (exists) => {
-                            if(exists){
-                                // Run npm install.
-                                gutil.log("Doing npm install in " + targetPath);
-                                shell.pushd(targetPath);
-                                try {
-                                    var cmdline = 'npm install';
-                                    var result = cp.execSync(cmdline);
-                                    gutil.log(result.toString());
-                                    if (result.status > 0) {
-                                        throw new Error('npm failed with exit code ' + result.status);
-                                    }
-                                }
-                                finally {
-                                    shell.popd();
-                                }
-                            }
-                            else {
-                                gutil.log(packageJson + ' doesnot exist.');
-                                // Copy the lib from the cache.
-                                gutil.log('Linking vsts-task-lib ' + libVer);
-                                var copySource = path.join(_tempPath, 'npm', 'vsts-task-lib', libVer, 'node_modules', '**');
-                                var copyTarget = path.join(targetPath, 'node_modules');
-                                shell.mkdir('-p', copyTarget);
-                                gulp.src([copySource]).pipe(gulp.dest(copyTarget));
-                            }
-                        });
+                        // Copy the lib from the cache.
+                        gutil.log('Linking vsts-task-lib ' + libVer);
+                        var copySource = path.join(_tempPath, 'npm', 'vsts-task-lib', libVer, 'node_modules', '**');
+                        var copyTarget = path.join(targetPath, 'node_modules');
+                        shell.mkdir('-p', copyTarget);
+                        gulp.src([copySource]).pipe(gulp.dest(copyTarget));
                     }
                 }
                 return;
