@@ -43,7 +43,7 @@ describe('artifactEngine.processItems', () => {
         var testProvider = new providers.StubProvider();
         var localFileProvider = new providers.FilesystemProvider("c:\\drop");
         var downloadOptions = new engine.ArtifactEngineOptions();
-        downloadOptions.itemPattern = '*path{4,5}\\**';
+        downloadOptions.itemPattern = '*(path4|path5)\\**';
 
         await new engine.ArtifactEngine().processItems(testProvider, localFileProvider, downloadOptions);
 
