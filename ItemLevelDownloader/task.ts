@@ -3,6 +3,8 @@
 import * as models from "./Models"
 import * as engine from "./Engine"
 import * as providers from "./Providers"
+import { BasicCredentialHandler } from "./Providers/handlers/basiccreds";
+import { PersonalAccessTokenCredentialHandler } from "./Providers/handlers/personalaccesstoken";
 
 var config = require("./config.json")
 
@@ -14,6 +16,7 @@ async function main(): Promise<void> {
     processorOptions.retryIntervalInSeconds = 3;
     processorOptions.retryLimit = 2;
 
+    await downloadFileShareDrop(processorOptions);
     await downloadVSTSDropWithMultipleFiles(processorOptions);
     await downloadTeamCityDropWithMultipleFiles(processorOptions);
     await downloadJenkinsDropWithMultipleFiles(processorOptions);
@@ -21,6 +24,15 @@ async function main(): Promise<void> {
 
     // Enable these to test big drops if required.
     // await downloadBigTeamCityDrop(processorOptions);
+}
+
+async function downloadFileShareDrop(processorOptions) {
+    var fileShareProvider = new providers.FilesystemProvider("//devomp/dropz");
+    var fileSystemProvider = new providers.FilesystemProvider("c:\\drop");
+    
+    let processor = new engine.ArtifactEngine();
+    
+    await processor.processItems(fileShareProvider, fileSystemProvider, processorOptions);
 }
 
 async function downloadVSTSDropWithMultipleFiles(processorOptions) {
@@ -33,7 +45,9 @@ async function downloadVSTSDropWithMultipleFiles(processorOptions) {
 
     var itemsUrl = "https://panditaomesh.visualstudio.com/_apis/resources/Containers/573756?itemPath=sources&isShallow=true"
     var vstsVariables = {};
-    var webProvider = new providers.WebProvider(itemsUrl, "vsts.handlebars", "", config.vsts.pat, vstsVariables);
+    
+    var handler = new PersonalAccessTokenCredentialHandler(config.vsts.pat);
+    var webProvider = new providers.WebProvider(itemsUrl, "vsts.handlebars", vstsVariables, handler);
     var dropLocation = path.join(config.dropLocation, "vstsDropWithMultipleFiles");
     var localFileProvider = new providers.FilesystemProvider(dropLocation);
 
@@ -52,7 +66,8 @@ async function downloadJenkinsDropWithMultipleFiles(processorOptions) {
         "version": "5"
     };
 
-    var webProvider = new providers.WebProvider(itemsUrl, "jenkins.handlebars", config.jenkins.username, config.jenkins.password, variables);
+    var handler = new BasicCredentialHandler(config.jenkins.username, config.jenkins.password);
+    var webProvider = new providers.WebProvider(itemsUrl, "jenkins.handlebars", variables, handler, { ignoreSslError: false });
     var dropLocation = path.join(config.dropLocation, "jenkinsDropWithMultipleFiles");
     var localFileProvider = new providers.FilesystemProvider(dropLocation);
 
@@ -69,7 +84,8 @@ async function downloadTeamCityDropWithMultipleFiles(processorOptions) {
         }
     };
 
-    var webProvider = new providers.WebProvider(itemsUrl, "teamcity.handlebars", config.teamcity.username, config.teamcity.password, teamcityVariables);
+    var handler = new BasicCredentialHandler(config.teamcity.username, config.teamcity.password);
+    var webProvider = new providers.WebProvider(itemsUrl, "teamcity.handlebars", teamcityVariables, handler);
     var dropLocation = path.join(config.dropLocation, "teamCityDropWithMultipleFiles");
     var localFileProvider = new providers.FilesystemProvider(dropLocation);
 
@@ -86,7 +102,8 @@ async function downloadBigTeamCityDrop(processorOptions) {
         }
     };
 
-    var webProvider = new providers.WebProvider(itemsUrl, "teamcity.handlebars", config.teamcity.username, config.teamcity.password, teamcityVariables);
+    var handler = new BasicCredentialHandler(config.teamcity.username, config.teamcity.password);
+    var webProvider = new providers.WebProvider(itemsUrl, "teamcity.handlebars", teamcityVariables, handler);
     var dropLocation = path.join(config.dropLocation, "bigTeamCityDrop");
     var localFileProvider = new providers.FilesystemProvider(dropLocation);
 
