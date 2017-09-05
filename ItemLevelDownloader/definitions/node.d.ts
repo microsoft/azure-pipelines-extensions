@@ -426,6 +426,32 @@ declare module "http" {
     import net = require("net");
     import stream = require("stream");
 
+    export interface RequestOptions extends ClientRequestArgs { }
+
+    export interface ClientRequestArgs {
+        protocol?: string;
+        host?: string;
+        hostname?: string;
+        family?: number;
+        port?: number | string;
+        defaultPort?: number | string;
+        localAddress?: string;
+        socketPath?: string;
+        method?: string;
+        path?: string;
+        headers?: OutgoingHttpHeaders;
+        auth?: string;
+        agent?: Agent | boolean;
+        _defaultAgent?: Agent;
+        timeout?: number;
+        // https://github.com/nodejs/node/blob/master/lib/_http_client.js#L278
+        createConnection?: (options: ClientRequestArgs, oncreate: (err: Error, socket: net.Socket) => void) => net.Socket;
+    }
+
+    export interface OutgoingHttpHeaders {
+        [header: string]: number | string | string[] ;
+    }
+
     export interface Server extends events.EventEmitter {
         listen(port: number, hostname?: string, backlog?: number, callback?: Function): Server;
         listen(port: number, hostname?: string, callback?: Function): Server;

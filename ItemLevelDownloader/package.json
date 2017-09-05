@@ -1,6 +1,6 @@
 {
   "name": "item-level-downloader",
-  "version": "1.0.10",
+  "version": "1.0.13",
   "description": "ItemLevelDownloader",
   "main": "app.js",
   "author": {
@@ -10,6 +10,7 @@
   "dependencies": {
     "handlebars": "4.0.10",
     "minimatch": "3.0.2",
+    "typed-rest-client": "^0.12.0",
     "azure-storage": "2.2.1"
   },
   "devDependencies": {
@@ -22,15 +23,15 @@
     "@types/node": "^8.0.22"
   },
   "files": [
-    "Engine/*.js",
-    "Models/*.js",
-    "Store/*.js",
-    "Providers/*.js",
+    "Engine/**/*.js",
+    "Models/**/*.js",
+    "Store/**/*.js",
+    "Providers/**/*.js",
     "Providers/*.handlebars",
-    "Engine/*.d.ts",
-    "Models/*.d.ts",
-    "Store/*.d.ts",
-    "Providers/*d.ts",
+    "Engine/**/*.d.ts",
+    "Models/**/*.d.ts",
+    "Store/**/*.d.ts",
+    "Providers/**/*d.ts",
     "LICENSE",
     "README.md"
   ]
