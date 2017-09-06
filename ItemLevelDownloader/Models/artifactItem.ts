@@ -1,4 +1,4 @@
-﻿import {ItemType} from "./itemType"
+﻿import { ItemType } from "./itemType"
 
 export class ArtifactItem {
     itemType: ItemType;
@@ -6,6 +6,10 @@ export class ArtifactItem {
     fileLength: number;
     lastModified: Date;
     metadata: { [key: string]: string }
+
+    constructor() {
+        this.metadata = {};
+    }
 
     public static clone(item: ArtifactItem): ArtifactItem {
         var clonedItem = new ArtifactItem();
