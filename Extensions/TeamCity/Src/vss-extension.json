@@ -104,6 +104,16 @@
       }
     },
     {
+      "id": "teamcity-task",
+      "type": "ms.vss-distributed-task.task",
+      "targets": [
+        "ms.vss-distributed-task.tasks"
+      ],
+      "properties": {
+        "name": "Tasks/DownloadTeamCityArtifacts"
+        }
+    },
+    {
       "id": "teamcity-release-artifact-type",
       "description": "TeamCity Artifact",
       "type": "ms.vss-releaseartifact.release-artifact-type",

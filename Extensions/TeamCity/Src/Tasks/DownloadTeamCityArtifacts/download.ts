@@ -35,7 +35,8 @@ async function main(): Promise<void> {
 
     var downloader = new engine.ArtifactEngine();
     var downloaderOptions = new engine.ArtifactEngineOptions();
-    downloaderOptions.itemPattern = itemPattern ? itemPattern : '**'
+    downloaderOptions.itemPattern = itemPattern ? itemPattern : '**';
+    downloaderOptions.parallelProcessingLimit = +tl.getVariable("release.artifact.download.parallellimit") || 4;
     await downloader.processItems(webProvider, fileSystemProvider, downloaderOptions);
     
     tl.setResult(tl.TaskResult.Succeeded, "");

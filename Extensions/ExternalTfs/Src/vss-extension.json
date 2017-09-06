@@ -52,6 +52,9 @@
     },
     {
        "path": "Tasks/DownloadArtifactsTfsGit"
+    },
+    {
+       "path": "Tasks/DownloadExternalBuildArtifacts"
     }
   ],
   "branding": {
@@ -232,6 +235,7 @@
         "_displayName.comment": "Don't Localize the word 'TFS'",
         "endpointTypeId": "ExternalTFS",
         "uniqueSourceIdentifier": "{{connection}}:{{project}}:{{definition}}",
+        "downloadTaskId": "B099689B-039E-4450-8658-C72E3895DD3F",
         "artifactType": "Build",
         "inputDescriptors": [
           {
@@ -349,6 +353,16 @@
         }
       }
     },
+    {
+      "id": "externalTFSBuild-task",
+      "type": "ms.vss-distributed-task.task",
+      "targets": [
+        "ms.vss-distributed-task.tasks"
+      ],
+      "properties": {
+        "name": "Tasks/DownloadExternalBuildArtifacts"
+        }
+    }, 
     {
         "id": "externalTFVC-release-artifact-type",
         "description": "External TFS Version Control",
