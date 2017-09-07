@@ -1,0 +1,9 @@
+{
+  "name": "DownloadExternalBuildArtifacts",
+  "main": "download.js",
+  "dependencies": {
+    "vso-node-api": "6.0.1-preview",
+    "vsts-task-lib" : "2.0.5",
+    "item-level-downloader": "1.0.13"
+  }
+}

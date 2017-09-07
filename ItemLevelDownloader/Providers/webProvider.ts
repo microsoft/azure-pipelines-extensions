@@ -4,23 +4,29 @@ import * as url from 'url';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as stream from 'stream';
+import * as crypto from 'crypto';
 
 var handlebars = require('handlebars');
+import * as httpm from 'typed-rest-client/HttpClient';
 
 import * as models from '../Models';
+import { BasicCredentialHandler } from './handlers/basiccreds';
+import { IRequestHandler, IRequestOptions } from './handlers/Interfaces';
+import { ArtifactItemStore } from '../Store/artifactItemStore';
 
 export class WebProvider implements models.IArtifactProvider {
 
-    constructor(rootItemsLocation, templateFile: string, username: string, password: string, variables: any) {
-        this._rootItemsLocation = rootItemsLocation;
-        this._templateFile = templateFile;
-        this._username = username;
-        this._password = password;
-        this._variables = variables;
+    constructor(rootItemsLocation, templateFile: string, variables: any, handler: IRequestHandler, requestOptions?: IRequestOptions) {
+        this.rootItemsLocation = rootItemsLocation;
+        this.templateFile = templateFile;
+        this.options = requestOptions || {};
+        this.initializeOptions();
+        this.httpc = new httpm.HttpClient('item-level-downloader', [handler], this.options);
+        this.variables = variables;
     }
 
     getRootItems(): Promise<models.ArtifactItem[]> {
-        return this.getItems(this._rootItemsLocation);
+        return this.getItems(this.rootItemsLocation);
     }
 
     getArtifactItems(artifactItem: models.ArtifactItem): Promise<models.ArtifactItem[]> {
@@ -29,11 +35,11 @@ export class WebProvider implements models.IArtifactProvider {
     }
 
     getArtifactItem(artifactItem: models.ArtifactItem): Promise<stream.Readable> {
-        var promise = new Promise<stream.Readable>((resolve, reject) => {
+        var promise = new Promise<stream.Readable>(async (resolve, reject) => {
             var itemUrl: string = artifactItem.metadata['downloadUrl'];
-            this.getRequestHandler(itemUrl).get(this.getRequestOptions(itemUrl), (resp) => {
-                resolve(resp);
-            });
+            itemUrl = itemUrl.replace(/([^:]\/)\/+/g, "$1");
+            let res: httpm.HttpClientResponse = await this.httpc.get(itemUrl);
+            resolve(res.message);
         });
 
         return promise;
@@ -44,67 +50,87 @@ export class WebProvider implements models.IArtifactProvider {
     }
 
     private getItems(itemsUrl: string): Promise<models.ArtifactItem[]> {
-        var promise = new Promise<models.ArtifactItem[]>((resolve, reject) => {
-            this.getRequestHandler(itemsUrl).get(this.getRequestOptions(itemsUrl), (resp) => {
-                var body = '';
-                resp.setEncoding('utf8');
-                resp.on('data', (chunk) => {
-                    body += chunk;
-                }).on('error', (e) => {
-                    console.log('Error ' + e);
-                    reject(e);
-                }).on('end', () => {
-                    fs.readFile(this.getTemplateFilePath(), 'utf8', (err, templateFileContent) => {
-                        if (err) {
-                            console.log(err);
-                            reject(err);
-                        }
+        var promise = new Promise<models.ArtifactItem[]>(async (resolve, reject) => {
+            itemsUrl = itemsUrl.replace(/([^:]\/)\/+/g, "$1");
+            let resp: httpm.HttpClientResponse = await this.httpc.get(itemsUrl, { 'Accept': 'application/json' });
+            let body: string = await resp.readBody();
 
-                        var template = handlebars.compile(templateFileContent);
-                        try {
-                            var response = JSON.parse(body);
-                            var context = this.extend(response, this._variables);
-                            var result = template(context);
-                            var items = JSON.parse(result);    
+            fs.readFile(this.getTemplateFilePath(), 'utf8', (err, templateFileContent) => {
+                if (err) {
+                    console.log(err);
+                    reject(err);
+                }
 
-                            resolve(items);
-                        } catch (error) {
-                            console.log("Failed to parse response body: " + body + " , got error : " + error);
-                            reject(error);
-                        }
-                    });
-                })
+                var template = handlebars.compile(templateFileContent);
+                try {
+                    var response = JSON.parse(body);
+                    var context = this.extend(response, this.variables);
+                    var result = template(context);
+                    var items = JSON.parse(result);
+
+                    resolve(items);
+                } catch (error) {
+                    console.log("Failed to parse response body: " + body + " , got error : " + error);
+                    reject(error);
+                }
             });
         });
 
         return promise;
     }
 
-    private getRequestHandler(inputUrl: string) {
-        var adapters = {
-            'http:': http,
-            'https:': https,
-        };
+    private initializeOptions() {
+        // try get proxy setting from environment variable set by VSTS-Task-Lib if there is no proxy setting in the options
+        if (!this.options.proxy || !this.options.proxy.proxyUrl) {
+            if (global['_vsts_task_lib_proxy']) {
+                let proxyFromEnv: any = {
+                    proxyUrl: global['_vsts_task_lib_proxy_url'],
+                    proxyUsername: global['_vsts_task_lib_proxy_username'],
+                    proxyPassword: this._readTaskLibSecrets(global['_vsts_task_lib_proxy_password']),
+                    proxyBypassHosts: JSON.parse(global['_vsts_task_lib_proxy_bypass'] || "[]"),
+                };
 
-        return adapters[url.parse(inputUrl).protocol];
+                this.options.proxy = proxyFromEnv;
+            }
+        }
+
+        // try get cert setting from environment variable set by VSTS-Task-Lib if there is no cert setting in the options
+        if (!this.options.cert) {
+            if (global['_vsts_task_lib_cert']) {
+                let certFromEnv: any = {
+                    caFile: global['_vsts_task_lib_cert_ca'],
+                    certFile: global['_vsts_task_lib_cert_clientcert'],
+                    keyFile: global['_vsts_task_lib_cert_key'],
+                    passphrase: this._readTaskLibSecrets(global['_vsts_task_lib_cert_passphrase']),
+                };
+
+                this.options.cert = certFromEnv;
+            }
+        }
+    }
+
+    private _readTaskLibSecrets(lookupKey: string): string {
+        // the lookupKey should has following format
+        // base64encoded<keyFilePath>:base64encoded<encryptedContent>
+        if (lookupKey && lookupKey.indexOf(':') > 0) {
+            let lookupInfo: string[] = lookupKey.split(':', 2);
+
+            // file contains encryption key
+            let keyFile = new Buffer(lookupInfo[0], 'base64').toString('utf8');
+            let encryptKey = new Buffer(fs.readFileSync(keyFile, 'utf8'), 'base64');
+
+            let encryptedContent: string = new Buffer(lookupInfo[1], 'base64').toString('utf8');
+
+            let decipher = crypto.createDecipher("aes-256-ctr", encryptKey)
+            let decryptedContent = decipher.update(encryptedContent, 'hex', 'utf8')
+            decryptedContent += decipher.final('utf8');
+
+            return decryptedContent;
+        }
     }
 
     private getTemplateFilePath(): string {
-        return path.isAbsolute(this._templateFile) ? this._templateFile : path.join(__dirname, this._templateFile);
-    }
-
-    private getRequestOptions(inputUrl: string) {
-        inputUrl = inputUrl.replace(/([^:]\/)\/+/g, "$1");
-
-        var options = {
-            'hostname': url.parse(inputUrl).hostname,
-            'port': url.parse(inputUrl).port,
-            'auth': this._username + ":" + this._password,
-            'path': inputUrl,
-            'headers': { 'Accept': 'application/json' }
-        }
-
-        return options;
+        return path.isAbsolute(this.templateFile) ? this.templateFile : path.join(__dirname, this.templateFile);
     }
 
     private extend(target, source) {
@@ -115,9 +141,9 @@ export class WebProvider implements models.IArtifactProvider {
         return target;
     }
 
-    private _rootItemsLocation: string;
-    private _templateFile: string;
-    private _username: string;
-    private _password: string;
-    private _variables: string;
+    private rootItemsLocation: string;
+    private templateFile: string;
+    private variables: string;
+    private httpc: httpm.HttpClient = new httpm.HttpClient('item-level-downloader');
+    private options: any = {};
 }
