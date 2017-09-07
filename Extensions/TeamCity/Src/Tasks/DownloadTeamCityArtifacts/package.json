@@ -3,6 +3,6 @@
   "main": "download.js",
   "dependencies": {
     "vsts-task-lib" : "2.0.5",
-    "item-level-downloader": "1.0.10"
+    "item-level-downloader": "1.0.16"
   }
 }

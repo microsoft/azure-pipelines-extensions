@@ -59,7 +59,7 @@
       "name": "itemPattern",
       "type": "string",
       "label": "ms-resource:loc.input.label.itemPattern",
-      "defaultValue": "",
+      "defaultValue": "**",
       "required": false,
       "helpMarkDown": "ms-resource:loc.input.help.itemPattern"
     },
