@@ -94,26 +94,91 @@ describe('artifactItemStore.getNextItemToProcess', () => {
     });
 });
 
-describe('artifactItemStore.markAsProcessed', () => {
-    it('should remove the artifactItem from queue', () => {
+describe('artifactItemStore.updateState', () => {
+    it('should update state correctly', () => {
         var artifactItemStore = new ArtifactItemStore();
         var artifactItem1 = new models.ArtifactItem();
         artifactItem1.path = "path1";
         artifactItemStore.addItem(artifactItem1);
 
-        artifactItemStore.markAsProcessed(artifactItem1);
+        artifactItemStore.updateState(artifactItem1, models.TicketState.Skipped);
 
-        assert.equal(artifactItemStore.getNextItemToProcess(), undefined);
+        assert.equal(artifactItemStore.getTickets().find(x => x.artifactItem.path == "path1").state, models.TicketState.Skipped);
     });
 });
 
-describe('artifactItemStore.markAsProcessed', () => {
+describe('artifactItemStore.updateState', () => {
     it('should not throw if the artifactItem does not exisit in store', () => {
         var artifactItemStore = new ArtifactItemStore();
         var artifactItem1 = new models.ArtifactItem();
         artifactItem1.path = "path1";
 
-        artifactItemStore.markAsProcessed(artifactItem1);
+        artifactItemStore.updateState(artifactItem1, models.TicketState.Skipped);
+    });
+});
+
+describe('artifactItemStore.updateState', () => {
+    it('should not update finish time for inqueue state', () => {
+        var artifactItemStore = new ArtifactItemStore();
+        var artifactItem1 = new models.ArtifactItem();
+        artifactItem1.path = "path1";
+        artifactItemStore.addItem(artifactItem1);
+
+        artifactItemStore.updateState(artifactItem1, models.TicketState.InQueue);
+
+        assert.equal(artifactItemStore.getTickets().find(x => x.artifactItem.path == "path1").finishTime, undefined);
+    });
+});
+
+describe('artifactItemStore.updateState', () => {
+    it('should not update finish time for processing state', () => {
+        var artifactItemStore = new ArtifactItemStore();
+        var artifactItem1 = new models.ArtifactItem();
+        artifactItem1.path = "path1";
+        artifactItemStore.addItem(artifactItem1);
+
+        artifactItemStore.updateState(artifactItem1, models.TicketState.Processing);
+
+        assert.equal(artifactItemStore.getTickets().find(x => x.artifactItem.path == "path1").finishTime, undefined);
+    });
+});
+
+describe('artifactItemStore.updateState', () => {
+    it('should update finish time for skipped state', () => {
+        var artifactItemStore = new ArtifactItemStore();
+        var artifactItem1 = new models.ArtifactItem();
+        artifactItem1.path = "path1";
+        artifactItemStore.addItem(artifactItem1);
+
+        artifactItemStore.updateState(artifactItem1, models.TicketState.Skipped);
+
+        assert.notEqual(artifactItemStore.getTickets().find(x => x.artifactItem.path == "path1").finishTime, undefined);
+    });
+});
+
+describe('artifactItemStore.updateState', () => {
+    it('should update finish time for processed state', () => {
+        var artifactItemStore = new ArtifactItemStore();
+        var artifactItem1 = new models.ArtifactItem();
+        artifactItem1.path = "path1";
+        artifactItemStore.addItem(artifactItem1);
+
+        artifactItemStore.updateState(artifactItem1, models.TicketState.Processed);
+
+        assert.notEqual(artifactItemStore.getTickets().find(x => x.artifactItem.path == "path1").finishTime, undefined);
+    });
+});
+
+describe('artifactItemStore.updateState', () => {
+    it('should update finish time for failed state', () => {
+        var artifactItemStore = new ArtifactItemStore();
+        var artifactItem1 = new models.ArtifactItem();
+        artifactItem1.path = "path1";
+        artifactItemStore.addItem(artifactItem1);
+
+        artifactItemStore.updateState(artifactItem1, models.TicketState.Failed);
+
+        assert.notEqual(artifactItemStore.getTickets().find(x => x.artifactItem.path == "path1").finishTime, undefined);
     });
 });
 
