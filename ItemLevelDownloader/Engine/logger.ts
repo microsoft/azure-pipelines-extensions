@@ -26,8 +26,9 @@ export class Logger {
         var tickets = store.getTickets();
         tickets = tickets.filter(x => x.artifactItem.itemType == ItemType.File);
 
-        var processedItems = tickets.filter(x => x.state == TicketState.Processed);
+        var finishedItems = tickets.filter(x => x.state == TicketState.Processed || x.state == TicketState.Skipped || x.state == TicketState.Failed);
         var queuedItems = tickets.filter(x => x.state == TicketState.InQueue);
+        var processedItems = tickets.filter(x => x.state == TicketState.Processed);
         var skippedItems = tickets.filter(x => x.state == TicketState.Skipped);
         var failedItems = tickets.filter(x => x.state == TicketState.Failed);
 
@@ -40,7 +41,8 @@ export class Logger {
         
         if (this.verbose) {
             console.log("Summary:");
-            var maxPathLength = processedItems.reduce((a, b) => a.artifactItem.path.length > b.artifactItem.path.length ? a : b).artifactItem.path.length;
+            var pathLengths = finishedItems.map(x => x.artifactItem.path.length);
+            var maxPathLength = pathLengths.reduce((a, b) => a > b ? a : b, 1);
             var fileHeader = this.padText("File", maxPathLength);
             var startTimeHeader = this.padText("Start Time", 25);
             var finishTimeHeader = this.padText("Finish Time", 25);
