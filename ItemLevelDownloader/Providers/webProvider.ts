@@ -14,6 +14,8 @@ import { BasicCredentialHandler } from './handlers/basiccreds';
 import { IRequestHandler, IRequestOptions } from './handlers/Interfaces';
 import { ArtifactItemStore } from '../Store/artifactItemStore';
 
+var packagejson = require('../package.json');
+
 export class WebProvider implements models.IArtifactProvider {
 
     constructor(rootItemsLocation, templateFile: string, variables: any, handler: IRequestHandler, requestOptions?: IRequestOptions) {
@@ -21,7 +23,7 @@ export class WebProvider implements models.IArtifactProvider {
         this.templateFile = templateFile;
         this.options = requestOptions || {};
         this.initializeOptions();
-        this.httpc = new httpm.HttpClient('item-level-downloader', [handler], this.options);
+        this.httpc = new httpm.HttpClient('item-level-downloader ' + packagejson.version, [handler], this.options);
         this.variables = variables;
     }
 
