@@ -7,10 +7,6 @@ export class ArtifactItem {
     lastModified: Date;
     metadata: { [key: string]: string }
 
-    constructor() {
-        this.metadata = {};
-    }
-
     public static clone(item: ArtifactItem): ArtifactItem {
         var clonedItem = new ArtifactItem();
         clonedItem.itemType = item.itemType;
@@ -19,8 +15,10 @@ export class ArtifactItem {
         clonedItem.lastModified = item.lastModified;
         clonedItem.metadata = {}
 
-        for (var key of Object.keys(item.metadata)) {
-            clonedItem.metadata[key] = item.metadata[key];
+        if (!!item.metadata) {
+            for (var key of Object.keys(item.metadata)) {
+                clonedItem.metadata[key] = item.metadata[key];
+            }
         }
 
         return clonedItem;
