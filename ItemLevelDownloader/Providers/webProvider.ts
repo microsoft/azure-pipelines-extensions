@@ -10,9 +10,11 @@ var handlebars = require('handlebars');
 import * as httpm from 'typed-rest-client/HttpClient';
 
 import * as models from '../Models';
-import { BasicCredentialHandler } from './handlers/basiccreds';
-import { IRequestHandler, IRequestOptions } from './handlers/Interfaces';
+import { BasicCredentialHandler } from './Handlers/basiccreds';
+import { IRequestHandler, IRequestOptions } from './Handlers/interfaces';
 import { ArtifactItemStore } from '../Store/artifactItemStore';
+
+var packagejson = require('../package.json');
 
 export class WebProvider implements models.IArtifactProvider {
 
@@ -21,7 +23,7 @@ export class WebProvider implements models.IArtifactProvider {
         this.templateFile = templateFile;
         this.options = requestOptions || {};
         this.initializeOptions();
-        this.httpc = new httpm.HttpClient('item-level-downloader', [handler], this.options);
+        this.httpc = new httpm.HttpClient('item-level-downloader ' + packagejson.version, [handler], this.options);
         this.variables = variables;
     }
 

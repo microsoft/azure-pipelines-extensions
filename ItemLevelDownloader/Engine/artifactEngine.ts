@@ -6,11 +6,13 @@ var minimatch = require('minimatch');
 import * as models from '../Models';
 import { ArtifactItemStore } from '../Store/artifactItemStore';
 import { ArtifactEngineOptions } from "./artifactEngineOptions"
+import { Logger } from './logger';
 
 export class ArtifactEngine {
     async processItems(sourceProvider: models.IArtifactProvider, destProvider: models.IArtifactProvider, artifactEngineOptions?: ArtifactEngineOptions): Promise<void> {
         const processors: Promise<{}>[] = [];
         artifactEngineOptions = artifactEngineOptions || new ArtifactEngineOptions();
+        this.logger = new Logger(artifactEngineOptions.verbose);
         this.artifactItemStore.flush();
 
         const itemsToPull: models.ArtifactItem[] = await sourceProvider.getRootItems();
@@ -25,11 +27,11 @@ export class ArtifactEngine {
                             break;
                         }
 
-                        console.log("Dequeued item " + item.path + " for processing.");
+                        this.logger.logInfo("Dequeued item " + item.path + " for processing.");
                         await this.processArtifactItem(sourceProvider, item, destProvider, artifactEngineOptions);
                     }
 
-                    console.log("Exiting worker nothing more to process");
+                    this.logger.logMessage("Exiting worker nothing more to process");
 
                     resolve();
                 }
@@ -40,6 +42,7 @@ export class ArtifactEngine {
         }
 
         await Promise.all(processors);
+        this.logger.logSummary(this.artifactItemStore);
     }
 
     processArtifactItem(sourceProvider: models.IArtifactProvider,
@@ -62,14 +65,16 @@ export class ArtifactEngine {
             retryCount = retryCount ? retryCount : 0;
             if (item.itemType === models.ItemType.File) {
                 if (minimatch(item.path, artifactEngineOptions.itemPattern, { dot: true })) {
-                    console.log("Processing '%s'", item.path);
+                    this.logger.logInfo("Processing " + item.path);
                     const contentStream = await sourceProvider.getArtifactItem(item);
-                    console.log("got read stream for item: " + item.path);
+                    this.logger.logInfo("Got download stream for item: " + item.path);
                     await destProvider.putArtifactItem(item, contentStream);
+                    this.artifactItemStore.updateState(item, models.TicketState.Processed);
                     resolve();
                 }
                 else {
-                    console.log("Skipped processing item " + item.path);
+                    this.logger.logMessage("Skipped processing item " + item.path);
+                    this.artifactItemStore.updateState(item, models.TicketState.Skipped);
                     resolve();
                 }
             }
@@ -84,13 +89,15 @@ export class ArtifactEngine {
                 });
 
                 this.artifactItemStore.addItems(items);
-
-                console.log("Enqueued " + items.length + " for processing.");
+                this.artifactItemStore.updateState(item, models.TicketState.Processed);
+                
+                this.logger.logInfo("Enqueued " + items.length + " for processing.");
                 resolve();
             }
         } catch (err) {
-            console.log("Error processing file %s: %s", item.path, err);
+            this.logger.logError("Error processing file " +  item.path + ":" + err);
             if (retryCount === artifactEngineOptions.retryLimit - 1) {
+                this.artifactItemStore.updateState(item, models.TicketState.Failed);
                 reject(err);
             } else {
                 setTimeout(() => this
@@ -100,4 +107,5 @@ export class ArtifactEngine {
     }
 
     private artifactItemStore: ArtifactItemStore = new ArtifactItemStore();
+    private logger: Logger;
 }

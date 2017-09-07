@@ -15,12 +15,13 @@ async function main(): Promise<void> {
     processorOptions.parallelProcessingLimit = 4;
     processorOptions.retryIntervalInSeconds = 3;
     processorOptions.retryLimit = 2;
+    processorOptions.verbose = true;
 
     await downloadFileShareDrop(processorOptions);
     await downloadVSTSDropWithMultipleFiles(processorOptions);
     await downloadTeamCityDropWithMultipleFiles(processorOptions);
     await downloadJenkinsDropWithMultipleFiles(processorOptions);
-    await uploadToAzureBlobs(processorOptions);
+    //await uploadToAzureBlobs(processorOptions);
 
     // Enable these to test big drops if required.
     // await downloadBigTeamCityDrop(processorOptions);
