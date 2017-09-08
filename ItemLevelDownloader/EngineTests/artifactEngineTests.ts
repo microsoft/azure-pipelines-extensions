@@ -50,3 +50,15 @@ describe('artifactEngine.processItems', () => {
         assert.equal(testProvider.getArtifactItemCalledCount, 2);
     });
 });
+
+describe('artifactEngine.processItems', () => {
+    it('should return items with updated paths', async () => {
+        var testProvider = new providers.StubProvider();
+        var localFileProvider = new providers.FilesystemProvider("c:\\drop");
+
+        var items = await new engine.ArtifactEngine().processItems(testProvider, localFileProvider, new engine.ArtifactEngineOptions());
+
+        assert.equal(items.length, 6);
+        assert.equal(items[0].artifactItem.metadata[models.Constants.DestinationUrlKey], "c:\\drop\\path1\\file1");
+    });
+});

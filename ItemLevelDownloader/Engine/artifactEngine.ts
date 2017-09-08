@@ -9,7 +9,7 @@ import { ArtifactEngineOptions } from "./artifactEngineOptions"
 import { Logger } from './logger';
 
 export class ArtifactEngine {
-    async processItems(sourceProvider: models.IArtifactProvider, destProvider: models.IArtifactProvider, artifactEngineOptions?: ArtifactEngineOptions): Promise<void> {
+    async processItems(sourceProvider: models.IArtifactProvider, destProvider: models.IArtifactProvider, artifactEngineOptions?: ArtifactEngineOptions): Promise<models.ArtifactDownloadTicket[]> {
         const processors: Promise<{}>[] = [];
         artifactEngineOptions = artifactEngineOptions || new ArtifactEngineOptions();
         this.logger = new Logger(artifactEngineOptions.verbose);
@@ -43,6 +43,7 @@ export class ArtifactEngine {
 
         await Promise.all(processors);
         this.logger.logSummary(this.artifactItemStore);
+        return this.artifactItemStore.getTickets();
     }
 
     processArtifactItem(sourceProvider: models.IArtifactProvider,
@@ -90,12 +91,12 @@ export class ArtifactEngine {
 
                 this.artifactItemStore.addItems(items);
                 this.artifactItemStore.updateState(item, models.TicketState.Processed);
-                
+
                 this.logger.logInfo("Enqueued " + items.length + " for processing.");
                 resolve();
             }
         } catch (err) {
-            this.logger.logError("Error processing file " +  item.path + ":" + err);
+            this.logger.logError("Error processing file " + item.path + ":" + err);
             if (retryCount === artifactEngineOptions.retryLimit - 1) {
                 this.artifactItemStore.updateState(item, models.TicketState.Failed);
                 reject(err);

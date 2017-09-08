@@ -38,7 +38,7 @@ export class Logger {
             + ", Queued: " + queuedItems.length
             + ", Skipped: " + skippedItems.length
             + ", Failed: " + failedItems.length);
-        
+
         if (this.verbose) {
             console.log("Summary:");
             var pathLengths = finishedItems.map(x => x.artifactItem.path.length);

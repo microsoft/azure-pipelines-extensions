@@ -5,3 +5,4 @@ export { IArtifactProvider } from "./artifactprovider";
 export { ItemType } from './itemType';
 export { ArtifactDownloadTicket } from './artifactDownloadTicket';
 export { TicketState } from './ticketState';
+export { Constants } from './constants';
