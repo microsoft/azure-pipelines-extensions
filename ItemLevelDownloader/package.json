@@ -1,6 +1,6 @@
 {
   "name": "item-level-downloader",
-  "version": "1.0.16",
+  "version": "1.0.17",
   "description": "ItemLevelDownloader",
   "main": "app.js",
   "author": {
@@ -10,8 +10,7 @@
   "dependencies": {
     "handlebars": "4.0.10",
     "minimatch": "3.0.2",
-    "typed-rest-client": "^0.12.0",
-    "azure-storage": "2.2.1"
+    "typed-rest-client": "^0.12.0"
   },
   "devDependencies": {
     "assert": "1.4.1",

@@ -1,4 +1,4 @@
-﻿import {ItemType} from "./itemType"
+﻿import { ItemType } from "./itemType"
 
 export class ArtifactItem {
     itemType: ItemType;
@@ -15,8 +15,10 @@ export class ArtifactItem {
         clonedItem.lastModified = item.lastModified;
         clonedItem.metadata = {}
 
-        for (var key of Object.keys(item.metadata)) {
-            clonedItem.metadata[key] = item.metadata[key];
+        if (!!item.metadata) {
+            for (var key of Object.keys(item.metadata)) {
+                clonedItem.metadata[key] = item.metadata[key];
+            }
         }
 
         return clonedItem;

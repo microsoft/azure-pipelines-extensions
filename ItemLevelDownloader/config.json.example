@@ -11,10 +11,5 @@
     },
     "vsts": {
         "pat": ""
-    },
-    "azureblobstorage": {
-        "storageaccount": "",
-        "storagekey": "",
-        "container": ""
     }
 }

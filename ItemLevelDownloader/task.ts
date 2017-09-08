@@ -21,7 +21,6 @@ async function main(): Promise<void> {
     await downloadVSTSDropWithMultipleFiles(processorOptions);
     await downloadTeamCityDropWithMultipleFiles(processorOptions);
     await downloadJenkinsDropWithMultipleFiles(processorOptions);
-    //await uploadToAzureBlobs(processorOptions);
 
     // Enable these to test big drops if required.
     // await downloadBigTeamCityDrop(processorOptions);
@@ -30,9 +29,9 @@ async function main(): Promise<void> {
 async function downloadFileShareDrop(processorOptions) {
     var fileShareProvider = new providers.FilesystemProvider("//devomp/dropz");
     var fileSystemProvider = new providers.FilesystemProvider("c:\\drop");
-    
+
     let processor = new engine.ArtifactEngine();
-    
+
     await processor.processItems(fileShareProvider, fileSystemProvider, processorOptions);
 }
 
@@ -46,7 +45,7 @@ async function downloadVSTSDropWithMultipleFiles(processorOptions) {
 
     var itemsUrl = "https://panditaomesh.visualstudio.com/_apis/resources/Containers/573756?itemPath=sources&isShallow=true"
     var vstsVariables = {};
-    
+
     var handler = new PersonalAccessTokenCredentialHandler(config.vsts.pat);
     var webProvider = new providers.WebProvider(itemsUrl, "vsts.handlebars", vstsVariables, handler);
     var dropLocation = path.join(config.dropLocation, "vstsDropWithMultipleFiles");
@@ -109,15 +108,6 @@ async function downloadBigTeamCityDrop(processorOptions) {
     var localFileProvider = new providers.FilesystemProvider(dropLocation);
 
     await processor.processItems(webProvider, localFileProvider, processorOptions);
-}
-
-async function uploadToAzureBlobs(processorOptions) {
-    let processor = new engine.ArtifactEngine();
-
-    var blobProvider = new providers.AzureBlobProvider(config.azureblobstorage.storageaccount, config.azureblobstorage.container, config.azureblobstorage.storagekey, "prefix");
-    var localFileProvider = new providers.FilesystemProvider(config.dropLocation);
-
-    await processor.processItems(localFileProvider, blobProvider, processorOptions);
 }
 
 main();
