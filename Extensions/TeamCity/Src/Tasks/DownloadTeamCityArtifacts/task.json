@@ -59,9 +59,9 @@
       "name": "itemPattern",
       "type": "string",
       "label": "Item Pattern",
-      "defaultValue": "",
+      "defaultValue": "**",
       "required": false,
-      "helpMarkDown": "Minmatch pattern to filter files to be downloaded."
+      "helpMarkDown": "Minimatch pattern to filter files to be downloaded."
     },
     {
       "name": "downloadPath",

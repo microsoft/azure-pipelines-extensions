@@ -5,6 +5,7 @@ import * as tl from 'vsts-task-lib/task';
 import * as models from "item-level-downloader/Models"
 import * as engine from "item-level-downloader/Engine"
 import * as providers from "item-level-downloader/Providers"
+import * as webHandlers from "item-level-downloader/Providers/Handlers"
 
 tl.setResourcePath(path.join(__dirname, 'task.json'));
 
@@ -29,14 +30,16 @@ async function main(): Promise<void> {
             "url": endpointUrl
         }
     };
-    
-    var webProvider = new providers.WebProvider(itemsUrl, templatePath, username, password, teamcityVariables);
+    var handler = new webHandlers.BasicCredentialHandler(username, password);
+    var webProvider = new providers.WebProvider(itemsUrl, templatePath, teamcityVariables, handler);
     var fileSystemProvider = new providers.FilesystemProvider(downloadPath);
 
     var downloader = new engine.ArtifactEngine();
     var downloaderOptions = new engine.ArtifactEngineOptions();
     downloaderOptions.itemPattern = itemPattern ? itemPattern : '**';
     downloaderOptions.parallelProcessingLimit = +tl.getVariable("release.artifact.download.parallellimit") || 4;
+    var debugMode = tl.getVariable('System.Debug');
+    downloaderOptions.verbose = debugMode ? debugMode.toLowerCase() != 'false' : false;
     await downloader.processItems(webProvider, fileSystemProvider, downloaderOptions);
     
     tl.setResult(tl.TaskResult.Succeeded, "");
