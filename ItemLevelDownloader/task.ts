@@ -15,6 +15,7 @@ async function main(): Promise<void> {
     processorOptions.parallelProcessingLimit = 4;
     processorOptions.retryIntervalInSeconds = 3;
     processorOptions.retryLimit = 2;
+    processorOptions.verbose = true;
 
     await downloadFileShareDrop(processorOptions);
     await downloadVSTSDropWithMultipleFiles(processorOptions);

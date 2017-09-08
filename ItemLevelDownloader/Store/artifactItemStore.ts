@@ -11,7 +11,7 @@ export class ArtifactItemStore {
         var artifactDownloadTicket: models.ArtifactDownloadTicket = {
             artifactItem: item,
             state: models.TicketState.InQueue,
-            startTime: new Date(),
+            startTime: undefined,
             finishTime: undefined
         };
 
@@ -24,20 +24,28 @@ export class ArtifactItemStore {
         });
     }
 
+    public getTickets(): models.ArtifactDownloadTicket[] {
+        return this._downloadTickets;
+    }
+
     public getNextItemToProcess(): models.ArtifactItem {
         var nextItemToProcess = this._downloadTickets.find(x => x.state === models.TicketState.InQueue);
         if (nextItemToProcess) {
             nextItemToProcess.state = models.TicketState.Processing;
+            nextItemToProcess.startTime = new Date();
             return nextItemToProcess.artifactItem;
         }
 
         return undefined;
     }
 
-    public markAsProcessed(item: models.ArtifactItem) {
+    public updateState(item: models.ArtifactItem, state: models.TicketState) {
         var processedItem = this._downloadTickets.find(x => x.artifactItem.path === item.path);
         if (processedItem) {
-            processedItem.state = models.TicketState.Processed;
+            processedItem.state = state;
+            if (state != models.TicketState.InQueue && state != models.TicketState.Processing) {
+                processedItem.finishTime = new Date();
+            }
         }
     }
 
@@ -46,6 +54,6 @@ export class ArtifactItemStore {
     }
 
     public flush(): void {
-        this._downloadTickets  = [];
+        this._downloadTickets = [];
     }
 }
