@@ -23,7 +23,7 @@ export class FilesystemProvider implements models.IArtifactProvider {
             try {
                 var contentStream = fs.createReadStream(itemPath);
                 resolve(contentStream);
-            } catch(error) {
+            } catch (error) {
                 reject(error);
             }
         });
@@ -33,7 +33,6 @@ export class FilesystemProvider implements models.IArtifactProvider {
 
     public putArtifactItem(item: models.ArtifactItem, stream: Stream.Readable): Promise<models.ArtifactItem> {
         return new Promise(async (resolve, reject) => {
-            var newArtifactItem: models.ArtifactItem = models.ArtifactItem.clone(item);
             const outputFilename = path.join(this._rootLocation, item.path);
 
             // create parent folder if it has not already been created
@@ -46,8 +45,8 @@ export class FilesystemProvider implements models.IArtifactProvider {
             stream.on("end",
                 () => {
                     console.log(`Downloaded '${item.path}' to '${outputFilename}'`);
-                    newArtifactItem.metadata["downloadUrl"] = outputFilename;
-                    resolve(newArtifactItem);
+                    item.metadata[models.Constants.DestinationUrlKey] = outputFilename;
+                    resolve(item);
                 });
             stream.on("error",
                 (error) => {
@@ -60,7 +59,7 @@ export class FilesystemProvider implements models.IArtifactProvider {
         var promise = new Promise<models.ArtifactItem[]>((resolve, reject) => {
             var items: models.ArtifactItem[] = [];
             fs.readdir(itemsPath, (error, files) => {
-                if(!!error) {
+                if (!!error) {
                     console.log("Unable to read directory " + itemsPath + ". Error: " + error);
                 }
 
