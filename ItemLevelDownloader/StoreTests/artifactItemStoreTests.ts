@@ -196,3 +196,62 @@ describe('artifactItemStore.flush', () => {
     });
 });
 
+describe('artifactItemStore.itemsPendingProcessing', () => {
+    it('should return true if item is in queue', () => {
+        var artifactItemStore = new ArtifactItemStore();
+        var artifactItem = new models.ArtifactItem();
+        artifactItem.path = "path1";
+        artifactItemStore.addItem(artifactItem);
+        artifactItemStore.updateState(artifactItem, models.TicketState.InQueue);
+
+        assert.equal(artifactItemStore.itemsPendingProcessing(), true);
+    });
+});
+
+describe('artifactItemStore.itemsPendingProcessing', () => {
+    it('should return true if item is processing', () => {
+        var artifactItemStore = new ArtifactItemStore();
+        var artifactItem = new models.ArtifactItem();
+        artifactItem.path = "path1";
+        artifactItemStore.addItem(artifactItem);
+        artifactItemStore.updateState(artifactItem, models.TicketState.Processing);
+
+        assert.equal(artifactItemStore.itemsPendingProcessing(), true);
+    });
+});
+
+describe('artifactItemStore.itemsPendingProcessing', () => {
+    it('should return false if item is skipped', () => {
+        var artifactItemStore = new ArtifactItemStore();
+        var artifactItem = new models.ArtifactItem();
+        artifactItem.path = "path1";
+        artifactItemStore.addItem(artifactItem);
+        artifactItemStore.updateState(artifactItem, models.TicketState.Skipped);
+
+        assert.equal(artifactItemStore.itemsPendingProcessing(), false);
+    });
+});
+
+describe('artifactItemStore.itemsPendingProcessing', () => {
+    it('should return false if item is failed', () => {
+        var artifactItemStore = new ArtifactItemStore();
+        var artifactItem = new models.ArtifactItem();
+        artifactItem.path = "path1";
+        artifactItemStore.addItem(artifactItem);
+        artifactItemStore.updateState(artifactItem, models.TicketState.Failed);
+
+        assert.equal(artifactItemStore.itemsPendingProcessing(), false);
+    });
+});
+
+describe('artifactItemStore.itemsPendingProcessing', () => {
+    it('should return false if item is processed', () => {
+        var artifactItemStore = new ArtifactItemStore();
+        var artifactItem = new models.ArtifactItem();
+        artifactItem.path = "path1";
+        artifactItemStore.addItem(artifactItem);
+        artifactItemStore.updateState(artifactItem, models.TicketState.Processed);
+
+        assert.equal(artifactItemStore.itemsPendingProcessing(), false);
+    });
+});
