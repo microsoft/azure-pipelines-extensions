@@ -7,11 +7,12 @@ import * as models from '../Models';
 import { ArtifactItemStore } from '../Store/artifactItemStore';
 import { ArtifactEngineOptions } from "./artifactEngineOptions"
 import { Logger } from './logger';
+import { Worker } from './worker';
 import { TicketState } from '../Models/ticketState';
 
 export class ArtifactEngine {
     async processItems(sourceProvider: models.IArtifactProvider, destProvider: models.IArtifactProvider, artifactEngineOptions?: ArtifactEngineOptions): Promise<models.ArtifactDownloadTicket[]> {
-        const processors: Promise<{}>[] = [];
+        const processors: Promise<void>[] = [];
         artifactEngineOptions = artifactEngineOptions || new ArtifactEngineOptions();
         this.logger = new Logger(artifactEngineOptions.verbose);
         this.artifactItemStore.flush();
@@ -22,38 +23,9 @@ export class ArtifactEngine {
         this.artifactItemStore.addItems(itemsToPull);
 
         for (let i = 0; i < artifactEngineOptions.parallelProcessingLimit; ++i) {
-            processors.push(new Promise(async (resolve, reject) => {
-                await this.spawnWorker(resolve, reject, sourceProvider, destProvider, artifactEngineOptions);
-            }));
+            var worker = new Worker<models.ArtifactItem>(item => this.processArtifactItem(sourceProvider, item, destProvider, artifactEngineOptions), this.artifactItemStore.getNextItemToProcess, () => this.artifactItemStore.itemsPendingProcessing() == 0);
+            processors.push(worker.init());
         }
-
-        var a = async () => setTimeout(() => {
-            var itemsInQueue = this.artifactItemStore.getNumProcessingItems();
-
-            var tickets = this.artifactItemStore.getTickets();
-            var finishedItems = tickets.filter(x => x.state == TicketState.Processed || x.state == TicketState.Skipped || x.state == TicketState.Failed);
-            var queuedItems = tickets.filter(x => x.state == TicketState.InQueue);
-            var processingItems = tickets.filter(x => x.state == TicketState.Processing);
-            var processedItems = tickets.filter(x => x.state == TicketState.Processed);
-            var skippedItems = tickets.filter(x => x.state == TicketState.Skipped);
-            var failedItems = tickets.filter(x => x.state == TicketState.Failed);
-            var currentTime = new Date();
-
-            console.log(
-                "Total: " + tickets.length
-                + ", Processed: " + processedItems.length
-                + ", Processing: " + processingItems.length
-                + ", Queued: " + queuedItems.length
-                + ", Skipped: " + skippedItems.length
-                + ", Failed: " + failedItems.length
-                + ", Time elapsed: " + ((currentTime.valueOf() - startTime.valueOf()) / 1000) + "secs");
-
-            if (itemsInQueue != 0) {
-                a();
-            }
-        }, 1000);
-
-        a();
 
         await Promise.all(processors);
 
@@ -69,39 +41,11 @@ export class ArtifactEngine {
         return this.artifactItemStore.getTickets();
     }
 
-    async spawnWorker(resolve, reject, sourceProvider: models.IArtifactProvider, destProvider: models.IArtifactProvider, artifactEngineOptions?: ArtifactEngineOptions) {
-        try {
-            await this.workerImplementation(sourceProvider, destProvider, artifactEngineOptions);
-            if (this.artifactItemStore.getNumProcessingItems() == 0) {
-                this.logger.logMessage("Exiting worker nothing more to process");
-                resolve();
-            }
-            else {
-                // spawn worker after 1 sec to check for items again.
-                setTimeout(() => this.spawnWorker(resolve, reject, sourceProvider, destProvider, artifactEngineOptions), 1000);
-            }
-        }
-        catch (err) {
-            reject(err);
-        }
-    }
-    async workerImplementation(sourceProvider: models.IArtifactProvider, destProvider: models.IArtifactProvider, artifactEngineOptions?: ArtifactEngineOptions) {
-        while (true) {
-            const item = this.artifactItemStore.getNextItemToProcess();
-            if (!item) {
-                break;
-            }
-
-            this.logger.logInfo("Dequeued item " + item.path + " for processing.");
-            await this.processArtifactItem(sourceProvider, item, destProvider, artifactEngineOptions);
-        }
-    }
-
     processArtifactItem(sourceProvider: models.IArtifactProvider,
         item: models.ArtifactItem,
         destProvider: models.IArtifactProvider,
-        artifactEngineOptions: ArtifactEngineOptions): Promise<{}> {
-        return new Promise(async (downloadResolve, downloadReject) => {
+        artifactEngineOptions: ArtifactEngineOptions): Promise<void> {
+        return new Promise<void>(async (downloadResolve, downloadReject) => {
             this.processArtifactItemImplementation(sourceProvider, item, destProvider, artifactEngineOptions, downloadResolve, downloadReject);
         });
     }

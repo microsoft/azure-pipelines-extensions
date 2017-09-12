@@ -39,12 +39,12 @@ export class FilesystemProvider implements models.IArtifactProvider {
             const folder = path.dirname(outputFilename);
             this.ensureDirectoryExistence(folder);
 
-            console.log("Downloading '%s' to '%s'", item.path, outputFilename);
+            //console.log("Downloading '%s' to '%s'", item.path, outputFilename);
             const outputStream = fs.createWriteStream(outputFilename);
             stream.pipe(outputStream);
             stream.on("end",
                 () => {
-                    console.log(`Downloaded '${item.path}' to '${outputFilename}'`);
+                    //console.log(`Downloaded '${item.path}' to '${outputFilename}'`);
                     item.metadata[models.Constants.DestinationUrlKey] = outputFilename;
                     resolve(item);
                 });

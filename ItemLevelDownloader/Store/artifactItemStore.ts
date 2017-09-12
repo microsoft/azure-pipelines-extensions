@@ -28,6 +28,11 @@ export class ArtifactItemStore {
         return this._downloadTickets;
     }
 
+    public itemsPendingProcessing(): boolean {
+        var processingTickets = this._downloadTickets.filter(x => x.state === models.TicketState.Processing || x.state === models.TicketState.InQueue);
+        return processingTickets ? processingTickets.length != 0 : false;
+    }
+
     public getNextItemToProcess(): models.ArtifactItem {
         var nextItemToProcess = this._downloadTickets.find(x => x.state === models.TicketState.InQueue);
         if (nextItemToProcess) {

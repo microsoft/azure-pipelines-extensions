@@ -12,19 +12,40 @@ async function main(): Promise<void> {
     let processorOptions = new engine.ArtifactEngineOptions();
     processorOptions.fileProcessingTimeoutInMinutes = 5;
     processorOptions.itemPattern = "**";
-    processorOptions.parallelProcessingLimit = 4;
+    processorOptions.parallelProcessingLimit = 8;
     processorOptions.retryIntervalInSeconds = 3;
     processorOptions.retryLimit = 2;
-    processorOptions.verbose = true;
+    processorOptions.verbose = false;
 
-    await downloadFileShareDrop(processorOptions);
-    await downloadVSTSDropWithMultipleFiles(processorOptions);
+    //await downloadTeamCityDropWithMultipleFiles2(processorOptions);
+
+    //await downloadFileShareDrop(processorOptions);
+    //await downloadVSTSDropWithMultipleFiles(processorOptions);
     await downloadTeamCityDropWithMultipleFiles(processorOptions);
-    await downloadJenkinsDropWithMultipleFiles(processorOptions);
+    //await downloadJenkinsDropWithMultipleFiles(processorOptions);
 
     // Enable these to test big drops if required.
     // await downloadBigTeamCityDrop(processorOptions);
 }
+
+async function downloadTeamCityDropWithMultipleFiles2(processorOptions) {
+    let processor = new engine.ArtifactEngine();
+
+    var itemsUrl = "http://localhost:88/httpAuth/app/rest/builds/id:41/artifacts/children/"
+    var teamcityVariables = {
+        "endpoint": {
+            "url": "http://localhost:88/"
+        }
+    };
+
+    var handler = new BasicCredentialHandler("admin", "12345");
+    var webProvider = new providers.WebProvider(itemsUrl, "teamcity.handlebars", teamcityVariables, handler);
+    var dropLocation = path.join(config.dropLocation, "teamCityDropWithMultipleFiles");
+    var localFileProvider = new providers.FilesystemProvider(dropLocation);
+
+    await processor.processItems(webProvider, localFileProvider, processorOptions);
+}
+
 
 async function downloadFileShareDrop(processorOptions) {
     var fileShareProvider = new providers.FilesystemProvider("//devomp/dropz");
