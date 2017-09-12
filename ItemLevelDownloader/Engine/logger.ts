@@ -4,42 +4,73 @@ import { ArtifactItemStore } from '../Store/artifactItemStore';
 
 export class Logger {
 
-    constructor(verbose: boolean) {
-        this.verbose = verbose
+    constructor(store: ArtifactItemStore, verbose: boolean) {
+        this.store = store;
+        this.startTime = new Date();
     }
 
-    public logInfo(message: string) {
+    public static logInfo(message: string) {
         if (this.verbose) {
             console.info(message);
         }
     }
 
-    public logError(message: string) {
+    public static logError(message: string) {
         console.error(message);
     }
 
-    public logMessage(message: string) {
+    public static logMessage(message: string) {
         console.log(message);
     }
 
-    public logSummary(store: ArtifactItemStore): void {
-        var tickets = store.getTickets();
+    public logProgress() {
+        if (Logger.verbose) {
+            var progressLogger = async () => setTimeout(() => {
+                var tickets = this.store.getTickets();
+                var queuedItems = tickets.filter(x => x.state == TicketState.InQueue);
+                var processingItems = tickets.filter(x => x.state == TicketState.Processing);
+                var processedItems = tickets.filter(x => x.state == TicketState.Processed);
+                var skippedItems = tickets.filter(x => x.state == TicketState.Skipped);
+                var failedItems = tickets.filter(x => x.state == TicketState.Failed);
+
+                var currentTime = new Date();
+
+                console.log(
+                    "Total: " + tickets.length
+                    + ", Processed: " + processedItems.length
+                    + ", Processing: " + processingItems.length
+                    + ", Queued: " + queuedItems.length
+                    + ", Skipped: " + skippedItems.length
+                    + ", Failed: " + failedItems.length
+                    + ", Time elapsed: " + ((currentTime.valueOf() - this.startTime.valueOf()) / 1000) + "secs");
+
+                if (this.store.itemsPendingProcessing()) {
+                    progressLogger();
+                }
+            }, 5000);
+
+            progressLogger();
+        }
+    }
+
+    public logSummary(): void {
+        var tickets = this.store.getTickets();
         tickets = tickets.filter(x => x.artifactItem.itemType == ItemType.File);
 
         var finishedItems = tickets.filter(x => x.state == TicketState.Processed || x.state == TicketState.Skipped || x.state == TicketState.Failed);
-        var queuedItems = tickets.filter(x => x.state == TicketState.InQueue);
         var processedItems = tickets.filter(x => x.state == TicketState.Processed);
         var skippedItems = tickets.filter(x => x.state == TicketState.Skipped);
         var failedItems = tickets.filter(x => x.state == TicketState.Failed);
 
+        var endTime = new Date();
         console.log(
             "Total: " + tickets.length
             + ", Processed: " + processedItems.length
-            + ", Queued: " + queuedItems.length
             + ", Skipped: " + skippedItems.length
-            + ", Failed: " + failedItems.length);
+            + ", Failed: " + failedItems.length
+            + ", Time elapsed: " + ((endTime.valueOf() - this.startTime.valueOf()) / 1000) + "secs");
 
-        if (this.verbose) {
+        if (Logger.verbose) {
             console.log("Summary:");
             var pathLengths = finishedItems.map(x => x.artifactItem.path.length);
             var maxPathLength = pathLengths.reduce((a, b) => a > b ? a : b, 1);
@@ -67,5 +98,7 @@ export class Logger {
         return paddedText;
     }
 
-    private verbose: boolean;
+    public static verbose: boolean;
+    private store: ArtifactItemStore;
+    private startTime: Date;
 }
