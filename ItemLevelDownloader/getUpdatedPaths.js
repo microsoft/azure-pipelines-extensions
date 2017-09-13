@@ -1,5 +1,5 @@
 "use strict";
-var https = require('https');
+var https = require('https'); 
 class GitClient {
     constructor(repository) {
         this.repository = repository;
