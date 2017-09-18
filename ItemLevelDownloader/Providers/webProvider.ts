@@ -10,6 +10,7 @@ var handlebars = require('handlebars');
 import * as httpm from 'typed-rest-client/HttpClient';
 
 import * as models from '../Models';
+import { Logger } from '../Engine/logger';
 import { BasicCredentialHandler } from './Handlers/basiccreds';
 import { IRequestHandler, IRequestOptions } from './Handlers/interfaces';
 import { ArtifactItemStore } from '../Store/artifactItemStore';
@@ -59,7 +60,7 @@ export class WebProvider implements models.IArtifactProvider {
 
             fs.readFile(this.getTemplateFilePath(), 'utf8', (err, templateFileContent) => {
                 if (err) {
-                    console.log(err);
+                    Logger.logError(err ? JSON.stringify(err) : "");
                     reject(err);
                 }
 
@@ -72,7 +73,7 @@ export class WebProvider implements models.IArtifactProvider {
 
                     resolve(items);
                 } catch (error) {
-                    console.log("Failed to parse response body: " + body + " , got error : " + error);
+                    Logger.logError("Failed to parse response body: " + body + " , got error : " + error);
                     reject(error);
                 }
             });

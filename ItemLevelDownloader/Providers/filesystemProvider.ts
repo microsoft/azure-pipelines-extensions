@@ -1,7 +1,9 @@
 import * as path from 'path';
 import * as fs from 'fs';
-import * as models from "../Models"
-import * as Stream from "stream";
+import * as Stream from 'stream';
+
+import * as models from '../Models';
+import { Logger } from '../Engine/logger';
 
 export class FilesystemProvider implements models.IArtifactProvider {
     constructor(rootLocation: string) {
@@ -39,12 +41,12 @@ export class FilesystemProvider implements models.IArtifactProvider {
             const folder = path.dirname(outputFilename);
             this.ensureDirectoryExistence(folder);
 
-            console.log("Downloading '%s' to '%s'", item.path, outputFilename);
+            Logger.logMessage('Downloading '+ item.path + ' to '+ outputFilename);
             const outputStream = fs.createWriteStream(outputFilename);
             stream.pipe(outputStream);
             stream.on("end",
                 () => {
-                    console.log(`Downloaded '${item.path}' to '${outputFilename}'`);
+                    Logger.logMessage(`Downloaded '${item.path}' to '${outputFilename}'`);
                     item.metadata[models.Constants.DestinationUrlKey] = outputFilename;
                     resolve(item);
                 });
@@ -60,7 +62,7 @@ export class FilesystemProvider implements models.IArtifactProvider {
             var items: models.ArtifactItem[] = [];
             fs.readdir(itemsPath, (error, files) => {
                 if (!!error) {
-                    console.log("Unable to read directory " + itemsPath + ". Error: " + error);
+                    Logger.logError("Unable to read directory " + itemsPath + ". Error: " + error);
                 }
 
                 for (var index = 0; index < files.length; index++) {

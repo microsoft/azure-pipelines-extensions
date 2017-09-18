@@ -31,7 +31,6 @@ export class StubProvider implements models.IArtifactProvider {
         this.getArtifactItemCalledCount++;
         this.itemsDownloaded.push(artifactItem);
 
-        console.log(`Downloading ${artifactItem.path}`);
         await this.delay(artifactItem.fileLength * 100);
 
         const s = new Stream.Readable();
@@ -39,7 +38,6 @@ export class StubProvider implements models.IArtifactProvider {
         s.push(`stub content for ${artifactItem.path}`);
         s.push(null);
 
-        console.log(`Finished Downloading ${artifactItem.path}`);
         return s;
     }
 

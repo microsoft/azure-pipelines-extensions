@@ -1,6 +1,6 @@
 {
   "name": "item-level-downloader",
-  "version": "1.0.17",
+  "version": "1.0.19",
   "description": "ItemLevelDownloader",
   "main": "app.js",
   "author": {
@@ -15,7 +15,9 @@
   "devDependencies": {
     "assert": "1.4.1",
     "mocha": "2.3.3",
+    "mockery": "2.1.0",
     "typescript": "1.8.7",
+    "@types/mockery": "1.4.29",
     "@types/handlebars": "^3.0.28",
     "@types/minimatch": "^2.0.29",
     "@types/mocha": "^2.2.5",
