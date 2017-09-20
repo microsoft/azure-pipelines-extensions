@@ -28,6 +28,7 @@ async function main(): Promise<void> {
         var vssConnection = new WebApi(endpointUrl, credentialHandler);
         var debugMode = tl.getVariable('System.Debug');
         var verbose = debugMode ? debugMode.toLowerCase() != 'false' : false;
+        var parallelLimit : number = +tl.getVariable("release.artifact.download.parallellimit");
 
         var templatePath = path.join(__dirname, 'vsts.handlebars');
         var buildApi = vssConnection.getBuildApi();
@@ -38,16 +39,19 @@ async function main(): Promise<void> {
 
         console.log("Linked artifacts count: " + artifacts.length);
 
-        var downloadPromises: Array<Promise<void>> = [];
+        var downloadPromises: Array<Promise<any>> = [];
 
         artifacts.forEach(async function (artifact, index, artifacts) {
+            let downloaderOptions = new engine.ArtifactEngineOptions();
+            downloaderOptions.itemPattern = itemPattern;
+            downloaderOptions.verbose = verbose;
+
+            if(parallelLimit){
+                downloaderOptions.parallelProcessingLimit = parallelLimit;
+            }
+
             if (artifact.resource.type.toLowerCase() === "container") {
                 let downloader = new engine.ArtifactEngine();
-                var downloaderOptions = new engine.ArtifactEngineOptions();
-                downloaderOptions.itemPattern = itemPattern;
-                downloaderOptions.parallelProcessingLimit = +tl.getVariable("release.artifact.download.parallellimit") || 4;
-                downloaderOptions.verbose = verbose;
-
                 var containerParts: string[] = artifact.resource.data.split('/', 3);
                 if (containerParts.length !== 3) {
                     throw new Error(tl.loc("FileContainerInvalidArtifactData"));
@@ -72,11 +76,6 @@ async function main(): Promise<void> {
             }
             else if (artifact.resource.type.toLowerCase() === "filepath") {
                 let downloader = new engine.ArtifactEngine();
-                var downloaderOptions = new engine.ArtifactEngineOptions();
-                downloaderOptions.itemPattern = itemPattern;
-                downloaderOptions.parallelProcessingLimit = +tl.getVariable("release.artifact.download.parallellimit") || 4;
-                downloaderOptions.verbose = verbose;
-
                 console.log(tl.loc("DownloadArtifacts", artifact.resource.downloadUrl));
                 var fileShareProvider = new providers.FilesystemProvider(artifact.resource.downloadUrl.replace("file:", ""));
                 var fileSystemProvider = new providers.FilesystemProvider(downloadPath);
@@ -86,11 +85,12 @@ async function main(): Promise<void> {
                 }));
             }
             else {
-                console.log("Unsupported artifact type: " + artifact.resource.type);
+                console.log(tl.loc('UnsupportedArtifactType', artifact.resource.type));
             }
         });
 
         Promise.all(downloadPromises).then(() => {
+            console.log(tl.loc('ArtifactsSuccessfullyDownloaded', downloadPath));
             resolve();
         }).catch((error) => {
             reject(error);

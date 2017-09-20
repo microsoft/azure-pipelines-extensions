@@ -12,8 +12,9 @@
   "loc.input.label.version": "Build",
   "loc.input.help.version": "Build Id",
   "loc.input.label.itemPattern": "Download Filter",
-  "loc.input.help.itemPattern": "Minmatch pattern to filter files to be downloaded.",
+  "loc.input.help.itemPattern": "Minimatch pattern to filter files to be downloaded. To download all files within artifact drop use drop/**",
   "loc.input.label.downloadPath": "Destination directory",
   "loc.input.help.downloadPath": "Path on the agent machine where the artifact will be downloaded",
-  "loc.messages.DownloadArtifacts": "Downloading artifacts from : %s"
+  "loc.messages.DownloadArtifacts": "Downloading artifacts from : %s",
+  "loc.messages.ArtifactsSuccessfullyDownloaded": "Successfully downloaded artifacts to %s"
 }
