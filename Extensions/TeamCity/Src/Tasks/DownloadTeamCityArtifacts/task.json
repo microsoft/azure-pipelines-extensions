@@ -61,7 +61,7 @@
       "label": "Item Pattern",
       "defaultValue": "**",
       "required": false,
-      "helpMarkDown": "Minimatch pattern to filter files to be downloaded."
+      "helpMarkDown": "Minimatch pattern to filter files to be downloaded. To download all files within artifact drop use drop/**"
     },
     {
       "name": "downloadPath",
@@ -107,6 +107,7 @@
     }
   },
   "messages": {
-    "DownloadArtifacts": "Downloading artifacts from : %s"
+    "DownloadArtifacts": "Downloading artifacts from : %s",
+    "ArtifactsSuccessfullyDownloaded": "Successfully downloaded artifacts to %s"
   }
 }
