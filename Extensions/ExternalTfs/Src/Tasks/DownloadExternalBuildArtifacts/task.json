@@ -1,0 +1,114 @@
+{
+  "id": "B099689B-039E-4450-8658-C72E3895DD3F",
+  "name": "DownloadExternalBuildArtifacts",
+  "friendlyName": "Download Artifacts - External Build",
+  "description": "Download artifacts from VSTS\\TFS build",
+  "helpMarkDown": "",
+  "category": "Utility",
+  "author": "ms-vscs-rm",
+  "version": {
+    "Major": 0,
+    "Minor": 1,
+    "Patch": 0
+  },
+  "demands": [],
+  "minimumAgentVersion": "2.0.0",
+  "inputs": [
+    {
+      "name": "connection",
+      "type": "connectedService:externaltfs",
+      "label": "Team Foundation Server/Team Services connection",
+      "defaultValue": "",
+      "required": true,
+      "helpMarkDown": "Team Foundation Server/Team Services connection"
+    },
+    {
+      "name": "project",
+      "type": "pickList",
+      "label": "Project",
+      "defaultValue": "",
+      "required": true,
+      "properties": {
+        "EditableOptions": "True"
+      },
+      "helpMarkDown": "Select the project name"
+    },
+    {
+      "name": "definition",
+      "type": "pickList",
+      "label": "Build definition",
+      "defaultValue": "",
+      "required": true,
+      "properties": {
+        "EditableOptions": "True"
+      },
+      "helpMarkDown": "Select the build definition name"
+    },
+    {
+      "name": "version",
+      "type": "pickList",
+      "label": "Build",
+      "defaultValue": "",
+      "required": true,
+      "properties": {
+        "EditableOptions": "True"
+      },
+      "helpMarkDown": "Select the build number"
+    },
+    {
+      "name": "itemPattern",
+      "type": "string",
+      "label": "Item Pattern",
+      "defaultValue": "**",
+      "required": false,
+      "helpMarkDown": "Minimatch pattern to filter files to be downloaded. To download all files within artifact drop use drop/**"
+    },
+    {
+      "name": "downloadPath",
+      "type": "string",
+      "label": "Destination directory",
+      "defaultValue": "$(System.ArtifactsDirectory)",
+      "required": true,
+      "helpMarkDown": "Path on the agent machine where the artifact will be downloaded"
+    }
+  ],
+  "dataSourceBindings": [
+    {
+      "endpointId": "$(connection)",
+      "target": "project",
+      "dataSourceName": "Projects",
+      "resultTemplate": "{ \"Value\" : \"{{{id}}}\", \"DisplayValue\" : \"{{{name}}}\" }"
+    },
+    {
+      "endpointId": "$(connection)",
+      "target": "definition",
+      "dataSourceName": "Definitions",
+      "parameters": {
+          "project": "$(project)"
+      },
+      "resultTemplate": "{ \"Value\" : \"{{{id}}}\", \"DisplayValue\" : \"{{{name}}}\" }"
+    },
+    {
+      "endpointId": "$(connection)",
+      "target": "version",
+      "dataSourceName": "Builds",
+      "parameters": {
+          "project": "$(project)",
+          "definition": "$(definition)"
+      },
+      "resultTemplate": "{ \"Value\" : \"{{{id}}}\", \"DisplayValue\" : \"{{{buildNumber}}}\" }"
+    }
+  ],
+  "instanceNameFormat": "Download Artifacts - External Build",
+  "execution": {
+    "Node": {
+      "target": "download.js",
+      "argumentFormat": ""
+    }
+  },
+  "messages": {
+    "DownloadArtifacts": "Downloading artifacts from : %s",
+    "ArtifactsSuccessfullyDownloaded": "Successfully downloaded artifacts to %s",
+    "UnsupportedArtifactType": "Unsupported artifact type: %s"
+  }
+}
