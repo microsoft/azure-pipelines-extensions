@@ -24,7 +24,7 @@ export function setupSshClientConnection(cfg) {
     return defer.promise;
 }
 
-export function runCommandOnRemoteMachine(cmd: string, sshClient: any) {
+export function runCommandOnRemoteMachine(cmd: string, sshClient: any, options: RemoteCommandOptions) {
     var defer = Q.defer<string>();
     this._writeLine("cmd run on remote machine = " + cmd);
     defer.resolve("0");
@@ -36,6 +36,29 @@ export function copyFileToRemoteMachine(scriptFile: string, scpConfig: any): Q.P
     this._writeLine("copied file to remote machine = " + scriptFile);
     defer.resolve(scpConfig.path);
     return defer.promise;
+}
+
+export function runCommandOnSameMachine(cmd: string, options: RemoteCommandOptions) {
+    var defer = Q.defer<string>();
+    this._writeLine("cmd run on agent machine = " + cmd);
+    defer.resolve("0");
+    return defer.promise;
+}
+
+export function testIfFileExist(filePath: string): boolean {
+    return true;
+}
+
+export function testIfDirectoryExist(directoryPath: string): boolean {
+    return true;
+}
+
+export function getAgentPlatform(): string {
+    return 'linux';
+}
+
+export function getShellWhich(moduleName: string): string {
+    return "somePath";
 }
 
 export class WebResponse {

@@ -43,6 +43,9 @@
     {
       "path": "images/screen2.png",
       "addressable": true
+    },
+    {
+      "path": "Tasks/DownloadTeamCityArtifacts"
     }
   ],
   "contributions": [
@@ -101,6 +104,16 @@
       }
     },
     {
+      "id": "teamcity-task",
+      "type": "ms.vss-distributed-task.task",
+      "targets": [
+        "ms.vss-distributed-task.tasks"
+      ],
+      "properties": {
+        "name": "Tasks/DownloadTeamCityArtifacts"
+        }
+    },
+    {
       "id": "teamcity-release-artifact-type",
       "description": "TeamCity Artifact",
       "type": "ms.vss-releaseartifact.release-artifact-type",
@@ -111,6 +124,7 @@
         "_displayName.comment": "Don't Localize the word 'TeamCity'",
         "endpointTypeId": "teamcity",
         "uniqueSourceIdentifier": "{{connection}}:{{project}}:{{definition}}",
+        "downloadTaskId": "15ECB9F3-C0F7-42CF-9CE3-C6DDED17DE81",
         "artifactType": "Build",
         "inputDescriptors": [
           {

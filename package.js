@@ -12,6 +12,7 @@ var request = require('request');
 var unzip = require('gulp-unzip');
 var stream = require('stream');
 var util = require('./package-utils');
+var shell = require('shelljs');
 
 var createError = function(msg) {
     return new gutil.PluginError('PackageTask', msg);
@@ -112,13 +113,11 @@ function copyCommonModules(currentExtnRoot, commonDeps, commonSrc){
                         }
 
                         // Copy the lib from the cache.
-                        
                         gutil.log('Linking vsts-task-lib ' + libVer);
                         var copySource = path.join(_tempPath, 'npm', 'vsts-task-lib', libVer, 'node_modules', '**');
                         var copyTarget = path.join(targetPath, 'node_modules');
                         shell.mkdir('-p', copyTarget);
-                        gulp.src([copySource])
-                            .pipe(gulp.dest(copyTarget));  
+                        gulp.src([copySource]).pipe(gulp.dest(copyTarget));
                     }
                 }
                 return;

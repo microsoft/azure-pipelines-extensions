@@ -5,17 +5,15 @@ import path = require('path');
 
 let taskPath = path.join(__dirname, '../../../Src/Tasks/Ansible/main.js');
 let runner = new mockrun.TaskMockRunner(taskPath);
-runner.setInput('ansibleInterface', 'cli');
+runner.setInput('ansibleInterface', 'agentMachine');
 runner.setInput('connectionOverSsh', '8b04f8a5-9a17-474d-836c-60c24edcfa50');
-runner.setInput('playbookSource', 'agentMachine');
-runner.setInput('inventories', 'file');
+runner.setInput('inventoriesAgentMachine', 'inlineContent');
 runner.setInput('sudoEnabled', 'false');
 runner.setInput('args', "");
 
-runner.setInput('playbookRoot', '/path/to/ansiblePlaybookRoot');
-runner.setInput('playbookPathAgentMachine', '/path/to/ansiblePlaybookRoot/ansiblePlaybook.yml');
-runner.setInput('inventoryFileSource', 'agentMachine');
-runner.setInput('inventoryFileAgentMachine', '/path/to/ansibleInventory');
+runner.setInput('playbookPathOnAgentMachine', '/path/to/ansiblePlaybookRoot/ansiblePlaybook.yml');
+runner.setInput('inventoryInlineDynamicAgentMachine', 'true');
+runner.setInput('inventoryInlineContentAgentMachine', 'DUMMY_IP_ADDRESS');
 
 process.env["AZURE_HTTP_USER_AGENT"] = "TFS_useragent";
 process.env["ENDPOINT_AUTH_PARAMETER_8b04f8a5-9a17-474d-836c-60c24edcfa50_USERNAME"] = "DummyUser";
