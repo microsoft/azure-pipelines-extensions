@@ -255,3 +255,11 @@ describe('artifactItemStore.itemsPendingProcessing', () => {
         assert.equal(artifactItemStore.itemsPendingProcessing(), false);
     });
 });
+
+describe('artifactItemStore.itemsPendingProcessing', () => {
+    it('should return false if no items in queue', () => {
+        var artifactItemStore = new ArtifactItemStore();
+
+        assert.equal(artifactItemStore.itemsPendingProcessing(), false);
+    });
+});

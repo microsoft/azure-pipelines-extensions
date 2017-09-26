@@ -39,9 +39,19 @@ export class WebProvider implements models.IArtifactProvider {
 
     getArtifactItem(artifactItem: models.ArtifactItem): Promise<stream.Readable> {
         var promise = new Promise<stream.Readable>(async (resolve, reject) => {
+            if (!artifactItem.metadata || !artifactItem.metadata['downloadUrl']) {
+                reject("No downloadUrl available to download the item.");
+            }
+
             var itemUrl: string = artifactItem.metadata['downloadUrl'];
             itemUrl = itemUrl.replace(/([^:]\/)\/+/g, "$1");
-            let res: httpm.HttpClientResponse = await this.httpc.get(itemUrl);
+            var promise = this.httpc.get(itemUrl);
+            promise.catch(reason => {
+                reject(reason);
+            });
+
+            let res: httpm.HttpClientResponse = await promise;
+
             resolve(res.message);
         });
 

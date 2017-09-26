@@ -63,7 +63,7 @@ export class Logger {
         var failedItems = tickets.filter(x => x.state == TicketState.Failed);
 
         var endTime = new Date();
-        console.log(
+        Logger.logInfo(
             "Total: " + tickets.length
             + ", Processed: " + processedItems.length
             + ", Skipped: " + skippedItems.length
