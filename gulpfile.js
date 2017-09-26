@@ -24,6 +24,7 @@ var gulp = require('gulp');
 var gutil = require('gulp-util');
 var nuget = null;//require('gulp-nuget');
 var pkgm = require('./package');
+var util = require('./package-utils');
 var typescript = require('typescript');
 var args   = require('yargs').argv;
 
@@ -54,7 +55,7 @@ var _buildRoot = "_build";
 var _packageRoot = "_package";
 var _extnBuildRoot = "_build/Extensions/";
 var _taskModuleBuildRoot = "_build/TaskModules/";
-var sourcePaths = "Extensions/**/*";
+var sourcePaths = "@(definitions|Extensions)/**/*";
 var ExtensionFolder = "Extensions";
 var taskModulesSourcePath = "TaskModules/**/*"
 var TaskModulesFolder = "TaskModules"
@@ -73,7 +74,7 @@ function errorHandler(err) {
     process.exit(1);
 }
 
-var proj = gts.createProject('./tsconfig.json', { typescript: typescript });
+var proj = gts.createProject('./tsconfig.json', { typescript: typescript, declaration: true });
 var ts = gts(proj);
 
 gulp.task("clean", function() {
@@ -247,13 +248,28 @@ gulp.task("compileNode", ["compilePS"], function(cb){
         return fs.statSync(path.join(_extnBuildRoot, file)).isDirectory() && file != "Common";
     }).forEach(copyCommonModules);
 
+
+    var artifactEnginePath = path.join(__dirname, '_build/Extensions/ArtifactEngine');
+    runNpmInstall(artifactEnginePath);
+
     // Compile tasks
-    var tasksPath = path.join(__dirname, '_build/Extensions/**/Tasks', '**/*.ts');
-    return gulp.src([tasksPath, 'definitions/*.d.ts'])
+    var taskFiles = path.join(__dirname, '_build/Extensions/**/Tasks/**/*.ts');
+    var artifactEngineFiles = path.join(__dirname, '_build/Extensions/**/ArtifactEngine/**/*.ts');
+    gulp.src(['definitions/*.d.ts', taskFiles, artifactEngineFiles, '!**/node_modules/**'])
         .pipe(ts)
-        .on('error', errorHandler)
-        .pipe(gulp.dest(path.join(_buildRoot, 'Extensions')));
+        .pipe(gulp.dest(path.join(_buildRoot, 'Extensions')))
+        .on('error', errorHandler);
 })
+
+function runNpmInstall(packagePath) {
+    var originalDir = shell.pwd();
+    util.cd(packagePath);
+    var packageJsonPath = util.rp('package.json');
+    if (util.test('-f', packageJsonPath)) {
+        util.run('npm install');
+    }
+    util.cd(originalDir);
+}
 
 function compileUIExtensions(extensionRoot) {
     var uiExtensionsPath = path.join(_buildRoot,"Extensions", extensionRoot, 'Src', 'UIExtensions');
@@ -319,6 +335,12 @@ gulp.task("_mochaTests", ["testResources"], function(){
     shell.rm('-rf', _testTemp);
     shell.mkdir('-p', _testTemp);
     var suitePath = path.join(_testRoot,"Extensions/" + options.suite + "/Tests/Tasks", options.suite + '/_suite.js');
+    console.log(suitePath);
+    var tfBuild = ('' + process.env['TF_BUILD']).toLowerCase() == 'true'
+    gulp.src([suitePath])
+        .pipe(mocha({ reporter: 'spec', ui: 'bdd', useColors: !tfBuild }));
+
+    var suitePath = path.join(_testRoot,"Extensions/" + options.suite + "/**/*Tests.js");
     console.log(suitePath);
     var tfBuild = ('' + process.env['TF_BUILD']).toLowerCase() == 'true'
     return gulp.src([suitePath])
