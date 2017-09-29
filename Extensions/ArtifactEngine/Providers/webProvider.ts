@@ -5,6 +5,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as stream from 'stream';
 import * as crypto from 'crypto';
+import * as zlib from 'zlib';
 
 var handlebars = require('handlebars');
 import * as httpm from 'typed-rest-client/HttpClient';
@@ -37,12 +38,27 @@ export class WebProvider implements models.IArtifactProvider {
         return this.getItems(itemsUrl);
     }
 
-    getArtifactItem(artifactItem: models.ArtifactItem): Promise<stream.Readable> {
-        var promise = new Promise<stream.Readable>(async (resolve, reject) => {
+    getArtifactItem(artifactItem: models.ArtifactItem): Promise<NodeJS.ReadableStream> {
+        var promise = new Promise<NodeJS.ReadableStream>(async (resolve, reject) => {
+            if (!artifactItem.metadata || !artifactItem.metadata['downloadUrl']) {
+                reject("No downloadUrl available to download the item.");
+            }
+
             var itemUrl: string = artifactItem.metadata['downloadUrl'];
             itemUrl = itemUrl.replace(/([^:]\/)\/+/g, "$1");
-            let res: httpm.HttpClientResponse = await this.httpc.get(itemUrl);
-            resolve(res.message);
+            var promise = this.httpc.get(itemUrl);
+            promise.catch(reason => {
+                reject(reason);
+            });
+
+            let res: httpm.HttpClientResponse = await promise;
+
+            if (res.message.headers['content-encoding'] === 'gzip') {
+                resolve(res.message.pipe(zlib.createUnzip()));
+            }
+            else {
+                resolve(res.message);
+            }
         });
 
         return promise;

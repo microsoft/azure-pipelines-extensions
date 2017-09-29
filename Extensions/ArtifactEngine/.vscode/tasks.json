@@ -11,6 +11,23 @@
                 "kind": "build",
                 "isDefault": true
             }
+        },
+        {
+            "taskName": "Run mocha tests",
+            "identifier": "test",
+            "type": "shell",
+            "command": "${workspaceRoot}/node_modules/mocha/bin/_mocha",
+            "args": ["--reporter", "mocha-tap-reporter", "**/*Tests.js"],
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            },
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared"
+            }
         }
     ]
 }

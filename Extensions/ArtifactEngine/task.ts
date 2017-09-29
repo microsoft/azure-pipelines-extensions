@@ -24,6 +24,8 @@ async function main(): Promise<void> {
     await downloadTeamCityDropWithMultipleFiles(processorOptions);
     await downloadJenkinsDropWithMultipleFiles(processorOptions);
 
+    await downloadVSTSDropWithMultipleFiles2(processorOptions);
+
     // Enable these to test big drops if required.
     // await downloadBigTeamCityDrop(processorOptions);
 }
@@ -70,6 +72,25 @@ async function downloadVSTSDropWithMultipleFiles(processorOptions) {
     var handler = new PersonalAccessTokenCredentialHandler(config.vsts.pat);
     var webProvider = new providers.WebProvider(itemsUrl, "vsts.handlebars", vstsVariables, handler);
     var dropLocation = path.join(config.dropLocation, "vstsDropWithMultipleFiles");
+    var localFileProvider = new providers.FilesystemProvider(dropLocation);
+
+    await processor.processItems(webProvider, localFileProvider, processorOptions);
+}
+
+async function downloadVSTSDropWithMultipleFiles2(processorOptions) {
+    if (!config.vsts) {
+        console.warn("Skipping downloadVSTSDropWithMultipleFiles2");
+        return;
+    }
+
+    let processor = new engine.ArtifactEngine();
+
+    var itemsUrl = "https://rmbugbash.rminttfs.tfsallin.net/_apis/resources/Containers/719?itemPath=Drop&isShallow=true"
+    var vstsVariables = {};
+
+    var handler = new PersonalAccessTokenCredentialHandler(config.bugbash.pat);
+    var webProvider = new providers.WebProvider(itemsUrl, "vsts.handlebars", vstsVariables, handler);
+    var dropLocation = path.join(config.dropLocation, "vstsDropWithMultipleFiles2");
     var localFileProvider = new providers.FilesystemProvider(dropLocation);
 
     await processor.processItems(webProvider, localFileProvider, processorOptions);

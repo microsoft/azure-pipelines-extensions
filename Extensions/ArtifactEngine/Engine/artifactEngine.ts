@@ -97,3 +97,8 @@ export class ArtifactEngine {
     private artifactItemStore: ArtifactItemStore = new ArtifactItemStore();
     private logger: Logger;
 }
+
+process.on('unhandledRejection', (reason, promise) => {
+    console.error(reason);
+    throw reason;
+});

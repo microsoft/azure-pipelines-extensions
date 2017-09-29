@@ -35,3 +35,5 @@ Extensions/BitBucket/DownloadArtifactBitbucket/obj/*
 
 ## Nuget 
 nuget.exe
+
+**/.DS_Store
