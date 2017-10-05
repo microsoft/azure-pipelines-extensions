@@ -255,7 +255,7 @@ gulp.task("compileNode", ["compilePS"], function(cb){
     // Compile tasks
     var taskFiles = path.join(__dirname, '_build/Extensions/**/Tasks/**/*.ts');
     var artifactEngineFiles = path.join(__dirname, '_build/Extensions/**/ArtifactEngine/**/*.ts');
-    gulp.src(['definitions/*.d.ts', taskFiles, artifactEngineFiles, '!**/node_modules/**'])
+    gulp.src(['definitions/*.d.ts', taskFiles, artifactEngineFiles, '!**/node_modules/**', '!**/Extensions/ArtifactEngine/definitions/**'])
         .pipe(ts)
         .pipe(gulp.dest(path.join(_buildRoot, 'Extensions')))
         .on('error', errorHandler);

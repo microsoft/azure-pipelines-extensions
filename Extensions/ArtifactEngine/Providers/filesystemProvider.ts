@@ -1,6 +1,6 @@
 import * as path from 'path';
 import * as fs from 'fs';
-import * as Stream from 'stream';
+import * as zlib from 'zlib';
 
 import * as models from '../Models';
 import { Logger } from '../Engine/logger';
@@ -19,8 +19,8 @@ export class FilesystemProvider implements models.IArtifactProvider {
         return this.getItems(itemsPath, artifactItem.path);
     }
 
-    getArtifactItem(artifactItem: models.ArtifactItem): Promise<Stream.Readable> {
-        var promise = new Promise<Stream.Readable>(async (resolve, reject) => {
+    getArtifactItem(artifactItem: models.ArtifactItem): Promise<NodeJS.ReadableStream> {
+        var promise = new Promise<NodeJS.ReadableStream>(async (resolve, reject) => {
             var itemPath: string = artifactItem.metadata['downloadUrl'];
             try {
                 var contentStream = fs.createReadStream(itemPath);
@@ -33,7 +33,7 @@ export class FilesystemProvider implements models.IArtifactProvider {
         return promise;
     }
 
-    public putArtifactItem(item: models.ArtifactItem, stream: Stream.Readable): Promise<models.ArtifactItem> {
+    public putArtifactItem(item: models.ArtifactItem, stream: NodeJS.ReadableStream): Promise<models.ArtifactItem> {
         return new Promise(async (resolve, reject) => {
             const outputFilename = path.join(this._rootLocation, item.path);
 
@@ -41,13 +41,18 @@ export class FilesystemProvider implements models.IArtifactProvider {
             const folder = path.dirname(outputFilename);
             this.ensureDirectoryExistence(folder);
 
-            Logger.logMessage('Downloading '+ item.path + ' to '+ outputFilename);
+            Logger.logMessage('Downloading ' + item.path + ' to ' + outputFilename);
             const outputStream = fs.createWriteStream(outputFilename);
             stream.pipe(outputStream);
             stream.on("end",
                 () => {
                     Logger.logMessage(`Downloaded '${item.path}' to '${outputFilename}'`);
+                    if (!item.metadata) {
+                        item.metadata = {};
+                    }
+                    
                     item.metadata[models.Constants.DestinationUrlKey] = outputFilename;
+
                     resolve(item);
                 });
             stream.on("error",
