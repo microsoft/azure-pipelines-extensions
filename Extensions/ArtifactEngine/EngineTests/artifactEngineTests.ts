@@ -30,7 +30,7 @@ describe('artifactEngine.processItems', () => {
 
         await new engine.ArtifactEngine().processItems(testProvider, testProvider, new engine.ArtifactEngineOptions());
 
-        assert.equal(testProvider.getRootItemsCalledCount, 1, "test:" + testProvider.getRootItemsCalledCount);
+        assert.equal(testProvider.getRootItemsCalledCount, 1);
     });
 
     it('should call getArtifactItem for all artifact items', async () => {
