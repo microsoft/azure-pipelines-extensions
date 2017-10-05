@@ -4,7 +4,7 @@ var mocha = require("mocha");
 var mockery = require("mockery")
 
 mockery.enable({
-    warnOnReplace: true,
+    warnOnReplace: false,
     warnOnUnregistered: false
 });
 
@@ -30,7 +30,7 @@ describe('artifactEngine.processItems', () => {
 
         await new engine.ArtifactEngine().processItems(testProvider, testProvider, new engine.ArtifactEngineOptions());
 
-        assert.equal(testProvider.getRootItemsCalledCount, 1);
+        assert.equal(testProvider.getRootItemsCalledCount, 1, `getRootItemsCalledCount: ${testProvider.getRootItemsCalledCount}`);
     });
 
     it('should call getArtifactItem for all artifact items', async () => {

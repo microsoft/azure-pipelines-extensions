@@ -2,7 +2,7 @@ var mocha = require("mocha");
 var mockery = require("mockery")
 
 mockery.enable({
-    warnOnReplace: true,
+    warnOnReplace: false,
     warnOnUnregistered: false
 });
 
