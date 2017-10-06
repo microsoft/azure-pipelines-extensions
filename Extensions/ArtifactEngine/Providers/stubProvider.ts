@@ -27,7 +27,7 @@ export class StubProvider implements models.IArtifactProvider {
         return [];
     }
 
-    async getArtifactItem(artifactItem: models.ArtifactItem): Promise<Stream.Readable> {
+    async getArtifactItem(artifactItem: models.ArtifactItem): Promise<NodeJS.ReadableStream> {
         this.getArtifactItemCalledCount++;
         this.itemsDownloaded.push(artifactItem);
 
@@ -52,7 +52,7 @@ export class StubProvider implements models.IArtifactProvider {
         return artifactItem;
     }
 
-    putArtifactItem(item: models.ArtifactItem, readStream: Stream.Readable): Promise<models.ArtifactItem> {
+    putArtifactItem(item: models.ArtifactItem, readStream: NodeJS.ReadableStream): Promise<models.ArtifactItem> {
         return Promise.resolve(item);
     }
 

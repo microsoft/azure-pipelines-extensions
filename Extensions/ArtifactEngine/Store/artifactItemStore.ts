@@ -30,7 +30,7 @@ export class ArtifactItemStore {
 
     public itemsPendingProcessing(): boolean {
         var processingTickets = this._downloadTickets.filter(x => x.state === models.TicketState.Processing || x.state === models.TicketState.InQueue);
-        return processingTickets ? processingTickets.length != 0 : false;
+        return processingTickets.length != 0;
     }
 
     public getNextItemToProcess(): models.ArtifactItem {
