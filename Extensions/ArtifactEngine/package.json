@@ -1,8 +1,16 @@
 {
-  "name": "item-level-downloader",
-  "version": "1.0.19",
-  "description": "ItemLevelDownloader",
-  "main": "app.js",
+  "name": "artifact-engine",
+  "version": "0.1.0",
+  "description": "Artifact Engine to download artifacts from jenkins, teamcity, vsts",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Microsoft/vsts-rm-extensions/tree/master/Extensions/ArtifactEngine"
+  },
+  "keywords": [
+    "artifact"
+  ],
+  "license": "MIT",
+  "main": "",
   "author": {
     "name": "omeshp",
     "email": "omeshp@microsoft.com"
