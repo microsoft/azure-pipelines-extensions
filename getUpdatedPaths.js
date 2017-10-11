@@ -1,5 +1,5 @@
 "use strict";
-var https = require('https'); 
+var https = require('https');
 class GitClient {
     constructor(repository) {
         this.repository = repository;
@@ -39,12 +39,28 @@ class GitClient {
 exports.GitClient = GitClient;
 var currentPullRequest = process.env['BUILD_SOURCEBRANCH'];
 console.log(currentPullRequest);
-var prNumber = currentPullRequest.split('/')[2];
-console.log(prNumber);
-var repository = process.env['BUILD_REPOSITORY_NAME'];
-console.log(repository);
-new GitClient(repository).getUpdatedFilePathsForPR(prNumber).then((updatedPaths) => {
-    console.log(`##vso[task.setvariable variable=UpdatedAreaPaths;]${updatedPaths}`);
-}).catch((error) => {
-    console.log(error);
-});
+
+if (currentPullRequest) {
+    if (currentPullRequest.split('/').length < 3) {
+        console.log("Not a PR branch, skipping setting UpdatedAreaPaths");
+    }
+
+    var prNumber = currentPullRequest.split('/')[2];
+    
+    if (isNaN(prNumber)) {
+        console.log("Not a PR branch, skipping setting UpdatedAreaPaths");
+    }
+    else {
+        console.log(prNumber);
+        var repository = process.env['BUILD_REPOSITORY_NAME'];
+        console.log(repository);
+        new GitClient(repository).getUpdatedFilePathsForPR(prNumber).then((updatedPaths) => {
+            console.log(`##vso[task.setvariable variable=UpdatedAreaPaths;]${updatedPaths}`);
+        }).catch((error) => {
+            console.log(error);
+        });
+    }
+}
+else {
+    console.log("No BUILD_SOURCEBRANCH set, skipping setting UpdatedAreaPaths");
+}
