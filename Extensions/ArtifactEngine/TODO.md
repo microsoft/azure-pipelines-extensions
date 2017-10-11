@@ -4,13 +4,13 @@
     - [x] retry
     - [x] partial download
     - [x] level by level download
-    - [ ] logging 
+    - [x] logging 
     - [ ] cancellation
     - [ ] incremental download
 
 2. Implement the following providers
     - [x] web provider
-    - [ ] fileshare provider
+    - [x] fileshare provider
     - [x] stub provider for testing
 
 3. Add the webprovider templates for the following services
@@ -25,6 +25,6 @@
 5. Others
     - [ ] changing http timeout
     - [ ] Publish package to npm gallery
-    - [ ] Setup CI
-    - [ ] Support proxy
+    - [x] Setup CI
+    - [x] Support proxy
     - [ ] Enable localization
