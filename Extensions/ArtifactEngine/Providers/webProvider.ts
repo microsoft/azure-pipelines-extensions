@@ -46,12 +46,12 @@ export class WebProvider implements models.IArtifactProvider {
 
             var itemUrl: string = artifactItem.metadata['downloadUrl'];
             itemUrl = itemUrl.replace(/([^:]\/)\/+/g, "$1");
-            var promise = this.httpc.get(itemUrl);
-            promise.catch(reason => {
+            var getResponsePromise = this.httpc.get(itemUrl);
+            getResponsePromise.catch(reason => {
                 reject(reason);
             });
 
-            let res: httpm.HttpClientResponse = await promise;
+            let res: httpm.HttpClientResponse = await getResponsePromise;
 
             if (res.message.headers['content-encoding'] === 'gzip') {
                 resolve(res.message.pipe(zlib.createUnzip()));
@@ -163,6 +163,6 @@ export class WebProvider implements models.IArtifactProvider {
     private rootItemsLocation: string;
     private templateFile: string;
     private variables: string;
-    private httpc: httpm.HttpClient = new httpm.HttpClient('item-level-downloader');
+    public httpc: httpm.HttpClient = new httpm.HttpClient('item-level-downloader');
     private options: any = {};
 }

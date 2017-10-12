@@ -14,7 +14,10 @@ mockery.registerMock('fs', {
         mockedStream._write = () => { };
         return mockedStream;
     },
-    existsSync: () => true
+    existsSync: () => true,
+    readFile: (filename, encoding, callback) => {
+        callback(undefined, "{}");
+    }
 });
 
 import * as assert from 'assert';
