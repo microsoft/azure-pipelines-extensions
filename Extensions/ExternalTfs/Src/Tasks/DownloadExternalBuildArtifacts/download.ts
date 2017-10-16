@@ -4,10 +4,10 @@ var url = require('url')
 import * as tl from 'vsts-task-lib/task';
 import { WebApi, getBasicHandler } from 'vso-node-api/WebApi';
 
-import * as models from "item-level-downloader/Models"
-import * as engine from "item-level-downloader/Engine"
-import * as providers from "item-level-downloader/Providers"
-import * as webHandlers from "item-level-downloader/Providers/Handlers"
+import * as models from "artifact-engine/Models"
+import * as engine from "artifact-engine/Engine"
+import * as providers from "artifact-engine/Providers"
+import * as webHandlers from "artifact-engine/Providers/Handlers"
 
 tl.setResourcePath(path.join(__dirname, 'task.json'));
 
