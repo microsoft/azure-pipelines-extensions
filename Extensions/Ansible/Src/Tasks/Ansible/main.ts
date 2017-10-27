@@ -1,11 +1,10 @@
-/// <reference path="../../../../../definitions/node.d.ts" /> 
-/// <reference path="../../../../../definitions/vsts-task-lib.d.ts" /> 
-
 import path = require("path");
 import tl = require("vsts-task-lib/task");
-import {AnsibleInterface}  from './AnsibleInterface';
-import {AnsibleCommandLineInterface} from './AnsibleCommandLineInterface';
-import {AnsibleTowerInterface} from './AnsibleTowerInterface';
+import {ansibleInterface}  from './ansibleInterface';
+import {ansibleCommandLineInterface} from './ansibleCommandLineInterface';
+import {ansibleRemoteMachineInterface} from './ansibleRemoteMachineInterface';
+import {ansibleTowerInterface} from './ansibleTowerInterface';
+import {ansibleTaskParameters} from './ansibleTaskParameters';
 
 try {
 tl.setResourcePath(path.join(__dirname, "task.json"));
@@ -13,20 +12,30 @@ tl.setResourcePath(path.join(__dirname, "task.json"));
     tl.setResult(tl.TaskResult.Failed, error);
 }
 
-export class AnsibleInterfaceFactory {
-    public static GetAnsibleInterface(interfaceValue: string): AnsibleInterface {
-        if (interfaceValue == "cli") {
-            return new AnsibleCommandLineInterface();
-        } else if (interfaceValue == "ansibleTower") {
-            return new AnsibleTowerInterface();
+export class ansibleCommandLineInterfaceFactory {
+    public static getCommandLineInterface(params: ansibleTaskParameters): ansibleCommandLineInterface {
+        if (params.ansibleInterface == "remoteMachine") {
+            return new ansibleRemoteMachineInterface(params);
         }
-        return null;
+        else {
+            return new ansibleCommandLineInterface(params);
+        }
+    }
+}
+export class ansibleInterfaceFactory {
+    public static GetAnsibleInterface(params: ansibleTaskParameters): ansibleInterface {
+        if (params.ansibleInterface != 'ansibleTower') {
+            return ansibleCommandLineInterfaceFactory.getCommandLineInterface(params);
+        } else {
+            return new ansibleTowerInterface();
+        }
     }
 }
 
 function run() {
     try {
-        var ansibleInterface: AnsibleInterface = AnsibleInterfaceFactory.GetAnsibleInterface(tl.getInput("ansibleInterface", true));
+        var params:ansibleTaskParameters = ansibleTaskParameters.getInstance();
+        var ansibleInterface: ansibleInterface = ansibleInterfaceFactory.GetAnsibleInterface(params);
         if (ansibleInterface) {
             ansibleInterface.execute();
         } else {

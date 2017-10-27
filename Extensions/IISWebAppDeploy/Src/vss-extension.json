@@ -2,10 +2,10 @@
   "manifestVersion": 1,
   "extensionId": "iiswebapp",
   "name": "IIS Web App Deployment Using WinRM",
-  "version": "1.3.0",
+  "version": "1.4.5",
   "publisher": "ms-vscs-rm",
   "description": "Using WinRM connect to the host Computer, to deploy a Web project using Web Deploy or a SQL DB using sqlpackage.exe.",
-  "public": true,  
+  "public": true,
   "icons": {
     "default": "images/IIS_Web_App.png",
     "large": "images/IIS_Web_App_Large.png"

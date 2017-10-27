@@ -24,6 +24,7 @@ param (
 
 $env:CURRENT_TASK_ROOTDIR = Split-Path -Parent $MyInvocation.MyCommand.Path
 
+. $env:CURRENT_TASK_ROOTDIR\TelemetryHelper\TelemetryHelper.ps1
 . $env:CURRENT_TASK_ROOTDIR\DeployToSqlServer.ps1
 
 if ($taskType -ne "dacpac")
@@ -32,4 +33,26 @@ if ($taskType -ne "dacpac")
     $targetMethod = "server"
 }
 
-(Main -machinesList $machinesList -adminUserName $adminUserName -adminPassword $adminPassword -winrmProtocol $winrmProtocol -testCertificate $testCertificate -dacpacFile $dacpacFile -targetMethod $targetMethod -serverName $serverName -databaseName $databaseName -authscheme $authscheme -sqlUsername $sqlUsername -sqlPassword $sqlPassword -connectionString $connectionString -publishProfile $publishProfile -additionalArguments $additionalArguments -deployInParallel $deployInParallel -taskType $taskType -inlineSql $inlineSql -sqlFile $sqlFile)
+$sqlMainArgs = @{
+    machinesList=$machinesList 
+    adminUserName=$adminUserName 
+    adminPassword=$adminPassword 
+    winrmProtocol=$winrmProtocol 
+    testCertificate=$testCertificate 
+    dacpacFile=$dacpacFile 
+    targetMethod=$targetMethod 
+    serverName=$serverName 
+    databaseName=$databaseName 
+    authscheme=$authscheme 
+    sqlUsername=$sqlUsername 
+    sqlPassword=$sqlPassword 
+    connectionString=$connectionString 
+    publishProfile=$publishProfile 
+    additionalArguments=$additionalArguments 
+    deployInParallel=$deployInParallel 
+    taskType=$taskType 
+    inlineSql=$inlineSql 
+    sqlFile=$sqlFile
+}
+
+(Main @sqlMainArgs)

@@ -1,4 +1,3 @@
-/// <reference path="./vso-node-api.d.ts"/>
 /// <reference path="./Q.d.ts"/>
 /// <reference path="./node.d.ts"/>
 

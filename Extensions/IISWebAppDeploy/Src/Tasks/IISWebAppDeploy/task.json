@@ -9,11 +9,14 @@
     "Build",
     "Release"
   ],
+  "runsOn": [
+      "Agent"
+  ],
   "author": "Microsoft Corporation",
   "version": {
     "Major": 1,
-    "Minor": 1,
-    "Patch": 3
+    "Minor": 4,
+    "Patch": 4
   },
   "demands": [
   ],
@@ -42,7 +45,7 @@
       "label": "Machines",
       "defaultValue": "",
       "required": true,
-      "helpMarkDown": "Provide a comma separated list of the machine(s) IP addresses or FQDNs along with ports. The port is defaulted based on the selected protocol or can be provided separately. <br>For example, dbserver.fabrikam.com, dbserver_int.fabrikam.com:5986, 192.168.12.34:40004."
+      "helpMarkDown": "Provide a comma separated list of the machine(s) IP addresses or FQDNs along with ports. The port is defaulted based on the selected protocol or can be provided separately. <br>For example, dbserver.fabrikam.com, dbserver_int.fabrikam.com:5986, 192.168.12.34:40004. <br>If you are using HTTPS, name/IP of machine should match the CN in the certificate."
     },
     {
       "name": "AdminUserName",
@@ -106,7 +109,7 @@
       "required": false,
       "groupName": "deployment",
       "defaultValue": "",
-      "helpMarkDown": "Specify parameters here to override the ones in the Web Deploy zip file and in the Parameter file. To override more than one parameter use line separator, e.g., <br/> name=\"IIS Web Application Name\",value=\"Fabrikam\" <br/> name=\"ConnectionString\", value=\"Server=localhost;Database=Fabrikam;\""
+      "helpMarkDown": "Specify parameters here to override the ones in the Web Deploy zip file and in the Parameter file. To override more than one parameter use line separator, e.g., <br/> name=\"IIS Web Application Name\",value=\"Fabrikam\" <br/> name=\"ConnectionString\",value=\"Server=localhost;Database=Fabrikam;\""
     },
     {
       "name": "WebsiteName",

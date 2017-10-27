@@ -184,7 +184,7 @@ function LocateHighestVersionSqlPackageWithSql()
         return $null, 0
     }
 
-    $keys = Get-Item $sqlRegKey | %{$_.GetSubKeyNames()} 
+    $keys = Get-Item $sqlRegKey | %{$_.GetSubKeyNames()}
     $versions = Get-SubKeysInFloatFormat $keys | Sort-Object -Descending
 
     Write-Verbose "Sql Versions installed on machine $env:COMPUTERNAME as read from registry: $versions"
@@ -204,7 +204,7 @@ function LocateHighestVersionSqlPackageWithSql()
         }
     }
 
-    Write-Verbose "Dac Framework (installed with SQL) not found on machine $env:COMPUTERNAME"      
+    Write-Verbose "Dac Framework (installed with SQL) not found on machine $env:COMPUTERNAME"
 
     return $null, 0
 }
@@ -221,7 +221,7 @@ function LocateHighestVersionSqlPackageWithDacMsi()
 
     if ((Test-Path $sqlDataTierFrameworkRegKey))
     {
-        $keys = Get-Item $sqlDataTierFrameworkRegKey | %{$_.GetSubKeyNames()} 
+        $keys = Get-Item $sqlDataTierFrameworkRegKey | %{$_.GetSubKeyNames()}
         $versions = Get-SubKeysInFloatFormat $keys | Sort-Object -Descending
 
         $installedMajorVersion = 0
@@ -320,7 +320,7 @@ function LocateSqlPackageInVS([string] $version)
 
     if ($vsInstallDir)
     {
-        Write-Verbose "Visual Studio install location: $vsInstallDir" 
+        Write-Verbose "Visual Studio install location: $vsInstallDir"
 
         $dacExtensionPath = [System.IO.Path]::Combine("Extensions", "Microsoft", "SQLDB", "DAC")
         $dacParentDir = [System.IO.Path]::Combine($vsInstallDir, $dacExtensionPath)
@@ -367,7 +367,7 @@ function LocateHighestVersionSqlPackageInVS()
     }
 
     $keys = Get-Item $vsRegKey | %{$_.GetSubKeyNames()}
-    $versions = Get-SubKeysInFloatFormat $keys | Sort-Object -Descending 
+    $versions = Get-SubKeysInFloatFormat $keys | Sort-Object -Descending
 
     Write-Verbose "Visual Studio versions found on machine $env:COMPUTERNAME as read from registry: $versions"
 
@@ -422,7 +422,7 @@ function Get-SqlPackageCmdArgs
         {
             if($sqlServerCredentials)
             {
-                $sqlUsername = $sqlServerCredentials.GetNetworkCredential().username
+                $sqlUsername = $sqlServerCredentials.UserName
                 $sqlPassword = $sqlServerCredentials.GetNetworkCredential().password
                 $sqlPkgCmdArgs = [string]::Format('{0} /TargetUser:"{1}" /TargetPassword:"{2}"', $sqlPkgCmdArgs, $sqlUsername, $sqlPassword)
             }
@@ -448,17 +448,7 @@ function Get-SqlPackageCmdArgs
     return $sqlPkgCmdArgs
 }
 
-function Escape-SpecialChars
-{
-    param(
-        [string]$str
-    )
-
-    return $str.Replace('`', '``').Replace('"', '`"').Replace('$', '`$')
-}
-
-
-function Execute-DacpacDeployment
+function Invoke-DacpacDeployment
 {
     param (
      [string]$dacpacFile,
@@ -476,9 +466,41 @@ function Execute-DacpacDeployment
     $sqlPackage = Get-SqlPackageOnTargetMachine
     $sqlPackageArguments = Get-SqlPackageCmdArgs -dacpacFile $dacpacFile -targetMethod $targetMethod -serverName $serverName -databaseName $databaseName -authscheme $authscheme -sqlServerCredentials $sqlServerCredentials -connectionString $connectionString -publishProfile $publishProfile -additionalArguments $additionalArguments
     Write-Verbose -Verbose $sqlPackageArguments
-    
-    $command = "`"$sqlPackage`" $sqlPackageArguments"
-    Write-Verbose "Executing command: $command"
-    RunCommand -command $command -failOnErr $true
+
+    Write-Verbose "Executing command: $sqlPackage $sqlPackageArguments"
+    ExecuteCommand -FileName "$sqlPackage"  -Arguments $sqlPackageArguments
 }
 
+function ExecuteCommand
+{
+    param(
+        [String][Parameter(Mandatory=$true)] $FileName,
+        [String][Parameter(Mandatory=$true)] $Arguments
+    )
+
+    if( $psversiontable.PSVersion.Major -lt 4)
+    {
+        $ErrorActionPreference = 'Continue'
+        $command = "`"$FileName`" $Arguments"
+        $result = cmd.exe /c "`"$command`""
+    }
+    else
+    {
+        $ErrorActionPreference = 'SilentlyContinue'
+        $result = ""
+        Invoke-Expression "& '$FileName' --% $Arguments"  -ErrorVariable errors | ForEach-Object {
+             $result +=  "$_ "
+        }
+
+        foreach($errorMsg in $errors){
+            $result +=  "$errorMsg "
+        }
+    }
+
+    $ErrorActionPreference = 'Stop'
+    if($LASTEXITCODE -ne 0)
+    {
+         Write-Verbose "Deployment failed with error : $result"
+         throw  $result
+    }
+}

@@ -25,6 +25,8 @@
         }
     },
     "no-cache": [
-            "Ansible"
+            "Ansible",
+            "DownloadTeamCityArtifacts",
+            "DownloadExternalBuildArtifacts"
         ]
 }

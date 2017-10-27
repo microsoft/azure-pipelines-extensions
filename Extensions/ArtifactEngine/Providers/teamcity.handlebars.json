@@ -1,0 +1,22 @@
+{
+  "count": 2,
+  "file": [
+    {
+      "name": "Mvc4Bootstrap",
+      "modificationTime": "20160901T120014+0000",
+      "href": "/httpAuth/app/rest/builds/id:223/artifacts/metadata/Mvc4Bootstrap",
+      "children": {
+        "href": "/httpAuth/app/rest/builds/id:223/artifacts/children/Mvc4Bootstrap"
+      }
+    },
+    {
+      "name": "Output.Ps1",
+      "size": 359,
+      "modificationTime": "20160901T120014+0000",
+      "href": "/httpAuth/app/rest/builds/id:223/artifacts/metadata/Output.Ps1",
+      "content": {
+        "href": "/httpAuth/app/rest/builds/id:223/artifacts/content/Output.Ps1"
+      }
+    }
+  ]
+}

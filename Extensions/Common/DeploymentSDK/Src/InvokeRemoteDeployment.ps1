@@ -131,6 +131,7 @@ function Invoke-RemoteDeployment
     {
         Write-Host "Performing deployment in parallel on all the machines."
         [hashtable]$Jobs = @{}
+        $dtlsdkErrors = @()
         foreach($resource in $resourceList)
         {
             $winRmPort = [System.Convert]::ToInt32($resource.port)
@@ -161,6 +162,7 @@ function Invoke-RemoteDeployment
                         }
                         Write-Verbose ($output|Format-List -Force|Out-String)
                         Write-Host "Deployment failed on machine $machineName with following message : $errorMsg"
+                        $dtlsdkErrors += $output.DeploymentSummary
                     }
                     else
                     {
@@ -173,7 +175,10 @@ function Invoke-RemoteDeployment
 
         if($operationStatus -ne "Passed")
         {
-            $errorMsg = 'Deployment on one or more machines failed.'
+            foreach ($error in $dtlsdkErrors) {
+                Write-Telemetry "DTLSDK_Error" $error
+            }            
+            $errorMsg = [string]::Format("Deployment on one or more machines failed. {0}", $errorMsg)
         }
     }
     else
@@ -190,12 +195,13 @@ function Invoke-RemoteDeployment
             if ($deploymentResponse.Status -ne "Passed")
             {
                 $operationStatus = "Failed"
+                Write-Telemetry "DTLSDK_Error" $deploymentResponse.DeploymentSummary
                 Write-Verbose ($deploymentResponse|Format-List -Force|Out-String)
                 if($deploymentResponse.Error -ne $null)
                 {
                     $errorMsg = $deploymentResponse.Error.ToString()
                     break
-                }
+                }                
             }
             else
             {
@@ -253,6 +259,7 @@ function Get-Credentials
     Write-Verbose "Creating credentials object for connecting to remote host"
     if([string]::IsNullOrWhiteSpace($userName) -or [string]::IsNullOrWhiteSpace($password))
     {
+        Write-Telemetry "Input_Validation" "Invalid administrator credentials. UserName/Password null/empty"
         throw "Invalid administrator credentials."
     }
 
@@ -314,17 +321,20 @@ function Get-MachineNameAndPort
 
     if($tokens.Count -gt 2)
     {
+        Write-Telemetry "Input_Validation" "Invalid user input, speficy machines in machine:port format."
         throw "Invalid user input, speficy machines in machine:port format."
     }
 
     [System.Int32]$port = $null
     if($tokens.Count -eq 2 -and ![System.Int32]::TryParse($tokens[1], [ref]$port))
     {
+        Write-Telemetry "Input_Validation" "Invalid user input, port is not an integer."
         throw "Invalid user input, port is not an integer."
     }
 
     if([string]::IsNullOrWhiteSpace($tokens[0]))
     {
+        Write-Telemetry "Input_Validation" "Invalid user input, machine name can not be empty."
         throw "Invalid user input, machine name can not be empty."
     }
 

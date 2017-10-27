@@ -63,12 +63,16 @@ function Get-MsDeployCmdArgs
 {
     param(
     [Parameter(Mandatory=$true)]
+    [string]$websiteName,
+    [Parameter(Mandatory=$true)]
     [string]$webDeployPackage,
     [string]$webDeployParamFile,
     [string]$overRideParams,
     [string]$removeAdditionalFiles,
     [string]$excludeFilesFromAppData,
     [string]$takeAppOffline,
+    [Boolean]$isInputFolder,
+    [Boolean]$isInputWebDeployPkg,
     [string]$additionalArguments
     )
 
@@ -77,7 +81,25 @@ function Get-MsDeployCmdArgs
         throw "Package does not exist : `"$webDeployPackage`""
     }
 
-    $msDeployCmdArgs = [string]::Empty
+    $msDeployCmdArgs = [String]::Format(" -verb:sync")
+
+    if($isInputFolder)
+    {
+        $msDeployCmdArgs += [String]::Format(' -source:iisApp="{0}"', $webDeployPackage);
+        $msDeployCmdArgs += [String]::Format(' -dest:iisApp="{0}"', $websiteName);
+    }
+    else
+    {
+        $msDeployCmdArgs += [String]::Format(' -source:package="{0}"', $webDeployPackage);
+        if($isInputWebDeployPkg)
+        {
+            $msDeployCmdArgs += [String]::Format(' -dest:auto');
+        }
+        else {
+            $msDeployCmdArgs += [String]::Format(' -dest:contentPath="{0}",', $websiteName);
+        }
+    }
+
     if(-not [string]::IsNullOrWhiteSpace($webDeployParamFile))
     {   
     
@@ -86,7 +108,11 @@ function Get-MsDeployCmdArgs
             throw "Param file does not exist : `"$webDeployParamFile`""
         }
 
-        $msDeployCmdArgs = [string]::Format(' -setParamFile="{0}"', $webDeployParamFile)
+        $msDeployCmdArgs += [string]::Format(' -setParamFile="{0}"', $webDeployParamFile)
+    }
+
+    if($isInputWebDeployPkg) {
+         $overRideParams = Compute-MsDeploy-SetParams -websiteName $websiteName -overRideParams $overRideParams
     }
     
     $setParams = $overRideParams.Split([System.Environment]::NewLine, [System.StringSplitOptions]::RemoveEmptyEntries)
@@ -119,7 +145,7 @@ function Get-MsDeployCmdArgs
         $msDeployCmdArgs = [string]::Format('{0} {1}', $msDeployCmdArgs, $additionalArguments)
     }
 
-    $msDeployCmdArgs = [string]::Format(' -verb:sync -source:package="{0}" {1} -dest:auto -retryAttempts:3 -retryInterval:3000', $webDeployPackage, $msDeployCmdArgs)
+    $msDeployCmdArgs = [string]::Format('{0} -retryAttempts:3 -retryInterval:3000', $msDeployCmdArgs)
     Write-Verbose "MsDeploy command line arguments: $msDeployCmdArgs"
     return $msDeployCmdArgs
 }
@@ -127,22 +153,65 @@ function Get-MsDeployCmdArgs
 function Deploy-Website
 {    
     param(
+        [string]$websiteName,
         [string]$webDeployPkg,
         [string]$webDeployParamFile,
-        [string]$overRiderParams,
+        [string]$overRideParams,
         [string]$removeAdditionalFiles,
         [string]$excludeFilesFromAppData,
         [string]$takeAppOffline,
-        [string]$additionalArguments
+        [string]$additionalArguments,
+        [Boolean]$isInputFolder,
+        [Boolean]$isInputWebDeployPkg
     )
 
     $msDeployExePath = Get-MsDeployLocation -regKeyPath $MsDeployInstallPathRegKey
-    $msDeployCmdArgs = Get-MsDeployCmdArgs -webDeployPackage $webDeployPkg -webDeployParamFile $webDeployParamFile -overRideParams $overRiderParams -removeAdditionalFiles $removeAdditionalFiles -excludeFilesFromAppData $excludeFilesFromAppData -takeAppOffline $takeAppOffline -additionalArguments $additionalArguments
+    $msDeployCmdArgs = Get-MsDeployCmdArgs -websiteName $websiteName -webDeployPackage $webDeployPkg -webDeployParamFile $webDeployParamFile -overRideParams $overRideParams -removeAdditionalFiles $removeAdditionalFiles -excludeFilesFromAppData $excludeFilesFromAppData -takeAppOffline $takeAppOffline -isInputFolder $isInputFolder -isInputWebDeployPkg $isInputWebDeployPkg -additionalArguments $additionalArguments
 
     $msDeployCmd = "`"$msDeployExePath`" $msDeployCmdArgs"
     Write-Verbose "Deploying website. Running command: $msDeployCmd"
     Run-Command -command $msDeployCmd
 }
+
+function Is-Directory
+{
+    param(
+        [String][Parameter(Mandatory=$true)] $Path
+    )
+
+    if(-not (Test-Path -Path $Path))
+    {
+        throw "$Path doesn't exists."
+    }
+    if((Get-Item $Path) -is [System.IO.DirectoryInfo])
+    {
+        return $true
+    }
+    return $false
+}
+
+function Contains-ParamFile
+{
+    param(
+        [String][Parameter(Mandatory=$true)] $packageFile
+    )
+
+    $msDeployExePath = Get-MsDeployLocation -regKeyPath $MsDeployInstallPathRegKey
+    $msDeployCheckParamFileCmdArgs = " -verb:getParameters -source:package='" + $packageFile + "'";
+    $msDeployCheckParamFileCmd = "`"$msDeployExePath`" $msDeployCheckParamFileCmdArgs"
+    Write-Verbose "Running msDeploy command to check if $packageFile contains paramters file."
+    Write-Verbose "##[command]$msDeployCheckParamFileCmd"
+    $ParamFileContent = Run-Command -command $msDeployCheckParamFileCmd
+    $paramFileXML = [XML] $ParamFileContent
+    if($paramFileXML.output.parameters)
+    {
+        Write-Verbose "Parameters.xml file is present in package."
+        return $true 
+    }
+    Write-Verbose "Parameters.xml file is not present in package."   
+    return $false
+}
+
 
 function Compute-MsDeploy-SetParams
 {
@@ -190,7 +259,15 @@ function Execute-Main
     Write-Verbose "TakeAppOffline = $TakeAppOffline"
     Write-Verbose "AdditionalArguments = $AdditionalArguments"
 
-    $overRideParams = Compute-MsDeploy-SetParams -websiteName $websiteName -overRideParams $overRideParams
-    Deploy-Website -webDeployPkg $WebDeployPackage -webDeployParamFile $WebDeployParamFile -overRiderParams $OverRideParams -excludeFilesFromAppData $excludeFilesFromAppData -removeAdditionalFiles $removeAdditionalFiles -takeAppOffline $takeAppOffline -additionalArguments $AdditionalArguments
+    # Check if package contains parameter.xml file
+    $isInputFolder = Is-Directory -Path $WebDeployPackage
+    $isInputWebDeployPkg = $false
+    if(-not $isInputFolder)
+    {
+        $isInputWebDeployPkg = Contains-ParamFile -packageFile $WebDeployPackage
+    }
+
+    Deploy-Website -websiteName $websiteName -webDeployPkg $WebDeployPackage -webDeployParamFile $WebDeployParamFile -overRideParams $OverRideParams -excludeFilesFromAppData $excludeFilesFromAppData -removeAdditionalFiles $removeAdditionalFiles -takeAppOffline $takeAppOffline -isInputFolder $isInputFolder -isInputWebDeployPkg $isInputWebDeployPkg -additionalArguments $AdditionalArguments
     Write-Verbose "Exiting Execute-Main function"
 }
+
