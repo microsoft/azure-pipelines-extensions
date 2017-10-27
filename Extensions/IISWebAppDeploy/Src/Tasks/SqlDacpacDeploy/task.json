@@ -2,18 +2,21 @@
   "id": "063c7649-4934-49e8-9eac-37121fe7e350",
   "name": "SqlDacpacDeploy",
   "friendlyName": "WinRM - SQL Server DB Deployment",
-  "description": "Using WinRM connect to host, and deploy DB using sqlpackage.exe or Invoke-Sqlcmd",
+  "description": "Using WinRM connect to host, and deploy database using sqlpackage.exe or Invoke-Sqlcmd",
   "helpMarkDown": "[More Information](http://aka.ms/sqlserverdacpackreadme)",
   "category": "Deploy",
   "visibility": [
     "Build",
     "Release"
   ],
+  "runsOn": [
+      "Agent"
+  ],
   "author": "Microsoft Corporation",
   "version": {
     "Major": 1,
-    "Minor": 1,
-    "Patch": 0
+    "Minor": 3,
+    "Patch": 5
   },
   "demands": [
   ],
@@ -37,7 +40,7 @@
       "label": "Machines",
       "defaultValue": "",
       "required": true,
-      "helpMarkDown": "Provide a comma separated list of the machine(s) IP addresses or FQDNs along with ports. The port is defaulted based on the selected protocol or can be provided separately. <br>For example, dbserver.fabrikam.com, dbserver_int.fabrikam.com:5986, 192.168.12.34:40004."
+      "helpMarkDown": "Provide a comma separated list of the machine(s) IP addresses or FQDNs along with ports. The port is defaulted based on the selected protocol or can be provided separately. <br>For example, dbserver.fabrikam.com, dbserver_int.fabrikam.com:5986, 192.168.12.34:40004. <br>If you are using HTTPS, name/IP of machine should match the CN in the certificate."
     },
     {
       "name": "AdminUserName",
@@ -121,7 +124,7 @@
       "properties": {
           "resizable": "true",
           "rows": "10"
-          },      
+          },
       "helpMarkDown": "Sql Queries inline"
     },
     {
@@ -232,7 +235,7 @@
       "defaultValue": "",
       "visibleRule": "TaskType = sqlQuery || TaskType = sqlInline",
       "helpMarkDown": "Additional Invoke-Sqlcmd arguments that will be applied when deploying the SQL Server database."
-    },    
+    },
     {
       "name": "DeployInParallel",
       "type": "boolean",

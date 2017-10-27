@@ -1,0 +1,14 @@
+// Place your settings in this file to overwrite default and user settings.
+{
+    "mocha.files.glob": "**/*Tests.js",
+    "files.exclude": {
+        "**/*.js": {"when": "$(basename).ts"},
+        "**/*.map": {"when": "$(basename).map"},
+        "**/node_modules/**": true
+    },
+    "nodeTdd.buildOnActivation" : true,
+    "nodeTdd.showCoverage": true,
+    "nodeTdd.reporter": "tap",
+    "nodeTdd.glob":"**/*Tests.js",
+    "nodeTdd.verbose": true
+}

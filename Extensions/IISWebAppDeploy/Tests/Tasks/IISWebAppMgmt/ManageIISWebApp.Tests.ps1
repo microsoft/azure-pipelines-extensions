@@ -65,20 +65,21 @@ Describe "Tests for testing Get-HostName functionality" {
 Describe "Tests for testing Trim-Inputs functionality" {
 
     $siteNoExtraQuotes = "website"
-    $pathNoExtraQuotes = "c:\web app\path"
+    $pathNoExtraQuotes = "\\web app\path"
     $appPoolNameNoExtraQuotes = "application pool name"
 
     $siteAuthUserNoSpaces = "dummyuser"
     $adminUserNoSpaces = "adminuser"
     $appPoolUserNoSpaces = "apppooluser"
+    $sslCertThumbPrintNoSpaces = "de86af66a9624ddbc3a1055f937be9c000d6b8a1"
     
-    Context "Should remove extra quotes for all inputs except usernames " {
+    Context "Should remove extra quotes for all inputs except usernames and thumbprint" {
 
         $site = "`"website`""
-        $path = "`"c:\web app\path\`""
+        $path = "`"\\web app\path\`""
         $appPoolName = "`"application pool name`""
                 
-        Trim-Inputs -siteName ([ref]$site) -physicalPath ([ref]$path)  -poolName ([ref]$appPoolName) -websitePathAuthuser ([ref]$siteAuthUserNoSpaces) -appPoolUser ([ref]$appPoolUserNoSpaces) -adminUser ([ref]$adminUserNoSpaces)
+        Trim-Inputs -siteName ([ref]$site) -physicalPath ([ref]$path)  -poolName ([ref]$appPoolName) -websitePathAuthuser ([ref]$siteAuthUserNoSpaces) -appPoolUser ([ref]$appPoolUserNoSpaces) -adminUser ([ref]$adminUserNoSpaces) -sslCertThumbPrint ([ref]$sslCertThumbPrintNoSpaces)
 
         It "should not have extra double quotes"{
             ( $site ) | Should Be $siteNoExtraQuotes
@@ -87,22 +88,27 @@ Describe "Tests for testing Trim-Inputs functionality" {
         }        
     }
 
-    Context "Should remove extra spaces for appPooluserName, websiteAuthUser, adminUserName" {
+    Context "Should remove extra spaces for appPooluserName, websiteAuthUser, adminUserName, sslCertThumbPrint" {
         $siteAuthUser = " dummyuser"
         $adminUser = " adminuser "
         $appPoolUser = " apppooluser "
+        $sslCertThumbPrint = " de86af66a9624ddbc3a1055f937be9c000d6b8a1 "
 
-        Trim-Inputs -siteName ([ref]$siteNoExtraQuotes) -physicalPath ([ref]$pathNoExtraQuotes)  -poolName ([ref]$appPoolNameNoExtraQuotes) -websitePathAuthuser ([ref]$siteAuthUser) -appPoolUser ([ref]$appPoolUser) -adminUser ([ref]$adminUser)
+        Trim-Inputs -siteName ([ref]$siteNoExtraQuotes) -physicalPath ([ref]$pathNoExtraQuotes)  -poolName ([ref]$appPoolNameNoExtraQuotes) -websitePathAuthuser ([ref]$siteAuthUser) -appPoolUser ([ref]$appPoolUser) -adminUser ([ref]$adminUser) -sslCertThumbPrint ([ref]$sslCertThumbPrint)
 
         It "should not have extra double quotes"{
             ( $siteAuthUser ) | Should Be $siteAuthUserNoSpaces
             ( $adminUser ) | Should Be $adminUserNoSpaces
             ( $appPoolUser ) | Should Be $appPoolUserNoSpaces
+            ( $sslCertThumbPrint ) | Should be $sslCertThumbPrintNoSpaces
         }
     }
 }
 
 Describe "Tests for testing Validate-Inputs functionality" {
+
+    $invalidCertMsg = "Invalid thumbprint"
+
     Context "Should throw when createWebsite true and sitename empty" {
 
         $errorMsg = "Website Name cannot be empty if you want to create or update the target website."
@@ -150,6 +156,55 @@ Describe "Tests for testing Validate-Inputs functionality" {
 
         It "Should not throw exception" {
             { Validate-Inputs -createWebsite "false" -websiteName " " -createAppPool "false" -appPoolName " " } | Should Not Throw
+        }
+    }
+
+    Context "Should throw when sslCertThumbPrint is greater than 40 character length" {
+        It "Should throw exception" {
+            $thumbprint = "de86af66a9624ddbc3a1055f937be9c000d6b8a11" #contains one char extra at end
+            { Validate-Inputs -createWebsite "faslse" -createAppPool "false" -addBinding "true" -protocol "https" -sslCertThumbPrint $thumbprint } | Should Throw $invalidCertMsg
+        }
+    }
+
+    Context "Should throw when sslCertThumbPrint is less than 40 character length" {
+        It "Should throw exception" {
+            $thumbprint = "de86af66a9624ddbc3a1055f937be9c000d6b8a" #contains one char less
+            { Validate-Inputs -createWebsite "faslse" -createAppPool "false" -addBinding "true" -protocol "https" -sslCertThumbPrint $thumbprint } | Should Throw $invalidCertMsg
+        }
+    }
+
+    Context "Should throw when sslCertThumbPrint contains non hexadecimal characters" {
+        It "Should throw exception" {
+            $thumbprint = "de86af66a9624ddbc3a1055f937be9c000d6b8ag" #last char is 'g'
+            { Validate-Inputs -createWebsite "faslse" -createAppPool "false" -addBinding "true" -protocol "https" -sslCertThumbPrint $thumbprint } | Should Throw $invalidCertMsg
+        }
+    }
+    
+    Context "Should throw when sslCertThumbPrint contains spaces between hexadecimal numbers" {
+        It "Should throw exception" {
+            $thumbprint = "de 86 af 66 a9 62 4d db c3 a1 05 5f 93 7b e9 c0 00 d6 b8 a1"
+            { Validate-Inputs -createWebsite "faslse" -createAppPool "false" -addBinding "true" -protocol "https" -sslCertThumbPrint $thumbprint } | Should Throw $invalidCertMsg
+        }
+    }
+
+    Context "Should throw when sslCertThumbPrint contains invisible characters" {
+        It "Should throw exception" {
+            $thumbprint = "‎de86af66a9624ddbc3a1055f937be9c000d6b8a1" #contains invisible character at the start. You can move the cursor using arrow keys to figure it out
+            { Validate-Inputs -createWebsite "faslse" -createAppPool "false" -addBinding "true" -protocol "https" -sslCertThumbPrint $thumbprint } | Should Throw $invalidCertMsg
+        }
+    }
+
+    Context "Should not throw when addBinding is false" {
+        It "Should not throw exception" {
+            $thumbprint = "invalid-thumbprint"
+            { Validate-Inputs -createWebsite "faslse" -createAppPool "false" -addBinding "false"-sslCertThumbPrint $thumbprint } | Should Not Throw
+        }
+    }
+
+    Context "Should not throw when protocol is http" {
+        It "Should not throw exception" {
+            $thumbprint = "invalid-thumbprint"
+            { Validate-Inputs -createWebsite "faslse" -createAppPool "false" -protocol "http"-sslCertThumbPrint $thumbprint } | Should Not Throw
         }
     }
 }

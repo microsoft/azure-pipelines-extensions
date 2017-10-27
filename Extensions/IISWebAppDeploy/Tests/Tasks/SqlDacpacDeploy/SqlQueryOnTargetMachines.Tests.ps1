@@ -54,21 +54,60 @@ Describe "Tests for verifying Import-SqlPs functionality" {
     }
 }
 
-Describe "Tests for verifying Execute-SqlQueryDeployment functionality" {
+Describe "Tests for verifying Invoke-SqlQueryDeployment functionality" {
 
     Context "When execute sql is invoked with all inputs for Inline Sql"{
 
-        Mock Import-SqlPs { return }
-        Mock Get-SqlFilepathOnTargetMachine { return "sample.temp" }
-        Mock Invoke-Expression -Verifiable { return } -ParameterFilter {$Command -and $Command.StartsWith("Invoke-Sqlcmd")}
 
-        Execute-SqlQueryDeployment -taskType "sqlInline" -inlineSql "SampleQuery" -targetMethod "server" -serverName "localhost" -databaseName "SampleDB" 
+        Mock Test-Path { return $true }
+        Mock Import-SqlPs { return }
+        Mock Get-SqlFilepathOnTargetMachine { return "C:\sample.temp" }
+        Mock Invoke-Sqlcmd -Verifiable { return }
+    
+        Invoke-SqlQueryDeployment -taskType "sqlInline" -inlineSql "SampleQuery" -targetMethod "server" -serverName "localhost" -databaseName "SampleDB" 
 
         It "Should deploy inline Sql"{
             Assert-VerifiableMocks
             Assert-MockCalled Import-SqlPs -Times 1
             Assert-MockCalled Get-SqlFilepathOnTargetMachine -Times 1
-            Assert-MockCalled Invoke-Expression -Times 1
+            Assert-MockCalled Invoke-Sqlcmd -Times 1
+        }
+    }
+
+    Context "When execute sql is invoked with additional arguments for Inline Sql"{
+
+
+        Mock Test-Path { return $true }
+        Mock Remove-Item { return }
+        Mock Import-SqlPs { return }
+        Mock Get-SqlFilepathOnTargetMachine { return "C:\sample.temp" }
+        Mock Invoke-Sqlcmd -Verifiable { return } -ParameterFilter {$QueryTimeout -eq 50}
+    
+        Invoke-SqlQueryDeployment -taskType "sqlInline" -inlineSql "SampleQuery" -targetMethod "server" -serverName "localhost" -databaseName "SampleDB" -additionalArguments "-QueryTimeout 50 wrongParam"
+
+        It "Should have valid additional arguments"{
+            Assert-VerifiableMocks
+            Assert-MockCalled Import-SqlPs -Times 1
+            Assert-MockCalled Get-SqlFilepathOnTargetMachine -Times 1
+            Assert-MockCalled Invoke-Sqlcmd -Times 1
+        }
+    }
+
+     Context "When execute sql is invoked with additional arguments with special character for Inline Sql"{
+
+        Mock Test-Path { return $true }
+        Mock Import-SqlPs { return }
+        Mock Get-SqlFilepathOnTargetMachine { return "C:\sample.temp" }
+        Mock Invoke-Sqlcmd -Verifiable { return } -ParameterFilter {$variable -eq "var1=user`$test"}
+        Mock Remove-Item { return }
+
+        Invoke-SqlQueryDeployment -taskType "sqlInline" -inlineSql "SampleQuery" -targetMethod "server" -serverName "localhost" -databaseName "SampleDB" -additionalArguments "-variable var1=user`$test"
+
+        It "Should have valid additional arguments with special character"{
+            Assert-VerifiableMocks
+            Assert-MockCalled Import-SqlPs -Times 1
+            Assert-MockCalled Get-SqlFilepathOnTargetMachine -Times 1
+            Assert-MockCalled Invoke-Sqlcmd -Times 1
         }
     }
 
@@ -82,7 +121,7 @@ Describe "Tests for verifying Execute-SqlQueryDeployment functionality" {
 
         try
         {
-            Execute-SqlQueryDeployment -taskType "sqlQuery" -sqlFile "SampleFile.temp" -targetMethod "server" -serverName "localhost" -databaseName "SampleDB" 
+            Invoke-SqlQueryDeployment -taskType "sqlQuery" -sqlFile "SampleFile.temp" -targetMethod "server" -serverName "localhost" -databaseName "SampleDB" 
         }
         catch
         {
@@ -96,28 +135,28 @@ Describe "Tests for verifying Execute-SqlQueryDeployment functionality" {
 
     Context "When execute sql is invoked with Server Auth Type"{
 
-        $UsernamePasswordParams = "-Username `"SqlUser`" -Password `"SqlPass`""
         $secureAdminPassword =  ConvertTo-SecureString "SqlPass" -AsPlainText -Force
         $psCredential = New-Object System.Management.Automation.PSCredential ("SqlUser", $secureAdminPassword)
 
+        Mock Test-Path { return $true }
         Mock Import-SqlPs { return }
-        Mock Get-SqlFilepathOnTargetMachine { return "sample.temp" }
-        Mock Invoke-Expression -Verifiable { return } -ParameterFilter {$Command -and $Command.Contains($UsernamePasswordParams)}
+        Mock Get-SqlFilepathOnTargetMachine { return "C:\sample.temp" }
+        Mock Invoke-Sqlcmd -Verifiable { return } -ParameterFilter {($Username -eq "SqlUser") -and ($Password -eq "SqlPass")}
 
-        Execute-SqlQueryDeployment -taskType "sqlInline" -inlineSql "SampleQuery" -targetMethod "server" -serverName "localhost" -databaseName "SampleDB" -sqlServerCredentials $psCredential -authscheme sqlServerAuthentication
+        Invoke-SqlQueryDeployment -taskType "sqlInline" -inlineSql "SampleQuery" -targetMethod "server" -serverName "localhost" -databaseName "SampleDB" -sqlServerCredentials $psCredential -authscheme sqlServerAuthentication
 
         It "Should deploy inline Sql with Server Authetication"{
             Assert-VerifiableMocks
             Assert-MockCalled  Import-SqlPs -Times 1
             Assert-MockCalled  Get-SqlFilepathOnTargetMachine -Times 1
-            Assert-MockCalled  Invoke-Expression -Times 1
+            Assert-MockCalled  Invoke-Sqlcmd -Times 1
         }
     }
 
     Context "When finally gets called and Test-Path Fails"{
 
         Mock Import-SqlPs { throw }
-        Mock Get-SqlFilepathOnTargetMachine { return "sample.temp" }
+        Mock Get-SqlFilepathOnTargetMachine { return "C:\sample.temp" }
 
         # Marking Test Path as false so that Remove -Item is not called 
         # This tests Finally Part
@@ -126,7 +165,7 @@ Describe "Tests for verifying Execute-SqlQueryDeployment functionality" {
 
         try
         {
-            Execute-SqlQueryDeployment -taskType "sqlInline" -inlineSql "SampleQuery" -targetMethod "server" -serverName "localhost" -databaseName "SampleDB" 
+            Invoke-SqlQueryDeployment -taskType "sqlInline" -inlineSql "SampleQuery" -targetMethod "server" -serverName "localhost" -databaseName "SampleDB" 
         }
         catch
         {
@@ -143,7 +182,7 @@ Describe "Tests for verifying Execute-SqlQueryDeployment functionality" {
     Context "When finally gets called and Test-Path Returns True"{
 
         Mock Import-SqlPs { throw }
-        Mock Get-SqlFilepathOnTargetMachine { return "sample.temp" }
+        Mock Get-SqlFilepathOnTargetMachine { return "C:\sample.temp" }
 
         # Marking Test Path as true so that Remove -Item is called 
         # This tests Finally Part
@@ -152,7 +191,7 @@ Describe "Tests for verifying Execute-SqlQueryDeployment functionality" {
 
         try
         {
-            Execute-SqlQueryDeployment -taskType "sqlInline" -inlineSql "SampleQuery" -targetMethod "server" -serverName "localhost" -databaseName "SampleDB" 
+            Invoke-SqlQueryDeployment -taskType "sqlInline" -inlineSql "SampleQuery" -targetMethod "server" -serverName "localhost" -databaseName "SampleDB" 
         }
         catch
         {
@@ -175,7 +214,7 @@ Describe "Tests for verifying Execute-SqlQueryDeployment functionality" {
 
         try
         {
-            Execute-SqlQueryDeployment -taskType "sqlQuery" -sqlFile "SampleFile.temp" -targetMethod "server" -serverName "localhost" -databaseName "SampleDB"
+            Invoke-SqlQueryDeployment -taskType "sqlQuery" -sqlFile "SampleFile.temp" -targetMethod "server" -serverName "localhost" -databaseName "SampleDB"
         }
         catch
         {

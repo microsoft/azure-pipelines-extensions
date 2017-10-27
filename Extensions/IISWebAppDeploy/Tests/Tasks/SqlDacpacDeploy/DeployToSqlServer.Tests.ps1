@@ -11,6 +11,7 @@ if(-not (Test-Path -Path $deploySqlDacpacPath ))
 }
 
 $invokeRemoteDeploymentPath = "$currentScriptPath\..\..\..\Src\Tasks\$scriptDirName\DeploymentSDK\InvokeRemoteDeployment.ps1"
+$utilityScriptPath = "$currentScriptPath\..\..\..\Src\Tasks\$scriptDirName\DeploymentSDK\Utility.ps1"
 
 if(-not (Test-Path -Path $invokeRemoteDeploymentPath ))
 {
@@ -27,6 +28,7 @@ function Import-Module
 
 . "$deploySqlDacpacPath"
 . "$invokeRemoteDeploymentPath"
+. "$utilityScriptPath"
 
 Describe "Tests for testing EscapeSpecialChars functionality" {
 
@@ -141,24 +143,43 @@ Describe "Tests for testing GetScriptToRun functionality" {
 
         $script = GetScriptToRun -dacpacFile "sample.dacpac" -targetMethod "server" -serverName "localhost" -databaseName "SampleDB" -authscheme "sqlServerAuthentication" -sqlUserName "sampleuser" -sqlPassword "dummypassword" -connectionString "" -publishProfile "" -additionalArguments "" -taskType "dacpac" -inlineSql "" -sqlFile ""
 
-        Write-Verbose $script
         It "should contain script content and invoke expression" {
             ($script.Contains('Dummy Script')) | Should Be $true
-            ($script.Contains('Execute-DacpacDeployment -dacpacFile "sample.dacpac" -targetMethod server -serverName "localhost" -databaseName "SampleDB" -authscheme sqlServerAuthentication -sqlServerCredentials $sqlServerCredentials -connectionString "" -publishProfile "" -additionalArguments ""')) | Should Be $true
+            ($script.Contains('"authscheme":  "sqlServerAuthentication"')) | Should Be $true
+            ($script.Contains('"dacpacFile":  "sample.dacpac"')) | Should Be $true
+            ($script.Contains('"serverName":  "localhost"')) | Should Be $true
+            ($script.Contains('"additionalArguments":  ""')) | Should Be $true
+            ($script.Contains('"sqlServerCredentials":  "$sqlServerCredentials"')) | Should Be $true
+            ($script.Contains('"databaseName":  "SampleDB"')) | Should Be $true
+            ($script.Contains('Invoke-DacpacDeployment @remoteSqlDacpacArgs')) | Should Be $true
         }
 
         $script = GetScriptToRun -dacpacFile "" -targetMethod "server" -serverName "localhost" -databaseName "SampleDB" -authscheme "sqlServerAuthentication" -sqlUserName "sampleuser" -sqlPassword "dummypassword" -connectionString "" -publishProfile "" -additionalArguments "" -taskType "sqlQuery" -inlineSql "" -sqlFile "sample.sql"
 
         It "should contain script content and invoke expression" {
             ($script.Contains('Dummy Script')) | Should Be $true
-            ($script.Contains('Execute-SqlQueryDeployment -taskType "sqlQuery" -sqlFile "sample.sql" -inlineSql "" -serverName "localhost" -databaseName "SampleDB" -authscheme sqlServerAuthentication -sqlServerCredentials $sqlServerCredentials -additionalArguments ""')) | Should Be $true
+            ($script.Contains('"authscheme":  "sqlServerAuthentication"')) | Should Be $true
+            ($script.Contains('"inlineSql":  ""')) | Should Be $true
+            ($script.Contains('"databaseName":  "SampleDB"')) | Should Be $true
+            ($script.Contains('"serverName":  "localhost"')) | Should Be $true
+            ($script.Contains('"taskType":  "sqlQuery"')) | Should Be $true
+            ($script.Contains('"additionalArguments":  ""')) | Should Be $true
+            ($script.Contains('"sqlServerCredentials":  "$sqlServerCredentials"')) | Should Be $true
+            ($script.Contains('"sqlFile":  "sample.sql"')) | Should Be $true
+            ($script.Contains('Invoke-SqlQueryDeployment @remoteSplattedSql')) | Should Be $true
         }
 
         $script = GetScriptToRun -dacpacFile "" -targetMethod "server" -serverName "localhost" -databaseName "SampleDB" -authscheme "sqlServerAuthentication" -sqlUserName "sampleuser" -sqlPassword "dummypassword" -connectionString "" -publishProfile "" -additionalArguments "" -taskType "sqlInline" -inlineSql "Testing Inline SQL" -sqlFile ""
-        
+
         It "should contain script content and invoke expression" {
             ($script.Contains('Dummy Script')) | Should Be $true
-            ($script.Contains('Execute-SqlQueryDeployment -taskType "sqlInline" -sqlFile "" -inlineSql "Testing Inline SQL" -serverName "localhost" -databaseName "SampleDB" -authscheme sqlServerAuthentication -sqlServerCredentials $sqlServerCredentials -additionalArguments ""')) | Should Be $true
+            ($script.Contains('"authscheme":  "sqlServerAuthentication"')) | Should Be $true
+            ($script.Contains('"databaseName":  "SampleDB"')) | Should Be $true
+            ($script.Contains('"serverName":  "localhost"')) | Should Be $true
+            ($script.Contains('"additionalArguments":  ""')) | Should Be $true
+            ($script.Contains('"sqlServerCredentials":  "$sqlServerCredentials"')) | Should Be $true
+            ($script.Contains('"sqlFile":  ""')) | Should Be $true
+            ($script.Contains('Invoke-SqlQueryDeployment @remoteSplattedSql')) | Should Be $true
         }
     }
 }

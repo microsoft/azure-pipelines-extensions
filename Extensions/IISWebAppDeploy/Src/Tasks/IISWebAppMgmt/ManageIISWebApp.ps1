@@ -28,17 +28,18 @@ function Get-HostName
     return $hostName
 }
 
-function Trim-Inputs([ref]$siteName, [ref]$physicalPath, [ref]$poolName, [ref]$websitePathAuthuser, [ref]$appPoolUser, [ref]$adminUser)
+function Trim-Inputs([ref]$siteName, [ref]$physicalPath, [ref]$poolName, [ref]$websitePathAuthuser, [ref]$appPoolUser, [ref]$adminUser, [ref]$sslCertThumbPrint)
 {
     Write-Verbose "Triming inputs for excess spaces, double quotes"
 
     $siteName.Value = $siteName.Value.Trim('"', ' ')
-    $physicalPath.Value = $physicalPath.Value.Trim('"', ' ').Trim('\', ' ')
+    $physicalPath.Value = $physicalPath.Value.Trim('"', ' ').TrimEnd('\')
     $poolName.Value = $poolName.Value.Trim('"', ' ')
 
     $appPoolUser.Value = $appPoolUser.Value.Trim()
     $websitePathAuthuser.Value = $websitePathAuthuser.Value.Trim()
     $adminUser.Value = $adminUser.Value.Trim()
+    $sslCertThumbPrint.Value = $sslCertThumbPrint.Value.Trim()
 }
 
 function Validate-Inputs
@@ -47,7 +48,10 @@ function Validate-Inputs
         [string]$createWebsite,
         [string]$websiteName,
         [string]$createAppPool,
-        [string]$appPoolName
+        [string]$appPoolName,
+        [string]$addBinding,
+        [string]$protocol,
+        [string]$sslCertThumbPrint
     )
 
     Write-Verbose "Validating website and application pool inputs"
@@ -59,6 +63,14 @@ function Validate-Inputs
     if($createAppPool -ieq "true" -and [string]::IsNullOrWhiteSpace($appPoolName))
     { 
         throw "Application pool name cannot be empty if you want to create or update the target app pool."
+    }
+
+    if((-not [string]::IsNullOrWhiteSpace($sslCertThumbPrint)) -and ($protocol -ieq "https") -and ($addBinding -ieq "true")) 
+    {
+        if(($sslCertThumbPrint.Length -ne 40) -or (-not [regex]::IsMatch($sslCertThumbPrint, "[a-fA-F0-9]{40}")))
+        {
+            throw "Invalid thumbprint. Length is not 40 characters or contains invalid characters."
+        }
     }
 }
 
@@ -200,9 +212,9 @@ function Main
     Write-Verbose "appCmdCommands = $appCmdCommands"
     Write-Verbose "deployInParallel = $deployInParallel"
 
-    Trim-Inputs -siteName ([ref]$websiteName) -physicalPath ([ref]$websitePhysicalPath)  -poolName ([ref]$appPoolName) -websitePathAuthuser ([ref]$websiteAuthUserName) -appPoolUser ([ref]$appPoolUsername) -adminUser ([ref]$adminUserName)
+    Trim-Inputs -siteName ([ref]$websiteName) -physicalPath ([ref]$websitePhysicalPath)  -poolName ([ref]$appPoolName) -websitePathAuthuser ([ref]$websiteAuthUserName) -appPoolUser ([ref]$appPoolUsername) -adminUser ([ref]$adminUserName) -sslCertThumbPrint ([ref]$sslCertThumbPrint)
 
-    Validate-Inputs -createWebsite $createWebsite -websiteName $websiteName -createAppPool $createAppPool -appPoolName $appPoolName
+    Validate-Inputs -createWebsite $createWebsite -websiteName $websiteName -createAppPool $createAppPool -appPoolName $appPoolName -addBinding $addBinding -protocol $protocol -sslCertThumbPrint $sslCertThumbPrint
 
     $script = Get-ScriptToRun -createWebsite $createWebsite -websiteName $websiteName -websitePhysicalPath $websitePhysicalPath -websitePhysicalPathAuth $websitePhysicalPathAuth -websiteAuthUserName $websiteAuthUserName -websiteAuthUserPassword $websiteAuthUserPassword -addBinding $addBinding -protocol $protocol -ipAddress $ipAddress -port $port -hostName $hostName -serverNameIndication $serverNameIndication -sslCertThumbPrint $sslCertThumbPrint -createAppPool $createAppPool -appPoolName $appPoolName -pipeLineMode $pipeLineMode -dotNetVersion $dotNetVersion -appPoolIdentity $appPoolIdentity -appPoolUsername $appPoolUsername -appPoolPassword $appPoolPassword -appCmdCommands $appCmdCommands
     Run-RemoteDeployment -machinesList $machinesList -scriptToRun $script -adminUserName $adminUserName -adminPassword $adminPassword -winrmProtocol $winrmProtocol -testCertificate $testCertificate -deployInParallel $deployInParallel -websiteName $websiteName

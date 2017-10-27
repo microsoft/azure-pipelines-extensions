@@ -1,7 +1,7 @@
 ﻿# Function to import SqlPS module & avoid directory switch
 function Import-SqlPs {
     push-location
-    Import-Module SqlPS -ErrorAction 'SilentlyContinue' 3>&1 | out-null
+    Import-Module SqlPS -ErrorAction 'SilentlyContinue' | out-null
     pop-location
 }
 
@@ -15,7 +15,7 @@ function Get-SqlFilepathOnTargetMachine
     return $tempFilePath
 }
 
-function Execute-SqlQueryDeployment
+function Invoke-SqlQueryDeployment
 {
     param (
         [string]$taskType,
@@ -29,6 +29,14 @@ function Execute-SqlQueryDeployment
     )
 
     Write-Verbose "Entering script SqlQueryOnTargetMachines.ps1"
+    Write-Verbose "taskType = $taskType"
+    Write-Verbose "sqlFile = $sqlFile"
+    Write-Verbose "inlineSql = $inlineSql"
+    Write-Verbose "serverName = $serverName"
+    Write-Verbose "databaseName = $databaseName"
+    Write-Verbose "authscheme = $authscheme"
+    Write-Verbose "additionalArguments = $additionalArguments"
+
     try 
     {
         if($taskType -eq "sqlInline")
@@ -48,25 +56,39 @@ function Execute-SqlQueryDeployment
         # Import SQLPS Module
         Import-SqlPs
 
-        $scriptArgument = "Invoke-Sqlcmd -ServerInstance `"$serverName`" -Database `"$databaseName`" -InputFile `"$sqlFile`" "
-        $scriptArgument += $additionalArguments
-
-        $commandToRun = $scriptArgument
-        $commandToLog = $scriptArgument
+        $spaltArguments = @{
+            ServerInstance=$serverName
+            Database=$databaseName
+            InputFile=$sqlFile
+        }
 
         if($authscheme -eq "sqlServerAuthentication")
         {
             if($sqlServerCredentials)
             {
-                $sqlUsername = $sqlServerCredentials.GetNetworkCredential().username
+                $sqlUsername = $sqlServerCredentials.Username
                 $sqlPassword = $sqlServerCredentials.GetNetworkCredential().password
-                $commandToRun += " -Username `"$sqlUsername`" -Password `"$sqlPassword`" "
-                $commandToLog += " -Username `"$sqlUsername`" -Password ****** "
+                $spaltArguments.Add("Username", $sqlUsername)
+                $spaltArguments.Add("Password", $sqlPassword)
             }
         }
 
-        Write-Verbose "Executing : $commandToLog"
-        Invoke-Expression $commandToRun
+        $commandToLog = "Invoke-SqlCmd"
+        foreach ($arg in $spaltArguments.Keys) {
+            if($arg -ne "Password")
+            {
+                $commandToLog += " -${arg} $($spaltArguments.Item($arg))"
+            }
+            else
+            {
+                $commandToLog += " -${arg} *******"
+            }
+        }
+
+        $additionalArguments = EscapeSpecialChars $additionalArguments
+
+        Write-Verbose "Invoke-SqlCmd arguments : $commandToLog  $additionalArguments"
+        Invoke-Expression "Invoke-SqlCmd @spaltArguments $additionalArguments"
 
     } # End of Try
     Finally
@@ -78,4 +100,13 @@ function Execute-SqlQueryDeployment
             Remove-Item $sqlFile -ErrorAction 'SilentlyContinue'
         }
     }
+}
+
+function EscapeSpecialChars
+{
+    param(
+        [string]$str
+    )
+
+    return $str.Replace('`', '``').Replace('$', '`$')
 }

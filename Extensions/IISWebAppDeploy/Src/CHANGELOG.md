@@ -2,12 +2,40 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
-## [Unreleased]
+## [1.4.5] 24th July 2017
+### Fixed
+- Fixing issue of surfacing inner exception for WinRM - SQL Dacpac Deploy task
 
-## [1.2.5] - 25th November 2016
+## [1.4.4] 2nd March 2017
+### Fixed
+- Fixing if physical path is UNC trimming issue.
+
+## [1.4.3] - 31st January 2017
+### Fixed
+- Fixing issue for variable as additional arguments
+- Fixing convertTo/From-Json cmdlet not found for PSVersion 2.0
+
+## [1.4.2] - 4th January 2017
+### Fixed
+- Assign SSL certificate to HTTPS binding when passing IP and port
+- Special character issues in sql task inputs
+
+## [1.4.1] - 8th December 2016
+### Fixed
+- Fixing override parameters not honored issue
+
+## [1.4.0] - 7th December 2016
+### Added
+- Support for deploying Asp.Net4, Asp.Net Core 1 and Node Apps using
+    - Build output in the form of folder or UNC Path
+    - Compressed (zip) build output
+
+## [1.3.0] - 1st December 2016
+### Added
+- Added support for Sql Server, Dac Framwork 2016
+
 ### Fixed
 - Error messages are not showing on console for SQL task
-- Unable to detect sqlPackge.exe when sql DAC-Framework 2016 installed
 
 ## [1.2.4] - 12th October 2016
 ### Fixed
@@ -36,7 +64,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 - Support for taking application offline
 - Support for excluding files from App_Data
 - Support for retaining extra files in target deployment folder
-- Additional arguments support for verb:sync 
+- Additional arguments support for verb:sync
 
 ## [1.1.0] - 15th June 2016
 ### Added
@@ -66,4 +94,3 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 - IIS web application deployment task.
 - IIS web application management task.
-

@@ -9,11 +9,14 @@
     "Build",
     "Release"
   ],
+  "runsOn": [
+      "Agent"
+  ],
   "author": "Microsoft Corporation",
   "version": {
     "Major": 1,
-    "Minor": 0,
-    "Patch": 7
+    "Minor": 3,
+    "Patch": 4
   },
   "demands": [
   ],
@@ -42,7 +45,7 @@
       "label": "Machines",
       "defaultValue": "",
       "required": true,
-      "helpMarkDown": "Provide a comma separated list of the machine(s) IP addresses or FQDNs along with ports. The port is defaulted based on the selected protocol or can be provided separately. <br>For example, dbserver.fabrikam.com, dbserver_int.fabrikam.com:5986, 192.168.12.34:40004."
+      "helpMarkDown": "Provide a comma separated list of the machine(s) IP addresses or FQDNs along with ports. The port is defaulted based on the selected protocol or can be provided separately. <br>For example, dbserver.fabrikam.com, dbserver_int.fabrikam.com:5986, 192.168.12.34:40004. <br>If you are using HTTPS, name/IP of machine should match the CN in the certificate."
     },
     {
       "name": "AdminUserName",
@@ -75,7 +78,7 @@
     {
       "name": "TestCertificate",
       "type": "boolean",
-      "label": "Test Certificate",
+      "label": "Skip CA check",
       "defaultValue": "true",
       "visibleRule": "WinRMProtocol = Https",
       "required": false,
@@ -236,7 +239,7 @@
       "groupName": "website",
       "defaultValue": "",
       "visibleRule": "Protocol = https",
-      "helpMarkDown": "Provide the thumb-print of the Secure Socket Layer certificate that the website is going to use for the HTTPS communication. The SSL certificate should be already installed on the Computer, at Local Computer, Personal store."
+      "helpMarkDown": "Provide the thumb-print of the Secure Socket Layer certificate that the website is going to use for the HTTPS communication as a 40 character long hexadecimal string. The SSL certificate should be already installed on the Computer, at Local Computer, Personal store."
     },
     {
       "name": "CreateAppPool",
@@ -329,7 +332,7 @@
       "required": false,
       "groupName": "advanced",
       "defaultValue": "",
-      "helpMarkDown": "Enter additional AppCmd.exe commands to set the website or the application pool properties. For more than one command use a line separator, like <br/> list apppools <br/> list sites"
+      "helpMarkDown": "Enter additional AppCmd.exe commands to set the website or the application pool properties. For more than one command use a line separator, like <br/> list apppools <br/> list sites<br/> recycle apppool /apppool.name:ExampleAppPoolName"
     },
     {
       "name": "DeployInParallel",
