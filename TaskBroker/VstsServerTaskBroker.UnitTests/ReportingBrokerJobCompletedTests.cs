@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
 using Microsoft.TeamFoundation.Build.WebApi;
 using Microsoft.TeamFoundation.DistributedTask.WebApi;
+using Microsoft.VisualStudio.Services.ReleaseManagement.WebApi;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using VstsServerTaskBroker.Contracts;
@@ -30,9 +32,28 @@ namespace VstsServerTaskBroker.UnitTest
             // then
             var expectedEventCount = 1;
             var expectedResult = TaskResult.Succeeded;
+            var expectedRecordCount = 2;
 
             // when
-            await TestReportJobCompleted(buildStatus, returnNullBuild, isPassed, expectedEventCount, expectedResult);
+            await TestReportJobCompleted(buildStatus, returnNullBuild, isPassed, expectedEventCount, expectedResult, expectedRecordCount);
+        }
+
+        [TestMethod]
+        public async Task ReportsPassedTestWithUpdateOnlyGivenTimelineRecord()
+        {
+            // given
+            var returnNullBuild = false;
+            var buildStatus = BuildStatus.None;
+            var isPassed = true;
+
+            // then
+            var expectedEventCount = 1;
+            var expectedResult = TaskResult.Succeeded;
+            var expectedRecordCount = 1;
+
+            // when
+            string timeLineRecordName = "CloudTest_12345";
+            await TestReportJobCompleted(buildStatus, returnNullBuild, isPassed, expectedEventCount, expectedResult, expectedRecordCount, timeLineRecordName);
         }
 
         [TestMethod]
@@ -46,9 +67,10 @@ namespace VstsServerTaskBroker.UnitTest
             // then
             var expectedEventCount = 1;
             var expectedResult = TaskResult.Failed;
+            var expectedRecordCount = 2;
 
             // when
-            await TestReportJobCompleted(buildStatus, returnNullBuild, isPassed, expectedEventCount, expectedResult);
+            await TestReportJobCompleted(buildStatus, returnNullBuild, isPassed, expectedEventCount, expectedResult, expectedRecordCount);
         }
 
         [TestMethod]
@@ -82,9 +104,8 @@ namespace VstsServerTaskBroker.UnitTest
             // when
             await TestReportJobCompleted(buildStatus, returnNullBuild, isPassed, expectedEventCount, expectedResult);
         }
-
-        [TestMethod]
-        public async Task TestReportJobStarted(BuildStatus buildStatus, bool returnNullBuild, int expectedEventCount, TaskResult expectedResult)
+        
+        private async Task TestReportJobStarted(BuildStatus buildStatus, bool returnNullBuild, int expectedEventCount, TaskResult expectedResult)
         {
             // given
             VstsMessageBase vstsContext = new TestVstsMessage()
@@ -97,10 +118,16 @@ namespace VstsServerTaskBroker.UnitTest
                 MockBuild = new Build() { Status = buildStatus },
                 ReturnNullBuild = returnNullBuild,
             };
+            var mockReleaseClient = new MockReleaseClient()
+            {
+                MockRelease = new Release() { Status = ReleaseStatus.Undefined },
+                ReturnNullRelease = false,
+            };
             var mockTaskHttpClient = new MockTaskHttpClient();
             var reportingHelper = new VstsReportingHelper(vstsContext, new TraceBrokerInstrumentation(), new Dictionary<string, string>())
             {
                 CreateBuildClient = (uri, s) => ReturnMockBuildClientIfUrlValid(uri, vstsContext, mockBuildClient),
+                CreateReleaseClient = (uri, s) => mockReleaseClient,
                 CreateTaskHttpClient = (uri, s, i, r) => mockTaskHttpClient
             };
 
@@ -116,12 +143,14 @@ namespace VstsServerTaskBroker.UnitTest
             }
         }
 
-        [TestMethod]
-        public async Task TestReportJobCompleted(BuildStatus buildStatus, bool returnNullBuild, bool isPassed, int expectedEventCount, TaskResult expectedResult)
+        private async Task TestReportJobCompleted(BuildStatus buildStatus, bool returnNullBuild, bool isPassed, int expectedEventCount, TaskResult expectedResult, int expectedRecordCount = 0, string timeLineRecordName = null)
         {
             // given
+            Guid parentId = Guid.NewGuid();
+            Guid childId = Guid.NewGuid();
             VstsMessageBase vstsContext = new TestVstsMessage
             {
+                JobId = parentId,
                 VstsHub = HubType.Build,
                 VstsUri = new Uri("http://vstsUri"),
                 VstsPlanUri = new Uri("http://vstsPlanUri"),
@@ -132,10 +161,48 @@ namespace VstsServerTaskBroker.UnitTest
                 MockBuild = new Build() {Status = buildStatus},
                 ReturnNullBuild = returnNullBuild,
             };
-            var mockTaskHttpClient = new MockTaskHttpClient();
-            var reportingHelper = new VstsReportingHelper(vstsContext, new TraceBrokerInstrumentation(), new Dictionary<string, string>())
+            var mockReleaseClient = new MockReleaseClient()
+            {
+                MockRelease = new Release() { Status = ReleaseStatus.Undefined },
+                ReturnNullRelease = false,
+            };
+
+            var timelineRecords = new List<Microsoft.TeamFoundation.DistributedTask.WebApi.TimelineRecord>
+            {
+                new Microsoft.TeamFoundation.DistributedTask.WebApi.TimelineRecord()
+                {
+                    Id = parentId
+                },
+                new Microsoft.TeamFoundation.DistributedTask.WebApi.TimelineRecord()
+                {
+                    Id = childId,
+                    ParentId = parentId
+                },
+                new Microsoft.TeamFoundation.DistributedTask.WebApi.TimelineRecord()
+                {
+                    // Should be ignored
+                    Id = Guid.NewGuid()
+                }
+            };
+
+            if (!string.IsNullOrEmpty(timeLineRecordName))
+            {
+                timelineRecords.Add(new Microsoft.TeamFoundation.DistributedTask.WebApi.TimelineRecord()
+                {
+                    Id = Guid.NewGuid(),
+                    Name = timeLineRecordName
+                });
+            }
+
+            var mockTaskHttpClient = new MockTaskHttpClient()
+            {
+                GetRecordsReturnCollection = timelineRecords
+            };
+
+            var reportingHelper = new VstsReportingHelper(vstsContext, new TraceBrokerInstrumentation(), new Dictionary<string, string>(), timeLineRecordName)
             {
                 CreateBuildClient = (uri, s) => ReturnMockBuildClientIfUrlValid(uri, vstsContext, mockBuildClient),
+                CreateReleaseClient = (uri, s) => mockReleaseClient,
                 CreateTaskHttpClient = (uri, s, i, r) => mockTaskHttpClient
             };
 
@@ -149,6 +216,21 @@ namespace VstsServerTaskBroker.UnitTest
                 var taskEvent = mockTaskHttpClient.EventsReceived[0] as JobCompletedEvent;
                 Assert.IsNotNull(taskEvent);
                 Assert.AreEqual(taskEvent.Result, expectedResult);
+            }
+
+            Assert.AreEqual(expectedRecordCount, mockTaskHttpClient.TimelineRecordsUpdated.Count);
+            if (expectedRecordCount != 0)
+            {
+                var records = string.IsNullOrEmpty(timeLineRecordName) ?
+                    mockTaskHttpClient.TimelineRecordsUpdated.Where(rec => rec.Id == parentId || rec.Id == childId).ToList() :
+                        mockTaskHttpClient.TimelineRecordsUpdated.Where(rec => rec.Name != null && rec.Name.Equals(timeLineRecordName, StringComparison.OrdinalIgnoreCase)).ToList();
+                Assert.AreEqual(expectedRecordCount, records.Count);
+
+                foreach (var record in records)
+                {
+                    Assert.IsNotNull(record);
+                    Assert.AreEqual(expectedResult, record.Result);
+                }
             }
         }
 

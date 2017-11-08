@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,16 +17,22 @@ namespace VstsServerTaskBroker
         private readonly IBrokerInstrumentation baseInstrumentation;
         private readonly IDictionary<string, string> eventProperties;
 
+        /// <summary>
+        /// Optional timeline record name. If specified only this timeline will be updated instead of all timelines.
+        /// </summary>
+        private readonly string timelineRecordName;
+
         public Func<Uri, string, IBrokerInstrumentation, bool, ITaskHttpClient> CreateTaskHttpClient { get; set; }
 
         public Func<Uri, string, IBuildHttpClientWrapper> CreateBuildClient { get; set; }
 
         public Func<Uri, string, IReleaseHttpClientWrapper> CreateReleaseClient { get; set; }
 
-        public VstsReportingHelper(VstsMessageBase vstsContext, IBrokerInstrumentation baseInstrumentation, IDictionary<string, string> eventProperties)
+        public VstsReportingHelper(VstsMessageBase vstsContext, IBrokerInstrumentation baseInstrumentation, IDictionary<string, string> eventProperties, string timelineRecordName = null)
         {
             this.vstsContext = vstsContext;
             this.baseInstrumentation = baseInstrumentation;
+            this.timelineRecordName = timelineRecordName;
             this.eventProperties = this.vstsContext.GetMessageProperties().AddRange(eventProperties);
 
             this.CreateTaskHttpClient = (uri, authToken, instrumentationHelper, skipRaisePlanEvents) => TaskHttpClientWrapperFactory.GetTaskHttpClientWrapper(uri, authToken, instrumentationHelper, skipRaisePlanEvents);
@@ -84,15 +91,16 @@ namespace VstsServerTaskBroker
 
             // Find all existing timeline records and set them to in progress state
             var records = await taskHttpClientWrapper.GetRecordsAsync(projectId, hubName, planId, timelineId, userState: null, cancellationToken: cancellationToken).ConfigureAwait(false);
-            
-            foreach (var record in records)
+
+            var recordsToUpdate = GetTimelineRecordsToUpdate(records);
+            foreach (var record in recordsToUpdate)
             {
                 record.State = TimelineRecordState.InProgress;
             }
 
-            await taskHttpClientWrapper.UpdateTimelineRecordsAsync(projectId, hubName, planId, timelineId, records, cancellationToken).ConfigureAwait(false);
+            await taskHttpClientWrapper.UpdateTimelineRecordsAsync(projectId, hubName, planId, timelineId, recordsToUpdate, cancellationToken).ConfigureAwait(false);
         }
-
+        
         public async Task ReportJobCompleted(DateTimeOffset offsetTime, string message, bool isPassed, CancellationToken cancellationToken)
         {
             var vstsPlanUrl = this.vstsContext.VstsPlanUri;
@@ -130,14 +138,16 @@ namespace VstsServerTaskBroker
             }
 
             // Find all existing timeline records and close them
-            await CompleteTimelineRecords(projectId, planId, hubName, timelineId, isPassed ? TaskResult.Succeeded : TaskResult.Failed, cancellationToken, taskHttpClientWrapper);
+            await this.CompleteTimelineRecords(projectId, planId, hubName, timelineId, isPassed ? TaskResult.Succeeded : TaskResult.Failed, cancellationToken, taskHttpClientWrapper);
         }
 
-        public static async Task CompleteTimelineRecords(Guid projectId, Guid planId, string hubName, Guid parentTimelineId, TaskResult result, CancellationToken cancellationToken, ITaskHttpClient taskHttpClient)
+        internal async Task CompleteTimelineRecords(Guid projectId, Guid planId, string hubName, Guid parentTimelineId, TaskResult result, CancellationToken cancellationToken, ITaskHttpClient taskHttpClient)
         {
             // Find all existing timeline records and close them
             var records = await taskHttpClient.GetRecordsAsync(projectId, hubName, planId, parentTimelineId, userState: null, cancellationToken: cancellationToken).ConfigureAwait(false);
-            foreach (var record in records)
+            var recordsToUpdate = GetTimelineRecordsToUpdate(records);
+
+            foreach (var record in recordsToUpdate)
             {
                 record.State = TimelineRecordState.Completed;
                 record.PercentComplete = 100;
@@ -145,14 +155,12 @@ namespace VstsServerTaskBroker
                 record.FinishTime = DateTime.UtcNow;
             }
 
-            await taskHttpClient.UpdateTimelineRecordsAsync(projectId, hubName, planId, parentTimelineId, records, cancellationToken).ConfigureAwait(false);
+            await taskHttpClient.UpdateTimelineRecordsAsync(projectId, hubName, planId, parentTimelineId, recordsToUpdate, cancellationToken).ConfigureAwait(false);
         }
 
         internal static async Task<bool> IsSessionValid(VstsMessageBase vstsMessage, IBuildHttpClientWrapper buildHttpClientWrapper, IReleaseHttpClientWrapper releaseHttpClientWrapper, CancellationToken cancellationToken)
         {
             var projectId = vstsMessage.ProjectId;
-            var vstsUrl = vstsMessage.VstsPlanUri;
-            var authToken = vstsMessage.AuthToken;
 
             if (vstsMessage.VstsHub == HubType.Build)
             {
@@ -167,6 +175,18 @@ namespace VstsServerTaskBroker
             }
 
             throw new NotSupportedException(string.Format("VstsHub {0} is not supported", vstsMessage.VstsHub));
+        }
+
+        private List<TimelineRecord> GetTimelineRecordsToUpdate(List<TimelineRecord> records)
+        {
+            if (string.IsNullOrEmpty(timelineRecordName))
+            {
+                return records.Where(rec => rec.Id == this.vstsContext.JobId || rec.ParentId == this.vstsContext.JobId)
+                    .ToList();
+            }
+
+            return records.Where(rec => rec.Name != null && rec.Name.Equals(timelineRecordName, StringComparison.OrdinalIgnoreCase))
+                .ToList();
         }
     }
 }

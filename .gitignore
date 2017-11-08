@@ -60,6 +60,7 @@ App_Data
 *.csproj.projhash.userData.assemblies
 *.vc.db
 *.vc.opendb
+*.vs
 .vscode
 *.suo
 TestResults

@@ -25,11 +25,11 @@ namespace VstsServerTaskBroker.Azure.ServiceBus
 
         public Dictionary<string, object> Properties { get; set; }
 
-        public T GetBody<T>()
+        public string GetBody()
         {
             if (this.BodyObject != null)
             {
-                return (T)this.BodyObject;
+                return this.BodyObject as string;
             }
 
             throw new NotImplementedException();
@@ -85,6 +85,11 @@ namespace VstsServerTaskBroker.Azure.ServiceBus
         public string GetMessageId()
         {
             return "someMessageId";
+        }
+
+        public string GetLockToken()
+        {
+            return "someToken";
         }
     }
 }

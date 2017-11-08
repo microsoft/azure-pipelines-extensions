@@ -2,8 +2,8 @@ namespace VstsServerTaskBroker.UnitTest
 {
     using System;
     using System.Collections.Generic;
-    using System.Collections.Specialized;
     using System.Diagnostics;
+    using System.IO;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
@@ -36,6 +36,15 @@ namespace VstsServerTaskBroker.UnitTest
         public Task HandleErrorEvent(string eventName, string eventMessage, IDictionary<string, string> eventProperties, CancellationToken cancellationToken, DateTime? eventTime = null)
         {
             return this.LogTrace(eventName, eventMessage, eventProperties, cancellationToken, "ERROR");
+        }
+
+        public Task HandleEventList(Stream logStream, IDictionary<string, string> eventProperties, CancellationToken cancellationToken)
+        {
+            eventProperties = eventProperties ?? new Dictionary<string, string>();
+            StreamReader reader = new StreamReader(logStream);
+            string eventMessages = reader.ReadToEnd();
+            this.Events.Add(eventMessages);
+            return Task.Run(() => Trace.WriteLine(string.Format("Messages : {0}, Properties: [{1}]", eventMessages, string.Join(";", eventProperties.Select(x => x.Key + "=" + x.Value).ToArray()))), cancellationToken);
         }
 
         private Task LogTrace(string eventName, string eventMessage, IDictionary<string, string> eventProperties, CancellationToken cancellationToken, string logLevel)

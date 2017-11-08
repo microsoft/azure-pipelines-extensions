@@ -23,6 +23,8 @@ namespace VstsServerTaskBroker
 
         public List<TimelineRecord> TimelineRecordsUpdated { get; set; }
 
+        public List<TimelineRecord> GetRecordsReturnCollection { get; set; }
+
         public Task AppendTimelineRecordFeedAsync(Guid scopeIdentifier, string planType, Guid planId, Guid timelineId, Guid recordId, IEnumerable<string> lines, CancellationToken cancellationToken, object userState)
         {
             return Task.FromResult<object>(null);
@@ -43,7 +45,7 @@ namespace VstsServerTaskBroker
 
         public Task<List<TimelineRecord>> GetRecordsAsync(Guid scopeIdentifier, string hubName, Guid planId, Guid timelineId, object userState, CancellationToken cancellationToken)
         {
-            return Task.FromResult(new List<TimelineRecord>());
+            return Task.FromResult(this.GetRecordsReturnCollection ?? new List<TimelineRecord>());
         }
 
         public Task<TaskLog> CreateLogAsync(Guid scopeIdentifier, string hubName, Guid planId, TaskLog log, object userState, CancellationToken cancellationToken)

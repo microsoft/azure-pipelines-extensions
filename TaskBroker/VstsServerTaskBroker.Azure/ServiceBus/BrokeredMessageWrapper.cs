@@ -1,7 +1,5 @@
 ﻿using System;
-using System.IO;
-using System.Runtime.Serialization;
-using System.Runtime.Serialization.Formatters.Binary;
+using System.Text;
 using Microsoft.Azure.ServiceBus;
 
 namespace VstsServerTaskBroker.Azure.ServiceBus
@@ -32,18 +30,26 @@ namespace VstsServerTaskBroker.Azure.ServiceBus
             }
         }
 
-        public T GetBody<T>()
+        public string GetBody()
         {
-			using (MemoryStream ms = new MemoryStream(message.Body))
-			{
-				IFormatter br = new BinaryFormatter();
-				return (T)br.Deserialize(ms);
-			}
+            var messageBody = Encoding.UTF8.GetString(message.Body);
+
+            // The payload is serialized using DataContractSerializer with a binary XmlDictionaryWriter
+            // which inserts @\u0006string\....\u0009 to the body of the message. 
+            // TODO: Use this work around until the server code is fixed.
+            var cleanMessageBody = messageBody.Substring(messageBody.IndexOf("{\r\n")).Replace("\u0001", "");
+
+            return cleanMessageBody;
         }
 
         public string GetMessageId()
         {
             return message.MessageId;
+        }
+
+        public string GetLockToken()
+        {
+            return message.SystemProperties.LockToken;
         }
 
         public object GetProperty(string key)

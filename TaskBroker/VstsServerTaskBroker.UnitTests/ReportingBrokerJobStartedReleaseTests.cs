@@ -73,6 +73,11 @@ namespace VstsServerTaskBroker.UnitTest
                 ReleaseProperties = new VstsReleaseProperties(),
             };
 
+            var mockBuildClient = new MockBuildClient()
+            {
+                MockBuild = new Build() { Status = BuildStatus.None },
+                ReturnNullBuild = false,
+            };
             var mockReleaseClient = new MockReleaseClient()
             {
                 MockRelease = new Release() { Status = releaseStatus },
@@ -82,6 +87,7 @@ namespace VstsServerTaskBroker.UnitTest
             var reportingHelper = new VstsReportingHelper(vstsContext, new TraceBrokerInstrumentation(), new Dictionary<string, string>())
             {
                 CreateReleaseClient = (uri, s) => ReturnMockReleaseClientIfUrlValid(uri, vstsContext, mockReleaseClient),
+                CreateBuildClient = (uri, s) => mockBuildClient,
                 CreateTaskHttpClient = (uri, s, i, r) => mockTaskHttpClient
             };
 

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,29 +14,36 @@ using VstsServerTaskBroker.Azure.ServiceBus;
 
 namespace VstsServerTaskBroker
 {
-    using TaskResult = Microsoft.TeamFoundation.DistributedTask.WebApi.TaskResult;
-    using TimelineRecord = Microsoft.TeamFoundation.DistributedTask.WebApi.TimelineRecord;
-    using TimelineRecordState = Microsoft.TeamFoundation.DistributedTask.WebApi.TimelineRecordState;
-
     public class SchedulingBroker<T> 
         where T : VstsMessageBase
     {
         private const int MaxExceptionMessageLength = 100;
-
-        private readonly string timeNamePrefix;
-        private readonly string workerName;
-        private readonly IBrokerInstrumentation baseInstrumentation;
-        private readonly IVstsScheduleHandler<T> scheduleHandler;
+        
+        private IBrokerInstrumentation baseInstrumentation;
+        private IVstsScheduleHandler<T> scheduleHandler;
         private SchedulingBrokerSettings settings;
+        private IServiceBusQueueMessageListener queueClient;
 
-        public SchedulingBroker(string timeNamePrefix, string workerName, IBrokerInstrumentation baseInstrumentation, IVstsScheduleHandler<T> scheduleHandler, SchedulingBrokerSettings settings)
+        public SchedulingBroker(string timeNamePrefix, string workerName, IServiceBusQueueMessageListener queueClient, IBrokerInstrumentation baseInstrumentation, IVstsScheduleHandler<T> scheduleHandler, SchedulingBrokerSettings settings)
+        {
+            settings.TimeLineNamePrefix = timeNamePrefix;
+            settings.WorkerName = workerName;
+
+            this.Intialize(queueClient, baseInstrumentation, scheduleHandler, settings);
+        }
+
+        public SchedulingBroker(IServiceBusQueueMessageListener queueClient, IBrokerInstrumentation baseInstrumentation, IVstsScheduleHandler<T> scheduleHandler, SchedulingBrokerSettings settings)
+        {
+            this.Intialize(queueClient, baseInstrumentation, scheduleHandler, settings);
+        }
+
+        private void Intialize(IServiceBusQueueMessageListener queueClient, IBrokerInstrumentation baseInstrumentation, IVstsScheduleHandler<T> scheduleHandler, SchedulingBrokerSettings settings)
         {
             this.settings = settings;
             this.settings.LockRefreshDelayMsecs = settings.LockRefreshDelayMsecs == 0 ? 1 : settings.LockRefreshDelayMsecs;
             this.baseInstrumentation = baseInstrumentation;
             this.scheduleHandler = scheduleHandler;
-            this.timeNamePrefix = timeNamePrefix;
-            this.workerName = workerName;
+            this.queueClient = queueClient;
             this.CreateTaskHttpClient = (uri, authToken, instrumentationHandler, skipRaisePlanEvents) => TaskHttpClientWrapperFactory.GetTaskHttpClientWrapper(uri, authToken, instrumentationHandler, skipRaisePlanEvents);
             this.CreateBuildClient = (uri, authToken) => new BuildHttpClientWrapper(uri, new VssBasicCredential(string.Empty, authToken));
             this.CreateReleaseClient = (uri, authToken) => new ReleaseHttpClientWrapper(uri, new VssBasicCredential(string.Empty, authToken));
@@ -51,7 +57,7 @@ namespace VstsServerTaskBroker
         public Func<Uri, string, IReleaseHttpClientWrapper> CreateReleaseClient { get; set; }
 
         public Func<VstsMessageBase, IBrokerInstrumentation, Dictionary<string, string>, IVstsReportingHelper> CreateVstsReportingHelper { get; set; }
-
+        
         public async Task ReceiveAsync(IBrokeredMessageWrapper message, CancellationToken cancellationToken)
         {
             // setup basic message properties
@@ -78,7 +84,7 @@ namespace VstsServerTaskBroker
 
                 // process message
                 await this.ProcessMessage(message, this.scheduleHandler, cancellationToken, vstsMessage, eventProperties).ConfigureAwait(false);
-                // await message.CompleteAsync().ConfigureAwait(false);
+                await this.queueClient.CompleteAsync(message.GetLockToken()).ConfigureAwait(false);
                 await this.StopTimer("MessageProcessingSucceeded", messageStopwatch, eventProperties, cancellationToken).ConfigureAwait(false);
                 return;
             }
@@ -101,7 +107,7 @@ namespace VstsServerTaskBroker
             vstsMessage = null;
             validationErrors = null;
 
-            var messageBody = message.GetBody<string>();
+            var messageBody = message.GetBody();
             if (string.IsNullOrEmpty(messageBody))
             {
                 validationErrors = "Message with null or empty body is invalid";
@@ -353,7 +359,7 @@ namespace VstsServerTaskBroker
                 cancellationToken.ThrowIfCancellationRequested();
             }
 
-            // await message.AbandonAsync(eventProperties.ToDictionary(k => k.Key, v => (object)v.Value)).ConfigureAwait(false);
+            await this.queueClient.AbandonAsync(message.GetLockToken()).ConfigureAwait(false);
         }
 
         private async Task DeadLetterMessage(T vstsMessage, IBrokeredMessageWrapper message, IDictionary<string, string> eventProperties, string errorMessage, CancellationToken cancellationToken, string eventProperty)
@@ -365,7 +371,7 @@ namespace VstsServerTaskBroker
             
             await this.TryFailOrchestrationPlan(vstsMessage, cancellationToken).ConfigureAwait(false);
             await this.baseInstrumentation.HandleErrorEvent("DeadLetterMessage", errorMessage, eventProperties, cancellationToken).ConfigureAwait(false);
-            // await message.DeadLetterAsync(eventProperties.ToDictionary(k => k.Key, v => (object)v.Value)).ConfigureAwait(false);
+            await this.queueClient.DeadLetterAsync(message.GetLockToken()).ConfigureAwait(false);
         }
 
         private async Task ProcessMessage(IBrokeredMessageWrapper message, IVstsScheduleHandler<T> handler, CancellationToken cancellationToken, T vstsMessage, IDictionary<string, string> eventProperties)
@@ -382,7 +388,7 @@ namespace VstsServerTaskBroker
             var taskHttpClient = this.CreateTaskHttpClient(vstsPlanUrl, authToken, this.baseInstrumentation, vstsMessage.SkipRaisePlanEvents);
 
             // create a timeline if required
-            var timelineName = string.Format("{0}_{1}", this.timeNamePrefix, jobId.ToString("D"));
+            var timelineName = string.Format("{0}_{1}", this.settings.TimeLineNamePrefix, jobId.ToString("D"));
             var taskLogId = await this.GetOrCreateTaskLogId(message, cancellationToken, taskHttpClient, projectId, planId, jobId, parentTimelineId, timelineName, hubName).ConfigureAwait(false);
             eventProperties[VstsMessageConstants.TaskLogIdPropertyName] = taskLogId.ToString();
             vstsMessage.TaskLogId = taskLogId;
@@ -466,9 +472,9 @@ namespace VstsServerTaskBroker
                 Id = subTimelineId,
                 Name = timelineName,
                 StartTime = DateTime.UtcNow,
-                State = TimelineRecordState.Pending,
+                State = TimelineRecordState.InProgress,
                 RecordType = "task", // Record type can be job or task, as we will be dealing only with task here 
-                WorkerName = this.workerName,
+                WorkerName = this.settings.WorkerName,
                 Order = 1, // The job timeline record must be at order 1
                 Log = taskLog,
                 ParentId = jobId,

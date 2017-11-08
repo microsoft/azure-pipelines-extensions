@@ -1,15 +1,13 @@
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Net;
-using System.Threading.Tasks;   
+using System.Threading.Tasks;
 
 namespace VstsServerTaskBroker
 {
     /// <summary>
     /// A class that is responsible for retrying an action if it throws an exception.
     /// </summary>
-    public class VstsTaskHttpRetryer
+    public class Retryer
     {
         internal const int JitterMaxValueMsecs = 200;
 
@@ -22,57 +20,19 @@ namespace VstsServerTaskBroker
         /// Wait time between each try.
         /// </summary>
         private readonly TimeSpan interval;
-
-        /// <summary>
-        /// List of HTTP transient error codes to retry.
-        /// </summary>
-        private readonly HashSet<HttpStatusCode> trasientHttpCodes = new HashSet<HttpStatusCode>()
-        {
-            HttpStatusCode.GatewayTimeout,
-            HttpStatusCode.RequestTimeout,
-            HttpStatusCode.ServiceUnavailable,
-            HttpStatusCode.Forbidden,
-            HttpStatusCode.Unauthorized,
-            HttpStatusCode.InternalServerError,
-            HttpStatusCode.NotFound,
-        };
-
-        private bool IsTrasientException(Exception e)
-        {
-			var ex = e as WebException;
-
-            if (ex == null)
-            {
-                return false;
-            }
-
-			var response = ex.Response as HttpWebResponse;
-			if (response == null)
-			{
-				return false;
-			}
-
-			return trasientHttpCodes.Contains(response.StatusCode);
-        }
-
+        
         /// <summary>
         /// Initializes an object of this class.
         /// </summary>
         /// <param name="numOfRetries">Number or retries for the action.</param>
         /// <param name="interval">Wait time between each retry.</param>
-        /// <param name="transientStatusCodes">List of Http transient error codes to retry.</param>
-        private VstsTaskHttpRetryer(int numOfRetries, TimeSpan interval, HashSet<HttpStatusCode> transientStatusCodes)
+        private Retryer(int numOfRetries, TimeSpan interval)
         {
             if (numOfRetries <= 0)
             {
                 throw new ArgumentException("Number of retries must be greater or equal to zero");
             }
-
-            if (transientStatusCodes != null)
-            {
-                this.trasientHttpCodes = transientStatusCodes;
-            }
-
+            
             this.numOfRetries = numOfRetries;
             this.interval = interval;
         }
@@ -82,10 +42,9 @@ namespace VstsServerTaskBroker
         /// </summary>
         /// <param name="numOfRetries">Number or retries for the action.</param>
         /// <param name="interval">Wait time between each retry.</param>
-        /// <param name="transientStatusCodes">List of Http transient error codes to retry.</param>
-        public static VstsTaskHttpRetryer CreateRetryer(int numOfRetries, TimeSpan interval, HashSet<HttpStatusCode> transientStatusCodes = null )
+        public static Retryer CreateRetryer(int numOfRetries, TimeSpan interval)
         {
-            return new VstsTaskHttpRetryer(numOfRetries, interval, transientStatusCodes);
+            return new Retryer(numOfRetries, interval);
         }
 
         /// <summary>
@@ -94,9 +53,8 @@ namespace VstsServerTaskBroker
         /// <param name="asyncAction">Function to run with retry logic.</param>
         /// <param name="retryEventHandler">Handler for success, retry and fail.</param>
         /// <param name="isNoThrow">Does not throw if set to true.</param>
-        /// <param name="shouldRetry">Function to check if the exception should be retried.</param>
         /// <typeparam name="T">The output of the asyncAction.</typeparam>
-        public async Task<T> TryActionAsync<T>(Func<Task<T>> asyncAction, IRetryEventHandler retryEventHandler = null, bool isNoThrow = false, Func<Exception, bool> shouldRetry = null)
+        public async Task<T> TryActionAsync<T>(Func<Task<T>> asyncAction, IRetryEventHandler retryEventHandler = null, bool isNoThrow = false)
         {
             int retries = 0;
 
@@ -111,18 +69,18 @@ namespace VstsServerTaskBroker
 
                     if (retryEventHandler != null)
                     {
-                        retryEventHandler.Success(retries, sw.ElapsedMilliseconds);
+                        retryEventHandler.HandleSuccess(retries, sw.ElapsedMilliseconds);
                     }
 
                     return retval;
                 }
                 catch (Exception e)
                 {
-                    if (retries < numOfRetries && (shouldRetry == null || shouldRetry(e) || IsTrasientException(e)))
+                    if (retries < numOfRetries && (retryEventHandler == null || retryEventHandler.HandleShouldRetry(e, retries)))
                     {
                         if (retryEventHandler != null)
                         {
-                            retryEventHandler.Retry(e, retries, sw.ElapsedMilliseconds);
+                            retryEventHandler.HandleRetry(e, retries, sw.ElapsedMilliseconds);
                         }
 
                         var sleepMSecs = ComputeWaitTimeWithBackoff(retries, interval.Milliseconds, numOfRetries);
@@ -132,7 +90,7 @@ namespace VstsServerTaskBroker
                     {
                         if (retryEventHandler != null)
                         {
-                            retryEventHandler.Fail(e, retries, sw.ElapsedMilliseconds);
+                            retryEventHandler.HandleFail(e, retries, sw.ElapsedMilliseconds);
                         }
 
                         if (!isNoThrow)

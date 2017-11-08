@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace VstsServerTaskBroker.Azure.ServiceBus
 {
@@ -11,9 +9,11 @@ namespace VstsServerTaskBroker.Azure.ServiceBus
     {
         DateTime LockedUntilUtc { get; }
 
-        T GetBody<T>();
+        string GetBody();
 
         string GetMessageId();
+
+        string GetLockToken();
 
         object GetProperty(string key);
 

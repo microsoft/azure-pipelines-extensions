@@ -12,6 +12,10 @@ namespace VstsServerTaskBroker
 
         public int LockRefreshDelayMsecs { get; set; }
 
+        public string TimeLineNamePrefix { get; set; }
+
+        public string WorkerName { get; set; }
+
         public override string ToString()
         {
             return JsonConvert.SerializeObject(this, Formatting.None);

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Threading;
 
 namespace VstsServerTaskBroker
@@ -9,47 +10,115 @@ namespace VstsServerTaskBroker
         private readonly string eventName;
         private readonly IDictionary<string, string> eventProperties; 
         private readonly IBrokerInstrumentation instrumentationHandler;
+        
+        // List of HTTP transient error codes to retry.
+        private readonly HashSet<HttpStatusCode> trasientHttpCodes = new HashSet<HttpStatusCode>()
+        {
+            HttpStatusCode.GatewayTimeout,
+            HttpStatusCode.RequestTimeout,
+            HttpStatusCode.ServiceUnavailable,
+            HttpStatusCode.Forbidden,
+            HttpStatusCode.Unauthorized,
+            HttpStatusCode.InternalServerError,
+            HttpStatusCode.NotFound,
+        };
+
         private CancellationToken cancellationToken;
 
-        public RetryEventHandler(string eventName, IDictionary<string, string> eventProperties, CancellationToken cancellationToken, IBrokerInstrumentation brokerInstrumentation)
+        public Func<bool> OnSuccess { get; set; }
+
+        public Func<Exception, bool> OnRetry { get; set; }
+
+        public Func<Exception, bool> OnFail { get; set; }
+
+        public Func<Exception, int, bool> ShouldRetry { get; set; }
+
+        public RetryEventHandler(string eventName, IDictionary<string, string> eventProperties, CancellationToken cancellationToken, IBrokerInstrumentation brokerInstrumentation, HashSet<HttpStatusCode> transientStatusCodes = null)
         {
             this.eventName = eventName;
             this.eventProperties = eventProperties ?? new Dictionary<string, string>();
             this.cancellationToken = cancellationToken;
             instrumentationHandler = brokerInstrumentation;
+
+            if (transientStatusCodes != null)
+            {
+                this.trasientHttpCodes = transientStatusCodes;
+            }
         }
 
-        public void Success(int retryCount, long elapsedMilliseconds)
+        public void HandleSuccess(int retryCount, long elapsedMilliseconds)
         {
-            var message = string.Format("Successful calling {0} event with {1} retries", eventName, retryCount);
+            var eventType = string.Format("{0}_Success", eventName);
+            var message = string.Format("Event {0} successful, Retries {1}", eventName, retryCount);
 
-            UpdateEventProperties(retryCount, elapsedMilliseconds);
+            if (OnSuccess != null)
+            {
+                OnSuccess.Invoke();
+            }
 
-            this.instrumentationHandler.HandleInfoEvent(string.Format("{0}_Success", eventName), message, eventProperties, cancellationToken).ConfigureAwait(false);
+            TraceEvent(eventType, message, retryCount, elapsedMilliseconds);
         }
 
-        public void Retry(Exception ex, int retryCount, long elapsedMilliseconds)
+        public void HandleRetry(Exception ex, int retryCount, long elapsedMilliseconds)
         {
-            var message = string.Format("Got exception {0} and retrying {1} event", ex.GetType().Name, eventName);
+            var eventType = string.Format("{0}_Retry", eventName);
+            var message = string.Format("Retry event {0}, Retries {1}, Exception Type {2}", ex.GetType().Name, eventName, ex.GetType());
 
-            UpdateEventProperties(retryCount, elapsedMilliseconds);
+            if (OnRetry != null)
+            {
+                OnRetry.Invoke(ex);
+            }
 
-            this.instrumentationHandler.HandleInfoEvent(string.Format("{0}_Retry", eventName), message, eventProperties, cancellationToken).ConfigureAwait(false);
+            TraceEvent(eventType, message, retryCount, elapsedMilliseconds);
         }
 
-        public void Fail(Exception ex, int retryCount, long elapsedMilliseconds)
+        public void HandleFail(Exception ex, int retryCount, long elapsedMilliseconds)
         {
-            var message = string.Format("Got exception {0} after retrying {1} times", ex.GetType().Name, retryCount);
+            var eventType = string.Format("{0}_Failed", eventName);
+            var message = string.Format("Event {0} failed, Retries {1}, Exception {2}", ex.GetType().Name, eventName, ex);
 
-            UpdateEventProperties(retryCount, elapsedMilliseconds);
+            if (OnFail != null)
+            {
+                OnFail.Invoke(ex);
+            }
 
-            this.instrumentationHandler.HandleInfoEvent(string.Format("{0}_Failed", eventName), message, eventProperties, cancellationToken).ConfigureAwait(false);
+            TraceEvent(eventType, message, retryCount, elapsedMilliseconds);
         }
 
-        private void UpdateEventProperties(int retryCount, long elapsedMilliseconds)
+        public bool HandleShouldRetry(Exception ex, int retryCount)
         {
+            return (ShouldRetry == null) ? IsTrasientException(ex) : ShouldRetry.Invoke(ex, retryCount);
+        }
+
+        private void TraceEvent(string eventType, string message, int retryCount, long elapsedMilliseconds)
+        {
+            if (instrumentationHandler == null)
+            {
+                return;
+            }
+
             this.eventProperties["DurationMs"] = elapsedMilliseconds.ToString();
             this.eventProperties["RetryAttempt"] = retryCount.ToString();
+
+            instrumentationHandler.HandleInfoEvent(eventType, message, eventProperties, cancellationToken);
+        }
+
+        private bool IsTrasientException(Exception e)
+        {
+            var ex = e as WebException;
+
+            if (ex == null)
+            {
+                return false;
+            }
+
+            var response = ex.Response as HttpWebResponse;
+            if (response == null)
+            {
+                return false;
+            }
+
+            return trasientHttpCodes.Contains(response.StatusCode);
         }
     }
 }
