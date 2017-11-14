@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace VstsServerTaskBroker
+namespace VstsServerTaskHelper
 {
     public interface IRetryEventHandler
     {

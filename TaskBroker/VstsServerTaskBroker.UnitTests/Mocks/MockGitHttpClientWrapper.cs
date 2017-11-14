@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.TeamFoundation.Policy.WebApi;
 using Microsoft.TeamFoundation.SourceControl.WebApi;
 
-namespace VstsServerTaskBroker
+namespace VstsServerTaskHelper
 {
     public class MockGitHttpClientWrapper : IGitHttpClientWrapper
     {

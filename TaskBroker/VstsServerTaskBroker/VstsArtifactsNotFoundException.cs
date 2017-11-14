@@ -1,7 +1,7 @@
 using System;
 using System.Runtime.Serialization;
 
-namespace VstsServerTaskBroker
+namespace VstsServerTaskHelper
 {
     [Serializable]
     public class VstsArtifactsNotFoundException : Exception

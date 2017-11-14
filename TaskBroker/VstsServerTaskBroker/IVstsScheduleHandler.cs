@@ -1,9 +1,9 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
 
-using VstsServerTaskBroker.Contracts;
 
-namespace VstsServerTaskBroker
+
+namespace VstsServerTaskHelper
 {
     public interface IVstsScheduleHandler<T> 
         where T : VstsMessageBase

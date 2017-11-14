@@ -7,9 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.TeamFoundation.DistributedTask.WebApi;
 using Microsoft.VisualStudio.Services.Common;
 
-using VstsServerTaskBroker.Contracts;
-
-namespace VstsServerTaskBroker
+namespace VstsServerTaskHelper
 {
     public class VstsReportingHelper : IVstsReportingHelper
     {

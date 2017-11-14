@@ -9,12 +9,11 @@ using Microsoft.TeamFoundation.DistributedTask.WebApi;
 using Microsoft.VisualStudio.Services.Common;
 using Newtonsoft.Json;
 
-using VstsServerTaskBroker.Contracts;
-using VstsServerTaskBroker.Azure.ServiceBus;
 
-namespace VstsServerTaskBroker
+
+namespace VstsServerTaskHelper
 {
-    public class SchedulingBroker<T> 
+    public class ServiceBusQueueMessageHandler<T> 
         where T : VstsMessageBase
     {
         private const int MaxExceptionMessageLength = 100;
@@ -24,7 +23,7 @@ namespace VstsServerTaskBroker
         private SchedulingBrokerSettings settings;
         private IServiceBusQueueMessageListener queueClient;
 
-        public SchedulingBroker(string timeNamePrefix, string workerName, IServiceBusQueueMessageListener queueClient, IBrokerInstrumentation baseInstrumentation, IVstsScheduleHandler<T> scheduleHandler, SchedulingBrokerSettings settings)
+        public ServiceBusQueueMessageHandler(string timeNamePrefix, string workerName, IServiceBusQueueMessageListener queueClient, IBrokerInstrumentation baseInstrumentation, IVstsScheduleHandler<T> scheduleHandler, SchedulingBrokerSettings settings)
         {
             settings.TimeLineNamePrefix = timeNamePrefix;
             settings.WorkerName = workerName;
@@ -32,7 +31,7 @@ namespace VstsServerTaskBroker
             this.Intialize(queueClient, baseInstrumentation, scheduleHandler, settings);
         }
 
-        public SchedulingBroker(IServiceBusQueueMessageListener queueClient, IBrokerInstrumentation baseInstrumentation, IVstsScheduleHandler<T> scheduleHandler, SchedulingBrokerSettings settings)
+        public ServiceBusQueueMessageHandler(IServiceBusQueueMessageListener queueClient, IBrokerInstrumentation baseInstrumentation, IVstsScheduleHandler<T> scheduleHandler, SchedulingBrokerSettings settings)
         {
             this.Intialize(queueClient, baseInstrumentation, scheduleHandler, settings);
         }
