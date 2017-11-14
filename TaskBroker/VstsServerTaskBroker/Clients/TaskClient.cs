@@ -27,7 +27,8 @@ namespace VstsServerTaskHelper
 
         public TaskClient(Uri baseUrl, VssCredentials credentials, IBrokerInstrumentation instrumentationHandler, int retryCount, int retryInterval)
         {
-            this.client = new Microsoft.TeamFoundation.DistributedTask.WebApi.TaskHttpClient(baseUrl, credentials);
+            var vssConnection = new VssConnection(baseUrl, credentials);
+            this.client = vssConnection.GetClient<TaskHttpClient>();
             this.instrumentationHandler = instrumentationHandler;
             this.vstsUrl = baseUrl.ToString();
             this.retryer = Retryer.CreateRetryer(retryCount, TimeSpan.FromSeconds(retryInterval));

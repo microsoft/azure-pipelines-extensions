@@ -6,6 +6,7 @@ using Microsoft.VisualStudio.Services.Common;
 using Microsoft.VisualStudio.Services.ReleaseManagement.WebApi;
 using Microsoft.VisualStudio.Services.ReleaseManagement.WebApi.Clients;
 using Microsoft.VisualStudio.Services.ReleaseManagement.WebApi.Contracts;
+using Microsoft.VisualStudio.Services.WebApi;
 
 namespace VstsServerTaskHelper
 {
@@ -15,7 +16,8 @@ namespace VstsServerTaskHelper
 
         public ReleaseClient(Uri baseUrl, VssCredentials credentials)
         {
-            this.client = new Microsoft.VisualStudio.Services.ReleaseManagement.WebApi.Clients.ReleaseHttpClient(baseUrl, credentials);
+            var vssConnection = new VssConnection(baseUrl, credentials);
+            this.client = vssConnection.GetClient<ReleaseHttpClient>();
         }
 
         public async Task<List<AgentArtifactDefinition>> GetAgentArtifactDefinitionsAsync(Guid projectId, int releaseId, CancellationToken cancellationToken)
