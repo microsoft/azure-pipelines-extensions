@@ -9,13 +9,13 @@ using Microsoft.VisualStudio.Services.ReleaseManagement.WebApi.Contracts;
 
 namespace VstsServerTaskHelper
 {
-    public class ReleaseHttpClientWrapper : IReleaseHttpClientWrapper
+    public class ReleaseClient : IReleaseClient
     {
-        private readonly ReleaseHttpClient client;
+        private readonly Microsoft.VisualStudio.Services.ReleaseManagement.WebApi.Clients.ReleaseHttpClient client;
 
-        public ReleaseHttpClientWrapper(Uri baseUrl, VssCredentials credentials)
+        public ReleaseClient(Uri baseUrl, VssCredentials credentials)
         {
-            this.client = new ReleaseHttpClient(baseUrl, credentials);
+            this.client = new Microsoft.VisualStudio.Services.ReleaseManagement.WebApi.Clients.ReleaseHttpClient(baseUrl, credentials);
         }
 
         public async Task<List<AgentArtifactDefinition>> GetAgentArtifactDefinitionsAsync(Guid projectId, int releaseId, CancellationToken cancellationToken)
@@ -30,7 +30,7 @@ namespace VstsServerTaskHelper
             return await this.client.GetReleaseAsync(projectId, releaseId, cancellationToken: cancellationToken);
         }
 
-        public static async Task<bool> IsReleaseValid(IReleaseHttpClientWrapper releaseClient, Guid projectId, int releaseId, CancellationToken cancellationToken)
+        public static async Task<bool> IsReleaseValid(IReleaseClient releaseClient, Guid projectId, int releaseId, CancellationToken cancellationToken)
         {
             try
             {

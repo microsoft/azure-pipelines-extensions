@@ -9,14 +9,14 @@ using Microsoft.VisualStudio.Services.Common;
 
 namespace VstsServerTaskHelper
 {
-    public class GitHttpClientWrapper : IGitHttpClientWrapper
+    public class GitClient : IGitClient
     {
-        private readonly GitHttpClient client;
+        private readonly Microsoft.TeamFoundation.SourceControl.WebApi.GitHttpClient client;
         private readonly PolicyHttpClient policyClient;
 
-        public GitHttpClientWrapper(Uri baseUrl, VssCredentials credentials)
+        public GitClient(Uri baseUrl, VssCredentials credentials)
         {
-            this.client = new GitHttpClient(baseUrl, credentials);
+            this.client = new Microsoft.TeamFoundation.SourceControl.WebApi.GitHttpClient(baseUrl, credentials);
             this.policyClient = new PolicyHttpClient(baseUrl, credentials);
         }
 

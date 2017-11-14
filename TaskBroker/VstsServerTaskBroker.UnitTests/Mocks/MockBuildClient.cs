@@ -6,7 +6,7 @@ using Microsoft.TeamFoundation.Build.WebApi;
 
 namespace VstsServerTaskHelper
 {
-    public class MockBuildClient : IBuildHttpClientWrapper
+    public class MockBuildClient : IBuildClient
     {
         public Stream ContentStream { get; set; }
 
