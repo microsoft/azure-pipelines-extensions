@@ -4,9 +4,9 @@ using System.Threading.Tasks;
 
 namespace VstsServerTaskHelper
 {
-    public class MockMessageWrapper : IBrokeredMessageWrapper
+    public class MockServiceBusMessage : IServiceBusMessage
     {
-        public MockMessageWrapper()
+        public MockServiceBusMessage()
         {
             this.Properties = new Dictionary<string, object>();
         }

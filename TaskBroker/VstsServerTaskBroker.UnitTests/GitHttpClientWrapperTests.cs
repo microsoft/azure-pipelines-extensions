@@ -9,18 +9,18 @@ using Newtonsoft.Json;
 namespace VstsServerTaskHelper.UnitTests
 {
     /// <summary>
-    /// Unit test class for <see cref="GitHttpClientWrapper"/> class.
+    /// Unit test class for <see cref="GitClient"/> class.
     /// </summary>
     [TestClass]
-    public class GitHttpClientWrapperTests
+    public class GitClientTests
     {
         private readonly VssBasicCredential credentials;
-        private readonly GitHttpClientWrapper gitClient;
+        private readonly GitClient gitClient;
 
-        public GitHttpClientWrapperTests()
+        public GitClientTests()
         {
             this.credentials = new VssBasicCredential(string.Empty, TestAccountConstants.SecretToken);
-            this.gitClient = new GitHttpClientWrapper(new Uri(TestAccountConstants.AccountUri), this.credentials);
+            this.gitClient = new GitClient(new Uri(TestAccountConstants.AccountUri), this.credentials);
         }
 
         [Ignore]

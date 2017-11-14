@@ -17,7 +17,7 @@ namespace VstsServerTaskHelper
 
         private QueueClient queueClient;
 
-        private Func<IBrokeredMessageWrapper, Task> messageHandlerFunc;
+        private Func<IServiceBusMessage, Task> messageHandlerFunc;
 
         public ServiceBusQueueMessageListener(string connectionString, string queueName, int prefetchCount, int maxConcurrentCalls)
         {
@@ -27,7 +27,7 @@ namespace VstsServerTaskHelper
             this.maxConcurrentCalls = maxConcurrentCalls;
         }
 
-        public void Start(Func<IBrokeredMessageWrapper, Task> messageHandlerFunc)
+        public void Start(Func<IServiceBusMessage, Task> messageHandlerFunc)
         {
             this.messageHandlerFunc = messageHandlerFunc;
             this.queueClient = new QueueClient(this.connectionString, this.queueName);
@@ -71,7 +71,7 @@ namespace VstsServerTaskHelper
 
 		private Task ReceiveMessage(Message message, CancellationToken token)
         {
-            var wrappedMessage = new BrokeredMessageWrapper(message);
+            var wrappedMessage = new ServiceBusMessage(message);
             return this.messageHandlerFunc(wrappedMessage);
         }
     }

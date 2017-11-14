@@ -5,7 +5,7 @@ namespace VstsServerTaskHelper
     /// <summary>
     /// This interface is for a wrapper around the Azure brokered message.
     /// </summary>
-    public interface IBrokeredMessageWrapper
+    public interface IServiceBusMessage
     {
         DateTime LockedUntilUtc { get; }
 

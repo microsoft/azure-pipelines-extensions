@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 namespace VstsServerTaskHelper
 {
     public class HandlerWithInstrumentation<T> : IVstsScheduleHandler<T> 
-        where T : VstsMessageBase
+        where T : VstsMessage
     {
         internal const string HandlerCancelFailedEventName = "HandlerCancelFailed";
         internal const string HandlerExecuteFailedEventName = "HandlerExecuteFailed";

@@ -8,9 +8,9 @@ using Microsoft.TeamFoundation.DistributedTask.WebApi;
 
 namespace VstsServerTaskHelper
 {
-    public class MockTaskHttpClient : ITaskHttpClient
+    public class MockTaskClient : ITaskClient
     {
-        public MockTaskHttpClient()
+        public MockTaskClient()
         {
             this.EventsReceived = new List<JobEvent>();
             this.LogLines = new List<string>();

@@ -7,7 +7,7 @@ using Microsoft.VisualStudio.Services.ReleaseManagement.WebApi.Contracts;
 
 namespace VstsServerTaskHelper
 {
-    public class MockReleaseClient : IReleaseHttpClientWrapper
+    public class MockReleaseClient : IReleaseClient
     {
         public List<AgentArtifactDefinition> MockArtifactDefinitions { get; set; }
 

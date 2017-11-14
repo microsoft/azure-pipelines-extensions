@@ -59,7 +59,7 @@ namespace VstsServerTaskHelper.UnitTests
         private static async Task TestReportJobStarted(BuildStatus buildStatus, bool returnNullBuild, int expectedEventCount)
         {
             // given
-            VstsMessageBase vstsContext = new TestVstsMessage
+            VstsMessage vstsContext = new TestVstsMessage
             {
                 VstsHub = HubType.Build,
                 VstsUri = new Uri("http://vstsUri"),
@@ -72,21 +72,21 @@ namespace VstsServerTaskHelper.UnitTests
                 MockBuild = new Build() { Status = buildStatus },
                 ReturnNullBuild = returnNullBuild,
             };
-            var mockTaskHttpClient = new MockTaskHttpClient();
+            var mockTaskClient = new MockTaskClient();
             var reportingHelper = new VstsReportingHelper(vstsContext, new TraceBrokerInstrumentation(), new Dictionary<string, string>())
             {
                 CreateBuildClient = (uri, s) => ReportingBrokerJobCompletedTests.ReturnMockBuildClientIfUrlValid(uri, vstsContext, mockBuildClient),
-                CreateTaskHttpClient = (uri, s, i, r) => mockTaskHttpClient
+                CreateTaskHttpClient = (uri, s, i, r) => mockTaskClient
             };
 
             // when
             await reportingHelper.ReportJobStarted(DateTime.UtcNow, "test message", default(CancellationToken));
 
             // then
-            Assert.AreEqual(expectedEventCount, mockTaskHttpClient.EventsReceived.Count);
+            Assert.AreEqual(expectedEventCount, mockTaskClient.EventsReceived.Count);
             if (expectedEventCount != 0)
             {
-                var taskEvent = mockTaskHttpClient.EventsReceived[0] as JobStartedEvent;
+                var taskEvent = mockTaskClient.EventsReceived[0] as JobStartedEvent;
                 Assert.IsNotNull(taskEvent);
             }
         }

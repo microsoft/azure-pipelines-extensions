@@ -8,16 +8,16 @@ namespace VstsServerTaskHelper
 	/// This class provides a wrapper implementation around the 
 	/// Azure Service Bus brokered messageWrapper.
 	/// </summary>
-	public class BrokeredMessageWrapper : IBrokeredMessageWrapper
+	public class ServiceBusMessage : IServiceBusMessage
     {
         private readonly Message message;
 
-        public BrokeredMessageWrapper()
+        public ServiceBusMessage()
         {
             this.message = new Message();
         }
 
-        public BrokeredMessageWrapper(Message message)
+        public ServiceBusMessage(Message message)
         {
             this.message = message;
         }

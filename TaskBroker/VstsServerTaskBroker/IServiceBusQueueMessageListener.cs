@@ -5,7 +5,7 @@ namespace VstsServerTaskHelper
 {
     public interface IServiceBusQueueMessageListener
     {
-        void Start(Func<IBrokeredMessageWrapper, Task> messageHandlerFunc);
+        void Start(Func<IServiceBusMessage, Task> messageHandlerFunc);
 
         void Stop();
 

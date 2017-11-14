@@ -11,9 +11,9 @@ namespace VstsServerTaskHelper
     /// since agents would have raised the events already, and any further event will cause
     /// timeline to fail immediately.
     /// </summary>
-    public class TaskHttpClientNoopPlanEventWrapper : TaskHttpClientWrapper
+    public class TaskClientNoopPlanEvent : TaskClient
     {
-        public TaskHttpClientNoopPlanEventWrapper(Uri baseUrl, VssCredentials credentials, IBrokerInstrumentation instrumentationHandler) 
+        public TaskClientNoopPlanEvent(Uri baseUrl, VssCredentials credentials, IBrokerInstrumentation instrumentationHandler) 
             : base(baseUrl, credentials, instrumentationHandler)
         {
         }

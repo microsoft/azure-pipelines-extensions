@@ -8,7 +8,7 @@ using Microsoft.TeamFoundation.SourceControl.WebApi;
 
 namespace VstsServerTaskHelper
 {
-    public interface IGitHttpClientWrapper
+    public interface IGitClient
     {
         Task<GitPullRequest> GetPullRequestAsync(Guid projectId, string repositoryName, int pullRequestId, CancellationToken cancellationToken);
 

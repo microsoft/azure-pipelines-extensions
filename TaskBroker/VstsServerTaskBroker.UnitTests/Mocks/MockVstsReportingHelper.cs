@@ -14,13 +14,13 @@ namespace VstsServerTaskHelper
             Completed,
         }
 
-        public VstsMessageBase VstsMessage { get; set; }
+        public VstsMessage VstsMessage { get; set; }
 
         public List<JobStatusEnum> JobStatusReceived { get; set; }
 
         public bool JobStatusSuccess { get; set; }
 
-        public MockVstsReportingHelper(VstsMessageBase vstsContext)
+        public MockVstsReportingHelper(VstsMessage vstsContext)
         {
             this.VstsMessage = vstsContext;
             this.JobStatusReceived = new List<JobStatusEnum>();

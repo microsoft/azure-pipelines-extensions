@@ -119,22 +119,22 @@ namespace VstsServerTaskHelper.UnitTests
                 MockRelease = new Release() { Status = ReleaseStatus.Undefined },
                 ReturnNullRelease = false,
             };
-            var mockTaskHttpClient = new MockTaskHttpClient();
+            var mockTaskClient = new MockTaskClient();
             var reportingHelper = new VstsReportingHelper(vstsContext, new TraceBrokerInstrumentation(), new Dictionary<string, string>())
             {
                 CreateBuildClient = (uri, s) => ReturnMockBuildClientIfUrlValid(uri, vstsContext, mockBuildClient),
                 CreateReleaseClient = (uri, s) => mockReleaseClient,
-                CreateTaskHttpClient = (uri, s, i, r) => mockTaskHttpClient
+                CreateTaskHttpClient = (uri, s, i, r) => mockTaskClient
             };
 
             // when
             await reportingHelper.ReportJobStarted(DateTime.UtcNow, "test message", default(CancellationToken));
 
             // then
-            Assert.AreEqual(expectedEventCount, mockTaskHttpClient.EventsReceived.Count);
+            Assert.AreEqual(expectedEventCount, mockTaskClient.EventsReceived.Count);
             if (expectedEventCount != 0)
             {
-                var taskEvent = mockTaskHttpClient.EventsReceived[0] as JobStartedEvent;
+                var taskEvent = mockTaskClient.EventsReceived[0] as JobStartedEvent;
                 Assert.IsNotNull(taskEvent);
             }
         }
@@ -144,7 +144,7 @@ namespace VstsServerTaskHelper.UnitTests
             // given
             Guid parentId = Guid.NewGuid();
             Guid childId = Guid.NewGuid();
-            VstsMessageBase vstsContext = new TestVstsMessage
+            VstsMessage vstsContext = new TestVstsMessage
             {
                 JobId = parentId,
                 VstsHub = HubType.Build,
@@ -190,7 +190,7 @@ namespace VstsServerTaskHelper.UnitTests
                 });
             }
 
-            var mockTaskHttpClient = new MockTaskHttpClient()
+            var mockTaskHttpClient = new MockTaskClient()
             {
                 GetRecordsReturnCollection = timelineRecords
             };
@@ -230,7 +230,7 @@ namespace VstsServerTaskHelper.UnitTests
             }
         }
 
-        internal static MockBuildClient ReturnMockBuildClientIfUrlValid(Uri uri, VstsMessageBase vstsMessage, MockBuildClient mockBuildClient)
+        internal static MockBuildClient ReturnMockBuildClientIfUrlValid(Uri uri, VstsMessage vstsMessage, MockBuildClient mockBuildClient)
         {
             Assert.IsNotNull(uri, "require uri to validate correct one is used");
             Assert.AreNotEqual(vstsMessage.VstsUri, vstsMessage.VstsPlanUri, "need to be different to ensure we can test correct one is used");

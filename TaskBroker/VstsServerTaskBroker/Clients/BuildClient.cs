@@ -8,22 +8,22 @@ using Microsoft.VisualStudio.Services.Common;
 
 namespace VstsServerTaskHelper
 {
-    public class BuildHttpClientWrapper : IBuildHttpClientWrapper
+    public class BuildClient : IBuildClient
     {
         private const int DefaultRetryCount = 3;
         private const int DefaultRetryIntervalInSeconds = 5;
 
-        private readonly BuildHttpClient client;
+        private readonly Microsoft.TeamFoundation.Build.WebApi.BuildHttpClient client;
         private readonly Retryer retryer;
 
-        public BuildHttpClientWrapper(Uri baseUrl, VssCredentials credentials)
+        public BuildClient(Uri baseUrl, VssCredentials credentials)
             : this(baseUrl, credentials, DefaultRetryCount, DefaultRetryIntervalInSeconds)
         {
         }
 
-        public BuildHttpClientWrapper(Uri baseUrl, VssCredentials credentials, int retryCount, int retryInterval)
+        public BuildClient(Uri baseUrl, VssCredentials credentials, int retryCount, int retryInterval)
         {
-            this.client = new BuildHttpClient(baseUrl, credentials);
+            this.client = new Microsoft.TeamFoundation.Build.WebApi.BuildHttpClient(baseUrl, credentials);
             this.retryer = Retryer.CreateRetryer(retryCount, TimeSpan.FromSeconds(retryInterval));
         }
 
@@ -97,7 +97,7 @@ namespace VstsServerTaskHelper
             return artifact;
         }
 
-        public static async Task<bool> IsBuildValid(IBuildHttpClientWrapper buildClient, Guid projectId, int buildId, CancellationToken cancellationToken)
+        public static async Task<bool> IsBuildValid(IBuildClient buildClient, Guid projectId, int buildId, CancellationToken cancellationToken)
         {
             try
             {

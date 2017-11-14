@@ -9,18 +9,18 @@ using Newtonsoft.Json;
 namespace VstsServerTaskHelper.UnitTests
 {
     /// <summary>
-    /// Unit test class for <see cref="BuildHttpClientWrapper"/> class.
+    /// Unit test class for <see cref="BuildClient"/> class.
     /// </summary>
     [TestClass]
-    public class BuildClientWrapperTests
+    public class BuildClientTests
     {
         private readonly VssBasicCredential credentials;
-        private readonly BuildHttpClientWrapper buildHttpClientWrapper;
+        private readonly BuildClient buildClient;
 
-        public BuildClientWrapperTests()
+        public BuildClientTests()
         {
             this.credentials = new VssBasicCredential(string.Empty, TestAccountConstants.SecretToken);
-            this.buildHttpClientWrapper = new BuildHttpClientWrapper(new Uri(TestAccountConstants.AccountUri), this.credentials);
+            this.buildClient = new BuildClient(new Uri(TestAccountConstants.AccountUri), this.credentials);
         }
 
         [Ignore]
@@ -28,7 +28,7 @@ namespace VstsServerTaskHelper.UnitTests
         public async Task GetBuildDefinitionAsyncTest()
         {
             var buildName = "DumbBuild";
-            var buildDefinitionReference = await this.buildHttpClientWrapper.GetBuildDefinitionAsync(TestAccountConstants.ProjectId, buildName, CancellationToken.None);
+            var buildDefinitionReference = await this.buildClient.GetBuildDefinitionAsync(TestAccountConstants.ProjectId, buildName, CancellationToken.None);
             Assert.IsNotNull(buildDefinitionReference);
             Trace.WriteLine(JsonConvert.SerializeObject(buildDefinitionReference, Formatting.Indented));
         }

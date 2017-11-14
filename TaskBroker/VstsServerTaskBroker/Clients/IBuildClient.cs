@@ -7,7 +7,7 @@ using Microsoft.TeamFoundation.Build.WebApi;
 
 namespace VstsServerTaskHelper
 {
-    public interface IBuildHttpClientWrapper
+    public interface IBuildClient
     {
         Task<Build> GetBuildAsync(Guid projectId, int buildId, CancellationToken cancellationToken);
 
