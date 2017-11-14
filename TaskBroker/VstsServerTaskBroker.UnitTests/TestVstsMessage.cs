@@ -1,6 +1,4 @@
-﻿using VstsServerTaskBroker.Contracts;
-
-namespace VstsServerTaskBroker.UnitTest
+﻿namespace VstsServerTaskHelper.UnitTests
 {
     public class TestVstsMessage : VstsMessageBase
     {

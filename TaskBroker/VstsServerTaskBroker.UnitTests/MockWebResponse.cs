@@ -1,6 +1,6 @@
 ﻿using System.Net;
 
-namespace VstsServerTaskBroker.UnitTest
+namespace VstsServerTaskHelper.UnitTests
 {
     public class MockWebResponse: HttpWebResponse
     {

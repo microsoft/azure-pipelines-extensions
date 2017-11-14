@@ -2,7 +2,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace VstsServerTaskBroker.UnitTest
+namespace VstsServerTaskHelper.UnitTests
 {
     internal class MockVstsHandler : IVstsScheduleHandler<TestVstsMessage>
     {

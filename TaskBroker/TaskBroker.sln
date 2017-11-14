@@ -1,19 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26606.0
+VisualStudioVersion = 15.0.26730.8
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VstsServerTaskBroker.Azure", "VstsServerTaskBroker.Azure\VstsServerTaskBroker.Azure.csproj", "{5B97CA6B-0222-4157-A5F9-1CCB6EDEE2A6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VstsServerTaskHelper", "VstsServerTaskBroker\VstsServerTaskHelper.csproj", "{090E8B24-BC04-4D17-A56C-B0D6E84F9296}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VstsServerTaskBroker.Contracts", "VstsServerTaskBroker.Contracts\VstsServerTaskBroker.Contracts.csproj", "{FA4FA442-8626-4323-8341-D6F88F15EA42}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VstsServerTaskBroker", "VstsServerTaskBroker\VstsServerTaskBroker.csproj", "{090E8B24-BC04-4D17-A56C-B0D6E84F9296}"
-	ProjectSection(ProjectDependencies) = postProject
-		{FA4FA442-8626-4323-8341-D6F88F15EA42} = {FA4FA442-8626-4323-8341-D6F88F15EA42}
-		{5B97CA6B-0222-4157-A5F9-1CCB6EDEE2A6} = {5B97CA6B-0222-4157-A5F9-1CCB6EDEE2A6}
-	EndProjectSection
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VstsServerTaskBroker.UnitTests", "VstsServerTaskBroker.UnitTests\VstsServerTaskBroker.UnitTests.csproj", "{FAC118B9-D96E-4DCD-AB60-5AFFDCDA3F1F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VstsServerTaskHelper.UnitTests", "VstsServerTaskBroker.UnitTests\VstsServerTaskHelper.UnitTests.csproj", "{FAC118B9-D96E-4DCD-AB60-5AFFDCDA3F1F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,14 +13,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{5B97CA6B-0222-4157-A5F9-1CCB6EDEE2A6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{5B97CA6B-0222-4157-A5F9-1CCB6EDEE2A6}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{5B97CA6B-0222-4157-A5F9-1CCB6EDEE2A6}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{5B97CA6B-0222-4157-A5F9-1CCB6EDEE2A6}.Release|Any CPU.Build.0 = Release|Any CPU
-		{FA4FA442-8626-4323-8341-D6F88F15EA42}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{FA4FA442-8626-4323-8341-D6F88F15EA42}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{FA4FA442-8626-4323-8341-D6F88F15EA42}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{FA4FA442-8626-4323-8341-D6F88F15EA42}.Release|Any CPU.Build.0 = Release|Any CPU
 		{090E8B24-BC04-4D17-A56C-B0D6E84F9296}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{090E8B24-BC04-4D17-A56C-B0D6E84F9296}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{090E8B24-BC04-4D17-A56C-B0D6E84F9296}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -40,5 +24,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {D48B18CA-F871-4057-A43B-62F9B879A51F}
 	EndGlobalSection
 EndGlobal

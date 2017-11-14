@@ -1,8 +1,7 @@
 ﻿using System.Diagnostics;
-
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace VstsServerTaskBroker.UnitTest
+namespace VstsServerTaskHelper.UnitTests
 {
     /// <summary>
     /// Unit test class for <see cref="SchedulingBroker&lt;T&gt;"/> class.
@@ -19,7 +18,7 @@ namespace VstsServerTaskBroker.UnitTest
             // when
             TestVstsMessage testMessage;
             string errors;
-            var isValid = SchedulingBroker<TestVstsMessage>.ExtractMessage(brokeredMessage, out testMessage, out errors);
+            var isValid = ServiceBusQueueMessageHandler<TestVstsMessage>.ExtractMessage(brokeredMessage, out testMessage, out errors);
 
             // then
             Assert.IsFalse(isValid);
@@ -37,7 +36,7 @@ namespace VstsServerTaskBroker.UnitTest
             // when
             TestVstsMessage testMessage;
             string errors;
-            var isValid = SchedulingBroker<TestVstsMessage>.ExtractMessage(brokeredMessage, out testMessage, out errors);
+            var isValid = ServiceBusQueueMessageHandler<TestVstsMessage>.ExtractMessage(brokeredMessage, out testMessage, out errors);
 
             // then
             Assert.IsTrue(isValid);
@@ -54,7 +53,7 @@ namespace VstsServerTaskBroker.UnitTest
             // when
             TestVstsMessage testMessage;
             string errors;
-            var isValid = SchedulingBroker<TestVstsMessage>.ExtractMessage(brokeredMessage, out testMessage, out errors);
+            var isValid = ServiceBusQueueMessageHandler<TestVstsMessage>.ExtractMessage(brokeredMessage, out testMessage, out errors);
 
             // then
             Assert.IsTrue(isValid);
@@ -73,7 +72,7 @@ namespace VstsServerTaskBroker.UnitTest
             // when
             TestVstsMessage testMessage;
             string errors;
-            var isValid = SchedulingBroker<TestVstsMessage>.ExtractMessage(brokeredMessage, out testMessage, out errors);
+            var isValid = ServiceBusQueueMessageHandler<TestVstsMessage>.ExtractMessage(brokeredMessage, out testMessage, out errors);
 
             // then
             Assert.IsTrue(isValid);
@@ -92,7 +91,7 @@ namespace VstsServerTaskBroker.UnitTest
             // when
             TestVstsMessage testMessage;
             string errors;
-            var isValid = SchedulingBroker<TestVstsMessage>.ExtractMessage(brokeredMessage, out testMessage, out errors);
+            var isValid = ServiceBusQueueMessageHandler<TestVstsMessage>.ExtractMessage(brokeredMessage, out testMessage, out errors);
 
             // then
             Assert.IsTrue(isValid);
@@ -111,7 +110,7 @@ namespace VstsServerTaskBroker.UnitTest
             // when
             TestVstsMessage testMessage;
             string errors;
-            var isValid = SchedulingBroker<TestVstsMessage>.ExtractMessage(brokeredMessage, out testMessage, out errors);
+            var isValid = ServiceBusQueueMessageHandler<TestVstsMessage>.ExtractMessage(brokeredMessage, out testMessage, out errors);
 
             // then
             Assert.IsTrue(isValid);

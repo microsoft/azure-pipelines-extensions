@@ -1,13 +1,13 @@
-namespace VstsServerTaskBroker.UnitTest
-{
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.IO;
-    using System.Linq;
-    using System.Threading;
-    using System.Threading.Tasks;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
+namespace VstsServerTaskHelper.UnitTests
+{
     public class TraceBrokerInstrumentation : IBrokerInstrumentation
     {
         public TraceBrokerInstrumentation()

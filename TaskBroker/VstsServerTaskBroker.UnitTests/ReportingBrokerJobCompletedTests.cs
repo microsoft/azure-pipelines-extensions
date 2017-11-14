@@ -1,19 +1,15 @@
 ﻿using System;
-using System.Linq;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-
 using Microsoft.TeamFoundation.Build.WebApi;
 using Microsoft.TeamFoundation.DistributedTask.WebApi;
 using Microsoft.VisualStudio.Services.ReleaseManagement.WebApi;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-
-using VstsServerTaskBroker.Contracts;
-
 using TaskResult = Microsoft.TeamFoundation.DistributedTask.WebApi.TaskResult;
 
-namespace VstsServerTaskBroker.UnitTest
+namespace VstsServerTaskHelper.UnitTests
 {
     /// <summary>
     /// Unit test class for <see cref="ReportingBrokerJobCompletedTests"/> class.
@@ -108,7 +104,7 @@ namespace VstsServerTaskBroker.UnitTest
         private async Task TestReportJobStarted(BuildStatus buildStatus, bool returnNullBuild, int expectedEventCount, TaskResult expectedResult)
         {
             // given
-            VstsMessageBase vstsContext = new TestVstsMessage()
+            var vstsContext = new TestVstsMessage()
             {
                 VstsUri = new Uri("http://vstsUri"),
                 VstsPlanUri = new Uri("http://vstsPlanUri"),

@@ -4,12 +4,9 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-using VstsServerTaskBroker.Contracts;
-
-namespace VstsServerTaskBroker.UnitTest
+namespace VstsServerTaskHelper.UnitTests
 {
     [TestClass]
     public class HandlerWithInstrumentationTests

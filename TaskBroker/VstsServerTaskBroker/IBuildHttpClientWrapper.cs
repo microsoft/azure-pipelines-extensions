@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 using Microsoft.TeamFoundation.Build.WebApi;
 
-namespace VstsServerTaskBroker
+namespace VstsServerTaskHelper
 {
     public interface IBuildHttpClientWrapper
     {

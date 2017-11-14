@@ -1,7 +1,7 @@
 ﻿using System;
 using Microsoft.VisualStudio.Services.Common;
 
-namespace VstsServerTaskBroker
+namespace VstsServerTaskHelper
 {
     public class TaskHttpClientWrapperFactory
     {

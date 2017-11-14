@@ -2,7 +2,7 @@ using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
 
-namespace VstsServerTaskBroker
+namespace VstsServerTaskHelper
 {
     /// <summary>
     /// A class that is responsible for retrying an action if it throws an exception.

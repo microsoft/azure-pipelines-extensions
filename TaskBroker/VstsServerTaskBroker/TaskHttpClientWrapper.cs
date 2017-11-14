@@ -8,7 +8,7 @@ using Microsoft.TeamFoundation.DistributedTask.WebApi;
 using Microsoft.VisualStudio.Services.Common;
 using Microsoft.VisualStudio.Services.WebApi;
 
-namespace VstsServerTaskBroker
+namespace VstsServerTaskHelper
 {
     public class TaskHttpClientWrapper : ITaskHttpClient
     {

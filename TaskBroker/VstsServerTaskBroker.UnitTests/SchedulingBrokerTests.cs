@@ -1,17 +1,13 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-
 using Microsoft.TeamFoundation.Build.WebApi;
 using Microsoft.TeamFoundation.DistributedTask.WebApi;
 using Microsoft.VisualStudio.Services.ReleaseManagement.WebApi;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 
-using VstsServerTaskBroker.Contracts;
-using VstsServerTaskBroker.Azure.ServiceBus;
-
-namespace VstsServerTaskBroker.UnitTest
+namespace VstsServerTaskHelper.UnitTests
 {
     using TaskResult = Microsoft.TeamFoundation.DistributedTask.WebApi.TaskResult;
 
@@ -458,7 +454,7 @@ namespace VstsServerTaskBroker.UnitTest
             instrumentation = instrumentation ?? new TraceBrokerInstrumentation();
             var settings = new SchedulingBrokerSettings { MaxRetryAttempts = maxRetryAttempts };
             mockMessageListener = mockMessageListener ?? new MockServiceBusQueueMessageListener();
-            var schedulingBroker = new SchedulingBroker<TestVstsMessage>(timeNamePrefix: "someTimeline", workerName: "someWorker", queueClient: mockMessageListener, baseInstrumentation: instrumentation, scheduleHandler: handler, settings: settings);
+            var schedulingBroker = new ServiceBusQueueMessageHandler<TestVstsMessage>(timeNamePrefix: "someTimeline", workerName: "someWorker", queueClient: mockMessageListener, baseInstrumentation: instrumentation, scheduleHandler: handler, settings: settings);
             schedulingBroker.CreateTaskHttpClient = (uri, creds, instrumentationHandler, skipRaisePlanEvents) => mockTaskClient;
             schedulingBroker.CreateBuildClient = (uri, creds) => mockBuildClient;
             schedulingBroker.CreateReleaseClient = (uri, creds) => mockReleaseClient;

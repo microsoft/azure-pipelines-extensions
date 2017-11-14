@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 using Microsoft.TeamFoundation.DistributedTask.WebApi;
 
-namespace VstsServerTaskBroker
+namespace VstsServerTaskHelper
 {
     public interface ITaskHttpClient
     {

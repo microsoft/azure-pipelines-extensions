@@ -1,4 +1,4 @@
-namespace VstsServerTaskBroker
+namespace VstsServerTaskHelper
 {
     public class VstsMessageConstants
     {

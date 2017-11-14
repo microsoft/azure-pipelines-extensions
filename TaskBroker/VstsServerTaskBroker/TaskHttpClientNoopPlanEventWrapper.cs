@@ -3,7 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Services.Common;
 
-namespace VstsServerTaskBroker
+namespace VstsServerTaskHelper
 {
     /// <summary>
     /// Agent-based and agent-less tasks behave slightly differently in dealing with 

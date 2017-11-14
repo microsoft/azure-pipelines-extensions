@@ -2,13 +2,11 @@
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-
 using Microsoft.VisualStudio.Services.Common;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-
 using Newtonsoft.Json;
 
-namespace VstsServerTaskBroker.UnitTest
+namespace VstsServerTaskHelper.UnitTests
 {
     /// <summary>
     /// Unit test class for <see cref="BuildHttpClientWrapper"/> class.

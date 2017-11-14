@@ -11,33 +11,8 @@ using Microsoft.VisualStudio.Services.Common;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-using VstsServerTaskBroker.Contracts;
-
-namespace VstsServerTaskBroker
+namespace VstsServerTaskHelper
 {
-    public class MockArtifactsHelper : IArtifactsHelper
-    {
-        public Task<VstsArtifactsHelper.ArtifactsDropResult> TryGetDropUrlFromBuildArtifact(string dropArtifactsName, int buildId, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<VstsArtifactsHelper.ArtifactsBuildResult> TryGetArtifactBuildIdFromPullRequestMergeBranch(string sourceBranch, string buildDefName, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<VstsArtifactsHelper.ArtifactsBuildResult> TryGetArtifactBuildIdFromRelease(int releaseId, string artifactSourceAlias, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<VstsArtifactsHelper.ArtifactsResult> TryGetDropUrlOrUncFromBuildArtifact(string dropArtifactsName, int buildId, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
-    }
-
     public class VstsArtifactsHelper : IArtifactsHelper
     {
         internal const string VstsDropJsonFileName = "VSTSDrop.json";

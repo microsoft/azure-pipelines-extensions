@@ -1,6 +1,6 @@
 using Newtonsoft.Json;
 
-namespace VstsServerTaskBroker
+namespace VstsServerTaskHelper
 {
     public class SchedulingBrokerSettings
     {

@@ -4,12 +4,11 @@ using System.IO;
 using System.IO.Compression;
 using System.Threading;
 using System.Threading.Tasks;
-
 using Microsoft.TeamFoundation.Build.WebApi;
 using Microsoft.VisualStudio.Services.ReleaseManagement.WebApi.Contracts;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace VstsServerTaskBroker.UnitTest
+namespace VstsServerTaskHelper.UnitTests
 {
     /// <summary>
     /// Unit test class for <see cref="ArtifactHelperTests"/> class.
