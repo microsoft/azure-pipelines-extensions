@@ -8,8 +8,8 @@ import { PersonalAccessTokenCredentialHandler } from "./Providers/handlers/perso
 
 var config = require("./config.json")
 
-var nock = require('nock')
-nock.recorder.rec();
+//var nock = require('nock')
+//nock.recorder.rec();
 
 async function main(): Promise<void> {
     let processorOptions = new engine.ArtifactEngineOptions();

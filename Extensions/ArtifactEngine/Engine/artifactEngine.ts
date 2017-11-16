@@ -11,94 +11,92 @@ import { Worker } from './worker';
 import { TicketState } from '../Models/ticketState';
 
 export class ArtifactEngine {
-    async processItems(sourceProvider: models.IArtifactProvider, destProvider: models.IArtifactProvider, artifactEngineOptions?: ArtifactEngineOptions): Promise<models.ArtifactDownloadTicket[]> {
-        const processors: Promise<void>[] = [];
-        artifactEngineOptions = artifactEngineOptions || new ArtifactEngineOptions();
-        this.artifactItemStore.flush();
-        Logger.verbose = artifactEngineOptions.verbose;
-        this.logger = new Logger(this.artifactItemStore);
-        this.logger.logProgress();
-        var rootItemsPromise = sourceProvider.getRootItems();
-        rootItemsPromise.catch((error) => {
-            throw error;
+    processItems(sourceProvider: models.IArtifactProvider, destProvider: models.IArtifactProvider, artifactEngineOptions?: ArtifactEngineOptions): Promise<models.ArtifactDownloadTicket[]> {
+        var downloadCompletePromise = new Promise<models.ArtifactDownloadTicket[]>((resolve, reject) => {
+            const processors: Promise<void>[] = [];
+            artifactEngineOptions = artifactEngineOptions || new ArtifactEngineOptions();
+            this.artifactItemStore.flush();
+            Logger.verbose = artifactEngineOptions.verbose;
+            this.logger = new Logger(this.artifactItemStore);
+            this.logger.logProgress();
+            sourceProvider.getRootItems().then((itemsToPull: models.ArtifactItem[]) => {
+                this.artifactItemStore.addItems(itemsToPull);
+
+                for (let i = 0; i < artifactEngineOptions.parallelProcessingLimit; ++i) {
+                    var worker = new Worker<models.ArtifactDownloadTicket>(i + 1, item => this.processArtifactItem(sourceProvider, item, destProvider, artifactEngineOptions), () => this.artifactItemStore.getNextItemToProcess(), () => !this.artifactItemStore.itemsPendingProcessing());
+                    processors.push(worker.init());
+                }
+
+                var processorsPromise = Promise.all(processors);
+                processorsPromise.then(() => {
+                    this.logger.logSummary();
+                    resolve(this.artifactItemStore._downloadTickets);
+                }).catch((error) => {
+                    reject(error);
+                });
+            }, (error) => {
+                reject(error);
+            });
         });
 
-        const itemsToPull: models.ArtifactItem[] = await rootItemsPromise;
-        this.artifactItemStore.addItems(itemsToPull);
-
-        for (let i = 0; i < artifactEngineOptions.parallelProcessingLimit; ++i) {
-            var worker = new Worker<models.ArtifactItem>(i + 1, item => this.processArtifactItem(sourceProvider, item, destProvider, artifactEngineOptions), () => this.artifactItemStore.getNextItemToProcess(), () => !this.artifactItemStore.itemsPendingProcessing());
-            processors.push(worker.init());
-        }
-
-        await Promise.all(processors).catch((error) => {
-            throw error;
-        });
-
-        this.logger.logSummary();
-
-        return this.artifactItemStore.getTickets();
+        return downloadCompletePromise;
     }
 
     processArtifactItem(sourceProvider: models.IArtifactProvider,
-        item: models.ArtifactItem,
+        ticket: models.ArtifactDownloadTicket,
         destProvider: models.IArtifactProvider,
-        artifactEngineOptions: ArtifactEngineOptions): Promise<void> {
-        return new Promise<void>(async (downloadResolve, downloadReject) => {
-            this.processArtifactItemImplementation(sourceProvider, item, destProvider, artifactEngineOptions, downloadResolve, downloadReject);
-        });
-    }
+        artifactEngineOptions: ArtifactEngineOptions) {
+        return new Promise<void>((resolve, reject) => {
+            var retryCount = ticket.retryCount;
+            if (ticket.artifactItem.itemType === models.ItemType.File) {
+                if (minimatch(ticket.artifactItem.path, artifactEngineOptions.itemPattern, { dot: true, nocase: true })) {
+                    Logger.logInfo("Processing " + ticket.artifactItem.path);
+                    sourceProvider.getArtifactItem(ticket.artifactItem).then((stream) => {
+                        Logger.logInfo("Got download stream for item: " + ticket.artifactItem.path);
+                        var putArtifactItemPromise = destProvider.putArtifactItem(ticket.artifactItem, stream);
+                        putArtifactItemPromise.catch((err) => { console.log(err); })
+                        putArtifactItemPromise.then((item1) => {
+                            this.artifactItemStore.updateState(item1, models.TicketState.Processed, retryCount);
+                            resolve();
+                        });
+                    }, (err) => {
+                        if (retryCount === artifactEngineOptions.retryLimit - 1) {
+                            this.artifactItemStore.updateState(ticket.artifactItem, models.TicketState.Failed, retryCount);
+                            reject(err);
+                            return;
+                        } else {
+                            Logger.logError("Error processing file " + ticket.artifactItem.path + ":" + err);
+                            this.artifactItemStore.updateState(ticket.artifactItem, models.TicketState.InQueue, retryCount + 1);
 
-    async processArtifactItemImplementation(sourceProvider: models.IArtifactProvider,
-        item: models.ArtifactItem,
-        destProvider: models.IArtifactProvider,
-        artifactEngineOptions: ArtifactEngineOptions,
-        resolve,
-        reject,
-        retryCount?: number) {
-        try {
-            retryCount = retryCount ? retryCount : 0;
-            if (item.itemType === models.ItemType.File) {
-                if (minimatch(item.path, artifactEngineOptions.itemPattern, { dot: true, nocase: true })) {
-                    Logger.logInfo("Processing " + item.path);
-                    const contentStream = await sourceProvider.getArtifactItem(item);
-                    Logger.logInfo("Got download stream for item: " + item.path);
-                    await destProvider.putArtifactItem(item, contentStream);
-                    this.artifactItemStore.updateState(item, models.TicketState.Processed);
-                    resolve();
+                            resolve();
+                            return;
+                        }
+                    });
                 }
                 else {
-                    Logger.logInfo("Skipped processing item " + item.path);
-                    this.artifactItemStore.updateState(item, models.TicketState.Skipped);
+                    Logger.logInfo("Skipped processing item " + ticket.artifactItem.path);
+                    this.artifactItemStore.updateState(ticket.artifactItem, models.TicketState.Skipped, retryCount);
                     resolve();
                 }
             }
             else {
-                var items = await sourceProvider.getArtifactItems(item);
-                items = items.map((value, index) => {
-                    if (!value.path.toLowerCase().startsWith(item.path.toLowerCase())) {
-                        value.path = path.join(item.path, value.path);
-                    }
+                sourceProvider.getArtifactItems(ticket.artifactItem).then((items) => {
+                    items = items.map((value, index) => {
+                        if (!value.path.toLowerCase().startsWith(ticket.artifactItem.path.toLowerCase())) {
+                            value.path = path.join(ticket.artifactItem.path, value.path);
+                        }
 
-                    return value;
+                        return value;
+                    });
+
+                    this.artifactItemStore.addItems(items);
+                    this.artifactItemStore.updateState(ticket.artifactItem, models.TicketState.Processed, retryCount);
+
+                    Logger.logInfo("Enqueued " + items.length + " for processing.");
+                    resolve();
                 });
-
-                this.artifactItemStore.addItems(items);
-                this.artifactItemStore.updateState(item, models.TicketState.Processed);
-
-                Logger.logInfo("Enqueued " + items.length + " for processing.");
-                resolve();
             }
-        } catch (err) {
-            Logger.logError("Error processing file " + item.path + ":" + err);
-            if (retryCount === artifactEngineOptions.retryLimit - 1) {
-                this.artifactItemStore.updateState(item, models.TicketState.Failed);
-                reject(err);
-            } else {
-                setTimeout(() => this
-                    .processArtifactItemImplementation(sourceProvider, item, destProvider, artifactEngineOptions, resolve, reject, retryCount + 1), artifactEngineOptions.retryIntervalInSeconds * 1000);
-            }
-        }
+        });
     }
 
     private artifactItemStore: ArtifactItemStore = new ArtifactItemStore();
@@ -109,15 +107,15 @@ process.removeAllListeners('unhandledRejection');
 process.removeAllListeners('uncaughtException');
 process.on('unhandledRejection', (err, promise) => {
     // ignore printing errors for timeout  
-    /* if(err.code !== 'ETIMEDOUT'){
-        console.error(err);
-        throw err;
-    } */
+    if (err.code !== 'ETIMEDOUT') {
+        console.error("Unhandled Rejection: " + err);
+        //throw err;
+    }
 });
 
 process.on('uncaughtException', function (err) {
     // ignore printing errors for timeout  
-    if(err.code !== 'ETIMEDOUT'){
+    if (err.code !== 'ETIMEDOUT') {
         console.error(err);
         throw err;
     }

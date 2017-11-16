@@ -39,7 +39,7 @@ export class WebProvider implements models.IArtifactProvider {
     }
 
     getArtifactItem(artifactItem: models.ArtifactItem): Promise<NodeJS.ReadableStream> {
-        var promise = new Promise<NodeJS.ReadableStream>(async (resolve, reject) => {
+        var promise = new Promise<NodeJS.ReadableStream>((resolve, reject) => {
             if (!artifactItem.metadata || !artifactItem.metadata['downloadUrl']) {
                 reject("No downloadUrl available to download the item.");
             }
@@ -51,14 +51,16 @@ export class WebProvider implements models.IArtifactProvider {
                 reject(reason);
             });
 
-            let res: httpm.HttpClientResponse = await getResponsePromise;
-
-            if (res.message.headers['content-encoding'] === 'gzip') {
-                resolve(res.message.pipe(zlib.createUnzip()));
-            }
-            else {
-                resolve(res.message);
-            }
+            getResponsePromise.then((res) => {
+                if (res.message.headers['content-encoding'] === 'gzip') {
+                    resolve(res.message.pipe(zlib.createUnzip()));
+                }
+                else {
+                    resolve(res.message);
+                }
+            }, (err) => {
+                reject(err);
+            });
         });
 
         return promise;
@@ -69,41 +71,35 @@ export class WebProvider implements models.IArtifactProvider {
     }
 
     private getItems(itemsUrl: string): Promise<models.ArtifactItem[]> {
-        var promise = new Promise<models.ArtifactItem[]>(async (resolve, reject) => {
+        var promise = new Promise<models.ArtifactItem[]>((resolve, reject) => {
             itemsUrl = itemsUrl.replace(/([^:]\/)\/+/g, "$1");
 
-            let getItemsPromise = this.httpc.get(itemsUrl, { 'Accept': 'application/json' });
-            getItemsPromise.catch(reason => {
+            this.httpc.get(itemsUrl, { 'Accept': 'application/json' }).then((resp) => {
+                resp.readBody().then((body) => {
+                    fs.readFile(this.getTemplateFilePath(), 'utf8', (err, templateFileContent) => {
+                        if (err) {
+                            Logger.logError(err ? JSON.stringify(err) : "");
+                            reject(err);
+                        }
+
+                        var template = handlebars.compile(templateFileContent);
+                        try {
+                            var response = JSON.parse(body);
+                            var context = this.extend(response, this.variables);
+                            var result = template(context);
+                            var items = JSON.parse(result);
+
+                            resolve(items);
+                        } catch (error) {
+                            Logger.logError("Failed to parse response body: " + body + " , got error : " + error);
+                            reject(error);
+                        }
+                    });
+                }, reason => {
+                    reject(reason);
+                });
+            }, reason => {
                 reject(reason);
-            });
-
-            let resp: httpm.HttpClientResponse = await getItemsPromise;
-
-            let readBodyPromise = resp.readBody();
-            readBodyPromise.catch(reason => {
-                reject(reason);
-            });
-
-            let body: string = await readBodyPromise;
-
-            fs.readFile(this.getTemplateFilePath(), 'utf8', (err, templateFileContent) => {
-                if (err) {
-                    Logger.logError(err ? JSON.stringify(err) : "");
-                    reject(err);
-                }
-
-                var template = handlebars.compile(templateFileContent);
-                try {
-                    var response = JSON.parse(body);
-                    var context = this.extend(response, this.variables);
-                    var result = template(context);
-                    var items = JSON.parse(result);
-
-                    resolve(items);
-                } catch (error) {
-                    Logger.logError("Failed to parse response body: " + body + " , got error : " + error);
-                    reject(error);
-                }
             });
         });
 

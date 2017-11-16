@@ -6,4 +6,5 @@ export class ArtifactDownloadTicket {
     startTime: Date
     finishTime: Date
     state: TicketState
+    retryCount: number
 }

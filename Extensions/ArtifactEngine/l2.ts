@@ -65,12 +65,14 @@ describe('processor.processItems', () => {
 
         var processItemsPromise = processor.processItems(webProvider, stubProvider, processorOptions);
         processItemsPromise.catch((error) => {
-            throw error;
+            throw "test failure";
         })
 
-        await processItemsPromise;
+        var tickets = await processItemsPromise;
 
         assert.equal(stubProvider.itemsUploaded["Extensions/ArtifactEngine/TestData/Jenkins/file1.pdb"], "dummyFileContent");
         assert.equal(stubProvider.itemsUploaded["Extensions/ArtifactEngine/TestData/Jenkins/folder1/file2.txt"], "dummyFolderContent");
+        assert.equal(tickets.find(x => x.artifactItem.path == "Extensions/ArtifactEngine/TestData/Jenkins/file1.pdb").retryCount, 0);
+        assert.equal(tickets.find(x => x.artifactItem.path == "Extensions/ArtifactEngine/TestData/Jenkins/folder1/file2.txt").retryCount, 1);
     });
 });

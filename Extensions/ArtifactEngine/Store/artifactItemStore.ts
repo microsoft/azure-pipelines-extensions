@@ -12,7 +12,8 @@ export class ArtifactItemStore {
             artifactItem: item,
             state: models.TicketState.InQueue,
             startTime: undefined,
-            finishTime: undefined
+            finishTime: undefined,
+            retryCount: 0
         };
 
         this._downloadTickets.push(artifactDownloadTicket);
@@ -33,21 +34,22 @@ export class ArtifactItemStore {
         return processingTickets.length != 0;
     }
 
-    public getNextItemToProcess(): models.ArtifactItem {
+    public getNextItemToProcess(): models.ArtifactDownloadTicket {
         var nextItemToProcess = this._downloadTickets.find(x => x.state === models.TicketState.InQueue);
         if (nextItemToProcess) {
             nextItemToProcess.state = models.TicketState.Processing;
             nextItemToProcess.startTime = new Date();
-            return nextItemToProcess.artifactItem;
+            return nextItemToProcess;
         }
 
         return undefined;
     }
 
-    public updateState(item: models.ArtifactItem, state: models.TicketState) {
+    public updateState(item: models.ArtifactItem, state: models.TicketState, retryCount: number) {
         var processedItem = this._downloadTickets.find(x => x.artifactItem.path === item.path);
         if (processedItem) {
             processedItem.state = state;
+            processedItem.retryCount = retryCount;
             if (state != models.TicketState.InQueue && state != models.TicketState.Processing) {
                 processedItem.finishTime = new Date();
             }

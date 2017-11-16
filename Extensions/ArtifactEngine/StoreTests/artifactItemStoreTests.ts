@@ -51,7 +51,7 @@ describe('artifactItemStore.getNextItemToProcess', () => {
 
         artifactItemStore.addItem(artifactItem);
 
-        assert.equal(artifactItemStore.getNextItemToProcess().path, artifactItem.path);
+        assert.equal(artifactItemStore.getNextItemToProcess().artifactItem.path, artifactItem.path);
     });
 });
 
@@ -77,7 +77,7 @@ describe('artifactItemStore.getNextItemToProcess', () => {
 
         artifactItemStore.getNextItemToProcess();
 
-        assert.equal(artifactItemStore.getNextItemToProcess().path, artifactItem2.path);
+        assert.equal(artifactItemStore.getNextItemToProcess().artifactItem.path, artifactItem2.path);
     });
 });
 
@@ -101,9 +101,10 @@ describe('artifactItemStore.updateState', () => {
         artifactItem1.path = "path1";
         artifactItemStore.addItem(artifactItem1);
 
-        artifactItemStore.updateState(artifactItem1, models.TicketState.Skipped);
+        artifactItemStore.updateState(artifactItem1, models.TicketState.Skipped, 1);
 
         assert.equal(artifactItemStore.getTickets().find(x => x.artifactItem.path == "path1").state, models.TicketState.Skipped);
+        assert.equal(artifactItemStore.getTickets().find(x => x.artifactItem.path == "path1").retryCount, 1);
     });
 });
 
@@ -113,7 +114,7 @@ describe('artifactItemStore.updateState', () => {
         var artifactItem1 = new models.ArtifactItem();
         artifactItem1.path = "path1";
 
-        artifactItemStore.updateState(artifactItem1, models.TicketState.Skipped);
+        artifactItemStore.updateState(artifactItem1, models.TicketState.Skipped, 0);
     });
 });
 
@@ -124,7 +125,7 @@ describe('artifactItemStore.updateState', () => {
         artifactItem1.path = "path1";
         artifactItemStore.addItem(artifactItem1);
 
-        artifactItemStore.updateState(artifactItem1, models.TicketState.InQueue);
+        artifactItemStore.updateState(artifactItem1, models.TicketState.InQueue, 0);
 
         assert.equal(artifactItemStore.getTickets().find(x => x.artifactItem.path == "path1").finishTime, undefined);
     });
@@ -137,7 +138,7 @@ describe('artifactItemStore.updateState', () => {
         artifactItem1.path = "path1";
         artifactItemStore.addItem(artifactItem1);
 
-        artifactItemStore.updateState(artifactItem1, models.TicketState.Processing);
+        artifactItemStore.updateState(artifactItem1, models.TicketState.Processing, 0);
 
         assert.equal(artifactItemStore.getTickets().find(x => x.artifactItem.path == "path1").finishTime, undefined);
     });
@@ -150,9 +151,10 @@ describe('artifactItemStore.updateState', () => {
         artifactItem1.path = "path1";
         artifactItemStore.addItem(artifactItem1);
 
-        artifactItemStore.updateState(artifactItem1, models.TicketState.Skipped);
+        artifactItemStore.updateState(artifactItem1, models.TicketState.Skipped, 3);
 
         assert.notEqual(artifactItemStore.getTickets().find(x => x.artifactItem.path == "path1").finishTime, undefined);
+        assert.notEqual(artifactItemStore.getTickets().find(x => x.artifactItem.path == "path1").retryCount, 3);
     });
 });
 
@@ -163,9 +165,10 @@ describe('artifactItemStore.updateState', () => {
         artifactItem1.path = "path1";
         artifactItemStore.addItem(artifactItem1);
 
-        artifactItemStore.updateState(artifactItem1, models.TicketState.Processed);
+        artifactItemStore.updateState(artifactItem1, models.TicketState.Processed, 2);
 
         assert.notEqual(artifactItemStore.getTickets().find(x => x.artifactItem.path == "path1").finishTime, undefined);
+        assert.notEqual(artifactItemStore.getTickets().find(x => x.artifactItem.path == "path1").retryCount, 2);
     });
 });
 
@@ -176,9 +179,10 @@ describe('artifactItemStore.updateState', () => {
         artifactItem1.path = "path1";
         artifactItemStore.addItem(artifactItem1);
 
-        artifactItemStore.updateState(artifactItem1, models.TicketState.Failed);
+        artifactItemStore.updateState(artifactItem1, models.TicketState.Failed, 2);
 
         assert.notEqual(artifactItemStore.getTickets().find(x => x.artifactItem.path == "path1").finishTime, undefined);
+        assert.notEqual(artifactItemStore.getTickets().find(x => x.artifactItem.path == "path1").retryCount, 2);
     });
 });
 
@@ -202,7 +206,7 @@ describe('artifactItemStore.itemsPendingProcessing', () => {
         var artifactItem = new models.ArtifactItem();
         artifactItem.path = "path1";
         artifactItemStore.addItem(artifactItem);
-        artifactItemStore.updateState(artifactItem, models.TicketState.InQueue);
+        artifactItemStore.updateState(artifactItem, models.TicketState.InQueue, 0);
 
         assert.equal(artifactItemStore.itemsPendingProcessing(), true);
     });
@@ -214,7 +218,7 @@ describe('artifactItemStore.itemsPendingProcessing', () => {
         var artifactItem = new models.ArtifactItem();
         artifactItem.path = "path1";
         artifactItemStore.addItem(artifactItem);
-        artifactItemStore.updateState(artifactItem, models.TicketState.Processing);
+        artifactItemStore.updateState(artifactItem, models.TicketState.Processing, 0);
 
         assert.equal(artifactItemStore.itemsPendingProcessing(), true);
     });
@@ -226,7 +230,7 @@ describe('artifactItemStore.itemsPendingProcessing', () => {
         var artifactItem = new models.ArtifactItem();
         artifactItem.path = "path1";
         artifactItemStore.addItem(artifactItem);
-        artifactItemStore.updateState(artifactItem, models.TicketState.Skipped);
+        artifactItemStore.updateState(artifactItem, models.TicketState.Skipped, 0);
 
         assert.equal(artifactItemStore.itemsPendingProcessing(), false);
     });
@@ -238,7 +242,7 @@ describe('artifactItemStore.itemsPendingProcessing', () => {
         var artifactItem = new models.ArtifactItem();
         artifactItem.path = "path1";
         artifactItemStore.addItem(artifactItem);
-        artifactItemStore.updateState(artifactItem, models.TicketState.Failed);
+        artifactItemStore.updateState(artifactItem, models.TicketState.Failed, 0);
 
         assert.equal(artifactItemStore.itemsPendingProcessing(), false);
     });
@@ -250,7 +254,7 @@ describe('artifactItemStore.itemsPendingProcessing', () => {
         var artifactItem = new models.ArtifactItem();
         artifactItem.path = "path1";
         artifactItemStore.addItem(artifactItem);
-        artifactItemStore.updateState(artifactItem, models.TicketState.Processed);
+        artifactItemStore.updateState(artifactItem, models.TicketState.Processed, 0);
 
         assert.equal(artifactItemStore.itemsPendingProcessing(), false);
     });
