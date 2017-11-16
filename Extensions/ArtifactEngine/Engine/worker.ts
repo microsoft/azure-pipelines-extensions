@@ -15,7 +15,12 @@ export class Worker<T> {
 
     init(): Promise<void> {
         var promise = new Promise<void>(async (resolve, reject) => {
-            await this.spawnWorker(resolve, reject);
+            let spawnWorkerPromise = this.spawnWorker(resolve, reject);
+            spawnWorkerPromise.catch(reason => {
+                throw reason;
+            });
+            
+            await spawnWorkerPromise;
         });
 
         return promise;
@@ -23,7 +28,11 @@ export class Worker<T> {
 
     async spawnWorker(resolve, reject) {
         try {
-            await this.workerImplementation();
+            let workerPromise = this.workerImplementation();
+            workerPromise.catch(reason => {
+                reject(reason);
+            });
+
             if (this.canExit()) {
                 Logger.logInfo(`Exiting worker ${this.id} nothing more to process`);
                 resolve();
@@ -46,7 +55,12 @@ export class Worker<T> {
                 break;
             }
 
-            await this.execute(item);
+            let executePromise = this.execute(item);
+            executePromise.catch(reason => {
+                throw reason;
+            });
+
+            await executePromise;
         }
     }
 }

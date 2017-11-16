@@ -8,6 +8,9 @@ import { PersonalAccessTokenCredentialHandler } from "./Providers/handlers/perso
 
 var config = require("./config.json")
 
+var nock = require('nock')
+nock.recorder.rec();
+
 async function main(): Promise<void> {
     let processorOptions = new engine.ArtifactEngineOptions();
     processorOptions.fileProcessingTimeoutInMinutes = 5;
@@ -19,12 +22,13 @@ async function main(): Promise<void> {
 
     //await downloadTeamCityDropWithMultipleFiles2(processorOptions);
 
-    await downloadFileShareDrop(processorOptions);
-    await downloadVSTSDropWithMultipleFiles(processorOptions);
-    await downloadTeamCityDropWithMultipleFiles(processorOptions);
-    await downloadJenkinsDropWithMultipleFiles(processorOptions);
-
-    await downloadVSTSDropWithMultipleFiles2(processorOptions);
+    //await downloadFileShareDrop(processorOptions);
+    //await downloadVSTSDropWithMultipleFiles(processorOptions);
+    await downloadJenkinsDropWithMultipleFiles2(processorOptions);
+    //await downloadJenkinsDropWithMultipleFiles(processorOptions);
+    //await downloadTeamCityDropWithMultipleFiles(processorOptions);
+    
+    //await downloadVSTSDropWithMultipleFiles2(processorOptions);
 
     // Enable these to test big drops if required.
     // await downloadBigTeamCityDrop(processorOptions);
@@ -116,10 +120,30 @@ async function downloadJenkinsDropWithMultipleFiles(processorOptions) {
     await processor.processItems(webProvider, localFileProvider, processorOptions);
 }
 
+async function downloadJenkinsDropWithMultipleFiles2(processorOptions) {
+    let processor = new engine.ArtifactEngine();
+
+    var itemsUrl = "http://redvstt-lab43:8080/job/ArtifactEngineJob/6/api/json?tree=artifacts[*]"
+    var variables = {
+        "endpoint": {
+            "url": "http://redvstt-lab43:8080"
+        },
+        "definition": "ArtifactEngineJob",
+        "version": "6"
+    };
+
+    var handler = new BasicCredentialHandler(config.jenkins.username, config.jenkins.password);
+    var webProvider = new providers.WebProvider(itemsUrl, "jenkins.handlebars", variables, handler, { ignoreSslError: false });
+    var dropLocation = path.join(config.dropLocation, "jenkinsDropWithMultipleFiles");
+    var localFileProvider = new providers.FilesystemProvider(dropLocation);
+
+    await processor.processItems(webProvider, localFileProvider, processorOptions);
+}
+
 async function downloadTeamCityDropWithMultipleFiles(processorOptions) {
     let processor = new engine.ArtifactEngine();
 
-    var itemsUrl = "https://teamcity.jetbrains.com/httpAuth/app/rest/builds/id:1111970/artifacts/children/"
+    var itemsUrl = "https://teamcity.jetbrains.com/httpAuth/app/rest/builds/id:1161573/artifacts/children/"
     var teamcityVariables = {
         "endpoint": {
             "url": "https://teamcity.jetbrains.com"

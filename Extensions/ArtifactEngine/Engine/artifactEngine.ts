@@ -18,7 +18,12 @@ export class ArtifactEngine {
         Logger.verbose = artifactEngineOptions.verbose;
         this.logger = new Logger(this.artifactItemStore);
         this.logger.logProgress();
-        const itemsToPull: models.ArtifactItem[] = await sourceProvider.getRootItems();
+        var rootItemsPromise = sourceProvider.getRootItems();
+        rootItemsPromise.catch((error) => {
+            throw error;
+        });
+
+        const itemsToPull: models.ArtifactItem[] = await rootItemsPromise;
         this.artifactItemStore.addItems(itemsToPull);
 
         for (let i = 0; i < artifactEngineOptions.parallelProcessingLimit; ++i) {
@@ -26,7 +31,9 @@ export class ArtifactEngine {
             processors.push(worker.init());
         }
 
-        await Promise.all(processors);
+        await Promise.all(processors).catch((error) => {
+            throw error;
+        });
 
         this.logger.logSummary();
 
@@ -98,7 +105,20 @@ export class ArtifactEngine {
     private logger: Logger;
 }
 
-process.on('unhandledRejection', (reason, promise) => {
-    console.error(reason);
-    throw reason;
+process.removeAllListeners('unhandledRejection');
+process.removeAllListeners('uncaughtException');
+process.on('unhandledRejection', (err, promise) => {
+    // ignore printing errors for timeout  
+    /* if(err.code !== 'ETIMEDOUT'){
+        console.error(err);
+        throw err;
+    } */
+});
+
+process.on('uncaughtException', function (err) {
+    // ignore printing errors for timeout  
+    if(err.code !== 'ETIMEDOUT'){
+        console.error(err);
+        throw err;
+    }
 });

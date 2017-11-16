@@ -71,8 +71,20 @@ export class WebProvider implements models.IArtifactProvider {
     private getItems(itemsUrl: string): Promise<models.ArtifactItem[]> {
         var promise = new Promise<models.ArtifactItem[]>(async (resolve, reject) => {
             itemsUrl = itemsUrl.replace(/([^:]\/)\/+/g, "$1");
-            let resp: httpm.HttpClientResponse = await this.httpc.get(itemsUrl, { 'Accept': 'application/json' });
-            let body: string = await resp.readBody();
+
+            let getItemsPromise = this.httpc.get(itemsUrl, { 'Accept': 'application/json' });
+            getItemsPromise.catch(reason => {
+                reject(reason);
+            });
+
+            let resp: httpm.HttpClientResponse = await getItemsPromise;
+
+            let readBodyPromise = resp.readBody();
+            readBodyPromise.catch(reason => {
+                reject(reason);
+            });
+
+            let body: string = await readBodyPromise;
 
             fs.readFile(this.getTemplateFilePath(), 'utf8', (err, templateFileContent) => {
                 if (err) {

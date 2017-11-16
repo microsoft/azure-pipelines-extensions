@@ -20,7 +20,7 @@ beforeEach((done) => {
     webProvider = new providers.WebProvider("", "", {}, handler);
 
     stubResponse = new httpm.HttpClientResponse(null);
-    sinon.stub(stubResponse, "readBody").returns("{}");
+    sinon.stub(stubResponse, "readBody").returns(new Promise((resolve, reject) => { resolve("{}") }));
     stubResponse.message = sinon.spy(http.IncomingMessage);
     stubResponse.message.headers = {'content-encoding' : 'json'};
     getStub = sinon.stub(webProvider.httpc, 'get').returns(new Promise<httpm.HttpClientResponse>((resolve, reject) => {
