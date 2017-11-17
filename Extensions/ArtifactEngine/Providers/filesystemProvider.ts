@@ -11,7 +11,11 @@ export class FilesystemProvider implements models.IArtifactProvider {
     }
 
     getRootItems(): Promise<models.ArtifactItem[]> {
-        return this.getItems(this._rootLocation);
+        var rootItem = new models.ArtifactItem();
+        rootItem.metadata = { downloadUrl: this._rootLocation };
+        rootItem.path = '';
+        rootItem.itemType = models.ItemType.Folder;
+        return Promise.resolve([rootItem]);
     }
 
     getArtifactItems(artifactItem: models.ArtifactItem): Promise<models.ArtifactItem[]> {
@@ -50,7 +54,7 @@ export class FilesystemProvider implements models.IArtifactProvider {
                     if (!item.metadata) {
                         item.metadata = {};
                     }
-                    
+
                     item.metadata[models.Constants.DestinationUrlKey] = outputFilename;
 
                     resolve(item);

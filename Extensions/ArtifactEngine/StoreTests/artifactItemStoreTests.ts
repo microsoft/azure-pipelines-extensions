@@ -263,3 +263,17 @@ describe('artifactItemStore.itemsPendingProcessing', () => {
         assert.equal(artifactItemStore.itemsPendingProcessing(), false);
     });
 });
+
+describe('artifactItemStore.increaseRetryCount', () => {
+    it('should increase retry count of item', () => {
+        var artifactItemStore = new ArtifactItemStore();
+        var artifactItem1 = new models.ArtifactItem();
+        artifactItem1.path = "path1";
+        artifactItemStore.addItem(artifactItem1);
+
+        artifactItemStore.increaseRetryCount(artifactItem1);
+        artifactItemStore.increaseRetryCount(artifactItem1);
+
+        assert.equal(artifactItemStore.getTickets().find(x => x.artifactItem.path == "path1").retryCount, 2);
+    });
+});

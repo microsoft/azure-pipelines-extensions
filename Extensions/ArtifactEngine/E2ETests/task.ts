@@ -1,10 +1,10 @@
 ﻿import * as path from 'path'
 
-import * as models from "./Models"
-import * as engine from "./Engine"
-import * as providers from "./Providers"
-import { BasicCredentialHandler } from "./Providers/handlers/basiccreds";
-import { PersonalAccessTokenCredentialHandler } from "./Providers/handlers/personalaccesstoken";
+import * as models from "../Models"
+import * as engine from "../Engine"
+import * as providers from "../Providers"
+import { BasicCredentialHandler } from "../Providers/handlers/basiccreds";
+import { PersonalAccessTokenCredentialHandler } from "../Providers/handlers/personalaccesstoken";
 
 var config = require("./config.json")
 

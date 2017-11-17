@@ -5,3 +5,4 @@ config.json
 package-lock.json
 *.d.ts
 !definitions/*.d.ts
+.nyc_output/**

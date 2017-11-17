@@ -8,19 +8,31 @@
             "type": "node",
             "request": "launch",
             "preLaunchTask": "build",
-            "name": "Run task.ts",
+            "name": "Run e2e tests",
             "program": "${workspaceRoot}/task.js",
             "outFiles": [
                 "${workspaceRoot}/out/**/*.js"
             ]
         },
         {
-            "name": "Run mocha",
+            "name": "Run unit tests",
             "type": "node",
             "request": "launch",
+            "preLaunchTask": "build",
             "program": "${workspaceRoot}/node_modules/mocha/bin/_mocha",
             "stopOnEntry": false,
             "args": ["**/*Tests.js"],
+            "runtimeExecutable": null,
+            "env": { "NODE_ENV": "production"}
+        },
+        {
+            "name": "Run integration tests",
+            "type": "node",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceRoot}/node_modules/mocha/bin/_mocha",
+            "stopOnEntry": false,
+            "args": ["**/IntegrationTests/*Tests.js"],
             "runtimeExecutable": null,
             "env": { "NODE_ENV": "production"}
         }
