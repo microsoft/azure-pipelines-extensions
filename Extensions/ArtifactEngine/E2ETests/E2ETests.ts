@@ -1,14 +1,62 @@
-﻿import * as path from 'path'
+﻿import * as assert from 'assert';
+import * as path from 'path'
+import * as fs from 'fs'
 
 import * as models from "../Models"
 import * as engine from "../Engine"
 import * as providers from "../Providers"
+
 import { BasicCredentialHandler } from "../Providers/handlers/basiccreds";
 import { PersonalAccessTokenCredentialHandler } from "../Providers/handlers/personalaccesstoken";
 
 var config = require("./config.json")
 
-async function main(): Promise<void> {
+describe('e2e tests', () => {
+    it('should be able to download jenkins artifact', (done) => {
+        let processor = new engine.ArtifactEngine();
+
+        let processorOptions = new engine.ArtifactEngineOptions();
+        processorOptions.fileProcessingTimeoutInMinutes = 5;
+        processorOptions.itemPattern = "**";
+        processorOptions.parallelProcessingLimit = 8;
+        processorOptions.retryIntervalInSeconds = 1000;
+        processorOptions.retryLimit = 2;
+        processorOptions.verbose = true;
+
+        var itemsUrl = "http://redvstt-lab43:8080/job/ArtifactEngineJob/6/api/json?tree=artifacts[*]"
+        var variables = {
+            "endpoint": {
+                "url": "http://redvstt-lab43:8080"
+            },
+            "definition": "ArtifactEngineJob",
+            "version": "6"
+        };
+
+        var handler = new BasicCredentialHandler(config.jenkins.username, config.jenkins.password);
+        var webProvider = new providers.WebProvider(itemsUrl, "jenkins.handlebars", variables, handler, { ignoreSslError: false });
+        var dropLocation = path.join(config.dropLocation, "jenkinsDropWithMultipleFiles");
+        var filesystemProvider = new providers.FilesystemProvider(dropLocation);
+
+        processor.processItems(webProvider, filesystemProvider, processorOptions)
+            .then((tickets) => {
+                fs.readFile(path.join(config.dropLocation, 'Extensions/ArtifactEngine/TestData/Jenkins/file1.pdb'), 'utf8', function (err, data) {
+                  if (err) {
+                    throw err;
+                  }
+                  assert.equal(data, "dummyFileContent");
+                });
+                
+                //assert.equal(stubProvider.itemsUploaded["Extensions/ArtifactEngine/TestData/Jenkins/file1.pdb"], "dummyFileContent");
+                //assert.equal(stubProvider.itemsUploaded["Extensions/ArtifactEngine/TestData/Jenkins/folder1/file2.txt"], "dummyFolderContent");
+                assert.equal(tickets.find(x => x.artifactItem.path == "Extensions/ArtifactEngine/TestData/Jenkins/file1.pdb").retryCount, 0);
+                assert.equal(tickets.find(x => x.artifactItem.path == "Extensions/ArtifactEngine/TestData/Jenkins/folder1/file2.txt").retryCount, 1);
+            }, (error) => {
+                throw "test failure";
+            });
+    });
+});
+
+/* async function main(): Promise<void> {
     let processorOptions = new engine.ArtifactEngineOptions();
     processorOptions.fileProcessingTimeoutInMinutes = 5;
     processorOptions.itemPattern = "**";
@@ -19,16 +67,16 @@ async function main(): Promise<void> {
 
     //await downloadTeamCityDropWithMultipleFiles2(processorOptions);
 
-    await downloadFileShareDrop(processorOptions);
-    await downloadVSTSDropWithMultipleFiles(processorOptions);
-    await downloadTeamCityDropWithMultipleFiles(processorOptions);
+    //await downloadFileShareDrop(processorOptions);
+    ///await downloadVSTSDropWithMultipleFiles(processorOptions);
+    //await downloadTeamCityDropWithMultipleFiles(processorOptions);
     await downloadJenkinsDropWithMultipleFiles(processorOptions);
 
-    await downloadVSTSDropWithMultipleFiles2(processorOptions);
+    //await downloadVSTSDropWithMultipleFiles2(processorOptions);
 
     // Enable these to test big drops if required.
     // await downloadBigTeamCityDrop(processorOptions);
-}
+} */
 
 async function downloadTeamCityDropWithMultipleFiles2(processorOptions) {
     let processor = new engine.ArtifactEngine();
@@ -99,13 +147,13 @@ async function downloadVSTSDropWithMultipleFiles2(processorOptions) {
 async function downloadJenkinsDropWithMultipleFiles(processorOptions) {
     let processor = new engine.ArtifactEngine();
 
-    var itemsUrl = "http://redvstt-lab43:8080/job/ArtifactJob/5/api/json?tree=artifacts[*]"
+    var itemsUrl = "http://redvstt-lab43:8080/job/ArtifactEngineJob/6/api/json?tree=artifacts[*]"
     var variables = {
         "endpoint": {
             "url": "http://redvstt-lab43:8080"
         },
-        "definition": "ArtifactJob",
-        "version": "5"
+        "definition": "ArtifactEngineJob",
+        "version": "6"
     };
 
     var handler = new BasicCredentialHandler(config.jenkins.username, config.jenkins.password);
@@ -151,5 +199,3 @@ async function downloadBigTeamCityDrop(processorOptions) {
 
     await processor.processItems(webProvider, localFileProvider, processorOptions);
 }
-
-main();
