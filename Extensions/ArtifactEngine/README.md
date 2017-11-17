@@ -15,4 +15,5 @@ To use Artifact engine in your tasks or app have a look at [task.ts](task.ts).
 2. Use command ctrl-shift-b to build from vscode
 
 *Testing*
-1. Install mocha extension to run tests from vscode
+1. Install [mocha sidebar](https://marketplace.visualstudio.com/items?itemName=maty.vscode-mocha-sidebar) extension to run tests from vscode.
+2. Optional install [node tdd](https://marketplace.visualstudio.com/items?itemName=prashaantt.node-tdd) extension to automatically run tests on build.
