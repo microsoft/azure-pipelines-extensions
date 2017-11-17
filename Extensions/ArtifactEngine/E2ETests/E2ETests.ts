@@ -12,7 +12,8 @@ import { PersonalAccessTokenCredentialHandler } from "../Providers/handlers/pers
 var config = require("./config.json")
 
 describe('e2e tests', () => {
-    it('should be able to download jenkins artifact', (done) => {
+    it('should be able to download jenkins artifact', function (done) {
+        this.timeout(15000);
         let processor = new engine.ArtifactEngine();
 
         let processorOptions = new engine.ArtifactEngineOptions();
@@ -39,17 +40,16 @@ describe('e2e tests', () => {
 
         processor.processItems(webProvider, filesystemProvider, processorOptions)
             .then((tickets) => {
-                fs.readFile(path.join(config.dropLocation, 'Extensions/ArtifactEngine/TestData/Jenkins/file1.pdb'), 'utf8', function (err, data) {
-                  if (err) {
-                    throw err;
-                  }
-                  assert.equal(data, "dummyFileContent");
+                fs.readFile(path.join(config.dropLocation, 'jenkinsDropWithMultipleFiles/Extensions/ArtifactEngine/TestData/Jenkins/folder1/file2.txt'), 'utf8', function (err, data) {
+                    if (err) {
+                        throw err;
+                    }
+                    assert.equal(data, "dummyFolderContent");
+                    done();
                 });
                 
-                //assert.equal(stubProvider.itemsUploaded["Extensions/ArtifactEngine/TestData/Jenkins/file1.pdb"], "dummyFileContent");
-                //assert.equal(stubProvider.itemsUploaded["Extensions/ArtifactEngine/TestData/Jenkins/folder1/file2.txt"], "dummyFolderContent");
                 assert.equal(tickets.find(x => x.artifactItem.path == "Extensions/ArtifactEngine/TestData/Jenkins/file1.pdb").retryCount, 0);
-                assert.equal(tickets.find(x => x.artifactItem.path == "Extensions/ArtifactEngine/TestData/Jenkins/folder1/file2.txt").retryCount, 1);
+                assert.equal(tickets.find(x => x.artifactItem.path == "Extensions/ArtifactEngine/TestData/Jenkins/folder1/file2.txt").retryCount, 0);
             }, (error) => {
                 throw "test failure";
             });
