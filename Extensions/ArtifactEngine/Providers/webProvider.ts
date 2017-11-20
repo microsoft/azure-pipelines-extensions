@@ -52,7 +52,12 @@ export class WebProvider implements models.IArtifactProvider {
             itemUrl = itemUrl.replace(/([^:]\/)\/+/g, "$1");
             this.httpc.get(itemUrl).then((res: httpm.HttpClientResponse) => {
                 if (res.message.headers['content-encoding'] === 'gzip') {
-                    resolve(res.message.pipe(zlib.createUnzip()));
+                    try {
+                        resolve(res.message.pipe(zlib.createUnzip()));
+                    }
+                    catch (err) {
+                        reject(err);
+                    }
                 }
                 else {
                     resolve(res.message);
@@ -79,14 +84,14 @@ export class WebProvider implements models.IArtifactProvider {
                             Logger.logError(err ? JSON.stringify(err) : "");
                             reject(err);
                         }
-    
+
                         try {
-                            var template = handlebars.compile(templateFileContent);                        
+                            var template = handlebars.compile(templateFileContent);
                             var response = JSON.parse(body);
                             var context = this.extend(response, this.variables);
                             var result = template(context);
                             var items = JSON.parse(result);
-    
+
                             resolve(items);
                         } catch (error) {
                             Logger.logError("Failed to parse response body: " + body + " , got error : " + error);
