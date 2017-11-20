@@ -12,7 +12,8 @@ export class ArtifactItemStore {
             artifactItem: item,
             state: models.TicketState.InQueue,
             startTime: undefined,
-            finishTime: undefined
+            finishTime: undefined,
+            retryCount: 0
         };
 
         this._downloadTickets.push(artifactDownloadTicket);
@@ -51,6 +52,13 @@ export class ArtifactItemStore {
             if (state != models.TicketState.InQueue && state != models.TicketState.Processing) {
                 processedItem.finishTime = new Date();
             }
+        }
+    }
+
+    public increaseRetryCount(item: models.ArtifactItem){
+        var ticket = this._downloadTickets.find(x => x.artifactItem.path === item.path);
+        if (ticket) {
+            ticket.retryCount = ticket.retryCount + 1;
         }
     }
 

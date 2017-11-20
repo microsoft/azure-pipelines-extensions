@@ -25,12 +25,16 @@ export class WebProvider implements models.IArtifactProvider {
         this.templateFile = templateFile;
         this.options = requestOptions || {};
         this.initializeOptions();
-        this.httpc = new httpm.HttpClient('item-level-downloader ' + packagejson.version, [handler], this.options);
+        this.httpc = new httpm.HttpClient('artifact-engine ' + packagejson.version, [handler], this.options);
         this.variables = variables;
     }
 
     getRootItems(): Promise<models.ArtifactItem[]> {
-        return this.getItems(this.rootItemsLocation);
+        var rootItem = new models.ArtifactItem();
+        rootItem.metadata = { downloadUrl: this.rootItemsLocation };
+        rootItem.path = '';
+        rootItem.itemType = models.ItemType.Folder;
+        return Promise.resolve([rootItem]);
     }
 
     getArtifactItems(artifactItem: models.ArtifactItem): Promise<models.ArtifactItem[]> {
@@ -39,26 +43,28 @@ export class WebProvider implements models.IArtifactProvider {
     }
 
     getArtifactItem(artifactItem: models.ArtifactItem): Promise<NodeJS.ReadableStream> {
-        var promise = new Promise<NodeJS.ReadableStream>(async (resolve, reject) => {
+        var promise = new Promise<NodeJS.ReadableStream>((resolve, reject) => {
             if (!artifactItem.metadata || !artifactItem.metadata['downloadUrl']) {
                 reject("No downloadUrl available to download the item.");
             }
 
             var itemUrl: string = artifactItem.metadata['downloadUrl'];
             itemUrl = itemUrl.replace(/([^:]\/)\/+/g, "$1");
-            var getResponsePromise = this.httpc.get(itemUrl);
-            getResponsePromise.catch(reason => {
+            this.httpc.get(itemUrl).then((res: httpm.HttpClientResponse) => {
+                if (res.message.headers['content-encoding'] === 'gzip') {
+                    try {
+                        resolve(res.message.pipe(zlib.createUnzip()));
+                    }
+                    catch (err) {
+                        reject(err);
+                    }
+                }
+                else {
+                    resolve(res.message);
+                }
+            }, (reason) => {
                 reject(reason);
             });
-
-            let res: httpm.HttpClientResponse = await getResponsePromise;
-
-            if (res.message.headers['content-encoding'] === 'gzip') {
-                resolve(res.message.pipe(zlib.createUnzip()));
-            }
-            else {
-                resolve(res.message);
-            }
         });
 
         return promise;
@@ -69,29 +75,34 @@ export class WebProvider implements models.IArtifactProvider {
     }
 
     private getItems(itemsUrl: string): Promise<models.ArtifactItem[]> {
-        var promise = new Promise<models.ArtifactItem[]>(async (resolve, reject) => {
+        var promise = new Promise<models.ArtifactItem[]>((resolve, reject) => {
             itemsUrl = itemsUrl.replace(/([^:]\/)\/+/g, "$1");
-            let resp: httpm.HttpClientResponse = await this.httpc.get(itemsUrl, { 'Accept': 'application/json' });
-            let body: string = await resp.readBody();
+            this.httpc.get(itemsUrl, { 'Accept': 'application/json' }).then((resp: httpm.HttpClientResponse) => {
+                resp.readBody().then((body: string) => {
+                    fs.readFile(this.getTemplateFilePath(), 'utf8', (err, templateFileContent) => {
+                        if (err) {
+                            Logger.logError(err ? JSON.stringify(err) : "");
+                            reject(err);
+                        }
 
-            fs.readFile(this.getTemplateFilePath(), 'utf8', (err, templateFileContent) => {
-                if (err) {
-                    Logger.logError(err ? JSON.stringify(err) : "");
+                        try {
+                            var template = handlebars.compile(templateFileContent);
+                            var response = JSON.parse(body);
+                            var context = this.extend(response, this.variables);
+                            var result = template(context);
+                            var items = JSON.parse(result);
+
+                            resolve(items);
+                        } catch (error) {
+                            Logger.logError("Failed to parse response body: " + body + " , got error : " + error);
+                            reject(error);
+                        }
+                    });
+                }, (err) => {
                     reject(err);
-                }
-
-                var template = handlebars.compile(templateFileContent);
-                try {
-                    var response = JSON.parse(body);
-                    var context = this.extend(response, this.variables);
-                    var result = template(context);
-                    var items = JSON.parse(result);
-
-                    resolve(items);
-                } catch (error) {
-                    Logger.logError("Failed to parse response body: " + body + " , got error : " + error);
-                    reject(error);
-                }
+                });
+            }, (err) => {
+                reject(err);
             });
         });
 
