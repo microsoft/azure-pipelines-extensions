@@ -12,22 +12,22 @@ import { TicketState } from '../Models/ticketState';
 
 export class ArtifactEngine {
     processItems(sourceProvider: models.IArtifactProvider, destProvider: models.IArtifactProvider, artifactEngineOptions?: ArtifactEngineOptions): Promise<models.ArtifactDownloadTicket[]> {
-        var promise = new Promise<models.ArtifactDownloadTicket[]>((resolve, reject) => {
-            const processors: Promise<void>[] = [];
+        var artifactDownloadTicketsPromise = new Promise<models.ArtifactDownloadTicket[]>((resolve, reject) => {
+            const workers: Promise<void>[] = [];
             artifactEngineOptions = artifactEngineOptions || new ArtifactEngineOptions();
             this.artifactItemStore.flush();
             Logger.verbose = artifactEngineOptions.verbose;
             this.logger = new Logger(this.artifactItemStore);
             this.logger.logProgress();
-            sourceProvider.getRootItems().then((itemsToPull: models.ArtifactItem[]) => {
-                this.artifactItemStore.addItems(itemsToPull);
+            sourceProvider.getRootItems().then((itemsToProcess: models.ArtifactItem[]) => {
+                this.artifactItemStore.addItems(itemsToProcess);
 
                 for (let i = 0; i < artifactEngineOptions.parallelProcessingLimit; ++i) {
                     var worker = new Worker<models.ArtifactItem>(i + 1, item => this.processArtifactItem(sourceProvider, item, destProvider, artifactEngineOptions), () => this.artifactItemStore.getNextItemToProcess(), () => !this.artifactItemStore.itemsPendingProcessing());
-                    processors.push(worker.init());
+                    workers.push(worker.init());
                 }
 
-                Promise.all(processors).then(() => {
+                Promise.all(workers).then(() => {
                     this.logger.logSummary();
                     resolve(this.artifactItemStore.getTickets());
                 }, (err) => {
@@ -38,15 +38,15 @@ export class ArtifactEngine {
             });
         });
 
-        return promise;
+        return artifactDownloadTicketsPromise;
     }
 
     processArtifactItem(sourceProvider: models.IArtifactProvider,
         item: models.ArtifactItem,
         destProvider: models.IArtifactProvider,
         artifactEngineOptions: ArtifactEngineOptions): Promise<void> {
-        return new Promise<void>((downloadResolve, downloadReject) => {
-            this.processArtifactItemImplementation(sourceProvider, item, destProvider, artifactEngineOptions, downloadResolve, downloadReject);
+        return new Promise<void>((resolve, reject) => {
+            this.processArtifactItemImplementation(sourceProvider, item, destProvider, artifactEngineOptions, resolve, reject);
         });
     }
 
@@ -65,6 +65,7 @@ export class ArtifactEngine {
             } else {
                 Logger.logMessage(err);
                 this.artifactItemStore.increaseRetryCount(item);
+                Logger.logMessage("Retrying download of " + item.path + ", retry count: " + (retryCount + 1));
                 setTimeout(() => this
                     .processArtifactItemImplementation(sourceProvider, item, destProvider, artifactEngineOptions, resolve, reject, retryCount + 1), artifactEngineOptions.retryIntervalInSeconds * 1000);
             }
@@ -75,12 +76,13 @@ export class ArtifactEngine {
                 Logger.logInfo("Processing " + item.path);
                 sourceProvider.getArtifactItem(item).then((contentStream) => {
                     Logger.logInfo("Got download stream for item: " + item.path);
-                    destProvider.putArtifactItem(item, contentStream).then((item) => {
-                        this.artifactItemStore.updateState(item, models.TicketState.Processed);
-                        resolve();
-                    }, (err) => {
-                        retryIfRequired("Error putting file " + item.path + ":" + err);
-                    });
+                    destProvider.putArtifactItem(item, contentStream)
+                        .then((item) => {
+                            this.artifactItemStore.updateState(item, models.TicketState.Processed);
+                            resolve();
+                        }, (err) => {
+                            retryIfRequired("Error putting file " + item.path + ":" + err);
+                        });
                 }, (err) => {
                     retryIfRequired("Error getting file " + item.path + ":" + err);
                 });
@@ -99,8 +101,6 @@ export class ArtifactEngine {
                     }
 
                     return value;
-                }, (err) => {
-                    retryIfRequired("Error getting " + item.path + ":" + err);
                 });
 
                 this.artifactItemStore.addItems(items);
@@ -108,6 +108,8 @@ export class ArtifactEngine {
 
                 Logger.logInfo("Enqueued " + items.length + " for processing.");
                 resolve();
+            }, (err) => {
+                retryIfRequired("Error getting " + item.path + ":" + err);
             });
         }
     }
@@ -117,11 +119,11 @@ export class ArtifactEngine {
 }
 
 process.on('unhandledRejection', (reason) => {
-    Logger.logError(reason);
+    Logger.logError("artifact-engine: unhandled rejection " + reason);
     throw reason;
 });
 
 process.on('uncaughtException', (reason) => {
-    Logger.logError(reason);
+    Logger.logError("artifact-engine: unhandled exception " + reason);
     throw reason;
 });

@@ -39,8 +39,9 @@ export class Worker<T> {
             let executePromise = this.execute(item);
 
             executePromise.then(() => {
+                Logger.logInfo(`Nothing to process currently, respawing worker ${this.id} after 1 sec.`);
                 this.spawnWorker(resolve, reject);
-            }, reason => {
+            }, (reason) => {
                 reject(reason);
                 return;
             });
