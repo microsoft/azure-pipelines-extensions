@@ -15,6 +15,7 @@ export class ArtifactEngine {
         var artifactDownloadTicketsPromise = new Promise<models.ArtifactDownloadTicket[]>((resolve, reject) => {
             const workers: Promise<void>[] = [];
             artifactEngineOptions = artifactEngineOptions || new ArtifactEngineOptions();
+            this.createPatternList(artifactEngineOptions);
             this.artifactItemStore.flush();
             Logger.verbose = artifactEngineOptions.verbose;
             this.logger = new Logger(this.artifactItemStore);
@@ -72,7 +73,7 @@ export class ArtifactEngine {
         }
         retryCount = retryCount ? retryCount : 0;
         if (item.itemType === models.ItemType.File) {
-            if (minimatch(item.path, artifactEngineOptions.itemPattern, { dot: true, nocase: true })) {
+            if (this.shouldDownload(item.path)) {
                 Logger.logInfo("Processing " + item.path);
                 sourceProvider.getArtifactItem(item).then((contentStream) => {
                     Logger.logInfo("Got download stream for item: " + item.path);
@@ -114,8 +115,33 @@ export class ArtifactEngine {
         }
     }
 
+    shouldDownload(path: string) {
+        var shouldDownload = false;
+        for (let pattern of this.patternList) {
+            if (pattern.charAt(0) === '-' && (minimatch(path, pattern.substr(1), { dot: true, nocase: true }))) {
+                return false;
+            }
+            else {
+                if (minimatch(path, (pattern.charAt(0) === '+') ? pattern.substr(1) : pattern, { dot: true, nocase: true })) {
+                    shouldDownload = true;
+                }
+            }
+        }
+        return shouldDownload;
+    }
+
+    createPatternList(artifactEngineOptions: ArtifactEngineOptions) {
+        if (!artifactEngineOptions.itemPattern) {
+            this.patternList = ['**'];
+        }
+        else {
+            this.patternList = artifactEngineOptions.itemPattern.split('","').map((pattern) => pattern.replace(/"/g, ''));
+        }
+    }
+
     private artifactItemStore: ArtifactItemStore = new ArtifactItemStore();
     private logger: Logger;
+    private patternList: string[];
 }
 
 process.on('unhandledRejection', (reason) => {
