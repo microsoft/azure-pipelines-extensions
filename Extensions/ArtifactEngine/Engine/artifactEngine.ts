@@ -4,6 +4,7 @@ import * as fs from 'fs';
 var minimatch = require('minimatch');
 
 import * as models from '../Models';
+import * as ci from './cilogger';
 import { ArtifactItemStore } from '../Store/artifactItemStore';
 import { ArtifactEngineOptions } from "./artifactEngineOptions"
 import { Logger } from './logger';
@@ -31,9 +32,11 @@ export class ArtifactEngine {
                     this.logger.logSummary();
                     resolve(this.artifactItemStore.getTickets());
                 }, (err) => {
+                    ci.publishEvent('issue', { issueType: 'error', errorMessage: err });
                     reject(err);
                 });
             }, (err) => {
+                ci.publishEvent('issue', { issueType: 'error', errorMessage: err });
                 reject(err);
             });
         });
@@ -119,11 +122,13 @@ export class ArtifactEngine {
 }
 
 process.on('unhandledRejection', (reason) => {
+    ci.publishEvent('issue', { issueType: 'unhandledRejection', errorMessage: reason.message, stack: reason.stack });
     Logger.logError("artifact-engine: unhandled rejection " + reason);
     throw reason;
 });
 
 process.on('uncaughtException', (reason) => {
+    ci.publishEvent('issue', { issueType: 'uncaughtException', errorMessage: reason.message, stack: reason.stack });
     Logger.logError("artifact-engine: unhandled exception " + reason);
     throw reason;
 });

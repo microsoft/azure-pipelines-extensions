@@ -277,3 +277,39 @@ describe('artifactItemStore.increaseRetryCount', () => {
         assert.equal(artifactItemStore.getTickets().find(x => x.artifactItem.path == "path1").retryCount, 2);
     });
 });
+
+describe('artifactItemStore.getRootLocation', () => {
+    it('should return if root item is not present', () => {
+        var artifactItemStore = new ArtifactItemStore();
+        var artifactItem1 = new models.ArtifactItem();
+        artifactItem1.path = "path1";
+
+        artifactItemStore.addItem(artifactItem1);
+
+        assert.equal(artifactItemStore.getRootLocation(), '');
+    });
+});
+
+describe('artifactItemStore.getRootLocation', () => {
+    it('should return if root item does not metadata', () => {
+        var artifactItemStore = new ArtifactItemStore();
+        var artifactItem1 = new models.ArtifactItem();
+        artifactItem1.path = "";
+
+        artifactItemStore.addItem(artifactItem1);
+
+        assert.equal(artifactItemStore.getRootLocation(), '');
+    });
+});
+
+describe('artifactItemStore.getRootLocation', () => {
+    it('should return location of root item', () => {
+        var artifactItemStore = new ArtifactItemStore();
+        var artifactItem1 = new models.ArtifactItem();
+        artifactItem1.path = "";
+        artifactItem1.metadata = { downloadUrl: '//dummy/drop' };
+        artifactItemStore.addItem(artifactItem1);
+
+        assert.equal(artifactItemStore.getRootLocation(), '//dummy/drop');
+    });
+});

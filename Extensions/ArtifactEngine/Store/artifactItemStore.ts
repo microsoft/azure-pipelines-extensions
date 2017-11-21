@@ -55,7 +55,17 @@ export class ArtifactItemStore {
         }
     }
 
-    public increaseRetryCount(item: models.ArtifactItem){
+    public getRootLocation(): string {
+        var rootItem = this._downloadTickets.find(x => x.artifactItem.path === "");
+        var rootLocation = '';
+        if (rootItem && rootItem.artifactItem.metadata) {
+            rootLocation = rootItem.artifactItem.metadata["downloadUrl"];
+        }
+
+        return rootLocation ? rootLocation : '';
+    }
+
+    public increaseRetryCount(item: models.ArtifactItem) {
         var ticket = this._downloadTickets.find(x => x.artifactItem.path === item.path);
         if (ticket) {
             ticket.retryCount = ticket.retryCount + 1;
