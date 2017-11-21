@@ -3,6 +3,7 @@ import { TicketState } from '../Models/ticketState';
 import { ArtifactItemStore } from '../Store/artifactItemStore';
 
 var tl = require('vsts-task-lib');
+import * as ci from './cilogger';
 
 export class Logger {
 
@@ -54,21 +55,33 @@ export class Logger {
     }
 
     public logSummary(): void {
-        var tickets = this.store.getTickets();
-        tickets = tickets.filter(x => x.artifactItem.itemType == ItemType.File);
+        var allTickets = this.store.getTickets();
+        var fileTickets = allTickets.filter(x => x.artifactItem.itemType == ItemType.File);
 
-        var finishedItems = tickets.filter(x => x.state == TicketState.Processed || x.state == TicketState.Skipped || x.state == TicketState.Failed);
-        var processedItems = tickets.filter(x => x.state == TicketState.Processed);
-        var skippedItems = tickets.filter(x => x.state == TicketState.Skipped);
-        var failedItems = tickets.filter(x => x.state == TicketState.Failed);
+        var finishedItems = fileTickets.filter(x => x.state == TicketState.Processed || x.state == TicketState.Skipped || x.state == TicketState.Failed);
+        var processedItems = fileTickets.filter(x => x.state == TicketState.Processed);
+        var skippedItems = fileTickets.filter(x => x.state == TicketState.Skipped);
+        var failedItems = fileTickets.filter(x => x.state == TicketState.Failed);
 
         var endTime = new Date();
+        var timeElapsed = (endTime.valueOf() - this.startTime.valueOf()) / 1000;
         console.log(
-            "Total Items: " + tickets.length
+            "Total Files: " + fileTickets.length
             + ", Processed: " + processedItems.length
             + ", Skipped: " + skippedItems.length
             + ", Failed: " + failedItems.length
-            + ", Time elapsed: " + ((endTime.valueOf() - this.startTime.valueOf()) / 1000) + "secs");
+            + ", Time elapsed: " + timeElapsed + "secs");
+
+        ci.publishEvent('performance',
+            {
+                location: this.store.getRootLocation(),
+                total: allTickets.length,
+                files: fileTickets.length,
+                processed: processedItems.length,
+                skipped: skippedItems.length,
+                failed: failedItems.length,
+                timetaken: timeElapsed
+            });
 
         if (Logger.verbose) {
             tl.debug("Summary:");
@@ -83,7 +96,7 @@ export class Logger {
             tl.debug(this.padText("", maxPathLength + 25 + 25 + 10 + 10 + 15, '-'))
             tl.debug(`| ${fileHeader} | ${startTimeHeader} | ${finishTimeHeader} | ${durationHeader} | ${stateHeader}|`)
             tl.debug(this.padText("", maxPathLength + 25 + 25 + 10 + 10 + 15, '-'))
-            tickets.forEach(ticket => {
+            fileTickets.forEach(ticket => {
                 var duration = (ticket.finishTime.valueOf() - ticket.startTime.valueOf()) / 1000 + " secs";
                 tl.debug("| " + this.padText(ticket.artifactItem.path, maxPathLength) + " | " + this.padText(ticket.startTime.toISOString(), 25) + " | " + this.padText(ticket.finishTime.toISOString(), 25) + " | " + this.padText(duration, 10) + " | " + this.padText(ticket.state.toString().toUpperCase(), 10) + "|");
                 tl.debug(this.padText("", maxPathLength + 25 + 25 + 10 + 10 + 15, '-'))
