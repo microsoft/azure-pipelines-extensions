@@ -1,0 +1,449 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Code coverage report for Engine/artifactEngine.ts</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="..\prettify.css" />
+    <link rel="stylesheet" href="..\base.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style type='text/css'>
+        .coverage-summary .sorter {
+            background-image: url(..\sort-arrow-sprite.png);
+        }
+    </style>
+</head>
+<body>
+<div class='wrapper'>
+  <div class='pad1'>
+    <h1>
+      <a href="..\index.html">All files</a> / <a href="index.html">Engine</a> artifactEngine.ts
+    </h1>
+    <div class='clearfix'>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">86.11% </span>
+        <span class="quiet">Statements</span>
+        <span class='fraction'>62/72</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">75% </span>
+        <span class="quiet">Branches</span>
+        <span class='fraction'>9/12</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">83.33% </span>
+        <span class="quiet">Functions</span>
+        <span class='fraction'>20/24</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">85.29% </span>
+        <span class="quiet">Lines</span>
+        <span class='fraction'>58/68</span>
+      </div>
+    </div>
+  </div>
+  <div class='status-line high'></div>
+<pre><table class="coverage">
+<tr><td class="line-count quiet">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98
+99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118
+119
+120
+121
+122
+123
+124
+125
+126
+127
+128
+129</td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-yes">137x</span>
+<span class="cline-any cline-yes">52x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">42x</span>
+<span class="cline-any cline-yes">42x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">45x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">45x</span>
+<span class="cline-any cline-yes">45x</span>
+<span class="cline-any cline-yes">30x</span>
+<span class="cline-any cline-yes">28x</span>
+<span class="cline-any cline-yes">28x</span>
+<span class="cline-any cline-yes">27x</span>
+<span class="cline-any cline-yes">27x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">26x</span>
+<span class="cline-any cline-yes">26x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">15x</span>
+<span class="cline-any cline-yes">14x</span>
+<span class="cline-any cline-yes">13x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">13x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">14x</span>
+<span class="cline-any cline-yes">14x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">14x</span>
+<span class="cline-any cline-yes">14x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">﻿import * as path from 'path';
+import * as fs from 'fs';
+&nbsp;
+var minimatch = require('minimatch');
+&nbsp;
+import * as models from '../Models';
+import { ArtifactItemStore } from '../Store/artifactItemStore';
+import { ArtifactEngineOptions } from "./artifactEngineOptions"
+import { Logger } from './logger';
+import { Worker } from './worker';
+import { TicketState } from '../Models/ticketState';
+&nbsp;
+export class ArtifactEngine {
+    processItems(sourceProvider: models.IArtifactProvider, destProvider: models.IArtifactProvider, artifactEngineOptions?: ArtifactEngineOptions): Promise&lt;models.ArtifactDownloadTicket[]&gt; {
+        var artifactDownloadTicketsPromise = new Promise&lt;models.ArtifactDownloadTicket[]&gt;((resolve, reject) =&gt; {
+            const workers: Promise&lt;void&gt;[] = [];
+            artifactEngineOptions = artifactEngineOptions || <span class="branch-1 cbranch-no" title="branch not covered" >new ArtifactEngineOptions();</span>
+            this.artifactItemStore.flush();
+            Logger.verbose = artifactEngineOptions.verbose;
+            this.logger = new Logger(this.artifactItemStore);
+            this.logger.logProgress();
+            sourceProvider.getRootItems().then((itemsToProcess: models.ArtifactItem[]) =&gt; {
+                this.artifactItemStore.addItems(itemsToProcess);
+&nbsp;
+                for (let i = 0; i &lt; artifactEngineOptions.parallelProcessingLimit; ++i) {
+                    var worker = new Worker&lt;models.ArtifactItem&gt;(i + 1, item =&gt; this.processArtifactItem(sourceProvider, item, destProvider, artifactEngineOptions), () =&gt; this.artifactItemStore.getNextItemToProcess(), () =&gt; !this.artifactItemStore.itemsPendingProcessing());
+                    workers.push(worker.init());
+                }
+&nbsp;
+                Promise.all(workers).then(() =&gt; {
+                    this.logger.logSummary();
+                    resolve(this.artifactItemStore.getTickets());
+                }, <span class="fstat-no" title="function not covered" >(e</span>rr) =&gt; {
+<span class="cstat-no" title="statement not covered" >                    reject(err);</span>
+                });
+            }, <span class="fstat-no" title="function not covered" >(e</span>rr) =&gt; {
+<span class="cstat-no" title="statement not covered" >                reject(err);</span>
+            });
+        });
+&nbsp;
+        return artifactDownloadTicketsPromise;
+    }
+&nbsp;
+    processArtifactItem(sourceProvider: models.IArtifactProvider,
+        item: models.ArtifactItem,
+        destProvider: models.IArtifactProvider,
+        artifactEngineOptions: ArtifactEngineOptions): Promise&lt;void&gt; {
+        return new Promise&lt;void&gt;((resolve, reject) =&gt; {
+            this.processArtifactItemImplementation(sourceProvider, item, destProvider, artifactEngineOptions, resolve, reject);
+        });
+    }
+&nbsp;
+    processArtifactItemImplementation(sourceProvider: models.IArtifactProvider,
+        item: models.ArtifactItem,
+        destProvider: models.IArtifactProvider,
+        artifactEngineOptions: ArtifactEngineOptions,
+        resolve,
+        reject,
+        retryCount?: number) {
+        var retryIfRequired = (err) =&gt; {
+            <span class="missing-if-branch" title="if path not taken" >I</span>if (retryCount === artifactEngineOptions.retryLimit - 1) {
+<span class="cstat-no" title="statement not covered" >                Logger.logError(err);</span>
+<span class="cstat-no" title="statement not covered" >                this.artifactItemStore.updateState(item, models.TicketState.Failed);</span>
+<span class="cstat-no" title="statement not covered" >                reject(err);</span>
+            } else {
+                Logger.logMessage(err);
+                this.artifactItemStore.increaseRetryCount(item);
+                Logger.logMessage("Retrying download of " + item.path + ", retry count: " + (retryCount + 1));
+                setTimeout(() =&gt; this
+                    .processArtifactItemImplementation(sourceProvider, item, destProvider, artifactEngineOptions, resolve, reject, retryCount + 1), artifactEngineOptions.retryIntervalInSeconds * 1000);
+            }
+        }
+        retryCount = retryCount ? retryCount : 0;
+        if (item.itemType === models.ItemType.File) {
+            if (minimatch(item.path, artifactEngineOptions.itemPattern, { dot: true, nocase: true })) {
+                Logger.logInfo("Processing " + item.path);
+                sourceProvider.getArtifactItem(item).then((contentStream) =&gt; {
+                    Logger.logInfo("Got download stream for item: " + item.path);
+                    destProvider.putArtifactItem(item, contentStream)
+                        .then((item) =&gt; {
+                            this.artifactItemStore.updateState(item, models.TicketState.Processed);
+                            resolve();
+                        }, (err) =&gt; {
+                            retryIfRequired("Error putting file " + item.path + ":" + err);
+                        });
+                }, (err) =&gt; {
+                    retryIfRequired("Error getting file " + item.path + ":" + err);
+                });
+            }
+            else {
+                Logger.logInfo("Skipped processing item " + item.path);
+                this.artifactItemStore.updateState(item, models.TicketState.Skipped);
+                resolve();
+            }
+        }
+        else {
+            sourceProvider.getArtifactItems(item).then((items: models.ArtifactItem[]) =&gt; {
+                items = items.map((value, index) =&gt; {
+                    <span class="missing-if-branch" title="if path not taken" >I</span>if (!value.path.toLowerCase().startsWith(item.path.toLowerCase())) {
+<span class="cstat-no" title="statement not covered" >                        value.path = path.join(item.path, value.path);</span>
+                    }
+&nbsp;
+                    return value;
+                });
+&nbsp;
+                this.artifactItemStore.addItems(items);
+                this.artifactItemStore.updateState(item, models.TicketState.Processed);
+&nbsp;
+                Logger.logInfo("Enqueued " + items.length + " for processing.");
+                resolve();
+            }, (err) =&gt; {
+                retryIfRequired("Error getting " + item.path + ":" + err);
+            });
+        }
+    }
+&nbsp;
+    private artifactItemStore: ArtifactItemStore = new ArtifactItemStore();
+    private logger: Logger;
+}
+&nbsp;
+process.on('unhandledRejection', <span class="fstat-no" title="function not covered" >(r</span>eason) =&gt; {
+<span class="cstat-no" title="statement not covered" >    Logger.logError("artifact-engine: unhandled rejection " + reason);</span>
+<span class="cstat-no" title="statement not covered" >    throw reason;</span>
+});
+&nbsp;
+process.on('uncaughtException', <span class="fstat-no" title="function not covered" >(r</span>eason) =&gt; {
+<span class="cstat-no" title="statement not covered" >    Logger.logError("artifact-engine: unhandled exception " + reason);</span>
+<span class="cstat-no" title="statement not covered" >    throw reason;</span>
+});</pre></td></tr>
+</table></pre>
+<div class='push'></div><!-- for sticky footer -->
+</div><!-- /wrapper -->
+<div class='footer quiet pad2 space-top1 center small'>
+  Code coverage
+  generated by <a href="https://istanbul.js.org/" target="_blank">istanbul</a> at Tue Nov 21 2017 16:09:10 GMT+0530 (India Standard Time)
+</div>
+</div>
+<script src="..\prettify.js"></script>
+<script>
+window.onload = function () {
+        if (typeof prettyPrint === 'function') {
+            prettyPrint();
+        }
+};
+</script>
+<script src="..\sorter.js"></script>
+</body>
+</html>
