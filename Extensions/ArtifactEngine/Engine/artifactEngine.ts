@@ -131,7 +131,7 @@ export class ArtifactEngine {
     }
 
     createPatternList(artifactEngineOptions: ArtifactEngineOptions) {
-        if (artifactEngineOptions.itemPattern == null) {
+        if (!artifactEngineOptions.itemPattern) {
             this.patternList = ['**'];
         }
         else {

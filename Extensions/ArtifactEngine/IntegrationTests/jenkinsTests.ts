@@ -6,11 +6,16 @@ import * as providers from "../Providers"
 
 import { BasicCredentialHandler } from "../Providers/handlers/basiccreds";
 import { PersonalAccessTokenCredentialHandler } from "../Providers/handlers/personalaccesstoken";
+import { TicketState } from '../Models/ticketState';
 
 var sinon = require('sinon');
 var nock = require('nock')
 
-describe('processor.processItems', () => {
+describe('Integration tests', () => {
+    beforeEach(() => {
+        nock.cleanAll();
+    });
+
     it('should be able to download jenkins artifact', (done) => {
         let processor = new engine.ArtifactEngine();
         let processorOptions = getArtifactEngineOptions();
@@ -142,6 +147,77 @@ describe('processor.processItems', () => {
             }, (err) => {
                 done();
             }); */
+    });
+
+    it('should download only artifact items matching include pattern', (done) => {
+        let processor = new engine.ArtifactEngine();
+        let processorOptions = getArtifactEngineOptions();
+        let webProvider = getJenkinsWebProvider();
+        let stubProvider = new providers.StubProvider();
+
+        processorOptions.itemPattern = '"+Extensions/ArtifactEngine/TestData/Jenkins/folder2/**","-Extensions/ArtifactEngine/TestData/Jenkins/folder2/subFolder1/**","Extensions/ArtifactEngine/TestData/Jenkins/folder3/file4.txt"';
+
+        nock('http://redvstt-lab43:8080', { "encodedQueryParams": true })
+            .get('/job/ArtifactEngineJob/6/api/json')
+            .query({ "tree": "artifacts[*]" })
+            .basicAuth({
+                user: 'username',
+                pass: 'password'
+            })
+            .reply(200, {
+                "artifacts": [
+                    { "displayPath": "file1.pdb", "fileName": "file1.pdb", "relativePath": "Extensions/ArtifactEngine/TestData/Jenkins/folder2/file1.pdb" },
+                    { "displayPath": "file2.txt", "fileName": "file2.txt", "relativePath": "Extensions/ArtifactEngine/TestData/Jenkins/folder2/subFolder1/file2.txt" },
+                    { "displayPath": "file3.txt", "fileName": "file3.txt", "relativePath": "Extensions/ArtifactEngine/TestData/Jenkins/folder2/subFolder2/file3.txt" },
+                    { "displayPath": "file4.txt", "fileName": "file4.txt", "relativePath": "Extensions/ArtifactEngine/TestData/Jenkins/folder3/file4.txt" }
+                ]
+            });
+
+        nock('http://redvstt-lab43:8080', { "encodedQueryParams": true })
+            .get('/job/ArtifactEngineJob/6/artifact/Extensions/ArtifactEngine/TestData/Jenkins/folder2/file1.pdb')
+            .basicAuth({
+                user: 'username',
+                pass: 'password'
+            })
+            .reply(200, "dummyFile1Content");
+
+        nock('http://redvstt-lab43:8080', { "encodedQueryParams": true })
+            .get('/job/ArtifactEngineJob/6/artifact/Extensions/ArtifactEngine/TestData/Jenkins/folder2/subFolder1/file2.txt')
+            .basicAuth({
+                user: 'username',
+                pass: 'password'
+            })
+            .reply(200, "dummyFile2Content");
+
+        nock('http://redvstt-lab43:8080', { "encodedQueryParams": true })
+            .get('/job/ArtifactEngineJob/6/artifact/Extensions/ArtifactEngine/TestData/Jenkins/folder2/subFolder2/file3.txt')
+            .basicAuth({
+                user: 'username',
+                pass: 'password'
+            })
+            .reply(200, "dummyFile3Content");
+
+        nock('http://redvstt-lab43:8080', { "encodedQueryParams": true })
+            .get('/job/ArtifactEngineJob/6/artifact/Extensions/ArtifactEngine/TestData/Jenkins/folder3/file4.txt')
+            .basicAuth({
+                user: 'username',
+                pass: 'password'
+            })
+            .reply(200, "dummyFile4Content");
+
+        var processItemsPromise = processor.processItems(webProvider, stubProvider, processorOptions);
+        processItemsPromise.then((tickets) => {
+            assert.equal(stubProvider.itemsUploaded["Extensions/ArtifactEngine/TestData/Jenkins/folder2/file1.pdb"], "dummyFile1Content");
+            assert.equal(stubProvider.itemsUploaded["Extensions/ArtifactEngine/TestData/Jenkins/folder2/subFolder2/file3.txt"], "dummyFile3Content");
+            assert.equal(stubProvider.itemsUploaded["Extensions/ArtifactEngine/TestData/Jenkins/folder3/file4.txt"], "dummyFile4Content");
+            assert.equal(tickets.find(x => x.artifactItem.path == "Extensions/ArtifactEngine/TestData/Jenkins/folder2/file1.pdb").state, TicketState.Processed);
+            assert.equal(tickets.find(x => x.artifactItem.path == "Extensions/ArtifactEngine/TestData/Jenkins/folder2/subFolder1/file2.txt").state, TicketState.Skipped);
+            assert.equal(tickets.find(x => x.artifactItem.path == "Extensions/ArtifactEngine/TestData/Jenkins/folder2/subFolder2/file3.txt").state, TicketState.Processed);
+            assert.equal(tickets.find(x => x.artifactItem.path == "Extensions/ArtifactEngine/TestData/Jenkins/folder3/file4.txt").state, TicketState.Processed);
+            done();
+        }, (err) => {
+            throw err;
+        });
     });
 });
 
