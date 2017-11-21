@@ -120,6 +120,19 @@ describe('artifactEngine.processItems', () => {
             });
     });
 
+    it('should call getArtifactItem for all artifact items if ArtifactEngineOptions is undefined', (done) => {
+        var testProvider = new providers.StubProvider();
+
+        new engine.ArtifactEngine()
+            .processItems(testProvider, testProvider)
+            .then(() => {
+                assert.equal(testProvider.getArtifactItemCalledCount, 6);
+                done();
+            }, (err) => {
+                throw err;
+            });
+    });
+
     it('should call getArtifactItem only for included artifact items prefering exclude over include pattern', (done) => {
         var testProvider = new providers.StubProvider();
         var downloadOptions = new engine.ArtifactEngineOptions();

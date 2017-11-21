@@ -12,10 +12,10 @@ import { TicketState } from '../Models/ticketState';
 
 export class ArtifactEngine {
     processItems(sourceProvider: models.IArtifactProvider, destProvider: models.IArtifactProvider, artifactEngineOptions?: ArtifactEngineOptions): Promise<models.ArtifactDownloadTicket[]> {
-        this.createPatternList(artifactEngineOptions);
         var artifactDownloadTicketsPromise = new Promise<models.ArtifactDownloadTicket[]>((resolve, reject) => {
             const workers: Promise<void>[] = [];
             artifactEngineOptions = artifactEngineOptions || new ArtifactEngineOptions();
+            this.createPatternList(artifactEngineOptions);
             this.artifactItemStore.flush();
             Logger.verbose = artifactEngineOptions.verbose;
             this.logger = new Logger(this.artifactItemStore);
