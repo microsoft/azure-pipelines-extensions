@@ -2,6 +2,8 @@ import { ItemType } from '../Models';
 import { TicketState } from '../Models/ticketState';
 import { ArtifactItemStore } from '../Store/artifactItemStore';
 
+var tl = require('vsts-task-lib');
+
 export class Logger {
 
     constructor(store: ArtifactItemStore) {
@@ -10,13 +12,11 @@ export class Logger {
     }
 
     public static logInfo(message: string) {
-        if (this.verbose) {
-            console.info(message);
-        }
+        tl.debug(message);
     }
 
     public static logError(message: string) {
-        console.error(message);
+        tl.error(message);
     }
 
     public static logMessage(message: string) {
@@ -35,8 +35,8 @@ export class Logger {
 
                 var currentTime = new Date();
 
-                console.log(
-                    "Total: " + tickets.length
+                tl.debug(
+                    "Total Items: " + tickets.length
                     + ", Processed: " + processedItems.length
                     + ", Processing: " + processingItems.length
                     + ", Queued: " + queuedItems.length
@@ -64,14 +64,14 @@ export class Logger {
 
         var endTime = new Date();
         console.log(
-            "Total: " + tickets.length
+            "Total Items: " + tickets.length
             + ", Processed: " + processedItems.length
             + ", Skipped: " + skippedItems.length
             + ", Failed: " + failedItems.length
             + ", Time elapsed: " + ((endTime.valueOf() - this.startTime.valueOf()) / 1000) + "secs");
 
         if (Logger.verbose) {
-            console.log("Summary:");
+            tl.debug("Summary:");
             var pathLengths = finishedItems.map(x => x.artifactItem.path.length);
             var maxPathLength = pathLengths.reduce((a, b) => a > b ? a : b, 1);
             var fileHeader = this.padText("File", maxPathLength);
@@ -80,13 +80,13 @@ export class Logger {
             var durationHeader = this.padText("Duration", 10);
             var stateHeader = this.padText("STATE", 10);
 
-            console.log(this.padText("", maxPathLength + 25 + 25 + 10 + 10 + 15, '-'))
-            console.log(`| ${fileHeader} | ${startTimeHeader} | ${finishTimeHeader} | ${durationHeader} | ${stateHeader}|`)
-            console.log(this.padText("", maxPathLength + 25 + 25 + 10 + 10 + 15, '-'))
+            tl.debug(this.padText("", maxPathLength + 25 + 25 + 10 + 10 + 15, '-'))
+            tl.debug(`| ${fileHeader} | ${startTimeHeader} | ${finishTimeHeader} | ${durationHeader} | ${stateHeader}|`)
+            tl.debug(this.padText("", maxPathLength + 25 + 25 + 10 + 10 + 15, '-'))
             tickets.forEach(ticket => {
                 var duration = (ticket.finishTime.valueOf() - ticket.startTime.valueOf()) / 1000 + " secs";
-                console.log("| " + this.padText(ticket.artifactItem.path, maxPathLength) + " | " + this.padText(ticket.startTime.toISOString(), 25) + " | " + this.padText(ticket.finishTime.toISOString(), 25) + " | " + this.padText(duration, 10) + " | " + this.padText(ticket.state.toString().toUpperCase(), 10) + "|");
-                console.log(this.padText("", maxPathLength + 25 + 25 + 10 + 10 + 15, '-'))
+                tl.debug("| " + this.padText(ticket.artifactItem.path, maxPathLength) + " | " + this.padText(ticket.startTime.toISOString(), 25) + " | " + this.padText(ticket.finishTime.toISOString(), 25) + " | " + this.padText(duration, 10) + " | " + this.padText(ticket.state.toString().toUpperCase(), 10) + "|");
+                tl.debug(this.padText("", maxPathLength + 25 + 25 + 10 + 10 + 15, '-'))
             });
         }
     }
