@@ -118,27 +118,32 @@ export class ArtifactEngine {
         }
     }
 
-    shouldDownload(path: string) {
-        var shouldDownload = false;
+    shouldDownload(path: string): boolean {
+        let matchedPattern;
         for (let pattern of this.patternList) {
-            if (pattern.charAt(0) === '-' && (minimatch(path, pattern.substr(1), { dot: true, nocase: true }))) {
-                return false;
-            }
-            else {
-                if (minimatch(path, (pattern.charAt(0) === '+') ? pattern.substr(1) : pattern, { dot: true, nocase: true })) {
-                    shouldDownload = true;
+            let _pattern = (pattern.startsWith('+') || pattern.startsWith('-')) ? pattern.substr(1) : pattern;
+            if (minimatch(path, _pattern, { dot: true, nocase: true })) {
+                if (!matchedPattern || minimatch(_pattern, ((matchedPattern.startsWith('+') || matchedPattern.startsWith('-')) ? matchedPattern.substr(1) : matchedPattern), { dot: true, nocase: true })) {
+                    matchedPattern = pattern;
                 }
             }
         }
-        return shouldDownload;
+
+        return (!matchedPattern || matchedPattern.startsWith('-')) ? false : true;
     }
 
+
+    //Supported pattern strings:
+    //a. '"+drop/dir1/**","-drop/dir1/dir2/**"'
+    //b. '"+drop/dir1/file.txt", "-drop/dir1/**" , "+drop/**"'
+    //c. '"**"'
+    //d. none (assumed as "**") 
     createPatternList(artifactEngineOptions: ArtifactEngineOptions) {
         if (!artifactEngineOptions.itemPattern) {
             this.patternList = ['**'];
         }
         else {
-            this.patternList = artifactEngineOptions.itemPattern.split('","').map((pattern) => pattern.replace(/"/g, ''));
+            this.patternList = artifactEngineOptions.itemPattern.split(/" *, *"/).map((pattern) => pattern.replace(/"/g, ''));
         }
     }
 
