@@ -1,6 +1,7 @@
 ﻿import * as path from 'path';
 import * as fs from 'fs';
 
+var tl = require('vsts-task-lib/task');
 var minimatch = require('minimatch');
 
 import * as models from '../Models';
@@ -76,7 +77,7 @@ export class ArtifactEngine {
         }
         retryCount = retryCount ? retryCount : 0;
         if (item.itemType === models.ItemType.File) {
-            if (this.shouldDownload(item.path)) {
+            if (tl.match([item.path], this.patternList).length > 0) {
                 Logger.logInfo("Processing " + item.path);
                 sourceProvider.getArtifactItem(item).then((contentStream) => {
                     Logger.logInfo("Got download stream for item: " + item.path);
@@ -118,32 +119,12 @@ export class ArtifactEngine {
         }
     }
 
-    shouldDownload(path: string): boolean {
-        let matchedPattern;
-        for (let pattern of this.patternList) {
-            let _pattern = (pattern.startsWith('+') || pattern.startsWith('-')) ? pattern.substr(1) : pattern;
-            if (minimatch(path, _pattern, { dot: true, nocase: true })) {
-                if (!matchedPattern || minimatch(_pattern, ((matchedPattern.startsWith('+') || matchedPattern.startsWith('-')) ? matchedPattern.substr(1) : matchedPattern), { dot: true, nocase: true })) {
-                    matchedPattern = pattern;
-                }
-            }
-        }
-
-        return (!matchedPattern || matchedPattern.startsWith('-')) ? false : true;
-    }
-
-
-    //Supported pattern strings:
-    //a. '"+drop/dir1/**","-drop/dir1/dir2/**"'
-    //b. '"+drop/dir1/file.txt", "-drop/dir1/**" , "+drop/**"'
-    //c. '"**"'
-    //d. none (assumed as "**") 
     createPatternList(artifactEngineOptions: ArtifactEngineOptions) {
         if (!artifactEngineOptions.itemPattern) {
             this.patternList = ['**'];
         }
         else {
-            this.patternList = artifactEngineOptions.itemPattern.split(/" *, *"/).map((pattern) => pattern.replace(/"/g, ''));
+            this.patternList = artifactEngineOptions.itemPattern.split('\n');
         }
     }
 

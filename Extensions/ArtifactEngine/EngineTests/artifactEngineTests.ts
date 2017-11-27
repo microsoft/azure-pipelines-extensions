@@ -78,22 +78,7 @@ describe('artifactEngine.processItems', () => {
     it('should call getArtifactItem only for artifact items that match include pattern', (done) => {
         var testProvider = new providers.StubProvider();
         var downloadOptions = new engine.ArtifactEngineOptions();
-        downloadOptions.itemPattern = '"+path1\\**", "path3\\**" ,"-path4\\**"';
-
-        new engine.ArtifactEngine()
-            .processItems(testProvider, testProvider, downloadOptions)
-            .then(() => {
-                assert.equal(testProvider.getArtifactItemCalledCount, 4);
-                done();
-            }, (err) => {
-                throw err;
-            });
-    });
-
-    it('should call getArtifactItem only for artifact items that match include pattern even with quotes', (done) => {
-        var testProvider = new providers.StubProvider();
-        var downloadOptions = new engine.ArtifactEngineOptions();
-        downloadOptions.itemPattern = '""+path1\\**"",""path3\\**"",""-path4\\**""';
+        downloadOptions.itemPattern = 'path1\\**\npath3\\**\n!path4\\**';
 
         new engine.ArtifactEngine()
             .processItems(testProvider, testProvider, downloadOptions)
@@ -136,7 +121,7 @@ describe('artifactEngine.processItems', () => {
     it('should call getArtifactItem only for included artifact items prefering exclude over include pattern', (done) => {
         var testProvider = new providers.StubProvider();
         var downloadOptions = new engine.ArtifactEngineOptions();
-        downloadOptions.itemPattern = '"+path1\\**","-path1\\path2\\**"';
+        downloadOptions.itemPattern = 'path1\\**\n!path1\\path2\\**';
 
         new engine.ArtifactEngine()
             .processItems(testProvider, testProvider, downloadOptions)
@@ -151,7 +136,7 @@ describe('artifactEngine.processItems', () => {
     it('should call getArtifactItem only for included artifact items prefering include over exclude pattern', (done) => {
         var testProvider = new providers.StubProvider();
         var downloadOptions = new engine.ArtifactEngineOptions();
-        downloadOptions.itemPattern = '"-path1\\**", "+path1\\path2\\**"';
+        downloadOptions.itemPattern = '!path1\\**\npath1\\path2\\**';
 
         new engine.ArtifactEngine()
             .processItems(testProvider, testProvider, downloadOptions)
