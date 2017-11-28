@@ -9,6 +9,8 @@ function getDefaultProps() {
     return {
         serverurl: tl.getVariable('System.TEAMFOUNDATIONSERVERURI'),
         releaseurl: tl.getVariable('Release.ReleaseWebUrl'),
+        taskDisplayName: tl.getVariable('Task.DisplayName'),
+        jobid: tl.getVariable('System.Jobid'),
         releaseid: tl.getVariable('Release.ReleaseId'),
         builduri: tl.getVariable('Build.BuildUri'),
         buildid: tl.getVariable('Build.Buildid'),
