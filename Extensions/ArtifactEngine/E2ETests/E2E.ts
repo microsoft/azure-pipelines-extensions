@@ -22,7 +22,7 @@ describe('e2e tests', () => {
         let processorOptions = new engine.ArtifactEngineOptions();
         processorOptions.itemPattern = "**";
         processorOptions.parallelProcessingLimit = 8;
-        processorOptions.retryIntervalInSeconds = 1000;
+        processorOptions.retryIntervalInSeconds = 2;
         processorOptions.retryLimit = 2;
         processorOptions.verbose = true;
 
@@ -53,7 +53,7 @@ describe('e2e tests', () => {
                 assert.equal(tickets.find(x => x.artifactItem.path == "Extensions/ArtifactEngine/TestData/Jenkins/file1.pdb").retryCount, 0);
                 assert.equal(tickets.find(x => x.artifactItem.path == "Extensions/ArtifactEngine/TestData/Jenkins/folder1/file2.txt").retryCount, 0);
             }, (error) => {
-                throw "test failure";
+                throw error;
             });
     });
 
@@ -64,7 +64,7 @@ describe('e2e tests', () => {
         let processorOptions = new engine.ArtifactEngineOptions();
         processorOptions.itemPattern = "**";
         processorOptions.parallelProcessingLimit = 8;
-        processorOptions.retryIntervalInSeconds = 1000;
+        processorOptions.retryIntervalInSeconds = 2;
         processorOptions.retryLimit = 2;
         processorOptions.verbose = true;
 
@@ -90,7 +90,7 @@ describe('e2e tests', () => {
                 assert.equal(tickets.find(x => x.artifactItem.path == "dropz/folder1/file2.txt").retryCount, 0);
                 done();
             }, (error) => {
-                throw "test failure";
+                throw error;
             });
     });
 });

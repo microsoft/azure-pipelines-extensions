@@ -22,8 +22,8 @@ describe('perf tests', () => {
         let processorOptions = new engine.ArtifactEngineOptions();
         processorOptions.itemPattern = "**";
         processorOptions.parallelProcessingLimit = 8;
-        processorOptions.retryIntervalInSeconds = 1000;
-        processorOptions.retryLimit = 5;
+        processorOptions.retryIntervalInSeconds = 2;
+        processorOptions.retryLimit = 4;
         processorOptions.verbose = true;
 
         var itemsUrl = "https://testking123.visualstudio.com/_apis/resources/Containers/1902716?itemPath=largedrop&isShallow=false";
@@ -38,6 +38,8 @@ describe('perf tests', () => {
             .then((tickets) => {
                 assert.equal(tickets.filter(x => x.artifactItem.itemType === ItemType.File && x.state === TicketState.Processed).length, 301);
                 done();
+            }, (error) => {
+                throw error;
             });
     });
 
@@ -48,8 +50,8 @@ describe('perf tests', () => {
         let processorOptions = new engine.ArtifactEngineOptions();
         processorOptions.itemPattern = "**";
         processorOptions.parallelProcessingLimit = 8;
-        processorOptions.retryIntervalInSeconds = 1000;
-        processorOptions.retryLimit = 5;
+        processorOptions.retryIntervalInSeconds = 2;
+        processorOptions.retryLimit = 4;
         processorOptions.verbose = true;
 
         var itemsUrl = "//vscsstor/Users/gykuma/ArtifactEngineTestData/bp/";
@@ -62,6 +64,8 @@ describe('perf tests', () => {
             .then((tickets) => {
                 assert.equal(tickets.filter(x => x.artifactItem.itemType === ItemType.File && x.state === TicketState.Processed).length, 301);
                 done();
+            }, (error) => {
+                throw error;
             });
     });
 });
