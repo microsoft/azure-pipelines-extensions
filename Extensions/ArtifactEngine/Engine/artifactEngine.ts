@@ -1,6 +1,7 @@
 ﻿import * as path from 'path';
 import * as fs from 'fs';
 
+var tl = require('vsts-task-lib/task');
 var minimatch = require('minimatch');
 
 import * as models from '../Models';
@@ -76,7 +77,7 @@ export class ArtifactEngine {
         }
         retryCount = retryCount ? retryCount : 0;
         if (item.itemType === models.ItemType.File) {
-            if (this.shouldDownload(item.path)) {
+            if (tl.match([item.path], this.patternList).length > 0) {
                 Logger.logInfo("Processing " + item.path);
                 sourceProvider.getArtifactItem(item).then((contentStream) => {
                     Logger.logInfo("Got download stream for item: " + item.path);
@@ -118,27 +119,12 @@ export class ArtifactEngine {
         }
     }
 
-    shouldDownload(path: string) {
-        var shouldDownload = false;
-        for (let pattern of this.patternList) {
-            if (pattern.charAt(0) === '-' && (minimatch(path, pattern.substr(1), { dot: true, nocase: true }))) {
-                return false;
-            }
-            else {
-                if (minimatch(path, (pattern.charAt(0) === '+') ? pattern.substr(1) : pattern, { dot: true, nocase: true })) {
-                    shouldDownload = true;
-                }
-            }
-        }
-        return shouldDownload;
-    }
-
     createPatternList(artifactEngineOptions: ArtifactEngineOptions) {
         if (!artifactEngineOptions.itemPattern) {
             this.patternList = ['**'];
         }
         else {
-            this.patternList = artifactEngineOptions.itemPattern.split('","').map((pattern) => pattern.replace(/"/g, ''));
+            this.patternList = artifactEngineOptions.itemPattern.split('\n');
         }
     }
 

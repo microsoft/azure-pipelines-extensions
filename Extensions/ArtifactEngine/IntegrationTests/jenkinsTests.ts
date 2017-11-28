@@ -155,7 +155,7 @@ describe('Integration tests', () => {
         let webProvider = getJenkinsWebProvider();
         let stubProvider = new providers.StubProvider();
 
-        processorOptions.itemPattern = '"+Extensions/ArtifactEngine/TestData/Jenkins/folder2/**","-Extensions/ArtifactEngine/TestData/Jenkins/folder2/subFolder1/**","Extensions/ArtifactEngine/TestData/Jenkins/folder3/file4.txt"';
+        processorOptions.itemPattern = 'Extensions/ArtifactEngine/TestData/Jenkins/folder2/**\n!Extensions/ArtifactEngine/TestData/Jenkins/folder2/subFolder1/**\nExtensions/ArtifactEngine/TestData/Jenkins/folder3/file4.txt';
 
         nock('http://redvstt-lab43:8080', { "encodedQueryParams": true })
             .get('/job/ArtifactEngineJob/6/api/json')
