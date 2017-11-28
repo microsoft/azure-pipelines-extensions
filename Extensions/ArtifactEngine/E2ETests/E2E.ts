@@ -26,7 +26,7 @@ describe('e2e tests', () => {
         processorOptions.retryLimit = 2;
         processorOptions.verbose = true;
 
-        var itemsUrl = "http://redvstt-lab43:8080/job/ArtifactEngineJob/6/api/json?tree=artifacts[*]"
+        var itemsUrl = "http://redvstt-lab43:8080/job/ArtifactEngineJob/6/api/json?tree=artifacts[*]";
         var variables = {
             "endpoint": {
                 "url": "http://redvstt-lab43:8080"
@@ -68,7 +68,7 @@ describe('e2e tests', () => {
         processorOptions.retryLimit = 2;
         processorOptions.verbose = true;
 
-        var itemsUrl = "https://testking123.visualstudio.com/_apis/resources/Containers/1898832?itemPath=Dropz&isShallow=false"
+        var itemsUrl = "https://testking123.visualstudio.com/_apis/resources/Containers/1898832?itemPath=Dropz&isShallow=false";
         var variables = {};
 
         var handler = new PersonalAccessTokenCredentialHandler(config.vsts.pat);
@@ -91,32 +91,6 @@ describe('e2e tests', () => {
                 done();
             }, (error) => {
                 throw "test failure";
-            });
-    });
-
-    it('should be able to download large build artifact', function (done) {
-        this.timeout(200000);
-        let processor = new engine.ArtifactEngine();
-
-        let processorOptions = new engine.ArtifactEngineOptions();
-        processorOptions.itemPattern = "**";
-        processorOptions.parallelProcessingLimit = 8;
-        processorOptions.retryIntervalInSeconds = 1000;
-        processorOptions.retryLimit = 5;
-        processorOptions.verbose = true;
-
-        var itemsUrl = "https://testking123.visualstudio.com/_apis/resources/Containers/1902716?itemPath=largedrop&isShallow=false"
-        var variables = {};
-
-        var handler = new PersonalAccessTokenCredentialHandler(config.vsts.pat);
-        var webProvider = new providers.WebProvider(itemsUrl, "vsts.handlebars", variables, handler, { ignoreSslError: false });
-        var dropLocation = path.join(config.dropLocation, "vstsDropWithLargeFiles");
-        var filesystemProvider = new providers.FilesystemProvider(dropLocation);
-
-        processor.processItems(webProvider, filesystemProvider, processorOptions)
-            .then((tickets) => {
-                assert.equal(tickets.filter(x => x.artifactItem.itemType === ItemType.File && x.state === TicketState.Processed).length, 301);
-                done();
             });
     });
 });
