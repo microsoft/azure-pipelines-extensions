@@ -37,7 +37,7 @@ export class ArtifactEngine {
                     reject(err);
                 });
             }, (err) => {
-                ci.publishEvent('reliability', { issueType: 'error', errorMessage: err });
+                ci.publishEvent('reliability', <ci.IReliabilityData>{ issueType: 'error', errorMessage: err });
                 reject(err);
             });
         });

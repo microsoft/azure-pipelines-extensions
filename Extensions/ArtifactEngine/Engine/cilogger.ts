@@ -35,6 +35,7 @@ export function publishEvent(feature, properties: any | IReliabilityData): void 
         console.log(telemetry);;
     }
     catch (err) {
+        tl.warning("Failed to log telemetry, error: " + err);
     }
 }
 
