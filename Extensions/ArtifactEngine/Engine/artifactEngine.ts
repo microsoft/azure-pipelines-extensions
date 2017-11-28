@@ -34,11 +34,11 @@ export class ArtifactEngine {
                     this.logger.logSummary();
                     resolve(this.artifactItemStore.getTickets());
                 }, (err) => {
-                    ci.publishEvent('issue', { issueType: 'error', errorMessage: err });
+                    ci.publishEvent('reliability', <ci.IReliabilityData>{ issueType: 'error', errorMessage: err });
                     reject(err);
                 });
             }, (err) => {
-                ci.publishEvent('issue', { issueType: 'error', errorMessage: err });
+                ci.publishEvent('reliability', <ci.IReliabilityData>{ issueType: 'error', errorMessage: err });
                 reject(err);
             });
         });
@@ -134,13 +134,13 @@ export class ArtifactEngine {
 }
 
 process.on('unhandledRejection', (reason) => {
-    ci.publishEvent('issue', { issueType: 'unhandledRejection', errorMessage: reason.message, stack: reason.stack });
+    ci.publishEvent('reliability', <ci.IReliabilityData>{ issueType: 'unhandledRejection', errorMessage: reason.message, stack: reason.stack });
     Logger.logError("artifact-engine: unhandled rejection " + reason);
     throw reason;
 });
 
 process.on('uncaughtException', (reason) => {
-    ci.publishEvent('issue', { issueType: 'uncaughtException', errorMessage: reason.message, stack: reason.stack });
+    ci.publishEvent('reliability', <ci.IReliabilityData>{ issueType: 'uncaughtException', errorMessage: reason.message, stack: reason.stack });
     Logger.logError("artifact-engine: unhandled exception " + reason);
     throw reason;
 });

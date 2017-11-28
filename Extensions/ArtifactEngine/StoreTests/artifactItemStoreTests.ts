@@ -279,7 +279,7 @@ describe('artifactItemStore.increaseRetryCount', () => {
 });
 
 describe('artifactItemStore.getRootLocation', () => {
-    it('should return if root item is not present', () => {
+    it('should return empty if root item is not present', () => {
         var artifactItemStore = new ArtifactItemStore();
         var artifactItem1 = new models.ArtifactItem();
         artifactItem1.path = "path1";
@@ -291,7 +291,7 @@ describe('artifactItemStore.getRootLocation', () => {
 });
 
 describe('artifactItemStore.getRootLocation', () => {
-    it('should return if root item does not metadata', () => {
+    it('should return empty if root item does not have metadata', () => {
         var artifactItemStore = new ArtifactItemStore();
         var artifactItem1 = new models.ArtifactItem();
         artifactItem1.path = "";
