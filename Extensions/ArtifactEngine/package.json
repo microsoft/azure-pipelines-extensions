@@ -1,6 +1,6 @@
 {
   "name": "artifact-engine",
-  "version": "0.1.1",
+  "version": "0.1.3",
   "description": "Artifact Engine to download artifacts from jenkins, teamcity, vsts",
   "repository": {
     "type": "git",
@@ -47,7 +47,8 @@
     "Store/**/*.d.ts",
     "Providers/**/*d.ts",
     "LICENSE",
-    "README.md"
+    "README.md",
+    "ThirdPartyNotices.txt"
   ],
   "scripts": {
     "test": "nyc ./node_modules/mocha/bin/_mocha --reporter mocha-tap-reporter **/*Tests.js"
