@@ -34,11 +34,11 @@ export class ArtifactEngine {
                     this.logger.logSummary();
                     resolve(this.artifactItemStore.getTickets());
                 }, (err) => {
-                    ci.publishEvent('reliability', <ci.IReliabilityData>{ issueType: 'error', errorMessage: err });
+                    ci.publishEvent('reliability', <ci.IReliabilityData>{ issueType: 'error', errorMessage: JSON.stringify(err, Object.getOwnPropertyNames(err)) });
                     reject(err);
                 });
             }, (err) => {
-                ci.publishEvent('reliability', <ci.IReliabilityData>{ issueType: 'error', errorMessage: err });
+                ci.publishEvent('reliability', <ci.IReliabilityData>{ issueType: 'error', errorMessage: JSON.stringify(err, Object.getOwnPropertyNames(err)) });
                 reject(err);
             });
         });
@@ -133,14 +133,14 @@ export class ArtifactEngine {
     private patternList: string[];
 }
 
-process.on('unhandledRejection', (reason) => {
-    ci.publishEvent('reliability', <ci.IReliabilityData>{ issueType: 'unhandledRejection', errorMessage: reason.message, stack: reason.stack });
-    Logger.logError("artifact-engine: unhandled rejection " + reason);
-    throw reason;
+process.on('unhandledRejection', (err) => {
+    ci.publishEvent('reliability', <ci.IReliabilityData>{ issueType: 'unhandledRejection', errorMessage: JSON.stringify(err, Object.getOwnPropertyNames(err)) });
+    Logger.logError("artifact-engine: unhandled rejection " + err);
+    throw err;
 });
 
-process.on('uncaughtException', (reason) => {
-    ci.publishEvent('reliability', <ci.IReliabilityData>{ issueType: 'uncaughtException', errorMessage: reason.message, stack: reason.stack });
-    Logger.logError("artifact-engine: unhandled exception " + reason);
-    throw reason;
+process.on('uncaughtException', (err) => {
+    ci.publishEvent('reliability', <ci.IReliabilityData>{ issueType: 'uncaughtException', errorMessage: JSON.stringify(err, Object.getOwnPropertyNames(err)) });
+    Logger.logError("artifact-engine: unhandled exception " + err);
+    throw err;
 });
