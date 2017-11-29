@@ -16,6 +16,17 @@
             "env": { "NODE_ENV": "production"}
         },
         {
+            "name": "Run perf tests",
+            "type": "node",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceRoot}/node_modules/mocha/bin/_mocha",
+            "stopOnEntry": false,          
+            "args": ["**/*Perf.js"],
+            "runtimeExecutable": null,
+            "env": { "NODE_ENV": "production"}
+        },
+        {
             "name": "Run unit tests",
             "type": "node",
             "request": "launch",
