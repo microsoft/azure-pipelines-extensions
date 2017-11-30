@@ -439,7 +439,7 @@ namespace VstsServerTaskHelper
             }
         }
 
-        private async Task<int> GetOrCreateTaskLogId(IServiceBusMessage message, CancellationToken cancellationToken, ITaskClient taskClient, Guid projectId, Guid planId, Guid jobId, Guid parentTimelineId, string timelineName, string hubName)
+        private async Task<TimelineRecord> GetOrCreateTimelineRecord(CancellationToken cancellationToken, ITaskHttpClient taskHttpClient, Guid projectId, Guid planId, Guid jobId, Guid parentTimelineId, string timelineName, string hubName)
         {
             // attempt to find existing
             var records = await taskClient.GetRecordsAsync(projectId, hubName, planId, parentTimelineId, userState: null, cancellationToken: cancellationToken).ConfigureAwait(false);
