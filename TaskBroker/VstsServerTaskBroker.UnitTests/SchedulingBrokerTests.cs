@@ -241,6 +241,7 @@ namespace VstsServerTaskBroker.UnitTest
             // given - a message with a logId
             var mockMessage = CreateMockMessage(CreateValidTestVstsMessage());
             mockMessage.SetProperty(VstsMessageConstants.TaskLogIdPropertyName, 456);
+            mockMessage.SetProperty(VstsMessageConstants.TimelineRecordIdPropertyName, Guid.NewGuid());
             mockMessage.SetProperty(VstsMessageConstants.RetryAttemptPropertyName, 10);
             var mockTaskClient = new MockTaskHttpClient();
             var mockMessageListener = new MockServiceBusQueueMessageListener();
@@ -260,6 +261,7 @@ namespace VstsServerTaskBroker.UnitTest
             // given - a message with a handler that fails
             var mockMessage = CreateMockMessage(CreateValidTestVstsMessage());
             mockMessage.SetProperty(VstsMessageConstants.TaskLogIdPropertyName, 456);
+            mockMessage.SetProperty(VstsMessageConstants.TimelineRecordIdPropertyName, Guid.NewGuid());
             var maxRetryAttempts = 10;
             var currRetry = 5;
             mockMessage.SetProperty(VstsMessageConstants.RetryAttemptPropertyName, currRetry);
@@ -294,6 +296,7 @@ namespace VstsServerTaskBroker.UnitTest
             // given - a message with a handler that fails
             var mockMessage = CreateMockMessage(CreateValidTestVstsMessage());
             mockMessage.SetProperty(VstsMessageConstants.TaskLogIdPropertyName, 456);
+            mockMessage.SetProperty(VstsMessageConstants.TimelineRecordIdPropertyName, Guid.NewGuid());
             var maxRetryAttempts = 10;
             var currRetry = 10;
             mockMessage.SetProperty(VstsMessageConstants.RetryAttemptPropertyName, currRetry);
