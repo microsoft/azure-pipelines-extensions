@@ -298,6 +298,8 @@ namespace VstsServerTaskBroker.Contracts
         /// </summary>
         public bool SkipRaisePlanEvents { get; set; }
 
+        public Guid TimelineRecordId { get; set; }
+
         public IDictionary<string, string> GetMessageProperties()
         {
             var messageProperties = new Dictionary<string, string>

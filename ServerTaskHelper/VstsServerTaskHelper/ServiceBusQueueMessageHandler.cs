@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -198,11 +200,13 @@ namespace VstsServerTaskHelper
             attempt++;
 
             var taskLogIdObject = message.GetProperty(VstsMessageConstants.TaskLogIdPropertyName) ?? string.Empty;
+            var timelineRecordIdObject = message.GetProperty(VstsMessageConstants.TimelineRecordIdPropertyName) ?? string.Empty;
 
             eventProperties[VstsMessageConstants.RetryAttemptPropertyName] = attempt.ToString();
             eventProperties[VstsMessageConstants.MessageIdPropertyName] = message.GetMessageId();
             eventProperties[VstsMessageConstants.MachineNamePropertyName] = Environment.MachineName;
             eventProperties[VstsMessageConstants.TaskLogIdPropertyName] = taskLogIdObject.ToString();
+            eventProperties[VstsMessageConstants.TimelineRecordIdPropertyName] = timelineRecordIdObject.ToString();
 
             return eventProperties;
         }
@@ -367,9 +371,25 @@ namespace VstsServerTaskHelper
 
             // create a timeline if required
             var timelineName = string.Format("{0}_{1}", this.settings.TimeLineNamePrefix, jobId.ToString("D"));
-            var taskLogId = await this.GetOrCreateTaskLogId(message, cancellationToken, taskHttpClient, projectId, planId, jobId, parentTimelineId, timelineName, hubName).ConfigureAwait(false);
+
+            var logIdObject = message.GetProperty(VstsMessageConstants.TaskLogIdPropertyName);
+            var timelineRecordIdObject = message.GetProperty(VstsMessageConstants.TimelineRecordIdPropertyName);
+            var taskLogId = 0;
+            var gotLogId = logIdObject != null && int.TryParse(logIdObject.ToString(), out taskLogId);
+            var gotTimelineRecordId = timelineRecordIdObject != null &&
+                                   Guid.TryParse(timelineRecordIdObject.ToString(), out var timelineRecordId);
+            if (!gotLogId || !gotTimelineRecordId)
+            {
+                var timelineRecord = await this.GetOrCreateTimelineRecord(cancellationToken, taskHttpClient, projectId, planId, jobId, parentTimelineId, timelineName, hubName).ConfigureAwait(false);
+                taskLogId = timelineRecord.Log.Id;
+                timelineRecordId = timelineRecord.Id;
+            }
+
             eventProperties[VstsMessageConstants.TaskLogIdPropertyName] = taskLogId.ToString();
+            eventProperties[VstsMessageConstants.TimelineRecordIdPropertyName] = timelineRecordId.ToString();
             vstsMessage.TaskLogId = taskLogId;
+            vstsMessage.TimelineId = parentTimelineId;
+            vstsMessage.TimelineRecordId = timelineRecordId;
 
             // setup VSTS instrumentation and wrap handler
             var vstsLogger = new VstsLogger(clientLogger, taskHttpClient, hubName, projectId, planId, taskLogId);
@@ -419,24 +439,15 @@ namespace VstsServerTaskHelper
             }
         }
 
-        private async Task<int> GetOrCreateTaskLogId(IServiceBusMessage message, CancellationToken cancellationToken, ITaskClient taskClient, Guid projectId, Guid planId, Guid jobId, Guid parentTimelineId, string timelineName, string hubName)
+        private async Task<TimelineRecord> GetOrCreateTimelineRecord(CancellationToken cancellationToken, ITaskHttpClient taskHttpClient, Guid projectId, Guid planId, Guid jobId, Guid parentTimelineId, string timelineName, string hubName)
         {
-            // attempt to get from message
-            var logIdObject = message.GetProperty(VstsMessageConstants.TaskLogIdPropertyName);
-            var taskLogId = 0;
-            var gotLogId = logIdObject != null && int.TryParse(logIdObject.ToString(), out taskLogId);
-            if (gotLogId)
-            {
-                return taskLogId;
-            }
-
             // attempt to find existing
             var records = await taskClient.GetRecordsAsync(projectId, hubName, planId, parentTimelineId, userState: null, cancellationToken: cancellationToken).ConfigureAwait(false);
             foreach (var record in records)
             {
                 if (string.Equals(record.Name, timelineName, StringComparison.OrdinalIgnoreCase))
                 {
-                    return record.Log.Id;
+                    return record;
                 }
             }
 
@@ -466,10 +477,7 @@ namespace VstsServerTaskHelper
 
             await taskClient.UpdateTimelineRecordsAsync(projectId, hubName, planId, parentTimelineId, new List<TimelineRecord> { timelineRecord }, cancellationToken).ConfigureAwait(false);
 
-            // save the taskLogId on the message
-            taskLogId = taskLog.Id;
-
-            return taskLogId;
+            return timelineRecord;
         }
 
         protected virtual ITaskClient GetTaskClient(Uri vstsPlanUrl, string authToken, bool skipRaisePlanEvents)
