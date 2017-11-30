@@ -61,7 +61,7 @@ namespace VstsServerTaskBroker
             }
 
             var taskHttpClientWrapper = this.CreateTaskHttpClient(vstsPlanUrl, authToken, this.baseInstrumentation, this.vstsContext.SkipRaisePlanEvents);
-            var vstsBrokerInstrumentation = new VstsBrokerInstrumentation(this.baseInstrumentation, taskHttpClientWrapper, hubName, projectId, planId, this.vstsContext.TaskLogId, this.eventProperties);
+            var vstsBrokerInstrumentation = new VstsBrokerInstrumentation(this.baseInstrumentation, taskHttpClientWrapper, hubName, projectId, planId, this.vstsContext.TaskLogId, this.eventProperties, this.vstsContext.TimelineId, this.vstsContext.TimelineRecordId);
             var startedEvent = new JobStartedEvent(jobId);
             await taskHttpClientWrapper.RaisePlanEventAsync(projectId, hubName, planId, startedEvent, cancellationToken).ConfigureAwait(false);
             await vstsBrokerInstrumentation.HandleInfoEvent("JobStarted", message, this.eventProperties, cancellationToken, eventTime);
@@ -78,7 +78,7 @@ namespace VstsServerTaskBroker
             var eventTime = offsetTime.UtcDateTime;
 
             var taskHttpClientWrapper = this.CreateTaskHttpClient(vstsPlanUrl, authToken, this.baseInstrumentation, this.vstsContext.SkipRaisePlanEvents);
-            var vstsBrokerInstrumentation = new VstsBrokerInstrumentation(this.baseInstrumentation, taskHttpClientWrapper, hubName, projectId, planId, this.vstsContext.TaskLogId, this.eventProperties);
+            var vstsBrokerInstrumentation = new VstsBrokerInstrumentation(this.baseInstrumentation, taskHttpClientWrapper, hubName, projectId, planId, this.vstsContext.TaskLogId, this.eventProperties, this.vstsContext.TimelineId, this.vstsContext.TimelineRecordId);
 
             try
             {
@@ -123,7 +123,7 @@ namespace VstsServerTaskBroker
             }
 
             var taskHttpClientWrapper = this.CreateTaskHttpClient(vstsPlanUrl, authToken, this.baseInstrumentation, this.vstsContext.SkipRaisePlanEvents);
-            var vstsBrokerInstrumentation = new VstsBrokerInstrumentation(this.baseInstrumentation, taskHttpClientWrapper, hubName, projectId, planId, this.vstsContext.TaskLogId, this.eventProperties);
+            var vstsBrokerInstrumentation = new VstsBrokerInstrumentation(this.baseInstrumentation, taskHttpClientWrapper, hubName, projectId, planId, this.vstsContext.TaskLogId, this.eventProperties, this.vstsContext.TimelineId, this.vstsContext.TimelineRecordId);
 
             var completedEvent = new JobCompletedEvent(jobId, isPassed ? TaskResult.Succeeded : TaskResult.Failed);
             await taskHttpClientWrapper.RaisePlanEventAsync(projectId, hubName, planId, completedEvent, cancellationToken).ConfigureAwait(false);

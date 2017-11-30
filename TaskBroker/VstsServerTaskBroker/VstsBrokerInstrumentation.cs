@@ -15,14 +15,18 @@ namespace VstsServerTaskBroker
         private readonly int taskLogId;
         private readonly IDictionary<string, string> baseEventProperties;
         private readonly string hubName;
+        private readonly Guid timelineId;
+        private readonly Guid timelineRecordId;
 
-        public VstsBrokerInstrumentation(IBrokerInstrumentation baseInstrumentation, ITaskHttpClient taskClient, string hubName, Guid scopeIdentifier, Guid planId, int taskLogId, IDictionary<string, string> eventProperties)
+        public VstsBrokerInstrumentation(IBrokerInstrumentation baseInstrumentation, ITaskHttpClient taskClient, string hubName, Guid scopeIdentifier, Guid planId, int taskLogId, IDictionary<string, string> eventProperties, Guid timelineId, Guid timelineRecordId)
         {
             this.baseInstrumentation = baseInstrumentation;
             this.taskClient = taskClient;
             this.scopeIdentifier = scopeIdentifier;
             this.planId = planId;
             this.taskLogId = taskLogId;
+            this.timelineId = timelineId;
+            this.timelineRecordId = timelineRecordId;
             this.hubName = hubName;
             this.baseEventProperties = eventProperties ?? new Dictionary<string, string>();
         }
@@ -33,10 +37,10 @@ namespace VstsServerTaskBroker
             var exceptionTypeName = ex.GetType().Name;
             eventProperties["ExceptionName"] = exceptionTypeName;
             var attempt = GetAttempt(eventProperties);
-            eventTime = eventTime.HasValue ? eventTime : DateTime.UtcNow;
+            eventTime = eventTime ?? DateTime.UtcNow;
             var logMessage = string.Format("[{0}] EXCEPTION: {1}: {2} (Attempt: {3}) Details: {4}", eventTime.Value.ToString("o"), exceptionTypeName, eventMessage, attempt, ex.ToString());
 
-            var tasks = new Task[]
+            var tasks = new[]
                         {
                             this.baseInstrumentation.HandleException(ex, eventName, logMessage, eventProperties, cancellationToken),
                             this.AppendLogAsync(logMessage, eventProperties, this.taskClient, this.scopeIdentifier, this.planId, this.taskLogId, cancellationToken)
@@ -49,9 +53,9 @@ namespace VstsServerTaskBroker
         {
             eventProperties = this.MergeProperties(eventProperties);
             var attempt = GetAttempt(eventProperties);
-            eventTime = eventTime.HasValue ? eventTime : DateTime.UtcNow;
+            eventTime = eventTime ?? DateTime.UtcNow;
             var logMessage = string.Format("[{0}] INFO: {1}: {2} (Attempt: {3})", eventTime.Value.ToString("o"), eventName, eventMessage, attempt);
-            var tasks = new Task[]
+            var tasks = new[]
                         {
                             this.baseInstrumentation.HandleInfoEvent(eventName, eventMessage, eventProperties, cancellationToken),
                             this.AppendLogAsync(logMessage, eventProperties, this.taskClient, this.scopeIdentifier, this.planId, this.taskLogId, cancellationToken)
@@ -70,9 +74,9 @@ namespace VstsServerTaskBroker
         {
             eventProperties = this.MergeProperties(eventProperties);
             var attempt = GetAttempt(eventProperties);
-            eventTime = eventTime.HasValue ? eventTime : DateTime.UtcNow;
+            eventTime = eventTime ?? DateTime.UtcNow;
             var logMessage = string.Format("[{0}] ERROR: {1}: {2} (Attempt: {3})", eventTime.Value.ToString("o"), eventName, eventMessage, attempt);
-            var tasks = new Task[]
+            var tasks = new[]
                         {
                             this.baseInstrumentation.HandleErrorEvent(eventName, eventMessage, eventProperties, cancellationToken),
                             this.AppendLogAsync(logMessage, eventProperties, this.taskClient, this.scopeIdentifier, this.planId, this.taskLogId, cancellationToken)
@@ -126,7 +130,9 @@ namespace VstsServerTaskBroker
             {
                 using (var logStream = GenerateStreamFromString(logMessage))
                 {
-                    var taskLogResponse = await taskHttpClient.AppendLogContentAsync(scopeIdentifier, this.hubName, planId, taskLogId, logStream, userState: null, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    this.AppendTimelineRecordFeed(taskHttpClient, scopeIdentifier, planId, logMessage, cancellationToken);
+
+                    await taskHttpClient.AppendLogContentAsync(scopeIdentifier, this.hubName, planId, taskLogId, logStream, userState: null, cancellationToken: cancellationToken).ConfigureAwait(false);
                 }
             }
             catch (Exception ex)
@@ -139,6 +145,26 @@ namespace VstsServerTaskBroker
             {
                 await this.baseInstrumentation.HandleException(exception, "VstsLogAppend", "Failed to append log to VSTS", eventProperties, cancellationToken).ConfigureAwait(false);
             }
+        }
+
+        private async void AppendTimelineRecordFeed(ITaskHttpClient taskHttpClient, Guid scopeIdentifier, Guid planId, string logMessage, CancellationToken cancellationToken)
+        {
+            //Web console line is more than 1024 chars, truncate to first 1024 chars
+            if (!string.IsNullOrEmpty(logMessage) && logMessage.Length > 1024)
+            {
+                logMessage = $"{logMessage.Substring(0, 1024)}...";
+            }
+
+            await taskHttpClient.AppendTimelineRecordFeedAsync(
+                scopeIdentifier, 
+                this.hubName,
+                planId, 
+                this.timelineId,
+                this.timelineRecordId, 
+                new List<string> { logMessage }, 
+                cancellationToken: cancellationToken,
+                userState: null)
+                .ConfigureAwait(false);
         }
     }
 }
