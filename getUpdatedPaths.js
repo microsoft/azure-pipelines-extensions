@@ -55,7 +55,7 @@ if (currentPullRequest) {
         var repository = process.env['BUILD_REPOSITORY_NAME'];
         console.log(repository);
         new GitClient(repository).getUpdatedFilePathsForPR(prNumber).then((updatedPaths) => {
-            console.log(`##vso[task.setvariable variable=UpdatedAreaPaths;]${updatedPaths}`);
+            console.log(`##vso[task.setvariable variable=UpdatedAreaPaths;isOutput=true;]${updatedPaths}`);
         }).catch((error) => {
             console.log(error);
         });
