@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace VstsServerTaskHelper
 {
-    public interface IVstsReportingHelper
+    public interface IJobStatusReportingHelper
     {
         Task ReportJobStarted(DateTimeOffset offsetTime, string message, CancellationToken cancellationToken);
 

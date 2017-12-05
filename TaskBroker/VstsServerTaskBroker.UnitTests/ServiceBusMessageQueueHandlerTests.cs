@@ -125,7 +125,7 @@ namespace VstsServerTaskHelper.UnitTests
             testVstsMessage.CompleteSychronously = true;
             var mockMessage = CreateMockMessage(testVstsMessage);
             var mockTaskClient = new MockTaskClient();
-            var mockReportingHelper = new MockVstsReportingHelper(testVstsMessage);
+            var mockReportingHelper = new MockJobStatusReportingHelper(testVstsMessage);
             var executeCalled = false;
             var handler = new MockVstsHandler
             {
@@ -149,7 +149,7 @@ namespace VstsServerTaskHelper.UnitTests
             Assert.IsNotNull(assignedEvent);
             Assert.AreEqual(1, mockReportingHelper.JobStatusReceived.Count);
             var completedMessage = mockReportingHelper.JobStatusReceived[0];
-            Assert.AreEqual(MockVstsReportingHelper.JobStatusEnum.Completed, completedMessage);
+            Assert.AreEqual(MockJobStatusReportingHelper.JobStatusEnum.Completed, completedMessage);
             Assert.IsTrue(mockReportingHelper.JobStatusSuccess);
         }
 
@@ -161,7 +161,7 @@ namespace VstsServerTaskHelper.UnitTests
             testVstsMessage.CompleteSychronously = true;
             var mockMessage = CreateMockMessage(testVstsMessage);
             var mockTaskClient = new MockTaskClient();
-            var mockReportingHelper = new MockVstsReportingHelper(testVstsMessage);
+            var mockReportingHelper = new MockJobStatusReportingHelper(testVstsMessage);
             var executeCalled = false;
             var handler = new MockVstsHandler
             {
@@ -185,9 +185,9 @@ namespace VstsServerTaskHelper.UnitTests
 
             Assert.AreEqual(2, mockReportingHelper.JobStatusReceived.Count);
             var startedMessage = mockReportingHelper.JobStatusReceived[0];
-            Assert.AreEqual(MockVstsReportingHelper.JobStatusEnum.Started, startedMessage);
+            Assert.AreEqual(MockJobStatusReportingHelper.JobStatusEnum.Started, startedMessage);
             var completedMessage = mockReportingHelper.JobStatusReceived[1];
-            Assert.AreEqual(MockVstsReportingHelper.JobStatusEnum.Completed, completedMessage);
+            Assert.AreEqual(MockJobStatusReportingHelper.JobStatusEnum.Completed, completedMessage);
             Assert.AreEqual(testVstsMessage.JobId, mockReportingHelper.VstsMessage.JobId);
             Assert.IsFalse(mockReportingHelper.JobStatusSuccess);
         }
@@ -383,7 +383,7 @@ namespace VstsServerTaskHelper.UnitTests
         public async Task BasicExecuteInstrumentationTest()
         {
             // given
-            var traceBrokerInstrumentation = new TraceBrokerInstrumentation();
+            var traceBrokerInstrumentation = new TraceLogger();
 
             // when
             await ProcessTestMessage(instrumentation: traceBrokerInstrumentation);
@@ -397,7 +397,7 @@ namespace VstsServerTaskHelper.UnitTests
         {
             // given
             var handler = new MockVstsHandler { MockExecuteFunc = (vstsMessage) => { throw new NotSupportedException("die"); } };
-            var traceBrokerInstrumentation = new TraceBrokerInstrumentation();
+            var traceBrokerInstrumentation = new TraceLogger();
             var mockMessage = CreateMockMessage(CreateValidTestVstsMessage());
             var mockMessageListener = new MockServiceBusQueueMessageListener();
 
@@ -413,7 +413,7 @@ namespace VstsServerTaskHelper.UnitTests
         {
             // given
             var handler = new MockVstsHandler { MockCancelFunc = (vstsMessage) => { throw new NotSupportedException("die"); } };
-            var traceBrokerInstrumentation = new TraceBrokerInstrumentation();
+            var traceBrokerInstrumentation = new TraceLogger();
             var mockMessage = CreateMockMessage(CreateValidTestVstsMessage());
             var mockMessageListener = new MockServiceBusQueueMessageListener();
 
@@ -443,22 +443,19 @@ namespace VstsServerTaskHelper.UnitTests
             return mockMessage;
         }
 
-        private static async Task ProcessTestMessage(MockServiceBusMessage mockServiceBusMessage = null, MockServiceBusQueueMessageListener mockMessageListener = null, MockTaskClient mockTaskClient = null, MockVstsHandler handler = null, MockVstsReportingHelper mockReportingHelper = null, IBrokerInstrumentation instrumentation = null, int maxRetryAttempts = 1, IBuildClient mockBuildClient = null, IGitClient mockGitClient = null)
+        private static async Task ProcessTestMessage(MockServiceBusMessage mockServiceBusMessage = null, MockServiceBusQueueMessageListener mockMessageListener = null, MockTaskClient mockTaskClient = null, MockVstsHandler handler = null, MockJobStatusReportingHelper mockReportingHelper = null, ILogger instrumentation = null, int maxRetryAttempts = 1, IBuildClient mockBuildClient = null)
         {
             mockServiceBusMessage = mockServiceBusMessage ?? CreateMockMessage(CreateValidTestVstsMessage());
             mockTaskClient = mockTaskClient ?? new MockTaskClient();
             mockBuildClient = mockBuildClient ?? new MockBuildClient() { MockBuild = new Build() { Status = BuildStatus.InProgress } };
-            mockReportingHelper = mockReportingHelper ?? new MockVstsReportingHelper(new TestVstsMessage());
+            mockReportingHelper = mockReportingHelper ?? new MockJobStatusReportingHelper(new TestVstsMessage());
             var mockReleaseClient = new MockReleaseClient() { MockRelease = new Release() {Status = ReleaseStatus.Active} };
             handler = handler ?? new MockVstsHandler { MockExecuteFunc = (vstsMessage) => Task.FromResult(new VstsScheduleResult() { Message = "(test) mock execute requested", ScheduledId = "someId", ScheduleFailed = false }) };
-            instrumentation = instrumentation ?? new TraceBrokerInstrumentation();
+            instrumentation = instrumentation ?? new TraceLogger();
             var settings = new ServiceBusQueueMessageHandlerSettings { MaxRetryAttempts = maxRetryAttempts, TimeLineNamePrefix = "someTimeline", WorkerName = "someWorker" };
             mockMessageListener = mockMessageListener ?? new MockServiceBusQueueMessageListener();
-            var schedulingBroker = new ServiceBusQueueMessageHandler<TestVstsMessage>(queueClient: mockMessageListener, baseInstrumentation: instrumentation, scheduleHandler: handler, settings: settings);
-            schedulingBroker.CreateTaskClient = (uri, creds, instrumentationHandler, skipRaisePlanEvents) => mockTaskClient;
-            schedulingBroker.CreateBuildClient = (uri, creds) => mockBuildClient;
-            schedulingBroker.CreateReleaseClient = (uri, creds) => mockReleaseClient;
-            schedulingBroker.CreateVstsReportingHelper = (vstsMessage, inst, props) => mockReportingHelper;
+            var schedulingBroker = new TestableServiceBusQueueMessageHandler(mockMessageListener, handler, settings, mockTaskClient, mockBuildClient, mockReportingHelper, mockReleaseClient);
+            schedulingBroker.RegisterLogger(instrumentation);
             var cancelSource = new CancellationTokenSource();
             await schedulingBroker.ReceiveAsync(mockServiceBusMessage, cancelSource.Token);
         }

@@ -15,17 +15,17 @@ namespace VstsServerTaskHelper
         private const int DefaultRetryCount = 3;
         private const int DefaultRetryIntervalInSeconds = 5;
 
-        private readonly Microsoft.TeamFoundation.DistributedTask.WebApi.TaskHttpClient client;
-        private readonly IBrokerInstrumentation instrumentationHandler;
+        private readonly TaskHttpClient client;
+        private readonly IList<ILogger> instrumentationHandler;
         private readonly string vstsUrl;
         private readonly Retryer retryer;
 
-        public TaskClient(Uri baseUrl, VssCredentials credentials, IBrokerInstrumentation instrumentationHandler)
+        public TaskClient(Uri baseUrl, VssCredentials credentials, IList<ILogger> instrumentationHandler)
             : this(baseUrl, credentials, instrumentationHandler, DefaultRetryCount, DefaultRetryIntervalInSeconds)
         {
         }
 
-        public TaskClient(Uri baseUrl, VssCredentials credentials, IBrokerInstrumentation instrumentationHandler, int retryCount, int retryInterval)
+        public TaskClient(Uri baseUrl, VssCredentials credentials, IList<ILogger> instrumentationHandler, int retryCount, int retryInterval)
         {
             var vssConnection = new VssConnection(baseUrl, credentials);
             this.client = vssConnection.GetClient<TaskHttpClient>();
@@ -127,7 +127,10 @@ namespace VstsServerTaskHelper
                                       {"DurationMs", elapsedMilliseconds.ToString()},
                                   };
 
-            await this.instrumentationHandler.HandleTraceEvent(string.Format("{0}_{1}", eventName, result), eventMessage, eventProperties, cancellationToken).ConfigureAwait(false);
+            foreach (var registeredLogger in instrumentationHandler)
+            {
+                await registeredLogger.HandleTraceEvent(string.Format("{0}_{1}", eventName, result), eventMessage, eventProperties, cancellationToken).ConfigureAwait(false);
+            }
         }
 
         private RetryEventHandler GetRetryEventHandler(string eventName, Guid scopeIdentifier, Guid planId, CancellationToken cancellationToken)

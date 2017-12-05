@@ -120,7 +120,7 @@ namespace VstsServerTaskHelper.UnitTests
                 ReturnNullRelease = false,
             };
             var mockTaskClient = new MockTaskClient();
-            var reportingHelper = new VstsReportingHelper(vstsContext, new TraceBrokerInstrumentation(), new Dictionary<string, string>())
+            var reportingHelper = new JobStatusReportingHelper(vstsContext, new TraceLogger(), mockTaskClient)
             {
                 CreateBuildClient = (uri, s) => ReturnMockBuildClientIfUrlValid(uri, vstsContext, mockBuildClient),
                 CreateReleaseClient = (uri, s) => mockReleaseClient,
@@ -195,11 +195,10 @@ namespace VstsServerTaskHelper.UnitTests
                 GetRecordsReturnCollection = timelineRecords
             };
 
-            var reportingHelper = new VstsReportingHelper(vstsContext, new TraceBrokerInstrumentation(), new Dictionary<string, string>(), timeLineRecordName)
+            var reportingHelper = new JobStatusReportingHelper(vstsContext, new TraceLogger(), mockTaskHttpClient, timeLineRecordName)
             {
                 CreateBuildClient = (uri, s) => ReturnMockBuildClientIfUrlValid(uri, vstsContext, mockBuildClient),
-                CreateReleaseClient = (uri, s) => mockReleaseClient,
-                CreateTaskHttpClient = (uri, s, i, r) => mockTaskHttpClient
+                CreateReleaseClient = (uri, s) => mockReleaseClient
             };
 
             // when

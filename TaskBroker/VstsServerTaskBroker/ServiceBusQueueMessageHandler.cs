@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,32 +17,19 @@ namespace VstsServerTaskHelper
     {
         private const int MaxExceptionMessageLength = 100;
         
-        private readonly IBrokerInstrumentation baseInstrumentation;
         private readonly IVstsScheduleHandler<T> scheduleHandler;
         private readonly ServiceBusQueueMessageHandlerSettings settings;
         private readonly IServiceBusQueueMessageListener queueClient;
+        private readonly IList<ILogger> registeredLoggers;
 
-        public ServiceBusQueueMessageHandler(IServiceBusQueueMessageListener queueClient, IBrokerInstrumentation baseInstrumentation, IVstsScheduleHandler<T> scheduleHandler, ServiceBusQueueMessageHandlerSettings settings)
+        public ServiceBusQueueMessageHandler(IServiceBusQueueMessageListener queueClient, IVstsScheduleHandler<T> scheduleHandler, ServiceBusQueueMessageHandlerSettings settings)
         {
             this.settings = settings;
-            this.settings.LockRefreshDelayMsecs = settings.LockRefreshDelayMsecs == 0 ? 1 : settings.LockRefreshDelayMsecs;
-            this.baseInstrumentation = baseInstrumentation;
             this.scheduleHandler = scheduleHandler;
             this.queueClient = queueClient;
-            this.CreateTaskClient = TaskClientFactory.GetTaskClient;
-            this.CreateBuildClient = (uri, authToken) => new BuildClient(uri, new VssBasicCredential(string.Empty, authToken));
-            this.CreateReleaseClient = (uri, authToken) => new ReleaseClient(uri, new VssBasicCredential(string.Empty, authToken));
-            this.CreateVstsReportingHelper = (vstsMessage, inst, props) => new VstsReportingHelper(vstsMessage, inst, props);
+            this.registeredLoggers = new List<ILogger>();
         }
 
-        public Func<Uri, string, IBrokerInstrumentation, bool, ITaskClient> CreateTaskClient { get; set; }
-
-        public Func<Uri, string, IBuildClient> CreateBuildClient { get; set; }
-
-        public Func<Uri, string, IReleaseClient> CreateReleaseClient { get; set; }
-
-        public Func<VstsMessage, IBrokerInstrumentation, Dictionary<string, string>, IVstsReportingHelper> CreateVstsReportingHelper { get; set; }
-        
         public async Task ReceiveAsync(IServiceBusMessage message, CancellationToken cancellationToken)
         {
             // setup basic message properties
@@ -82,6 +70,11 @@ namespace VstsServerTaskHelper
                 await this.StopTimer("MessageProcessingFailed", messageStopwatch, eventProperties, cancellationToken).ConfigureAwait(false);
                 await this.AbandonOrDeadLetterMessage(vstsMessage, message, exception, eventProperties, cancellationToken).ConfigureAwait(false);
             }
+        }
+
+        public void RegisterLogger(ILogger logger)
+        {
+            this.registeredLoggers.Add(logger);
         }
 
         internal static bool ExtractMessage(IServiceBusMessage message, out T vstsMessage, out string validationErrors)
@@ -286,7 +279,7 @@ namespace VstsServerTaskHelper
                 var authToken = vstsMessage.AuthToken;
                 var jobId = vstsMessage.JobId;
                 var hubName = vstsMessage.VstsHub.ToString();
-                var taskHttpClient = this.CreateTaskClient(vstsPlanUrl, authToken, this.baseInstrumentation, vstsMessage.SkipRaisePlanEvents);
+                var taskHttpClient = GetTaskClient(vstsPlanUrl, authToken, vstsMessage.SkipRaisePlanEvents);
                 var completedEvent = new JobCompletedEvent(jobId, TaskResult.Abandoned);
                 await taskHttpClient.RaisePlanEventAsync(projectId, hubName, planId, completedEvent, cancellationToken).ConfigureAwait(false);
             }
@@ -300,7 +293,10 @@ namespace VstsServerTaskHelper
         {
             messageStopwatch.Stop();
             eventProperties[VstsMessageConstants.ProcessingTimeMsPropertyName] = messageStopwatch.ElapsedMilliseconds.ToString();
-            await this.baseInstrumentation.HandleInfoEvent(eventName, "StopTimer", eventProperties, cancellationToken).ConfigureAwait(false);
+            foreach (var registeredLogger in registeredLoggers)
+            {
+                await registeredLogger.HandleInfoEvent(eventName, "StopTimer", eventProperties, cancellationToken).ConfigureAwait(false);
+            }
         }
 
         private async Task AbandonOrDeadLetterMessage(T vstsMessage, IServiceBusMessage message, Exception exception, IDictionary<string, string> eventProperties, CancellationToken cancellationToken)
@@ -332,13 +328,17 @@ namespace VstsServerTaskHelper
             int delayMsecs = this.settings.AbandonDelayMsecs + (1000 * (int)(Math.Pow(2, Math.Max(0, attempt - 1)) - 1));
             delayMsecs = Math.Min(delayMsecs, this.settings.MaxAbandonDelayMsecs);
             var abandoningMessageDueToException = string.Format("Abandoning message due to exception in [{0}]ms", delayMsecs);
-            await this.baseInstrumentation.HandleException(exception, "MessageProcessingException", abandoningMessageDueToException, eventProperties: eventProperties, cancellationToken: cancellationToken).ConfigureAwait(false);
+            foreach (var registeredLogger in registeredLoggers)
+            {
+                await registeredLogger.HandleException(exception, "MessageProcessingException", abandoningMessageDueToException, eventProperties: eventProperties, cancellationToken: cancellationToken).ConfigureAwait(false);
+            }
 
             while (delayMsecs > 0)
             {
                 // await message.RenewLockAsync().ConfigureAwait(false);
-                await Task.Delay(this.settings.LockRefreshDelayMsecs, cancellationToken);
-                delayMsecs -= this.settings.LockRefreshDelayMsecs;
+                var delay = settings.LockRefreshDelayMsecs == 0 ? 10 : settings.LockRefreshDelayMsecs;
+                await Task.Delay(delay, cancellationToken);
+                delayMsecs -= delay;
                 cancellationToken.ThrowIfCancellationRequested();
             }
 
@@ -353,7 +353,10 @@ namespace VstsServerTaskHelper
             }
             
             await this.TryFailOrchestrationPlan(vstsMessage, cancellationToken).ConfigureAwait(false);
-            await this.baseInstrumentation.HandleErrorEvent("DeadLetterMessage", errorMessage, eventProperties, cancellationToken).ConfigureAwait(false);
+            foreach (var registeredLogger in registeredLoggers)
+            {
+                await registeredLogger.HandleErrorEvent("DeadLetterMessage", errorMessage, eventProperties, cancellationToken).ConfigureAwait(false);
+            }
             await this.queueClient.DeadLetterAsync(message.GetLockToken()).ConfigureAwait(false);
         }
 
@@ -368,7 +371,7 @@ namespace VstsServerTaskHelper
             var parentTimelineId = vstsMessage.TimelineId;
             var jobId = vstsMessage.JobId;
             var hubName = vstsMessage.VstsHub.ToString();
-            var taskHttpClient = this.CreateTaskClient(vstsPlanUrl, authToken, this.baseInstrumentation, vstsMessage.SkipRaisePlanEvents);
+            var taskHttpClient = this.GetTaskClient(vstsPlanUrl, authToken, vstsMessage.SkipRaisePlanEvents);
 
             // create a timeline if required
             var timelineName = string.Format("{0}_{1}", this.settings.TimeLineNamePrefix, jobId.ToString("D"));
@@ -377,8 +380,9 @@ namespace VstsServerTaskHelper
             vstsMessage.TaskLogId = taskLogId;
 
             // setup VSTS instrumentation and wrap handler
-            var instrumentation = new VstsBrokerInstrumentation(this.baseInstrumentation, taskHttpClient, hubName, projectId, planId, taskLogId, eventProperties);
-            var instrumentedHandler = new HandlerWithInstrumentation<T>(instrumentation, handler);
+            var vstsLogger = new VstsLogger(registeredLoggers, taskHttpClient, hubName, projectId, planId, taskLogId);
+            var loggersAggregate = new LoggersAggregate(new List<ILogger>(registeredLoggers) {vstsLogger});
+            var instrumentedHandler = new HandlerWithInstrumentation<T>(loggersAggregate, handler);
 
             // process request
             if (vstsMessage.RequestType == RequestType.Cancel)
@@ -389,12 +393,17 @@ namespace VstsServerTaskHelper
             else
             {
                 // already cancelled?
-                var buildHttpClientWrapper = this.CreateBuildClient(vstsUrl, authToken);
-                var releaseHttpClientWrapper = this.CreateReleaseClient(vstsPlanUrl, authToken);
-                var isSessionValid = await VstsReportingHelper.IsSessionValid(vstsMessage, buildHttpClientWrapper, releaseHttpClientWrapper, cancellationToken).ConfigureAwait(false);
+                var buildHttpClientWrapper = GetBuildClient(vstsUrl, authToken);
+                var releaseHttpClientWrapper = GetReleaseClient(vstsPlanUrl, authToken);
+                var isSessionValid = await JobStatusReportingHelper.IsSessionValid(vstsMessage, buildHttpClientWrapper, releaseHttpClientWrapper, cancellationToken).ConfigureAwait(false);
                 if (!isSessionValid)
                 {
-                    await this.baseInstrumentation.HandleInfoEvent("SessionAlreadyCancelled", string.Format("Skipping Execute for cancelled or deleted {0}", vstsMessage.VstsHub), eventProperties, cancellationToken).ConfigureAwait(false);
+                    foreach (var registeredLogger in registeredLoggers)
+                    {
+                        await registeredLogger.HandleInfoEvent("SessionAlreadyCancelled",
+                            string.Format("Skipping Execute for cancelled or deleted {0}", vstsMessage.VstsHub),
+                            eventProperties, cancellationToken).ConfigureAwait(false);
+                    }
                     return;
                 }
 
@@ -405,7 +414,7 @@ namespace VstsServerTaskHelper
                 // attempt to schedule
                 var scheduleResult = await instrumentedHandler.Execute(vstsMessage, cancellationToken).ConfigureAwait(false);
 
-                var reportingHelper = this.CreateVstsReportingHelper(vstsMessage, instrumentation, new Dictionary<string, string>());
+                var reportingHelper = GetVstsReportingHelper(vstsMessage, vstsLogger, taskHttpClient);
 
                 if (scheduleResult.ScheduleFailed)
                 {
@@ -465,13 +474,33 @@ namespace VstsServerTaskHelper
                 ErrorCount = 0,
                 WarningCount = 0
             };
-            
+
             await taskClient.UpdateTimelineRecordsAsync(projectId, hubName, planId, parentTimelineId, new List<TimelineRecord> { timelineRecord }, cancellationToken).ConfigureAwait(false);
 
             // save the taskLogId on the message
             taskLogId = taskLog.Id;
 
             return taskLogId;
+        }
+
+        protected virtual ITaskClient GetTaskClient(Uri vstsPlanUrl, string authToken, bool skipRaisePlanEvents)
+        {
+            return TaskClientFactory.GetTaskClient(vstsPlanUrl, authToken, registeredLoggers, skipRaisePlanEvents);
+        }
+
+        protected virtual IJobStatusReportingHelper GetVstsReportingHelper(VstsMessage vstsMessage, ILogger inst, ITaskClient taskClient)
+        {
+            return new JobStatusReportingHelper(vstsMessage, inst, taskClient);
+        }
+
+        protected virtual IReleaseClient GetReleaseClient(Uri uri, string authToken)
+        {
+            return new ReleaseClient(uri, new VssBasicCredential(string.Empty, authToken));
+        }
+
+        protected virtual IBuildClient GetBuildClient(Uri uri, string authToken)
+        {
+            return new BuildClient(uri, new VssBasicCredential(string.Empty, authToken));
         }
     }
 }

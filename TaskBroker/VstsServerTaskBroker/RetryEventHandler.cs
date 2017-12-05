@@ -9,7 +9,7 @@ namespace VstsServerTaskHelper
     {
         private readonly string eventName;
         private readonly IDictionary<string, string> eventProperties; 
-        private readonly IBrokerInstrumentation instrumentationHandler;
+        private readonly IList<ILogger> instrumentationHandler;
         
         // List of HTTP transient error codes to retry.
         private readonly HashSet<HttpStatusCode> trasientHttpCodes = new HashSet<HttpStatusCode>()
@@ -33,7 +33,7 @@ namespace VstsServerTaskHelper
 
         public Func<Exception, int, bool> ShouldRetry { get; set; }
 
-        public RetryEventHandler(string eventName, IDictionary<string, string> eventProperties, CancellationToken cancellationToken, IBrokerInstrumentation brokerInstrumentation, HashSet<HttpStatusCode> transientStatusCodes = null)
+        public RetryEventHandler(string eventName, IDictionary<string, string> eventProperties, CancellationToken cancellationToken, IList<ILogger> brokerInstrumentation, HashSet<HttpStatusCode> transientStatusCodes = null)
         {
             this.eventName = eventName;
             this.eventProperties = eventProperties ?? new Dictionary<string, string>();
@@ -100,7 +100,10 @@ namespace VstsServerTaskHelper
             this.eventProperties["DurationMs"] = elapsedMilliseconds.ToString();
             this.eventProperties["RetryAttempt"] = retryCount.ToString();
 
-            instrumentationHandler.HandleInfoEvent(eventType, message, eventProperties, cancellationToken);
+            foreach (var registeredLogger in instrumentationHandler)
+            {
+                registeredLogger.HandleInfoEvent(eventType, message, eventProperties, cancellationToken);
+            }
         }
 
         private bool IsTrasientException(Exception e)

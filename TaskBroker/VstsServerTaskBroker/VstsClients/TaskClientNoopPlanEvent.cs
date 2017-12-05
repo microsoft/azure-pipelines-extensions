@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Services.Common;
@@ -13,7 +14,7 @@ namespace VstsServerTaskHelper
     /// </summary>
     public class TaskClientNoopPlanEvent : TaskClient
     {
-        public TaskClientNoopPlanEvent(Uri baseUrl, VssCredentials credentials, IBrokerInstrumentation instrumentationHandler) 
+        public TaskClientNoopPlanEvent(Uri baseUrl, VssCredentials credentials, IList<ILogger> instrumentationHandler) 
             : base(baseUrl, credentials, instrumentationHandler)
         {
         }

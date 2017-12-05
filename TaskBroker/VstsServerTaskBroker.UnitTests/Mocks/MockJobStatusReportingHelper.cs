@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace VstsServerTaskHelper
 {
-    public class MockVstsReportingHelper : IVstsReportingHelper
+    public class MockJobStatusReportingHelper : IJobStatusReportingHelper
     {
         public enum JobStatusEnum
         {
@@ -20,7 +20,7 @@ namespace VstsServerTaskHelper
 
         public bool JobStatusSuccess { get; set; }
 
-        public MockVstsReportingHelper(VstsMessage vstsContext)
+        public MockJobStatusReportingHelper(VstsMessage vstsContext)
         {
             this.VstsMessage = vstsContext;
             this.JobStatusReceived = new List<JobStatusEnum>();

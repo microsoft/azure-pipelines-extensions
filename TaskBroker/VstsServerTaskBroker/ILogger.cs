@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace VstsServerTaskHelper
 {
-    public interface IBrokerInstrumentation
+    public interface ILogger
     {
         Task HandleException(Exception ex, string eventName, string eventMessage, IDictionary<string, string> eventProperties, CancellationToken cancellationToken, DateTime? eventTime = null);
 

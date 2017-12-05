@@ -8,9 +8,9 @@ using System.Threading.Tasks;
 
 namespace VstsServerTaskHelper.UnitTests
 {
-    public class TraceBrokerInstrumentation : IBrokerInstrumentation
+    public class TraceLogger : ILogger
     {
-        public TraceBrokerInstrumentation()
+        public TraceLogger()
         {
             this.Events = new List<string>();
         }

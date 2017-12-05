@@ -74,10 +74,9 @@ namespace VstsServerTaskHelper.UnitTests
             };
             var mockTaskClient = new MockTaskClient();
             var mockReleaseClient = new MockReleaseClient();
-            var reportingHelper = new VstsReportingHelper(vstsContext, new TraceBrokerInstrumentation(), new Dictionary<string, string>())
+            var reportingHelper = new JobStatusReportingHelper(vstsContext, new TraceLogger(), mockTaskClient)
             {
                 CreateBuildClient = (uri, s) => ReportingBrokerJobCompletedTests.ReturnMockBuildClientIfUrlValid(uri, vstsContext, mockBuildClient),
-                CreateTaskHttpClient = (uri, s, i, r) => mockTaskClient,
                 CreateReleaseClient = (uri, t) => mockReleaseClient
             };
 

@@ -9,10 +9,11 @@ using Microsoft.VisualStudio.Services.Common;
 
 namespace VstsServerTaskHelper
 {
-    public class VstsReportingHelper : IVstsReportingHelper
+    public class JobStatusReportingHelper : IJobStatusReportingHelper
     {
         private readonly VstsMessage vstsContext;
-        private readonly IBrokerInstrumentation baseInstrumentation;
+        private readonly ILogger logger;
+        private readonly ITaskClient taskClient;
         private readonly IDictionary<string, string> eventProperties;
 
         /// <summary>
@@ -20,20 +21,21 @@ namespace VstsServerTaskHelper
         /// </summary>
         private readonly string timelineRecordName;
 
-        public Func<Uri, string, IBrokerInstrumentation, bool, ITaskClient> CreateTaskHttpClient { get; set; }
+        public Func<Uri, string, IList<ILogger>, bool, ITaskClient> CreateTaskHttpClient { get; set; }
 
         public Func<Uri, string, IBuildClient> CreateBuildClient { get; set; }
 
         public Func<Uri, string, IReleaseClient> CreateReleaseClient { get; set; }
 
-        public VstsReportingHelper(VstsMessage vstsContext, IBrokerInstrumentation baseInstrumentation, IDictionary<string, string> eventProperties, string timelineRecordName = null)
+        public JobStatusReportingHelper(VstsMessage vstsContext, ILogger logger, ITaskClient taskClient, string timelineRecordName = null)
         {
             this.vstsContext = vstsContext;
-            this.baseInstrumentation = baseInstrumentation;
+            this.logger = logger;
+            this.taskClient = taskClient;
             this.timelineRecordName = timelineRecordName;
-            this.eventProperties = this.vstsContext.GetMessageProperties().AddRange(eventProperties);
+            this.eventProperties = this.vstsContext.GetMessageProperties();
 
-            this.CreateTaskHttpClient = (uri, authToken, instrumentationHelper, skipRaisePlanEvents) => TaskClientFactory.GetTaskClient(uri, authToken, instrumentationHelper, skipRaisePlanEvents);
+            this.CreateTaskHttpClient = TaskClientFactory.GetTaskClient;
             this.CreateBuildClient = (uri, authToken) => new BuildClient(uri, new VssBasicCredential(string.Empty, authToken));
             this.CreateReleaseClient = (uri, authToken) => new ReleaseClient(uri, new VssBasicCredential(string.Empty, authToken));
         }
@@ -54,33 +56,26 @@ namespace VstsServerTaskHelper
             var isSessionValid = await IsSessionValid(this.vstsContext, buildHttpClientWrapper, releaseHttpClientWrapper, cancellationToken).ConfigureAwait(false);
             if (!isSessionValid)
             {
-                await this.baseInstrumentation.HandleInfoEvent("SessionAlreadyCancelled", "Skipping ReportJobStarted for cancelled or deleted build/release", this.eventProperties, cancellationToken).ConfigureAwait(false);
+                await this.logger.HandleInfoEvent("SessionAlreadyCancelled", "Skipping ReportJobStarted for cancelled or deleted build/release", this.eventProperties, cancellationToken).ConfigureAwait(false);
                 return;
             }
 
-            var taskHttpClientWrapper = this.CreateTaskHttpClient(vstsPlanUrl, authToken, this.baseInstrumentation, this.vstsContext.SkipRaisePlanEvents);
-            var vstsBrokerInstrumentation = new VstsBrokerInstrumentation(this.baseInstrumentation, taskHttpClientWrapper, hubName, projectId, planId, this.vstsContext.TaskLogId, this.eventProperties);
             var startedEvent = new JobStartedEvent(jobId);
-            await taskHttpClientWrapper.RaisePlanEventAsync(projectId, hubName, planId, startedEvent, cancellationToken).ConfigureAwait(false);
-            await vstsBrokerInstrumentation.HandleInfoEvent("JobStarted", message, this.eventProperties, cancellationToken, eventTime);
+            await taskClient.RaisePlanEventAsync(projectId, hubName, planId, startedEvent, cancellationToken).ConfigureAwait(false);
+            await logger.HandleInfoEvent("JobStarted", message, this.eventProperties, cancellationToken, eventTime);
         }
 
         public async Task ReportJobProgress(DateTimeOffset offsetTime, string message, CancellationToken cancellationToken)
         {
-            var vstsPlanUrl = this.vstsContext.VstsPlanUri;
-            var authToken = this.vstsContext.AuthToken;
             var planId = this.vstsContext.PlanId;
             var projectId = this.vstsContext.ProjectId;
             var hubName = this.vstsContext.VstsHub.ToString();
             var timelineId = this.vstsContext.TimelineId;
             var eventTime = offsetTime.UtcDateTime;
 
-            var taskHttpClientWrapper = this.CreateTaskHttpClient(vstsPlanUrl, authToken, this.baseInstrumentation, this.vstsContext.SkipRaisePlanEvents);
-            var vstsBrokerInstrumentation = new VstsBrokerInstrumentation(this.baseInstrumentation, taskHttpClientWrapper, hubName, projectId, planId, this.vstsContext.TaskLogId, this.eventProperties);
-
             try
             {
-                await vstsBrokerInstrumentation.HandleInfoEvent("JobRunning", message, this.eventProperties, cancellationToken, eventTime);
+                await logger.HandleInfoEvent("JobRunning", message, this.eventProperties, cancellationToken, eventTime);
             }
             catch (TaskOrchestrationPlanNotFoundException)
             {
@@ -88,7 +83,7 @@ namespace VstsServerTaskHelper
             }
 
             // Find all existing timeline records and set them to in progress state
-            var records = await taskHttpClientWrapper.GetRecordsAsync(projectId, hubName, planId, timelineId, userState: null, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var records = await taskClient.GetRecordsAsync(projectId, hubName, planId, timelineId, userState: null, cancellationToken: cancellationToken).ConfigureAwait(false);
 
             var recordsToUpdate = GetTimelineRecordsToUpdate(records);
             foreach (var record in recordsToUpdate)
@@ -96,7 +91,7 @@ namespace VstsServerTaskHelper
                 record.State = TimelineRecordState.InProgress;
             }
 
-            await taskHttpClientWrapper.UpdateTimelineRecordsAsync(projectId, hubName, planId, timelineId, recordsToUpdate, cancellationToken).ConfigureAwait(false);
+            await taskClient.UpdateTimelineRecordsAsync(projectId, hubName, planId, timelineId, recordsToUpdate, cancellationToken).ConfigureAwait(false);
         }
         
         public async Task ReportJobCompleted(DateTimeOffset offsetTime, string message, bool isPassed, CancellationToken cancellationToken)
@@ -116,27 +111,24 @@ namespace VstsServerTaskHelper
             var isSessionValid = await IsSessionValid(this.vstsContext, buildHttpClientWrapper, releaseHttpClientWrapper, cancellationToken).ConfigureAwait(false);
             if (!isSessionValid)
             {
-                await this.baseInstrumentation.HandleInfoEvent("SessionAlreadyCancelled", "Skipping ReportJobStarted for cancelled or deleted build", this.eventProperties, cancellationToken).ConfigureAwait(false);
+                await this.logger.HandleInfoEvent("SessionAlreadyCancelled", "Skipping ReportJobStarted for cancelled or deleted build", this.eventProperties, cancellationToken).ConfigureAwait(false);
                 return;
             }
 
-            var taskHttpClientWrapper = this.CreateTaskHttpClient(vstsPlanUrl, authToken, this.baseInstrumentation, this.vstsContext.SkipRaisePlanEvents);
-            var vstsBrokerInstrumentation = new VstsBrokerInstrumentation(this.baseInstrumentation, taskHttpClientWrapper, hubName, projectId, planId, this.vstsContext.TaskLogId, this.eventProperties);
-
             var completedEvent = new JobCompletedEvent(jobId, isPassed ? TaskResult.Succeeded : TaskResult.Failed);
-            await taskHttpClientWrapper.RaisePlanEventAsync(projectId, hubName, planId, completedEvent, cancellationToken).ConfigureAwait(false);
+            await taskClient.RaisePlanEventAsync(projectId, hubName, planId, completedEvent, cancellationToken).ConfigureAwait(false);
 
             if (isPassed)
             {
-                await vstsBrokerInstrumentation.HandleInfoEvent("JobCompleted", message, this.eventProperties, cancellationToken, eventTime);
+                await logger.HandleInfoEvent("JobCompleted", message, this.eventProperties, cancellationToken, eventTime);
             }
             else
             {
-                await vstsBrokerInstrumentation.HandleErrorEvent("JobFailed", message, this.eventProperties, cancellationToken, eventTime);
+                await logger.HandleErrorEvent("JobFailed", message, this.eventProperties, cancellationToken, eventTime);
             }
 
             // Find all existing timeline records and close them
-            await this.CompleteTimelineRecords(projectId, planId, hubName, timelineId, isPassed ? TaskResult.Succeeded : TaskResult.Failed, cancellationToken, taskHttpClientWrapper);
+            await this.CompleteTimelineRecords(projectId, planId, hubName, timelineId, isPassed ? TaskResult.Succeeded : TaskResult.Failed, cancellationToken, taskClient);
         }
 
         internal async Task CompleteTimelineRecords(Guid projectId, Guid planId, string hubName, Guid parentTimelineId, TaskResult result, CancellationToken cancellationToken, ITaskClient taskClient)

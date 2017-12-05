@@ -16,7 +16,7 @@ namespace VstsServerTaskHelper.UnitTests
         {
             // given
             var handler = new MockVstsHandler() { MockCancelFunc = (msg) => Task.FromResult("cancelled") };
-            var traceBrokerInstrumentation = new TraceBrokerInstrumentation();
+            var traceBrokerInstrumentation = new TraceLogger();
             var testVstsMessage = new TestVstsMessage() { RequestType = RequestType.Cancel };
 
             // when
@@ -32,7 +32,7 @@ namespace VstsServerTaskHelper.UnitTests
         {
             // given
             var handler = new MockVstsHandler() { MockExecuteFunc = (msg) => Task.FromResult(new VstsScheduleResult()) };
-            var traceBrokerInstrumentation = new TraceBrokerInstrumentation();
+            var traceBrokerInstrumentation = new TraceLogger();
             var testVstsMessage = new TestVstsMessage() { RequestType = RequestType.Execute };
 
             // when
@@ -48,7 +48,7 @@ namespace VstsServerTaskHelper.UnitTests
         {
             // given
             var handler = new MockVstsHandler() { MockCancelFunc = (msg) => { throw new NotSupportedException(); } };
-            var traceBrokerInstrumentation = new TraceBrokerInstrumentation();
+            var traceBrokerInstrumentation = new TraceLogger();
             var testVstsMessage = new TestVstsMessage() { RequestType = RequestType.Cancel };
 
             // when
@@ -76,7 +76,7 @@ namespace VstsServerTaskHelper.UnitTests
         {
             // given
             var handler = new MockVstsHandler() { MockExecuteFunc = (msg) => { throw new NotSupportedException(); } };
-            var traceBrokerInstrumentation = new TraceBrokerInstrumentation();
+            var traceBrokerInstrumentation = new TraceLogger();
             var testVstsMessage = new TestVstsMessage() { RequestType = RequestType.Execute };
 
             // when
@@ -104,7 +104,7 @@ namespace VstsServerTaskHelper.UnitTests
         {
             // given
             var handler = new MockVstsHandler() { MockCancelFunc = (msg) => { throw new AggregateException(new List<Exception> {new NotSupportedException()}); } };
-            var traceBrokerInstrumentation = new TraceBrokerInstrumentation();
+            var traceBrokerInstrumentation = new TraceLogger();
             var testVstsMessage = new TestVstsMessage() { RequestType = RequestType.Cancel };
 
             // when
@@ -133,7 +133,7 @@ namespace VstsServerTaskHelper.UnitTests
         {
             // given
             var handler = new MockVstsHandler() { MockExecuteFunc = (msg) => { throw new AggregateException(new List<Exception> { new NotSupportedException() }); } };
-            var traceBrokerInstrumentation = new TraceBrokerInstrumentation();
+            var traceBrokerInstrumentation = new TraceLogger();
             var testVstsMessage = new TestVstsMessage() { RequestType = RequestType.Execute };
 
             // when
@@ -160,7 +160,7 @@ namespace VstsServerTaskHelper.UnitTests
         {
             // given
             var handler = new MockVstsHandler() { MockExecuteFunc = (msg) => Task.FromResult(new VstsScheduleResult()) };
-            var traceBrokerInstrumentation = new TraceBrokerInstrumentation();
+            var traceBrokerInstrumentation = new TraceLogger();
             var testVstsMessage = new TestVstsMessage() { RequestType = RequestType.Execute };
             var events = new List<string>();
 

@@ -64,7 +64,7 @@ namespace VstsServerTaskHelper
         public Guid RequesterId { get; set; }
 
         /// <summary>
-        /// Gets or sets the name of the VSTS repository.
+        /// Gets or sets the name of the VSTS project name.
         /// </summary>
         public string ProjectName { get; set; }
 
@@ -122,14 +122,14 @@ namespace VstsServerTaskHelper
         public bool CompleteSychronously { get; set; }
 
         /// <summary>
-        /// Gets or sets the task log id. This value is set internally and should not be set from the task.
-        /// </summary>
-        public int TaskLogId { get; set; }
-
-        /// <summary>
         /// Gets or sets a value indicating whether to skip raising Plan Events. 
         /// </summary>
         public bool SkipRaisePlanEvents { get; set; }
+
+        /// <summary>
+        /// Gets or sets the task log id. This value is set internally and should not be set from the task.
+        /// </summary>
+        public int TaskLogId { get; set; }
 
         public IDictionary<string, string> GetMessageProperties()
         {

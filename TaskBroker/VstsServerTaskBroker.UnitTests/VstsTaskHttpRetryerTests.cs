@@ -23,7 +23,7 @@ namespace VstsServerTaskHelper.UnitTests
         public void WaitAndRetry()
         {
             // given
-            var traceBrokerInstrumentation = new TraceBrokerInstrumentation();
+            var traceBrokerInstrumentation = new TraceLogger();
             var cancelSource = new CancellationTokenSource();
 
             var eventProperties = new Dictionary<string, string>()
@@ -33,7 +33,7 @@ namespace VstsServerTaskHelper.UnitTests
                                       {"PlanId", "testPlanId"}
                                   };
 
-            var retryEventHandler = new RetryEventHandler("TestEvent", eventProperties, cancelSource.Token, traceBrokerInstrumentation);
+            var retryEventHandler = new RetryEventHandler("TestEvent", eventProperties, cancelSource.Token, new List<ILogger>{traceBrokerInstrumentation});
 
             // when
             retryer.TryActionAsync<int>(
@@ -53,7 +53,7 @@ namespace VstsServerTaskHelper.UnitTests
         public void ReplaceDefaultTransientErrors()
         {
             // given
-            var traceBrokerInstrumentation = new TraceBrokerInstrumentation();
+            var traceBrokerInstrumentation = new TraceLogger();
             var cancelSource = new CancellationTokenSource();
 
             var trasientHttpCodes = new HashSet<HttpStatusCode>()
@@ -61,7 +61,7 @@ namespace VstsServerTaskHelper.UnitTests
                 HttpStatusCode.ExpectationFailed
             };
 
-            var retryEventHandler = new RetryEventHandler("ReplaceDefaultEvent", null, cancelSource.Token, traceBrokerInstrumentation, trasientHttpCodes);
+            var retryEventHandler = new RetryEventHandler("ReplaceDefaultEvent", null, cancelSource.Token, new List<ILogger> { traceBrokerInstrumentation }, trasientHttpCodes);
 
             // when
             retryer.TryActionAsync<int>(
@@ -77,10 +77,10 @@ namespace VstsServerTaskHelper.UnitTests
         public void RetryAndThrowWhenFail()
         {
             // given
-            var traceBrokerInstrumentation = new TraceBrokerInstrumentation();
+            var traceBrokerInstrumentation = new TraceLogger();
             var cancelSource = new CancellationTokenSource();
 
-            var retryEventHandler = new RetryEventHandler("ThrowEvent", null, cancelSource.Token, traceBrokerInstrumentation);
+            var retryEventHandler = new RetryEventHandler("ThrowEvent", null, cancelSource.Token, new List<ILogger> { traceBrokerInstrumentation });
 
             // when
             try
@@ -104,10 +104,10 @@ namespace VstsServerTaskHelper.UnitTests
         public void CheckShouldRetry()
         {
             // given
-            var traceBrokerInstrumentation = new TraceBrokerInstrumentation();
+            var traceBrokerInstrumentation = new TraceLogger();
             var cancelSource = new CancellationTokenSource();
 
-            var retryEventHandler = new RetryEventHandler("TestEvent", null, cancelSource.Token, traceBrokerInstrumentation);
+            var retryEventHandler = new RetryEventHandler("TestEvent", null, cancelSource.Token, new List<ILogger> { traceBrokerInstrumentation });
             retryEventHandler.ShouldRetry = (e, count) => (e is InvalidFilterCriteriaException && count < 1);
 
             // when
