@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 using Microsoft.TeamFoundation.DistributedTask.WebApi;
 
-namespace VstsServerTaskBroker
+namespace VstsServerTaskHelper
 {
-    public interface ITaskHttpClient
+    public interface ITaskClient
     {
         Task AppendTimelineRecordFeedAsync(Guid scopeIdentifier, string planType, Guid planId, Guid timelineId, Guid recordId, IEnumerable<string> lines, CancellationToken cancellationToken, object userState);
 

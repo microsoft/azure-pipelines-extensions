@@ -2,17 +2,12 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-
 using Microsoft.TeamFoundation.Build.WebApi;
 using Microsoft.TeamFoundation.DistributedTask.WebApi;
 using Microsoft.VisualStudio.Services.ReleaseManagement.WebApi;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-using VstsServerTaskBroker.Contracts;
-
-using TaskResult = Microsoft.TeamFoundation.DistributedTask.WebApi.TaskResult;
-
-namespace VstsServerTaskBroker.UnitTest
+namespace VstsServerTaskHelper.UnitTests
 {
     /// <summary>
     /// Unit test class for <see cref="ReportingBrokerJobStartedReleaseTests"/> class.
@@ -65,7 +60,7 @@ namespace VstsServerTaskBroker.UnitTest
         private static async Task TestReportJobStarted(ReleaseStatus releaseStatus, bool returnNullRelease, int expectedEventCount)
         {
             // given
-            VstsMessageBase vstsContext = new TestVstsMessage
+            VstsMessage vstsContext = new TestVstsMessage
             {
                 VstsHub = HubType.Release,
                 VstsUri = new Uri("http://vstsUri"),
@@ -83,27 +78,27 @@ namespace VstsServerTaskBroker.UnitTest
                 MockRelease = new Release() { Status = releaseStatus },
                 ReturnNullRelease = returnNullRelease,
             };
-            var mockTaskHttpClient = new MockTaskHttpClient();
+            var mockTaskClient = new MockTaskClient();
             var reportingHelper = new VstsReportingHelper(vstsContext, new TraceBrokerInstrumentation(), new Dictionary<string, string>())
             {
                 CreateReleaseClient = (uri, s) => ReturnMockReleaseClientIfUrlValid(uri, vstsContext, mockReleaseClient),
                 CreateBuildClient = (uri, s) => mockBuildClient,
-                CreateTaskHttpClient = (uri, s, i, r) => mockTaskHttpClient
+                CreateTaskHttpClient = (uri, s, i, r) => mockTaskClient
             };
 
             // when
             await reportingHelper.ReportJobStarted(DateTime.UtcNow, "test message", default(CancellationToken));
 
             // then
-            Assert.AreEqual(expectedEventCount, mockTaskHttpClient.EventsReceived.Count);
+            Assert.AreEqual(expectedEventCount, mockTaskClient.EventsReceived.Count);
             if (expectedEventCount != 0)
             {
-                var taskEvent = mockTaskHttpClient.EventsReceived[0] as JobStartedEvent;
+                var taskEvent = mockTaskClient.EventsReceived[0] as JobStartedEvent;
                 Assert.IsNotNull(taskEvent);
             }
         }
 
-        private static MockReleaseClient ReturnMockReleaseClientIfUrlValid(Uri uri, VstsMessageBase vstsMessage, MockReleaseClient mockReleaseClient)
+        private static MockReleaseClient ReturnMockReleaseClientIfUrlValid(Uri uri, VstsMessage vstsMessage, MockReleaseClient mockReleaseClient)
         {
             Assert.IsNotNull(uri, "require uri to validate correct one is used");
             Assert.AreNotEqual(vstsMessage.VstsUri, vstsMessage.VstsPlanUri, "need to be different to ensure we can test correct one is used");

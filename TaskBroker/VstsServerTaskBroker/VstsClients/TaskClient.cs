@@ -8,26 +8,27 @@ using Microsoft.TeamFoundation.DistributedTask.WebApi;
 using Microsoft.VisualStudio.Services.Common;
 using Microsoft.VisualStudio.Services.WebApi;
 
-namespace VstsServerTaskBroker
+namespace VstsServerTaskHelper
 {
-    public class TaskHttpClientWrapper : ITaskHttpClient
+    public class TaskClient : ITaskClient
     {
         private const int DefaultRetryCount = 3;
         private const int DefaultRetryIntervalInSeconds = 5;
 
-        private readonly TaskHttpClient client;
+        private readonly Microsoft.TeamFoundation.DistributedTask.WebApi.TaskHttpClient client;
         private readonly IBrokerInstrumentation instrumentationHandler;
         private readonly string vstsUrl;
         private readonly Retryer retryer;
 
-        public TaskHttpClientWrapper(Uri baseUrl, VssCredentials credentials, IBrokerInstrumentation instrumentationHandler)
+        public TaskClient(Uri baseUrl, VssCredentials credentials, IBrokerInstrumentation instrumentationHandler)
             : this(baseUrl, credentials, instrumentationHandler, DefaultRetryCount, DefaultRetryIntervalInSeconds)
         {
         }
 
-        public TaskHttpClientWrapper(Uri baseUrl, VssCredentials credentials, IBrokerInstrumentation instrumentationHandler, int retryCount, int retryInterval)
+        public TaskClient(Uri baseUrl, VssCredentials credentials, IBrokerInstrumentation instrumentationHandler, int retryCount, int retryInterval)
         {
-            this.client = new TaskHttpClient(baseUrl, credentials);
+            var vssConnection = new VssConnection(baseUrl, credentials);
+            this.client = vssConnection.GetClient<TaskHttpClient>();
             this.instrumentationHandler = instrumentationHandler;
             this.vstsUrl = baseUrl.ToString();
             this.retryer = Retryer.CreateRetryer(retryCount, TimeSpan.FromSeconds(retryInterval));

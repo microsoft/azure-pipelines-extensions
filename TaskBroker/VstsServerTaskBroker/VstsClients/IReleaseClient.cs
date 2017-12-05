@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.Services.ReleaseManagement.WebApi;
 using Microsoft.VisualStudio.Services.ReleaseManagement.WebApi.Contracts;
 
-namespace VstsServerTaskBroker
+namespace VstsServerTaskHelper
 {
-    public interface IReleaseHttpClientWrapper
+    public interface IReleaseClient
     {
         Task<List<AgentArtifactDefinition>> GetAgentArtifactDefinitionsAsync(Guid projectId, int releaseId, CancellationToken cancellationToken);
 

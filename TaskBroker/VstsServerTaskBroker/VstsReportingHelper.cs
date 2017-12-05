@@ -7,13 +7,11 @@ using System.Threading.Tasks;
 using Microsoft.TeamFoundation.DistributedTask.WebApi;
 using Microsoft.VisualStudio.Services.Common;
 
-using VstsServerTaskBroker.Contracts;
-
-namespace VstsServerTaskBroker
+namespace VstsServerTaskHelper
 {
     public class VstsReportingHelper : IVstsReportingHelper
     {
-        private readonly VstsMessageBase vstsContext;
+        private readonly VstsMessage vstsContext;
         private readonly IBrokerInstrumentation baseInstrumentation;
         private readonly IDictionary<string, string> eventProperties;
 
@@ -22,22 +20,22 @@ namespace VstsServerTaskBroker
         /// </summary>
         private readonly string timelineRecordName;
 
-        public Func<Uri, string, IBrokerInstrumentation, bool, ITaskHttpClient> CreateTaskHttpClient { get; set; }
+        public Func<Uri, string, IBrokerInstrumentation, bool, ITaskClient> CreateTaskHttpClient { get; set; }
 
-        public Func<Uri, string, IBuildHttpClientWrapper> CreateBuildClient { get; set; }
+        public Func<Uri, string, IBuildClient> CreateBuildClient { get; set; }
 
-        public Func<Uri, string, IReleaseHttpClientWrapper> CreateReleaseClient { get; set; }
+        public Func<Uri, string, IReleaseClient> CreateReleaseClient { get; set; }
 
-        public VstsReportingHelper(VstsMessageBase vstsContext, IBrokerInstrumentation baseInstrumentation, IDictionary<string, string> eventProperties, string timelineRecordName = null)
+        public VstsReportingHelper(VstsMessage vstsContext, IBrokerInstrumentation baseInstrumentation, IDictionary<string, string> eventProperties, string timelineRecordName = null)
         {
             this.vstsContext = vstsContext;
             this.baseInstrumentation = baseInstrumentation;
             this.timelineRecordName = timelineRecordName;
             this.eventProperties = this.vstsContext.GetMessageProperties().AddRange(eventProperties);
 
-            this.CreateTaskHttpClient = (uri, authToken, instrumentationHelper, skipRaisePlanEvents) => TaskHttpClientWrapperFactory.GetTaskHttpClientWrapper(uri, authToken, instrumentationHelper, skipRaisePlanEvents);
-            this.CreateBuildClient = (uri, authToken) => new BuildHttpClientWrapper(uri, new VssBasicCredential(string.Empty, authToken));
-            this.CreateReleaseClient = (uri, authToken) => new ReleaseHttpClientWrapper(uri, new VssBasicCredential(string.Empty, authToken));
+            this.CreateTaskHttpClient = (uri, authToken, instrumentationHelper, skipRaisePlanEvents) => TaskClientFactory.GetTaskClient(uri, authToken, instrumentationHelper, skipRaisePlanEvents);
+            this.CreateBuildClient = (uri, authToken) => new BuildClient(uri, new VssBasicCredential(string.Empty, authToken));
+            this.CreateReleaseClient = (uri, authToken) => new ReleaseClient(uri, new VssBasicCredential(string.Empty, authToken));
         }
 
         public async Task ReportJobStarted(DateTimeOffset offsetTime, string message, CancellationToken cancellationToken)
@@ -141,10 +139,10 @@ namespace VstsServerTaskBroker
             await this.CompleteTimelineRecords(projectId, planId, hubName, timelineId, isPassed ? TaskResult.Succeeded : TaskResult.Failed, cancellationToken, taskHttpClientWrapper);
         }
 
-        internal async Task CompleteTimelineRecords(Guid projectId, Guid planId, string hubName, Guid parentTimelineId, TaskResult result, CancellationToken cancellationToken, ITaskHttpClient taskHttpClient)
+        internal async Task CompleteTimelineRecords(Guid projectId, Guid planId, string hubName, Guid parentTimelineId, TaskResult result, CancellationToken cancellationToken, ITaskClient taskClient)
         {
             // Find all existing timeline records and close them
-            var records = await taskHttpClient.GetRecordsAsync(projectId, hubName, planId, parentTimelineId, userState: null, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var records = await taskClient.GetRecordsAsync(projectId, hubName, planId, parentTimelineId, userState: null, cancellationToken: cancellationToken).ConfigureAwait(false);
             var recordsToUpdate = GetTimelineRecordsToUpdate(records);
 
             foreach (var record in recordsToUpdate)
@@ -155,23 +153,23 @@ namespace VstsServerTaskBroker
                 record.FinishTime = DateTime.UtcNow;
             }
 
-            await taskHttpClient.UpdateTimelineRecordsAsync(projectId, hubName, planId, parentTimelineId, recordsToUpdate, cancellationToken).ConfigureAwait(false);
+            await taskClient.UpdateTimelineRecordsAsync(projectId, hubName, planId, parentTimelineId, recordsToUpdate, cancellationToken).ConfigureAwait(false);
         }
 
-        internal static async Task<bool> IsSessionValid(VstsMessageBase vstsMessage, IBuildHttpClientWrapper buildHttpClientWrapper, IReleaseHttpClientWrapper releaseHttpClientWrapper, CancellationToken cancellationToken)
+        internal static async Task<bool> IsSessionValid(VstsMessage vstsMessage, IBuildClient buildClient, IReleaseClient releaseClient, CancellationToken cancellationToken)
         {
             var projectId = vstsMessage.ProjectId;
 
             if (vstsMessage.VstsHub == HubType.Build)
             {
                 var buildId = vstsMessage.BuildProperties.BuildId;
-                return await BuildHttpClientWrapper.IsBuildValid(buildHttpClientWrapper, projectId, buildId, cancellationToken).ConfigureAwait(false);
+                return await BuildClient.IsBuildValid(buildClient, projectId, buildId, cancellationToken).ConfigureAwait(false);
             }
 
             if (vstsMessage.VstsHub == HubType.Release)
             {
                 var releaseId = vstsMessage.ReleaseProperties.ReleaseId;
-                return await ReleaseHttpClientWrapper.IsReleaseValid(releaseHttpClientWrapper, projectId, releaseId, cancellationToken).ConfigureAwait(false);
+                return await ReleaseClient.IsReleaseValid(releaseClient, projectId, releaseId, cancellationToken).ConfigureAwait(false);
             }
 
             throw new NotSupportedException(string.Format("VstsHub {0} is not supported", vstsMessage.VstsHub));

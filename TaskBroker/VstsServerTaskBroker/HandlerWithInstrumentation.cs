@@ -2,12 +2,10 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-using VstsServerTaskBroker.Contracts;
-
-namespace VstsServerTaskBroker
+namespace VstsServerTaskHelper
 {
     public class HandlerWithInstrumentation<T> : IVstsScheduleHandler<T> 
-        where T : VstsMessageBase
+        where T : VstsMessage
     {
         internal const string HandlerCancelFailedEventName = "HandlerCancelFailed";
         internal const string HandlerExecuteFailedEventName = "HandlerExecuteFailed";

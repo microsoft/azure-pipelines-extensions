@@ -11,33 +11,8 @@ using Microsoft.VisualStudio.Services.Common;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-using VstsServerTaskBroker.Contracts;
-
-namespace VstsServerTaskBroker
+namespace VstsServerTaskHelper
 {
-    public class MockArtifactsHelper : IArtifactsHelper
-    {
-        public Task<VstsArtifactsHelper.ArtifactsDropResult> TryGetDropUrlFromBuildArtifact(string dropArtifactsName, int buildId, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<VstsArtifactsHelper.ArtifactsBuildResult> TryGetArtifactBuildIdFromPullRequestMergeBranch(string sourceBranch, string buildDefName, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<VstsArtifactsHelper.ArtifactsBuildResult> TryGetArtifactBuildIdFromRelease(int releaseId, string artifactSourceAlias, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<VstsArtifactsHelper.ArtifactsResult> TryGetDropUrlOrUncFromBuildArtifact(string dropArtifactsName, int buildId, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
-    }
-
     public class VstsArtifactsHelper : IArtifactsHelper
     {
         internal const string VstsDropJsonFileName = "VSTSDrop.json";
@@ -67,26 +42,26 @@ namespace VstsServerTaskBroker
         private static readonly string RefsPullPullidDMergeMatchString = @"refs/pull/(?<PullId>\d+)/merge";
         private static readonly Regex PullRequestRegex = new Regex(RefsPullPullidDMergeMatchString, RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
-        private readonly IGitHttpClientWrapper gitClient;
-        private readonly IBuildHttpClientWrapper buildClient;
-        private readonly IReleaseHttpClientWrapper releaseClient;
+        private readonly IGitClient gitClient;
+        private readonly IBuildClient buildClient;
+        private readonly IReleaseClient releaseClient;
         private readonly Guid projectId;
         private readonly string repoName;
 
-        public VstsArtifactsHelper(IBuildHttpClientWrapper buildHttpClientWrapper, IReleaseHttpClientWrapper releaseHttpClientWrapper, IGitHttpClientWrapper gitClient, Guid projectId, string repoName)
+        public VstsArtifactsHelper(IBuildClient buildClient, IReleaseClient releaseClient, IGitClient gitClient, Guid projectId, string repoName)
         {
-            this.buildClient = buildHttpClientWrapper;
-            this.releaseClient = releaseHttpClientWrapper;
+            this.buildClient = buildClient;
+            this.releaseClient = releaseClient;
             this.gitClient = gitClient;
             this.projectId = projectId;
             this.repoName = repoName;
         }
 
-        public static VstsArtifactsHelper CreateArtifactsHelper(VstsMessageBase vstsContext)
+        public static VstsArtifactsHelper CreateArtifactsHelper(VstsMessage vstsContext)
         {
-            var buildHttpClientWrapper = new BuildHttpClientWrapper(vstsContext.VstsUri, new VssBasicCredential(string.Empty, vstsContext.AuthToken));
-            var gitClient = new GitHttpClientWrapper(vstsContext.VstsUri, new VssBasicCredential(string.Empty, vstsContext.AuthToken));
-            var releaseClient = new ReleaseHttpClientWrapper(vstsContext.VstsPlanUri, new VssBasicCredential(string.Empty, vstsContext.AuthToken));
+            var buildHttpClientWrapper = new BuildClient(vstsContext.VstsUri, new VssBasicCredential(string.Empty, vstsContext.AuthToken));
+            var gitClient = new GitClient(vstsContext.VstsUri, new VssBasicCredential(string.Empty, vstsContext.AuthToken));
+            var releaseClient = new ReleaseClient(vstsContext.VstsPlanUri, new VssBasicCredential(string.Empty, vstsContext.AuthToken));
             var repositoryName = vstsContext.BuildProperties != null ? vstsContext.BuildProperties.RepositoryName : string.Empty;
             return new VstsArtifactsHelper(buildHttpClientWrapper, releaseClient, gitClient, vstsContext.ProjectId, repositoryName);
         }

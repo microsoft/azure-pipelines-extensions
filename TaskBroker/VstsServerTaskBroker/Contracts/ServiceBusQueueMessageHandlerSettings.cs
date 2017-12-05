@@ -1,8 +1,8 @@
 using Newtonsoft.Json;
 
-namespace VstsServerTaskBroker
+namespace VstsServerTaskHelper
 {
-    public class SchedulingBrokerSettings
+    public class ServiceBusQueueMessageHandlerSettings
     {
         public int MaxRetryAttempts { get; set; }
 

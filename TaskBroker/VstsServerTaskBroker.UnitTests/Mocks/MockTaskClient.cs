@@ -6,11 +6,11 @@ using System.Threading.Tasks;
 
 using Microsoft.TeamFoundation.DistributedTask.WebApi;
 
-namespace VstsServerTaskBroker
+namespace VstsServerTaskHelper
 {
-    public class MockTaskHttpClient : ITaskHttpClient
+    public class MockTaskClient : ITaskClient
     {
-        public MockTaskHttpClient()
+        public MockTaskClient()
         {
             this.EventsReceived = new List<JobEvent>();
             this.LogLines = new List<string>();

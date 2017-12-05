@@ -1,6 +1,6 @@
 using System;
 
-namespace VstsServerTaskBroker.UnitTest
+namespace VstsServerTaskHelper.UnitTests
 {
     public class TestAccountConstants
     {

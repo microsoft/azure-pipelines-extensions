@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 using Microsoft.TeamFoundation.Policy.WebApi;
 using Microsoft.TeamFoundation.SourceControl.WebApi;
 
-namespace VstsServerTaskBroker
+namespace VstsServerTaskHelper
 {
-    public interface IGitHttpClientWrapper
+    public interface IGitClient
     {
         Task<GitPullRequest> GetPullRequestAsync(Guid projectId, string repositoryName, int pullRequestId, CancellationToken cancellationToken);
 

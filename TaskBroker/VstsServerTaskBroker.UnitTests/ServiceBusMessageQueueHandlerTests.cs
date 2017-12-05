@@ -1,25 +1,21 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-
 using Microsoft.TeamFoundation.Build.WebApi;
 using Microsoft.TeamFoundation.DistributedTask.WebApi;
 using Microsoft.VisualStudio.Services.ReleaseManagement.WebApi;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 
-using VstsServerTaskBroker.Contracts;
-using VstsServerTaskBroker.Azure.ServiceBus;
-
-namespace VstsServerTaskBroker.UnitTest
+namespace VstsServerTaskHelper.UnitTests
 {
     using TaskResult = Microsoft.TeamFoundation.DistributedTask.WebApi.TaskResult;
 
     /// <summary>
-    /// Unit test class for <see cref="SchedulingBrokerTests"/> class.
+    /// Unit test class for <see cref="ServiceBusMessageQueueHandlerTests"/> class.
     /// </summary>
     [TestClass]
-    public class SchedulingBrokerTests
+    public class ServiceBusMessageQueueHandlerTests
     {
         // TBD functionality to be tested:
         // - broker logs assigned retries to VSTS
@@ -40,7 +36,7 @@ namespace VstsServerTaskBroker.UnitTest
             testVstsMessage.CompleteSychronously = false;
 
             var mockMessage = CreateMockMessage(testVstsMessage);
-            var mockTaskClient = new MockTaskHttpClient();
+            var mockTaskClient = new MockTaskClient();
             var executeCalled = false;
             var handler = new MockVstsHandler
             {
@@ -85,7 +81,7 @@ namespace VstsServerTaskBroker.UnitTest
             testVstsMessage.CompleteSychronously = false;
 
             var mockMessage = CreateMockMessage(testVstsMessage);
-            var mockTaskClient = new MockTaskHttpClient();
+            var mockTaskClient = new MockTaskClient();
             var executeCalled = false;
             var handler = new MockVstsHandler
             {
@@ -128,7 +124,7 @@ namespace VstsServerTaskBroker.UnitTest
             var testVstsMessage = CreateValidTestVstsMessage();
             testVstsMessage.CompleteSychronously = true;
             var mockMessage = CreateMockMessage(testVstsMessage);
-            var mockTaskClient = new MockTaskHttpClient();
+            var mockTaskClient = new MockTaskClient();
             var mockReportingHelper = new MockVstsReportingHelper(testVstsMessage);
             var executeCalled = false;
             var handler = new MockVstsHandler
@@ -164,7 +160,7 @@ namespace VstsServerTaskBroker.UnitTest
             var testVstsMessage = CreateValidTestVstsMessage();
             testVstsMessage.CompleteSychronously = true;
             var mockMessage = CreateMockMessage(testVstsMessage);
-            var mockTaskClient = new MockTaskHttpClient();
+            var mockTaskClient = new MockTaskClient();
             var mockReportingHelper = new MockVstsReportingHelper(testVstsMessage);
             var executeCalled = false;
             var handler = new MockVstsHandler
@@ -203,7 +199,7 @@ namespace VstsServerTaskBroker.UnitTest
             var testVstsMessage = CreateValidTestVstsMessage();
             testVstsMessage.RequestType = RequestType.Cancel;
             var mockMessage = CreateMockMessage(testVstsMessage);
-            var mockTaskClient = new MockTaskHttpClient();
+            var mockTaskClient = new MockTaskClient();
 
             var cancelCalled = false;
             var handler = new MockVstsHandler
@@ -242,7 +238,7 @@ namespace VstsServerTaskBroker.UnitTest
             var mockMessage = CreateMockMessage(CreateValidTestVstsMessage());
             mockMessage.SetProperty(VstsMessageConstants.TaskLogIdPropertyName, 456);
             mockMessage.SetProperty(VstsMessageConstants.RetryAttemptPropertyName, 10);
-            var mockTaskClient = new MockTaskHttpClient();
+            var mockTaskClient = new MockTaskClient();
             var mockMessageListener = new MockServiceBusQueueMessageListener();
 
             // when
@@ -263,7 +259,7 @@ namespace VstsServerTaskBroker.UnitTest
             var maxRetryAttempts = 10;
             var currRetry = 5;
             mockMessage.SetProperty(VstsMessageConstants.RetryAttemptPropertyName, currRetry);
-            var mockTaskClient = new MockTaskHttpClient();
+            var mockTaskClient = new MockTaskClient();
 
             var executeCount = 0;
             var mockVstsHandler = new MockVstsHandler()
@@ -297,7 +293,7 @@ namespace VstsServerTaskBroker.UnitTest
             var maxRetryAttempts = 10;
             var currRetry = 10;
             mockMessage.SetProperty(VstsMessageConstants.RetryAttemptPropertyName, currRetry);
-            var mockTaskClient = new MockTaskHttpClient();
+            var mockTaskClient = new MockTaskClient();
 
             var executeCount = 0;
             var mockVstsHandler = new MockVstsHandler()
@@ -351,7 +347,7 @@ namespace VstsServerTaskBroker.UnitTest
             var mockBuildClient = new MockBuildClient() { MockBuild = new Build() {Status = BuildStatus.Cancelling} };
 
             // when
-            await ProcessTestMessage(mockMessage, mockMessageListener, new MockTaskHttpClient(), mockVstsHandler, mockBuildClient: mockBuildClient);
+            await ProcessTestMessage(mockMessage, mockMessageListener, new MockTaskClient(), mockVstsHandler, mockBuildClient: mockBuildClient);
 
             // then - logs are written to existing timeline
             Assert.IsTrue(mockMessageListener.IsCompleted);
@@ -377,7 +373,7 @@ namespace VstsServerTaskBroker.UnitTest
             var mockMessageListener = new MockServiceBusQueueMessageListener();
 
             // when
-            await ProcessTestMessage(mockMessage, mockMessageListener, new MockTaskHttpClient(), mockVstsHandler, mockBuildClient: mockBuildClient);
+            await ProcessTestMessage(mockMessage, mockMessageListener, new MockTaskClient(), mockVstsHandler, mockBuildClient: mockBuildClient);
 
             // then - logs are written to existing timeline
             Assert.IsTrue(mockMessageListener.IsCompleted);
@@ -406,7 +402,7 @@ namespace VstsServerTaskBroker.UnitTest
             var mockMessageListener = new MockServiceBusQueueMessageListener();
 
             // when
-            await ProcessTestMessage(handler: handler, mockMessageListener: mockMessageListener, instrumentation: traceBrokerInstrumentation, mockMessageWrapper: mockMessage);
+            await ProcessTestMessage(handler: handler, mockMessageListener: mockMessageListener, instrumentation: traceBrokerInstrumentation, mockServiceBusMessage: mockMessage);
 
             // then
             Assert.IsTrue(mockMessageListener.IsAbandoned);
@@ -422,7 +418,7 @@ namespace VstsServerTaskBroker.UnitTest
             var mockMessageListener = new MockServiceBusQueueMessageListener();
 
             // when
-            await ProcessTestMessage(handler: handler, mockMessageListener: mockMessageListener, instrumentation: traceBrokerInstrumentation, mockMessageWrapper: mockMessage);
+            await ProcessTestMessage(handler: handler, mockMessageListener: mockMessageListener, instrumentation: traceBrokerInstrumentation, mockServiceBusMessage: mockMessage);
 
             // then
             Assert.IsTrue(mockMessageListener.IsAbandoned);
@@ -440,31 +436,31 @@ namespace VstsServerTaskBroker.UnitTest
             return testVstsMessage;
         }
 
-        internal static MockMessageWrapper CreateMockMessage(TestVstsMessage testMessage)
+        internal static MockServiceBusMessage CreateMockMessage(TestVstsMessage testMessage)
         {
             var testMessageJson = JsonConvert.SerializeObject(testMessage);
-            var mockMessage = new MockMessageWrapper { BodyObject = testMessageJson };
+            var mockMessage = new MockServiceBusMessage { BodyObject = testMessageJson };
             return mockMessage;
         }
 
-        private static async Task ProcessTestMessage(MockMessageWrapper mockMessageWrapper = null, MockServiceBusQueueMessageListener mockMessageListener = null, MockTaskHttpClient mockTaskClient = null, MockVstsHandler handler = null, MockVstsReportingHelper mockReportingHelper = null, IBrokerInstrumentation instrumentation = null, int maxRetryAttempts = 1, IBuildHttpClientWrapper mockBuildClient = null, IGitHttpClientWrapper mockGitClient = null)
+        private static async Task ProcessTestMessage(MockServiceBusMessage mockServiceBusMessage = null, MockServiceBusQueueMessageListener mockMessageListener = null, MockTaskClient mockTaskClient = null, MockVstsHandler handler = null, MockVstsReportingHelper mockReportingHelper = null, IBrokerInstrumentation instrumentation = null, int maxRetryAttempts = 1, IBuildClient mockBuildClient = null, IGitClient mockGitClient = null)
         {
-            mockMessageWrapper = mockMessageWrapper ?? CreateMockMessage(CreateValidTestVstsMessage());
-            mockTaskClient = mockTaskClient ?? new MockTaskHttpClient();
+            mockServiceBusMessage = mockServiceBusMessage ?? CreateMockMessage(CreateValidTestVstsMessage());
+            mockTaskClient = mockTaskClient ?? new MockTaskClient();
             mockBuildClient = mockBuildClient ?? new MockBuildClient() { MockBuild = new Build() { Status = BuildStatus.InProgress } };
             mockReportingHelper = mockReportingHelper ?? new MockVstsReportingHelper(new TestVstsMessage());
             var mockReleaseClient = new MockReleaseClient() { MockRelease = new Release() {Status = ReleaseStatus.Active} };
             handler = handler ?? new MockVstsHandler { MockExecuteFunc = (vstsMessage) => Task.FromResult(new VstsScheduleResult() { Message = "(test) mock execute requested", ScheduledId = "someId", ScheduleFailed = false }) };
             instrumentation = instrumentation ?? new TraceBrokerInstrumentation();
-            var settings = new SchedulingBrokerSettings { MaxRetryAttempts = maxRetryAttempts };
+            var settings = new ServiceBusQueueMessageHandlerSettings { MaxRetryAttempts = maxRetryAttempts, TimeLineNamePrefix = "someTimeline", WorkerName = "someWorker" };
             mockMessageListener = mockMessageListener ?? new MockServiceBusQueueMessageListener();
-            var schedulingBroker = new SchedulingBroker<TestVstsMessage>(timeNamePrefix: "someTimeline", workerName: "someWorker", queueClient: mockMessageListener, baseInstrumentation: instrumentation, scheduleHandler: handler, settings: settings);
-            schedulingBroker.CreateTaskHttpClient = (uri, creds, instrumentationHandler, skipRaisePlanEvents) => mockTaskClient;
+            var schedulingBroker = new ServiceBusQueueMessageHandler<TestVstsMessage>(queueClient: mockMessageListener, baseInstrumentation: instrumentation, scheduleHandler: handler, settings: settings);
+            schedulingBroker.CreateTaskClient = (uri, creds, instrumentationHandler, skipRaisePlanEvents) => mockTaskClient;
             schedulingBroker.CreateBuildClient = (uri, creds) => mockBuildClient;
             schedulingBroker.CreateReleaseClient = (uri, creds) => mockReleaseClient;
             schedulingBroker.CreateVstsReportingHelper = (vstsMessage, inst, props) => mockReportingHelper;
             var cancelSource = new CancellationTokenSource();
-            await schedulingBroker.ReceiveAsync(mockMessageWrapper, cancelSource.Token);
+            await schedulingBroker.ReceiveAsync(mockServiceBusMessage, cancelSource.Token);
         }
     }
 }

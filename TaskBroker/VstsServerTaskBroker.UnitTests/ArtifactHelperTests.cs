@@ -4,12 +4,11 @@ using System.IO;
 using System.IO.Compression;
 using System.Threading;
 using System.Threading.Tasks;
-
 using Microsoft.TeamFoundation.Build.WebApi;
 using Microsoft.VisualStudio.Services.ReleaseManagement.WebApi.Contracts;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace VstsServerTaskBroker.UnitTest
+namespace VstsServerTaskHelper.UnitTests
 {
     /// <summary>
     /// Unit test class for <see cref="ArtifactHelperTests"/> class.
@@ -25,8 +24,8 @@ namespace VstsServerTaskBroker.UnitTest
             var entryName = string.Format("{0}/{1}", Guid.NewGuid(), VstsArtifactsHelper.VstsDropJsonFileName);
             var buildClient = new MockBuildClient() { ContentStream = GetZippedStream(expectedContent, entryName) };
             var releaseClient = new MockReleaseClient();
-            var gitClient = new MockGitHttpClientWrapper();
-            var artifactHelper = new VstsArtifactsHelper(buildHttpClientWrapper: buildClient, releaseHttpClientWrapper: releaseClient, gitClient: gitClient, projectId: Guid.NewGuid(), repoName: "someRepo");
+            var gitClient = new MockGitClient();
+            var artifactHelper = new VstsArtifactsHelper(buildClient: buildClient, releaseClient: releaseClient, gitClient: gitClient, projectId: Guid.NewGuid(), repoName: "someRepo");
 
             // when
             var contentString = await artifactHelper.ExtractFileContainerArtifact("someArtifact", 123, default(CancellationToken));
@@ -42,9 +41,9 @@ namespace VstsServerTaskBroker.UnitTest
             var expectedContent = "somestuff";
             var entryName = string.Format("{0}/RANDOMNAME", Guid.NewGuid());
             var buildClient = new MockBuildClient() { ContentStream = GetZippedStream(expectedContent, entryName) };
-            var gitClient = new MockGitHttpClientWrapper();
+            var gitClient = new MockGitClient();
             var releaseClient = new MockReleaseClient();
-            var artifactHelper = new VstsArtifactsHelper(buildHttpClientWrapper: buildClient, releaseHttpClientWrapper: releaseClient, gitClient: gitClient, projectId: Guid.NewGuid(), repoName: "someRepo");
+            var artifactHelper = new VstsArtifactsHelper(buildClient: buildClient, releaseClient: releaseClient, gitClient: gitClient, projectId: Guid.NewGuid(), repoName: "someRepo");
 
             // when
             var throws = false;
@@ -76,9 +75,9 @@ namespace VstsServerTaskBroker.UnitTest
                 MockBuildArtifact = new BuildArtifact(),
                 ContentStream = GetZippedStream(expectedContent, entryName),
             };
-            var gitClient = new MockGitHttpClientWrapper();
+            var gitClient = new MockGitClient();
             var releaseClient = new MockReleaseClient();
-            var artifactHelper = new VstsArtifactsHelper(buildHttpClientWrapper: buildClient, releaseHttpClientWrapper: releaseClient, gitClient: gitClient, projectId: Guid.NewGuid(), repoName: "someRepo");
+            var artifactHelper = new VstsArtifactsHelper(buildClient: buildClient, releaseClient: releaseClient, gitClient: gitClient, projectId: Guid.NewGuid(), repoName: "someRepo");
 
             // when
             var artifactUrl = await artifactHelper.WaitForDropArtifact("someArtifact", 123, default(CancellationToken));
@@ -95,9 +94,9 @@ namespace VstsServerTaskBroker.UnitTest
             {
                 MockBuild = new Build() { Status = BuildStatus.Completed, Result = BuildResult.Failed, Repository = new BuildRepository() { Name = "someRepo" } },
             };
-            var gitClient = new MockGitHttpClientWrapper();
+            var gitClient = new MockGitClient();
             var releaseClient = new MockReleaseClient();
-            var artifactHelper = new VstsArtifactsHelper(buildHttpClientWrapper: buildClient, releaseHttpClientWrapper: releaseClient, gitClient: gitClient, projectId: Guid.NewGuid(), repoName: "someRepo");
+            var artifactHelper = new VstsArtifactsHelper(buildClient: buildClient, releaseClient: releaseClient, gitClient: gitClient, projectId: Guid.NewGuid(), repoName: "someRepo");
 
             // when
             var throws = false;
@@ -123,8 +122,8 @@ namespace VstsServerTaskBroker.UnitTest
                 ReturnNullBuild = true,
             };
             var releaseClient = new MockReleaseClient();
-            var gitClient = new MockGitHttpClientWrapper();
-            var artifactHelper = new VstsArtifactsHelper(buildHttpClientWrapper: buildClient, releaseHttpClientWrapper: releaseClient, gitClient: gitClient, projectId: Guid.NewGuid(), repoName: "someRepo");
+            var gitClient = new MockGitClient();
+            var artifactHelper = new VstsArtifactsHelper(buildClient: buildClient, releaseClient: releaseClient, gitClient: gitClient, projectId: Guid.NewGuid(), repoName: "someRepo");
 
             // when
             var throws = false;
@@ -149,7 +148,7 @@ namespace VstsServerTaskBroker.UnitTest
             {
                 MockArtifactDefinitions = new List<AgentArtifactDefinition>(),
             };
-            var gitClient = new MockGitHttpClientWrapper();
+            var gitClient = new MockGitClient();
             var buildClient = new MockBuildClient();
             var artifactHelper = new VstsArtifactsHelper(buildClient, releaseClient, gitClient, Guid.NewGuid(), "someRepo");
 
@@ -184,7 +183,7 @@ namespace VstsServerTaskBroker.UnitTest
             {
                 MockArtifactDefinitions = mockArtifactDefinitions,
             };
-            var gitClient = new MockGitHttpClientWrapper();
+            var gitClient = new MockGitClient();
             var buildClient = new MockBuildClient();
             var artifactHelper = new VstsArtifactsHelper(buildClient, releaseClient, gitClient, Guid.NewGuid(), "someRepo");
 
@@ -219,7 +218,7 @@ namespace VstsServerTaskBroker.UnitTest
             {
                 MockArtifactDefinitions = mockArtifactDefinitions,
             };
-            var gitClient = new MockGitHttpClientWrapper();
+            var gitClient = new MockGitClient();
             var buildClient = new MockBuildClient();
             var artifactHelper = new VstsArtifactsHelper(buildClient, releaseClient, gitClient, Guid.NewGuid(), "someRepo");
 
@@ -249,7 +248,7 @@ namespace VstsServerTaskBroker.UnitTest
             {
                 MockArtifactDefinitions = mockArtifactDefinitions,
             };
-            var gitClient = new MockGitHttpClientWrapper();
+            var gitClient = new MockGitClient();
             var buildClient = new MockBuildClient();
             var artifactHelper = new VstsArtifactsHelper(buildClient, releaseClient, gitClient, Guid.NewGuid(), "someRepo");
 
@@ -326,7 +325,7 @@ namespace VstsServerTaskBroker.UnitTest
         
         private VstsArtifactsHelper FromArtifactResource(ArtifactResource r)
         {
-            var gitClient = new MockGitHttpClientWrapper();
+            var gitClient = new MockGitClient();
             var releaseClient = new MockReleaseClient();
             var buildClient = new MockBuildClient()
             {
@@ -335,7 +334,7 @@ namespace VstsServerTaskBroker.UnitTest
                    Resource = r
                 }
             };
-            return new VstsArtifactsHelper(buildHttpClientWrapper: buildClient, releaseHttpClientWrapper: releaseClient, gitClient: gitClient, projectId: Guid.NewGuid(), repoName: "someRepo");
+            return new VstsArtifactsHelper(buildClient: buildClient, releaseClient: releaseClient, gitClient: gitClient, projectId: Guid.NewGuid(), repoName: "someRepo");
         }
 
         private static MemoryStream GetZippedStream(string expectedContent, string entryName)

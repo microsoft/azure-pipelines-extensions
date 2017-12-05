@@ -5,81 +5,27 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.TeamFoundation.Build.WebApi;
 using Microsoft.VisualStudio.Services.Common;
+using Microsoft.VisualStudio.Services.WebApi;
 
-namespace VstsServerTaskBroker
+namespace VstsServerTaskHelper
 {
-    public class MockBuildClient : IBuildHttpClientWrapper
-    {
-        public Stream ContentStream { get; set; }
-
-        public Build MockBuild { get; set; }
-
-        public bool ReturnNullBuild { get; set; }
-
-        public BuildArtifact MockBuildArtifact { get; set; }
-
-        public Task<Build> GetBuildAsync(Guid projectId, int buildId, CancellationToken cancellationToken)
-        {
-            if (this.ReturnNullBuild)
-            {
-                return Task.FromResult<Build>(null);
-            }
-
-            if (this.MockBuild != null)
-            {
-                return Task.FromResult(this.MockBuild);
-            }
-
-            throw new NotImplementedException();
-        }
-
-        public Task<Build> GetLatestBuildWithTagAsync(Guid projectId, int definitionId, string tag)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<BuildDefinitionReference> GetBuildDefinitionAsync(Guid projectId, string buildName, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<Stream> GetArtifactContentZipAsync(Guid projectId, int buildId, string artifactName, CancellationToken cancellationToken)
-        {
-            if (this.ContentStream != null)
-            {
-                return Task.FromResult(ContentStream);
-            }
-
-            throw new NotImplementedException();
-        }
-
-        public Task<BuildArtifact> GetArtifactAsync(Guid projectId, int buildId, string artifactName, CancellationToken cancellationToken)
-        {
-            if (this.MockBuildArtifact != null)
-            {
-                return Task.FromResult(this.MockBuildArtifact);
-            }
-
-            throw new NotImplementedException();
-        }
-    }
-
-    public class BuildHttpClientWrapper : IBuildHttpClientWrapper
+    public class BuildClient : IBuildClient
     {
         private const int DefaultRetryCount = 3;
         private const int DefaultRetryIntervalInSeconds = 5;
 
-        private readonly BuildHttpClient client;
+        private readonly Microsoft.TeamFoundation.Build.WebApi.BuildHttpClient client;
         private readonly Retryer retryer;
 
-        public BuildHttpClientWrapper(Uri baseUrl, VssCredentials credentials)
+        public BuildClient(Uri baseUrl, VssCredentials credentials)
             : this(baseUrl, credentials, DefaultRetryCount, DefaultRetryIntervalInSeconds)
         {
         }
 
-        public BuildHttpClientWrapper(Uri baseUrl, VssCredentials credentials, int retryCount, int retryInterval)
+        public BuildClient(Uri baseUrl, VssCredentials credentials, int retryCount, int retryInterval)
         {
-            this.client = new BuildHttpClient(baseUrl, credentials);
+            var vssConnection = new VssConnection(baseUrl, credentials);
+            this.client = vssConnection.GetClient<BuildHttpClient>();
             this.retryer = Retryer.CreateRetryer(retryCount, TimeSpan.FromSeconds(retryInterval));
         }
 
@@ -153,7 +99,7 @@ namespace VstsServerTaskBroker
             return artifact;
         }
 
-        public static async Task<bool> IsBuildValid(IBuildHttpClientWrapper buildClient, Guid projectId, int buildId, CancellationToken cancellationToken)
+        public static async Task<bool> IsBuildValid(IBuildClient buildClient, Guid projectId, int buildId, CancellationToken cancellationToken)
         {
             try
             {

@@ -1,24 +1,15 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
 
-using VstsServerTaskBroker.Contracts;
 
-namespace VstsServerTaskBroker
+
+namespace VstsServerTaskHelper
 {
     public interface IVstsScheduleHandler<T> 
-        where T : VstsMessageBase
+        where T : VstsMessage
     {
         Task<VstsScheduleResult> Execute(T vstsMessage, CancellationToken cancellationToken);
 
         Task<string> Cancel(T vstsMessage, CancellationToken cancellationToken);
-    }
-
-    public class VstsScheduleResult
-    {
-        public bool ScheduleFailed { get; set; }
-
-        public string Message { get; set; }
-
-        public string ScheduledId { get; set; }
     }
 }

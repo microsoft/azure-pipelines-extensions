@@ -5,9 +5,9 @@ using System.Threading.Tasks;
 
 using Microsoft.TeamFoundation.Build.WebApi;
 
-namespace VstsServerTaskBroker
+namespace VstsServerTaskHelper
 {
-    public interface IBuildHttpClientWrapper
+    public interface IBuildClient
     {
         Task<Build> GetBuildAsync(Guid projectId, int buildId, CancellationToken cancellationToken);
 

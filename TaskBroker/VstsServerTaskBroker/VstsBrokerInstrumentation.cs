@@ -4,19 +4,19 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace VstsServerTaskBroker
+namespace VstsServerTaskHelper
 {
     public class VstsBrokerInstrumentation : IBrokerInstrumentation
     {
         private readonly IBrokerInstrumentation baseInstrumentation;
-        private readonly ITaskHttpClient taskClient;
+        private readonly ITaskClient taskClient;
         private readonly Guid scopeIdentifier;
         private readonly Guid planId;
         private readonly int taskLogId;
         private readonly IDictionary<string, string> baseEventProperties;
         private readonly string hubName;
 
-        public VstsBrokerInstrumentation(IBrokerInstrumentation baseInstrumentation, ITaskHttpClient taskClient, string hubName, Guid scopeIdentifier, Guid planId, int taskLogId, IDictionary<string, string> eventProperties)
+        public VstsBrokerInstrumentation(IBrokerInstrumentation baseInstrumentation, ITaskClient taskClient, string hubName, Guid scopeIdentifier, Guid planId, int taskLogId, IDictionary<string, string> eventProperties)
         {
             this.baseInstrumentation = baseInstrumentation;
             this.taskClient = taskClient;
@@ -119,14 +119,14 @@ namespace VstsServerTaskBroker
             return updatedProperties;
         }
 
-        private async Task AppendLogAsync(string logMessage, IDictionary<string, string> eventProperties, ITaskHttpClient taskHttpClient, Guid scopeIdentifier, Guid planId, int taskLogId, CancellationToken cancellationToken)
+        private async Task AppendLogAsync(string logMessage, IDictionary<string, string> eventProperties, ITaskClient taskClient, Guid scopeIdentifier, Guid planId, int taskLogId, CancellationToken cancellationToken)
         {
             Exception exception = null;
             try
             {
                 using (var logStream = GenerateStreamFromString(logMessage))
                 {
-                    var taskLogResponse = await taskHttpClient.AppendLogContentAsync(scopeIdentifier, this.hubName, planId, taskLogId, logStream, userState: null, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    var taskLogResponse = await taskClient.AppendLogContentAsync(scopeIdentifier, this.hubName, planId, taskLogId, logStream, userState: null, cancellationToken: cancellationToken).ConfigureAwait(false);
                 }
             }
             catch (Exception ex)
