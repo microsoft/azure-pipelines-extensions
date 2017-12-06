@@ -6,15 +6,15 @@ var packagejson = require('../package.json');
 const area: string = 'artifact-engine';
 
 function getDefaultProps() {
+    var hostType = (tl.getVariable('SYSTEM.HOSTTYPE') || "").toLowerCase();
     return {
-        serverurl: tl.getVariable('System.TEAMFOUNDATIONSERVERURI'),
-        releaseurl: tl.getVariable('Release.ReleaseWebUrl'),
-        taskDisplayName: tl.getVariable('Task.DisplayName'),
-        jobid: tl.getVariable('System.Jobid'),
-        releaseid: tl.getVariable('Release.ReleaseId'),
-        builduri: tl.getVariable('Build.BuildUri'),
-        buildid: tl.getVariable('Build.Buildid'),
-        agentVersion: tl.getVariable('Agent.Version'),
+        hostType: hostType,
+        definitionName: hostType === 'release' ? tl.getVariable('RELEASE.DEFINITIONNAME') : tl.getVariable('BUILD.DEFINITIONNAME'),
+        processId: hostType === 'release' ? tl.getVariable('RELEASE.RELEASEID') : tl.getVariable('BUILD.BUILDID'),
+        processUrl: hostType === 'release' ? tl.getVariable('RELEASE.RELEASEWEBURL') : (tl.getVariable('SYSTEM.TEAMFOUNDATIONSERVERURI') + tl.getVariable('SYSTEM.TEAMPROJECT') + '/_build?buildId=' + tl.getVariable('BUILD.BUILDID')),
+        taskDisplayName: tl.getVariable('TASK.DISPLAYNAME'),
+        jobid: tl.getVariable('SYSTEM.JOBID'),
+        agentVersion: tl.getVariable('AGENT.VERSION'),
         version: packagejson.version
     };
 }
