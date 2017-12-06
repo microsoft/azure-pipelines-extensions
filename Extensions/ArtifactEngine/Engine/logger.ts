@@ -63,14 +63,25 @@ export class Logger {
         var skippedItems = fileTickets.filter(x => x.state == TicketState.Skipped);
         var failedItems = fileTickets.filter(x => x.state == TicketState.Failed);
 
+        var downloadSizeInBytes = 0;
+        var fileSizeInBytes = 0;
+
+        for (var ticket of fileTickets) {
+            downloadSizeInBytes += ticket.downloadSizeInBytes;
+            fileSizeInBytes += ticket.fileSizeInBytes;
+        }
+
+        var downloadSizeInMB = (downloadSizeInBytes / 1048576).toFixed(3);
+
         var endTime = new Date();
-        var timeElapsed = (endTime.valueOf() - this.startTime.valueOf()) / 1000;
+        var timeTaken = (endTime.valueOf() - this.startTime.valueOf()) / 1000;
         console.log(
             "Total Files: " + fileTickets.length
             + ", Processed: " + processedItems.length
             + ", Skipped: " + skippedItems.length
             + ", Failed: " + failedItems.length
-            + ", Time elapsed: " + timeElapsed + "secs");
+            + ", Time taken: " + timeTaken + "secs"
+            + ", Download size: " + downloadSizeInMB + "MB");
 
         ci.publishEvent('performance',
             {
@@ -80,7 +91,9 @@ export class Logger {
                 processed: processedItems.length,
                 skipped: skippedItems.length,
                 failed: failedItems.length,
-                timetaken: timeElapsed
+                timetaken: timeTaken,
+                downloadSizeInBytes: downloadSizeInBytes,
+                fileSizeInBytes: fileSizeInBytes
             });
 
         if (Logger.verbose) {

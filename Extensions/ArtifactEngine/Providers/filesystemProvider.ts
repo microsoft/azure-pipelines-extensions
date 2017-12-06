@@ -57,7 +57,6 @@ export class FilesystemProvider implements models.IArtifactProvider {
                 stream.on("end",
                     () => {
                         Logger.logMessage(`Downloaded '${item.path}' to '${outputFilename}'`);
-                        this.artifactItemStore.updateFileSize(item, outputStream.bytesWritten);
                         if (!item.metadata) {
                             item.metadata = {};
                         }
@@ -70,6 +69,9 @@ export class FilesystemProvider implements models.IArtifactProvider {
                     (error) => {
                         reject(error);
                     });
+                outputStream.on("finish", () => {
+                    this.artifactItemStore.updateFileSize(item, outputStream.bytesWritten);
+                });
             }
             catch (err) {
                 reject(err);

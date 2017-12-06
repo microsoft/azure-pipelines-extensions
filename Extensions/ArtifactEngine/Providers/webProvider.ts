@@ -55,12 +55,12 @@ export class WebProvider implements models.IArtifactProvider {
             var itemUrl: string = artifactItem.metadata['downloadUrl'];
             itemUrl = itemUrl.replace(/([^:]\/)\/+/g, "$1");
             this.httpc.get(itemUrl).then((res: httpm.HttpClientResponse) => {
+                res.message.on('end', () => {
+                    this.artifactItemStore.updateDownloadSize(artifactItem, res.message.socket.bytesRead);
+                });
                 if (res.message.headers['content-encoding'] === 'gzip') {
                     try {
                         resolve(res.message.pipe(zlib.createUnzip()));
-                        res.message.on('end', () => {
-                            this.artifactItemStore.updateDownloadSize(artifactItem, res.message.socket.bytesRead);
-                        });
                     }
                     catch (err) {
                         reject(err);

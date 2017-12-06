@@ -36,7 +36,14 @@ describe('perf tests', () => {
 
         processor.processItems(webProvider, filesystemProvider, processorOptions)
             .then((tickets) => {
-                assert.equal(tickets.filter(x => x.artifactItem.itemType === ItemType.File && x.state === TicketState.Processed).length, 301);
+                let fileTickets = tickets.filter(x => x.artifactItem.itemType == ItemType.File && x.state === TicketState.Processed);
+                let fileSizeInBytes = 0;
+                for (var ticket of fileTickets) {
+                    fileSizeInBytes += ticket.fileSizeInBytes;
+                }
+
+                assert.equal(fileTickets.length, 301);
+                assert(fileSizeInBytes > 1500000000);
                 done();
             }, (error) => {
                 throw error;
@@ -62,7 +69,14 @@ describe('perf tests', () => {
 
         processor.processItems(sourceProvider, filesystemProvider, processorOptions)
             .then((tickets) => {
-                assert.equal(tickets.filter(x => x.artifactItem.itemType === ItemType.File && x.state === TicketState.Processed).length, 301);
+                let fileTickets = tickets.filter(x => x.artifactItem.itemType == ItemType.File && x.state === TicketState.Processed);
+                let fileSizeInBytes = 0;
+                for (var ticket of fileTickets) {
+                    fileSizeInBytes += ticket.fileSizeInBytes;
+                }
+
+                assert.equal(fileTickets.length, 301);
+                assert(fileSizeInBytes > 1500000000);
                 done();
             }, (error) => {
                 throw error;

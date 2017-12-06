@@ -27,12 +27,19 @@ mockery.enable({
 });
 
 import * as providers from '../Providers';
+import { ArtifactItemStore } from '../Store/artifactItemStore';
 
 describe('filesystemProvider.putArtifactItem', () => {
 
+    let localFileProvider;
+
+    before(() => {
+        localFileProvider = new providers.FilesystemProvider("c:\\drop");
+        localFileProvider.artifactItemStore = new ArtifactItemStore();
+    });
+
     it('should not fail if artifactItem metadata is undefined', async (done) => {
         var artifactItem = { fileLength: 0, itemType: models.ItemType.File, path: "path1\\file1", lastModified: null, metadata: undefined };
-        var localFileProvider = new providers.FilesystemProvider("c:\\drop");
       
         const s = new stream.Readable();
         s._read = () => { };
@@ -48,7 +55,6 @@ describe('filesystemProvider.putArtifactItem', () => {
 
     it('should return items with updated paths', async (done) => {
         var artifactItem = { fileLength: 0, itemType: models.ItemType.File, path: "path1\\file1", lastModified: null, metadata: null };
-        var localFileProvider = new providers.FilesystemProvider("c:\\drop");
 
         const s = new stream.Readable();
         s._read = () => { };
