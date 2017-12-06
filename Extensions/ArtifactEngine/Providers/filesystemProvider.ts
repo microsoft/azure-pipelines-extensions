@@ -4,8 +4,12 @@ import * as zlib from 'zlib';
 
 import * as models from '../Models';
 import { Logger } from '../Engine/logger';
+import { ArtifactItemStore } from '../Store/artifactItemStore';
 
 export class FilesystemProvider implements models.IArtifactProvider {
+
+    public artifactItemStore: ArtifactItemStore;
+
     constructor(rootLocation: string) {
         this._rootLocation = rootLocation;
     }
@@ -53,6 +57,7 @@ export class FilesystemProvider implements models.IArtifactProvider {
                 stream.on("end",
                     () => {
                         Logger.logMessage(`Downloaded '${item.path}' to '${outputFilename}'`);
+                        this.artifactItemStore.updateFileSize(item, outputStream.bytesWritten);
                         if (!item.metadata) {
                             item.metadata = {};
                         }

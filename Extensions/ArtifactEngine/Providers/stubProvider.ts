@@ -2,9 +2,12 @@
 
 import * as models from '../Models';
 import { ItemType } from '../Models';
+import { ArtifactItemStore } from '../Store/artifactItemStore';
 
 export class StubProvider implements models.IArtifactProvider {
 
+    public artifactItemStore: ArtifactItemStore;
+    
     public getArtifactItemCalledCount = 0;
     public getArtifactItemsCalledCount = 0;
 

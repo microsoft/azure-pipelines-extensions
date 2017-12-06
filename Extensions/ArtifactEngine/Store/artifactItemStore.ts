@@ -13,7 +13,9 @@ export class ArtifactItemStore {
             state: models.TicketState.InQueue,
             startTime: undefined,
             finishTime: undefined,
-            retryCount: 0
+            retryCount: 0,
+            downloadSizeInBytes: undefined,
+            fileSizeInBytes: undefined
         };
 
         this._downloadTickets.push(artifactDownloadTicket);
@@ -69,6 +71,20 @@ export class ArtifactItemStore {
         var ticket = this._downloadTickets.find(x => x.artifactItem.path === item.path);
         if (ticket) {
             ticket.retryCount = ticket.retryCount + 1;
+        }
+    }
+
+    public updateDownloadSize(item: models.ArtifactItem, downloadSizeInBytes: number) {
+        var ticket = this._downloadTickets.find(x => x.artifactItem.path === item.path);
+        if (ticket) {
+            ticket.downloadSizeInBytes = downloadSizeInBytes;
+        }
+    }
+
+    public updateFileSize(item: models.ArtifactItem, fileSizeInBytes: number) {
+        var ticket = this._downloadTickets.find(x => x.artifactItem.path === item.path);
+        if (ticket) {
+            ticket.fileSizeInBytes = fileSizeInBytes;
         }
     }
 

@@ -22,6 +22,8 @@ export class ArtifactEngine {
             Logger.verbose = artifactEngineOptions.verbose;
             this.logger = new Logger(this.artifactItemStore);
             this.logger.logProgress();
+            sourceProvider.artifactItemStore = this.artifactItemStore;
+            destProvider.artifactItemStore = this.artifactItemStore;
             sourceProvider.getRootItems().then((itemsToProcess: models.ArtifactItem[]) => {
                 this.artifactItemStore.addItems(itemsToProcess);
 
