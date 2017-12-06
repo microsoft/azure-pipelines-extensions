@@ -66,7 +66,7 @@ namespace VstsServerTaskHelper.UnitTests
             // given
             var message = ServiceBusMessageQueueHandlerTests.CreateValidTestVstsMessage();
             message.RequesterEmail = "someone";
-            message.ScheduleBuildRequesterAlias = "someOneElse";
+            message.ScheduleRequesterAlias = "someOneElse";
             var brokeredMessage = ServiceBusMessageQueueHandlerTests.CreateMockMessage(message);
 
             // when
@@ -85,7 +85,7 @@ namespace VstsServerTaskHelper.UnitTests
             // given
             var message = ServiceBusMessageQueueHandlerTests.CreateValidTestVstsMessage();
             message.RequesterEmail = null;
-            message.ScheduleBuildRequesterAlias = "someOneElse";
+            message.ScheduleRequesterAlias = "someOneElse";
             var brokeredMessage = ServiceBusMessageQueueHandlerTests.CreateMockMessage(message);
 
             // when
@@ -104,7 +104,7 @@ namespace VstsServerTaskHelper.UnitTests
             // given
             var message = ServiceBusMessageQueueHandlerTests.CreateValidTestVstsMessage();
             message.RequesterEmail = "$(someVar)";
-            message.ScheduleBuildRequesterAlias = "someOneElse";
+            message.ScheduleRequesterAlias = "someOneElse";
             var brokeredMessage = ServiceBusMessageQueueHandlerTests.CreateMockMessage(message);
 
             // when

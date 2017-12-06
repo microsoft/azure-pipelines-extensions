@@ -6,6 +6,7 @@ namespace VstsServerTaskHelper
     public class MockServiceBusQueueMessageListener : IServiceBusQueueMessageListener
     {
         public Func<IServiceBusMessage, Task> MessageHandlerFunc { get; set; }
+        public Func<IServiceBusMessageExceptionHandler, Task> ExceptionReceivedHandler { get; set; }
 
         public bool IsCompleted { get; set; }
 
@@ -13,9 +14,10 @@ namespace VstsServerTaskHelper
 
         public bool IsDeadLettered { get; set; }
 
-        public void Start(Func<IServiceBusMessage, Task> messageHandlerFunc)
+        public void Start(Func<IServiceBusMessage, Task> serviceMessageBusHandler, Func<IServiceBusMessageExceptionHandler, Task> exceptionReceivedHandler)
         {
-            this.MessageHandlerFunc = messageHandlerFunc;
+            this.MessageHandlerFunc = serviceMessageBusHandler;
+            this.ExceptionReceivedHandler = exceptionReceivedHandler;
         }
 
         public void Stop()

@@ -1,11 +1,12 @@
 using System;
 using System.Threading.Tasks;
+using Microsoft.Azure.ServiceBus;
 
 namespace VstsServerTaskHelper
 {
     public interface IServiceBusQueueMessageListener
     {
-        void Start(Func<IServiceBusMessage, Task> messageHandlerFunc);
+        void Start(Func<IServiceBusMessage, Task> messageHandler, Func<IServiceBusMessageExceptionHandler, Task> exceptionReceivedHandler);
 
         void Stop();
 

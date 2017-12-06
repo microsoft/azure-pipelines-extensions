@@ -44,17 +44,17 @@ namespace VstsServerTaskHelper
         public RequestType RequestType { get; set; }
 
         /// <summary>
-        /// Gets or sets the requester email for scheduled builds
+        /// Gets or sets the requester email for scheduled build/release
         /// </summary>
-        public string ScheduleBuildRequesterAlias { get; set; }
+        public string ScheduleRequesterAlias { get; set; }
 
         /// <summary>
-        /// Gets or sets the VSTS build requester email id.
+        /// Gets or sets the requester email id.
         /// </summary>
         public string RequesterEmail { get; set; }
 
         /// <summary>
-        /// Gets or sets the VSTS build requestor name [FirstName LastName].
+        /// Gets or sets the requestor name [FirstName LastName].
         /// </summary>
         public string RequesterName { get; set; }
 
@@ -69,27 +69,27 @@ namespace VstsServerTaskHelper
         public string ProjectName { get; set; }
 
         /// <summary>
-        /// Gets or sets the Id of the team project that this build belongs to.
+        /// Gets or sets the Id of the VSTS team project.
         /// </summary>
         public Guid ProjectId { get; set; }
 
         /// <summary>
-        /// Gets or sets the VSTS Build Job ID.
+        /// Gets or sets the VSTS Timeline Job ID.
         /// </summary>
         public Guid JobId { get; set; }
 
         /// <summary>
-        /// Gets or sets the VSTS Build timeline Id.
+        /// Gets or sets the VSTS timeline Id.
         /// </summary>
         public Guid TimelineId { get; set; }
 
         /// <summary>
-        /// Gets or sets the VSTS build definition plan Id.
+        /// Gets or sets the VSTS plan Id.
         /// </summary>
         public Guid PlanId { get; set; }
 
         /// <summary>
-        /// Gets or sets the URI for Build/Release Plan APIs
+        /// Gets or sets the URI for build/release Plan APIs
         /// </summary>
         public string VstsPlanUrl { get; set; }
 
@@ -104,13 +104,13 @@ namespace VstsServerTaskHelper
         public Uri VstsUri { get; set; }
 
         /// <summary>
-        /// Gets or sets the URI for Build/Release Plan APIs
+        /// Gets or sets the URI for build/release plan APIs
         /// </summary>
         public Uri VstsPlanUri { get; set; }
 
         /// <summary>
-        /// Gets or sets the authToken for the given build request.
-        /// This token will be used to send the build progress updates back to VSTS.
+        /// Gets or sets the authToken for the given build/release request.
+        /// This token will be used to send the plan progress updates back to VSTS.
         /// </summary>
         public string AuthToken { get; set; }
 

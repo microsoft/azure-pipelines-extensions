@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.26730.8
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VstsServerTaskHelper", "VstsServerTaskBroker\VstsServerTaskHelper.csproj", "{090E8B24-BC04-4D17-A56C-B0D6E84F9296}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VstsServerTaskHelper", "VstsServerTaskHelper\VstsServerTaskHelper.csproj", "{090E8B24-BC04-4D17-A56C-B0D6E84F9296}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VstsServerTaskHelper.UnitTests", "VstsServerTaskBroker.UnitTests\VstsServerTaskHelper.UnitTests.csproj", "{FAC118B9-D96E-4DCD-AB60-5AFFDCDA3F1F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VstsServerTaskHelper.UnitTests", "VstsServerTaskHelper.UnitTests\VstsServerTaskHelper.UnitTests.csproj", "{FAC118B9-D96E-4DCD-AB60-5AFFDCDA3F1F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

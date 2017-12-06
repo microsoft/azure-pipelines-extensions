@@ -139,10 +139,10 @@ namespace VstsServerTaskHelper
                 hasErrors = true;
             }
 
-            // use ScheduleBuildRequesterAlias if RequesterEmail is null or unresolved
+            // use ScheduleRequesterAlias if RequesterEmail is null or unresolved
             if (string.IsNullOrEmpty(extractedMessage.RequesterEmail) || extractedMessage.RequesterEmail.StartsWith("$("))
             {
-                extractedMessage.RequesterEmail = extractedMessage.ScheduleBuildRequesterAlias;
+                extractedMessage.RequesterEmail = extractedMessage.ScheduleRequesterAlias;
             }
 
             Uri vstsUri;

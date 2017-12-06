@@ -17,7 +17,8 @@ namespace VstsServerTaskHelper
 
         private QueueClient queueClient;
 
-        private Func<IServiceBusMessage, Task> messageHandlerFunc;
+        private Func<IServiceBusMessage, Task> messageHandler;
+        private Func<IServiceBusMessageExceptionHandler, Task> exceptionHandler;
 
         public ServiceBusQueueMessageListener(string connectionString, string queueName, int prefetchCount, int maxConcurrentCalls)
         {
@@ -27,17 +28,18 @@ namespace VstsServerTaskHelper
             this.maxConcurrentCalls = maxConcurrentCalls;
         }
 
-        public void Start(Func<IServiceBusMessage, Task> messageHandlerFunc)
+        public void Start(Func<IServiceBusMessage, Task> messageHandler, Func<IServiceBusMessageExceptionHandler, Task> exceptionReceivedHandler)
         {
-            this.messageHandlerFunc = messageHandlerFunc;
-            this.queueClient = new QueueClient(this.connectionString, this.queueName);
-            this.queueClient.PrefetchCount = this.prefetchCount;
-            this.queueClient.RegisterMessageHandler(this.ReceiveMessage, new MessageHandlerOptions(ExceptionReceivedHandler) { AutoComplete = false, MaxConcurrentCalls = this.maxConcurrentCalls });
-        }
+            this.messageHandler = messageHandler;
+            this.exceptionHandler = exceptionReceivedHandler;
+            this.queueClient = new QueueClient(this.connectionString, this.queueName) { PrefetchCount = this.prefetchCount };
+            var messageHandlerOptions = new MessageHandlerOptions(this.ExceptionReceivedHandler)
+                                        {
+                                            AutoComplete = false,
+                                            MaxConcurrentCalls = this.maxConcurrentCalls
+                                        };
 
-        private static Task ExceptionReceivedHandler(ExceptionReceivedEventArgs exceptionReceivedEventArgs)
-        {
-            return Task.CompletedTask;
+            this.queueClient.RegisterMessageHandler(this.ReceiveMessage, messageHandlerOptions);
         }
 
         public void Stop()
@@ -72,7 +74,13 @@ namespace VstsServerTaskHelper
 		private Task ReceiveMessage(Message message, CancellationToken token)
         {
             var wrappedMessage = new ServiceBusMessage(message);
-            return this.messageHandlerFunc(wrappedMessage);
+            return this.messageHandler(wrappedMessage);
+        }
+
+        private Task ExceptionReceivedHandler(ExceptionReceivedEventArgs exceptionReceivedEventArgs)
+        {
+            var serviceBusMessageExceptionHandler = new ServiceBusMessageExceptionHandler(exceptionReceivedEventArgs);
+            return this.exceptionHandler(serviceBusMessageExceptionHandler);
         }
     }
 }
