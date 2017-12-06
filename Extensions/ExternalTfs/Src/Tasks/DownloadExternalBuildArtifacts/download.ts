@@ -37,6 +37,12 @@ async function main(): Promise<void> {
             reject(reason);
         });
 
+        if (!artifacts) {
+            tl.warning("No artifacts found for build" + buildId);
+            resolve();
+            return;
+        }
+
         console.log("Linked artifacts count: " + artifacts.length);
 
         var downloadPromises: Array<Promise<any>> = [];

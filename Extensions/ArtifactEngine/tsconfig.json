@@ -1,11 +1,12 @@
 {
     "compilerOptions": {
-        "target": "ES6",
+        "target": "es2015",
         "module": "commonjs",
-        "sourceMap": true,
         "moduleResolution": "node",
+        "typeRoots": [ "node_modules/@types" ],
         "declaration": true,
         "rootDir": ".",
-        "removeComments": true
+        "sourceMap": true,
+        "forceConsistentCasingInFileNames": true
     }
 }

@@ -28,7 +28,7 @@
     "shelljs": "^0.6.0",
     "sync-request": "3.0.1",
     "through2": "^2.0.1",
-    "typescript": "1.8.7",
+    "typescript": "2.4.2",
     "validator": "^5.2.0",
     "vsts-task-lib": "^2.0.5",
     "yargs": "^4.7.1"

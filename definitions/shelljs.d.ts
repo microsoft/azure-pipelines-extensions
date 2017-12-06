@@ -3,7 +3,6 @@
 // Definitions by: Niklas Mollenhauer <https://github.com/nikeee>
 // Definitions: https://github.com/borisyankov/DefinitelyTyped
 // Ting update to match shelljs v0.5.3 12/7/2015
-/// <reference path="./node.d.ts"/>
 
 declare module "shelljs"
 {
