@@ -1,5 +1,4 @@
 /// <reference path="./Q.d.ts"/>
-/// <reference path="./node.d.ts"/>
 
 declare module 'vsts-task-lib/taskcommand' {
 	export class TaskCommand {

@@ -2,7 +2,6 @@
 // Project: https://github.com/isaacs/node-glob
 // Definitions by: vvakame <https://github.com/vvakame/>
 // Definitions: https://github.com/borisyankov/DefinitelyTyped
-/// <reference path="./node.d.ts"/>
 /// <reference path="./minimatch.d.ts"/>
 
 
