@@ -56,13 +56,13 @@ namespace VstsServerTaskHelper
             var isSessionValid = await IsSessionValid(this.vstsContext, buildHttpClientWrapper, releaseHttpClientWrapper, cancellationToken).ConfigureAwait(false);
             if (!isSessionValid)
             {
-                await this.logger.HandleInfoEvent("SessionAlreadyCancelled", "Skipping ReportJobStarted for cancelled or deleted build/release", this.eventProperties, cancellationToken).ConfigureAwait(false);
+                await this.logger.LogInfo("SessionAlreadyCancelled", "Skipping ReportJobStarted for cancelled or deleted build/release", this.eventProperties, cancellationToken).ConfigureAwait(false);
                 return;
             }
 
             var startedEvent = new JobStartedEvent(jobId);
             await taskClient.RaisePlanEventAsync(projectId, hubName, planId, startedEvent, cancellationToken).ConfigureAwait(false);
-            await logger.HandleInfoEvent("JobStarted", message, this.eventProperties, cancellationToken, eventTime);
+            await logger.LogInfo("JobStarted", message, this.eventProperties, cancellationToken, eventTime);
         }
 
         public async Task ReportJobProgress(DateTimeOffset offsetTime, string message, CancellationToken cancellationToken)
@@ -75,7 +75,7 @@ namespace VstsServerTaskHelper
 
             try
             {
-                await logger.HandleInfoEvent("JobRunning", message, this.eventProperties, cancellationToken, eventTime);
+                await logger.LogInfo("JobRunning", message, this.eventProperties, cancellationToken, eventTime);
             }
             catch (TaskOrchestrationPlanNotFoundException)
             {
@@ -111,7 +111,7 @@ namespace VstsServerTaskHelper
             var isSessionValid = await IsSessionValid(this.vstsContext, buildHttpClientWrapper, releaseHttpClientWrapper, cancellationToken).ConfigureAwait(false);
             if (!isSessionValid)
             {
-                await this.logger.HandleInfoEvent("SessionAlreadyCancelled", "Skipping ReportJobStarted for cancelled or deleted build", this.eventProperties, cancellationToken).ConfigureAwait(false);
+                await this.logger.LogInfo("SessionAlreadyCancelled", "Skipping ReportJobStarted for cancelled or deleted build", this.eventProperties, cancellationToken).ConfigureAwait(false);
                 return;
             }
 
@@ -120,11 +120,11 @@ namespace VstsServerTaskHelper
 
             if (isPassed)
             {
-                await logger.HandleInfoEvent("JobCompleted", message, this.eventProperties, cancellationToken, eventTime);
+                await logger.LogInfo("JobCompleted", message, this.eventProperties, cancellationToken, eventTime);
             }
             else
             {
-                await logger.HandleErrorEvent("JobFailed", message, this.eventProperties, cancellationToken, eventTime);
+                await logger.LogError("JobFailed", message, this.eventProperties, cancellationToken, eventTime);
             }
 
             // Find all existing timeline records and close them
