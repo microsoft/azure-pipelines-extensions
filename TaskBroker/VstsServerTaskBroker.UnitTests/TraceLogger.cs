@@ -17,23 +17,23 @@ namespace VstsServerTaskHelper.UnitTests
 
         public List<string> Events { get; set; }
 
-        public Task HandleException(Exception ex, string eventName, string eventMessage, IDictionary<string, string> eventProperties, CancellationToken cancellationToken, DateTime? eventTime = null)
+        public Task LogException(Exception ex, string eventName, string eventMessage, IDictionary<string, string> eventProperties, CancellationToken cancellationToken, DateTime? eventTime = null)
         {
             this.Events.Add(ex.GetType().Name);
-            return this.HandleErrorEvent(eventName, ex.Message, eventProperties, cancellationToken);
+            return this.LogError(eventName, ex.Message, eventProperties, cancellationToken);
         }
 
-        public Task HandleInfoEvent(string eventName, string eventMessage, IDictionary<string, string> eventProperties, CancellationToken cancellationToken, DateTime? eventTime = null)
+        public Task LogInfo(string eventName, string eventMessage, IDictionary<string, string> eventProperties, CancellationToken cancellationToken, DateTime? eventTime = null)
         {
             return this.LogTrace(eventName, eventMessage, eventProperties, cancellationToken, "INFO");
         }
 
-        public Task HandleTraceEvent(string eventName, string eventMessage, IDictionary<string, string> eventProperties, CancellationToken cancellationToken, DateTime? eventTime = null)
+        public Task LogTrace(string eventName, string eventMessage, IDictionary<string, string> eventProperties, CancellationToken cancellationToken, DateTime? eventTime = null)
         {
             return this.LogTrace(eventName, eventMessage, eventProperties, cancellationToken, "TRACE");
         }
 
-        public Task HandleErrorEvent(string eventName, string eventMessage, IDictionary<string, string> eventProperties, CancellationToken cancellationToken, DateTime? eventTime = null)
+        public Task LogError(string eventName, string eventMessage, IDictionary<string, string> eventProperties, CancellationToken cancellationToken, DateTime? eventTime = null)
         {
             return this.LogTrace(eventName, eventMessage, eventProperties, cancellationToken, "ERROR");
         }

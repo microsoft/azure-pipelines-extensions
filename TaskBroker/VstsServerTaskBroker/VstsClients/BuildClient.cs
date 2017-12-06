@@ -14,7 +14,7 @@ namespace VstsServerTaskHelper
         private const int DefaultRetryCount = 3;
         private const int DefaultRetryIntervalInSeconds = 5;
 
-        private readonly Microsoft.TeamFoundation.Build.WebApi.BuildHttpClient client;
+        private readonly BuildHttpClient client;
         private readonly Retryer retryer;
 
         public BuildClient(Uri baseUrl, VssCredentials credentials)

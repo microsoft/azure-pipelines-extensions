@@ -102,7 +102,7 @@ namespace VstsServerTaskHelper
 
             foreach (var registeredLogger in instrumentationHandler)
             {
-                registeredLogger.HandleInfoEvent(eventType, message, eventProperties, cancellationToken);
+                registeredLogger.LogInfo(eventType, message, eventProperties, cancellationToken);
             }
         }
 

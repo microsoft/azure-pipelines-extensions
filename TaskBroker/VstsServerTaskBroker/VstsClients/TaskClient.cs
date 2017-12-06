@@ -16,20 +16,20 @@ namespace VstsServerTaskHelper
         private const int DefaultRetryIntervalInSeconds = 5;
 
         private readonly TaskHttpClient client;
-        private readonly IList<ILogger> instrumentationHandler;
+        private readonly IList<ILogger> loggers;
         private readonly string vstsUrl;
         private readonly Retryer retryer;
 
-        public TaskClient(Uri baseUrl, VssCredentials credentials, IList<ILogger> instrumentationHandler)
-            : this(baseUrl, credentials, instrumentationHandler, DefaultRetryCount, DefaultRetryIntervalInSeconds)
+        public TaskClient(Uri baseUrl, VssCredentials credentials, IList<ILogger> loggers)
+            : this(baseUrl, credentials, loggers, DefaultRetryCount, DefaultRetryIntervalInSeconds)
         {
         }
 
-        public TaskClient(Uri baseUrl, VssCredentials credentials, IList<ILogger> instrumentationHandler, int retryCount, int retryInterval)
+        public TaskClient(Uri baseUrl, VssCredentials credentials, IList<ILogger> loggers, int retryCount, int retryInterval)
         {
             var vssConnection = new VssConnection(baseUrl, credentials);
             this.client = vssConnection.GetClient<TaskHttpClient>();
-            this.instrumentationHandler = instrumentationHandler;
+            this.loggers = loggers;
             this.vstsUrl = baseUrl.ToString();
             this.retryer = Retryer.CreateRetryer(retryCount, TimeSpan.FromSeconds(retryInterval));
         }
@@ -127,9 +127,9 @@ namespace VstsServerTaskHelper
                                       {"DurationMs", elapsedMilliseconds.ToString()},
                                   };
 
-            foreach (var registeredLogger in instrumentationHandler)
+            foreach (var registeredLogger in loggers)
             {
-                await registeredLogger.HandleTraceEvent(string.Format("{0}_{1}", eventName, result), eventMessage, eventProperties, cancellationToken).ConfigureAwait(false);
+                await registeredLogger.LogTrace(string.Format("{0}_{1}", eventName, result), eventMessage, eventProperties, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -142,7 +142,7 @@ namespace VstsServerTaskHelper
                 {"PlanId", planId.ToString()},
             };
             
-            return new RetryEventHandler(eventName, eventProperties, cancellationToken, this.instrumentationHandler);
+            return new RetryEventHandler(eventName, eventProperties, cancellationToken, this.loggers);
         }
     }
 }

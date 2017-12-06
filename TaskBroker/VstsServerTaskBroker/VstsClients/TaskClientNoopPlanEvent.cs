@@ -14,8 +14,8 @@ namespace VstsServerTaskHelper
     /// </summary>
     public class TaskClientNoopPlanEvent : TaskClient
     {
-        public TaskClientNoopPlanEvent(Uri baseUrl, VssCredentials credentials, IList<ILogger> instrumentationHandler) 
-            : base(baseUrl, credentials, instrumentationHandler)
+        public TaskClientNoopPlanEvent(Uri baseUrl, VssCredentials credentials, IList<ILogger> loggers) 
+            : base(baseUrl, credentials, loggers)
         {
         }
         

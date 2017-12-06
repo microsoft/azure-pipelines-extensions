@@ -25,7 +25,7 @@ namespace VstsServerTaskHelper
             this.hubName = hubName;
         }
 
-        public Task HandleException(Exception ex, string eventName, string eventMessage, IDictionary<string, string> eventProperties, CancellationToken cancellationToken, DateTime? eventTime = null)
+        public Task LogException(Exception ex, string eventName, string eventMessage, IDictionary<string, string> eventProperties, CancellationToken cancellationToken, DateTime? eventTime = null)
         {
             var tasks = new List<Task>
             {
@@ -35,7 +35,7 @@ namespace VstsServerTaskHelper
             return Task.WhenAll(tasks);
         }
 
-        public Task HandleInfoEvent(string eventName, string eventMessage, IDictionary<string, string> eventProperties, CancellationToken cancellationToken, DateTime? eventTime = null)
+        public Task LogInfo(string eventName, string eventMessage, IDictionary<string, string> eventProperties, CancellationToken cancellationToken, DateTime? eventTime = null)
         {
             var tasks = new List<Task>
                         {
@@ -45,13 +45,13 @@ namespace VstsServerTaskHelper
             return Task.WhenAll(tasks);
         }
 
-        public Task HandleTraceEvent(string eventName, string eventMessage, IDictionary<string, string> eventProperties, CancellationToken cancellationToken, DateTime? eventTime = null)
+        public Task LogTrace(string eventName, string eventMessage, IDictionary<string, string> eventProperties, CancellationToken cancellationToken, DateTime? eventTime = null)
         {
             // don't log traces to VSTS
             return Task.CompletedTask;
         }
 
-        public Task HandleErrorEvent(string eventName, string eventMessage, IDictionary<string, string> eventProperties, CancellationToken cancellationToken, DateTime? eventTime = null)
+        public Task LogError(string eventName, string eventMessage, IDictionary<string, string> eventProperties, CancellationToken cancellationToken, DateTime? eventTime = null)
         {
             var tasks = new List<Task>
                         {
@@ -87,7 +87,7 @@ namespace VstsServerTaskHelper
             {
                 foreach (var registeredLogger in loggers)
                 {
-                    await registeredLogger.HandleException(ex, "VstsLogAppend",
+                    await registeredLogger.LogException(ex, "VstsLogAppend",
                         "Failed to append log to VSTS",
                         eventProperties, cancellationToken).ConfigureAwait(false);
                 }

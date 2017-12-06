@@ -295,7 +295,7 @@ namespace VstsServerTaskHelper
             eventProperties[VstsMessageConstants.ProcessingTimeMsPropertyName] = messageStopwatch.ElapsedMilliseconds.ToString();
             foreach (var registeredLogger in registeredLoggers)
             {
-                await registeredLogger.HandleInfoEvent(eventName, "StopTimer", eventProperties, cancellationToken).ConfigureAwait(false);
+                await registeredLogger.LogInfo(eventName, "StopTimer", eventProperties, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -330,7 +330,7 @@ namespace VstsServerTaskHelper
             var abandoningMessageDueToException = string.Format("Abandoning message due to exception in [{0}]ms", delayMsecs);
             foreach (var registeredLogger in registeredLoggers)
             {
-                await registeredLogger.HandleException(exception, "MessageProcessingException", abandoningMessageDueToException, eventProperties: eventProperties, cancellationToken: cancellationToken).ConfigureAwait(false);
+                await registeredLogger.LogException(exception, "MessageProcessingException", abandoningMessageDueToException, eventProperties: eventProperties, cancellationToken: cancellationToken).ConfigureAwait(false);
             }
 
             while (delayMsecs > 0)
@@ -355,7 +355,7 @@ namespace VstsServerTaskHelper
             await this.TryFailOrchestrationPlan(vstsMessage, cancellationToken).ConfigureAwait(false);
             foreach (var registeredLogger in registeredLoggers)
             {
-                await registeredLogger.HandleErrorEvent("DeadLetterMessage", errorMessage, eventProperties, cancellationToken).ConfigureAwait(false);
+                await registeredLogger.LogError("DeadLetterMessage", errorMessage, eventProperties, cancellationToken).ConfigureAwait(false);
             }
             await this.queueClient.DeadLetterAsync(message.GetLockToken()).ConfigureAwait(false);
         }
@@ -400,7 +400,7 @@ namespace VstsServerTaskHelper
                 {
                     foreach (var registeredLogger in registeredLoggers)
                     {
-                        await registeredLogger.HandleInfoEvent("SessionAlreadyCancelled",
+                        await registeredLogger.LogInfo("SessionAlreadyCancelled",
                             string.Format("Skipping Execute for cancelled or deleted {0}", vstsMessage.VstsHub),
                             eventProperties, cancellationToken).ConfigureAwait(false);
                     }
