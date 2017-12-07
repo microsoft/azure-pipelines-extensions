@@ -4,7 +4,7 @@ var stream = require("stream");
 import * as assert from 'assert';
 var http = require('http');
 
-import * as httpm from 'typed-rest-client/HttpClient';
+var httpm = require('typed-rest-client/HttpClient');
 import * as engine from '../Engine';
 import * as models from '../Models';
 mockery.registerMock('fs', {
@@ -41,7 +41,7 @@ beforeEach((done) => {
     sinon.stub(stubResponse, "readBody").returns(new Promise((resolve, reject) => { resolve("{}") }));
     stubResponse.message = sinon.spy(http.IncomingMessage);
     stubResponse.message.headers = {'content-encoding' : 'json'};
-    getStub = sinon.stub(webProvider.httpc, 'get').returns(new Promise<httpm.HttpClientResponse>((resolve, reject) => {
+    getStub = sinon.stub(webProvider.httpc, 'get').returns(new Promise<any>((resolve, reject) => {
         resolve(stubResponse);
     }));
 
