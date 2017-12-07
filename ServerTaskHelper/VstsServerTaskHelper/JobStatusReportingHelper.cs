@@ -21,7 +21,7 @@ namespace VstsServerTaskHelper
         /// </summary>
         private readonly string timelineRecordName;
 
-        public Func<Uri, string, IList<ILogger>, bool, ITaskClient> CreateTaskHttpClient { get; set; }
+        public Func<Uri, string, ILogger, bool, ITaskClient> CreateTaskHttpClient { get; set; }
 
         public Func<Uri, string, IBuildClient> CreateBuildClient { get; set; }
 

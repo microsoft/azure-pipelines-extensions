@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,14 +19,19 @@ namespace VstsServerTaskHelper
         private readonly IVstsScheduleHandler<T> scheduleHandler;
         private readonly ServiceBusQueueMessageHandlerSettings settings;
         private readonly IServiceBusQueueMessageListener queueClient;
-        private readonly IList<ILogger> registeredLoggers;
+        private readonly ILogger registeredLogger;
+
+        public ServiceBusQueueMessageHandler(IServiceBusQueueMessageListener queueClient, IVstsScheduleHandler<T> scheduleHandler, ServiceBusQueueMessageHandlerSettings settings, ILogger registeredLogger)
+        {
+            this.scheduleHandler = scheduleHandler;
+            this.settings = settings;
+            this.queueClient = queueClient;
+            this.registeredLogger = registeredLogger;
+        }
 
         public ServiceBusQueueMessageHandler(IServiceBusQueueMessageListener queueClient, IVstsScheduleHandler<T> scheduleHandler, ServiceBusQueueMessageHandlerSettings settings)
+            : this(queueClient, scheduleHandler, settings, new NullLogger())
         {
-            this.settings = settings;
-            this.scheduleHandler = scheduleHandler;
-            this.queueClient = queueClient;
-            this.registeredLoggers = new List<ILogger>();
         }
 
         public async Task ReceiveAsync(IServiceBusMessage message, CancellationToken cancellationToken)
@@ -70,11 +74,6 @@ namespace VstsServerTaskHelper
                 await this.StopTimer("MessageProcessingFailed", messageStopwatch, eventProperties, cancellationToken).ConfigureAwait(false);
                 await this.AbandonOrDeadLetterMessage(vstsMessage, message, exception, eventProperties, cancellationToken).ConfigureAwait(false);
             }
-        }
-
-        public void RegisterLogger(ILogger logger)
-        {
-            this.registeredLoggers.Add(logger);
         }
 
         internal static bool ExtractMessage(IServiceBusMessage message, out T vstsMessage, out string validationErrors)
@@ -293,10 +292,7 @@ namespace VstsServerTaskHelper
         {
             messageStopwatch.Stop();
             eventProperties[VstsMessageConstants.ProcessingTimeMsPropertyName] = messageStopwatch.ElapsedMilliseconds.ToString();
-            foreach (var registeredLogger in registeredLoggers)
-            {
-                await registeredLogger.LogInfo(eventName, "StopTimer", eventProperties, cancellationToken).ConfigureAwait(false);
-            }
+            await registeredLogger.LogInfo(eventName, "StopTimer", eventProperties, cancellationToken).ConfigureAwait(false);
         }
 
         private async Task AbandonOrDeadLetterMessage(T vstsMessage, IServiceBusMessage message, Exception exception, IDictionary<string, string> eventProperties, CancellationToken cancellationToken)
@@ -325,13 +321,10 @@ namespace VstsServerTaskHelper
         private async Task DelayedAbandon(IServiceBusMessage message, int attempt, Exception exception, IDictionary<string, string> eventProperties, CancellationToken cancellationToken)
         {
             // exponential backoff
-            int delayMsecs = this.settings.AbandonDelayMsecs + (1000 * (int)(Math.Pow(2, Math.Max(0, attempt - 1)) - 1));
+            var delayMsecs = this.settings.AbandonDelayMsecs + (1000 * (int)(Math.Pow(2, Math.Max(0, attempt - 1)) - 1));
             delayMsecs = Math.Min(delayMsecs, this.settings.MaxAbandonDelayMsecs);
             var abandoningMessageDueToException = string.Format("Abandoning message due to exception in [{0}]ms", delayMsecs);
-            foreach (var registeredLogger in registeredLoggers)
-            {
-                await registeredLogger.LogException(exception, "MessageProcessingException", abandoningMessageDueToException, eventProperties: eventProperties, cancellationToken: cancellationToken).ConfigureAwait(false);
-            }
+            await registeredLogger.LogException(exception, "MessageProcessingException", abandoningMessageDueToException, eventProperties, cancellationToken).ConfigureAwait(false);
 
             while (delayMsecs > 0)
             {
@@ -353,10 +346,7 @@ namespace VstsServerTaskHelper
             }
             
             await this.TryFailOrchestrationPlan(vstsMessage, cancellationToken).ConfigureAwait(false);
-            foreach (var registeredLogger in registeredLoggers)
-            {
-                await registeredLogger.LogError("DeadLetterMessage", errorMessage, eventProperties, cancellationToken).ConfigureAwait(false);
-            }
+            await registeredLogger.LogError("DeadLetterMessage", errorMessage, eventProperties, cancellationToken).ConfigureAwait(false);
             await this.queueClient.DeadLetterAsync(message.GetLockToken()).ConfigureAwait(false);
         }
 
@@ -380,8 +370,8 @@ namespace VstsServerTaskHelper
             vstsMessage.TaskLogId = taskLogId;
 
             // setup VSTS instrumentation and wrap handler
-            var vstsLogger = new VstsLogger(registeredLoggers, taskHttpClient, hubName, projectId, planId, taskLogId);
-            var loggersAggregate = new LoggersAggregate(new List<ILogger>(registeredLoggers) {vstsLogger});
+            var vstsLogger = new VstsLogger(registeredLogger, taskHttpClient, hubName, projectId, planId, taskLogId);
+            var loggersAggregate = new LoggersAggregate(new List<ILogger> {registeredLogger, vstsLogger});
             var instrumentedHandler = new HandlerWithInstrumentation<T>(loggersAggregate, handler);
 
             // process request
@@ -398,12 +388,9 @@ namespace VstsServerTaskHelper
                 var isSessionValid = await JobStatusReportingHelper.IsSessionValid(vstsMessage, buildHttpClientWrapper, releaseHttpClientWrapper, cancellationToken).ConfigureAwait(false);
                 if (!isSessionValid)
                 {
-                    foreach (var registeredLogger in registeredLoggers)
-                    {
-                        await registeredLogger.LogInfo("SessionAlreadyCancelled",
-                            string.Format("Skipping Execute for cancelled or deleted {0}", vstsMessage.VstsHub),
-                            eventProperties, cancellationToken).ConfigureAwait(false);
-                    }
+                    await registeredLogger.LogInfo("SessionAlreadyCancelled",
+                        string.Format("Skipping Execute for cancelled or deleted {0}", vstsMessage.VstsHub),
+                        eventProperties, cancellationToken).ConfigureAwait(false);
                     return;
                 }
 
@@ -485,7 +472,7 @@ namespace VstsServerTaskHelper
 
         protected virtual ITaskClient GetTaskClient(Uri vstsPlanUrl, string authToken, bool skipRaisePlanEvents)
         {
-            return TaskClientFactory.GetTaskClient(vstsPlanUrl, authToken, registeredLoggers, skipRaisePlanEvents);
+            return TaskClientFactory.GetTaskClient(vstsPlanUrl, authToken, registeredLogger, skipRaisePlanEvents);
         }
 
         protected virtual IJobStatusReportingHelper GetVstsReportingHelper(VstsMessage vstsMessage, ILogger inst, ITaskClient taskClient)

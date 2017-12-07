@@ -9,7 +9,7 @@ namespace VstsServerTaskHelper
     {
         private readonly string eventName;
         private readonly IDictionary<string, string> eventProperties; 
-        private readonly IList<ILogger> instrumentationHandler;
+        private readonly ILogger logger;
         
         // List of HTTP transient error codes to retry.
         private readonly HashSet<HttpStatusCode> trasientHttpCodes = new HashSet<HttpStatusCode>()
@@ -33,12 +33,12 @@ namespace VstsServerTaskHelper
 
         public Func<Exception, int, bool> ShouldRetry { get; set; }
 
-        public RetryEventHandler(string eventName, IDictionary<string, string> eventProperties, CancellationToken cancellationToken, IList<ILogger> brokerInstrumentation, HashSet<HttpStatusCode> transientStatusCodes = null)
+        public RetryEventHandler(string eventName, IDictionary<string, string> eventProperties, CancellationToken cancellationToken, ILogger logger, HashSet<HttpStatusCode> transientStatusCodes = null)
         {
             this.eventName = eventName;
             this.eventProperties = eventProperties ?? new Dictionary<string, string>();
             this.cancellationToken = cancellationToken;
-            instrumentationHandler = brokerInstrumentation;
+            this.logger = logger;
 
             if (transientStatusCodes != null)
             {
@@ -92,7 +92,7 @@ namespace VstsServerTaskHelper
 
         private void TraceEvent(string eventType, string message, int retryCount, long elapsedMilliseconds)
         {
-            if (instrumentationHandler == null)
+            if (logger == null)
             {
                 return;
             }
@@ -100,10 +100,7 @@ namespace VstsServerTaskHelper
             this.eventProperties["DurationMs"] = elapsedMilliseconds.ToString();
             this.eventProperties["RetryAttempt"] = retryCount.ToString();
 
-            foreach (var registeredLogger in instrumentationHandler)
-            {
-                registeredLogger.LogInfo(eventType, message, eventProperties, cancellationToken);
-            }
+            logger.LogInfo(eventType, message, eventProperties, cancellationToken);
         }
 
         private bool IsTrasientException(Exception e)

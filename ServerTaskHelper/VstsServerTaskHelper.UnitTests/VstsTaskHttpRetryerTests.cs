@@ -23,7 +23,7 @@ namespace VstsServerTaskHelper.UnitTests
         public void WaitAndRetry()
         {
             // given
-            var traceBrokerInstrumentation = new TraceLogger();
+            var traceLogger = new TraceLogger();
             var cancelSource = new CancellationTokenSource();
 
             var eventProperties = new Dictionary<string, string>()
@@ -33,7 +33,7 @@ namespace VstsServerTaskHelper.UnitTests
                                       {"PlanId", "testPlanId"}
                                   };
 
-            var retryEventHandler = new RetryEventHandler("TestEvent", eventProperties, cancelSource.Token, new List<ILogger>{traceBrokerInstrumentation});
+            var retryEventHandler = new RetryEventHandler("TestEvent", eventProperties, cancelSource.Token, traceLogger);
 
             // when
             retryer.TryActionAsync<int>(
@@ -44,7 +44,7 @@ namespace VstsServerTaskHelper.UnitTests
                 retryEventHandler).ConfigureAwait(false);
 
             // then
-            var events = traceBrokerInstrumentation.Events;
+            var events = traceLogger.Events;
             Assert.AreEqual(events.Count, RetryCount);
             Assert.AreEqual(events[0], "TestEvent_Retry");
         }
@@ -53,7 +53,7 @@ namespace VstsServerTaskHelper.UnitTests
         public void ReplaceDefaultTransientErrors()
         {
             // given
-            var traceBrokerInstrumentation = new TraceLogger();
+            var traceLogger = new TraceLogger();
             var cancelSource = new CancellationTokenSource();
 
             var trasientHttpCodes = new HashSet<HttpStatusCode>()
@@ -61,15 +61,15 @@ namespace VstsServerTaskHelper.UnitTests
                 HttpStatusCode.ExpectationFailed
             };
 
-            var retryEventHandler = new RetryEventHandler("ReplaceDefaultEvent", null, cancelSource.Token, new List<ILogger> { traceBrokerInstrumentation }, trasientHttpCodes);
+            var retryEventHandler = new RetryEventHandler("ReplaceDefaultEvent", null, cancelSource.Token, traceLogger, trasientHttpCodes);
 
             // when
             retryer.TryActionAsync<int>(
-                () => { throw new WebException("ExpectationFailed", null, WebExceptionStatus.ConnectionClosed, new MockWebResponse(HttpStatusCode.ExpectationFailed)); },
+                () => throw new WebException("ExpectationFailed", null, WebExceptionStatus.ConnectionClosed, new MockWebResponse(HttpStatusCode.ExpectationFailed)),
                 retryEventHandler).ConfigureAwait(false);
 
             // then
-            var events = traceBrokerInstrumentation.Events;
+            var events = traceLogger.Events;
             Assert.AreEqual(events.Count, RetryCount);
         }
 
@@ -77,16 +77,16 @@ namespace VstsServerTaskHelper.UnitTests
         public void RetryAndThrowWhenFail()
         {
             // given
-            var traceBrokerInstrumentation = new TraceLogger();
+            var traceLogger = new TraceLogger();
             var cancelSource = new CancellationTokenSource();
 
-            var retryEventHandler = new RetryEventHandler("ThrowEvent", null, cancelSource.Token, new List<ILogger> { traceBrokerInstrumentation });
+            var retryEventHandler = new RetryEventHandler("ThrowEvent", null, cancelSource.Token, traceLogger);
 
             // when
             try
             {
                 this.retryer.TryActionAsync<int>(
-                    () => { throw new WebException("Unauthorized", null, WebExceptionStatus.ConnectionClosed, new MockWebResponse(HttpStatusCode.Unauthorized)); },
+                    () => throw new WebException("Unauthorized", null, WebExceptionStatus.ConnectionClosed, new MockWebResponse(HttpStatusCode.Unauthorized)),
                     retryEventHandler,
                     true).ConfigureAwait(false);
             }
@@ -96,7 +96,7 @@ namespace VstsServerTaskHelper.UnitTests
             }
 
             // then
-            var events = traceBrokerInstrumentation.Events;
+            var events = traceLogger.Events;
             Assert.AreEqual(events.Count, RetryCount);
         }
 
@@ -104,19 +104,21 @@ namespace VstsServerTaskHelper.UnitTests
         public void CheckShouldRetry()
         {
             // given
-            var traceBrokerInstrumentation = new TraceLogger();
+            var traceLogger = new TraceLogger();
             var cancelSource = new CancellationTokenSource();
 
-            var retryEventHandler = new RetryEventHandler("TestEvent", null, cancelSource.Token, new List<ILogger> { traceBrokerInstrumentation });
-            retryEventHandler.ShouldRetry = (e, count) => (e is InvalidFilterCriteriaException && count < 1);
+            var retryEventHandler = new RetryEventHandler("TestEvent", null, cancelSource.Token, traceLogger)
+            {
+                ShouldRetry = (e, count) => (e is InvalidFilterCriteriaException && count < 1)
+            };
 
             // when
             retryer.TryActionAsync<int>(
-                () => { throw new InvalidFilterCriteriaException("custom exception"); },
+                () => throw new InvalidFilterCriteriaException("custom exception"),
                 retryEventHandler).ConfigureAwait(false);
 
             // then
-            var events = traceBrokerInstrumentation.Events;
+            var events = traceLogger.Events;
             Assert.AreEqual(events.Count, 1);
         }
 
@@ -124,19 +126,19 @@ namespace VstsServerTaskHelper.UnitTests
         public void WaitAndRetryCalculateTest()
         {
             // given
-            const int MaxRetryAttempt = 100, SleepMsecs = 1000, BackoffLimit = 5, ExpectedMsecs = 3071000;
+            const int maxRetryAttempt = 100, sleepMsecs = 1000, backoffLimit = 5, expectedMsecs = 3071000;
             var totalMsecs = 0;
 
             // when
-            for (int retryAttempt = 0; retryAttempt < MaxRetryAttempt; retryAttempt++)
+            for (var retryAttempt = 0; retryAttempt < maxRetryAttempt; retryAttempt++)
             {
-                var actualMsecs = Retryer.ComputeWaitTimeWithBackoff(retryAttempt, SleepMsecs, BackoffLimit);
+                var actualMsecs = Retryer.ComputeWaitTimeWithBackoff(retryAttempt, sleepMsecs, backoffLimit);
                 totalMsecs += actualMsecs;
             }
 
             // then
-            Assert.IsTrue(totalMsecs > ExpectedMsecs - 1);
-            Assert.IsTrue(totalMsecs < (ExpectedMsecs + (Retryer.JitterMaxValueMsecs * MaxRetryAttempt)));
+            Assert.IsTrue(totalMsecs > expectedMsecs - 1);
+            Assert.IsTrue(totalMsecs < (expectedMsecs + (Retryer.JitterMaxValueMsecs * maxRetryAttempt)));
         }
     }
 }

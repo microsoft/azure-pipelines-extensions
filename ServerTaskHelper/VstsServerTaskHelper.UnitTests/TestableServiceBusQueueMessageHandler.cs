@@ -9,8 +9,8 @@ namespace VstsServerTaskHelper.UnitTests
         private readonly IReleaseClient releaseClient;
         private readonly IBuildClient buildClient;
 
-        public TestableServiceBusQueueMessageHandler(IServiceBusQueueMessageListener serviceBusQueueMessageListener, IVstsScheduleHandler<TestVstsMessage> handler, ServiceBusQueueMessageHandlerSettings settings, ITaskClient taskClient, IBuildClient buildClient, IJobStatusReportingHelper jobStatusReportingHelper, IReleaseClient releaseClient)
-            : base(serviceBusQueueMessageListener, handler, settings)
+        public TestableServiceBusQueueMessageHandler(IServiceBusQueueMessageListener serviceBusQueueMessageListener, IVstsScheduleHandler<TestVstsMessage> handler, ServiceBusQueueMessageHandlerSettings settings, ILogger logger, ITaskClient taskClient, IBuildClient buildClient, IJobStatusReportingHelper jobStatusReportingHelper, IReleaseClient releaseClient)
+            : base(serviceBusQueueMessageListener, handler, settings, logger)
         {
             this.taskClient = taskClient;
             this.buildClient = buildClient;

@@ -1,12 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 using Microsoft.VisualStudio.Services.Common;
 
 namespace VstsServerTaskHelper
 {
     public class TaskClientFactory
     {
-        public static ITaskClient GetTaskClient(Uri uri, string authToken, IList<ILogger> loggers, bool skipRaisePlanEvents)
+        public static ITaskClient GetTaskClient(Uri uri, string authToken, ILogger loggers, bool skipRaisePlanEvents)
         {
             var vssCrediential = new VssBasicCredential(string.Empty, authToken);
 

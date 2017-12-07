@@ -31,7 +31,7 @@ namespace VstsServerTaskHelper
 
         public async Task<Build> GetBuildAsync(Guid projectId, int buildId, CancellationToken cancellationToken)
         {
-            var retryEventHandler = new RetryEventHandler("Vsts_GetBuildAsync", eventProperties: null, cancellationToken: cancellationToken, brokerInstrumentation: null);
+            var retryEventHandler = new RetryEventHandler("Vsts_GetBuildAsync", eventProperties: null, cancellationToken: cancellationToken, logger: null);
 
             return await this.retryer.TryActionAsync(
                 async () =>
@@ -61,7 +61,7 @@ namespace VstsServerTaskHelper
 
         public async Task<BuildDefinitionReference> GetBuildDefinitionAsync(Guid projectId, string buildName, CancellationToken cancellationToken)
         {
-            var retryEventHandler = new RetryEventHandler("Vsts_GetBuildDefinitionAsync", eventProperties: null, cancellationToken: cancellationToken, brokerInstrumentation: null);
+            var retryEventHandler = new RetryEventHandler("Vsts_GetBuildDefinitionAsync", eventProperties: null, cancellationToken: cancellationToken, logger: null);
 
             return await this.retryer.TryActionAsync(
                 async () =>
@@ -75,7 +75,7 @@ namespace VstsServerTaskHelper
 
         public async Task<Stream> GetArtifactContentZipAsync(Guid projectId, int buildId, string artifactName, CancellationToken cancellationToken)
         {
-            var retryEventHandler = new RetryEventHandler("Vsts_GetArtifactContentZipAsync", eventProperties: null, cancellationToken: cancellationToken, brokerInstrumentation: null);
+            var retryEventHandler = new RetryEventHandler("Vsts_GetArtifactContentZipAsync", eventProperties: null, cancellationToken: cancellationToken, logger: null);
 
             return await retryer.TryActionAsync(
                 async () => await this.client.GetArtifactContentZipAsync(projectId, buildId, artifactName, userState: null, cancellationToken: cancellationToken).ConfigureAwait(false),
@@ -84,7 +84,7 @@ namespace VstsServerTaskHelper
 
         public async Task<BuildArtifact> GetArtifactAsync(Guid projectId, int buildId, string artifactName, CancellationToken cancellationToken)
         {
-            var retryEventHandler = new RetryEventHandler("Vsts_GetArtifactAsync", eventProperties: null, cancellationToken: cancellationToken, brokerInstrumentation: null);
+            var retryEventHandler = new RetryEventHandler("Vsts_GetArtifactAsync", eventProperties: null, cancellationToken: cancellationToken, logger: null);
 
             var artifact = await retryer.TryActionAsync(
                 async () => await this.client.GetArtifactAsync(projectId, buildId, artifactName, null, cancellationToken).ConfigureAwait(false),

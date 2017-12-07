@@ -242,7 +242,7 @@ namespace VstsServerTaskHelper
                         if (buildDefToken.Type == JTokenType.Integer)
                         {
                             var buildDefId = buildDefToken.Value<int?>();
-                            return (buildDefId.HasValue && buildDefId.Value == buildDef.Id);
+                            return buildDefId.HasValue && buildDefId.Value == buildDef.Id;
                         }
                     }
 

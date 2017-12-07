@@ -9,12 +9,7 @@ namespace VstsServerTaskHelper
     public class LoggersAggregate : ILogger
     {
         private readonly IList<ILogger> loggers;
-        private readonly ITaskClient taskClient;
-        private readonly Guid scopeIdentifier;
-        private readonly Guid planId;
-        private readonly int taskLogId;
         private readonly IDictionary<string, string> baseEventProperties;
-        private readonly string hubName;
 
         public LoggersAggregate(IList<ILogger> loggers)
         {
@@ -40,7 +35,7 @@ namespace VstsServerTaskHelper
         {
             eventProperties = this.MergeProperties(eventProperties);
             var attempt = GetAttempt(eventProperties);
-            eventTime = eventTime.HasValue ? eventTime : DateTime.UtcNow;
+            eventTime = eventTime ?? DateTime.UtcNow;
             var logMessage = string.Format("[{0}] INFO: {1}: {2} (Attempt: {3})", eventTime.Value.ToString("o"), eventName, eventMessage, attempt);
             var tasks = loggers.Select(logger => logger.LogInfo(eventName, logMessage, eventProperties, cancellationToken));
             return Task.WhenAll(tasks);
@@ -56,7 +51,7 @@ namespace VstsServerTaskHelper
         {
             eventProperties = this.MergeProperties(eventProperties);
             var attempt = GetAttempt(eventProperties);
-            eventTime = eventTime.HasValue ? eventTime : DateTime.UtcNow;
+            eventTime = eventTime ?? DateTime.UtcNow;
             var logMessage = string.Format("[{0}] ERROR: {1}: {2} (Attempt: {3})", eventTime.Value.ToString("o"), eventName, eventMessage, attempt);
             var tasks = loggers.Select(logger => logger.LogError(eventName, logMessage, eventProperties, cancellationToken));
 
@@ -65,8 +60,7 @@ namespace VstsServerTaskHelper
 
         private static string GetAttempt(IDictionary<string, string> eventProperties)
         {
-            string attempt;
-            if (!eventProperties.TryGetValue(VstsMessageConstants.RetryAttemptPropertyName, out attempt))
+            if (!eventProperties.TryGetValue(VstsMessageConstants.RetryAttemptPropertyName, out var attempt))
             {
                 attempt = "1";
             }

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Services.Common;
@@ -14,8 +13,8 @@ namespace VstsServerTaskHelper
     /// </summary>
     public class TaskClientNoopPlanEvent : TaskClient
     {
-        public TaskClientNoopPlanEvent(Uri baseUrl, VssCredentials credentials, IList<ILogger> loggers) 
-            : base(baseUrl, credentials, loggers)
+        public TaskClientNoopPlanEvent(Uri baseUrl, VssCredentials credentials, ILogger logger) 
+            : base(baseUrl, credentials, logger)
         {
         }
         
@@ -27,8 +26,8 @@ namespace VstsServerTaskHelper
             CancellationToken cancellationToken,
             object userState = null)
         {
-            const string EventName = "Vsts_NoopRaisePlanEventAsync";
-            await this.TraceAsync(scopeIdentifier, planId, cancellationToken, 0, EventName, "Succeeded", string.Empty).ConfigureAwait(false);
+            const string eventName = "Vsts_NoopRaisePlanEventAsync";
+            await this.TraceAsync(scopeIdentifier, planId, cancellationToken, 0, eventName, "Succeeded", string.Empty).ConfigureAwait(false);
         }
     }
 }

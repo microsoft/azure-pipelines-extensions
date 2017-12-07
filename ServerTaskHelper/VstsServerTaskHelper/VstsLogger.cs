@@ -8,16 +8,16 @@ namespace VstsServerTaskHelper
 {
     public class VstsLogger : ILogger
     {
-        private readonly IList<ILogger> loggers;
+        private readonly ILogger logger;
         private readonly ITaskClient taskClient;
         private readonly Guid scopeIdentifier;
         private readonly Guid planId;
         private readonly int taskLogId;
         private readonly string hubName;
 
-        public VstsLogger(IList<ILogger> loggers, ITaskClient taskClient, string hubName, Guid scopeIdentifier, Guid planId, int taskLogId)
+        public VstsLogger(ILogger logger, ITaskClient taskClient, string hubName, Guid scopeIdentifier, Guid planId, int taskLogId)
         {
-            this.loggers = loggers;
+            this.logger = logger;
             this.taskClient = taskClient;
             this.scopeIdentifier = scopeIdentifier;
             this.planId = planId;
@@ -85,12 +85,9 @@ namespace VstsServerTaskHelper
             }
             catch (Exception ex)
             {
-                foreach (var registeredLogger in loggers)
-                {
-                    await registeredLogger.LogException(ex, "VstsLogAppend",
-                        "Failed to append log to VSTS",
-                        eventProperties, cancellationToken).ConfigureAwait(false);
-                }
+                await logger.LogException(ex, "VstsLogAppend",
+                    "Failed to append log to VSTS",
+                    eventProperties, cancellationToken).ConfigureAwait(false);
             }
         }
     }
