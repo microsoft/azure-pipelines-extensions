@@ -4,7 +4,7 @@ var stream = require("stream");
 import * as assert from 'assert';
 var http = require('http');
 
-import * as httpm from 'typed-rest-client/HttpClient';
+import * as httpm from '../Providers/typed-rest-client/HttpClient';
 import * as engine from '../Engine';
 import * as models from '../Models';
 mockery.registerMock('fs', {

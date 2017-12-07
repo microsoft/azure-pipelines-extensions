@@ -8,12 +8,12 @@ import * as crypto from 'crypto';
 import * as zlib from 'zlib';
 
 var handlebars = require('handlebars');
-import * as httpm from 'typed-rest-client/HttpClient';
+import * as httpm from './typed-rest-client/HttpClient';
 var tl = require('vsts-task-lib');
 
 import * as models from '../Models';
 import { Logger } from '../Engine/logger';
-import { IRequestHandler, IRequestOptions } from './Handlers/interfaces';
+import { IRequestHandler, IRequestOptions } from './typed-rest-client/Interfaces';
 import { ArtifactItemStore } from '../Store/artifactItemStore';
 import { request } from 'https';
 
@@ -27,6 +27,7 @@ export class WebProvider implements models.IArtifactProvider {
         this.options = requestOptions || {};
         this.options.proxy = tl.getHttpProxyConfiguration();
         this.options.cert = tl.getHttpCertConfiguration();
+        this.options.keepAlive = true;
         this.httpc = new httpm.HttpClient('artifact-engine ' + packagejson.version, [handler], this.options);
         this.variables = variables;
     }
@@ -74,6 +75,10 @@ export class WebProvider implements models.IArtifactProvider {
 
     putArtifactItem(item: models.ArtifactItem, readStream: stream.Readable): Promise<models.ArtifactItem> {
         throw new Error("Not implemented");
+    }
+
+    dispose(): void{
+        this.httpc.dispose();
     }
 
     private getItems(itemsUrl: string): Promise<models.ArtifactItem[]> {
