@@ -78,11 +78,8 @@ namespace VstsServerTaskHelper.UnitTests
                 ReturnNullRelease = returnNullRelease,
             };
             var mockTaskClient = new MockTaskClient();
-            var reportingHelper = new JobStatusReportingHelper(vstsContext, new TraceLogger(), mockTaskClient)
-            {
-                CreateReleaseClient = (uri, s) => ReturnMockReleaseClientIfUrlValid(uri, vstsContext, mockReleaseClient),
-                CreateBuildClient = (uri, s) => mockBuildClient
-            };
+            Assert.AreNotEqual(vstsContext.VstsUri, vstsContext.VstsPlanUri, "need to be different to ensure we can test correct one is used");
+            var reportingHelper = new TestableJobStatusReportingHelper(vstsContext, new TraceLogger(), mockTaskClient, mockReleaseClient, mockBuildClient);
 
             // when
             await reportingHelper.ReportJobStarted(DateTime.UtcNow, "test message", default(CancellationToken));
@@ -94,14 +91,6 @@ namespace VstsServerTaskHelper.UnitTests
                 var taskEvent = mockTaskClient.EventsReceived[0] as JobStartedEvent;
                 Assert.IsNotNull(taskEvent);
             }
-        }
-
-        private static MockReleaseClient ReturnMockReleaseClientIfUrlValid(Uri uri, VstsMessage vstsMessage, MockReleaseClient mockReleaseClient)
-        {
-            Assert.IsNotNull(uri, "require uri to validate correct one is used");
-            Assert.AreNotEqual(vstsMessage.VstsUri, vstsMessage.VstsPlanUri, "need to be different to ensure we can test correct one is used");
-            Assert.AreEqual(vstsMessage.VstsPlanUri, uri, "wrong url passed to create release client");
-            return mockReleaseClient;
         }
     }
 }

@@ -37,7 +37,10 @@ namespace VstsServerTaskHelper
             // The payload is serialized using DataContractSerializer with a binary XmlDictionaryWriter
             // which inserts @\u0006string\....\u0009 to the body of the message. 
             // TODO: Use this work around until the server code is fixed.
-            var cleanMessageBody = messageBody.Substring(messageBody.IndexOf("{\r\n")).Replace("\u0001", "");
+            var start = messageBody.IndexOf('{');
+            var end = messageBody.LastIndexOf('}');
+            var length = end - start + 1;
+            var cleanMessageBody = messageBody.Substring(start, length);
 
             return cleanMessageBody;
         }

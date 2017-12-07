@@ -18,8 +18,7 @@ namespace VstsServerTaskHelper.UnitTests
             this.jobStatusReportingHelper = jobStatusReportingHelper;
         }
 
-        protected override IJobStatusReportingHelper GetVstsReportingHelper(VstsMessage vstsMessage, ILogger inst,
-            ITaskClient taskClient)
+        protected override IJobStatusReportingHelper GetVstsJobStatusReportingHelper(VstsMessage vstsMessage, ILogger inst)
         {
             return this.jobStatusReportingHelper;
         }

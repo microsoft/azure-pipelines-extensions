@@ -100,44 +100,6 @@ namespace VstsServerTaskHelper.UnitTests
             // when
             await TestReportJobCompleted(buildStatus, returnNullBuild, isPassed, expectedEventCount, expectedResult);
         }
-        
-        private async Task TestReportJobStarted(BuildStatus buildStatus, bool returnNullBuild, int expectedEventCount, TaskResult expectedResult)
-        {
-            // given
-            var vstsContext = new TestVstsMessage()
-            {
-                VstsUri = new Uri("http://vstsUri"),
-                VstsPlanUri = new Uri("http://vstsPlanUri"),
-            };
-            var mockBuildClient = new MockBuildClient()
-            {
-                MockBuild = new Build() { Status = buildStatus },
-                ReturnNullBuild = returnNullBuild,
-            };
-            var mockReleaseClient = new MockReleaseClient()
-            {
-                MockRelease = new Release() { Status = ReleaseStatus.Undefined },
-                ReturnNullRelease = false,
-            };
-            var mockTaskClient = new MockTaskClient();
-            var reportingHelper = new JobStatusReportingHelper(vstsContext, new TraceLogger(), mockTaskClient)
-            {
-                CreateBuildClient = (uri, s) => ReturnMockBuildClientIfUrlValid(uri, vstsContext, mockBuildClient),
-                CreateReleaseClient = (uri, s) => mockReleaseClient,
-                CreateTaskHttpClient = (uri, s, i, r) => mockTaskClient
-            };
-
-            // when
-            await reportingHelper.ReportJobStarted(DateTime.UtcNow, "test message", default(CancellationToken));
-
-            // then
-            Assert.AreEqual(expectedEventCount, mockTaskClient.EventsReceived.Count);
-            if (expectedEventCount != 0)
-            {
-                var taskEvent = mockTaskClient.EventsReceived[0] as JobStartedEvent;
-                Assert.IsNotNull(taskEvent);
-            }
-        }
 
         private async Task TestReportJobCompleted(BuildStatus buildStatus, bool returnNullBuild, bool isPassed, int expectedEventCount, TaskResult expectedResult, int expectedRecordCount = 0, string timeLineRecordName = null)
         {
@@ -154,10 +116,9 @@ namespace VstsServerTaskHelper.UnitTests
             };
             var mockBuildClient = new MockBuildClient()
             {
-                MockBuild = new Build() {Status = buildStatus},
+                MockBuild = new Build() { Status = buildStatus },
                 ReturnNullBuild = returnNullBuild,
-            };
-            var mockReleaseClient = new MockReleaseClient()
+            }; var mockReleaseClient = new MockReleaseClient()
             {
                 MockRelease = new Release() { Status = ReleaseStatus.Undefined },
                 ReturnNullRelease = false,
@@ -195,14 +156,10 @@ namespace VstsServerTaskHelper.UnitTests
                 GetRecordsReturnCollection = timelineRecords
             };
 
-            var reportingHelper = new JobStatusReportingHelper(vstsContext, new TraceLogger(), mockTaskHttpClient, timeLineRecordName)
-            {
-                CreateBuildClient = (uri, s) => ReturnMockBuildClientIfUrlValid(uri, vstsContext, mockBuildClient),
-                CreateReleaseClient = (uri, s) => mockReleaseClient
-            };
+            var reportingHelper = new TestableJobStatusReportingHelper(vstsContext, new TraceLogger(), mockTaskHttpClient, mockReleaseClient, mockBuildClient, timeLineRecordName);
 
             // when
-            await reportingHelper.ReportJobCompleted(DateTime.UtcNow,  "test message", isPassed, default(CancellationToken));
+            await reportingHelper.ReportJobCompleted(DateTime.UtcNow, "test message", isPassed, default(CancellationToken));
 
             // then
             Assert.AreEqual(expectedEventCount, mockTaskHttpClient.EventsReceived.Count);

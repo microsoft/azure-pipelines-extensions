@@ -19,14 +19,14 @@ namespace VstsServerTaskHelper
         private readonly IVstsScheduleHandler<T> scheduleHandler;
         private readonly ServiceBusQueueMessageHandlerSettings settings;
         private readonly IServiceBusQueueMessageListener queueClient;
-        private readonly ILogger registeredLogger;
+        private readonly ILogger clientLogger;
 
-        public ServiceBusQueueMessageHandler(IServiceBusQueueMessageListener queueClient, IVstsScheduleHandler<T> scheduleHandler, ServiceBusQueueMessageHandlerSettings settings, ILogger registeredLogger)
+        public ServiceBusQueueMessageHandler(IServiceBusQueueMessageListener queueClient, IVstsScheduleHandler<T> scheduleHandler, ServiceBusQueueMessageHandlerSettings settings, ILogger logger)
         {
             this.scheduleHandler = scheduleHandler;
             this.settings = settings;
             this.queueClient = queueClient;
-            this.registeredLogger = registeredLogger;
+            this.clientLogger = logger;
         }
 
         public ServiceBusQueueMessageHandler(IServiceBusQueueMessageListener queueClient, IVstsScheduleHandler<T> scheduleHandler, ServiceBusQueueMessageHandlerSettings settings)
@@ -156,7 +156,9 @@ namespace VstsServerTaskHelper
             // temp hack until we get the correct URL to use from VSTS
             if (!hasErrors && extractedMessage.VstsHub == HubType.Release && (string.IsNullOrEmpty(extractedMessage.VstsPlanUrl) || extractedMessage.VstsPlanUrl.StartsWith("$(")))
             {
-                extractedMessage.VstsPlanUrl = extractedMessage.VstsUrl.Replace(".visualstudio.com", ".vsrm.visualstudio.com");
+                extractedMessage.VstsPlanUrl = extractedMessage.VstsUrl.ToLowerInvariant().Contains("vsrm")
+                    ? extractedMessage.VstsUrl
+                    : extractedMessage.VstsUrl.Replace(".visualstudio.com", ".vsrm.visualstudio.com");
             }
 
             Uri vstsPlanUri;
@@ -292,7 +294,7 @@ namespace VstsServerTaskHelper
         {
             messageStopwatch.Stop();
             eventProperties[VstsMessageConstants.ProcessingTimeMsPropertyName] = messageStopwatch.ElapsedMilliseconds.ToString();
-            await registeredLogger.LogInfo(eventName, "StopTimer", eventProperties, cancellationToken).ConfigureAwait(false);
+            await clientLogger.LogInfo(eventName, "StopTimer", eventProperties, cancellationToken).ConfigureAwait(false);
         }
 
         private async Task AbandonOrDeadLetterMessage(T vstsMessage, IServiceBusMessage message, Exception exception, IDictionary<string, string> eventProperties, CancellationToken cancellationToken)
@@ -324,7 +326,7 @@ namespace VstsServerTaskHelper
             var delayMsecs = this.settings.AbandonDelayMsecs + (1000 * (int)(Math.Pow(2, Math.Max(0, attempt - 1)) - 1));
             delayMsecs = Math.Min(delayMsecs, this.settings.MaxAbandonDelayMsecs);
             var abandoningMessageDueToException = string.Format("Abandoning message due to exception in [{0}]ms", delayMsecs);
-            await registeredLogger.LogException(exception, "MessageProcessingException", abandoningMessageDueToException, eventProperties, cancellationToken).ConfigureAwait(false);
+            await clientLogger.LogException(exception, "MessageProcessingException", abandoningMessageDueToException, eventProperties, cancellationToken).ConfigureAwait(false);
 
             while (delayMsecs > 0)
             {
@@ -346,7 +348,7 @@ namespace VstsServerTaskHelper
             }
             
             await this.TryFailOrchestrationPlan(vstsMessage, cancellationToken).ConfigureAwait(false);
-            await registeredLogger.LogError("DeadLetterMessage", errorMessage, eventProperties, cancellationToken).ConfigureAwait(false);
+            await clientLogger.LogError("DeadLetterMessage", errorMessage, eventProperties, cancellationToken).ConfigureAwait(false);
             await this.queueClient.DeadLetterAsync(message.GetLockToken()).ConfigureAwait(false);
         }
 
@@ -370,8 +372,8 @@ namespace VstsServerTaskHelper
             vstsMessage.TaskLogId = taskLogId;
 
             // setup VSTS instrumentation and wrap handler
-            var vstsLogger = new VstsLogger(registeredLogger, taskHttpClient, hubName, projectId, planId, taskLogId);
-            var loggersAggregate = new LoggersAggregate(new List<ILogger> {registeredLogger, vstsLogger});
+            var vstsLogger = new VstsLogger(clientLogger, taskHttpClient, hubName, projectId, planId, taskLogId);
+            var loggersAggregate = new LoggersAggregate(new List<ILogger> {clientLogger, vstsLogger});
             var instrumentedHandler = new HandlerWithInstrumentation<T>(loggersAggregate, handler);
 
             // process request
@@ -388,7 +390,7 @@ namespace VstsServerTaskHelper
                 var isSessionValid = await JobStatusReportingHelper.IsSessionValid(vstsMessage, buildHttpClientWrapper, releaseHttpClientWrapper, cancellationToken).ConfigureAwait(false);
                 if (!isSessionValid)
                 {
-                    await registeredLogger.LogInfo("SessionAlreadyCancelled",
+                    await clientLogger.LogInfo("SessionAlreadyCancelled",
                         string.Format("Skipping Execute for cancelled or deleted {0}", vstsMessage.VstsHub),
                         eventProperties, cancellationToken).ConfigureAwait(false);
                     return;
@@ -401,7 +403,7 @@ namespace VstsServerTaskHelper
                 // attempt to schedule
                 var scheduleResult = await instrumentedHandler.Execute(vstsMessage, cancellationToken).ConfigureAwait(false);
 
-                var reportingHelper = GetVstsReportingHelper(vstsMessage, vstsLogger, taskHttpClient);
+                var reportingHelper = GetVstsJobStatusReportingHelper(vstsMessage, vstsLogger);
 
                 if (scheduleResult.ScheduleFailed)
                 {
@@ -472,12 +474,12 @@ namespace VstsServerTaskHelper
 
         protected virtual ITaskClient GetTaskClient(Uri vstsPlanUrl, string authToken, bool skipRaisePlanEvents)
         {
-            return TaskClientFactory.GetTaskClient(vstsPlanUrl, authToken, registeredLogger, skipRaisePlanEvents);
+            return TaskClientFactory.GetTaskClient(vstsPlanUrl, authToken, clientLogger, skipRaisePlanEvents);
         }
 
-        protected virtual IJobStatusReportingHelper GetVstsReportingHelper(VstsMessage vstsMessage, ILogger inst, ITaskClient taskClient)
+        protected virtual IJobStatusReportingHelper GetVstsJobStatusReportingHelper(VstsMessage vstsMessage, ILogger inst)
         {
-            return new JobStatusReportingHelper(vstsMessage, inst, taskClient);
+            return new JobStatusReportingHelper(vstsMessage, inst);
         }
 
         protected virtual IReleaseClient GetReleaseClient(Uri uri, string authToken)

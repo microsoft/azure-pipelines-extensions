@@ -20,12 +20,12 @@ namespace VstsServerTaskHelper
         private Func<IServiceBusMessage, Task> messageHandler;
         private Func<IServiceBusMessageExceptionHandler, Task> exceptionHandler;
 
-        public ServiceBusQueueMessageListener(string connectionString, string queueName, int prefetchCount, int maxConcurrentCalls)
+        public ServiceBusQueueMessageListener(ServiceBusSettings serviceBusSettings)
         {
-            this.connectionString = connectionString;
-            this.queueName = queueName;
-            this.prefetchCount = prefetchCount;
-            this.maxConcurrentCalls = maxConcurrentCalls;
+            this.connectionString = serviceBusSettings.ConnectionString;
+            this.queueName = serviceBusSettings.QueueName;
+            this.prefetchCount = serviceBusSettings.PrefetchCount;
+            this.maxConcurrentCalls = serviceBusSettings.MaxConcurrentCalls;
         }
 
         public void Start(Func<IServiceBusMessage, Task> messageHandler, Func<IServiceBusMessageExceptionHandler, Task> exceptionReceivedHandler)
@@ -51,7 +51,7 @@ namespace VstsServerTaskHelper
         {
             if (this.queueClient != null)
             {
-                this.queueClient.CloseAsync();
+                queueClient.CloseAsync();
                 this.queueClient = null;
             }
         }

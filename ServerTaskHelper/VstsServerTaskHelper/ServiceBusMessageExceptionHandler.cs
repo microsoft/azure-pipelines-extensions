@@ -12,20 +12,16 @@ namespace VstsServerTaskHelper
             this.exceptionReceivedEventArgs = exceptionReceivedEventArgs ?? throw new ArgumentNullException(nameof(exceptionReceivedEventArgs));
         }
 
-        public Exception GetException()
-        {
-            return this.exceptionReceivedEventArgs.Exception;
-        }
-
-        public ExceptionReceivedContext GetExceptionReceivedContext()
-        {
-            return this.exceptionReceivedEventArgs.ExceptionReceivedContext;
-        }
+        public Exception Exception => this.exceptionReceivedEventArgs.Exception;
+        public string Action => this.exceptionReceivedEventArgs.ExceptionReceivedContext.Action;
+        public string ClientId => this.exceptionReceivedEventArgs.ExceptionReceivedContext.ClientId;
+        public string Endpoint => this.exceptionReceivedEventArgs.ExceptionReceivedContext.Endpoint;
+        public string EntityPath => this.exceptionReceivedEventArgs.ExceptionReceivedContext.EntityPath;
 
         public override string ToString()
         {
             return $"{ExceptionRecievedContextToString()}\n" +
-                   $"Exception received: {this.GetException()}";
+                   $"Exception received: {this.Exception}";
         }
 
         private string ExceptionRecievedContextToString()
@@ -36,10 +32,11 @@ namespace VstsServerTaskHelper
             }
 
             return "Exception received context:\n" +
-                   $"Action: {GetExceptionReceivedContext().Action}, " +
-                   $"ClientId: {GetExceptionReceivedContext().ClientId}, " +
-                   $"EndpointId: {GetExceptionReceivedContext().Endpoint}, " +
-                   $"EntityPath: {GetExceptionReceivedContext().EntityPath}";
+                   $"Action: { Action }, " +
+                   $"ClientId: { ClientId }, " +
+                   $"EndpointId: { Endpoint }, " +
+                   $"EntityPath: { EntityPath }";
         }
+
     }
 }
