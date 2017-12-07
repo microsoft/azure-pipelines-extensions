@@ -8,7 +8,7 @@ import * as crypto from 'crypto';
 import * as zlib from 'zlib';
 
 var handlebars = require('handlebars');
-import * as httpm from 'typed-rest-client/HttpClient';
+var httpm = require('typed-rest-client/HttpClient');
 var tl = require('vsts-task-lib');
 
 import * as models from '../Models';
@@ -27,6 +27,7 @@ export class WebProvider implements models.IArtifactProvider {
         this.options = requestOptions || {};
         this.options.proxy = tl.getHttpProxyConfiguration();
         this.options.cert = tl.getHttpCertConfiguration();
+        this.options.keepAlive = true;
         this.httpc = new httpm.HttpClient('artifact-engine ' + packagejson.version, [handler], this.options);
         this.variables = variables;
     }
@@ -52,7 +53,7 @@ export class WebProvider implements models.IArtifactProvider {
 
             var itemUrl: string = artifactItem.metadata['downloadUrl'];
             itemUrl = itemUrl.replace(/([^:]\/)\/+/g, "$1");
-            this.httpc.get(itemUrl).then((res: httpm.HttpClientResponse) => {
+            this.httpc.get(itemUrl).then((res: any) => {
                 if (res.message.headers['content-encoding'] === 'gzip') {
                     try {
                         resolve(res.message.pipe(zlib.createUnzip()));
@@ -76,10 +77,14 @@ export class WebProvider implements models.IArtifactProvider {
         throw new Error("Not implemented");
     }
 
+    dispose() : void {
+        this.httpc.dispose();
+    }
+
     private getItems(itemsUrl: string): Promise<models.ArtifactItem[]> {
         var promise = new Promise<models.ArtifactItem[]>((resolve, reject) => {
             itemsUrl = itemsUrl.replace(/([^:]\/)\/+/g, "$1");
-            this.httpc.get(itemsUrl, { 'Accept': 'application/json' }).then((resp: httpm.HttpClientResponse) => {
+            this.httpc.get(itemsUrl, { 'Accept': 'application/json' }).then((resp: any) => {
                 resp.readBody().then((body: string) => {
                     fs.readFile(this.getTemplateFilePath(), 'utf8', (err, templateFileContent) => {
                         if (err) {
@@ -126,6 +131,6 @@ export class WebProvider implements models.IArtifactProvider {
     private rootItemsLocation: string;
     private templateFile: string;
     private variables: string;
-    public httpc: httpm.HttpClient = new httpm.HttpClient('artifact-engine');
+    public httpc: any = new httpm.HttpClient('artifact-engine');
     private options: any = {};
 }
