@@ -14,8 +14,8 @@ export class ArtifactItemStore {
             startTime: undefined,
             finishTime: undefined,
             retryCount: 0,
-            downloadSizeInBytes: undefined,
-            fileSizeInBytes: undefined
+            downloadSizeInBytes: 0,
+            fileSizeInBytes: 0
         };
 
         this._downloadTickets.push(artifactDownloadTicket);
