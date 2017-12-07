@@ -11,10 +11,12 @@ import { PersonalAccessTokenCredentialHandler } from "../Providers/handlers/pers
 import { ArtifactItemStore } from '../Store/artifactItemStore';
 import { TicketState } from '../Models/ticketState';
 import { ItemType } from '../Models/itemType';
+import { ArtifactDownloadTicket } from '../Models/artifactDownloadTicket';
 
 var config = require("./config.json")
 
 describe('perf tests', () => {
+    //Artifact details => Files: 301, Total Size: 1.7GB
     it('should be able to download large build artifact from vsts drop', function (done) {
         this.timeout(300000);
         let processor = new engine.ArtifactEngine();
@@ -37,19 +39,15 @@ describe('perf tests', () => {
         processor.processItems(webProvider, filesystemProvider, processorOptions)
             .then((tickets) => {
                 let fileTickets = tickets.filter(x => x.artifactItem.itemType == ItemType.File && x.state === TicketState.Processed);
-                let fileSizeInBytes = 0;
-                for (var ticket of fileTickets) {
-                    fileSizeInBytes += ticket.fileSizeInBytes;
-                }
-
                 assert.equal(fileTickets.length, 301);
-                assert(fileSizeInBytes > 1500000000);
+                assert(GetProcessedFileSize(fileTickets) > 1500000000);
                 done();
             }, (error) => {
                 throw error;
             });
     });
 
+    //Artifact details => Files: 301, Total Size: 1.7GB
     it('should be able to download large build artifact from fileshare', function (done) {
         this.timeout(900000);
         let processor = new engine.ArtifactEngine();
@@ -70,16 +68,19 @@ describe('perf tests', () => {
         processor.processItems(sourceProvider, filesystemProvider, processorOptions)
             .then((tickets) => {
                 let fileTickets = tickets.filter(x => x.artifactItem.itemType == ItemType.File && x.state === TicketState.Processed);
-                let fileSizeInBytes = 0;
-                for (var ticket of fileTickets) {
-                    fileSizeInBytes += ticket.fileSizeInBytes;
-                }
-
                 assert.equal(fileTickets.length, 301);
-                assert(fileSizeInBytes > 1500000000);
+                assert(GetProcessedFileSize(fileTickets) > 1500000000);
                 done();
             }, (error) => {
                 throw error;
             });
     });
 });
+
+function GetProcessedFileSize(fileTickets: ArtifactDownloadTicket[]): number {
+    let fileSizeInBytes = 0;
+    for (var ticket of fileTickets) {
+        fileSizeInBytes += ticket.fileSizeInBytes;
+    }
+    return fileSizeInBytes;
+}

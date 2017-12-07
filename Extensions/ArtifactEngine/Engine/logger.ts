@@ -71,16 +71,16 @@ export class Logger {
             fileSizeInBytes += ticket.fileSizeInBytes;
         }
 
-        var downloadSizeInMB = (downloadSizeInBytes / 1048576).toFixed(3);
+        var downloadSizeInMB = (downloadSizeInBytes / (1024*1024)).toFixed(3);
 
         var endTime = new Date();
-        var timeTaken = (endTime.valueOf() - this.startTime.valueOf()) / 1000;
+        var downloadTime = (endTime.valueOf() - this.startTime.valueOf()) / 1000;
         console.log(
             "Total Files: " + fileTickets.length
             + ", Processed: " + processedItems.length
             + ", Skipped: " + skippedItems.length
             + ", Failed: " + failedItems.length
-            + ", Time taken: " + timeTaken + "secs"
+            + ", Download time: " + downloadTime + "secs"
             + ", Download size: " + downloadSizeInMB + "MB");
 
         ci.publishEvent('performance',
@@ -91,7 +91,7 @@ export class Logger {
                 processed: processedItems.length,
                 skipped: skippedItems.length,
                 failed: failedItems.length,
-                timetaken: timeTaken,
+                downloadTimeInSeconds: downloadTime,
                 downloadSizeInBytes: downloadSizeInBytes,
                 fileSizeInBytes: fileSizeInBytes
             });
@@ -111,7 +111,7 @@ export class Logger {
             tl.debug(this.padText("", maxPathLength + 25 + 25 + 10 + 10 + 15, '-'))
             fileTickets.forEach(ticket => {
                 var duration = (ticket.finishTime.valueOf() - ticket.startTime.valueOf()) / 1000 + " secs";
-                tl.debug("| " + this.padText(ticket.artifactItem.path, maxPathLength) + " | " + this.padText(ticket.startTime.toISOString(), 25) + " | " + this.padText(ticket.finishTime.toISOString(), 25) + " | " + this.padText(duration, 10) + " | " + this.padText(ticket.state.toString().toUpperCase(), 10) + "|" + this.padText("" + ticket.downloadSizeInBytes, 10) + "|");
+                tl.debug("| " + this.padText(ticket.artifactItem.path, maxPathLength) + " | " + this.padText(ticket.startTime.toISOString(), 25) + " | " + this.padText(ticket.finishTime.toISOString(), 25) + " | " + this.padText(duration, 10) + " | " + this.padText(ticket.state.toString().toUpperCase(), 10) + "|");
                 tl.debug(this.padText("", maxPathLength + 25 + 25 + 10 + 10 + 15, '-'))
             });
         }
