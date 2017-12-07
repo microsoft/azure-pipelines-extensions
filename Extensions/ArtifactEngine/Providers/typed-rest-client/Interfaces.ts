@@ -19,8 +19,12 @@ export interface IHttpResponse {
 export interface IRequestOptions {
     socketTimeout?: number,
     ignoreSslError?: boolean,
-    proxy?: IProxyConfiguration
-    cert?: ICertConfiguration
+    proxy?: IProxyConfiguration,
+    cert?: ICertConfiguration,
+    allowRedirects?: boolean, 
+    maxRedirects?: number,
+    maxSockets?: number,
+    keepAlive?: boolean
 }
 
 export interface IProxyConfiguration {

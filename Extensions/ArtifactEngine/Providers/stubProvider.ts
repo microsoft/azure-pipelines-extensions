@@ -74,6 +74,9 @@ export class StubProvider implements models.IArtifactProvider {
         return promise;
     }
 
+    dispose(): void {
+    }
+
     delay(ms: number): Promise<{}> {
         return new Promise(resolve => setTimeout(resolve, ms));
     }

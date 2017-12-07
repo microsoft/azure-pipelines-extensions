@@ -72,6 +72,9 @@ export class FilesystemProvider implements models.IArtifactProvider {
         });
     }
 
+    dispose(): void {
+    }
+
     private getItems(itemsPath: string, parentRelativePath?: string): Promise<models.ArtifactItem[]> {
         var promise = new Promise<models.ArtifactItem[]>((resolve, reject) => {
             var items: models.ArtifactItem[] = [];

@@ -4,8 +4,8 @@ import * as models from "../Models"
 import * as engine from "../Engine"
 import * as providers from "../Providers"
 
-import { BasicCredentialHandler } from "../Providers/handlers/basiccreds";
-import { PersonalAccessTokenCredentialHandler } from "../Providers/handlers/personalaccesstoken";
+import { BasicCredentialHandler } from "../Providers/typed-rest-client/handlers/basiccreds";
+import { PersonalAccessTokenCredentialHandler } from "../Providers/typed-rest-client/handlers/personalaccesstoken";
 import { TicketState } from '../Models/ticketState';
 
 var sinon = require('sinon');

@@ -32,13 +32,19 @@ export class ArtifactEngine {
 
                 Promise.all(workers).then(() => {
                     this.logger.logSummary();
+                    sourceProvider.dispose();
+                    destProvider.dispose();
                     resolve(this.artifactItemStore.getTickets());
                 }, (err) => {
                     ci.publishEvent('reliability', <ci.IReliabilityData>{ issueType: 'error', errorMessage: JSON.stringify(err, Object.getOwnPropertyNames(err)) });
+                    sourceProvider.dispose();
+                    destProvider.dispose();
                     reject(err);
                 });
             }, (err) => {
                 ci.publishEvent('reliability', <ci.IReliabilityData>{ issueType: 'error', errorMessage: JSON.stringify(err, Object.getOwnPropertyNames(err)) });
+                sourceProvider.dispose();
+                destProvider.dispose();
                 reject(err);
             });
         });
