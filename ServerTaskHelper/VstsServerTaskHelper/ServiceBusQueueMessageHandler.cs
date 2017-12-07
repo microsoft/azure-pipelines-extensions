@@ -479,7 +479,6 @@ namespace VstsServerTaskHelper
 
             return timelineRecord;
         }
-
         protected virtual ITaskClient GetTaskClient(Uri vstsPlanUrl, string authToken, bool skipRaisePlanEvents)
         {
             return TaskClientFactory.GetTaskClient(vstsPlanUrl, authToken, clientLogger, skipRaisePlanEvents);
