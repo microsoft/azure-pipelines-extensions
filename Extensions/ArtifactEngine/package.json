@@ -1,6 +1,6 @@
 {
   "name": "artifact-engine",
-  "version": "0.1.9",
+  "version": "0.1.10",
   "description": "Artifact Engine to download artifacts from jenkins, teamcity, vsts",
   "repository": {
     "type": "git",
