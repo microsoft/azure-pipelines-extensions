@@ -4,8 +4,12 @@ import * as zlib from 'zlib';
 
 import * as models from '../Models';
 import { Logger } from '../Engine/logger';
+import { ArtifactItemStore } from '../Store/artifactItemStore';
 
 export class FilesystemProvider implements models.IArtifactProvider {
+
+    public artifactItemStore: ArtifactItemStore;
+
     constructor(rootLocation: string) {
         this._rootLocation = rootLocation;
     }
@@ -28,6 +32,9 @@ export class FilesystemProvider implements models.IArtifactProvider {
             var itemPath: string = artifactItem.metadata['downloadUrl'];
             try {
                 var contentStream = fs.createReadStream(itemPath);
+                contentStream.on('end', () => {
+                    this.artifactItemStore.updateDownloadSize(artifactItem, contentStream.bytesRead);
+                });
                 resolve(contentStream);
             } catch (error) {
                 reject(error);
@@ -65,6 +72,9 @@ export class FilesystemProvider implements models.IArtifactProvider {
                     (error) => {
                         reject(error);
                     });
+                outputStream.on("finish", () => {
+                    this.artifactItemStore.updateFileSize(item, outputStream.bytesWritten);
+                });
             }
             catch (err) {
                 reject(err);

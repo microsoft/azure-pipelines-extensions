@@ -11,10 +11,12 @@ import { PersonalAccessTokenCredentialHandler } from "../Providers/typed-rest-cl
 import { ArtifactItemStore } from '../Store/artifactItemStore';
 import { TicketState } from '../Models/ticketState';
 import { ItemType } from '../Models/itemType';
+import { ArtifactDownloadTicket } from '../Models/artifactDownloadTicket';
 
 var config = require("./config.json")
 
 describe('perf tests', () => {
+    //Artifact details => Files: 301, Total Size: 1.7GB
     it('should be able to download large build artifact from vsts drop', function (done) {
         this.timeout(300000);
         let processor = new engine.ArtifactEngine();
@@ -36,13 +38,16 @@ describe('perf tests', () => {
 
         processor.processItems(webProvider, filesystemProvider, processorOptions)
             .then((tickets) => {
-                assert.equal(tickets.filter(x => x.artifactItem.itemType === ItemType.File && x.state === TicketState.Processed).length, 301);
+                let fileTickets = tickets.filter(x => x.artifactItem.itemType == ItemType.File && x.state === TicketState.Processed);
+                assert.equal(fileTickets.length, 301);
+                assert(getDownloadSizeInMB(fileTickets) > 300);
                 done();
             }, (error) => {
                 throw error;
             });
     });
 
+    //Artifact details => Files: 301, Total Size: 1.7GB
     it('should be able to download large build artifact from fileshare', function (done) {
         this.timeout(900000);
         let processor = new engine.ArtifactEngine();
@@ -62,10 +67,20 @@ describe('perf tests', () => {
 
         processor.processItems(sourceProvider, filesystemProvider, processorOptions)
             .then((tickets) => {
-                assert.equal(tickets.filter(x => x.artifactItem.itemType === ItemType.File && x.state === TicketState.Processed).length, 301);
+                let fileTickets = tickets.filter(x => x.artifactItem.itemType == ItemType.File && x.state === TicketState.Processed);
+                assert.equal(fileTickets.length, 301);
+                assert(getDownloadSizeInMB(fileTickets) > 300);
                 done();
             }, (error) => {
                 throw error;
             });
     });
 });
+
+function getDownloadSizeInMB(fileTickets: ArtifactDownloadTicket[]): number {
+    let totalDownloadSizeInBytes = 0;
+    for (var ticket of fileTickets) {
+        totalDownloadSizeInBytes += ticket.downloadSizeInBytes;
+    }
+    return totalDownloadSizeInBytes / (1024 *1024);
+}

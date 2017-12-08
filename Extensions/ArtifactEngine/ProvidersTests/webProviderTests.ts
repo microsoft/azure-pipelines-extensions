@@ -39,8 +39,7 @@ beforeEach((done) => {
 
     stubResponse = new httpm.HttpClientResponse(null);
     sinon.stub(stubResponse, "readBody").returns(new Promise((resolve, reject) => { resolve("{}") }));
-    stubResponse.message = sinon.spy(http.IncomingMessage);
-    stubResponse.message.headers = {'content-encoding' : 'json'};
+    stubResponse.message = { headers: { 'content-encoding': 'json' }, on: (a, b) => { } };
     getStub = sinon.stub(webProvider.httpc, 'get').returns(new Promise<httpm.HttpClientResponse>((resolve, reject) => {
         resolve(stubResponse);
     }));
@@ -67,7 +66,7 @@ describe('webProvider.getArtifactItems', () => {
 
     it('should replace double slashes from url', (done) => {
         artifactItem.metadata = { 'downloadUrl': 'http://stubUrl//link' };
-        
+
         var getArtifactItemPromise = webProvider.getArtifactItems(artifactItem);
 
         getArtifactItemPromise.then(() => {
@@ -96,7 +95,7 @@ describe('webProvider.getArtifactItem', () => {
 
     it('should replace double slashes from url', (done) => {
         artifactItem.metadata = { 'downloadUrl': 'http://stubUrl//link' };
-        
+
         var getArtifactItemPromise = webProvider.getArtifactItem(artifactItem);
 
         getArtifactItemPromise.then(() => {
@@ -109,9 +108,9 @@ describe('webProvider.getArtifactItem', () => {
     });
 
     it('should Unzip on stream if content type is gzip', (done) => {
-        stubResponse.message.headers = {'content-encoding' : 'gzip'};
+        stubResponse.message.headers = { 'content-encoding': 'gzip' };
         stubResponse.message.pipe = sinon.spy();
-        
+
         var getArtifactItemPromise = webProvider.getArtifactItem(artifactItem);
 
         getArtifactItemPromise.then(() => {

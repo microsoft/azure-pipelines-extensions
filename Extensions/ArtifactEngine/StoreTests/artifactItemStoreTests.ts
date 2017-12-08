@@ -313,3 +313,27 @@ describe('artifactItemStore.getRootLocation', () => {
         assert.equal(artifactItemStore.getRootLocation(), '//dummy/drop');
     });
 });
+
+describe('artifactItemStore.updateDownloadSize', () => {
+    it('should update download size of item', () => {
+        var artifactItemStore = new ArtifactItemStore();
+        var artifactItem1 = new models.ArtifactItem();
+        var downloadSize = 2000;
+        artifactItemStore.addItem(artifactItem1);
+        artifactItemStore.updateDownloadSize(artifactItem1, downloadSize);
+
+        assert.equal(artifactItemStore.getTickets().find(x => x.artifactItem == artifactItem1).downloadSizeInBytes, downloadSize);
+    });
+});
+
+describe('artifactItemStore.updateFileSize', () => {
+    it('should update file size of item', () => {
+        var artifactItemStore = new ArtifactItemStore();
+        var artifactItem1 = new models.ArtifactItem();
+        var fileSize = 2000;
+        artifactItemStore.addItem(artifactItem1);
+        artifactItemStore.updateFileSize(artifactItem1, fileSize);
+
+        assert.equal(artifactItemStore.getTickets().find(x => x.artifactItem == artifactItem1).fileSizeInBytes, fileSize);
+    });
+});
