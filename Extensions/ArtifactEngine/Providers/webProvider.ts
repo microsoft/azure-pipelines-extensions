@@ -27,9 +27,8 @@ export class WebProvider implements models.IArtifactProvider {
         this.rootItemsLocation = rootItemsLocation;
         this.templateFile = templateFile;
         this.options = requestOptions || {};
-        this.options.proxy = tl.getHttpProxyConfiguration();
-        this.options.cert = tl.getHttpCertConfiguration();
         this.options.keepAlive = true;
+        this.initializeProxy();
         this.httpc = new httpm.HttpClient('artifact-engine ' + packagejson.version, [handler], this.options);
         this.variables = variables;
     }
@@ -82,7 +81,7 @@ export class WebProvider implements models.IArtifactProvider {
         throw new Error("Not implemented");
     }
 
-    dispose(): void{
+    dispose(): void {
         this.httpc.dispose();
     }
 
@@ -131,6 +130,56 @@ export class WebProvider implements models.IArtifactProvider {
         }
 
         return target;
+    }
+
+    private initializeProxy() {
+        // try get proxy setting from environment variable set by VSTS-Task-Lib if there is no proxy setting in the options
+        if (!this.options.proxy || !this.options.proxy.proxyUrl) {
+            if (global['_vsts_task_lib_proxy']) {
+                let proxyFromEnv: any = {
+                    proxyUrl: global['_vsts_task_lib_proxy_url'],
+                    proxyUsername: global['_vsts_task_lib_proxy_username'],
+                    proxyPassword: this._readTaskLibSecrets(global['_vsts_task_lib_proxy_password']),
+                    proxyBypassHosts: JSON.parse(global['_vsts_task_lib_proxy_bypass'] || "[]"),
+                };
+
+                this.options.proxy = proxyFromEnv;
+            }
+        }
+
+        // try get cert setting from environment variable set by VSTS-Task-Lib if there is no cert setting in the options
+        if (!this.options.cert) {
+            if (global['_vsts_task_lib_cert']) {
+                let certFromEnv: any = {
+                    caFile: global['_vsts_task_lib_cert_ca'],
+                    certFile: global['_vsts_task_lib_cert_clientcert'],
+                    keyFile: global['_vsts_task_lib_cert_key'],
+                    passphrase: this._readTaskLibSecrets(global['_vsts_task_lib_cert_passphrase']),
+                };
+
+                this.options.cert = certFromEnv;
+            }
+        }
+    }
+
+    private _readTaskLibSecrets(lookupKey: string): string {
+        // the lookupKey should has following format
+        // base64encoded<keyFilePath>:base64encoded<encryptedContent>
+        if (lookupKey && lookupKey.indexOf(':') > 0) {
+            let lookupInfo: string[] = lookupKey.split(':', 2);
+
+            // file contains encryption key
+            let keyFile = new Buffer(lookupInfo[0], 'base64').toString('utf8');
+            let encryptKey = new Buffer(fs.readFileSync(keyFile, 'utf8'), 'base64');
+
+            let encryptedContent: string = new Buffer(lookupInfo[1], 'base64').toString('utf8');
+
+            let decipher = crypto.createDecipher("aes-256-ctr", encryptKey)
+            let decryptedContent = decipher.update(encryptedContent, 'hex', 'utf8')
+            decryptedContent += decipher.final('utf8');
+
+            return decryptedContent;
+        }
     }
 
     private rootItemsLocation: string;
