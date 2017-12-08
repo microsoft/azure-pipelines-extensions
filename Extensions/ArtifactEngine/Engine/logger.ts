@@ -71,7 +71,7 @@ export class Logger {
             fileSizeInBytes += ticket.fileSizeInBytes;
         }
 
-        var downloadSizeInMB = (downloadSizeInBytes / (1024*1024)).toFixed(3);
+        var downloadSizeInMB = (downloadSizeInBytes / (1024 * 1024));
 
         var endTime = new Date();
         var downloadTime = (endTime.valueOf() - this.startTime.valueOf()) / 1000;
@@ -81,7 +81,7 @@ export class Logger {
             + ", Skipped: " + skippedItems.length
             + ", Failed: " + failedItems.length
             + ", Download time: " + downloadTime + "secs"
-            + ", Download size: " + downloadSizeInMB + "MB");
+            + (downloadSizeInMB > 1 ? ", Download size: " + downloadSizeInMB.toFixed(3) + "MB" : ""));
 
         ci.publishEvent('performance',
             {

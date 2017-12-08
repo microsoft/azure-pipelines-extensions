@@ -40,7 +40,7 @@ describe('perf tests', () => {
             .then((tickets) => {
                 let fileTickets = tickets.filter(x => x.artifactItem.itemType == ItemType.File && x.state === TicketState.Processed);
                 assert.equal(fileTickets.length, 301);
-                assert(GetProcessedFileSize(fileTickets) > 1500000000);
+                assert(getDownloadSizeInMB(fileTickets) > 300);
                 done();
             }, (error) => {
                 throw error;
@@ -69,7 +69,7 @@ describe('perf tests', () => {
             .then((tickets) => {
                 let fileTickets = tickets.filter(x => x.artifactItem.itemType == ItemType.File && x.state === TicketState.Processed);
                 assert.equal(fileTickets.length, 301);
-                assert(GetProcessedFileSize(fileTickets) > 1500000000);
+                assert(getDownloadSizeInMB(fileTickets) > 300);
                 done();
             }, (error) => {
                 throw error;
@@ -77,10 +77,10 @@ describe('perf tests', () => {
     });
 });
 
-function GetProcessedFileSize(fileTickets: ArtifactDownloadTicket[]): number {
-    let fileSizeInBytes = 0;
+function getDownloadSizeInMB(fileTickets: ArtifactDownloadTicket[]): number {
+    let totalDownloadSizeInBytes = 0;
     for (var ticket of fileTickets) {
-        fileSizeInBytes += ticket.fileSizeInBytes;
+        totalDownloadSizeInBytes += ticket.downloadSizeInBytes;
     }
-    return fileSizeInBytes;
+    return totalDownloadSizeInBytes / (1024 *1024);
 }

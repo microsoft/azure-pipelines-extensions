@@ -32,6 +32,9 @@ export class FilesystemProvider implements models.IArtifactProvider {
             var itemPath: string = artifactItem.metadata['downloadUrl'];
             try {
                 var contentStream = fs.createReadStream(itemPath);
+                contentStream.on('end', () => {
+                    this.artifactItemStore.updateDownloadSize(artifactItem, contentStream.bytesRead);
+                });
                 resolve(contentStream);
             } catch (error) {
                 reject(error);
