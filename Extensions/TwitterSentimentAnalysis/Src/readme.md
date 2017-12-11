@@ -26,7 +26,7 @@ Task snapshot:
 
  ## **Task Input parameters**
  
- The task required the following inputs:
+ The task required the following inputs: 
  
  * **Azure Function Url**:  Url of the Azure function that needs to be invoked​. Example:- https://azurefunctionapp.azurewebsites.net/api/HttpTriggerCS1.
  
