@@ -1,40 +1,50 @@
 # **Twitter sentiment analysis extension**
 
-This extension includes a build/release task to integrate with [Azure Function](https://docs.microsoft.com/en-us/azure/azure-functions/functions-create-first-azure-function). The task executes given azure funtion with task inputs and return sentiment analysis for given hash tag. With this extension, you can use this task to get twitter sentiment for a given hash tag.
+This extension includes a build/release task and a release gate to calculate average sentiment of tweets made for a hashtag. The gate is useful to ensure that there is positivity in tweets made for the application updated on an environment before promoting the release to the next environment.
 
+It uses [Text Analytics API](https://azure.microsoft.com/en-in/services/cognitive-services/text-analytics) from Azure Cognitive Services for sentiment analysis of the tweets.
 ## **Prerequisites**
 
 ### **Create Azure Function**
-Follow the [installation guidance](https://docs.microsoft.com/en-us/azure/azure-functions/functions-create-first-azure-function) and create an HTTP triggered function. Copy paste this [sample code](TwitterSentimentAnalysisAzureFunction.txt) in azure function.
 
-### **Create Twitter Application**
-If you don't have twitter application, create [Twitter application](https://apps.twitter.com/) for using Twitter REST APIs. Once you create twitter application, go to 'Keys and Access Tokens' tab and get Consumer Key and Consumer Secret. You need to provide this Consumer Key and Consumer Secret in task inputs.
+The task uses an [Azure function](https://azure.microsoft.com/en-us/services/functions) for a server less on-demand processing of tweets received for a hashtag. [Create](https://docs.microsoft.com/en-us/azure/azure-functions/functions-create-first-azure-function) an HTTP triggered function and use this [sample code](TwitterSentimentAnalysisAzureFunction.txt) in the Azure function.
 
-### **Get Azure Congnitive Services Access key**
-Azure Congnitive Service [Text Analytics API](https://azure.microsoft.com/en-in/services/cognitive-services/text-analytics) used in this [sample azure function](TwitterSentimentAnalysisAzureFunction.txt). Congnitive service access key is required to use Text Analytics APIs. This [document](https://docs.microsoft.com/en-in/azure/cognitive-services/text-analytics/how-tos/text-analytics-how-to-access-key) gives information on how to find congnitive service access key. You need to provide this access key in 'Cognitive Subscription Key' task input.
+### **Obtain Consumer key and secret for Twitter**
 
-## **Task** 
-Installing the extension adds the following 'Get Twitter Sentiment' task in server side tasks and gates:
+If you don't have twitter application, [create Twitter](https://apps.twitter.com/) application for using Twitter REST APIs. Once you create a twitter application, get the 'Consumer Key' and 'Consumer Secret' from 'Keys and Access Tokens' tab. 
+
+### **Obtain Azure Cognitive Services access key**
+
+[Text Analytics API](https://azure.microsoft.com/en-in/services/cognitive-services/text-analytics) from Azure Cognitive Services is used in the [sample azure function](TwitterSentimentAnalysisAzureFunction.txt) for sentiment analysis of the tweets. Cognitive service access key is required to use Text Analytics APIs. Follow this [guide](https://docs.microsoft.com/en-in/azure/cognitive-services/text-analytics/how-tos/text-analytics-how-to-access-key) to obtain a cognitive service access key. 
+
+## **Task**
+
+Installing the extension adds the following 'Get Twitter Sentiment' gate and agentless task.
 
 Task snapshot:
  ![Task snapshot](Images/TaskInputs.png)
 
- ## **Task arguments** 
+ ## **Task Input parameters**
  
- * **Azure Function Url**:  Url of the Azure function that needs to be invoked​. Example:- https://azurefunctionapp.azurewebsites.net/api/HttpTriggerJS1.
+ The task required the following inputs:
+ 
+ * **Azure Function Url**:  Url of the Azure function that needs to be invoked​. Example:- https://azurefunctionapp.azurewebsites.net/api/HttpTriggerCS1.
  
  * **Function Key**:  Function or Host key with which we can access this function. To keep the key secure, define a secret variable and use it here. Example: - $(myFunctionKey) where myFunctionKey is an environment level secret variable with value as the secret key like ZxPXnIEODXLRzYwCw1TgZ4osMfoKs9Zn6se6X/N0FnztfDvZbdOmYw==.
 
- * **HashTag For Analysis**: Provide Twitter Hash Tag which you want get sentiment score. ex:- #vsts.
+ * **Hashtag To Analyze**: Analyze sentiment of tweets made with this Hashtag like #vsts.
 
- * **Consumer Key**:  Specify Twitter application consumer key.
+ * **Consumer Key**:  Specify Twitter application consumer key. To keep the value secure, define a secret variable and use it here. Refer [Obtain Consumer key and secret for Twitter](#user-content-**obtain-consumer-key-and-secret-for-twitter**).
 
- * **Consumer Secret**:  Specify Twitter application consumer secret value.
+ * **Consumer Secret**:  Specify Twitter application consumer secret value. To keep the value secure, define a secret variable and use it here. Refer [Obtain Consumer key and secret for Twitter](#user-content-**obtain-consumer-key-and-secret-for-twitter**).
 
- * **Cognitive Subscription Key**:  Specify Cognitive service access key.
+ * **Cognitive Services Access Key**:  Specify access key for Text Analytics API. To keep the key secure, define a secret variable and use it here. Refer [Obtain Azure Cognitive Services access key](#user-content-**obtain-azure-cognitive-services-access-key**)
 
- * **Cognitive Service Region**:  Specify congnitive service region where above access key belongs. Ex:- Region is 'westus' for conginitve service endpoint https://westus.api.conginitve.microsoft.com/text/analytics/v2.0.
+ * **Cognitive Services Endpoint Region**:  Specify the region corresponding to the Text Analytics API endpoint. For example, Region is 'westus' for cognitive service endpoint https://westus.api.conginitve.microsoft.com/text/analytics/v2.0.
 
- * **Read tweets since**:  Read tweets from this give date. Default $(Release.Deployment.StartTime), reads the tweets from starting time of deployment.
+ * **Analyze Tweets Since**:  Analyze the tweets made after this time. By default, uses $(Release.Deployment.StartTime) and analyzes the tweets made after start of the deployment.
 
- * **Threshold**: Threshold value of sentiment. If sentiment score for give hash tag is less than threshold task will fail. Default value is 0.5.
+ * **Threshold**: Threshold value for average sentiment of the tweets analyzed. If the average sentiment score is less than the threshold, task will fail. Default value is 0.5.
+
+### **Contact Information**
+You can use [RM Extensions on Github](https://github.com/Microsoft/vsts-rm-extensions/issues) to report any issues.

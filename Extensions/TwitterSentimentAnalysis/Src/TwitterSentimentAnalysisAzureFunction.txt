@@ -22,9 +22,17 @@ public static SentimentScore Run(TaskData req, TraceWriter log)
     string hashTag = req.HashTag;
     string consumerKey = req.ConsumerKey;
     string consumerSecret = req.ConsumerSecret;
-    string cognitiveSubscriptionKey = req.CognitiveSubscriptionKey;
-    string cognitiveServiceRegion = req.CognitiveServiceRegion;
-    DateTime since = req.Since;
+    string cognitiveServicesAccessKey = req.CognitiveServicesAccessKey;
+    string cognitiveServicesEndpointRegion = req.CognitiveServicesEndpointRegion;
+    DateTime analyzeTweetsSince = req.AnalyzeTweetsSince;
+    if (string.IsNullOrWhiteSpace(hashTag) ||
+        string.IsNullOrWhiteSpace(consumerKey) ||
+        string.IsNullOrWhiteSpace(consumerSecret) ||
+        string.IsNullOrWhiteSpace(cognitiveServicesAccessKey)||
+        string.IsNullOrWhiteSpace(cognitiveServicesEndpointRegion))
+    {
+        return new SentimentScore("Invalid Input", -1, -1);
+    }
 
     int max_tweets = 100;
     int tweetsCount = 0;
@@ -40,14 +48,14 @@ public static SentimentScore Run(TaskData req, TraceWriter log)
         }
 
         var tweets = JsonConvert.DeserializeObject(tweetsData);
-        JObject batchInput = GetTweetsBatchInput(tweets, since, out tweetsCount);
+        JObject batchInput = GetTweetsBatchInput(tweets, analyzeTweetsSince, out tweetsCount);
         if (tweetsCount == 0)
         {
             return new SentimentScore(hashTag, 0, 0);
         }
 
         log.Info("C# HTTP trigger function received tweets " + tweetsCount);
-        var response = GetSentiment(httpClient, batchInput, cognitiveSubscriptionKey, cognitiveServiceRegion);
+        var response = GetSentiment(httpClient, batchInput, cognitiveServicesAccessKey, cognitiveServicesEndpointRegion);
         if (response == null)
         {
             return new SentimentScore("Unable to find sentiment score for tweets", -1, -1);
@@ -108,14 +116,14 @@ private static JObject GetTweetsBatchInput(dynamic tweets, DateTime since, out i
     return new JObject(new JProperty("documents", tweetsData));
 }
 
-private static string GetSentiment(HttpClient httpClient, JObject tweetsData, string cognitiveSubscriptionKey, string cognitiveServiceRegion)
+private static string GetSentiment(HttpClient httpClient, JObject tweetsData, string cognitiveServicesAccessKey, string cognitiveServicesEndpointRegion)
 {
     string requestBody = JsonConvert.SerializeObject(tweetsData);
-    string url = string.Format("https://{0}.api.cognitive.microsoft.com/text/analytics/v2.0/sentiment", cognitiveServiceRegion);
+    string url = string.Format("https://{0}.api.cognitive.microsoft.com/text/analytics/v2.0/sentiment", cognitiveServicesEndpointRegion);
     string resultContent = string.Empty;
 
     StringContent queryString = new StringContent(requestBody);
-    httpClient.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", cognitiveSubscriptionKey);
+    httpClient.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", cognitiveServicesAccessKey);
     var buffer = System.Text.Encoding.UTF8.GetBytes(requestBody);
     var byteContent = new ByteArrayContent(buffer);
     byteContent.Headers.ContentType = new MediaTypeHeaderValue("application/json");
@@ -127,7 +135,7 @@ private static string GetSentiment(HttpClient httpClient, JObject tweetsData, st
 
     return null;
 }
-
+    
 private static double CalculateSentimentScore(dynamic tweetsSentimentData, dynamic tweetsData)
 {
     double score = 0.0;
@@ -148,13 +156,14 @@ private static double CalculateSentimentScore(dynamic tweetsSentimentData, dynam
     return count == 0 ? 0 : score / count;
 }
 
-public class TaskData {
-     public string HashTag {get; set;}
-     public string ConsumerKey {get; set;}
-     public string ConsumerSecret {get; set;}
-     public string CognitiveSubscriptionKey {get; set;}
-     public string CognitiveServiceRegion {get; set;}
-     public DateTime Since { get; set; }
+public class TaskData
+{
+    public string HashTag { get; set; }
+    public string ConsumerKey { get; set; }
+    public string ConsumerSecret { get; set; }
+    public string CognitiveServicesAccessKey { get; set; }
+    public string CognitiveServicesEndpointRegion { get; set; }
+    public DateTime AnalyzeTweetsSince { get; set; }
 }
 
 public class SentimentScore

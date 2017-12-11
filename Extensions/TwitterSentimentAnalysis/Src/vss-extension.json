@@ -5,12 +5,13 @@
 	"publisher": "ms-vscs-rm",
 	"version": "0.0.1",
 	"public": true,
-	"description": "This extension calculates the twitter sentiment",
+	"description": "Gate your releases based on average sentiment of tweets for a hashtag.",
 	"_description.comment": "The below format to define extensions is currently in preview and may change in future.",
 	"categories": ["Build and release"],
 	"Tags": ["Twitter",
-	"Sentiment",
+	"Cognitive Service",
 	"Release",
+	"ReleaseGates",
 	"DevOps"],
 	"targets": [{
 		"id": "Microsoft.VisualStudio.Services"
