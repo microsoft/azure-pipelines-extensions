@@ -1,0 +1,58 @@
+{
+	"manifestVersion": 1.0,
+	"id": "vss-services-twittersentimentanalysis",
+	"name": "Twitter Sentiment Analysis",
+	"publisher": "ms-vscs-rm",
+	"version": "0.0.1",
+	"public": true,
+	"description": "Gate your releases based on average sentiment of tweets for a hashtag.",
+	"_description.comment": "The below format to define extensions is currently in preview and may change in future.",
+	"categories": ["Build and release"],
+	"Tags": ["Twitter",
+	"Cognitive Service",
+	"Release",
+	"ReleaseGates",
+	"DevOps"],
+	"targets": [{
+		"id": "Microsoft.VisualStudio.Services"
+	}],
+	"demands": [],
+	"icons": {
+		"default": "images\\twitter.png"
+	},
+	"branding": {
+		"color": "#3B3E43",
+		"theme": "dark"
+	},
+	"screenshots": [{
+		"path": "images\\TaskInputs.png"
+	}],
+	"files": [{
+		"path": "images\\TaskInputs.png",
+		"addressable": true
+	},
+	{
+		"path": "images\\twitter.png",
+		"addressable": true
+	},
+	{
+		"path": "TwitterSentimentAnalysisAzureFunction.txt",
+		"addressable": true
+	},
+	{
+		"path": "Tasks/TwitterSentimentAnalysis"
+	}],
+	"content": {
+		"details": {
+			"path": "readme.md"
+		}
+	},
+	"contributions": [{
+		"id": "twittersentimentanalysis-task",
+		"type": "ms.vss-distributed-task.task",
+		"targets": ["ms.vss-distributed-task.tasks"],
+		"properties": {
+			"name": "Tasks/TwitterSentimentAnalysis"
+		}
+	}]
+}

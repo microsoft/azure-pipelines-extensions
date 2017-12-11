@@ -1,0 +1,124 @@
+{
+	"id": "5CBE8736-EE83-4BBF-A0AD-96B118797CBB",
+	"name": "TwitterSentimentAnalysis",
+	"friendlyName": "Get Twitter Sentiment",
+	"description": "Gate your releases based on average sentiment of tweets for a hashtag.",
+	"author": "Microsoft Corporation",
+	"helpMarkDown": "[More Information](https://go.microsoft.com/fwlink/?linkid=850348)",
+	"category": "Utility",
+	"preview": "true",
+	"visibility": [
+		"Release"
+	],
+	"runsOn": [
+		"Server"
+	],
+	"version": {
+		"Major": 0,
+		"Minor": 0,
+		"Patch": 1
+	},
+	"instanceNameFormat": "Twitter Sentiment Analysis",
+	"groups": [
+		{
+			"name": "twitterConnectionInputs",
+			"displayName": "Twitter Connection Inputs",
+			"isExpanded": true
+		},
+		{
+			"name": "cognitiveServiceInputs",
+			"displayName": "Cognitive Service Inputs",
+			"isExpanded": true
+		},
+		{
+			"name": "advanced",
+			"displayName": "Advanced",
+			"isExpanded": false
+		}
+	],
+	"inputs": [{
+			"name": "function",
+			"type": "string",
+			"label": "Azure Function Url",
+			"defaultValue": "",
+			"required": true,
+			"helpMarkDown": "Url of the Azure function that needs to be invoked​. Example:- https://azurefunctionapp.azurewebsites.net/api/HttpTriggerCS1"
+		}, {
+			"name": "key",
+			"type": "string",
+			"label": "Function Key",
+			"defaultValue": "",
+			"required": true,
+			"helpMarkDown": "Function or Host key with which we can access this function. To keep the key secure, define a secret variable and use it here. Example: - $(myFunctionKey) where myFunctionKey is an environment level secret variable with value as the secret key like ZxPXnIEODXLRzYwCw1TgZ4osMfoKs9Zn6se6X/N0FnztfDvZbdOmYw=="
+		},  {
+			"name": "hashTag",
+			"type": "string",
+			"label": "Hashtag To Analyze",
+			"required": "true",
+			"defaultValue": "",
+			"helpMarkDown": "Analyze sentiment of tweets made with this Hashtag like #vsts."
+		}, {
+			"name": "consumerKey",
+			"type": "string",
+			"label": "Consumer Key",
+			"defaultValue": "",
+			"required": true,
+			"groupName": "twitterConnectionInputs",
+			"helpMarkDown": "Specify Twitter application consumer key. To keep the value secure, define a secret variable and use it here. If you don't have twitter application, [Create Twitter](https://apps.twitter.com/) application and get the 'Consumer Key' from 'Keys and Access Tokens' tab"
+		}, {
+			"name": "consumerSecret",
+			"type": "string",
+			"label": "Consumer Secret",
+			"defaultValue": "",
+			"required": true,
+			"groupName": "twitterConnectionInputs",
+			"helpMarkDown": "Specify Twitter application consumer secret value. To keep the value secure, define a secret variable and use it here. If you don't have twitter application, [Create Twitter](https://apps.twitter.com/) application and get the 'Consumer Secret' from 'Keys and Access Tokens' tab."
+		},{
+			"name": "cognitiveServicesAccessKey",
+			"type": "string",
+			"label": "Cognitive Services Access Key",
+			"defaultValue": "",
+			"required": true,
+			"groupName": "cognitiveServiceInputs",
+			"helpMarkDown": "Specify access key for Text Analytics API. To keep the key secure, define a secret variable and use it here. Follow this [guide](https://docs.microsoft.com/en-in/azure/cognitive-services/text-analytics/how-tos/text-analytics-how-to-access-key) to obtain a cognitive service access key."
+		}, {
+			"name": "cognitiveServicesEndpointRegion",
+			"type": "string",
+			"label": "Cognitive Services Endpoint Region",
+			"defaultValue": "",
+			"required": true,
+			"groupName": "cognitiveServiceInputs",
+			"helpMarkDown": "Specify the region corresponding to the Text Analytics API endpoint. For example, Region is 'westus' for cognitive service endpoint https://westus.api.conginitve.microsoft.com/text/analytics/v2.0."
+		}, {
+			"name": "analyzeTweetsSince",
+			"type": "string",
+			"label": "Analyze Tweets Since",
+			"defaultValue": "$(Release.Deployment.StartTime)",
+			"required": true,
+			"groupName": "advanced",
+			"helpMarkDown": "Analyze the tweets made after this time. By default, uses $(Release.Deployment.StartTime) and analyzes the tweets made after start of the deployment."
+		}, {
+			"name": "threshold",
+			"type": "string",
+			"label": "Threshold",
+			"defaultValue": "0.5",
+			"required": true,
+			"groupName": "advanced",
+			"helpMarkDown": "Threshold value for average sentiment of the tweets analyzed. If the average sentiment score is less than the threshold, task will fail. Default value is 0.5."
+		}
+	],
+
+	"execution": {
+		"HttpRequest": {
+			"Execute": {
+				"EndpointId": "",
+				"EndpointUrl": "$(function)?code=$(key)",
+				"Method": "POST",
+				"Body": "{\"hashTag\":\"$(hashTag)\",\"consumerKey\":\"$(consumerKey)\",\"consumerSecret\":\"$(consumerSecret)\",\"cognitiveServicesAccessKey\":\"$(cognitiveServicesAccessKey)\",\"cognitiveServicesEndpointRegion\":\"$(cognitiveServicesEndpointRegion)\",\"analyzeTweetsSince\":\"$(analyzeTweetsSince)\"}",
+				"Headers": "{\"Content-Type\":\"application/json\"}",
+				"WaitForCompletion": "false",
+				"Expression": "or(eq(0, root['NumberOfTweetsParsed']), gt(root['Score'], $(threshold)))"
+			}
+		}
+	}
+}
