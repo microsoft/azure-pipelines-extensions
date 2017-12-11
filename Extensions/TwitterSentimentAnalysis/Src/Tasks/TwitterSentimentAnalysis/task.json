@@ -1,0 +1,124 @@
+{
+	"id": "5CBE8736-EE83-4BBF-A0AD-96B118797CBB",
+	"name": "TwitterSentimentAnalysis",
+	"friendlyName": "Get Twitter Sentiment",
+	"description": "Invoke Azure Function and gets the Twitter sentitment.",
+	"author": "Microsoft Corporation",
+	"helpMarkDown": "[More Information](https://go.microsoft.com/fwlink/?linkid=850348)",
+	"category": "Utility",
+	"preview": "true",
+	"visibility": [
+		"Release"
+	],
+	"runsOn": [
+		"Server"
+	],
+	"version": {
+		"Major": 0,
+		"Minor": 0,
+		"Patch": 1
+	},
+	"instanceNameFormat": "Twitter Sentiment Analysis",
+	"groups": [
+		{
+			"name": "twitterConnectionInputs",
+			"displayName": "Twitter Connection Inputs",
+			"isExpanded": true
+		},
+		{
+			"name": "cognitiveServiceInputs",
+			"displayName": "Cognitive Service Inputs",
+			"isExpanded": true
+		},
+		{
+			"name": "advanced",
+			"displayName": "Advanced",
+			"isExpanded": false
+		}
+	],
+	"inputs": [{
+			"name": "function",
+			"type": "string",
+			"label": "Azure Function Url",
+			"defaultValue": "",
+			"required": true,
+			"helpMarkDown": "Url of the Azure function that needs to be invoked​. Example:- https://azurefunctionapp.azurewebsites.net/api/HttpTriggerJS1"
+		}, {
+			"name": "key",
+			"type": "string",
+			"label": "Function Key",
+			"defaultValue": "",
+			"required": true,
+			"helpMarkDown": "Function or Host key with which we can access this function. To keep the key secure, define a secret variable and use it here. Example: - $(myFunctionKey) where myFunctionKey is an environment level secret variable with value as the secret key like ZxPXnIEODXLRzYwCw1TgZ4osMfoKs9Zn6se6X/N0FnztfDvZbdOmYw=="
+		},  {
+			"name": "hashTag",
+			"type": "string",
+			"label": "HashTag For Analysis",
+			"required": "true",
+			"defaultValue": "",
+			"helpMarkDown": "Hash Tag for analysis. ex:- #ReleaseManagement."
+		}, {
+			"name": "consumerKey",
+			"type": "string",
+			"label": "Consumer Key",
+			"defaultValue": "",
+			"required": true,
+			"groupName": "twitterConnectionInputs",
+			"helpMarkDown": "Consumer key to read tweets."
+		}, {
+			"name": "consumerSecret",
+			"type": "string",
+			"label": "Consumer Secret",
+			"defaultValue": "",
+			"required": true,
+			"groupName": "twitterConnectionInputs",
+			"helpMarkDown": "Consumer Secret to read tweets."
+		},{
+			"name": "cognitiveSubscriptionKey",
+			"type": "string",
+			"label": "Cognitive Subscription Key",
+			"defaultValue": "",
+			"required": true,
+			"groupName": "cognitiveServiceInputs",
+			"helpMarkDown": "Cognitive subscription key."
+		}, {
+			"name": "cognitiveServiceRegion",
+			"type": "string",
+			"label": "Cognitive Service Region",
+			"defaultValue": "",
+			"required": true,
+			"groupName": "cognitiveServiceInputs",
+			"helpMarkDown": "Cognitive service region."
+		}, {
+			"name": "startTime",
+			"type": "string",
+			"label": "Read tweets since",
+			"defaultValue": "$(Release.Deployment.StartTime)",
+			"required": true,
+			"groupName": "advanced",
+			"helpMarkDown": "Read tweets since."
+		}, {
+			"name": "threshold",
+			"type": "string",
+			"label": "Threshold",
+			"defaultValue": "0.5",
+			"required": true,
+			"groupName": "advanced",
+			"helpMarkDown": "Threshold."
+		}
+	],
+
+	"execution": {
+		"HttpRequest": {
+			"Execute": {
+				"EndpointId": "",
+				"EndpointUrl": "$(function)?code=$(key)",
+				"Method": "POST",
+				"Body": "{\"hashTag\":\"$(hashTag)\",\"consumerKey\":\"$(consumerKey)\",\"consumerSecret\":\"$(consumerSecret)\",\"cognitiveSubscriptionKey\":\"$(cognitiveSubscriptionKey)\",\"cognitiveServiceRegion\":\"$(cognitiveServiceRegion)\",\"since\":\"$(startTime)\"}",
+				"Headers": "{\"Content-Type\":\"application/json\"}",
+				"WaitForCompletion": "false",
+				"Expression": "or(eq(0, root['NumberOfTweetsParsed']), gt(root['Score'], $(threshold)))"
+			}
+		}
+	}
+}
