@@ -64,7 +64,7 @@
 			"defaultValue": "",
 			"required": true,
 			"groupName": "twitterConnectionInputs",
-			"helpMarkDown": "Specify Twitter application consumer key. To keep the value secure, define a secret variable and use it here."
+			"helpMarkDown": "Specify Twitter application consumer key. To keep the value secure, define a secret variable and use it here. If you don't have twitter application, [Create Twitter](https://apps.twitter.com/) application and get the 'Consumer Key' from 'Keys and Access Tokens' tab"
 		}, {
 			"name": "consumerSecret",
 			"type": "string",
@@ -72,7 +72,7 @@
 			"defaultValue": "",
 			"required": true,
 			"groupName": "twitterConnectionInputs",
-			"helpMarkDown": "Specify Twitter application consumer secret value. To keep the value secure, define a secret variable and use it here."
+			"helpMarkDown": "Specify Twitter application consumer secret value. To keep the value secure, define a secret variable and use it here. If you don't have twitter application, [Create Twitter](https://apps.twitter.com/) application and get the 'Consumer Secret' from 'Keys and Access Tokens' tab."
 		},{
 			"name": "cognitiveServicesAccessKey",
 			"type": "string",
@@ -80,7 +80,7 @@
 			"defaultValue": "",
 			"required": true,
 			"groupName": "cognitiveServiceInputs",
-			"helpMarkDown": "Specify access key for Text Analytics API. To keep the key secure, define a secret variable and use it here."
+			"helpMarkDown": "Specify access key for Text Analytics API. To keep the key secure, define a secret variable and use it here. Follow this [guide](https://docs.microsoft.com/en-in/azure/cognitive-services/text-analytics/how-tos/text-analytics-how-to-access-key) to obtain a cognitive service access key."
 		}, {
 			"name": "cognitiveServicesEndpointRegion",
 			"type": "string",

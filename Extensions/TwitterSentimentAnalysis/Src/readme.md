@@ -34,11 +34,11 @@ Task snapshot:
 
  * **Hashtag To Analyze**: Analyze sentiment of tweets made with this Hashtag like #vsts.
 
- * **Consumer Key**:  Specify Twitter application consumer key. To keep the value secure, define a secret variable and use it here. Refer [Obtain Consumer key and secret for Twitter](#user-content-**obtain-consumer-key-and-secret-for-twitter**).
+ * **Consumer Key**:  Specify Twitter application consumer key. To keep the value secure, define a secret variable and use it here. If you don't have twitter application, [Create Twitter](https://apps.twitter.com/) application and get the 'Consumer Key' from 'Keys and Access Tokens' tab.
 
- * **Consumer Secret**:  Specify Twitter application consumer secret value. To keep the value secure, define a secret variable and use it here. Refer [Obtain Consumer key and secret for Twitter](#user-content-**obtain-consumer-key-and-secret-for-twitter**).
+ * **Consumer Secret**:  Specify Twitter application consumer secret value. To keep the value secure, define a secret variable and use it here. If you don't have twitter application, [Create Twitter](https://apps.twitter.com/) application and get the 'Consumer Secret' from 'Keys and Access Tokens' tab.
 
- * **Cognitive Services Access Key**:  Specify access key for Text Analytics API. To keep the key secure, define a secret variable and use it here. Refer [Obtain Azure Cognitive Services access key](#user-content-**obtain-azure-cognitive-services-access-key**)
+ * **Cognitive Services Access Key**:  Specify access key for Text Analytics API. To keep the key secure, define a secret variable and use it here. Follow this [guide](https://docs.microsoft.com/en-in/azure/cognitive-services/text-analytics/how-tos/text-analytics-how-to-access-key) to obtain a cognitive service access key.
 
  * **Cognitive Services Endpoint Region**:  Specify the region corresponding to the Text Analytics API endpoint. For example, Region is 'westus' for cognitive service endpoint https://westus.api.conginitve.microsoft.com/text/analytics/v2.0.
 
