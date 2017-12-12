@@ -8,7 +8,7 @@ It uses [Text Analytics API](https://azure.microsoft.com/en-in/services/cognitiv
 
 ### Create Azure Function
 
-The task uses an [Azure function](https://azure.microsoft.com/en-us/services/functions) for a server less on-demand processing of tweets received for a hashtag. [Create](https://docs.microsoft.com/en-us/azure/azure-functions/functions-create-first-azure-function) an HTTP triggered function and use this [sample code](TwitterSentimentAnalysisAzureFunction.txt) in the Azure function. 
+The task uses an [Azure function](https://azure.microsoft.com/en-us/services/functions) for a server less on-demand processing of tweets received for a hashtag. [Create](https://docs.microsoft.com/en-us/azure/azure-functions/functions-create-first-azure-function) an HTTP triggered function and use this [sample code](TwitterSentimentAnalysisAzureFunction.txt) in the Azure function.
 
 ### Obtain Consumer key and secret for Twitter
 
