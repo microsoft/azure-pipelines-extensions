@@ -18,21 +18,21 @@
 	}],
 	"demands": [],
 	"icons": {
-		"default": "images\\twitter.png"
+		"default": "images/twitter.png"
 	},
 	"branding": {
 		"color": "#3B3E43",
 		"theme": "dark"
 	},
 	"screenshots": [{
-		"path": "images\\TaskInputs.png"
+		"path": "images/TaskInputs.png"
 	}],
 	"files": [{
-		"path": "images\\TaskInputs.png",
+		"path": "images/TaskInputs.png",
 		"addressable": true
 	},
 	{
-		"path": "images\\twitter.png",
+		"path": "images/twitter.png",
 		"addressable": true
 	},
 	{
