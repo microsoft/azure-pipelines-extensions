@@ -44,5 +44,11 @@ namespace VstsServerTaskHelper
             JobStatusSuccess = isPassed;
             await Task.FromResult<object>(null);
         }
+
+        public async Task TryAbandonJob(CancellationToken cancellationToken)
+        {
+            JobStatusReceived.Add(JobStatusEnum.Completed);
+            Task.FromResult<object>(null);
+        }
     }
 }

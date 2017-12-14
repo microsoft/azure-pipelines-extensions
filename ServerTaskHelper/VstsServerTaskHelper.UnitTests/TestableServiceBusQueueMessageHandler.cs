@@ -18,24 +18,29 @@ namespace VstsServerTaskHelper.UnitTests
             this.jobStatusReportingHelper = jobStatusReportingHelper;
         }
 
-        protected override IJobStatusReportingHelper GetVstsJobStatusReportingHelper(VstsMessage vstsMessage, ILogger inst)
+        protected override IJobStatusReportingHelper GetVstsJobStatusReportingHelper(VstsMessage vstsMessage, ILogger logger)
         {
-            return this.jobStatusReportingHelper;
+            return jobStatusReportingHelper;
         }
 
         protected override IReleaseClient GetReleaseClient(Uri uri, string authToken)
         {
-            return this.releaseClient;
+            return releaseClient;
         }
 
         protected override IBuildClient GetBuildClient(Uri uri, string authToken)
         {
-            return this.buildClient;
+            return buildClient;
         }
 
         protected override ITaskClient GetTaskClient(Uri vstsPlanUrl, string authToken, bool skipRaisePlanEvents)
         {
-            return this.taskClient;
+            return taskClient;
+        }
+
+        protected override HandlerWithInstrumentation<TestVstsMessage> GetHandlerWithInstrumentation(ILogger loggersAggregate, IVstsScheduleHandler<TestVstsMessage> handler)
+        {
+            return new TestableHandlerWithInstrumentation<TestVstsMessage>(loggersAggregate, handler, this.taskClient, this.buildClient, this.releaseClient, this.jobStatusReportingHelper);
         }
     }
 }

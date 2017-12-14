@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -10,7 +11,7 @@ namespace VstsServerTaskHelper.UnitTests
 
         public Func<TestVstsMessage, Task<string>> MockCancelFunc { get; set; }
 
-        public Task<VstsScheduleResult> Execute(TestVstsMessage vstsMessage, CancellationToken cancellationToken)
+        public Task<VstsScheduleResult> Execute(TestVstsMessage vstsMessage, IDictionary<string, string> eventProperties, CancellationToken cancellationToken)
         {
             if (this.MockExecuteFunc != null)
             {

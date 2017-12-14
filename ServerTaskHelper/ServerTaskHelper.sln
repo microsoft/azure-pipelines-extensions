@@ -9,6 +9,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VstsServerTaskHelper.UnitTe
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VstsServerTaskHelper.SampleClient", "VstsServerTaskHelper.SampleClient\VstsServerTaskHelper.SampleClient.csproj", "{71CA8B42-BF23-4796-8ED7-C62B3F468B3C}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VstsServerTaskHelper.SampleWebClient", "VstsServerTaskHelper.SampleWebClient\VstsServerTaskHelper.SampleWebClient.csproj", "{99763E64-621E-4C58-BFE4-A74DF60CCFB0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VstsServerTaskHelper.SampleAzureFunction", "VstsServerTaskHelper.SampleAzureFunction\VstsServerTaskHelper.SampleAzureFunction.csproj", "{A91F47E2-4994-4D09-AE14-D521ABE92860}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +31,14 @@ Global
 		{71CA8B42-BF23-4796-8ED7-C62B3F468B3C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{71CA8B42-BF23-4796-8ED7-C62B3F468B3C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{71CA8B42-BF23-4796-8ED7-C62B3F468B3C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{99763E64-621E-4C58-BFE4-A74DF60CCFB0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{99763E64-621E-4C58-BFE4-A74DF60CCFB0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{99763E64-621E-4C58-BFE4-A74DF60CCFB0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{99763E64-621E-4C58-BFE4-A74DF60CCFB0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A91F47E2-4994-4D09-AE14-D521ABE92860}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A91F47E2-4994-4D09-AE14-D521ABE92860}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A91F47E2-4994-4D09-AE14-D521ABE92860}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A91F47E2-4994-4D09-AE14-D521ABE92860}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

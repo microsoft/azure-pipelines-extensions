@@ -9,6 +9,7 @@
     <PackageReference Include="Microsoft.TeamFoundationServer.Client" Version="15.122.1-preview" />
     <PackageReference Include="Microsoft.VisualStudio.Services.Client" Version="15.122.1-preview" />
     <PackageReference Include="Microsoft.VisualStudio.Services.DistributedTask.Client" Version="15.112.1-preview" />
+    <PackageReference Include="Microsoft.VisualStudio.Services.InteractiveClient" Version="15.122.1-preview" />
     <PackageReference Include="Microsoft.VisualStudio.Services.Release.Client" Version="15.122.1-preview" />
     <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
   </ItemGroup>

@@ -83,7 +83,7 @@ namespace VstsServerTaskHelper
 
             await taskClient.UpdateTimelineRecordsAsync(projectId, hubName, planId, timelineId, recordsToUpdate, cancellationToken).ConfigureAwait(false);
         }
-        
+
         public async Task ReportJobCompleted(DateTimeOffset offsetTime, string message, bool isPassed, CancellationToken cancellationToken)
         {
             var vstsPlanUrl = this.vstsMessage.VstsPlanUri;
@@ -122,6 +122,31 @@ namespace VstsServerTaskHelper
             await this.CompleteTimelineRecords(projectId, planId, hubName, timelineId, isPassed ? TaskResult.Succeeded : TaskResult.Failed, cancellationToken, taskClient);
         }
 
+        public async Task TryAbandonJob(CancellationToken cancellationToken)
+        {
+            if (vstsMessage == null)
+            {
+                return;
+            }
+
+            try
+            {
+                var projectId = vstsMessage.ProjectId;
+                var planId = vstsMessage.PlanId;
+                var vstsPlanUrl = vstsMessage.VstsPlanUri;
+                var authToken = vstsMessage.AuthToken;
+                var jobId = vstsMessage.JobId;
+                var hubName = vstsMessage.VstsHub.ToString();
+                var taskHttpClient = GetTaskClient(vstsPlanUrl, authToken, vstsMessage.SkipRaisePlanEvents);
+                var completedEvent = new JobCompletedEvent(jobId, TaskResult.Abandoned);
+                await taskHttpClient.RaisePlanEventAsync(projectId, hubName, planId, completedEvent, cancellationToken).ConfigureAwait(false);
+            }
+            catch (Exception)
+            {
+                // yes this really is a horrible best effort that ignores all ex's.
+            }
+        }
+
         internal async Task CompleteTimelineRecords(Guid projectId, Guid planId, string hubName, Guid parentTimelineId, TaskResult result, CancellationToken cancellationToken, ITaskClient taskClient)
         {
             // Find all existing timeline records and close them
@@ -155,12 +180,12 @@ namespace VstsServerTaskHelper
                 return await ReleaseClient.IsReleaseValid(releaseClient, projectId, releaseId, cancellationToken).ConfigureAwait(false);
             }
 
-            throw new NotSupportedException(string.Format("VstsHub {0} is not supported", vstsMessage.VstsHub));
+            throw new NotSupportedException(String.Format("VstsHub {0} is not supported", vstsMessage.VstsHub));
         }
 
         private List<TimelineRecord> GetTimelineRecordsToUpdate(List<TimelineRecord> records)
         {
-            if (string.IsNullOrEmpty(timelineRecordName))
+            if (String.IsNullOrEmpty(timelineRecordName))
             {
                 return records.Where(rec => rec.Id == this.vstsMessage.JobId || rec.ParentId == this.vstsMessage.JobId)
                     .ToList();
@@ -177,12 +202,12 @@ namespace VstsServerTaskHelper
 
         protected virtual IReleaseClient GetReleaseClient(Uri uri, string authToken)
         {
-            return new ReleaseClient(uri, new VssBasicCredential(string.Empty, authToken));
+            return new ReleaseClient(uri, new VssBasicCredential(String.Empty, authToken));
         }
 
         protected virtual IBuildClient GetBuildClient(Uri uri, string authToken)
         {
-            return new BuildClient(uri, new VssBasicCredential(string.Empty, authToken));
+            return new BuildClient(uri, new VssBasicCredential(String.Empty, authToken));
         }
     }
 }

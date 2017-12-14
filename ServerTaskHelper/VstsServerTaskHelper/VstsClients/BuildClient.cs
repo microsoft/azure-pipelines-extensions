@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.TeamFoundation.Build.WebApi;
+using Microsoft.VisualStudio.Services.Client;
 using Microsoft.VisualStudio.Services.Common;
 using Microsoft.VisualStudio.Services.WebApi;
 
@@ -24,7 +25,8 @@ namespace VstsServerTaskHelper
 
         public BuildClient(Uri baseUrl, VssCredentials credentials, int retryCount, int retryInterval)
         {
-            var vssConnection = new VssConnection(baseUrl, credentials);
+            var interactiveCredentials = new VssClientCredentials();
+            var vssConnection = new VssConnection(baseUrl, interactiveCredentials);
             this.client = vssConnection.GetClient<BuildHttpClient>();
             this.retryer = Retryer.CreateRetryer(retryCount, TimeSpan.FromSeconds(retryInterval));
         }

@@ -55,15 +55,14 @@ namespace VstsServerTaskHelper
             return message.SystemProperties.LockToken;
         }
 
+        public bool ContainsProperty(string key)
+        {
+            return this.message.UserProperties.ContainsKey(key);
+        }
+
         public object GetProperty(string key)
         {
-            object value;
-            if (this.message.UserProperties.TryGetValue(key, out value))
-            {
-                return value;
-            }
-
-            return null;
+            return this.ContainsProperty(key) ? this.message.UserProperties[key] : null;
         }
 
         public void SetProperty(string key, object value)

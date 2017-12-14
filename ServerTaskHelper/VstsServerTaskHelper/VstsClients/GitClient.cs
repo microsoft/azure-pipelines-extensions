@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 
 using Microsoft.TeamFoundation.Policy.WebApi;
 using Microsoft.TeamFoundation.SourceControl.WebApi;
+using Microsoft.VisualStudio.Services.Client;
 using Microsoft.VisualStudio.Services.Common;
 using Microsoft.VisualStudio.Services.WebApi;
 
@@ -17,7 +18,8 @@ namespace VstsServerTaskHelper
 
         public GitClient(Uri baseUrl, VssCredentials credentials)
         {
-            var vssConnection = new VssConnection(baseUrl, credentials);
+            var interactiveCredentials = new VssClientCredentials();
+            var vssConnection = new VssConnection(baseUrl, interactiveCredentials);
             this.client = vssConnection.GetClient<GitHttpClient>();
             this.policyClient = new PolicyHttpClient(baseUrl, credentials);
         }

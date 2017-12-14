@@ -6,9 +6,9 @@ namespace VstsServerTaskHelper.UnitTests
     {
         private readonly ITaskClient mockTaskHttpClient;
         private readonly IReleaseClient releaseClient;
-        private readonly MockBuildClient mockBuildClient;
+        private readonly IBuildClient mockBuildClient;
 
-        public TestableJobStatusReportingHelper(VstsMessage vstsMessage, ILogger traceLogger, ITaskClient mockTaskHttpClient, IReleaseClient releaseClient, MockBuildClient mockBuildClient, string timeLineRecordName = null)
+        public TestableJobStatusReportingHelper(VstsMessage vstsMessage, ILogger traceLogger, ITaskClient mockTaskHttpClient, IReleaseClient releaseClient, IBuildClient mockBuildClient, string timeLineRecordName = null)
             :base(vstsMessage, traceLogger, timeLineRecordName)
         {
             this.mockTaskHttpClient = mockTaskHttpClient;
