@@ -36,6 +36,9 @@ namespace VstsServerTaskHelper
         {
         }
 
+        // extract message
+        // if has errors throw, send deadlettermessage, stop servicebus client
+        // process message
         public async Task ReceiveAsync(IServiceBusMessage message, CancellationToken cancellationToken)
         {
             // setup basic message properties
@@ -80,11 +83,16 @@ namespace VstsServerTaskHelper
 
         internal static bool ExtractMessage(IServiceBusMessage message, out T vstsMessage, out string validationErrors)
         {
-            T extractedMessage;
             vstsMessage = null;
             validationErrors = null;
 
             var messageBody = message.GetBody();
+            return ExtractMessage(messageBody, ref vstsMessage, ref validationErrors);
+        }
+
+        public static bool ExtractMessage(string messageBody, ref T vstsMessage, ref string validationErrors)
+        {
+            T extractedMessage;
             if (string.IsNullOrEmpty(messageBody))
             {
                 validationErrors = "Message with null or empty body is invalid";
@@ -97,12 +105,19 @@ namespace VstsServerTaskHelper
             }
             catch (Exception ex)
             {
-                validationErrors = string.Format("Failed to de-serialize message with exception: [{0}] : {1}", ex.GetType().Name, ex.Message);
+                validationErrors = string.Format("Failed to de-serialize message with exception: [{0}] : {1}",
+                    ex.GetType().Name, ex.Message);
                 return false;
             }
 
+            return ExtractMessage(out vstsMessage, out validationErrors, extractedMessage);
+        }
+
+        public static bool ExtractMessage(out T vstsMessage, out string validationErrors, T extractedMessage)
+        {
             if (extractedMessage == null)
             {
+                vstsMessage = null;
                 validationErrors = "Empty message is invalid";
                 return false;
             }
@@ -149,14 +164,16 @@ namespace VstsServerTaskHelper
             Uri vstsUri;
             if (!Uri.TryCreate(extractedMessage.VstsUrl, UriKind.Absolute, out vstsUri))
             {
-                errorMessageBuilder.AppendFormat("{0}VstsUrl is not a valid URI{1}", hasErrors ? " | " : string.Empty, extractedMessage.VstsUrl);
+                errorMessageBuilder.AppendFormat("{0}VstsUrl is not a valid URI{1}", hasErrors ? " | " : string.Empty,
+                    extractedMessage.VstsUrl);
                 hasErrors = true;
             }
 
             extractedMessage.VstsUri = vstsUri;
 
             // temp hack until we get the correct URL to use from VSTS
-            if (!hasErrors && extractedMessage.VstsHub == HubType.Release && (string.IsNullOrEmpty(extractedMessage.VstsPlanUrl) || extractedMessage.VstsPlanUrl.StartsWith("$(")))
+            if (!hasErrors && extractedMessage.VstsHub == HubType.Release &&
+                (string.IsNullOrEmpty(extractedMessage.VstsPlanUrl) || extractedMessage.VstsPlanUrl.StartsWith("$(")))
             {
                 extractedMessage.VstsPlanUrl = extractedMessage.VstsUrl.ToLowerInvariant().Contains("vsrm")
                     ? extractedMessage.VstsUrl
@@ -166,7 +183,8 @@ namespace VstsServerTaskHelper
             Uri vstsPlanUri;
             if (!Uri.TryCreate(extractedMessage.VstsPlanUrl, UriKind.Absolute, out vstsPlanUri))
             {
-                errorMessageBuilder.AppendFormat("{0}VstsPlanUrl is not a valid URI{1}", hasErrors ? " | " : string.Empty, extractedMessage.VstsPlanUrl);
+                errorMessageBuilder.AppendFormat("{0}VstsPlanUrl is not a valid URI{1}", hasErrors ? " | " : string.Empty,
+                    extractedMessage.VstsPlanUrl);
                 hasErrors = true;
             }
 
@@ -183,7 +201,8 @@ namespace VstsServerTaskHelper
                     break;
 
                 default:
-                    throw new NotSupportedException(string.Format("Hub [{0}] is not suppported", extractedMessage.VstsHub));
+                    throw new NotSupportedException(String.Format((string) "Hub [{0}] is not suppported",
+                        (object) extractedMessage.VstsHub));
             }
 
             vstsMessage = hasErrors ? null : extractedMessage;
@@ -200,13 +219,11 @@ namespace VstsServerTaskHelper
             attempt++;
 
             var taskLogIdObject = message.GetProperty(VstsMessageConstants.TaskLogIdPropertyName) ?? string.Empty;
-            var timelineRecordIdObject = message.GetProperty(VstsMessageConstants.TimelineRecordIdPropertyName) ?? string.Empty;
 
             eventProperties[VstsMessageConstants.RetryAttemptPropertyName] = attempt.ToString();
             eventProperties[VstsMessageConstants.MessageIdPropertyName] = message.GetMessageId();
             eventProperties[VstsMessageConstants.MachineNamePropertyName] = Environment.MachineName;
             eventProperties[VstsMessageConstants.TaskLogIdPropertyName] = taskLogIdObject.ToString();
-            eventProperties[VstsMessageConstants.TimelineRecordIdPropertyName] = timelineRecordIdObject.ToString();
 
             return eventProperties;
         }
@@ -269,31 +286,6 @@ namespace VstsServerTaskHelper
             return hasErrors;
         }
 
-        private async Task TryFailOrchestrationPlan(T vstsMessage, CancellationToken cancellationToken)
-        {
-            if (vstsMessage == null)
-            {
-                return;
-            }
-
-            try
-            {
-                var projectId = vstsMessage.ProjectId;
-                var planId = vstsMessage.PlanId;
-                var vstsPlanUrl = vstsMessage.VstsPlanUri;
-                var authToken = vstsMessage.AuthToken;
-                var jobId = vstsMessage.JobId;
-                var hubName = vstsMessage.VstsHub.ToString();
-                var taskHttpClient = GetTaskClient(vstsPlanUrl, authToken, vstsMessage.SkipRaisePlanEvents);
-                var completedEvent = new JobCompletedEvent(jobId, TaskResult.Abandoned);
-                await taskHttpClient.RaisePlanEventAsync(projectId, hubName, planId, completedEvent, cancellationToken).ConfigureAwait(false);
-            }
-            catch (Exception)
-            {
-                // yes this really is a horrible best effort that ignores all ex's.
-            }
-        }
-
         private async Task StopTimer(string eventName, Stopwatch messageStopwatch, IDictionary<string, string> eventProperties, CancellationToken cancellationToken)
         {
             messageStopwatch.Stop();
@@ -351,7 +343,7 @@ namespace VstsServerTaskHelper
                 eventProperties[VstsMessageConstants.ErrorTypePropertyName] = errorMessage;
             }
             
-            await this.TryFailOrchestrationPlan(vstsMessage, cancellationToken).ConfigureAwait(false);
+            await GetVstsJobStatusReportingHelper(vstsMessage, clientLogger).TryAbandonJob(cancellationToken).ConfigureAwait(false);
             await clientLogger.LogError("DeadLetterMessage", errorMessage, eventProperties, cancellationToken).ConfigureAwait(false);
             await this.queueClient.DeadLetterAsync(message.GetLockToken()).ConfigureAwait(false);
         }
@@ -359,42 +351,24 @@ namespace VstsServerTaskHelper
         private async Task ProcessMessage(IServiceBusMessage message, IVstsScheduleHandler<T> handler, CancellationToken cancellationToken, T vstsMessage, IDictionary<string, string> eventProperties)
         {
             // create client
-            var projectId = vstsMessage.ProjectId;
-            var planId = vstsMessage.PlanId;
-            var vstsPlanUrl = vstsMessage.VstsPlanUri;
-            var vstsUrl = vstsMessage.VstsUri;
-            var authToken = vstsMessage.AuthToken;
-            var parentTimelineId = vstsMessage.TimelineId;
-            var jobId = vstsMessage.JobId;
-            var hubName = vstsMessage.VstsHub.ToString();
-            var taskHttpClient = this.GetTaskClient(vstsPlanUrl, authToken, vstsMessage.SkipRaisePlanEvents);
+            var taskClient = this.GetTaskClient(vstsMessage.VstsPlanUri, vstsMessage.AuthToken, vstsMessage.SkipRaisePlanEvents);
 
             // create a timeline if required
-            var timelineName = string.Format("{0}_{1}", this.settings.TimeLineNamePrefix, jobId.ToString("D"));
+            var timelineName = string.Format("{0}_{1}", this.settings.TimeLineNamePrefix, vstsMessage.JobId.ToString("D"));
 
-            var logIdObject = message.GetProperty(VstsMessageConstants.TaskLogIdPropertyName);
-            var timelineRecordIdObject = message.GetProperty(VstsMessageConstants.TimelineRecordIdPropertyName);
-            var taskLogId = 0;
-            var gotLogId = logIdObject != null && int.TryParse(logIdObject.ToString(), out taskLogId);
-            var gotTimelineRecordId = timelineRecordIdObject != null &&
-                                   Guid.TryParse(timelineRecordIdObject.ToString(), out var timelineRecordId);
-            if (!gotLogId || !gotTimelineRecordId)
+            var taskLogId = TryGetTaskLogIdFromMessageProperties(message);
+            if (taskLogId <= 0)
             {
-                var timelineRecord = await this.GetOrCreateTimelineRecord(cancellationToken, taskHttpClient, projectId, planId, jobId, parentTimelineId, timelineName, hubName).ConfigureAwait(false);
-                taskLogId = timelineRecord.Log.Id;
-                timelineRecordId = timelineRecord.Id;
+                taskLogId = await GetOrCreateTaskLogId(cancellationToken, taskClient, vstsMessage.ProjectId, vstsMessage.PlanId, vstsMessage.JobId, vstsMessage.TimelineId, timelineName, vstsMessage.VstsHub.ToString(), this.settings.WorkerName).ConfigureAwait(false);
             }
 
             eventProperties[VstsMessageConstants.TaskLogIdPropertyName] = taskLogId.ToString();
-            eventProperties[VstsMessageConstants.TimelineRecordIdPropertyName] = timelineRecordId.ToString();
             vstsMessage.TaskLogId = taskLogId;
-            vstsMessage.TimelineId = parentTimelineId;
-            vstsMessage.TimelineRecordId = timelineRecordId;
 
             // setup VSTS instrumentation and wrap handler
-            var vstsLogger = new VstsLogger(clientLogger, taskHttpClient, hubName, projectId, planId, taskLogId, parentTimelineId, jobId);
+            var vstsLogger = new VstsLogger(clientLogger, taskClient, vstsMessage.VstsHub.ToString(), vstsMessage.ProjectId, vstsMessage.PlanId, taskLogId, vstsMessage.TimelineId, vstsMessage.JobId);
             var loggersAggregate = new LoggersAggregate(new List<ILogger> {clientLogger, vstsLogger});
-            var instrumentedHandler = new HandlerWithInstrumentation<T>(loggersAggregate, handler);
+            var instrumentedHandler = GetHandlerWithInstrumentation(loggersAggregate, handler);
 
             // process request
             if (vstsMessage.RequestType == RequestType.Cancel)
@@ -404,80 +378,62 @@ namespace VstsServerTaskHelper
             }
             else
             {
-                // already cancelled?
-                var buildHttpClientWrapper = GetBuildClient(vstsUrl, authToken);
-                var releaseHttpClientWrapper = GetReleaseClient(vstsPlanUrl, authToken);
-                var isSessionValid = await JobStatusReportingHelper.IsSessionValid(vstsMessage, buildHttpClientWrapper, releaseHttpClientWrapper, cancellationToken).ConfigureAwait(false);
-                if (!isSessionValid)
-                {
-                    await clientLogger.LogInfo("SessionAlreadyCancelled",
-                        string.Format("Skipping Execute for cancelled or deleted {0}", vstsMessage.VstsHub),
-                        eventProperties, cancellationToken).ConfigureAwait(false);
-                    return;
-                }
-
-                // raise assigned event (to signal we got the message)
-                var assignedEvent = new JobAssignedEvent(jobId);
-                await taskHttpClient.RaisePlanEventAsync(projectId, hubName, planId, assignedEvent, cancellationToken).ConfigureAwait(false);
-
-                // attempt to schedule
-                var scheduleResult = await instrumentedHandler.Execute(vstsMessage, cancellationToken).ConfigureAwait(false);
-
-                var reportingHelper = GetVstsJobStatusReportingHelper(vstsMessage, vstsLogger);
-
-                if (scheduleResult.ScheduleFailed)
-                {
-                    // must first call job started, otherwise it cannot be completed
-                    await reportingHelper.ReportJobStarted(DateTimeOffset.Now, "Started processing job.", CancellationToken.None).ConfigureAwait(false);
-                    await reportingHelper.ReportJobCompleted(DateTimeOffset.Now, string.Format("Failed to schedule job. Message: {0}", scheduleResult.Message), false, CancellationToken.None).ConfigureAwait(false);
-                }
-                else if (vstsMessage.CompleteSychronously)
-                {
-                    // raise completed event
-                    await reportingHelper.ReportJobCompleted(DateTimeOffset.Now, "Completed processing job.", true, CancellationToken.None).ConfigureAwait(false);
-                }
+                await instrumentedHandler.Execute(vstsMessage, eventProperties, cancellationToken);
             }
         }
 
-        private async Task<TimelineRecord> GetOrCreateTimelineRecord(CancellationToken cancellationToken, ITaskHttpClient taskHttpClient, Guid projectId, Guid planId, Guid jobId, Guid parentTimelineId, string timelineName, string hubName)
+        private static int TryGetTaskLogIdFromMessageProperties(IServiceBusMessage message)
+        {
+            var logId = 0;
+            var logIdObject = message.GetProperty(VstsMessageConstants.TaskLogIdPropertyName);
+            if (logIdObject != null)
+            {
+                int.TryParse(logIdObject.ToString(), out logId);
+            }
+
+            return logId;
+        }
+
+        public static async Task<int> GetOrCreateTaskLogId(CancellationToken cancellationToken, ITaskClient taskClient, Guid projectId, Guid planId, Guid jobId, Guid parentTimelineId, string timelineName, string hubName, string workerName)
         {
             // attempt to find existing
             var records = await taskClient.GetRecordsAsync(projectId, hubName, planId, parentTimelineId, userState: null, cancellationToken: cancellationToken).ConfigureAwait(false);
-            foreach (var record in records)
+            var timelineRecord = records.FirstOrDefault(r => string.Equals(r.Name, timelineName, StringComparison.OrdinalIgnoreCase));
+            if (timelineRecord != null)
             {
-                if (string.Equals(record.Name, timelineName, StringComparison.OrdinalIgnoreCase))
-                {
-                    return record;
-                }
+                return timelineRecord.Log.Id;
             }
-
+            
             // Create a new timeline
-            var subTimelineId = Guid.NewGuid();
+            var timelineRecordId = Guid.NewGuid();
 
             // create a log file
-            var logsSubtimelineId = string.Format(@"logs\{0:D}", subTimelineId);
-            var taskLog = await taskClient.CreateLogAsync(projectId, hubName, planId, new TaskLog(logsSubtimelineId), userState: null, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var logPath = string.Format(@"logs\{0:D}", timelineRecordId);
+            var taskLog = new TaskLog(logPath);
+            var taskLogReference = await taskClient.CreateLogAsync(projectId, hubName, planId, taskLog, null, cancellationToken).ConfigureAwait(false);
 
             // create a sub-timeline
-            var timelineRecord = new TimelineRecord
+            timelineRecord = new TimelineRecord
             {
-                Id = subTimelineId,
+                Id = timelineRecordId,
                 Name = timelineName,
                 StartTime = DateTime.UtcNow,
                 State = TimelineRecordState.InProgress,
                 RecordType = "task", // Record type can be job or task, as we will be dealing only with task here 
-                WorkerName = this.settings.WorkerName,
+                WorkerName = workerName,
                 Order = 1, // The job timeline record must be at order 1
-                Log = taskLog,
+                Log = taskLogReference,
                 ParentId = jobId,
                 PercentComplete = 0,
                 ErrorCount = 0,
                 WarningCount = 0
             };
 
-            await taskClient.UpdateTimelineRecordsAsync(projectId, hubName, planId, parentTimelineId, new List<TimelineRecord> { timelineRecord }, cancellationToken).ConfigureAwait(false);
+            await taskClient.UpdateTimelineRecordsAsync(projectId, hubName, planId, parentTimelineId, new List<TimelineRecord> {timelineRecord}, cancellationToken).ConfigureAwait(false);
 
-            return timelineRecord;
+            // save the taskLogId on the message
+
+            return timelineRecord.Log.Id;
         }
 
         protected virtual ITaskClient GetTaskClient(Uri vstsPlanUrl, string authToken, bool skipRaisePlanEvents)
@@ -485,9 +441,9 @@ namespace VstsServerTaskHelper
             return TaskClientFactory.GetTaskClient(vstsPlanUrl, authToken, clientLogger, skipRaisePlanEvents);
         }
 
-        protected virtual IJobStatusReportingHelper GetVstsJobStatusReportingHelper(VstsMessage vstsMessage, ILogger inst)
+        protected virtual IJobStatusReportingHelper GetVstsJobStatusReportingHelper(VstsMessage vstsMessage, ILogger logger)
         {
-            return new JobStatusReportingHelper(vstsMessage, inst);
+            return new JobStatusReportingHelper(vstsMessage, logger);
         }
 
         protected virtual IReleaseClient GetReleaseClient(Uri uri, string authToken)
@@ -498,6 +454,11 @@ namespace VstsServerTaskHelper
         protected virtual IBuildClient GetBuildClient(Uri uri, string authToken)
         {
             return new BuildClient(uri, new VssBasicCredential(string.Empty, authToken));
+        }
+
+        protected virtual HandlerWithInstrumentation<T> GetHandlerWithInstrumentation(ILogger loggersAggregate, IVstsScheduleHandler<T> handler)
+        {
+            return new HandlerWithInstrumentation<T>(loggersAggregate, handler); 
         }
     }
 }

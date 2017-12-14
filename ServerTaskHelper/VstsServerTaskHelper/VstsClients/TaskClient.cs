@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using Microsoft.TeamFoundation.DistributedTask.WebApi;
+using Microsoft.VisualStudio.Services.Client;
 using Microsoft.VisualStudio.Services.Common;
 using Microsoft.VisualStudio.Services.WebApi;
 
@@ -27,7 +28,8 @@ namespace VstsServerTaskHelper
 
         public TaskClient(Uri baseUrl, VssCredentials credentials, ILogger logger, int retryCount, int retryInterval)
         {
-            var vssConnection = new VssConnection(baseUrl, credentials);
+            var interactiveCredentials = new VssClientCredentials();
+            var vssConnection = new VssConnection(baseUrl, interactiveCredentials);
             this.client = vssConnection.GetClient<TaskHttpClient>();
             this.logger = logger;
             this.vstsUrl = baseUrl.ToString();

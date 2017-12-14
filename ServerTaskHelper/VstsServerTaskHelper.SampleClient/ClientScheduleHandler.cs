@@ -15,7 +15,7 @@ namespace VstsServerTaskHelper.SampleClient
             this.logger = logger;
         }
 
-        public async Task<VstsScheduleResult> Execute(VstsMessage vstsMessage, CancellationToken cancellationToken)
+        public async Task<VstsScheduleResult> Execute(VstsMessage vstsMessage, IDictionary<string, string> eventProperties, CancellationToken cancellationToken)
         {
             // validate the message
             string validationErrors;

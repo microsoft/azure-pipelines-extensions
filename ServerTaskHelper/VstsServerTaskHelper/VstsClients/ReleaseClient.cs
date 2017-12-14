@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.VisualStudio.Services.Client;
 using Microsoft.VisualStudio.Services.Common;
 using Microsoft.VisualStudio.Services.ReleaseManagement.WebApi;
 using Microsoft.VisualStudio.Services.ReleaseManagement.WebApi.Clients;
@@ -16,7 +17,8 @@ namespace VstsServerTaskHelper
 
         public ReleaseClient(Uri baseUrl, VssCredentials credentials)
         {
-            var vssConnection = new VssConnection(baseUrl, credentials);
+            var interactiveCredentials = new VssClientCredentials();
+            var vssConnection = new VssConnection(baseUrl, interactiveCredentials);
             this.client = vssConnection.GetClient<ReleaseHttpClient>();
         }
 

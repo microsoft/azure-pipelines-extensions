@@ -11,5 +11,7 @@ namespace VstsServerTaskHelper
         Task ReportJobProgress(DateTimeOffset offsetTime, string message, CancellationToken cancellationToken);
 
         Task ReportJobCompleted(DateTimeOffset offsetTime, string message, bool isPassed, CancellationToken cancellationToken);
+
+        Task TryAbandonJob(CancellationToken cancellationToken);
     }
 }

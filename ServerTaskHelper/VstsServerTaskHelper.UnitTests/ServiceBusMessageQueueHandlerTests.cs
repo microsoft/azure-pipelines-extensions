@@ -236,7 +236,6 @@ namespace VstsServerTaskHelper.UnitTests
             // given - a message with a logId
             var mockMessage = CreateMockMessage(CreateValidTestVstsMessage());
             mockMessage.SetProperty(VstsMessageConstants.TaskLogIdPropertyName, 456);
-            mockMessage.SetProperty(VstsMessageConstants.TimelineRecordIdPropertyName, Guid.NewGuid());
             mockMessage.SetProperty(VstsMessageConstants.RetryAttemptPropertyName, 10);
             var mockTaskClient = new MockTaskClient();
             var mockMessageListener = new MockServiceBusQueueMessageListener();
@@ -256,7 +255,6 @@ namespace VstsServerTaskHelper.UnitTests
             // given - a message with a handler that fails
             var mockMessage = CreateMockMessage(CreateValidTestVstsMessage());
             mockMessage.SetProperty(VstsMessageConstants.TaskLogIdPropertyName, 456);
-            mockMessage.SetProperty(VstsMessageConstants.TimelineRecordIdPropertyName, Guid.NewGuid());
             var maxRetryAttempts = 10;
             var currRetry = 5;
             mockMessage.SetProperty(VstsMessageConstants.RetryAttemptPropertyName, currRetry);
@@ -291,7 +289,6 @@ namespace VstsServerTaskHelper.UnitTests
             // given - a message with a handler that fails
             var mockMessage = CreateMockMessage(CreateValidTestVstsMessage());
             mockMessage.SetProperty(VstsMessageConstants.TaskLogIdPropertyName, 456);
-            mockMessage.SetProperty(VstsMessageConstants.TimelineRecordIdPropertyName, Guid.NewGuid());
             var maxRetryAttempts = 10;
             var currRetry = 10;
             mockMessage.SetProperty(VstsMessageConstants.RetryAttemptPropertyName, currRetry);
@@ -428,13 +425,15 @@ namespace VstsServerTaskHelper.UnitTests
 
         internal static TestVstsMessage CreateValidTestVstsMessage()
         {
-            var testVstsMessage = new TestVstsMessage() { VstsHub = HubType.Build, VstsUrl = "http://vstsUrl", VstsPlanUrl = "http://vstsPlanUrl", AuthToken = "someToken", ProjectId = Guid.NewGuid(), JobId = Guid.NewGuid(), PlanId = Guid.NewGuid(), BuildProperties = new VstsBuildProperties { SourceControlServerUri = "haha" } };
+            var vstsBuildProperties = new VstsBuildProperties { SourceControlServerUri = "haha" };
+            var testVstsMessage = new TestVstsMessage() { VstsHub = HubType.Build, VstsUrl = "http://vstsUrl", VstsPlanUrl = "http://vstsPlanUrl", AuthToken = "someToken", ProjectId = Guid.NewGuid(), JobId = Guid.NewGuid(), PlanId = Guid.NewGuid(), BuildProperties = vstsBuildProperties };
             return testVstsMessage;
         }
 
         internal static TestVstsMessage CreateValidTestVstsMessageForRelease()
         {
-            var testVstsMessage = new TestVstsMessage() { VstsHub = HubType.Release, VstsUrl = "http://vstsUrl", VstsPlanUrl = "http://vstsPlanUrl", AuthToken = "someToken", ProjectId = Guid.NewGuid(), JobId = Guid.NewGuid(), PlanId = Guid.NewGuid(), ReleaseProperties = new VstsReleaseProperties() { ReleaseId = 123, ReleaseDefinitionName = "someReleaseDef", ReleaseEnvironmentName = "env123", ReleaseEnvironmentUri = new Uri("foo://bar"), ReleaseName = "someRelease", ReleaseUri = new Uri("foo://bar") } };
+            var vstsReleaseProperties = new VstsReleaseProperties() { ReleaseId = 123, ReleaseDefinitionName = "someReleaseDef", ReleaseEnvironmentName = "env123", ReleaseEnvironmentUri = new Uri("foo://bar"), ReleaseName = "someRelease", ReleaseUri = new Uri("foo://bar") };
+            var testVstsMessage = new TestVstsMessage() { VstsHub = HubType.Release, VstsUrl = "http://vstsUrl", VstsPlanUrl = "http://vstsPlanUrl", AuthToken = "someToken", ProjectId = Guid.NewGuid(), JobId = Guid.NewGuid(), PlanId = Guid.NewGuid(), ReleaseProperties = vstsReleaseProperties };
             return testVstsMessage;
         }
 
@@ -445,15 +444,17 @@ namespace VstsServerTaskHelper.UnitTests
             return mockMessage;
         }
 
-        private static async Task ProcessTestMessage(MockServiceBusMessage mockServiceBusMessage = null, MockServiceBusQueueMessageListener mockMessageListener = null, MockTaskClient mockTaskClient = null, MockVstsHandler handler = null, MockJobStatusReportingHelper mockReportingHelper = null, ILogger logger = null, int maxRetryAttempts = 1, IBuildClient mockBuildClient = null)
+        private static async Task ProcessTestMessage(MockServiceBusMessage mockServiceBusMessage = null, MockServiceBusQueueMessageListener mockMessageListener = null, MockTaskClient mockTaskClient = null, MockVstsHandler handler = null, IJobStatusReportingHelper mockReportingHelper = null, ILogger logger = null, int maxRetryAttempts = 1, IBuildClient mockBuildClient = null)
         {
-            mockServiceBusMessage = mockServiceBusMessage ?? CreateMockMessage(CreateValidTestVstsMessage());
+            var testVstsMessage = CreateValidTestVstsMessage();
+            mockServiceBusMessage = mockServiceBusMessage ?? CreateMockMessage(testVstsMessage);
             mockTaskClient = mockTaskClient ?? new MockTaskClient();
             mockBuildClient = mockBuildClient ?? new MockBuildClient() { MockBuild = new Build() { Status = BuildStatus.InProgress } };
-            mockReportingHelper = mockReportingHelper ?? new MockJobStatusReportingHelper(new TestVstsMessage());
+            //mockReportingHelper = mockReportingHelper ?? new MockJobStatusReportingHelper(new TestVstsMessage());
             var mockReleaseClient = new MockReleaseClient() { MockRelease = new Release() {Status = ReleaseStatus.Active} };
             handler = handler ?? new MockVstsHandler { MockExecuteFunc = (vstsMessage) => Task.FromResult(new VstsScheduleResult() { Message = "(test) mock execute requested", ScheduledId = "someId", ScheduleFailed = false }) };
             logger = logger ?? new TraceLogger();
+            mockReportingHelper = mockReportingHelper ?? new TestableJobStatusReportingHelper(testVstsMessage, logger, mockTaskClient, mockReleaseClient, mockBuildClient);
             var settings = new ServiceBusQueueMessageHandlerSettings { MaxRetryAttempts = maxRetryAttempts, TimeLineNamePrefix = "someTimeline", WorkerName = "someWorker" };
             mockMessageListener = mockMessageListener ?? new MockServiceBusQueueMessageListener();
             var schedulingBroker = new TestableServiceBusQueueMessageHandler(mockMessageListener, handler, settings, logger, mockTaskClient, mockBuildClient, mockReportingHelper, mockReleaseClient);

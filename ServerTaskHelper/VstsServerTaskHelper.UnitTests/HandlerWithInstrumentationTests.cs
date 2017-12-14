@@ -17,10 +17,10 @@ namespace VstsServerTaskHelper.UnitTests
             // given
             var handler = new MockVstsHandler() { MockCancelFunc = (msg) => Task.FromResult("cancelled") };
             var traceBrokerInstrumentation = new TraceLogger();
-            var testVstsMessage = new TestVstsMessage() { RequestType = RequestType.Cancel };
+            var testVstsMessage = CreateValidTestVstsMessageForRelease(RequestType.Cancel);
 
             // when
-            var instrumentedHandler = new HandlerWithInstrumentation<TestVstsMessage>(traceBrokerInstrumentation, handler);
+            var instrumentedHandler = new TestableHandlerWithInstrumentation<TestVstsMessage>(traceBrokerInstrumentation, handler);
             await instrumentedHandler.Cancel(testVstsMessage, default(CancellationToken));
 
             // then
@@ -33,11 +33,11 @@ namespace VstsServerTaskHelper.UnitTests
             // given
             var handler = new MockVstsHandler() { MockExecuteFunc = (msg) => Task.FromResult(new VstsScheduleResult()) };
             var traceBrokerInstrumentation = new TraceLogger();
-            var testVstsMessage = new TestVstsMessage() { RequestType = RequestType.Execute };
+            var testVstsMessage = CreateValidTestVstsMessageForRelease(RequestType.Execute);
 
             // when
-            var instrumentedHandler = new HandlerWithInstrumentation<TestVstsMessage>(traceBrokerInstrumentation, handler);
-            await instrumentedHandler.Execute(testVstsMessage, default(CancellationToken));
+            var instrumentedHandler = new TestableHandlerWithInstrumentation<TestVstsMessage>(traceBrokerInstrumentation, handler);
+            await instrumentedHandler.Execute(testVstsMessage, new Dictionary<string, string>(), default(CancellationToken));
 
             // then
             Assert.AreEqual(2, traceBrokerInstrumentation.Events.Count(x => x.Equals(testVstsMessage.RequestType.ToString())));
@@ -49,10 +49,10 @@ namespace VstsServerTaskHelper.UnitTests
             // given
             var handler = new MockVstsHandler() { MockCancelFunc = (msg) => { throw new NotSupportedException(); } };
             var traceBrokerInstrumentation = new TraceLogger();
-            var testVstsMessage = new TestVstsMessage() { RequestType = RequestType.Cancel };
+            var testVstsMessage = CreateValidTestVstsMessageForRelease(RequestType.Cancel);
 
             // when
-            var instrumentedHandler = new HandlerWithInstrumentation<TestVstsMessage>(traceBrokerInstrumentation, handler);
+            var instrumentedHandler = new TestableHandlerWithInstrumentation<TestVstsMessage>(traceBrokerInstrumentation, handler);
 
             Exception actualEx = null;
             try
@@ -77,15 +77,15 @@ namespace VstsServerTaskHelper.UnitTests
             // given
             var handler = new MockVstsHandler() { MockExecuteFunc = (msg) => { throw new NotSupportedException(); } };
             var traceBrokerInstrumentation = new TraceLogger();
-            var testVstsMessage = new TestVstsMessage() { RequestType = RequestType.Execute };
+            var testVstsMessage = CreateValidTestVstsMessageForRelease(RequestType.Execute);
 
             // when
-            var instrumentedHandler = new HandlerWithInstrumentation<TestVstsMessage>(traceBrokerInstrumentation, handler);
+            var instrumentedHandler = new TestableHandlerWithInstrumentation<TestVstsMessage>(traceBrokerInstrumentation, handler);
 
             Exception actualEx = null;
             try
             {
-                await instrumentedHandler.Execute(testVstsMessage, default(CancellationToken));
+                await instrumentedHandler.Execute(testVstsMessage, new Dictionary<string, string>(), default(CancellationToken));
             }
             catch (NotSupportedException ex)
             {
@@ -105,10 +105,10 @@ namespace VstsServerTaskHelper.UnitTests
             // given
             var handler = new MockVstsHandler() { MockCancelFunc = (msg) => { throw new AggregateException(new List<Exception> {new NotSupportedException()}); } };
             var traceBrokerInstrumentation = new TraceLogger();
-            var testVstsMessage = new TestVstsMessage() { RequestType = RequestType.Cancel };
+            var testVstsMessage = CreateValidTestVstsMessageForRelease(RequestType.Cancel);
 
             // when
-            var instrumentedHandler = new HandlerWithInstrumentation<TestVstsMessage>(traceBrokerInstrumentation, handler);
+            var instrumentedHandler = new TestableHandlerWithInstrumentation<TestVstsMessage>(traceBrokerInstrumentation, handler);
 
             Exception actualEx = null;
             try
@@ -134,15 +134,15 @@ namespace VstsServerTaskHelper.UnitTests
             // given
             var handler = new MockVstsHandler() { MockExecuteFunc = (msg) => { throw new AggregateException(new List<Exception> { new NotSupportedException() }); } };
             var traceBrokerInstrumentation = new TraceLogger();
-            var testVstsMessage = new TestVstsMessage() { RequestType = RequestType.Execute };
+            var testVstsMessage = CreateValidTestVstsMessageForRelease(RequestType.Execute);
 
             // when
-            var instrumentedHandler = new HandlerWithInstrumentation<TestVstsMessage>(traceBrokerInstrumentation, handler);
+            var instrumentedHandler = new TestableHandlerWithInstrumentation<TestVstsMessage>(traceBrokerInstrumentation, handler);
 
             Exception actualEx = null;
             try
             {
-                await instrumentedHandler.Execute(testVstsMessage, default(CancellationToken));
+                await instrumentedHandler.Execute(testVstsMessage, new Dictionary<string, string>(), default(CancellationToken));
             }
             catch (NotSupportedException ex)
             {
@@ -161,12 +161,12 @@ namespace VstsServerTaskHelper.UnitTests
             // given
             var handler = new MockVstsHandler() { MockExecuteFunc = (msg) => Task.FromResult(new VstsScheduleResult()) };
             var traceBrokerInstrumentation = new TraceLogger();
-            var testVstsMessage = new TestVstsMessage() { RequestType = RequestType.Execute };
+            var testVstsMessage = CreateValidTestVstsMessageForRelease(RequestType.Execute);
             var events = new List<string>();
 
             // when
             events.Add(string.Format("[{0}] INFO: {1}: {2}", DateTime.UtcNow.ToString("o"), testVstsMessage.RequestType.ToString(), "Processing request"));
-            var result = await handler.Execute(testVstsMessage, default(CancellationToken));
+            var result = await handler.Execute(testVstsMessage, new Dictionary<string, string>(), default(CancellationToken));
             events.Add(string.Format("[{0}] INFO: {1}: {2}: {3}", DateTime.UtcNow.ToString("o"), testVstsMessage.RequestType.ToString(), "Processed request", result.Message));
             var logStream = GenerateStreamFromStringList(events);
             await traceBrokerInstrumentation.HandleEventList(logStream, eventProperties: null, cancellationToken: default(CancellationToken));
@@ -191,6 +191,13 @@ namespace VstsServerTaskHelper.UnitTests
             writer.Flush();
             stream.Position = 0;
             return stream;
+        }
+
+        internal static TestVstsMessage CreateValidTestVstsMessageForRelease(RequestType requestType)
+        {
+            var vstsReleaseProperties = new VstsReleaseProperties { ReleaseId = 123, ReleaseDefinitionName = "someReleaseDef", ReleaseEnvironmentName = "env123", ReleaseEnvironmentUri = new Uri("foo://bar"), ReleaseName = "someRelease", ReleaseUri = new Uri("foo://bar") };
+            var testVstsMessage = new TestVstsMessage() { VstsHub = HubType.Release, RequestType = requestType, VstsUrl = "http://vstsUrl", VstsPlanUrl = "http://vstsPlanUrl", AuthToken = "someToken", ProjectId = Guid.NewGuid(), JobId = Guid.NewGuid(), PlanId = Guid.NewGuid(), ReleaseProperties = vstsReleaseProperties };
+            return testVstsMessage;
         }
     }
 }
