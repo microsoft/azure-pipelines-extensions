@@ -28,6 +28,7 @@ export class WebProvider implements models.IArtifactProvider {
         this.templateFile = templateFile;
         this.options = requestOptions || {};
         this.options.keepAlive = true;
+        this.options.ignoreSslError = true;
         this.initializeProxy();
         this.httpc = new httpm.HttpClient('artifact-engine ' + packagejson.version, [handler], this.options);
         this.variables = variables;
