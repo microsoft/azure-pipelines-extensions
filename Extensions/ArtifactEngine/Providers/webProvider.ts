@@ -28,7 +28,6 @@ export class WebProvider implements models.IArtifactProvider {
         this.templateFile = templateFile;
         this.options = requestOptions || {};
         this.options.keepAlive = true;
-        this.options.ignoreSslError = true;
         this.initializeProxy();
         this.httpc = new httpm.HttpClient('artifact-engine ' + packagejson.version, [handler], this.options);
         this.variables = variables;
@@ -160,6 +159,11 @@ export class WebProvider implements models.IArtifactProvider {
 
                 this.options.cert = certFromEnv;
             }
+        }
+
+        // try get ignore SSL error setting from environment variable set by VSTS-Task-Lib if there is no ignore SSL error setting in the options
+        if (!this.options.ignoreSslError) {
+            this.options.ignoreSslError = !!global['_vsts_task_lib_skip_cert_validation'];
         }
     }
 
