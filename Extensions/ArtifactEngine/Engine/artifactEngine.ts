@@ -101,7 +101,7 @@ export class ArtifactEngine {
                 });
             }
             else {
-                Logger.logInfo("Skipped processing item " + item.path);
+                Logger.logMessage("Skipped processing item " + item.path);
                 this.artifactItemStore.updateState(item, models.TicketState.Skipped);
                 resolve();
             }

@@ -90,7 +90,7 @@ export class FilesystemProvider implements models.IArtifactProvider {
             var items: models.ArtifactItem[] = [];
             fs.readdir(itemsPath, (error, files) => {
                 if (!!error) {
-                    Logger.logError("Unable to read directory " + itemsPath + ". Error: " + error);
+                    Logger.logMessage("Unable to read directory " + itemsPath + ". Error: " + error);
                     reject(error);
                     return;
                 }

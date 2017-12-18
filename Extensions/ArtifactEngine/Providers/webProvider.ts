@@ -92,7 +92,7 @@ export class WebProvider implements models.IArtifactProvider {
                 resp.readBody().then((body: string) => {
                     fs.readFile(this.getTemplateFilePath(), 'utf8', (err, templateFileContent) => {
                         if (err) {
-                            Logger.logError(err ? JSON.stringify(err) : "");
+                            Logger.logMessage(err ? JSON.stringify(err) : "");
                             reject(err);
                         }
 
@@ -105,7 +105,7 @@ export class WebProvider implements models.IArtifactProvider {
 
                             resolve(items);
                         } catch (error) {
-                            Logger.logError("Failed to parse response body: " + body + " , got error : " + error);
+                            Logger.logMessage("Failed to parse response body: " + body + " , got error : " + error);
                             reject(error);
                         }
                     });
@@ -159,6 +159,11 @@ export class WebProvider implements models.IArtifactProvider {
 
                 this.options.cert = certFromEnv;
             }
+        }
+
+        // try get ignore SSL error setting from environment variable set by VSTS-Task-Lib if there is no ignore SSL error setting in the options
+        if (!this.options.ignoreSslError) {
+            this.options.ignoreSslError = !!global['_vsts_task_lib_skip_cert_validation'];
         }
     }
 
