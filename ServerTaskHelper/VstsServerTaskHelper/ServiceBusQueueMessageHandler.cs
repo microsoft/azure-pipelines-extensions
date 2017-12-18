@@ -372,7 +372,7 @@ namespace VstsServerTaskHelper
             vstsMessage.TaskLogId = taskLogId;
 
             // setup VSTS instrumentation and wrap handler
-            var vstsLogger = new VstsLogger(clientLogger, taskHttpClient, hubName, projectId, planId, taskLogId);
+            var vstsLogger = new VstsLogger(clientLogger, taskHttpClient, hubName, projectId, planId, taskLogId, parentTimelineId, jobId);
             var loggersAggregate = new LoggersAggregate(new List<ILogger> {clientLogger, vstsLogger});
             var instrumentedHandler = new HandlerWithInstrumentation<T>(loggersAggregate, handler);
 
