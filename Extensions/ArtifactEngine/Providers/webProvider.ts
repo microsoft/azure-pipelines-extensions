@@ -92,7 +92,7 @@ export class WebProvider implements models.IArtifactProvider {
                 resp.readBody().then((body: string) => {
                     fs.readFile(this.getTemplateFilePath(), 'utf8', (err, templateFileContent) => {
                         if (err) {
-                            Logger.logError(err ? JSON.stringify(err) : "");
+                            Logger.logMessage(err ? JSON.stringify(err) : "");
                             reject(err);
                         }
 
@@ -105,7 +105,7 @@ export class WebProvider implements models.IArtifactProvider {
 
                             resolve(items);
                         } catch (error) {
-                            Logger.logError("Failed to parse response body: " + body + " , got error : " + error);
+                            Logger.logMessage("Failed to parse response body: " + body + " , got error : " + error);
                             reject(error);
                         }
                     });
