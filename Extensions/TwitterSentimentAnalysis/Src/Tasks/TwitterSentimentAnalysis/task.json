@@ -2,7 +2,7 @@
 	"id": "5CBE8736-EE83-4BBF-A0AD-96B118797CBB",
 	"name": "TwitterSentimentAnalysis",
 	"friendlyName": "Get Twitter Sentiment",
-	"description": "Gate your releases based on average sentiment of tweets for a hashtag.",
+	"description": "Calculate sentiment of tweets for a hashtag.",
 	"author": "Microsoft Corporation",
 	"helpMarkDown": "[More Information](https://go.microsoft.com/fwlink/?linkid=850348)",
 	"category": "Utility",
@@ -39,28 +39,28 @@
 	"inputs": [{
 			"name": "function",
 			"type": "string",
-			"label": "Azure Function Url",
+			"label": "Azure function url",
 			"defaultValue": "",
 			"required": true,
 			"helpMarkDown": "Url of the Azure function that needs to be invoked​. Example:- https://azurefunctionapp.azurewebsites.net/api/HttpTriggerCS1"
 		}, {
 			"name": "key",
 			"type": "string",
-			"label": "Function Key",
+			"label": "Function key",
 			"defaultValue": "",
 			"required": true,
 			"helpMarkDown": "Function or Host key with which we can access this function. To keep the key secure, define a secret variable and use it here. Example: - $(myFunctionKey) where myFunctionKey is an environment level secret variable with value as the secret key like ZxPXnIEODXLRzYwCw1TgZ4osMfoKs9Zn6se6X/N0FnztfDvZbdOmYw=="
 		},  {
 			"name": "hashTag",
 			"type": "string",
-			"label": "Hashtag To Analyze",
+			"label": "Hashtag to analyze",
 			"required": "true",
 			"defaultValue": "",
 			"helpMarkDown": "Analyze sentiment of tweets made with this Hashtag like #vsts."
 		}, {
 			"name": "consumerKey",
 			"type": "string",
-			"label": "Consumer Key",
+			"label": "Consumer key",
 			"defaultValue": "",
 			"required": true,
 			"groupName": "twitterConnectionInputs",
@@ -68,7 +68,7 @@
 		}, {
 			"name": "consumerSecret",
 			"type": "string",
-			"label": "Consumer Secret",
+			"label": "Consumer secret",
 			"defaultValue": "",
 			"required": true,
 			"groupName": "twitterConnectionInputs",
@@ -76,7 +76,7 @@
 		},{
 			"name": "cognitiveServicesAccessKey",
 			"type": "string",
-			"label": "Cognitive Services Access Key",
+			"label": "Cognitive services access key",
 			"defaultValue": "",
 			"required": true,
 			"groupName": "cognitiveServiceInputs",
@@ -84,7 +84,7 @@
 		}, {
 			"name": "cognitiveServicesEndpointRegion",
 			"type": "string",
-			"label": "Cognitive Services Endpoint Region",
+			"label": "Cognitive services endpoint region",
 			"defaultValue": "",
 			"required": true,
 			"groupName": "cognitiveServiceInputs",
@@ -92,7 +92,7 @@
 		}, {
 			"name": "analyzeTweetsSince",
 			"type": "string",
-			"label": "Analyze Tweets Since",
+			"label": "Analyze tweets since",
 			"defaultValue": "$(Release.Deployment.StartTime)",
 			"required": true,
 			"groupName": "advanced",

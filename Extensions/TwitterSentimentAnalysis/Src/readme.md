@@ -1,34 +1,34 @@
 # Twitter Sentiment Analysis Extension
 
-This extension includes a build/release task and a release gate to calculate average sentiment of tweets made for a hashtag. The gate is useful to ensure that there is positivity in tweets made for the application updated on an environment before promoting the release to the next environment.
+This extension includes a release gate to calculate average sentiment of tweets made for a hashtag. The gate is useful to ensure that there is positivity in tweets made for the application updated on an environment before promoting the release to the next environment. 
 
 It uses [Text Analytics API](https://azure.microsoft.com/en-in/services/cognitive-services/text-analytics) from Azure Cognitive Services for sentiment analysis of the tweets.
 
-## Prerequisites for the task
+## Prerequisites
 
 ### Create Azure Function
 
-The task uses an [Azure function](https://azure.microsoft.com/en-us/services/functions) for a server less on-demand processing of tweets received for a hashtag. [Create](https://docs.microsoft.com/en-us/azure/azure-functions/functions-create-first-azure-function) an HTTP triggered function and use this [sample code](TwitterSentimentAnalysisAzureFunction.txt) in the Azure function.
+The gate uses an [Azure function](https://azure.microsoft.com/en-us/services/functions) for a server less on-demand processing of tweets received for a hashtag. [Create](https://docs.microsoft.com/en-us/azure/azure-functions/functions-create-first-azure-function) an HTTP triggered function and use this [sample code](https://github.com/Microsoft/vsts-rm-extensions/blob/master/Extensions/TwitterSentimentAnalysis/Src/TwitterSentimentAnalysisAzureFunction.txt) in the Azure function.
 
 ### Obtain Consumer key and secret for Twitter
 
-If you don't have twitter application, [create Twitter](https://apps.twitter.com/) application for using Twitter REST APIs. Once you create a twitter application, get the 'Consumer Key' and 'Consumer Secret' from 'Keys and Access Tokens' tab. 
+If you don't have twitter application, create [Twitter application](https://apps.twitter.com/) for using Twitter REST APIs. Once you create a twitter application, get the 'Consumer Key' and 'Consumer Secret' from 'Keys and Access Tokens' tab. 
 
 ### Obtain Azure Cognitive Services access key
 
-[Text Analytics API](https://azure.microsoft.com/en-in/services/cognitive-services/text-analytics) from Azure Cognitive Services is used in the [sample azure function](TwitterSentimentAnalysisAzureFunction.txt) for sentiment analysis of the tweets. Cognitive service access key is required to use Text Analytics APIs. Follow this [guide](https://docs.microsoft.com/en-in/azure/cognitive-services/text-analytics/how-tos/text-analytics-how-to-access-key) to obtain a cognitive service access key. 
+[Text Analytics API](https://azure.microsoft.com/en-in/services/cognitive-services/text-analytics) from Azure Cognitive Services is used in the [sample azure function](https://github.com/Microsoft/vsts-rm-extensions/blob/master/Extensions/TwitterSentimentAnalysis/Src/TwitterSentimentAnalysisAzureFunction.txt) for sentiment analysis of the tweets. Cognitive service access key is required to use Text Analytics APIs. Follow this [guide](https://docs.microsoft.com/en-in/azure/cognitive-services/text-analytics/how-tos/text-analytics-how-to-access-key) to obtain a cognitive service access key. 
 
-## Task
+## Gate
 
 Installing the extension adds the following 'Get Twitter Sentiment' gate and agentless task.
 
-### Task snapshot:
+### Gate snapshot:
 
- ![Task snapshot](Images/TaskInputs.png)
+ ![Gate snapshot](Images/TwitterSentimentGate.png)
 
-### Task Input parameters
+### Input parameters
  
- The task required the following inputs:
+ The gate required the following inputs:
  
  - **Azure Function Url**:  Url of the Azure function that needs to be invoked​. Example:- https://azurefunctionapp.azurewebsites.net/api/HttpTriggerCS1.
  
