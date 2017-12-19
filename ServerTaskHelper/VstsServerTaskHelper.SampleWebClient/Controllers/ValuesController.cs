@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.VisualStudio.Services.WebApi;
-using VstsServerTaskHelper.SampleClient;
+using Microsoft.Extensions.Primitives;
 
 namespace VstsServerTaskHelper.SampleWebClient.Controllers
 {
@@ -28,12 +24,13 @@ namespace VstsServerTaskHelper.SampleWebClient.Controllers
 
         // POST api/values
         [HttpPost]
-        public void Post([FromBody]VstsMessage value)
+        public void Post([FromBody]MyObject value)
         {
-            var sampleLogger = new SampleLogger();
-            var clientScheduleHandler = new ClientScheduleHandler(sampleLogger);
-            var httpMessageHandler = new HttpMessageHandler<VstsMessage>(clientScheduleHandler, sampleLogger);
-            httpMessageHandler.RecieveMessageAsync(value, CancellationToken.None);
+            this.Request.Headers.Add("TaskInstanceName", new StringValues("Sample Http Task"));
+
+            var myExecutionHandler = new SampleTaskExecutionHandler();
+            var httpMessageHandler = new HttpRequestHandler.HttpRequestHandler(myExecutionHandler, this.Request.Headers);
+            httpMessageHandler.Execute(CancellationToken.None);
         }
 
         // PUT api/values/5
