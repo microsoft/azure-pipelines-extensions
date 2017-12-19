@@ -25,7 +25,6 @@ namespace VstsServerTaskHelper
             this.planId = planId;
             this.taskLogId = taskLogId;
             this.timelineId = timelineId;
-            this.timelineRecordId = timelineRecordId;
             this.hubName = hubName;
             this.timelineId = timelineId;
             this.jobId = jobId;
@@ -100,30 +99,6 @@ namespace VstsServerTaskHelper
                     "Failed to append log to VSTS",
                     eventProperties, cancellationToken).ConfigureAwait(false);
             }
-        }
-
-        private async void AppendTimelineRecordFeed(ITaskClient taskHttpClient, Guid scopeIdentifier, Guid planId,
-            string logMessage, CancellationToken cancellationToken)
-        {
-            //Web console line is more than 1024 chars, truncate to first 1024 chars
-            if (!string.IsNullOrEmpty(logMessage) && logMessage.Length > 1024)
-            {
-                logMessage = $"{logMessage.Substring(0, 1024)}...";
-            }
-
-            await taskHttpClient.AppendTimelineRecordFeedAsync(
-                    scopeIdentifier,
-                    this.hubName,
-                    planId,
-                    this.timelineId,
-                    this.timelineRecordId,
-                    new List<string>
-                    {
-                        logMessage
-                    },
-                    cancellationToken: cancellationToken,
-                    userState: null)
-                .ConfigureAwait(false);
         }
 
         private async void AppendTimelineRecordFeed(ITaskClient taskHttpClient, Guid scopeIdentifier, Guid planId, string logMessage, CancellationToken cancellationToken)

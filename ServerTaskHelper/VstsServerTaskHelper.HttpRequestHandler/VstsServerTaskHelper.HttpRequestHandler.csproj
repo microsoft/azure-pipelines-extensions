@@ -5,7 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\MyVstsServerTaskHelper\VstsServerTaskHelper.Core.csproj" />
+    <ProjectReference Include="..\VstsServerTaskHelper.Core\VstsServerTaskHelper.Core.csproj" />
   </ItemGroup>
 
   <ItemGroup>

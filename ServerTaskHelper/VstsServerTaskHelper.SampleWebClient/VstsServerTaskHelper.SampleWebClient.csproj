@@ -17,7 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\MyVstsServerTaskHelper\VstsServerTaskHelper.Core.csproj" />
+    <ProjectReference Include="..\VstsServerTaskHelper.Core\VstsServerTaskHelper.Core.csproj" />
     <ProjectReference Include="..\VstsServerTaskHelper.HttpRequestHandler\VstsServerTaskHelper.HttpRequestHandler.csproj" />
     <ProjectReference Include="..\VstsServerTaskHelper.SampleClient\VstsServerTaskHelper.SampleClient.csproj" />
     <ProjectReference Include="..\VstsServerTaskHelper\VstsServerTaskHelper.csproj" />
