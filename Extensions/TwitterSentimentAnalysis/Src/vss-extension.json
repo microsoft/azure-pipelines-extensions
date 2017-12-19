@@ -3,7 +3,7 @@
 	"id": "vss-services-twittersentimentanalysis",
 	"name": "Twitter Sentiment Analysis",
 	"publisher": "ms-vscs-rm",
-	"version": "0.0.1",
+	"version": "0.0.2",
 	"public": true,
 	"description": "Gate your releases based on average sentiment of tweets for a hashtag.",
 	"_description.comment": "The below format to define extensions is currently in preview and may change in future.",
@@ -14,7 +14,7 @@
 	"ReleaseGates",
 	"DevOps"],
 	"targets": [{
-		"id": "Microsoft.VisualStudio.Services"
+		"id": "Microsoft.VisualStudio.Services.Cloud"
 	}],
 	"demands": [],
 	"icons": {
@@ -25,10 +25,10 @@
 		"theme": "dark"
 	},
 	"screenshots": [{
-		"path": "images/TaskInputs.png"
+		"path": "images/TwitterSentimentGate.png"
 	}],
 	"files": [{
-		"path": "images/TaskInputs.png",
+		"path": "images/TwitterSentimentGate.png",
 		"addressable": true
 	},
 	{
