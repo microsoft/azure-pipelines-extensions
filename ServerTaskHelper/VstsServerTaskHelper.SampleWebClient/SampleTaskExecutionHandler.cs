@@ -11,7 +11,7 @@ namespace VstsServerTaskHelper.SampleWebClient
         public async Task<ITaskExecutionHandlerResult> ExecuteAsync(ITaskLogger taskLogger, CancellationToken cancellationToken)
         {
             taskLogger.Log("Inside my sample task execution handler");
-
+            Thread.Sleep(30000);
             return await Task.FromResult(new TaskExecutionHandlerResult {Result = TaskResult.Succeeded});
         }
 

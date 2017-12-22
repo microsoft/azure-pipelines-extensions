@@ -109,7 +109,7 @@ namespace VstsServerTaskHelper.Core
             return projectId;
         }
 
-        private readonly List<string> validHubNameList = new List<string> { "Build", "Release" };
+        private readonly List<string> validHubNameList = new List<string> { "Build", "Release", "Gates" };
         private const string ProjectIdKey = "ProjectId";
         private const string JobIdKey = "JobId";
         private const string PlandIdKey = "PlanId";

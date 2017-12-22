@@ -15,7 +15,7 @@ namespace VstsServerTaskHelper.Core
         public const int PageSize = 8 * 1024 * 1024;
 
         private readonly Guid timelineId;
-        private readonly Guid jobId;
+        private readonly Guid timelineRecordId;
         private readonly string _pageId;
         private FileStream _pageData;
         private StreamWriter _pageWriter;
@@ -24,11 +24,11 @@ namespace VstsServerTaskHelper.Core
         private string _dataFileName;
         private readonly string _pagesFolder;
 
-        public PagingLogger(PlanHelper planHelper, Guid timelineId, Guid jobId)
+        public PagingLogger(PlanHelper planHelper, Guid timelineId, Guid timelineRecordId)
         {
             this.planHelper = planHelper;
             this.timelineId = timelineId;
-            this.jobId = jobId;
+            this.timelineRecordId = timelineRecordId;
             _pageId = Guid.NewGuid().ToString();
             _pagesFolder = Path.Combine(Path.GetTempPath(), PagingFolder);
             Directory.CreateDirectory(_pagesFolder);
@@ -86,7 +86,7 @@ namespace VstsServerTaskHelper.Core
                 _pageWriter.Dispose();
                 _pageWriter = null;
                 _pageData = null;
-                var taskLog = await planHelper.CreateTaskLog(new TaskLog(string.Format(@"logs\{0:D}", jobId)), default(CancellationToken)).ConfigureAwait(false);
+                var taskLog = await planHelper.CreateTaskLog(new TaskLog(string.Format(@"logs\{0:D}", timelineRecordId)), default(CancellationToken)).ConfigureAwait(false);
 
                 // Upload the contents
                 using (FileStream fs = File.Open(_dataFileName, FileMode.Open, FileAccess.Read, FileShare.Read))
@@ -95,7 +95,7 @@ namespace VstsServerTaskHelper.Core
                 }
 
                 // Create a new record and only set the Log field
-                var attachmentUpdataRecord = new TimelineRecord { Id = jobId, Log = taskLog };
+                var attachmentUpdataRecord = new TimelineRecord { Id = timelineRecordId, Log = taskLog };
                 await planHelper.UpdateTimelineRecordsAsync(timelineId, attachmentUpdataRecord, default(CancellationToken)).ConfigureAwait(false);
             }
         }
