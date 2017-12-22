@@ -4,7 +4,7 @@
 	"friendlyName": "Get Twitter Sentiment",
 	"description": "Calculate sentiment of tweets for a hashtag.",
 	"author": "Microsoft Corporation",
-	"helpMarkDown": "[More Information](https://go.microsoft.com/fwlink/?linkid=850348)",
+	"helpMarkDown": "[More Information](https://github.com/Microsoft/vsts-rm-extensions/tree/master/Extensions/TwitterSentimentAnalysis/Src)",
 	"category": "Utility",
 	"preview": "true",
 	"visibility": [
@@ -16,13 +16,13 @@
 	"version": {
 		"Major": 0,
 		"Minor": 0,
-		"Patch": 1
+		"Patch": 2
 	},
 	"instanceNameFormat": "Twitter Sentiment Analysis",
 	"groups": [
 		{
-			"name": "twitterConnectionInputs",
-			"displayName": "Twitter Connection Inputs",
+			"name": "azureFunctionInputs",
+			"displayName": "Azure Function Inputs",
 			"isExpanded": true
 		},
 		{
@@ -37,11 +37,33 @@
 		}
 	],
 	"inputs": [{
+			"name": "consumerKey",
+			"type": "string",
+			"label": "Twitter consumer key",
+			"defaultValue": "",
+			"required": true,
+			"helpMarkDown": "Specify Twitter application consumer key. To keep the value secure, define a secret variable and use it here. If you don't have twitter application, create [Twitter application](https://apps.twitter.com/) and get the 'Consumer Key' from 'Keys and Access Tokens' tab"
+		}, {
+			"name": "consumerSecret",
+			"type": "string",
+			"label": "Twitter consumer secret",
+			"defaultValue": "",
+			"required": true,
+			"helpMarkDown": "Specify Twitter application consumer secret value. To keep the value secure, define a secret variable and use it here. If you don't have twitter application, create [Twitter application](https://apps.twitter.com/) and get the 'Consumer Secret' from 'Keys and Access Tokens' tab."
+		}, {
+			"name": "hashTag",
+			"type": "string",
+			"label": "Hashtag to analyze",
+			"required": "true",
+			"defaultValue": "",
+			"helpMarkDown": "Analyze sentiment of tweets made with this Hashtag like #ReleaseManagement."
+		}, {
 			"name": "function",
 			"type": "string",
 			"label": "Azure function url",
 			"defaultValue": "",
 			"required": true,
+			"groupName": "azureFunctionInputs",
 			"helpMarkDown": "Url of the Azure function that needs to be invoked​. Example:- https://azurefunctionapp.azurewebsites.net/api/HttpTriggerCS1"
 		}, {
 			"name": "key",
@@ -49,31 +71,9 @@
 			"label": "Function key",
 			"defaultValue": "",
 			"required": true,
+			"groupName": "azureFunctionInputs",
 			"helpMarkDown": "Function or Host key with which we can access this function. To keep the key secure, define a secret variable and use it here. Example: - $(myFunctionKey) where myFunctionKey is an environment level secret variable with value as the secret key like ZxPXnIEODXLRzYwCw1TgZ4osMfoKs9Zn6se6X/N0FnztfDvZbdOmYw=="
-		},  {
-			"name": "hashTag",
-			"type": "string",
-			"label": "Hashtag to analyze",
-			"required": "true",
-			"defaultValue": "",
-			"helpMarkDown": "Analyze sentiment of tweets made with this Hashtag like #vsts."
 		}, {
-			"name": "consumerKey",
-			"type": "string",
-			"label": "Consumer key",
-			"defaultValue": "",
-			"required": true,
-			"groupName": "twitterConnectionInputs",
-			"helpMarkDown": "Specify Twitter application consumer key. To keep the value secure, define a secret variable and use it here. If you don't have twitter application, [Create Twitter](https://apps.twitter.com/) application and get the 'Consumer Key' from 'Keys and Access Tokens' tab"
-		}, {
-			"name": "consumerSecret",
-			"type": "string",
-			"label": "Consumer secret",
-			"defaultValue": "",
-			"required": true,
-			"groupName": "twitterConnectionInputs",
-			"helpMarkDown": "Specify Twitter application consumer secret value. To keep the value secure, define a secret variable and use it here. If you don't have twitter application, [Create Twitter](https://apps.twitter.com/) application and get the 'Consumer Secret' from 'Keys and Access Tokens' tab."
-		},{
 			"name": "cognitiveServicesAccessKey",
 			"type": "string",
 			"label": "Cognitive services access key",
