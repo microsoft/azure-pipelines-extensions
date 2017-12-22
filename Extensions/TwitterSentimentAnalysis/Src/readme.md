@@ -30,21 +30,21 @@ Installing the extension adds the following 'Get Twitter Sentiment' gate and age
  
  The gate required the following inputs:
  
- - **Azure Function Url**:  Url of the Azure function that needs to be invoked​. Example:- https://azurefunctionapp.azurewebsites.net/api/HttpTriggerCS1.
+ - **Twitter consumer key**:  Specify Twitter application consumer key. To keep the value secure, define a secret variable and use it here. If you don't have twitter application, create [Twitter application](https://apps.twitter.com/) and get the 'Consumer Key' from 'Keys and Access Tokens' tab.
+
+ - **Twitter consumer secret**:  Specify Twitter application consumer secret value. To keep the value secure, define a secret variable and use it here. If you don't have twitter application, create [Twitter application](https://apps.twitter.com/) and get the 'Consumer Secret' from 'Keys and Access Tokens' tab.
  
- - **Function Key**:  Function or Host key with which we can access this function. To keep the key secure, define a secret variable and use it here. Example: - $(myFunctionKey) where myFunctionKey is an environment level secret variable with value as the secret key like ZxPXnIEODXLRzYwCw1TgZ4osMfoKs9Zn6se6X/N0FnztfDvZbdOmYw==.
+ - **Hashtag to analyze**: Analyze sentiment of tweets made with this Hashtag like #ReleaseManagement.
 
- - **Hashtag To Analyze**: Analyze sentiment of tweets made with this Hashtag like #vsts.
+ - **Azure function url**:  Url of the Azure function that needs to be invoked​. Example:- https://azurefunctionapp.azurewebsites.net/api/HttpTriggerCS1.
+ 
+ - **Azure function key**:  Function or Host key with which we can access this function. To keep the key secure, define a secret variable and use it here. Example: - $(myFunctionKey) where myFunctionKey is an environment level secret variable with value as the secret key like ZxPXnIEODXLRzYwCw1TgZ4osMfoKs9Zn6se6X/N0FnztfDvZbdOmYw==.
+ 
+ - **Cognitive services access key**:  Specify access key for Text Analytics API. To keep the key secure, define a secret variable and use it here. Follow this [guide](https://docs.microsoft.com/en-in/azure/cognitive-services/text-analytics/how-tos/text-analytics-how-to-access-key) to obtain a cognitive service access key.
 
- - **Consumer Key**:  Specify Twitter application consumer key. To keep the value secure, define a secret variable and use it here. If you don't have twitter application, [Create Twitter](https://apps.twitter.com/) application and get the 'Consumer Key' from 'Keys and Access Tokens' tab.
+ - **Cognitive services endpoint region**:  Specify the region corresponding to the Text Analytics API endpoint. For example, Region is 'westus' for cognitive service endpoint https://westus.api.conginitve.microsoft.com/text/analytics/v2.0.
 
- - **Consumer Secret**:  Specify Twitter application consumer secret value. To keep the value secure, define a secret variable and use it here. If you don't have twitter application, [Create Twitter](https://apps.twitter.com/) application and get the 'Consumer Secret' from 'Keys and Access Tokens' tab.
-
- - **Cognitive Services Access Key**:  Specify access key for Text Analytics API. To keep the key secure, define a secret variable and use it here. Follow this [guide](https://docs.microsoft.com/en-in/azure/cognitive-services/text-analytics/how-tos/text-analytics-how-to-access-key) to obtain a cognitive service access key.
-
- - **Cognitive Services Endpoint Region**:  Specify the region corresponding to the Text Analytics API endpoint. For example, Region is 'westus' for cognitive service endpoint https://westus.api.conginitve.microsoft.com/text/analytics/v2.0.
-
- - **Analyze Tweets Since**:  Analyze the tweets made after this time. By default, uses $(Release.Deployment.StartTime) and analyzes the tweets made after start of the deployment.
+ - **Analyze tweets since**:  Analyze the tweets made after this time. By default, uses $(Release.Deployment.StartTime) and analyzes the tweets made after start of the deployment.
 
  - **Threshold**: Threshold value for average sentiment of the tweets analyzed. If the average sentiment score is less than the threshold, task will fail. Default value is 0.5.
 
