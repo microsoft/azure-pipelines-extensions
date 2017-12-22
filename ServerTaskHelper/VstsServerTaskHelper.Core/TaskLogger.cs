@@ -10,7 +10,6 @@ namespace VstsServerTaskHelper.Core
         private readonly PlanHelper planHelper;
         private readonly Guid timelineId;
         private readonly Guid jobId;
-        private readonly Guid timelineRecordId;
         private readonly PagingLogger pagingLogger;
 
         public TaskLogger(PlanHelper planHelper, Guid timelineId, Guid jobId, Guid timelineRecordId)
@@ -18,7 +17,6 @@ namespace VstsServerTaskHelper.Core
             this.planHelper = planHelper;
             this.timelineId = timelineId;
             this.jobId = jobId;
-            this.timelineRecordId = timelineRecordId;
             this.pagingLogger = new PagingLogger(planHelper, timelineId, timelineRecordId);
         }
 

@@ -23,7 +23,7 @@ namespace VstsServerTaskHelper.HttpRequestHandler
             this.taskProperties = taskProperties;
         }
 
-        public void Execute(CancellationToken cancellationToken)
+        public async void Execute(CancellationToken cancellationToken)
         {
             var executionHandler = new ExecutionHandler(taskExecutionHandler, taskProperties);
             executionHandler.Execute(cancellationToken);

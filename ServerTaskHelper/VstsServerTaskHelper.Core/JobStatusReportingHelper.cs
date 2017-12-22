@@ -18,9 +18,8 @@ namespace VstsServerTaskHelper.Core
         public JobStatusReportingHelper(TaskMessage taskMessage)
         {
             this.taskMessage = taskMessage;
-            var planClient = new PlanHelper(taskMessage.PlanUri,
-                new VssBasicCredential(string.Empty, taskMessage.AuthToken), taskMessage.ProjectId,
-                taskMessage.HubName, taskMessage.PlanId);
+            var vssBasicCredential = new VssBasicCredential(string.Empty, taskMessage.AuthToken);
+            var planClient = new PlanHelper(taskMessage.PlanUri, vssBasicCredential, taskMessage.ProjectId, taskMessage.HubName, taskMessage.PlanId);
             taskLogger = new TaskLogger(planClient, taskMessage.TimelineId, taskMessage.JobId, taskMessage.TaskInstanceId);
         }
 
@@ -118,14 +117,7 @@ namespace VstsServerTaskHelper.Core
 
         private List<TimelineRecord> GetTimelineRecordsToUpdate(List<TimelineRecord> records)
         {
-            if (string.IsNullOrEmpty(this.taskMessage.TaskInstanceName))
-            {
-                return records.Where(rec => rec.Id == this.taskMessage.JobId || rec.ParentId == this.taskMessage.JobId)
-                    .ToList();
-            }
-
-            return records.Where(rec => rec.Name != null && rec.Name.Equals(this.taskMessage.TaskInstanceName, StringComparison.OrdinalIgnoreCase))
-                .ToList();
+            return records.Where(rec => rec.Id == this.taskMessage.JobId || rec.ParentId == this.taskMessage.JobId).ToList();
         }
 
         protected virtual ITaskClient GetTaskClient(Uri vstsPlanUrl, string authToken)
