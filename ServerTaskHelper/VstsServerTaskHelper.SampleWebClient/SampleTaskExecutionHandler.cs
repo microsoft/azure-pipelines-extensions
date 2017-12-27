@@ -8,14 +8,14 @@ namespace VstsServerTaskHelper.SampleWebClient
 {
     public class SampleTaskExecutionHandler : ITaskExecutionHandler
     {
-        public async Task<ITaskExecutionHandlerResult> ExecuteAsync(ITaskLogger taskLogger, CancellationToken cancellationToken)
+        public async Task<ITaskExecutionHandlerResult> ExecuteAsync(ITaskMessage taskMessage, ITaskLogger taskLogger, CancellationToken cancellationToken)
         {
             taskLogger.Log("Inside my sample task execution handler");
             Thread.Sleep(30000);
-            return await Task.FromResult(new TaskExecutionHandlerResult {Result = TaskResult.Succeeded});
+            return await Task.FromResult(new TaskExecutionHandlerResult { Result = TaskResult.Succeeded });
         }
 
-        public void CancelAsync(ITaskLogger taskLogger, CancellationToken cancellationToken)
+        public void CancelAsync(ITaskMessage taskMessage, ITaskLogger taskLogger, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }

@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using System.Threading;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Primitives;
@@ -41,7 +42,7 @@ namespace VstsServerTaskHelper.SampleWebClient.Controllers
 
             //_telemetry.TrackEvent("BlogGateApi2Controller.PostValues() started");
             // launch thread that does the fake work
-            //var taskMessage = new TaskMessage(new Dictionary<string, string>
+            //var taskMessage = new TaskProperties(new Dictionary<string, string>
             //{
             //    {"JobId", value.JobId},
             //    {"PlanId", value.PlanId},
@@ -51,8 +52,16 @@ namespace VstsServerTaskHelper.SampleWebClient.Controllers
             //    {"HubName", value.HubName},
             //    {"PlanUrl", value.VstsUrl},
             //});
-            var taskMessage = new TaskMessage(this.Request.Headers.GetTaskPropertiesDictionary());
-            var executionHandler = new ExecutionHandler(new SampleTaskExecutionHandler(), taskMessage);
+            var taskMessage = new TaskProperties(this.Request.Headers.GetTaskPropertiesDictionary());
+            string taskMessageBody;
+            using (var receiveStream = this.Request.Body)
+            {
+                using (var sr = new StreamReader(receiveStream, Encoding.UTF8))
+                {
+                    taskMessageBody = sr.ReadToEnd();
+                }
+            }
+            var executionHandler = new ExecutionHandler(new SampleTaskExecutionHandler(), taskMessageBody, taskMessage);
             var executionThread = new Thread(new ThreadStart(executionHandler.Execute));
             //var executionObj = new ExecuteObject(taskMessage.JobId.ToString(), taskMessage.PlanId.ToString(), taskMessage.TimelineId.ToString(), taskMessage.ProjectId.ToString(), this.Request.Headers["PlanUrl"], taskMessage.AuthToken, taskMessage.HubName);
             //var executionObj = new ExecuteObject(value.JobId, value.PlanId, value.TimelineId, value.ProjectId, value.VstsUrl, value.AuthToken, value.HubName);

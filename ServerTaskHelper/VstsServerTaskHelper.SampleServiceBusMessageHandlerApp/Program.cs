@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading;
 using Microsoft.Extensions.Configuration;
-using VstsServerTaskHelper.SampleClient;
 using VstsServerTaskHelper.ServiceBusMessageHandler;
 
 namespace VstsServerTaskHelper.SampleServiceBusMessageHandlerApp
@@ -36,9 +35,9 @@ namespace VstsServerTaskHelper.SampleServiceBusMessageHandlerApp
             var sampleLogger = new SampleLogger();
             var clientScheduleHandler = new ClientScheduleHandler(sampleLogger);
             var serviceBusQueueMessageListener = new ServiceBusQueueMessageListener(serviceBusSettings);
-            var serviceBusQueueMessageHandler = new ServiceBusQueueMessageHandler(serviceBusQueueMessageListener, clientScheduleHandler, serviceBusQueueMessageHandlerSettings, sampleLogger);
+            var serviceBusQueueMessageHandler = new ServiceBusQueueMessageHandler(serviceBusQueueMessageListener, clientScheduleHandler, serviceBusQueueMessageHandlerSettings);
 
-            var clientListener = new VstsRequestListener<VstsMessage>(serviceBusQueueMessageHandler, serviceBusQueueMessageListener, sampleLogger);
+            var clientListener = new VstsRequestListener(serviceBusQueueMessageHandler, serviceBusQueueMessageListener, sampleLogger);
             Console.WriteLine(
                 "Starting the VSTS request listener on queue '{0}' with prefetch count '{1}', max concurrent calls '{2}' and message handler settings [{3}]",
                 serviceBusSettings.QueueName, 

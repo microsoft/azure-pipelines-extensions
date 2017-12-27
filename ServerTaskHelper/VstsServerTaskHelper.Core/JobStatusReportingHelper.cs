@@ -12,30 +12,30 @@ namespace VstsServerTaskHelper.Core
 {
     public class JobStatusReportingHelper : IJobStatusReportingHelper
     {
-        private readonly TaskMessage taskMessage;
+        private readonly TaskProperties taskProperties;
         private readonly TaskLogger taskLogger;
 
-        public JobStatusReportingHelper(TaskMessage taskMessage)
+        public JobStatusReportingHelper(TaskProperties taskProperties)
         {
-            this.taskMessage = taskMessage;
-            var vssBasicCredential = new VssBasicCredential(string.Empty, taskMessage.AuthToken);
-            var planClient = new PlanHelper(taskMessage.PlanUri, vssBasicCredential, taskMessage.ProjectId, taskMessage.HubName, taskMessage.PlanId);
-            taskLogger = new TaskLogger(planClient, taskMessage.TimelineId, taskMessage.JobId, taskMessage.TaskInstanceId);
+            this.taskProperties = taskProperties;
+            var vssBasicCredential = new VssBasicCredential(string.Empty, taskProperties.AuthToken);
+            var planClient = new PlanHelper(taskProperties.PlanUri, vssBasicCredential, taskProperties.ProjectId, taskProperties.HubName, taskProperties.PlanId);
+            taskLogger = new TaskLogger(planClient, taskProperties.TimelineId, taskProperties.JobId, taskProperties.TaskInstanceId);
         }
 
         public async Task ReportJobAssigned(string message, CancellationToken cancellationToken)
         {
-            var startedEvent = new JobAssignedEvent(this.taskMessage.JobId);
-            var taskClient = GetTaskClient(this.taskMessage.PlanUri, this.taskMessage.AuthToken);
-            await taskClient.RaisePlanEventAsync(this.taskMessage.ProjectId, this.taskMessage.HubName, this.taskMessage.PlanId, startedEvent, cancellationToken).ConfigureAwait(false);
+            var startedEvent = new JobAssignedEvent(this.taskProperties.JobId);
+            var taskClient = GetTaskClient(this.taskProperties.PlanUri, this.taskProperties.AuthToken);
+            await taskClient.RaisePlanEventAsync(this.taskProperties.ProjectId, this.taskProperties.HubName, this.taskProperties.PlanId, startedEvent, cancellationToken).ConfigureAwait(false);
             this.taskLogger.Log($"Job started: {message}");
         }
 
         public async Task ReportJobStarted(string message, CancellationToken cancellationToken)
         {
-            var startedEvent = new JobStartedEvent(this.taskMessage.JobId);
-            var taskClient = GetTaskClient(this.taskMessage.PlanUri, this.taskMessage.AuthToken);
-            await taskClient.RaisePlanEventAsync(this.taskMessage.ProjectId, this.taskMessage.HubName, this.taskMessage.PlanId, startedEvent, cancellationToken).ConfigureAwait(false);
+            var startedEvent = new JobStartedEvent(this.taskProperties.JobId);
+            var taskClient = GetTaskClient(this.taskProperties.PlanUri, this.taskProperties.AuthToken);
+            await taskClient.RaisePlanEventAsync(this.taskProperties.ProjectId, this.taskProperties.HubName, this.taskProperties.PlanId, startedEvent, cancellationToken).ConfigureAwait(false);
             this.taskLogger.Log($"Job started: {message}");
         }
 
@@ -51,8 +51,8 @@ namespace VstsServerTaskHelper.Core
             }
 
             // Find all existing timeline records and set them to in progress state
-            var taskClient = GetTaskClient(this.taskMessage.PlanUri, this.taskMessage.AuthToken);
-            var records = await taskClient.GetRecordsAsync(this.taskMessage.ProjectId, this.taskMessage.HubName, this.taskMessage.PlanId, this.taskMessage.TimelineId, userState: null, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var taskClient = GetTaskClient(this.taskProperties.PlanUri, this.taskProperties.AuthToken);
+            var records = await taskClient.GetRecordsAsync(this.taskProperties.ProjectId, this.taskProperties.HubName, this.taskProperties.PlanId, this.taskProperties.TimelineId, userState: null, cancellationToken: cancellationToken).ConfigureAwait(false);
 
             var recordsToUpdate = GetTimelineRecordsToUpdate(records);
             foreach (var record in recordsToUpdate)
@@ -60,34 +60,34 @@ namespace VstsServerTaskHelper.Core
                 record.State = TimelineRecordState.InProgress;
             }
 
-            await taskClient.UpdateTimelineRecordsAsync(this.taskMessage.ProjectId, this.taskMessage.HubName, this.taskMessage.PlanId, this.taskMessage.TimelineId, recordsToUpdate, cancellationToken).ConfigureAwait(false);
+            await taskClient.UpdateTimelineRecordsAsync(this.taskProperties.ProjectId, this.taskProperties.HubName, this.taskProperties.PlanId, this.taskProperties.TimelineId, recordsToUpdate, cancellationToken).ConfigureAwait(false);
         }
 
         public async Task ReportJobCompleted(string message, ITaskExecutionHandlerResult taskExecutionHandlerResult, CancellationToken cancellationToken)
         {
-            var completedEvent = new JobCompletedEvent(this.taskMessage.JobId, taskExecutionHandlerResult.Result);
-            var taskClient = GetTaskClient(this.taskMessage.PlanUri, this.taskMessage.AuthToken);
-            await taskClient.RaisePlanEventAsync(this.taskMessage.ProjectId, this.taskMessage.HubName, this.taskMessage.PlanId, completedEvent, cancellationToken).ConfigureAwait(false);
+            var completedEvent = new JobCompletedEvent(this.taskProperties.JobId, taskExecutionHandlerResult.Result);
+            var taskClient = GetTaskClient(this.taskProperties.PlanUri, this.taskProperties.AuthToken);
+            await taskClient.RaisePlanEventAsync(this.taskProperties.ProjectId, this.taskProperties.HubName, this.taskProperties.PlanId, completedEvent, cancellationToken).ConfigureAwait(false);
 
             // Find all existing timeline records and close them
-            await this.CompleteTimelineRecords(this.taskMessage.ProjectId, this.taskMessage.PlanId, this.taskMessage.HubName, this.taskMessage.TimelineId, taskExecutionHandlerResult.Result, cancellationToken, taskClient);
+            await this.CompleteTimelineRecords(this.taskProperties.ProjectId, this.taskProperties.PlanId, this.taskProperties.HubName, this.taskProperties.TimelineId, taskExecutionHandlerResult.Result, cancellationToken, taskClient);
         }
 
         public async Task TryAbandonJob(CancellationToken cancellationToken)
         {
-            if (taskMessage == null)
+            if (taskProperties == null)
             {
                 return;
             }
 
             try
             {
-                var projectId = taskMessage.ProjectId;
-                var planId = taskMessage.PlanId;
-                var vstsPlanUrl = taskMessage.PlanUri;
-                var authToken = taskMessage.AuthToken;
-                var jobId = taskMessage.JobId;
-                var hubName = taskMessage.HubName;
+                var projectId = taskProperties.ProjectId;
+                var planId = taskProperties.PlanId;
+                var vstsPlanUrl = taskProperties.PlanUri;
+                var authToken = taskProperties.AuthToken;
+                var jobId = taskProperties.JobId;
+                var hubName = taskProperties.HubName;
                 var taskHttpClient = GetTaskClient(vstsPlanUrl, authToken);
                 var completedEvent = new JobCompletedEvent(jobId, TaskResult.Abandoned);
                 await taskHttpClient.RaisePlanEventAsync(projectId, hubName, planId, completedEvent, cancellationToken).ConfigureAwait(false);
@@ -117,7 +117,7 @@ namespace VstsServerTaskHelper.Core
 
         private List<TimelineRecord> GetTimelineRecordsToUpdate(List<TimelineRecord> records)
         {
-            return records.Where(rec => rec.Id == this.taskMessage.JobId || rec.ParentId == this.taskMessage.JobId).ToList();
+            return records.Where(rec => rec.Id == this.taskProperties.JobId || rec.ParentId == this.taskProperties.JobId).ToList();
         }
 
         protected virtual ITaskClient GetTaskClient(Uri vstsPlanUrl, string authToken)

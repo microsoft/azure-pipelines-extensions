@@ -39,7 +39,7 @@ namespace VstsServerTaskHelper.ServiceBusMessageHandler
             Exception exception = null;
             try
             {
-                var executionHandler = new ExecutionHandler(taskExecutionHandler, eventProperties);
+                var executionHandler = new ExecutionHandler(taskExecutionHandler, message.GetBody(), eventProperties);
                 var result = await executionHandler.Execute(cancellationToken);
                 if (result.Result==TaskResult.Abandoned)
                 {

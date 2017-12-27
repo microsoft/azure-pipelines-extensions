@@ -5,7 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace VstsServerTaskHelper.SampleClient
+namespace VstsServerTaskHelper.SampleServiceBusMessageHandlerApp
 {
     public class SampleLogger : ILogger
     {

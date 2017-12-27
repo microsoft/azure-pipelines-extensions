@@ -9,7 +9,7 @@ namespace VstsServerTaskHelper.HttpRequestHandler
     {
         public static IDictionary<string, string> GetTaskPropertiesDictionary(this IHeaderDictionary headerDictionary)
         {
-            return TaskMessage.PropertiesList.Where(headerDictionary.ContainsKey)
+            return TaskProperties.PropertiesList.Where(headerDictionary.ContainsKey)
                 .ToDictionary<string, string, string>(expectedTaskProperty => expectedTaskProperty,
                     expectedTaskProperty => headerDictionary[expectedTaskProperty]);
         }
