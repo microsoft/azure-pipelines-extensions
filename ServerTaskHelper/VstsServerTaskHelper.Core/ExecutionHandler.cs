@@ -18,20 +18,29 @@ namespace VstsServerTaskHelper.Core
     public class ExecutionHandler
     {
         private readonly ITaskExecutionHandler taskExecutionHandler;
-        private readonly TaskMessage taskMessage;
+        private readonly ITaskMessage taskMessage;
+        private readonly TaskProperties taskProperties;
         private JobStatusReportingHelper jobStatusReportingHelper;
         private TaskLogger taskLogger;
 
-        public ExecutionHandler(ITaskExecutionHandler taskExecutionHandler, TaskMessage taskMessage)
+        public ExecutionHandler(ITaskExecutionHandler taskExecutionHandler, string taskMessageBody, TaskProperties taskProperties)
+        {
+            this.taskExecutionHandler = taskExecutionHandler;
+            this.taskProperties = taskProperties;
+            this.taskMessage = new TaskMessage(taskMessageBody, taskProperties);
+        }
+
+        public ExecutionHandler(ITaskExecutionHandler taskExecutionHandler, ITaskMessage taskMessage)
         {
             this.taskExecutionHandler = taskExecutionHandler;
             this.taskMessage = taskMessage;
         }
 
-        public ExecutionHandler(ITaskExecutionHandler taskExecutionHandler, IDictionary<string, string> taskProperties)
+        public ExecutionHandler(ITaskExecutionHandler taskExecutionHandler, string taskMessageBody, IDictionary<string, string> taskProperties)
         {
-            this.taskMessage = new TaskMessage(taskProperties);
+            this.taskProperties = new TaskProperties(taskProperties);
             this.taskExecutionHandler = taskExecutionHandler;
+            this.taskMessage = new TaskMessage(taskMessageBody, this.taskProperties);
         }
 
         public async Task<ITaskExecutionHandlerResult> Execute(CancellationToken cancellationToken)
@@ -46,7 +55,7 @@ namespace VstsServerTaskHelper.Core
                 InitializeTaskLogger();
                 // report job started
                 await jobStatusReportingHelper.ReportJobStarted("Job has started", cancellationToken);
-                var executeTask = taskExecutionHandler.ExecuteAsync(taskLogger, cancellationToken);
+                var executeTask = taskExecutionHandler.ExecuteAsync(taskMessage, taskLogger, cancellationToken);
                 await jobStatusReportingHelper.ReportJobProgress("Job is in progress...", cancellationToken).ConfigureAwait(false);
                 // start client handler execute
                 taskResult = await executeTask;
@@ -64,20 +73,20 @@ namespace VstsServerTaskHelper.Core
 
         public async void Execute()
         {
-            var HUBNAME = taskMessage.HubName;
+            var HUBNAME = taskProperties.HubName;
             // create guids out of strings to be used throughout this method
-            var projectGuid = taskMessage.ProjectId;
-            var planGuid = taskMessage.PlanId;
-            var jobGuid = taskMessage.JobId;
-            var timelineGuid = taskMessage.TimelineId;
+            var projectGuid = taskProperties.ProjectId;
+            var planGuid = taskProperties.PlanId;
+            var jobGuid = taskProperties.JobId;
+            var timelineGuid = taskProperties.TimelineId;
             // Today we allow only 1 task to run in a job, so sending jobId works but tomorrow it will be taskId 
             // once we start supporting multiple tasks.
             var taskInstanceGuid = jobGuid;
 
             //_telemetry.TrackEvent("ExecuteObject.Execute() Connecting to vsts...");
             // create connection to VSTS
-            var connection = new VssConnection(taskMessage.PlanUri, new VssClientCredentials());
-            //var connection = new VssConnection(taskMessage.PlanUri, new VssBasicCredential("username", taskMessage.AuthToken));
+            var connection = new VssConnection(taskProperties.PlanUri, new VssClientCredentials());
+            //var connection = new VssConnection(taskProperties.PlanUri, new VssBasicCredential("username", taskProperties.AuthToken));
             //_telemetry.TrackEvent("ExecuteObject.Execute() Connected to vsts");
 
             // get task client
@@ -144,14 +153,14 @@ namespace VstsServerTaskHelper.Core
 
         private void InitializeTaskLogger()
         {
-            var planHelper = new PlanHelper(taskMessage.PlanUri, new VssBasicCredential(string.Empty, taskMessage.AuthToken),
-                taskMessage.ProjectId, taskMessage.HubName, taskMessage.PlanId);
-            taskLogger = new TaskLogger(planHelper, taskMessage.TimelineId, taskMessage.JobId, taskMessage.TaskInstanceId);
+            var planHelper = new PlanHelper(taskProperties.PlanUri, new VssBasicCredential(string.Empty, taskProperties.AuthToken),
+                taskProperties.ProjectId, taskProperties.HubName, taskProperties.PlanId);
+            taskLogger = new TaskLogger(planHelper, taskProperties.TimelineId, taskProperties.JobId, taskProperties.TaskInstanceId);
         }
 
         private void InitializeJobStatusReportingHelper()
         {
-            jobStatusReportingHelper = new JobStatusReportingHelper(taskMessage);
+            jobStatusReportingHelper = new JobStatusReportingHelper(taskProperties);
         }
 
         public void Cancel(ITaskLogger taskLogger, CancellationToken cancellationToken)
@@ -164,29 +173,29 @@ namespace VstsServerTaskHelper.Core
 
         private async Task CreateTaskTimelineRecordIfRequired(CancellationToken cancellationToken)
         {
-            if (taskMessage.TaskInstanceId.Equals(Guid.Empty))
+            if (taskProperties.TaskInstanceId.Equals(Guid.Empty))
             {
                 var timelineRecordId = Guid.NewGuid();
                 var timelineRecord = new TimelineRecord
                 {
                     Id = timelineRecordId,
                     RecordType = "task",
-                    Name = taskMessage.TaskInstanceName,
+                    Name = taskProperties.TaskInstanceName,
                     Order = 1,
                     StartTime = DateTime.UtcNow,
                     State = TimelineRecordState.Pending,
-                    ParentId = taskMessage.JobId,
+                    ParentId = taskProperties.JobId,
                 };
-                var taskClient = GetTaskClient(taskMessage.PlanUri, taskMessage.AuthToken);
+                var taskClient = GetTaskClient(taskProperties.PlanUri, taskProperties.AuthToken);
                 await taskClient.UpdateTimelineRecordsAsync(
-                    taskMessage.ProjectId,
-                    taskMessage.HubName,
-                    taskMessage.PlanId,
-                    taskMessage.TimelineId,
+                    taskProperties.ProjectId,
+                    taskProperties.HubName,
+                    taskProperties.PlanId,
+                    taskProperties.TimelineId,
                     new List<TimelineRecord> {timelineRecord},
                     cancellationToken);
 
-                this.taskMessage.TaskInstanceId = timelineRecordId;
+                this.taskProperties.TaskInstanceId = timelineRecordId;
             }
         }
 

@@ -1,17 +1,17 @@
 ﻿using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using VstsServerTaskHelper.ServiceBusMessageHandler;
 
-namespace VstsServerTaskHelper.SampleClient
+namespace VstsServerTaskHelper.SampleServiceBusMessageHandlerApp
 {
-    public class VstsRequestListener<T>
-        where T : VstsMessage
+    public class VstsRequestListener
     {
         private readonly ILogger logger;
         private readonly IServiceBusQueueMessageListener serviceBusQueueMessageListener;
-        private readonly ServiceBusQueueMessageHandler<T> serviceBusQueueMessageHandler;
+        private readonly ServiceBusQueueMessageHandler serviceBusQueueMessageHandler;
 
-        public VstsRequestListener(ServiceBusQueueMessageHandler<T> serviceBusQueueMessageHandler, IServiceBusQueueMessageListener serviceBusQueueMessageListener, ILogger logger)
+        public VstsRequestListener(ServiceBusQueueMessageHandler serviceBusQueueMessageHandler, IServiceBusQueueMessageListener serviceBusQueueMessageListener, ILogger logger)
         {
             this.logger = logger;
             this.serviceBusQueueMessageListener = serviceBusQueueMessageListener;

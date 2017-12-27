@@ -5,7 +5,7 @@ namespace VstsServerTaskHelper.Core.Contracts
 {
     public interface ITaskExecutionHandler
     {
-        Task<ITaskExecutionHandlerResult> ExecuteAsync(ITaskLogger taskLogger, CancellationToken cancellationToken);
-        void CancelAsync(ITaskLogger taskLogger, CancellationToken cancellationToken);
+        Task<ITaskExecutionHandlerResult> ExecuteAsync(ITaskMessage taskMessage, ITaskLogger taskLogger, CancellationToken cancellationToken);
+        void CancelAsync(ITaskMessage taskMessage, ITaskLogger taskLogger, CancellationToken cancellationToken);
     }
 }
