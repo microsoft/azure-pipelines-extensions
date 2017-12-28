@@ -52,11 +52,15 @@ export class WebProvider implements models.IArtifactProvider {
                 reject("No downloadUrl available to download the item.");
             }
 
+            var downloadSize: number = 0;
             var itemUrl: string = artifactItem.metadata['downloadUrl'];
             itemUrl = itemUrl.replace(/([^:]\/)\/+/g, "$1");
             this.httpc.get(itemUrl).then((res: httpm.HttpClientResponse) => {
+                res.message.on('data', (chunk) => {
+                    downloadSize += chunk.length;
+                });
                 res.message.on('end', () => {
-                    this.artifactItemStore.updateDownloadSize(artifactItem, res.message.socket.bytesRead);
+                    this.artifactItemStore.updateDownloadSize(artifactItem, downloadSize);
                 });
                 if (res.message.headers['content-encoding'] === 'gzip') {
                     try {
