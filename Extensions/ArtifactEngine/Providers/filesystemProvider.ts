@@ -51,8 +51,10 @@ export class FilesystemProvider implements models.IArtifactProvider {
             // create parent folder if it has not already been created
             const folder = path.dirname(outputFilename);
             try {
-                this.ensureDirectoryExistence(folder);
-
+                if (!this.ensureDirectoryExistence(folder)) {
+                    reject("Failed to create directory " + folder);
+                    return;
+                }
 
                 Logger.logMessage('Downloading ' + item.path + ' to ' + outputFilename);
                 const outputStream = fs.createWriteStream(outputFilename);
@@ -126,17 +128,28 @@ export class FilesystemProvider implements models.IArtifactProvider {
         return promise;
     }
 
-    private ensureDirectoryExistence(folder) {
+    private ensureDirectoryExistence(folder): boolean {
         if (!this._createdFolders.hasOwnProperty(folder)) {
-            var dirName: string = path.dirname(folder);
             if (fs.existsSync(folder)) {
-                return;
+                return true;
             }
 
-            this.ensureDirectoryExistence(dirName);
-            fs.mkdirSync(folder);
-            this._createdFolders[folder] = true;
+            var dirName: string = path.dirname(folder);
+            if (dirName === folder) {
+                return false;
+            }
+
+            if (this.ensureDirectoryExistence(dirName)) {
+                fs.mkdirSync(folder);
+                this._createdFolders[folder] = true;
+                return true;
+            }
+            else {
+                return false;
+            }
         }
+
+        return true;
     }
 
     private _rootLocation: string;
