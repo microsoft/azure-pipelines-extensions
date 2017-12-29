@@ -12,7 +12,11 @@ import { ArtifactItemStore } from '../Store/artifactItemStore';
 import { TicketState } from '../Models/ticketState';
 import { ItemType } from '../Models/itemType';
 
-var config = require("../test.config.json")
+var nconf = require('nconf');
+
+nconf.argv()
+    .env()
+    .file(__dirname + '/../test.config.json');
 
 describe('e2e tests', () => {
     it('should be able to download jenkins artifact', function (done) {
@@ -35,14 +39,14 @@ describe('e2e tests', () => {
             "version": "10"
         };
 
-        var handler = new BasicCredentialHandler(config.jenkins.username, config.jenkins.password);
+        var handler = new BasicCredentialHandler(nconf.get('jenkins:username'), nconf.get('jenkins:password'));
         var webProvider = new providers.WebProvider(itemsUrl, "jenkins.handlebars", variables, handler, { ignoreSslError: false });
-        var dropLocation = path.join(config.dropLocation, "jenkinsDropWithMultipleFiles");
+        var dropLocation = path.join(nconf.get('dropLocation'), "jenkinsDropWithMultipleFiles");
         var filesystemProvider = new providers.FilesystemProvider(dropLocation);
 
         processor.processItems(webProvider, filesystemProvider, processorOptions)
             .then((tickets) => {
-                fs.readFile(path.join(config.dropLocation, 'jenkinsDropWithMultipleFiles/Extensions/ArtifactEngine/TestData/Jenkins/folder1/file2.txt'), 'utf8', function (err, data) {
+                fs.readFile(path.join(nconf.get('dropLocation'), 'jenkinsDropWithMultipleFiles/Extensions/ArtifactEngine/TestData/Jenkins/folder1/file2.txt'), 'utf8', function (err, data) {
                     if (err) {
                         throw err;
                     }
@@ -71,14 +75,14 @@ describe('e2e tests', () => {
         var itemsUrl = "https://testking123.visualstudio.com/_apis/resources/Containers/1898832?itemPath=Dropz&isShallow=false";
         var variables = {};
 
-        var handler = new PersonalAccessTokenCredentialHandler(config.vsts.pat);
+        var handler = new PersonalAccessTokenCredentialHandler(nconf.get('vsts:pat'));
         var webProvider = new providers.WebProvider(itemsUrl, "vsts.handlebars", variables, handler, { ignoreSslError: false });
-        var dropLocation = path.join(config.dropLocation, "vstsDropWithMultipleFiles");
+        var dropLocation = path.join(nconf.get('dropLocation'), "vstsDropWithMultipleFiles");
         var filesystemProvider = new providers.FilesystemProvider(dropLocation);
 
         processor.processItems(webProvider, filesystemProvider, processorOptions)
             .then((tickets) => {
-                fs.readFile(path.join(config.dropLocation, 'vstsDropWithMultipleFiles/dropz/folder1/file2.txt'), 'utf8', function (err, data) {
+                fs.readFile(path.join(nconf.get('dropLocation'), 'vstsDropWithMultipleFiles/dropz/folder1/file2.txt'), 'utf8', function (err, data) {
                     if (err) {
                         throw err;
                     }
@@ -108,12 +112,12 @@ describe('e2e tests', () => {
         var variables = {};
 
         var sourceProvider = new providers.FilesystemProvider(itemsUrl);
-        var dropLocation = path.join(config.dropLocation, "fileshareWithMultipleFiles");
+        var dropLocation = path.join(nconf.get('dropLocation'), "fileshareWithMultipleFiles");
         var destProvider = new providers.FilesystemProvider(dropLocation);
 
         processor.processItems(sourceProvider, destProvider, processorOptions)
             .then((tickets) => {
-                fs.readFile(path.join(config.dropLocation, 'fileshareWithMultipleFiles/folder1/file2.txt'), 'utf8', function (err, data) {
+                fs.readFile(path.join(nconf.get('dropLocation'), 'fileshareWithMultipleFiles/folder1/file2.txt'), 'utf8', function (err, data) {
                     if (err) {
                         throw err;
                     }
@@ -122,7 +126,7 @@ describe('e2e tests', () => {
                 });
 
                 assert.equal(tickets.find(x => x.artifactItem.path == "file1.pdb").retryCount, 0);
-                assert.equal(tickets.find(x => x.artifactItem.path == path.join("folder1","file2.txt")).retryCount, 0);
+                assert.equal(tickets.find(x => x.artifactItem.path == path.join("folder1", "file2.txt")).retryCount, 0);
             }, (error) => {
                 throw error;
             });
