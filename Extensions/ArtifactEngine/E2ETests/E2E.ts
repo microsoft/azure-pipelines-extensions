@@ -15,7 +15,7 @@ import { ItemType } from '../Models/itemType';
 var config = require("../test.config.json")
 
 describe('e2e tests', () => {
-    it('should be able to download jenkins artifact', function (done) {
+    /* it('should be able to download jenkins artifact', function (done) {
         this.timeout(15000);
         let processor = new engine.ArtifactEngine();
 
@@ -55,9 +55,43 @@ describe('e2e tests', () => {
             }, (error) => {
                 throw error;
             });
+    }); */
+
+    it('should be able to download jenkins artifact', function (done) {
+        this.timeout(15000);
+        let processor = new engine.ArtifactEngine();
+
+        let processorOptions = new engine.ArtifactEngineOptions();
+        processorOptions.itemPattern = "**";
+        processorOptions.parallelProcessingLimit = 8;
+        processorOptions.retryIntervalInSeconds = 2;
+        processorOptions.retryLimit = 2;
+        processorOptions.verbose = true;
+
+        var itemsUrl = "http://rmcdpjenkins2.southindia.cloudapp.azure.com:8080/job/ReleaseManagement/job/RMCDP/job/ArtifactEngineTests/job/SmallProject/10/artifact/*zip*/";
+        var handler = new BasicCredentialHandler(config.jenkins.username, config.jenkins.password);
+        var zipProvider = new providers.ZipProvider(itemsUrl, handler, { ignoreSslError: false });
+        var dropLocation = path.join(config.dropLocation, "jenkinsDropWithMultipleFiles");
+        var filesystemProvider = new providers.FilesystemProvider(dropLocation);
+
+        processor.processItems(zipProvider, filesystemProvider, processorOptions)
+            .then((tickets) => {
+                fs.readFile(path.join(config.dropLocation, 'jenkinsDropWithMultipleFiles/Extensions/ArtifactEngine/TestData/Jenkins/folder1/file2.txt'), 'utf8', function (err, data) {
+                    if (err) {
+                        throw err;
+                    }
+                    assert.equal(data, "dummyFolderContent");
+                    done();
+                });
+
+                assert.equal(tickets.find(x => x.artifactItem.path == "Extensions/ArtifactEngine/TestData/Jenkins/file1.pdb").retryCount, 0);
+                assert.equal(tickets.find(x => x.artifactItem.path == "Extensions/ArtifactEngine/TestData/Jenkins/folder1/file2.txt").retryCount, 0);
+            }, (error) => {
+                throw error;
+            });
     });
 
-    it('should be able to download build artifact from vsts drop', function (done) {
+/*     it('should be able to download build artifact from vsts drop', function (done) {
         this.timeout(15000);
         let processor = new engine.ArtifactEngine();
 
@@ -126,5 +160,5 @@ describe('e2e tests', () => {
             }, (error) => {
                 throw error;
             });
-    });
+    }); */
 });
