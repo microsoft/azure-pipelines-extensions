@@ -335,28 +335,29 @@ gulp.task("_mochaTests", ["testResources"], function(){
     process.env['TASK_TEST_TEMP'] =path.join(__dirname, _testTemp);
     shell.rm('-rf', _testTemp);
     shell.mkdir('-p', _testTemp);
+
+    if (options.suite.indexOf("ArtifactEngine") >= 0  && options.e2e) {
+        var suitePath = path.join(_testRoot, "Extensions/" + options.suite + "/**/*E2E.js");
+        console.log(suitePath);
+        var tfBuild = ('' + process.env['TF_BUILD']).toLowerCase() == 'true'
+        return gulp.src([suitePath])
+            .pipe(mocha({ reporter: 'spec', ui: 'bdd', useColors: !tfBuild }));
+    }
+    
+    if (options.suite.indexOf("ArtifactEngine") >= 0  && options.perf) {
+        var suitePath = path.join(_testRoot, "Extensions/" + options.suite + "/**/*Perf.js");
+        console.log(suitePath);
+        var tfBuild = ('' + process.env['TF_BUILD']).toLowerCase() == 'true'
+        return gulp.src([suitePath])
+            .pipe(mocha({ reporter: 'spec', ui: 'bdd', useColors: !tfBuild }));
+    }
+
     var suitePath = path.join(_testRoot,"Extensions/" + options.suite + "/Tests/Tasks", options.suite + '/_suite.js');
     console.log(suitePath);
     var tfBuild = ('' + process.env['TF_BUILD']).toLowerCase() == 'true'
     gulp.src([suitePath])
         .pipe(mocha({ reporter: 'spec', ui: 'bdd', useColors: !tfBuild }));
 
-    if (options.e2e) {
-        var suitePath = path.join(_testRoot, "Extensions/" + options.suite + "/**/*E2E.js");
-        console.log(suitePath);
-        var tfBuild = ('' + process.env['TF_BUILD']).toLowerCase() == 'true'
-        gulp.src([suitePath])
-            .pipe(mocha({ reporter: 'spec', ui: 'bdd', useColors: !tfBuild }));
-    }
-    
-    if (options.perf) {
-        var suitePath = path.join(_testRoot, "Extensions/" + options.suite + "/**/*Perf.js");
-        console.log(suitePath);
-        var tfBuild = ('' + process.env['TF_BUILD']).toLowerCase() == 'true'
-        gulp.src([suitePath])
-            .pipe(mocha({ reporter: 'spec', ui: 'bdd', useColors: !tfBuild }));
-    }
-        
     var suitePath = path.join(_testRoot, "Extensions/" + options.suite + "/**/*Tests.js");
     console.log(suitePath);
     var tfBuild = ('' + process.env['TF_BUILD']).toLowerCase() == 'true'
