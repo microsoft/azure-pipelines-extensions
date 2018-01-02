@@ -41,12 +41,12 @@ describe('e2e tests', () => {
 
         var handler = new BasicCredentialHandler(nconf.get('jenkins:username'), nconf.get('jenkins:password'));
         var webProvider = new providers.WebProvider(itemsUrl, "jenkins.handlebars", variables, handler, { ignoreSslError: false });
-        var dropLocation = path.join(nconf.get('dropLocation'), "jenkinsDropWithMultipleFiles");
+        var dropLocation = path.join(nconf.get('DROPLOCATION'), "jenkinsDropWithMultipleFiles");
         var filesystemProvider = new providers.FilesystemProvider(dropLocation);
 
         processor.processItems(webProvider, filesystemProvider, processorOptions)
             .then((tickets) => {
-                fs.readFile(path.join(nconf.get('dropLocation'), 'jenkinsDropWithMultipleFiles/Extensions/ArtifactEngine/TestData/Jenkins/folder1/file2.txt'), 'utf8', function (err, data) {
+                fs.readFile(path.join(nconf.get('DROPLOCATION'), 'jenkinsDropWithMultipleFiles/Extensions/ArtifactEngine/TestData/Jenkins/folder1/file2.txt'), 'utf8', function (err, data) {
                     if (err) {
                         throw err;
                     }
@@ -77,12 +77,12 @@ describe('e2e tests', () => {
 
         var handler = new PersonalAccessTokenCredentialHandler(nconf.get('vsts:pat'));
         var webProvider = new providers.WebProvider(itemsUrl, "vsts.handlebars", variables, handler, { ignoreSslError: false });
-        var dropLocation = path.join(nconf.get('dropLocation'), "vstsDropWithMultipleFiles");
+        var dropLocation = path.join(nconf.get('DROPLOCATION'), "vstsDropWithMultipleFiles");
         var filesystemProvider = new providers.FilesystemProvider(dropLocation);
 
         processor.processItems(webProvider, filesystemProvider, processorOptions)
             .then((tickets) => {
-                fs.readFile(path.join(nconf.get('dropLocation'), 'vstsDropWithMultipleFiles/dropz/folder1/file2.txt'), 'utf8', function (err, data) {
+                fs.readFile(path.join(nconf.get('DROPLOCATION'), 'vstsDropWithMultipleFiles/dropz/folder1/file2.txt'), 'utf8', function (err, data) {
                     if (err) {
                         throw err;
                     }
@@ -112,12 +112,12 @@ describe('e2e tests', () => {
         var variables = {};
 
         var sourceProvider = new providers.FilesystemProvider(itemsUrl);
-        var dropLocation = path.join(nconf.get('dropLocation'), "fileshareWithMultipleFiles");
+        var dropLocation = path.join(nconf.get('DROPLOCATION'), "fileshareWithMultipleFiles");
         var destProvider = new providers.FilesystemProvider(dropLocation);
 
         processor.processItems(sourceProvider, destProvider, processorOptions)
             .then((tickets) => {
-                fs.readFile(path.join(nconf.get('dropLocation'), 'fileshareWithMultipleFiles/folder1/file2.txt'), 'utf8', function (err, data) {
+                fs.readFile(path.join(nconf.get('DROPLOCATION'), 'fileshareWithMultipleFiles/folder1/file2.txt'), 'utf8', function (err, data) {
                     if (err) {
                         throw err;
                     }
