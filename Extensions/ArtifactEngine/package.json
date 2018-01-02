@@ -34,7 +34,8 @@
     "nyc": "^11.2.1",
     "sinon": "4.0.1",
     "typescript": "1.8.7",
-    "nock": "9.1.0"
+    "nock": "9.1.0",
+    "nconf": "0.10.0"
   },
   "files": [
     "Engine/**/*.js",
