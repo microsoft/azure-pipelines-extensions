@@ -42,8 +42,7 @@ if (semver.lt(process.versions.node, MIN_NODE_VER)) {
 //
 var mopts = {
     string: 'suite',
-    string: 'perf',
-    string: 'e2e',
+    boolean: ['perf', 'e2e'],
     default: { suite: '**', perf: false, e2e: false }
 };
 
