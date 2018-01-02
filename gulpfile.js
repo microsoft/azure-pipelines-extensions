@@ -42,7 +42,9 @@ if (semver.lt(process.versions.node, MIN_NODE_VER)) {
 //
 var mopts = {
     string: 'suite',
-    default: { suite: '**' }
+    string: 'perf',
+    string: 'e2e',
+    default: { suite: '**', perf: false, e2e: false }
 };
 
 var options = minimist(process.argv.slice(2), mopts);
@@ -340,7 +342,23 @@ gulp.task("_mochaTests", ["testResources"], function(){
     gulp.src([suitePath])
         .pipe(mocha({ reporter: 'spec', ui: 'bdd', useColors: !tfBuild }));
 
-    var suitePath = path.join(_testRoot,"Extensions/" + options.suite + "/**/*Tests.js");
+    if (options.e2e) {
+        var suitePath = path.join(_testRoot, "Extensions/" + options.suite + "/**/*E2E.js");
+        console.log(suitePath);
+        var tfBuild = ('' + process.env['TF_BUILD']).toLowerCase() == 'true'
+        gulp.src([suitePath])
+            .pipe(mocha({ reporter: 'spec', ui: 'bdd', useColors: !tfBuild }));
+    }
+    
+    if (options.perf) {
+        var suitePath = path.join(_testRoot, "Extensions/" + options.suite + "/**/*Perf.js");
+        console.log(suitePath);
+        var tfBuild = ('' + process.env['TF_BUILD']).toLowerCase() == 'true'
+        gulp.src([suitePath])
+            .pipe(mocha({ reporter: 'spec', ui: 'bdd', useColors: !tfBuild }));
+    }
+        
+    var suitePath = path.join(_testRoot, "Extensions/" + options.suite + "/**/*Tests.js");
     console.log(suitePath);
     var tfBuild = ('' + process.env['TF_BUILD']).toLowerCase() == 'true'
     return gulp.src([suitePath])
