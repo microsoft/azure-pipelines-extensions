@@ -41,9 +41,9 @@ describe('perf tests', () => {
             "version": "5"
         };
 
-        var handler = new BasicCredentialHandler(nconf.get('jenkins:username'), nconf.get('jenkins:password'));
+        var handler = new BasicCredentialHandler(nconf.get('JENKINS:USERNAME'), nconf.get('JENKINS:PASSWORD'));
         var webProvider = new providers.WebProvider(itemsUrl, "jenkins.handlebars", variables, handler, { ignoreSslError: false });
-        var dropLocation = path.join(nconf.get('dropLocation'), "jenkinsDropWithLargeSizeFiles");
+        var dropLocation = path.join(nconf.get('DROPLOCATION'), "jenkinsDropWithLargeSizeFiles");
         var filesystemProvider = new providers.FilesystemProvider(dropLocation);
 
         processor.processItems(webProvider, filesystemProvider, processorOptions)
@@ -78,9 +78,9 @@ describe('perf tests', () => {
             "version": "6"
         };
 
-        var handler = new BasicCredentialHandler(nconf.get('jenkins:username'), nconf.get('jenkins:password'));
+        var handler = new BasicCredentialHandler(nconf.get('JENKINS:USERNAME'), nconf.get('JENKINS:PASSWORD'));
         var webProvider = new providers.WebProvider(itemsUrl, "jenkins.handlebars", variables, handler, { ignoreSslError: false });
-        var dropLocation = path.join(nconf.get('dropLocation'), "jenkinsDropWithLargeVolumeFiles");
+        var dropLocation = path.join(nconf.get('DROPLOCATION'), "jenkinsDropWithLargeVolumeFiles");
         var filesystemProvider = new providers.FilesystemProvider(dropLocation);
 
         processor.processItems(webProvider, filesystemProvider, processorOptions)
@@ -109,9 +109,9 @@ describe('perf tests', () => {
         var itemsUrl = "https://testking123.visualstudio.com/_apis/resources/Containers/1902716?itemPath=largedrop&isShallow=false";
         var variables = {};
 
-        var handler = new PersonalAccessTokenCredentialHandler(nconf.get('vsts:pat'));
+        var handler = new PersonalAccessTokenCredentialHandler(nconf.get('VSTS:PAT'));
         var webProvider = new providers.WebProvider(itemsUrl, "vsts.handlebars", variables, handler, { ignoreSslError: false });
-        var dropLocation = path.join(nconf.get('dropLocation'), "vstsDropWithLargeFiles");
+        var dropLocation = path.join(nconf.get('DROPLOCATION'), "vstsDropWithLargeFiles");
         var filesystemProvider = new providers.FilesystemProvider(dropLocation);
 
         processor.processItems(webProvider, filesystemProvider, processorOptions)
@@ -140,9 +140,9 @@ describe('perf tests', () => {
         var itemsUrl = "https://testking123.visualstudio.com/_apis/resources/Containers/1976011?itemPath=files20k&isShallow=false";
         var variables = {};
 
-        var handler = new PersonalAccessTokenCredentialHandler(nconf.get('vsts:pat'));
+        var handler = new PersonalAccessTokenCredentialHandler(nconf.get('VSTS:PAT'));
         var webProvider = new providers.WebProvider(itemsUrl, "vsts.handlebars", variables, handler, { ignoreSslError: false });
-        var dropLocation = path.join(nconf.get('dropLocation'), "vstsDropWithLargeFiles");
+        var dropLocation = path.join(nconf.get('DROPLOCATION'), "vstsDropWithLargeFiles");
         var filesystemProvider = new providers.FilesystemProvider(dropLocation);
 
         processor.processItems(webProvider, filesystemProvider, processorOptions)
@@ -171,7 +171,7 @@ describe('perf tests', () => {
         var itemsUrl = "//vscsstor/Users/gykuma/ArtifactEngineTestData/LargeSizeFiles/";
 
         var sourceProvider = new providers.FilesystemProvider(itemsUrl);
-        var dropLocation = path.join(nconf.get('dropLocation'), "fileshareWithLargeSizeFiles");
+        var dropLocation = path.join(nconf.get('DROPLOCATION'), "fileshareWithLargeSizeFiles");
         var filesystemProvider = new providers.FilesystemProvider(dropLocation);
 
         processor.processItems(sourceProvider, filesystemProvider, processorOptions)
@@ -200,7 +200,7 @@ describe('perf tests', () => {
         var itemsUrl = "//vscsstor/Users/gykuma/ArtifactEngineTestData/LargeFilesCount/";
 
         var sourceProvider = new providers.FilesystemProvider(itemsUrl);
-        var dropLocation = path.join(nconf.get('dropLocation'), "fileshareWithLargeVolumeFiles");
+        var dropLocation = path.join(nconf.get('DROPLOCATION'), "fileshareWithLargeVolumeFiles");
         var filesystemProvider = new providers.FilesystemProvider(dropLocation);
 
         processor.processItems(sourceProvider, filesystemProvider, processorOptions)

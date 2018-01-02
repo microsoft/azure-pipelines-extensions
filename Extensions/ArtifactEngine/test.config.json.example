@@ -1,15 +1,15 @@
 // To run tests locally updated the file, remove this line and rename to test.config.json
 {
-    "dropLocation": "/Users/Omesh/Documents/drop",
-    "jenkins": {
-        "username": "",
-        "password": ""
+    "DROPLOCATION": "/Users/Omesh/Documents/drop",
+    "JENKINS": {
+        "USERNAME": "",
+        "PASSWORD": ""
     },
-    "teamcity": {
-        "username": "",
-        "password": ""
+    "TEAMCITY": {
+        "USERNAME": "",
+        "PASSWORD": ""
     },
-    "vsts": {
-        "pat": ""
+    "VSTS": {
+        "PAT": ""
     }
 }
