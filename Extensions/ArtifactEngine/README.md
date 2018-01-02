@@ -17,3 +17,7 @@ To use Artifact engine in your tasks or app have a look at [E2E.ts](E2ETests/E2E
 *Testing*
 1. Install [mocha sidebar](https://marketplace.visualstudio.com/items?itemName=maty.vscode-mocha-sidebar) extension to run tests from vscode.
 2. Optional install [node tdd](https://marketplace.visualstudio.com/items?itemName=prashaantt.node-tdd) extension to automatically run tests on build.
+3. To run only ArtifactEngine tests from root directory use
+    `gulp test --suite=ArtifactEngine`
+    - Set `--perf=true` to also run Performance tests.
+    - Set `--e2e=true` to also run End-to-End tests.
