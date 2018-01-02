@@ -1,4 +1,4 @@
-﻿#################################################################################################################################
+#################################################################################################################################
 #  Name        : Configure-WinRM.ps1                                                                                            #
 #                                                                                                                               #
 #  Description : Configures the WinRM on a local machine                                                                        #
@@ -83,23 +83,12 @@ function Configure-WinRMHttpsListener
     Delete-WinRMListener
 
     # Create a test certificate
-    $thumbprint = (Get-ChildItem cert:\LocalMachine\My | Where-Object { $_.Subject -eq "CN=" + $hostname } | Select-Object -Last 1).Thumbprint
+    $thumbprint = (New-SelfSignedCertificate -DnsName $hostname -CertStoreLocation "cert:\LocalMachine\My").Thumbprint
     if(-not $thumbprint)
     {
-        if(-not (Test-Path -Path .\makecert.exe))
-        {
-            throw "File not found: makecert.exe"
-        }
-
-        .\makecert -r -pe -n CN=$hostname -b 01/01/2012 -e 01/01/2022 -eku 1.3.6.1.5.5.7.3.1 -ss my -sr localmachine -sky exchange -sp "Microsoft RSA SChannel Cryptographic Provider" -sy 12
-        $thumbprint=(Get-ChildItem cert:\Localmachine\my | Where-Object { $_.Subject -eq "CN=" + $hostname } | Select-Object -Last 1).Thumbprint
-
-        if(-not $thumbprint)
-        {
-            throw "Failed to create the test certificate."
-        }
+        throw "Failed to create the test certificate."
     }
-    
+
     # Configure WinRM
     $WinrmCreate= "winrm create --% winrm/config/Listener?Address=*+Transport=HTTPS @{Hostname=`"$hostName`";CertificateThumbprint=`"$thumbPrint`"}"
     invoke-expression $WinrmCreate
