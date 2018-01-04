@@ -8,7 +8,7 @@ import * as providers from '../Providers';
 
 describe('artifactEngine.processItems', () => {
 
-    it('should call getRootItemsCalledCount for the given artifact provider', (done) => {
+    it('should call getRootItemsCalledCount for the given artifact provider', function (done) {
         // first test is timing out sometimes in cdp
         this.timeout(5000);
         var testProvider = new providers.StubProvider();
