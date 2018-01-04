@@ -117,6 +117,7 @@ describe('perf tests', () => {
                 fs.existsSync(path.join(nconf.get('DROPLOCATION'), 'jenkinsDropWithMultipleFiles.zip'));
                 assert.equal(tickets.find(x => x.artifactItem.path == "").retryCount, 0);
                 assert.notEqual(tickets.find(x => x.artifactItem.path == "").fileSizeInBytes, 0);
+                done();
             }, (error) => {
                 throw error;
             });
