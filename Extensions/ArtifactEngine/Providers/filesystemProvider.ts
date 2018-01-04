@@ -6,6 +6,8 @@ import * as models from '../Models';
 import { Logger } from '../Engine/logger';
 import { ArtifactItemStore } from '../Store/artifactItemStore';
 
+var tl = require('vsts-task-lib');
+
 export class FilesystemProvider implements models.IArtifactProvider {
 
     public artifactItemStore: ArtifactItemStore;
@@ -51,11 +53,7 @@ export class FilesystemProvider implements models.IArtifactProvider {
             // create parent folder if it has not already been created
             const folder = path.dirname(outputFilename);
             try {
-                if (!this.ensureDirectoryExistence(folder)) {
-                    reject("Failed to create directory " + folder);
-                    return;
-                }
-
+                tl.mkdirP(folder);
                 Logger.logMessage('Downloading ' + item.path + ' to ' + outputFilename);
                 const outputStream = fs.createWriteStream(outputFilename);
                 stream.pipe(outputStream);
@@ -127,30 +125,5 @@ export class FilesystemProvider implements models.IArtifactProvider {
         return promise;
     }
 
-    private ensureDirectoryExistence(folder): boolean {
-        if (!this._createdFolders.hasOwnProperty(folder)) {
-            if (fs.existsSync(folder)) {
-                return true;
-            }
-
-            var dirName: string = path.dirname(folder);
-            if (dirName === folder) {
-                return false;
-            }
-
-            if (this.ensureDirectoryExistence(dirName)) {
-                fs.mkdirSync(folder);
-                this._createdFolders[folder] = true;
-                return true;
-            }
-            else {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
     private _rootLocation: string;
-    private _createdFolders: { [key: string]: boolean } = {};
 }
