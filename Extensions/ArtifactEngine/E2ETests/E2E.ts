@@ -61,6 +61,33 @@ describe('e2e tests', () => {
             });
     });
 
+    it('should be able to download jenkins artifact as zip', function (done) {
+        this.timeout(15000);
+        let processor = new engine.ArtifactEngine();
+
+        let processorOptions = new engine.ArtifactEngineOptions();
+        processorOptions.itemPattern = "**";
+        processorOptions.parallelProcessingLimit = 8;
+        processorOptions.retryIntervalInSeconds = 2;
+        processorOptions.retryLimit = 2;
+        processorOptions.verbose = true;
+
+        var itemsUrl = "http://rmcdpjenkins2.southindia.cloudapp.azure.com:8080/job/ReleaseManagement/job/RMCDP/job/ArtifactEngineTests/job/SmallProject/10/artifact/*zip*/";
+        var handler = new BasicCredentialHandler(nconf.get('JENKINS:USERNAME'), nconf.get('JENKINS:PASSWORD'));
+        var zipProvider = new providers.ZipProvider(itemsUrl, handler, { ignoreSslError: false });
+        var dropLocation = path.join(nconf.get('DROPLOCATION'), "jenkinsDropWithMultipleFiles.zip");
+        var filesystemProvider = new providers.FilesystemProvider(dropLocation);
+
+        processor.processItems(zipProvider, filesystemProvider, processorOptions)
+            .then((tickets) => {
+                fs.existsSync(path.join(nconf.get('DROPLOCATION'), 'jenkinsDropWithMultipleFiles.zip'));
+                assert.equal(tickets.find(x => x.artifactItem.path == "").retryCount, 0);
+                assert.notEqual(tickets.find(x => x.artifactItem.path == "").fileSizeInBytes, 0);
+            }, (error) => {
+                throw error;
+            });
+    });
+
     it('should be able to download build artifact from vsts drop', function (done) {
         this.timeout(15000);
         let processor = new engine.ArtifactEngine();

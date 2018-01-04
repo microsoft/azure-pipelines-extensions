@@ -94,6 +94,34 @@ describe('perf tests', () => {
             });
     });
 
+    //Artifact details => Source: Jenkins, FilesCount: 20377, DownloadSize: ~117MB, TotalFileSize: ~117MB
+    it('should be able to download jenkins artifact with large volume of files as zip', function (done) {
+        this.timeout(60000);
+        let processor = new engine.ArtifactEngine();
+
+        let processorOptions = new engine.ArtifactEngineOptions();
+        processorOptions.itemPattern = "**";
+        processorOptions.parallelProcessingLimit = 8;
+        processorOptions.retryIntervalInSeconds = 2;
+        processorOptions.retryLimit = 2;
+        processorOptions.verbose = true;
+
+        var itemsUrl = "http://rmcdpjenkins2.southindia.cloudapp.azure.com:8080/job/ReleaseManagement/job/RMCDP/job/ArtifactEngineTests/job/LargeVolumeProject/6/artifact/*zip*/";
+        var handler = new BasicCredentialHandler(nconf.get('JENKINS:USERNAME'), nconf.get('JENKINS:PASSWORD'));
+        var zipProvider = new providers.ZipProvider(itemsUrl, handler, { ignoreSslError: false });
+        var dropLocation = path.join(nconf.get('DROPLOCATION'), "jenkinsDropWithMultipleFiles.zip");
+        var filesystemProvider = new providers.FilesystemProvider(dropLocation);
+
+        processor.processItems(zipProvider, filesystemProvider, processorOptions)
+            .then((tickets) => {
+                fs.existsSync(path.join(nconf.get('DROPLOCATION'), 'jenkinsDropWithMultipleFiles.zip'));
+                assert.equal(tickets.find(x => x.artifactItem.path == "").retryCount, 0);
+                assert.notEqual(tickets.find(x => x.artifactItem.path == "").fileSizeInBytes, 0);
+            }, (error) => {
+                throw error;
+            });
+    });
+
     //Artifact details => Source: BuildContainer, FilesCount: 301, DownloadSize: ~545MB  TotalFileSize: ~1.7GB
     it('should be able to download large size build artifact from vsts drop', function (done) {
         this.timeout(300000);   //5mins

@@ -67,8 +67,6 @@ export class FilesystemProvider implements models.IArtifactProvider {
                         }
 
                         item.metadata[models.Constants.DestinationUrlKey] = outputFilename;
-
-                        resolve(item);
                     });
                 stream.on("error",
                     (error) => {
@@ -76,6 +74,7 @@ export class FilesystemProvider implements models.IArtifactProvider {
                     });
                 outputStream.on("finish", () => {
                     this.artifactItemStore.updateFileSize(item, outputStream.bytesWritten);
+                    resolve(item);
                 });
             }
             catch (err) {

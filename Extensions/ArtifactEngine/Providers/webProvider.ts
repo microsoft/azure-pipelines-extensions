@@ -7,17 +7,14 @@ import * as stream from 'stream';
 import * as crypto from 'crypto';
 import * as zlib from 'zlib';
 
-var handlebars = require('handlebars');
 import * as httpm from './typed-rest-client/HttpClient';
-var tl = require('vsts-task-lib');
-
 import * as models from '../Models';
 import { Logger } from '../Engine/logger';
 import { IRequestHandler, IRequestOptions } from './typed-rest-client/Interfaces';
 import { ArtifactItemStore } from '../Store/artifactItemStore';
-import { request } from 'https';
+import * as factory from './webClientFactory';
 
-var packagejson = require('../package.json');
+var handlebars = require('handlebars');
 
 export class WebProvider implements models.IArtifactProvider {
 
@@ -26,10 +23,7 @@ export class WebProvider implements models.IArtifactProvider {
     constructor(rootItemsLocation, templateFile: string, variables: any, handler: IRequestHandler, requestOptions?: IRequestOptions) {
         this.rootItemsLocation = rootItemsLocation;
         this.templateFile = templateFile;
-        this.options = requestOptions || {};
-        this.options.keepAlive = true;
-        this.initializeProxy();
-        this.httpc = new httpm.HttpClient('artifact-engine ' + packagejson.version, [handler], this.options);
+        this.httpc = factory.WebClientFactory.getClient([handler], requestOptions);
         this.variables = variables;
     }
 
@@ -136,64 +130,8 @@ export class WebProvider implements models.IArtifactProvider {
         return target;
     }
 
-    private initializeProxy() {
-        // try get proxy setting from environment variable set by VSTS-Task-Lib if there is no proxy setting in the options
-        if (!this.options.proxy || !this.options.proxy.proxyUrl) {
-            if (global['_vsts_task_lib_proxy']) {
-                let proxyFromEnv: any = {
-                    proxyUrl: global['_vsts_task_lib_proxy_url'],
-                    proxyUsername: global['_vsts_task_lib_proxy_username'],
-                    proxyPassword: this._readTaskLibSecrets(global['_vsts_task_lib_proxy_password']),
-                    proxyBypassHosts: JSON.parse(global['_vsts_task_lib_proxy_bypass'] || "[]"),
-                };
-
-                this.options.proxy = proxyFromEnv;
-            }
-        }
-
-        // try get cert setting from environment variable set by VSTS-Task-Lib if there is no cert setting in the options
-        if (!this.options.cert) {
-            if (global['_vsts_task_lib_cert']) {
-                let certFromEnv: any = {
-                    caFile: global['_vsts_task_lib_cert_ca'],
-                    certFile: global['_vsts_task_lib_cert_clientcert'],
-                    keyFile: global['_vsts_task_lib_cert_key'],
-                    passphrase: this._readTaskLibSecrets(global['_vsts_task_lib_cert_passphrase']),
-                };
-
-                this.options.cert = certFromEnv;
-            }
-        }
-
-        // try get ignore SSL error setting from environment variable set by VSTS-Task-Lib if there is no ignore SSL error setting in the options
-        if (!this.options.ignoreSslError) {
-            this.options.ignoreSslError = !!global['_vsts_task_lib_skip_cert_validation'];
-        }
-    }
-
-    private _readTaskLibSecrets(lookupKey: string): string {
-        // the lookupKey should has following format
-        // base64encoded<keyFilePath>:base64encoded<encryptedContent>
-        if (lookupKey && lookupKey.indexOf(':') > 0) {
-            let lookupInfo: string[] = lookupKey.split(':', 2);
-
-            // file contains encryption key
-            let keyFile = new Buffer(lookupInfo[0], 'base64').toString('utf8');
-            let encryptKey = new Buffer(fs.readFileSync(keyFile, 'utf8'), 'base64');
-
-            let encryptedContent: string = new Buffer(lookupInfo[1], 'base64').toString('utf8');
-
-            let decipher = crypto.createDecipher("aes-256-ctr", encryptKey)
-            let decryptedContent = decipher.update(encryptedContent, 'hex', 'utf8')
-            decryptedContent += decipher.final('utf8');
-
-            return decryptedContent;
-        }
-    }
-
     private rootItemsLocation: string;
     private templateFile: string;
     private variables: string;
     public httpc: httpm.HttpClient = new httpm.HttpClient('artifact-engine');
-    private options: any = {};
 }
