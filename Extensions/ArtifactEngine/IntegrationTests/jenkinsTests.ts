@@ -219,6 +219,11 @@ describe('Integration tests', () => {
             throw err;
         });
     });
+
+    after(() => {
+        nock.cleanAll();
+        nock.enableNetConnect();
+    })
 });
 
 function setUpNock() {
