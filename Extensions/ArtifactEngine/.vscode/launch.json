@@ -47,6 +47,17 @@
             "args": ["**/IntegrationTests/*Tests.js"],
             "runtimeExecutable": null,
             "env": { "NODE_ENV": "production"}
+        },
+        {
+            "name": "Run proxy tests",
+            "type": "node",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceRoot}/node_modules/mocha/bin/_mocha",
+            "stopOnEntry": false,
+            "args": ["**/IntegrationTests/*proxyTests.js"],
+            "runtimeExecutable": null,
+            "env": { "NODE_ENV": "production"}
         }
     ]
 }
