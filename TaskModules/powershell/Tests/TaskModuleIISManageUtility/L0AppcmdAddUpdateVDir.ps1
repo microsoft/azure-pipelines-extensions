@@ -88,8 +88,3 @@ Assert-WasCalled Test-VirtualDirectoryExist -Times 1
 Assert-WasCalled Invoke-VstsTool -Times 2
 Assert-WasCalled Invoke-VstsTool -- -FileName "appcmdPath" -Arguments " add vdir /app.name:`"Sample Web Site/MyApp`" /path:`"/MyVDir`" /physicalPath:`"Drive:/Physical Path`"" -RequireExitCodeZero
 Assert-WasCalled Invoke-VstsTool -- -FileName "appcmdPath" -Arguments " set vdir /vdir.name:`"Sample Web Site/MyApp/MyVDir`" -physicalPath:`"Drive:/Physical Path`" -userName: -password:" -RequireExitCodeZero
-
-unRegister-Mock Test-ApplicationExist
-unRegister-Mock Test-Path
-unRegister-Mock Test-VirtualDirectoryExist
-unRegister-Mock Invoke-VstsTool
