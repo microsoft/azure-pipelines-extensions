@@ -73,6 +73,7 @@ describe('Proxy tests', () => {
             processItemsPromise.then((tickets) => {
                 assert.equal(stubProvider.itemsUploaded["Extensions/ArtifactEngine/TestData/Jenkins/file1.pdb"], "dummyFileContent");
                 assert.equal(tickets.find(x => x.artifactItem.path == "Extensions/ArtifactEngine/TestData/Jenkins/file1.pdb").retryCount, 0);
+                proxy.close();
                 done();
             }, (err) => {
                 throw err;
