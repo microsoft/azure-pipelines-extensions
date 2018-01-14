@@ -8,14 +8,15 @@ namespace VstsServerTaskHelper.SampleAzureFunction
 {
     public class SampleTaskExecutionHandler : ITaskExecutionHandler
     {
-        public async Task<ITaskExecutionHandlerResult> ExecuteAsync(ITaskLogger taskLogger, CancellationToken cancellationToken)
+        public Task<ITaskExecutionHandlerResult> ExecuteAsync(ITaskMessage taskMessage, ITaskLogger taskLogger, CancellationToken cancellationToken)
         {
             taskLogger.Log("Inside my sample task execution handler");
 
-            return await Task.FromResult(new TaskExecutionHandlerResult {Result = TaskResult.Succeeded});
+            ITaskExecutionHandlerResult result = new TaskExecutionHandlerResult {Result = TaskResult.Succeeded};
+            return Task.FromResult(result);
         }
 
-        public void CancelAsync(ITaskLogger taskLogger, CancellationToken cancellationToken)
+        public void CancelAsync(ITaskMessage taskMessage, ITaskLogger taskLogger, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
