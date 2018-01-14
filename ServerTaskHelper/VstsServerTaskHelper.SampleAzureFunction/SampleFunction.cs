@@ -17,10 +17,10 @@ namespace VstsServerTaskHelper.SampleAzureFunction
 
             // Get request body
             var myObject = await req.Content.ReadAsAsync<MyObject>();
-
+            var messageBody = await req.Content.ReadAsStringAsync().ConfigureAwait(false);
             var myExecutionHandler = new SampleTaskExecutionHandler();
             req.Headers.Add("TaskInstanceName", "Sample Azure Function");
-            var httpMessageHandler = new AzureFunctionRequestHandler.AzureFunctionRequestHandler(myExecutionHandler, req.Headers);
+            var httpMessageHandler = new AzureFunctionRequestHandler.AzureFunctionRequestHandler(myExecutionHandler, messageBody, req.Headers);
             httpMessageHandler.Execute(CancellationToken.None);
 
             return req.CreateResponse(HttpStatusCode.OK, $"Hello {myObject.Name}");

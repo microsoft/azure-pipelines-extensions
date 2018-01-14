@@ -11,7 +11,7 @@ namespace VstsServerTaskHelper.AzureFunctionRequestHandler
         {
             IDictionary<string, string> taskProperties = new Dictionary<string, string>();
 
-            foreach (var taskProperty in TaskMessage.PropertiesList)
+            foreach (var taskProperty in TaskProperties.PropertiesList)
             {
                 if (requestHeaders.TryGetValues(taskProperty, out var propertyValues))
                 {

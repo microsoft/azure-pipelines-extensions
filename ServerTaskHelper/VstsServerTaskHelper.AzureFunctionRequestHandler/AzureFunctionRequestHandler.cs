@@ -10,22 +10,22 @@ namespace VstsServerTaskHelper.AzureFunctionRequestHandler
     public class AzureFunctionRequestHandler
     {
         private readonly ITaskExecutionHandler taskExecutionHandler;
-        private readonly IDictionary<string, string> taskProperties;
+        private readonly TaskMessage taskMessage;
 
-        public AzureFunctionRequestHandler(ITaskExecutionHandler taskExecutionHandler, HttpRequestHeaders requestHeaders)
-            :this(taskExecutionHandler, requestHeaders.GetTaskPropertiesDictionary())
+        public AzureFunctionRequestHandler(ITaskExecutionHandler taskExecutionHandler, string messageBody, HttpRequestHeaders requestHeaders)
+            :this(taskExecutionHandler, messageBody, requestHeaders.GetTaskPropertiesDictionary())
         {
         }
 
-        public AzureFunctionRequestHandler(ITaskExecutionHandler taskExecutionHandler, IDictionary<string, string> taskProperties)
+        public AzureFunctionRequestHandler(ITaskExecutionHandler taskExecutionHandler, string taskMessageBody, IDictionary<string, string> taskProperties)
         {
             this.taskExecutionHandler = taskExecutionHandler;
-            this.taskProperties = taskProperties;
+            taskMessage = new TaskMessage(taskMessageBody, new TaskProperties(taskProperties));
         }
 
         public void Execute(CancellationToken cancellationToken)
         {
-            var executionHandler = new ExecutionHandler(taskExecutionHandler, taskProperties);
+            var executionHandler = new ExecutionHandler(taskExecutionHandler, taskMessage);
             executionHandler.Execute(cancellationToken);
         }
 

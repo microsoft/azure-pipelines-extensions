@@ -10,28 +10,39 @@ namespace VstsServerTaskHelper.HttpRequestHandler
     public class HttpRequestHandler
     {
         private readonly ITaskExecutionHandler taskExecutionHandler;
-        private readonly IDictionary<string, string> taskProperties;
+        private readonly ITaskMessage taskMessage;
 
-        public HttpRequestHandler(ITaskExecutionHandler taskExecutionHandler, IHeaderDictionary requestHeaders)
-            :this(taskExecutionHandler, requestHeaders.GetTaskPropertiesDictionary())
+        public HttpRequestHandler(ITaskExecutionHandler taskExecutionHandler, string taskMessageBody, IHeaderDictionary requestHeaders)
+            :this(taskExecutionHandler, taskMessageBody, requestHeaders.GetTaskPropertiesDictionary())
         {
         }
 
-        public HttpRequestHandler(ITaskExecutionHandler taskExecutionHandler, IDictionary<string, string> taskProperties)
+        public HttpRequestHandler(ITaskExecutionHandler taskExecutionHandler, string taskMessageBody, IDictionary<string, string> taskProperties)
+            :this(taskExecutionHandler, GetTaskMessage(taskMessageBody, taskProperties))
+        {
+        }
+
+        public HttpRequestHandler(ITaskExecutionHandler taskExecutionHandler, ITaskMessage taskMessage)
         {
             this.taskExecutionHandler = taskExecutionHandler;
-            this.taskProperties = taskProperties;
+            this.taskMessage = taskMessage;
         }
 
         public void Execute(CancellationToken cancellationToken)
         {
-            var executionHandler = new ExecutionHandler(taskExecutionHandler, taskProperties);
+            var executionHandler = new ExecutionHandler(taskExecutionHandler, this.taskMessage);
             executionHandler.Execute(cancellationToken);
         }
 
         public void Cancel(CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
-        }        
+        }
+
+        private static TaskMessage GetTaskMessage(string taskMessageBody, IDictionary<string, string> taskPropertiesDictionary)
+        {
+            var taskProperties = new TaskProperties(taskPropertiesDictionary);
+            return new TaskMessage(taskMessageBody, taskProperties);
+        }
     }
 }

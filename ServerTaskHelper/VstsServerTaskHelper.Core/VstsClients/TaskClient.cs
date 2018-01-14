@@ -4,6 +4,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.TeamFoundation.DistributedTask.WebApi;
+using Microsoft.VisualStudio.Services.Client;
 using Microsoft.VisualStudio.Services.Common;
 using Microsoft.VisualStudio.Services.WebApi;
 
@@ -15,7 +16,8 @@ namespace VstsServerTaskHelper.Core.VstsClients
 
         public TaskClient(Uri baseUrl, VssCredentials credentials)
         {
-            var vssConnection = new VssConnection(baseUrl, credentials);
+            var interactiveCreds = new VssClientCredentials();
+            var vssConnection = new VssConnection(baseUrl, interactiveCreds);
             this.client = vssConnection.GetClient<TaskHttpClient>();
             baseUrl.ToString();
         }
