@@ -12,7 +12,7 @@ namespace VstsServerTaskHelper.HttpRequestHandler
         private readonly ITaskExecutionHandler taskExecutionHandler;
         private readonly ITaskMessage taskMessage;
 
-        public HttpRequestHandler(ITaskExecutionHandler taskExecutionHandler, IHeaderDictionary requestHeaders, string taskMessageBody)
+        public HttpRequestHandler(ITaskExecutionHandler taskExecutionHandler, string taskMessageBody, IHeaderDictionary requestHeaders)
             :this(taskExecutionHandler, taskMessageBody, requestHeaders.GetTaskPropertiesDictionary())
         {
         }
@@ -28,7 +28,7 @@ namespace VstsServerTaskHelper.HttpRequestHandler
             this.taskMessage = taskMessage;
         }
 
-        public async void Execute(CancellationToken cancellationToken)
+        public void Execute(CancellationToken cancellationToken)
         {
             var executionHandler = new ExecutionHandler(taskExecutionHandler, this.taskMessage);
             executionHandler.Execute(cancellationToken);
