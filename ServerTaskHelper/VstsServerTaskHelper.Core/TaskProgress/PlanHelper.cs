@@ -36,8 +36,13 @@ namespace VstsServerTaskHelper.Core.TaskProgress
 
         public async Task UpdateTimelineRecordsAsync(Guid timelineId, TimelineRecord attachmentUpdataRecord, CancellationToken cancellationToken)
         {
-            await taskClient.UpdateTimelineRecordsAsync(this.projectId, this.planType, this.planId, timelineId,
-                new List<TimelineRecord> {attachmentUpdataRecord}, cancellationToken);
+            await UpdateTimelineRecordsAsync(timelineId, new List<TimelineRecord> {attachmentUpdataRecord}, cancellationToken);
+        }
+
+        public async Task UpdateTimelineRecordsAsync(Guid timelineId, List<TimelineRecord> timelineRecords, CancellationToken cancellationToken)
+        {
+            await taskClient.UpdateTimelineRecordsAsync(this.projectId, this.planType, this.planId, timelineId, timelineRecords,
+                cancellationToken);
         }
 
         public async Task AppendTimelineRecordFeedAsync(Guid timelineId, Guid timelineRecordId, IEnumerable<string> lines, CancellationToken cancellationToken)

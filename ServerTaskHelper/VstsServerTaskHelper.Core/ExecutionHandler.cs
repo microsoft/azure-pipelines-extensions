@@ -16,6 +16,7 @@ namespace VstsServerTaskHelper.Core
         private readonly TaskProperties taskProperties;
         private JobStatusReportingHelper jobStatusReportingHelper;
         private TaskLogger taskLogger;
+        private PlanHelper planHelper;
 
         public ExecutionHandler(ITaskExecutionHandler taskExecutionHandler, TaskMessage taskMessage)
         {
@@ -39,7 +40,8 @@ namespace VstsServerTaskHelper.Core
                 await CreateTaskTimelineRecordIfRequired(cancellationToken);
                 // initialize status report helper
                 InitializeJobStatusReportingHelper();
-                InitializeTaskLogger();
+                planHelper = new PlanHelper(taskProperties.PlanUri, new VssBasicCredential(string.Empty, taskProperties.AuthToken), taskProperties.ProjectId, taskProperties.HubName, taskProperties.PlanId);
+                taskLogger = new TaskLogger(planHelper, taskProperties.TimelineId, taskProperties.JobId, taskProperties.TaskInstanceId);
                 // report job started
                 await jobStatusReportingHelper.ReportJobStarted("Job has started", cancellationToken);
                 // start client handler execute
@@ -56,13 +58,6 @@ namespace VstsServerTaskHelper.Core
                 await this.jobStatusReportingHelper.ReportJobCompleted(e.ToString(), taskResult, cancellationToken);
                 throw;
             }
-        }
-
-        private void InitializeTaskLogger()
-        {
-            var planHelper = new PlanHelper(taskProperties.PlanUri, new VssBasicCredential(string.Empty, taskProperties.AuthToken),
-                taskProperties.ProjectId, taskProperties.HubName, taskProperties.PlanId);
-            taskLogger = new TaskLogger(planHelper, taskProperties.TimelineId, taskProperties.JobId, taskProperties.TaskInstanceId);
         }
 
         private void InitializeJobStatusReportingHelper()
@@ -90,22 +85,16 @@ namespace VstsServerTaskHelper.Core
                     State = TimelineRecordState.Pending,
                     ParentId = taskProperties.JobId,
                 };
-                var taskClient = GetTaskClient(taskProperties.PlanUri, taskProperties.AuthToken);
-                await taskClient.UpdateTimelineRecordsAsync(
-                    taskProperties.ProjectId,
-                    taskProperties.HubName,
-                    taskProperties.PlanId,
+                planHelper = new PlanHelper(taskProperties.PlanUri,
+                    new VssBasicCredential(string.Empty, taskProperties.AuthToken), taskProperties.ProjectId,
+                    taskProperties.HubName, taskProperties.PlanId);
+                await planHelper.UpdateTimelineRecordsAsync(
                     taskProperties.TimelineId,
-                    new List<TimelineRecord> {timelineRecord},
+                    timelineRecord,
                     cancellationToken);
 
                 this.taskProperties.TaskInstanceId = timelineRecordId;
             }
-        }
-
-        protected virtual TaskClient GetTaskClient(Uri vstsPlanUrl, string authToken)
-        {
-            return new TaskClient(vstsPlanUrl, new VssBasicCredential(string.Empty, authToken));
         }
     }
 }

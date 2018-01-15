@@ -13,13 +13,14 @@ namespace VstsServerTaskHelper.Core.TaskProgress
     {
         private readonly TaskProperties taskProperties;
         private readonly TaskLogger taskLogger;
+        private readonly PlanHelper planHelper;
 
         public JobStatusReportingHelper(TaskProperties taskProperties)
         {
             this.taskProperties = taskProperties;
             var vssBasicCredential = new VssBasicCredential(string.Empty, taskProperties.AuthToken);
-            var planClient = new PlanHelper(taskProperties.PlanUri, vssBasicCredential, taskProperties.ProjectId, taskProperties.HubName, taskProperties.PlanId);
-            taskLogger = new TaskLogger(planClient, taskProperties.TimelineId, taskProperties.JobId, taskProperties.TaskInstanceId);
+            planHelper = new PlanHelper(taskProperties.PlanUri, vssBasicCredential, taskProperties.ProjectId, taskProperties.HubName, taskProperties.PlanId);
+            taskLogger = new TaskLogger(planHelper, taskProperties.TimelineId, taskProperties.JobId, taskProperties.TaskInstanceId);
         }
 
         public async Task ReportJobAssigned(string message, CancellationToken cancellationToken)
@@ -111,7 +112,7 @@ namespace VstsServerTaskHelper.Core.TaskProgress
                 record.FinishTime = DateTime.UtcNow;
             }
 
-            await taskClient.UpdateTimelineRecordsAsync(projectId, hubName, planId, parentTimelineId, recordsToUpdate, cancellationToken).ConfigureAwait(false);
+            await planHelper.UpdateTimelineRecordsAsync(parentTimelineId, recordsToUpdate, cancellationToken).ConfigureAwait(false);
         }
 
         private List<TimelineRecord> GetTimelineRecordsToUpdate(List<TimelineRecord> records)
