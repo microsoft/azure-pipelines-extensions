@@ -1,9 +1,16 @@
-﻿namespace VstsServerTaskHelper.Core.Request
+﻿using System.Collections.Generic;
+
+namespace VstsServerTaskHelper.Core.Request
 {
     public class TaskMessage
     {
         private readonly string taskMessageBody;
         private readonly TaskProperties taskProperties;
+
+        public TaskMessage(string taskMessageBody, IDictionary<string, string> taskProperties)
+            : this(taskMessageBody, new TaskProperties(taskProperties))
+        {
+        }
 
         public TaskMessage(string taskMessageBody, TaskProperties taskProperties)
         {

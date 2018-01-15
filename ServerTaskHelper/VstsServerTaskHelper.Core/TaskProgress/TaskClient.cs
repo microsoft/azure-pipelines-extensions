@@ -1,72 +1,93 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.TeamFoundation.DistributedTask.WebApi;
-using Microsoft.VisualStudio.Services.Client;
 using Microsoft.VisualStudio.Services.Common;
 using Microsoft.VisualStudio.Services.WebApi;
+using VstsServerTaskHelper.Core.Request;
 
 namespace VstsServerTaskHelper.Core.TaskProgress
 {
-    public class TaskClient 
+    public class TaskClient
     {
-        private readonly TaskHttpClient client;
+        private readonly TaskProperties taskProperties;
+        private readonly TaskLogger taskLogger;
+        private readonly TaskHttpClient taskClient;
 
-        public TaskClient(Uri baseUrl, VssCredentials credentials)
+        public TaskClient(TaskProperties taskProperties, TaskLogger taskLogger)
         {
-            var interactiveCreds = new VssClientCredentials();
-            var vssConnection = new VssConnection(baseUrl, interactiveCreds);
-            this.client = vssConnection.GetClient<TaskHttpClient>();
+            this.taskProperties = taskProperties;
+            this.taskLogger = taskLogger;
+            var vssBasicCredential = new VssBasicCredential(string.Empty, taskProperties.AuthToken);
+            var vssConnection = new VssConnection(taskProperties.PlanUri, vssBasicCredential);
+            taskClient = vssConnection.GetClient<TaskHttpClient>();
         }
 
-        public async Task AppendTimelineRecordFeedAsync(Guid scopeIdentifier, string planType, Guid planId,
-            Guid timelineId, Guid recordId, IEnumerable<string> lines, CancellationToken cancellationToken,
-            object userState)
+        public async Task ReportJobAssigned(string message, CancellationToken cancellationToken)
         {
-            await this.client.AppendTimelineRecordFeedAsync(scopeIdentifier, planType, planId, timelineId, recordId,
-                lines, cancellationToken, userState).ConfigureAwait(false);
+            var startedEvent = new JobAssignedEvent(taskProperties.JobId);
+            await taskClient.RaisePlanEventAsync(taskProperties.ProjectId, this.taskProperties.HubName, this.taskProperties.PlanId, startedEvent, cancellationToken).ConfigureAwait(false);
+            this.taskLogger.Log($"Job started: {message}");
         }
 
-        public virtual async Task RaisePlanEventAsync<T>(Guid scopeIdentifier, string planType, Guid planId, T eventData, CancellationToken cancellationToken, object userState = null) 
-            where T : JobEvent
+        public async Task ReportJobStarted(string message, CancellationToken cancellationToken)
         {
-            await this.client
-                .RaisePlanEventAsync(scopeIdentifier, planType, planId, eventData, cancellationToken, userState)
-                .ConfigureAwait(false);
+            var startedEvent = new JobStartedEvent(this.taskProperties.JobId);
+            await taskClient.RaisePlanEventAsync(this.taskProperties.ProjectId, this.taskProperties.HubName, this.taskProperties.PlanId, startedEvent, cancellationToken).ConfigureAwait(false);
+            this.taskLogger.Log($"Job started: {message}");
         }
 
-        public async Task<List<TimelineRecord>> UpdateTimelineRecordsAsync(Guid scopeIdentifier, string planType, Guid planId, Guid timelineId, IEnumerable<TimelineRecord> records, CancellationToken cancellationToken, object userState = null)
+        public async Task ReportJobProgress(string message, CancellationToken cancellationToken)
         {
-                return await this.client.UpdateTimelineRecordsAsync(scopeIdentifier, planType, planId, timelineId, records, cancellationToken, userState).ConfigureAwait(false);
+            this.taskLogger.Log($"Job running: {message}");
+            // Find all existing timeline records and set them to in progress state
+            var records = await taskClient.GetRecordsAsync(this.taskProperties.ProjectId, this.taskProperties.HubName, this.taskProperties.PlanId, this.taskProperties.TimelineId, userState: null, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var recordsToUpdate = GetTimelineRecordsToUpdate(records);
+            foreach (var record in recordsToUpdate)
+            {
+                record.State = TimelineRecordState.InProgress;
+            }
+
+            await taskClient.UpdateTimelineRecordsAsync(this.taskProperties.ProjectId, this.taskProperties.HubName, this.taskProperties.PlanId, this.taskProperties.TimelineId, recordsToUpdate, cancellationToken).ConfigureAwait(false);
         }
 
-        public async Task<TaskLog> CreateLogAsync(Guid scopeIdentifier, string hubName, Guid planId, TaskLog log, object userState, CancellationToken cancellationToken)
+        public async Task ReportJobCompleted(string message, TaskResult result, CancellationToken cancellationToken)
         {
-            return await this.client.CreateLogAsync(scopeIdentifier, hubName, planId, log, userState, cancellationToken)
-                .ConfigureAwait(false);
+            var completedEvent = new JobCompletedEvent(this.taskProperties.JobId, result);
+            await taskClient.RaisePlanEventAsync(this.taskProperties.ProjectId, this.taskProperties.HubName, this.taskProperties.PlanId, completedEvent, cancellationToken).ConfigureAwait(false);
+
+            // Find all existing timeline records and close them
+            await this.CompleteTimelineRecords(this.taskProperties.ProjectId, this.taskProperties.PlanId, this.taskProperties.HubName, this.taskProperties.TimelineId, result, cancellationToken, taskClient);
         }
 
-        public async Task<List<TimelineRecord>> GetRecordsAsync(Guid scopeIdentifier, string hubName, Guid planId, Guid timelineId, object userState, CancellationToken cancellationToken)
+        public async Task UpdateTimelineRecordsAsync(Guid timelineId, TimelineRecord timelineRecord, CancellationToken cancellationToken)
         {
-            // Retry for exceptions like VssServiceResponseException - Internal server error
-                    var timelineRecords = await this.client.GetRecordsAsync(scopeIdentifier, hubName, planId, timelineId, null, userState, cancellationToken).ConfigureAwait(false);
-
-                    // If it has no time line records then retry the get records async call
-                    if (timelineRecords.Count == 0)
-                    {
-                        throw new NotSupportedException("Having no time line records is not supported");
-                    }
-
-                    return timelineRecords;
+            await taskClient.UpdateTimelineRecordsAsync(this.taskProperties.ProjectId, this.taskProperties.HubName, this.taskProperties.PlanId, timelineId, new List<TimelineRecord> { timelineRecord },
+                cancellationToken);
         }
 
-        public virtual async Task<TaskLog> AppendLogContentAsync(Guid scopeIdentifier, string hubName, Guid planId, int logId, Stream uploadStream, object userState, CancellationToken cancellationToken)
+        private async Task CompleteTimelineRecords(Guid projectId, Guid planId, string hubName, Guid parentTimelineId, TaskResult result, CancellationToken cancellationToken, TaskHttpClient taskClient)
         {
-            return await
-                this.client.AppendLogContentAsync(scopeIdentifier, hubName, planId, logId, uploadStream, userState,
-                    cancellationToken).ConfigureAwait(false);
+            // Find all existing timeline records and close them
+            var records = await taskClient.GetRecordsAsync(projectId, hubName, planId, parentTimelineId, userState: null, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var recordsToUpdate = GetTimelineRecordsToUpdate(records);
+
+            foreach (var record in recordsToUpdate)
+            {
+                record.State = TimelineRecordState.Completed;
+                record.PercentComplete = 100;
+                record.Result = result;
+                record.FinishTime = DateTime.UtcNow;
+            }
+
+            await this.taskClient.UpdateTimelineRecordsAsync(this.taskProperties.ProjectId, this.taskProperties.HubName, this.taskProperties.PlanId, parentTimelineId, recordsToUpdate, cancellationToken).ConfigureAwait(false);
+        }
+
+        private List<TimelineRecord> GetTimelineRecordsToUpdate(List<TimelineRecord> records)
+        {
+            return records.Where(rec => rec.Id == taskProperties.JobId || rec.ParentId == taskProperties.JobId).ToList();
         }
     }
 }

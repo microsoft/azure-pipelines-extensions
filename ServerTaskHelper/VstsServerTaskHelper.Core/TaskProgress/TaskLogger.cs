@@ -3,12 +3,15 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using Microsoft.TeamFoundation.DistributedTask.WebApi;
+using Microsoft.VisualStudio.Services.Common;
+using Microsoft.VisualStudio.Services.WebApi;
+using VstsServerTaskHelper.Core.Request;
 
 namespace VstsServerTaskHelper.Core.TaskProgress
 {
     public class TaskLogger
     {
-        private readonly PlanHelper planHelper;
+        private readonly TaskProperties taskProperties;
         private readonly Guid timelineId;
         private readonly Guid jobId;
         private readonly Guid timelineRecordId;
@@ -20,19 +23,21 @@ namespace VstsServerTaskHelper.Core.TaskProgress
         private readonly string pageId;
         private FileStream pageData;
         private StreamWriter pageWriter;
+        private readonly TaskHttpClient taskClient;
 
         // 8 MB
         private const int PageSize = 8 * 1024 * 1024;
 
-        public TaskLogger(PlanHelper planHelper, Guid timelineId, Guid jobId, Guid timelineRecordId)
+        public TaskLogger(TaskProperties taskProperties, Guid timelineId, Guid jobId, Guid timelineRecordId)
         {
-            this.planHelper = planHelper;
+            this.taskProperties = taskProperties;
             this.timelineId = timelineId;
             this.jobId = jobId;
             this.timelineRecordId = timelineRecordId;
-
-            this.pageId = Guid.NewGuid().ToString();
-            this.pagesFolder = Path.Combine(Path.GetTempPath(), "pages");
+            var vssConnection = new VssConnection(taskProperties.PlanUri, new VssBasicCredential(string.Empty, taskProperties.AuthToken));
+            taskClient = vssConnection.GetClient<TaskHttpClient>();
+            pageId = Guid.NewGuid().ToString();
+            pagesFolder = Path.Combine(Path.GetTempPath(), "pages");
             Directory.CreateDirectory(pagesFolder);
         }
 
@@ -45,7 +50,7 @@ namespace VstsServerTaskHelper.Core.TaskProgress
             }
 
             var line = $"{DateTime.UtcNow:O} {message}";
-            await this.planHelper.AppendTimelineRecordFeedAsync(timelineId, jobId, new List<string> {line}, default(CancellationToken));
+            await taskClient.AppendTimelineRecordFeedAsync(taskProperties.ProjectId, taskProperties.HubName, taskProperties.PlanId, timelineId, jobId, new List<string> {line});
             LogPage(line);
         }
 
@@ -95,17 +100,17 @@ namespace VstsServerTaskHelper.Core.TaskProgress
                 pageWriter.Dispose();
                 pageWriter = null;
                 pageData = null;
-                var taskLog = await planHelper.CreateTaskLog(new TaskLog(string.Format(@"logs\{0:D}", timelineRecordId)), default(CancellationToken)).ConfigureAwait(false);
+                var taskLog = await taskClient.CreateLogAsync(taskProperties.ProjectId, taskProperties.HubName, taskProperties.PlanId, new TaskLog(string.Format(@"logs\{0:D}", timelineRecordId)), default(CancellationToken)).ConfigureAwait(false);
 
                 // Upload the contents
                 using (var fs = File.Open(dataFileName, FileMode.Open, FileAccess.Read, FileShare.Read))
                 {
-                    await planHelper.AppendLogContentAsync(taskLog.Id, fs, default(CancellationToken)).ConfigureAwait(false);
+                    await taskClient.AppendLogContentAsync(taskProperties.ProjectId, taskProperties.HubName, taskProperties.PlanId, taskLog.Id, fs, default(CancellationToken)).ConfigureAwait(false);
                 }
 
                 // Create a new record and only set the Log field
                 var attachmentUpdataRecord = new TimelineRecord { Id = timelineRecordId, Log = taskLog };
-                await planHelper.UpdateTimelineRecordsAsync(timelineId, attachmentUpdataRecord, default(CancellationToken)).ConfigureAwait(false);
+                await taskClient.UpdateTimelineRecordsAsync(taskProperties.ProjectId, taskProperties.HubName, taskProperties.PlanId,timelineId, new List<TimelineRecord>{attachmentUpdataRecord}).ConfigureAwait(false);
             }
         }
     }
