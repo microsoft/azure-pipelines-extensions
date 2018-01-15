@@ -5,5 +5,6 @@ namespace VstsServerTaskHelper.Core.Contracts
     public interface ITaskExecutionHandlerResult
     {
         TaskResult Result { get; set; }
+        string ErrorMessage { get; set; }
     }
 }
