@@ -49,7 +49,7 @@ namespace DistributedTask.ServerTask.Remote.Common
                     // report task completed with status
                     taskLogger.Log("Task completed");
                     await taskClient.ReportTaskCompleted(taskProperties.TaskInstanceId, taskResult, cancellationToken).ConfigureAwait(false);
-                    taskLogger.End();
+                    await taskLogger.End().ConfigureAwait(false);
                     return taskResult;
                 }
                 catch (Exception e)
