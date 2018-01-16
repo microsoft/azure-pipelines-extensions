@@ -2,8 +2,8 @@
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using DistributedTask.ServerTask.Remote.Common;
 using Microsoft.Azure.ServiceBus;
-using VstsServerTaskHelper.Core;
 
 namespace ServiceBusMessageHandler.ServiceBus
 {
@@ -24,7 +24,7 @@ namespace ServiceBusMessageHandler.ServiceBus
             try
             {
                 var executionHandler = new ExecutionHandler(taskExecutionHandler, message.GetBody(), message.GetMyProperties());
-                await executionHandler.Execute(cancellationToken);
+                await executionHandler.Execute(cancellationToken).ConfigureAwait(false);
 
                 await this.queueClient.CompleteAsync(message.GetLockToken()).ConfigureAwait(false);
             }

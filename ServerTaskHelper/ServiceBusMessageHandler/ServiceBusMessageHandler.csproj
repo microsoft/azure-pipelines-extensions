@@ -3,6 +3,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp2.0</TargetFramework>
+    <NoWarn>NU1701</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
@@ -12,11 +13,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\VstsServerTaskHelper.Core\VstsServerTaskHelper.Core.csproj" />
+    <ProjectReference Include="..\DistributedTask.ServerTask.Remote.Common\DistributedTask.ServerTask.Remote.Common.csproj" />
   </ItemGroup>
 
-
-    <ItemGroup>
+  <ItemGroup>
     <None Update="appsettings.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

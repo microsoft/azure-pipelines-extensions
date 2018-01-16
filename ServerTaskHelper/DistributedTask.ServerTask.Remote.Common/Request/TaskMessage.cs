@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace VstsServerTaskHelper.Core.Request
+﻿namespace DistributedTask.ServerTask.Remote.Common.Request
 {
     public class TaskMessage
     {

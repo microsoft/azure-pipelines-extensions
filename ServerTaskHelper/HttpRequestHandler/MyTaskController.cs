@@ -5,8 +5,8 @@ using System.Text;
 using System.Threading;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using VstsServerTaskHelper.Core;
-using VstsServerTaskHelper.Core.Request;
+using DistributedTask.ServerTask.Remote.Common;
+using DistributedTask.ServerTask.Remote.Common.Request;
 
 namespace HttpRequestHandler
 {

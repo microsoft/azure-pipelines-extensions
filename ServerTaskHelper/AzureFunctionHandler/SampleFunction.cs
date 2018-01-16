@@ -5,11 +5,11 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
+using DistributedTask.ServerTask.Remote.Common;
+using DistributedTask.ServerTask.Remote.Common.Request;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Azure.WebJobs.Host;
-using VstsServerTaskHelper.Core;
-using VstsServerTaskHelper.Core.Request;
 
 namespace AzureFunctionHandler
 {
@@ -32,7 +32,7 @@ namespace AzureFunctionHandler
             var executionThread = new Thread(() => executionHandler.Execute(CancellationToken.None));
             executionThread.Start();
 
-            return req.CreateResponse(HttpStatusCode.OK, $"Request accepted!");
+            return req.CreateResponse(HttpStatusCode.OK, "Request accepted!");
         }
 
         private static TaskProperties GetTaskProperties(HttpRequestHeaders requestHeaders)

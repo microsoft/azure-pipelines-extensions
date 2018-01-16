@@ -7,7 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HttpRequestHandler", "HttpR
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AzureFunctionHandler", "AzureFunctionHandler\AzureFunctionHandler.csproj", "{A91F47E2-4994-4D09-AE14-D521ABE92860}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VstsServerTaskHelper.Core", "VstsServerTaskHelper.Core\VstsServerTaskHelper.Core.csproj", "{82D9ED05-1CBA-4490-9946-541458AD8FC0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DistributedTask.ServerTask.Remote.Common", "DistributedTask.ServerTask.Remote.Common\DistributedTask.ServerTask.Remote.Common.csproj", "{82D9ED05-1CBA-4490-9946-541458AD8FC0}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceBusMessageHandler", "ServiceBusMessageHandler\ServiceBusMessageHandler.csproj", "{06D6287B-F6E6-4483-BFED-DAC11F65110E}"
 EndProject
