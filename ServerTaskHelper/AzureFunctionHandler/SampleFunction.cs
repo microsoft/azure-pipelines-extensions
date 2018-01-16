@@ -24,12 +24,11 @@ namespace AzureFunctionHandler
             // Since we expect all the VSTS properties to be in the request headers, fetch them from the headers
             //
             var taskProperties = GetTaskProperties(req.Headers);
-            var taskMessage = new TaskMessage(messageBody, taskProperties);
 
             // Create my own task execution handler. You should replace it with your task execution handler. 
             ITaskExecutionHandler myTaskExecutionHandler = new MyTaskExecutionHandler();
 
-            var executionHandler = new ExecutionHandler(myTaskExecutionHandler, taskMessage);
+            var executionHandler = new ExecutionHandler(myTaskExecutionHandler, messageBody, taskProperties);
             var executionThread = new Thread(() => executionHandler.Execute(CancellationToken.None));
             executionThread.Start();
 

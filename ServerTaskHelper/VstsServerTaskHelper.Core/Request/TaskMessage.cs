@@ -1,4 +1,6 @@
-﻿namespace VstsServerTaskHelper.Core.Request
+﻿using System.Collections.Generic;
+
+namespace VstsServerTaskHelper.Core.Request
 {
     public class TaskMessage
     {
