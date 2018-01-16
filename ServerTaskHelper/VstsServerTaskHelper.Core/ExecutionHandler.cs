@@ -17,14 +17,15 @@ namespace VstsServerTaskHelper.Core
         private TaskLogger taskLogger;
 
         public ExecutionHandler(ITaskExecutionHandler taskExecutionHandler, string taskMessageBody, IDictionary<string, string> taskProperties)
-            :this(taskExecutionHandler, new TaskMessage(taskMessageBody, taskProperties))
+            :this(taskExecutionHandler, taskMessageBody, new TaskProperties(taskProperties))
         {
         }
 
-        public ExecutionHandler(ITaskExecutionHandler taskExecutionHandler, TaskMessage taskMessage)
+        public ExecutionHandler(ITaskExecutionHandler taskExecutionHandler, string taskMessageBody, TaskProperties taskProperties)
         {
             this.taskExecutionHandler = taskExecutionHandler;
-            this.taskMessage = taskMessage;
+            this.taskProperties = taskProperties;
+            taskMessage = new TaskMessage(taskMessageBody, taskProperties);
         }
 
         public async Task<TaskResult> Execute(CancellationToken cancellationToken)
@@ -34,7 +35,7 @@ namespace VstsServerTaskHelper.Core
             {
                 // create timelinerecord if not provided
                 await CreateTaskTimelineRecordIfRequired(cancellationToken);
-                taskLogger = new TaskLogger(taskProperties, taskProperties.TimelineId, taskProperties.JobId, taskProperties.TaskInstanceId);
+                taskLogger = new TaskLogger(taskProperties);
                 // initialize status report helper
                 taskClientHelper = new TaskClient(taskProperties, taskLogger);
 
@@ -78,10 +79,7 @@ namespace VstsServerTaskHelper.Core
                     ParentId = taskProperties.JobId,
                 };
                 taskClientHelper = new TaskClient(taskProperties, taskLogger);
-                await taskClientHelper.UpdateTimelineRecordsAsync(
-                    taskProperties.TimelineId,
-                    timelineRecord,
-                    cancellationToken);
+                await taskClientHelper.UpdateTimelineRecordsAsync(timelineRecord, cancellationToken);
 
                 taskProperties.TaskInstanceId = timelineRecordId;
             }

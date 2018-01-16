@@ -62,9 +62,9 @@ namespace VstsServerTaskHelper.Core.TaskProgress
             await this.CompleteTimelineRecords(this.taskProperties.ProjectId, this.taskProperties.PlanId, this.taskProperties.HubName, this.taskProperties.TimelineId, result, cancellationToken, taskClient);
         }
 
-        public async Task UpdateTimelineRecordsAsync(Guid timelineId, TimelineRecord timelineRecord, CancellationToken cancellationToken)
+        public async Task UpdateTimelineRecordsAsync(TimelineRecord timelineRecord, CancellationToken cancellationToken)
         {
-            await taskClient.UpdateTimelineRecordsAsync(this.taskProperties.ProjectId, this.taskProperties.HubName, this.taskProperties.PlanId, timelineId, new List<TimelineRecord> { timelineRecord },
+            await taskClient.UpdateTimelineRecordsAsync(this.taskProperties.ProjectId, this.taskProperties.HubName, this.taskProperties.PlanId, this.taskProperties.TimelineId, new List<TimelineRecord> { timelineRecord },
                 cancellationToken);
         }
 
