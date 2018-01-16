@@ -13,7 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\VstsServerTaskHelper.Core\VstsServerTaskHelper.Core.csproj" />
+    <ProjectReference Include="..\DistributedTask.ServerTask.Remote.Common\DistributedTask.ServerTask.Remote.Common.csproj" />
   </ItemGroup>
 
 </Project>

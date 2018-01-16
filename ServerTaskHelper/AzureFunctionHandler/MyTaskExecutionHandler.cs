@@ -1,10 +1,10 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
+using DistributedTask.ServerTask.Remote.Common;
+using DistributedTask.ServerTask.Remote.Common.Request;
+using DistributedTask.ServerTask.Remote.Common.TaskProgress;
 using Microsoft.TeamFoundation.DistributedTask.WebApi;
 using Newtonsoft.Json;
-using VstsServerTaskHelper.Core;
-using VstsServerTaskHelper.Core.Request;
-using VstsServerTaskHelper.Core.TaskProgress;
 
 namespace AzureFunctionHandler
 {

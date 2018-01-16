@@ -2,7 +2,8 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <RootNamespace>VstsServerTaskHelper.Core</RootNamespace>
+    <RootNamespace>DistributedTask.ServerTask.Remote.Common</RootNamespace>
+    <NoWarn>NU1701</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

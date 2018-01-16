@@ -1,4 +1,4 @@
-namespace VstsServerTaskHelper.Core.Request
+namespace DistributedTask.ServerTask.Remote.Common.Request
 {
     public enum RequestType
     {

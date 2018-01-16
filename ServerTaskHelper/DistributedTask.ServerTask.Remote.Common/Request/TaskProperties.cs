@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace VstsServerTaskHelper.Core.Request
+namespace DistributedTask.ServerTask.Remote.Common.Request
 {
     public class TaskProperties
     {
