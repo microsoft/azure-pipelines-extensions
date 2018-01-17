@@ -13,6 +13,34 @@ param
     [string] $environmentName = "AzureCloud"
 )
 
+function Get-AzureCmdletsVersion
+{
+    $module = Get-Module AzureRM -ListAvailable
+    if($module)
+    {
+        return ($module).Version
+    }
+    return (Get-Module Azure -ListAvailable).Version
+}
+
+function Get-Password
+{
+    $currentAzurePSVersion = Get-AzureCmdletsVersion
+    $azureVersion511 = New-Object System.Version(5, 1, 1)
+
+    if($currentAzurePSVersion -and $currentAzurePSVersion -ge $azureVersion511)
+    {
+        return $password
+    }
+    else
+    {
+        $basicPassword = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($password)
+        $plainPassword = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($basicPassword)
+
+        return $plainPassword
+    }
+}
+
 #Initialize
 $ErrorActionPreference = "Stop"
 $VerbosePreference = "SilentlyContinue"
@@ -42,6 +70,7 @@ $id = $azureSubscription.SubscriptionId
 
 #Create a new AD Application
 Write-Output "Creating a new Application in AAD (App URI - $identifierUri)" -Verbose
+$password = Get-Password
 $azureAdApplication = New-AzureRmADApplication -DisplayName $displayName -HomePage $homePage -IdentifierUris $identifierUri -Password $password -Verbose
 $appId = $azureAdApplication.ApplicationId
 Write-Output "Azure AAD Application creation completed successfully (Application Id: $appId)" -Verbose
