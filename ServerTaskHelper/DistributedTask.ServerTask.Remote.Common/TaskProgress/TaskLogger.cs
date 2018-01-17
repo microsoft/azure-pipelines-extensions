@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
 using DistributedTask.ServerTask.Remote.Common.Request;
 using Microsoft.TeamFoundation.DistributedTask.WebApi;
 
@@ -42,12 +43,12 @@ namespace DistributedTask.ServerTask.Remote.Common.TaskProgress
 
             var line = $"{DateTime.UtcNow:O} {message}";
             await taskClient.AppendTimelineRecordFeedAsync(new List<string> {line}).ConfigureAwait(false);
-            LogPage(line);
+            await LogPage(line).ConfigureAwait(false);
         }
 
-        public void End()
+        public async Task End()
         {
-            EndPage();
+            await EndPage().ConfigureAwait(false);
         }
 
         //
@@ -56,12 +57,12 @@ namespace DistributedTask.ServerTask.Remote.Common.TaskProgress
         // and the consumer queues it for upload
         // Ensure this is lazy.  Create a page on first write
         //
-        private void LogPage(string message)
+        private async Task LogPage(string message)
         {
             // lazy creation on write
             if (pageWriter == null)
             {
-                NewPage();
+                await NewPage().ConfigureAwait(false);
             }
 
             var line = $"{DateTime.UtcNow:O} {message}";
@@ -69,20 +70,20 @@ namespace DistributedTask.ServerTask.Remote.Common.TaskProgress
             byteCount += System.Text.Encoding.UTF8.GetByteCount(line);
             if (byteCount >= PageSize)
             {
-                NewPage();
+                await NewPage().ConfigureAwait(false);
             }
         }
 
-        private void NewPage()
+        private async Task NewPage()
         {
-            EndPage();
+            await EndPage().ConfigureAwait(false);
             byteCount = 0;
             dataFileName = Path.Combine(pagesFolder, $"{pageId}_{++pageCount}.log");
             pageData = new FileStream(dataFileName, FileMode.CreateNew);
             pageWriter = new StreamWriter(pageData, System.Text.Encoding.UTF8);
         }
 
-        private async void EndPage()
+        private async Task EndPage()
         {
             if (pageWriter != null)
             {
