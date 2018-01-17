@@ -48,7 +48,10 @@ namespace DistributedTask.ServerTask.Remote.Common.TaskProgress
 
         public async Task ReportTaskCompleted(Guid taskId, TaskResult result, CancellationToken cancellationToken)
         {
-            var completedEvent = new TaskCompletedEvent(this.taskProperties.JobId, taskId, result);
+            var jobId = this.taskProperties.HubName.Equals("Gates", StringComparison.OrdinalIgnoreCase)
+                ? taskId
+                : this.taskProperties.JobId;
+            var completedEvent = new TaskCompletedEvent(jobId, taskId, result);
             await taskClient.RaisePlanEventAsync(this.taskProperties.ProjectId, this.taskProperties.HubName, this.taskProperties.PlanId, completedEvent, cancellationToken).ConfigureAwait(false);
         }
 
