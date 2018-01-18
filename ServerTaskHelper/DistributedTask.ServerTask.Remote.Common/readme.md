@@ -28,3 +28,5 @@ Important classes in this project:
 |TaskLogger|Is supplied to task execution handler, can be used to log messages to server.|
 |TaskProperties|Ensures all required task properties are available| 
 |TaskClient|Used by ExecutionHandler to send task status updates|
+
+Nuget package of this library is available [here](https://1essharedassets.visualstudio.com/1esPkgs/_packaging?feed=vsts_rm_extensions&_a=feed)
