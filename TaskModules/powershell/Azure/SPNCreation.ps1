@@ -36,6 +36,7 @@ function Get-Password
     {
         $basicPassword = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($password)
         $plainPassword = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($basicPassword)
+        [System.Runtime.InteropServices.Marshal]::ZeroFreeBSTR($basicPassword)
 
         return $plainPassword
     }
