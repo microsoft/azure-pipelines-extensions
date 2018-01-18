@@ -20,7 +20,7 @@
 Please refer to [HttpRequestHandler](https://github.com/Microsoft/vsts-rm-extensions/tree/master/ServerTaskHelper/HttpRequestHandler), [ServiceBusMessageHandler](https://github.com/Microsoft/vsts-rm-extensions/tree/master/ServerTaskHelper/ServiceBusMessageHandler) and [AzureFunctionHandler](https://github.com/Microsoft/vsts-rm-extensions/tree/master/ServerTaskHelper/AzureFunctionHandler) to understand more.
 
 Important classes in this project:
-|Class|Responsibility|
+|Class|Description|
 |:----:|----|
 |ExecutionHandler|Is the core class, sends task status updates, invokes ITaskExecutionHandler Execute/Cancel|
 |ITaskExecutionHandler|ExecutionHandler invokes Execute/Cancel methods of this interface. Implement this interface with your execution logic and provide it to ExecutionHandler.|
