@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -10,14 +12,20 @@ using DistributedTask.ServerTask.Remote.Common.Request;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Azure.WebJobs.Host;
+using Microsoft.VisualStudio.Services.Common;
+using Microsoft.VisualStudio.Services.Identity;
 
 namespace AzureFunctionHandler
 {
     public static class MyFunction
     {
         [FunctionName("MyFunction")]
-        public static async Task<HttpResponseMessage> Run([HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)]HttpRequestMessage req, TraceWriter log)
+        public static async Task<HttpResponseMessage> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)]HttpRequestMessage req, TraceWriter log)
         {
+            TypeDescriptor.AddAttributes(typeof(IdentityDescriptor), new TypeConverterAttribute(typeof(IdentityDescriptorConverter).FullName));
+            TypeDescriptor.AddAttributes(typeof(SubjectDescriptor), new TypeConverterAttribute(typeof(SubjectDescriptorConverter).FullName));
+            AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
+
             // Get request body
             var messageBody = await req.Content.ReadAsStringAsync().ConfigureAwait(false);
 
@@ -48,6 +56,15 @@ namespace AzureFunctionHandler
             }
 
             return new TaskProperties(taskProperties);
+        }
+
+        private static System.Reflection.Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
+        {
+            if (args.Name.StartsWith("Microsoft.VisualStudio.Services.WebApi"))
+            {
+                return typeof(IdentityDescriptor).Assembly;
+            }
+            return null;
         }
     }
 }
