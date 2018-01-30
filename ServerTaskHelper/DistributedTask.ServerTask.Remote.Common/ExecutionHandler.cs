@@ -76,22 +76,22 @@ namespace DistributedTask.ServerTask.Remote.Common
         {
             if (taskProperties.TaskInstanceId.Equals(Guid.Empty))
             {
-                var timelineRecordId = Guid.NewGuid();
-                var timelineRecord = new TimelineRecord
-                {
-                    Id = timelineRecordId,
-                    RecordType = "task",
-                    Name = taskProperties.TaskInstanceName,
-                    Order = 1,
-                    StartTime = DateTime.UtcNow,
-                    State = TimelineRecordState.Pending,
-                    ParentId = taskProperties.JobId,
-                };
-
-                await taskClient.UpdateTimelineRecordsAsync(timelineRecord, cancellationToken).ConfigureAwait(false);
-
-                taskProperties.TaskInstanceId = timelineRecordId;
+                taskProperties.TaskInstanceId = Guid.NewGuid();
             }
+
+            var timelineRecord = new TimelineRecord
+            {
+                Id = taskProperties.TaskInstanceId,
+                RecordType = "task",
+                Name = taskProperties.TaskInstanceName,
+                Order = 1,
+                StartTime = DateTime.UtcNow,
+                State = TimelineRecordState.Pending,
+                ParentId = taskProperties.JobId,
+            };
+
+            // this is an upsert call
+            await taskClient.UpdateTimelineRecordsAsync(timelineRecord, cancellationToken).ConfigureAwait(false);
         }
     }
 }
