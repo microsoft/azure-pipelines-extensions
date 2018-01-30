@@ -666,10 +666,11 @@ function Add-And-Update-VirtualDirectory
     if($splittedVirtualPath.Count -gt 2) 
     {
         $app = $splittedVirtualPath[1]
-        $applicationName = "$siteName/$app"
-        $virtualPath = $virtualPath.trimStart("/$app")
-        $virtualPath = "/$virtualPath"
-        $virtualDirectoryName = "$applicationName$virtualPath"
+        if (Test-ApplicationExist -applicationName "$siteName/$app") {
+            $applicationName = "$siteName/$app"
+            $virtualPath = $virtualPath.Substring("/$app".Length)
+            $virtualDirectoryName = "$applicationName$virtualPath"
+        }
     }
     
     Write-Verbose "applicationName = $applicationName"
