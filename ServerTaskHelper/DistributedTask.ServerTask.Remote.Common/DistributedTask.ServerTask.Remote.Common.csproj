@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <RootNamespace>DistributedTask.ServerTask.Remote.Common</RootNamespace>
+    <NoWarn>NU1701</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.TeamFoundation.DistributedTask.WebApi" Version="15.122.1-preview" />
+    <PackageReference Include="Microsoft.VisualStudio.Services.Client" Version="15.126.0-preview" />
+    <PackageReference Include="Microsoft.VisualStudio.Services.DistributedTask.Client" Version="15.112.1-preview" />
+    <PackageReference Include="Microsoft.VisualStudio.Services.InteractiveClient" Version="15.126.0-preview" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Microsoft.AspNetCore.Http.Features">
+      <HintPath>C:\Program Files\dotnet\sdk\NuGetFallbackFolder\microsoft.aspnetcore.http.features\2.0.1\lib\netstandard2.0\Microsoft.AspNetCore.Http.Features.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>

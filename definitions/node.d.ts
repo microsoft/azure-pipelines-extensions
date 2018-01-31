@@ -1093,6 +1093,7 @@ declare module "fs" {
     }
 
     export interface ReadStream extends stream.Readable {
+        bytesRead;
         close(): void;
     }
     export interface WriteStream extends stream.Writable {

@@ -6,6 +6,8 @@ import * as models from '../Models';
 import { Logger } from '../Engine/logger';
 import { ArtifactItemStore } from '../Store/artifactItemStore';
 
+var tl = require('vsts-task-lib');
+
 export class FilesystemProvider implements models.IArtifactProvider {
 
     public artifactItemStore: ArtifactItemStore;
@@ -51,9 +53,7 @@ export class FilesystemProvider implements models.IArtifactProvider {
             // create parent folder if it has not already been created
             const folder = path.dirname(outputFilename);
             try {
-                this.ensureDirectoryExistence(folder);
-
-
+                tl.mkdirP(folder);
                 Logger.logMessage('Downloading ' + item.path + ' to ' + outputFilename);
                 const outputStream = fs.createWriteStream(outputFilename);
                 stream.pipe(outputStream);
@@ -65,8 +65,6 @@ export class FilesystemProvider implements models.IArtifactProvider {
                         }
 
                         item.metadata[models.Constants.DestinationUrlKey] = outputFilename;
-
-                        resolve(item);
                     });
                 stream.on("error",
                     (error) => {
@@ -74,6 +72,7 @@ export class FilesystemProvider implements models.IArtifactProvider {
                     });
                 outputStream.on("finish", () => {
                     this.artifactItemStore.updateFileSize(item, outputStream.bytesWritten);
+                    resolve(item);
                 });
             }
             catch (err) {
@@ -126,19 +125,5 @@ export class FilesystemProvider implements models.IArtifactProvider {
         return promise;
     }
 
-    private ensureDirectoryExistence(folder) {
-        if (!this._createdFolders.hasOwnProperty(folder)) {
-            var dirName: string = path.dirname(folder);
-            if (fs.existsSync(folder)) {
-                return;
-            }
-
-            this.ensureDirectoryExistence(dirName);
-            fs.mkdirSync(folder);
-            this._createdFolders[folder] = true;
-        }
-    }
-
     private _rootLocation: string;
-    private _createdFolders: { [key: string]: boolean } = {};
 }

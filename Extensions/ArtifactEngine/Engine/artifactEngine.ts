@@ -94,10 +94,10 @@ export class ArtifactEngine {
                             this.artifactItemStore.updateState(item, models.TicketState.Processed);
                             resolve();
                         }, (err) => {
-                            retryIfRequired("Error putting file " + item.path + ":" + err);
+                            retryIfRequired("Error placing file " + item.path + ": " + err);
                         });
                 }, (err) => {
-                    retryIfRequired("Error getting file " + item.path + ":" + err);
+                    retryIfRequired("Error getting file " + item.path + ": " + err);
                 });
             }
             else {

@@ -10,9 +10,14 @@ import * as engine from '../Engine';
 import * as models from '../Models';
 
 mockery.registerMock('fs', {
+    statSync: () => {
+        return {
+            isDirectory : () => true
+        }
+    },
     createWriteStream: (a) => {
         var mockedStream = stream.Writable();
-        mockedStream._write = () => { };
+        mockedStream._write = (data, encoding, callback) => { callback(); };
         return mockedStream;
     },
     existsSync: () => true,
