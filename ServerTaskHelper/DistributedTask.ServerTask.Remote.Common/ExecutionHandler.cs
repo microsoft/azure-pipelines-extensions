@@ -39,7 +39,7 @@ namespace DistributedTask.ServerTask.Remote.Common
                     taskLogger = new TaskLogger(taskProperties, taskClient);
 
                     // report task started
-                    taskLogger.Log("Task started");
+                    await taskLogger.Log("Task started").ConfigureAwait(false);
                     await taskClient.ReportTaskStarted(taskProperties.TaskInstanceId, cancellationToken).ConfigureAwait(false);
                     // start client handler execute
                     var executeTask = taskExecutionHandler.ExecuteAsync(taskMessage, taskLogger, cancellationToken).ConfigureAwait(false);
@@ -47,14 +47,18 @@ namespace DistributedTask.ServerTask.Remote.Common
                     taskResult = await executeTask;
 
                     // report task completed with status
-                    taskLogger.Log("Task completed");
+                    await taskLogger.Log("Task completed").ConfigureAwait(false);
                     await taskClient.ReportTaskCompleted(taskProperties.TaskInstanceId, taskResult, cancellationToken).ConfigureAwait(false);
                     await taskLogger.End().ConfigureAwait(false);
                     return taskResult;
                 }
                 catch (Exception e)
                 {
-                    taskLogger?.Log(e.ToString());
+                    if (taskLogger != null)
+                    {
+                        await taskLogger.Log(e.ToString()).ConfigureAwait(false);
+                    }
+
                     await taskClient.ReportTaskCompleted(taskProperties.TaskInstanceId, taskResult, cancellationToken).ConfigureAwait(false);
                     throw;
                 }
@@ -63,7 +67,7 @@ namespace DistributedTask.ServerTask.Remote.Common
 
         public async Task Cancel(CancellationToken cancellationToken)
         {
-            taskLogger.Log("Canceling task ...");
+            await taskLogger.Log("Canceling task ...").ConfigureAwait(false);
             using (var taskClient = new TaskClient(taskProperties))
             {
                 taskLogger = new TaskLogger(taskProperties, taskClient);
