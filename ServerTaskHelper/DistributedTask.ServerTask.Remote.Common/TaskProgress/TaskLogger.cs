@@ -33,7 +33,7 @@ namespace DistributedTask.ServerTask.Remote.Common.TaskProgress
             Directory.CreateDirectory(pagesFolder);
         }
 
-        public async void Log(string message)
+        public async Task Log(string message)
         {
             if (!string.IsNullOrEmpty(message) && message.Length > 1024)
             {
@@ -65,9 +65,8 @@ namespace DistributedTask.ServerTask.Remote.Common.TaskProgress
                 await NewPage().ConfigureAwait(false);
             }
 
-            var line = $"{DateTime.UtcNow:O} {message}";
-            pageWriter.WriteLine(line);
-            byteCount += System.Text.Encoding.UTF8.GetByteCount(line);
+            pageWriter.WriteLine(message);
+            byteCount += System.Text.Encoding.UTF8.GetByteCount(message);
             if (byteCount >= PageSize)
             {
                 await NewPage().ConfigureAwait(false);
