@@ -11,12 +11,13 @@
 		"Release"
 	],
 	"runsOn": [
-		"Server"
+		"Server",
+		"ServerGate"
 	],
 	"version": {
 		"Major": 0,
 		"Minor": 0,
-		"Patch": 2
+		"Patch": 3
 	},
 	"instanceNameFormat": "Twitter Sentiment Analysis",
 	"groups": [
@@ -83,12 +84,26 @@
 			"helpMarkDown": "Specify access key for Text Analytics API. To keep the key secure, define a secret variable and use it here. Follow this [guide](https://docs.microsoft.com/en-in/azure/cognitive-services/text-analytics/how-tos/text-analytics-how-to-access-key) to obtain a cognitive service access key."
 		}, {
 			"name": "cognitiveServicesEndpointRegion",
-			"type": "string",
+			"type": "pickList",
 			"label": "Cognitive services endpoint region",
 			"defaultValue": "",
+			"options": {
+				"westus": "West US",
+				"westus2": "West US 2",
+				"eastus": "East US",
+				"eastus2": "East US 2",
+				"westcentralus": "West Central US",
+				"southcentralus": "South Central US",
+				"westeurope": "West Europe",
+				"northeurope": "North Europe",
+				"southeastasia": "Southeast Asia",
+				"eastasia": "East Asia",
+				"australiaeast": "Australia East",
+				"brazilsouth": "Brazil South"
+			},
 			"required": true,
 			"groupName": "cognitiveServiceInputs",
-			"helpMarkDown": "Specify the region corresponding to the Text Analytics API endpoint. For example, Region is 'westus' for cognitive service endpoint https://westus.api.conginitve.microsoft.com/text/analytics/v2.0."
+			"helpMarkDown": "Specify the region corresponding to the Text Analytics API endpoint."
 		}, {
 			"name": "analyzeTweetsSince",
 			"type": "string",
@@ -96,7 +111,7 @@
 			"defaultValue": "$(Release.Deployment.StartTime)",
 			"required": true,
 			"groupName": "advanced",
-			"helpMarkDown": "Analyze the tweets made after this time. By default, uses $(Release.Deployment.StartTime) and analyzes the tweets made after start of the deployment."
+			"helpMarkDown": "Analyze the tweets made after this time. By default, uses $(Release.Deployment.StartTime) and analyzes the tweets made after start of the deployment. Date and time should be in UTC and format should be yyyy-MM-ddTHH:mm:ssZ. eg. 2018-01-31T07:56:59Z"
 		}, {
 			"name": "threshold",
 			"type": "string",
@@ -104,7 +119,7 @@
 			"defaultValue": "0.5",
 			"required": true,
 			"groupName": "advanced",
-			"helpMarkDown": "Threshold value for average sentiment of the tweets analyzed. If the average sentiment score is less than the threshold, task will fail. Default value is 0.5."
+			"helpMarkDown": "Threshold value for average sentiment of the tweets analyzed. If the average sentiment score is less than the threshold, task will fail. Default value is 0.5. Threshold should be between 0 and 1."
 		}
 	],
 
