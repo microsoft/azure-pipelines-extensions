@@ -37,7 +37,7 @@ public static SentimentScore Run(TaskData req, TraceWriter log)
     hashTag = hashTag.Trim();
     if (hashTag[0] != '#')
     {
-		hashTag = string.Format("{0}{1}", "#", hashTag, CultureInfo.InvariantCulture);
+		hashTag = string.Format(CultureInfo.InvariantCulture, "{0}{1}", "#", hashTag);
     }
 			
     int max_tweets = 100;

@@ -46,7 +46,7 @@ Installing the extension adds the following 'Get Twitter Sentiment' gate and age
 
  - **Analyze tweets since**:  Analyze the tweets made after this time. By default, uses $(Release.Deployment.StartTime) and analyzes the tweets made after start of the deployment. Date and time should be in UTC and format should be yyyy-MM-ddTHH:mm:ssZ. eg. 2018-01-31T07:56:59Z
 
- - **Threshold**: Threshold value for average sentiment of the tweets analyzed. If the average sentiment score is less than the threshold, task will fail. Default value is 0.5. Threshold should be in between 0 and 1.
+ - **Threshold**: Threshold value for average sentiment of the tweets analyzed. If the average sentiment score is less than the threshold, task will fail. Default value is 0.5. Threshold should be between 0 and 1.
 
 ## Contact Information
 You can use [RM Extensions on Github](https://github.com/Microsoft/vsts-rm-extensions/issues) to report any issues.

@@ -119,7 +119,7 @@
 			"defaultValue": "0.5",
 			"required": true,
 			"groupName": "advanced",
-			"helpMarkDown": "Threshold value for average sentiment of the tweets analyzed. If the average sentiment score is less than the threshold, task will fail. Default value is 0.5. Threshold should be in between 0 and 1."
+			"helpMarkDown": "Threshold value for average sentiment of the tweets analyzed. If the average sentiment score is less than the threshold, task will fail. Default value is 0.5. Threshold should be between 0 and 1."
 		}
 	],
 
