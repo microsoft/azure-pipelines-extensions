@@ -54,12 +54,12 @@ export class FilesystemProvider implements models.IArtifactProvider {
             const folder = path.dirname(outputFilename);
             try {
                 tl.mkdirP(folder);
-                Logger.logMessage('Downloading ' + item.path + ' to ' + outputFilename);
+                Logger.logMessage(tl.loc("DownloadingTo", item.path, outputFilename));
                 const outputStream = fs.createWriteStream(outputFilename);
                 stream.pipe(outputStream);
                 stream.on("end",
                     () => {
-                        Logger.logMessage(`Downloaded '${item.path}' to '${outputFilename}'`);
+                        Logger.logMessage(tl.loc("DownloadedTo", item.path, outputFilename));
                         if (!item.metadata) {
                             item.metadata = {};
                         }
@@ -89,7 +89,7 @@ export class FilesystemProvider implements models.IArtifactProvider {
             var items: models.ArtifactItem[] = [];
             fs.readdir(itemsPath, (error, files) => {
                 if (!!error) {
-                    Logger.logMessage("Unable to read directory " + itemsPath + ". Error: " + error);
+                    Logger.logError(tl.loc("UnableToReadDirectory", itemsPath, error));
                     reject(error);
                     return;
                 }

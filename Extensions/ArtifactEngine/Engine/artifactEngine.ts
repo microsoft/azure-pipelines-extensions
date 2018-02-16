@@ -15,6 +15,8 @@ import { TicketState } from '../Models/ticketState';
 export class ArtifactEngine {
     processItems(sourceProvider: models.IArtifactProvider, destProvider: models.IArtifactProvider, artifactEngineOptions?: ArtifactEngineOptions): Promise<models.ArtifactDownloadTicket[]> {
         var artifactDownloadTicketsPromise = new Promise<models.ArtifactDownloadTicket[]>((resolve, reject) => {
+            tl.setResourcePath(path.join(path.dirname(__dirname), 'lib.json'));
+            
             const workers: Promise<void>[] = [];
             artifactEngineOptions = artifactEngineOptions || new ArtifactEngineOptions();
             this.createPatternList(artifactEngineOptions);
@@ -78,7 +80,7 @@ export class ArtifactEngine {
             } else {
                 Logger.logMessage(err);
                 this.artifactItemStore.increaseRetryCount(item);
-                Logger.logMessage("Retrying download of " + item.path + ", retry count: " + (retryCount + 1));
+                Logger.logMessage(tl.loc("RetryingDownload", item.path, (retryCount + 1)));
                 setTimeout(() => this
                     .processArtifactItemImplementation(sourceProvider, item, destProvider, artifactEngineOptions, resolve, reject, retryCount + 1), artifactEngineOptions.retryIntervalInSeconds * 1000);
             }
@@ -101,7 +103,7 @@ export class ArtifactEngine {
                 });
             }
             else {
-                Logger.logMessage("Skipped processing item " + item.path);
+                Logger.logMessage(tl.loc("SkippingItem", item.path));
                 this.artifactItemStore.updateState(item, models.TicketState.Skipped);
                 resolve();
             }
@@ -143,12 +145,12 @@ export class ArtifactEngine {
 
 process.on('unhandledRejection', (err) => {
     ci.publishEvent('reliability', <ci.IReliabilityData>{ issueType: 'unhandledRejection', errorMessage: JSON.stringify(err, Object.getOwnPropertyNames(err)) });
-    Logger.logError("artifact-engine: unhandled rejection " + err);
+    Logger.logError(tl.loc("UnhandledRejection", err));
     throw err;
 });
 
 process.on('uncaughtException', (err) => {
     ci.publishEvent('reliability', <ci.IReliabilityData>{ issueType: 'uncaughtException', errorMessage: JSON.stringify(err, Object.getOwnPropertyNames(err)) });
-    Logger.logError("artifact-engine: unhandled exception " + err);
+    Logger.logError(tl.loc("UnhandledException", err));
     throw err;
 });
