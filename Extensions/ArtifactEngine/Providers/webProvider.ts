@@ -104,7 +104,7 @@ export class WebProvider implements models.IArtifactProvider {
 
                             resolve(items);
                         } catch (error) {
-                            Logger.logError(tl.loc("FailedToParseResponse", body, error));
+                            Logger.logMessage(tl.loc("FailedToParseResponse", body, error));
                             reject(error);
                         }
                     });

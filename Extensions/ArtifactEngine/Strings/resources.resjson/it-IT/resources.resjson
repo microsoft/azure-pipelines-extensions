@@ -1,6 +1,6 @@
 {
   "loc.messages.DownloadSummary": "Total Files: %s, Processed: %s, Skipped: %s, Failed: %s, Download time: %s secs, Download size: %s",
-  "loc.messages.failedToParseResponse": "Failed to parse response body: %s, got error : %s",
+  "loc.messages.FailedToParseResponse": "Failed to parse response body: %s, got error : %s",
   "loc.messages.DownloadingTo": "Downloading %s to %s",
   "loc.messages.DownloadedTo": "Downloaded %s to %s",
   "loc.messages.UnableToReadDirectory": "Unable to read directory %s. Error: %s",
