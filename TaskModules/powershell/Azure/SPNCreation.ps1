@@ -49,9 +49,9 @@ function Add-AzureStackToAzureRmEnvironment {
     $azureStackEndpointUri = $EndpointURI.ToString() + "/metadata/endpoints?api-version=2015-01-01"
 
     Write-Verbose "Retrieving endpoints from the $ResourceManagerEndpoint"
-
+        
     $endpointData = Invoke-RestMethod -Uri $azureStackEndpointUri -Method Get -ErrorAction Stop
-
+        
 
     if ($endpointData)
     {
@@ -59,6 +59,8 @@ function Add-AzureStackToAzureRmEnvironment {
         if ($authenticationData)
         {
             $loginEndpoint = $authenticationData.loginEndpoint
+            $aadAuthorityEndpoint = [string]::Empty
+
             if($loginEndpoint)
             {
                 $aadAuthorityEndpoint = $loginEndpoint
@@ -134,15 +136,14 @@ function Get-Password
 }
 
 
-if ($environmentName.Equals($AZURESTACK_ENVIRONMENT))
+if ($environmentName -like $AZURESTACK_ENVIRONMENT)
 {
     if(-not $azureStackManagementURL)
     {
         $azureStackEnvironment = Get-AzureRmEnvironment -Name $AZURESTACK_ENVIRONMENT
         if(-not $azureStackEnvironment)
         {
-            Write-Output "AzureStack Enviornment is not added to AzureRmEnvironments in current PS Session. Please provide AzureStackManagementURL as argument or add AzureStack to AzureRmEnvironments manually."
-            return
+            throw "AzureStack Enviornment is not present in AzureRmEnvironments in current PS Session. Please provide AzureStackManagementURL as argument or add AzureStack to AzureRmEnvironments manually."
         }
     }
     else
