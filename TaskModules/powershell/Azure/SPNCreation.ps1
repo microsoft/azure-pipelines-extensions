@@ -18,6 +18,21 @@ param
 
 $AZURESTACK_ENVIRONMENT = "AzureStack"
 
+function Get-ProxyUri
+{
+    param([String] [Parameter(Mandatory=$true)] $serverUrl)
+
+    $proxyUri = [Uri]$null
+    $proxy = [System.Net.WebRequest]::GetSystemWebProxy()
+    if ($proxy)
+    {
+        $proxy.Credentials = [System.Net.CredentialCache]::DefaultCredentials
+        $proxyUri = $proxy.GetProxy("$serverUrl")
+    }
+
+    return $proxyUri
+}
+
 function Add-AzureStackToAzureRmEnvironment {
     param (
         [Parameter(mandatory=$true, HelpMessage="The Admin ARM endpoint URI of the Azure Stack Environment")]
@@ -49,9 +64,19 @@ function Add-AzureStackToAzureRmEnvironment {
     $azureStackEndpointUri = $EndpointURI.ToString() + "/metadata/endpoints?api-version=2015-01-01"
 
     Write-Verbose "Retrieving endpoints from the $ResourceManagerEndpoint"
-        
-    $endpointData = Invoke-RestMethod -Uri $azureStackEndpointUri -Method Get -ErrorAction Stop
-        
+
+    $proxyUri = Get-ProxyUri $azureStackEndpointUri
+
+    if ($proxyUri -eq $azureStackEndpointUri)
+    {
+        Write-Verbose "No proxy settings"
+        $endpointData = Invoke-RestMethod -Uri $azureStackEndpointUri -Method Get -ErrorAction Stop
+    }
+    else
+    {
+        Write-Verbose "Using Proxy settings"
+        $endpointData = Invoke-RestMethod -Uri $azureStackEndpointUri -Method Get -Proxy $proxyUri -ErrorAction Stop 
+    }   
 
     if ($endpointData)
     {
@@ -135,6 +160,25 @@ function Get-Password
     }
 }
 
+#Initialize
+$ErrorActionPreference = "Stop"
+$VerbosePreference = "SilentlyContinue"
+$userName = ($env:USERNAME).Replace(' ', '')
+$newguid = [guid]::NewGuid()
+$displayName = [String]::Format("VSTS.{0}.{1}", $userName, $newguid)
+$homePage = "http://" + $displayName
+$identifierUri = $homePage
+
+
+#Initialize subscription
+$isAzureModulePresent = Get-Module -Name AzureRM* -ListAvailable
+if ([String]::IsNullOrEmpty($isAzureModulePresent) -eq $true)
+{
+    Write-Output "Script requires AzureRM modules to be present. Obtain AzureRM from https://github.com/Azure/azure-powershell/releases. Please refer https://github.com/Microsoft/vsts-tasks/blob/master/Tasks/DeployAzureResourceGroup/README.md for recommended AzureRM versions." -Verbose
+    return
+}
+
+Import-Module -Name AzureRM.Profile
 
 if ($environmentName -like $AZURESTACK_ENVIRONMENT)
 {
@@ -160,26 +204,6 @@ if ($environmentName -like $AZURESTACK_ENVIRONMENT)
     }
 }
 
-
-#Initialize
-$ErrorActionPreference = "Stop"
-$VerbosePreference = "SilentlyContinue"
-$userName = ($env:USERNAME).Replace(' ', '')
-$newguid = [guid]::NewGuid()
-$displayName = [String]::Format("VSTS.{0}.{1}", $userName, $newguid)
-$homePage = "http://" + $displayName
-$identifierUri = $homePage
-
-
-#Initialize subscription
-$isAzureModulePresent = Get-Module -Name AzureRM* -ListAvailable
-if ([String]::IsNullOrEmpty($isAzureModulePresent) -eq $true)
-{
-    Write-Output "Script requires AzureRM modules to be present. Obtain AzureRM from https://github.com/Azure/azure-powershell/releases. Please refer https://github.com/Microsoft/vsts-tasks/blob/master/Tasks/DeployAzureResourceGroup/README.md for recommended AzureRM versions." -Verbose
-    return
-}
-
-Import-Module -Name AzureRM.Profile
 Write-Output "Provide your credentials to access Azure subscription $subscriptionName" -Verbose
 Login-AzureRmAccount -SubscriptionName $subscriptionName -EnvironmentName $environmentName
 $azureSubscription = Get-AzureRmSubscription -SubscriptionName $subscriptionName
