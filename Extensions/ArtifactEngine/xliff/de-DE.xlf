@@ -4,48 +4,48 @@
     <body>
       <trans-unit id="loc.messages.DownloadSummary">
         <source>Total Files: %s, Processed: %s, Skipped: %s, Failed: %s, Download time: %s secs, Download size: %s</source>
-        <target state="new"/>
-        <note/>
+        <target state="translated">Dateien gesamt: %s, verarbeitet: %s, übersprungen: %s, fehlerhaft: %s, Downloadzeit: %s Sek., Downloadgröße: %s</target>
+        <note />
       </trans-unit>
       <trans-unit id="loc.messages.DownloadedTo">
         <source>Downloaded %s to %s</source>
-        <target state="new"/>
-        <note/>
+        <target state="translated">Download von "%s" nach "%s" wurde durchgeführt.</target>
+        <note />
       </trans-unit>
       <trans-unit id="loc.messages.DownloadingTo">
         <source>Downloading %s to %s</source>
-        <target state="new"/>
-        <note/>
+        <target state="translated">Download von "%s" nach "%s" wird durchgeführt.</target>
+        <note />
       </trans-unit>
       <trans-unit id="loc.messages.RetryingDownload">
         <source>Retrying download of %s, retry count: %s</source>
-        <target state="new"/>
-        <note/>
+        <target state="translated">Download von "%s" wird erneut versucht, Wiederholungsanzahl: %s</target>
+        <note />
       </trans-unit>
       <trans-unit id="loc.messages.SkippingItem">
         <source>Skipped processing item %s</source>
-        <target state="new"/>
-        <note/>
+        <target state="translated">Die Verarbeitung des Elements "%s" wird übersprungen.</target>
+        <note />
       </trans-unit>
       <trans-unit id="loc.messages.UnableToReadDirectory">
         <source>Unable to read directory %s. Error: %s</source>
-        <target state="new"/>
-        <note/>
+        <target state="translated">Das Verzeichnis "%s" kann nicht gelesen werden. Fehler: %s</target>
+        <note />
       </trans-unit>
       <trans-unit id="loc.messages.UnhandledException">
         <source>artifact-engine: unhandled exception %s</source>
-        <target state="new"/>
-        <note/>
+        <target state="translated">artifact-engine: Ausnahmefehler %s</target>
+        <note />
       </trans-unit>
       <trans-unit id="loc.messages.UnhandledRejection">
         <source>artifact-engine: unhandled rejection %s</source>
-        <target state="new"/>
-        <note/>
+        <target state="translated">artifact-engine: nicht verarbeitete Zurückweisung %s</target>
+        <note />
       </trans-unit>
       <trans-unit id="loc.messages.failedToParseResponse">
         <source>Failed to parse response body: %s, got error : %s</source>
-        <target state="new"/>
-        <note/>
+        <target state="translated">Fehler beim Analysieren des Antworttexts: %s. Erhaltener Fehler: %s</target>
+        <note />
       </trans-unit>
     </body>
   </file>

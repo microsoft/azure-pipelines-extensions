@@ -4,48 +4,48 @@
     <body>
       <trans-unit id="loc.messages.DownloadSummary">
         <source>Total Files: %s, Processed: %s, Skipped: %s, Failed: %s, Download time: %s secs, Download size: %s</source>
-        <target state="new"/>
-        <note/>
+        <target state="translated">檔案總數: %s，已處理: %s，已跳過: %s，失敗: %s，下載時間: %s 秒，下載大小: %s</target>
+        <note />
       </trans-unit>
       <trans-unit id="loc.messages.DownloadedTo">
         <source>Downloaded %s to %s</source>
-        <target state="new"/>
-        <note/>
+        <target state="translated">已將 %s 下載到 %s</target>
+        <note />
       </trans-unit>
       <trans-unit id="loc.messages.DownloadingTo">
         <source>Downloading %s to %s</source>
-        <target state="new"/>
-        <note/>
+        <target state="translated">正在將 %s 下載到 %s</target>
+        <note />
       </trans-unit>
       <trans-unit id="loc.messages.RetryingDownload">
         <source>Retrying download of %s, retry count: %s</source>
-        <target state="new"/>
-        <note/>
+        <target state="translated">正在重試下載 %s，重試次數: %s</target>
+        <note />
       </trans-unit>
       <trans-unit id="loc.messages.SkippingItem">
         <source>Skipped processing item %s</source>
-        <target state="new"/>
-        <note/>
+        <target state="translated">已跳過處理項目 %s</target>
+        <note />
       </trans-unit>
       <trans-unit id="loc.messages.UnableToReadDirectory">
         <source>Unable to read directory %s. Error: %s</source>
-        <target state="new"/>
-        <note/>
+        <target state="translated">無法讀取目錄 %s。錯誤: %s</target>
+        <note />
       </trans-unit>
       <trans-unit id="loc.messages.UnhandledException">
         <source>artifact-engine: unhandled exception %s</source>
-        <target state="new"/>
-        <note/>
+        <target state="translated">artifact-engine: 未處理的例外狀況 %s</target>
+        <note />
       </trans-unit>
       <trans-unit id="loc.messages.UnhandledRejection">
         <source>artifact-engine: unhandled rejection %s</source>
-        <target state="new"/>
-        <note/>
+        <target state="translated">artifact-engine: 未處理的拒絕 %s</target>
+        <note />
       </trans-unit>
       <trans-unit id="loc.messages.failedToParseResponse">
         <source>Failed to parse response body: %s, got error : %s</source>
-        <target state="new"/>
-        <note/>
+        <target state="translated">無法剖析回應主體: %s，收到錯誤: %s</target>
+        <note />
       </trans-unit>
     </body>
   </file>
