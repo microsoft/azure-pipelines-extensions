@@ -53,7 +53,7 @@ You can use [RM Extensions on Github](https://github.com/Microsoft/vsts-rm-exten
 
 ## Troubleshooting
 - Why Twitter Sentiment Analysis gate is failing?
-   - Check Azure function url is correct or not. Azure function url looks like https://twittersentimenttest.azurewebsites.net/api/TwitterGateFunction?code=WgAJDK/C3NRXMexUrVOev319dWUuaYAaUfNx7cDRmSGfUEZdNtxM8w==. You need to specify url without 'code' parameter in **Azure function url** input, example:- https://twittersentimenttest.azurewebsites.net/api/TwitterGateFunction. 'code' should be specified in **Azure function key** input, in above example you need specify WgAJDK/C3NRXMexUrVOev319dWUuaYAaUfNx7cDRmSGfUEZdNtxM8w== in **Azure function key** input.
+   - Check Azure function url is correct or not. Azure function url looks like https://twittersentimenttest.azurewebsites.net/api/TwitterGateFunction?code=WgAJDc/C3NRDMex5rVOev126dWx56uaaUfNx7cDRmXLfUEZdNtxM8w==. You need to specify url without 'code' parameter in **Azure function url** input, example:- https://twittersentimenttest.azurewebsites.net/api/TwitterGateFunction. 'code' should be specified in **Azure function key** input, in above example you need specify WgAJDK/C3NRXMexUrVOev319dWUuaYAaUfNx7cDRmSGfUEZdNtxM8w== in **Azure function key** input.
    
    - Check **Analyze tweets since** date format. Date and time should be in UTC and format should be yyyy-MM-ddTHH:mm:ssZ
  
