@@ -76,12 +76,13 @@ export class Logger {
         var endTime = new Date();
         var downloadTime = (endTime.valueOf() - this.startTime.valueOf()) / 1000;
         console.log(
-            "Total Files: " + fileTickets.length
-            + ", Processed: " + processedItems.length
-            + ", Skipped: " + skippedItems.length
-            + ", Failed: " + failedItems.length
-            + ", Download time: " + downloadTime + "secs"
-            + (downloadSizeInMB > 1 ? ", Download size: " + downloadSizeInMB.toFixed(3) + "MB" : ""));
+            tl.loc("DownloadSummary", 
+                    fileTickets.length, 
+                    processedItems.length, 
+                    skippedItems.length, 
+                    failedItems.length, 
+                    downloadTime, 
+                    (downloadSizeInMB > 1 ? downloadSizeInMB.toFixed(3) + "MB" : downloadSizeInBytes + "Bytes")));
 
         ci.publishEvent('performance',
             {

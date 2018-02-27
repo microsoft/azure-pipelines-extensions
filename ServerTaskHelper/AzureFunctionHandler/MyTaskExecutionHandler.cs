@@ -18,7 +18,7 @@ namespace AzureFunctionHandler
             var myObject = JsonConvert.DeserializeObject<MyTaskObject>(taskMessage.GetTaskMessageBody());
 
             var message = $"Hello {myObject.Name}";
-            taskLogger.Log(message);
+            await taskLogger.Log(message).ConfigureAwait(false);
 
             return await Task.FromResult(TaskResult.Succeeded);
         }

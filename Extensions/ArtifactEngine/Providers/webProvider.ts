@@ -15,6 +15,7 @@ import { ArtifactItemStore } from '../Store/artifactItemStore';
 import * as factory from './webClientFactory';
 
 var handlebars = require('handlebars');
+var tl = require('vsts-task-lib/task');
 
 export class WebProvider implements models.IArtifactProvider {
 
@@ -103,7 +104,7 @@ export class WebProvider implements models.IArtifactProvider {
 
                             resolve(items);
                         } catch (error) {
-                            Logger.logMessage("Failed to parse response body: " + body + " , got error : " + error);
+                            Logger.logMessage(tl.loc("FailedToParseResponse", body, error));
                             reject(error);
                         }
                     });

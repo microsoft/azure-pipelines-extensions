@@ -33,7 +33,13 @@ public static SentimentScore Run(TaskData req, TraceWriter log)
     {
         return new SentimentScore("Invalid Input", -1, -1);
     }
-
+	
+    hashTag = hashTag.Trim();
+    if (hashTag[0] != '#')
+    {
+		hashTag = string.Format(CultureInfo.InvariantCulture, "{0}{1}", "#", hashTag);
+    }
+			
     int max_tweets = 100;
     int tweetsCount = 0;
     double avgSentimentScore = 0.0;
@@ -44,7 +50,7 @@ public static SentimentScore Run(TaskData req, TraceWriter log)
         string tweetsData = SearchTweets(httpClient, consumerKey, consumerSecret, hashTag, max_tweets);
         if (tweetsData == null)
         {
-            return new SentimentScore("Unable to retrive tweets", -1, -1);
+            return new SentimentScore("Unable to retrieve tweets", -1, -1);
         }
 
         var tweets = JsonConvert.DeserializeObject(tweetsData);

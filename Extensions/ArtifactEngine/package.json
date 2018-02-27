@@ -1,6 +1,6 @@
 {
   "name": "artifact-engine",
-  "version": "0.1.15",
+  "version": "0.1.16",
   "description": "Artifact Engine to download artifacts from jenkins, teamcity, vsts",
   "repository": {
     "type": "git",
@@ -18,7 +18,7 @@
   "dependencies": {
     "handlebars": "4.0.10",
     "minimatch": "3.0.2",
-    "vsts-task-lib": "^2.1.0",
+    "vsts-task-lib": "2.2.1",
     "tunnel": "0.0.4"
   },
   "devDependencies": {
@@ -27,6 +27,7 @@
     "@types/mocha": "^2.2.5",
     "@types/mockery": "1.4.29",
     "@types/node": "6.0.31",
+    "@types/xml2js": "^0.4.0",
     "assert": "1.4.1",
     "mocha": "2.3.3",
     "mocha-tap-reporter": "0.1.3",
@@ -35,7 +36,8 @@
     "sinon": "4.0.1",
     "typescript": "1.8.7",
     "nock": "9.1.0",
-    "nconf": "0.10.0"
+    "nconf": "0.10.0",
+    "xml2js": "^0.4.17"
   },
   "files": [
     "Engine/**/*.js",
@@ -49,7 +51,9 @@
     "Providers/**/*d.ts",
     "LICENSE",
     "README.md",
-    "ThirdPartyNotices.txt"
+    "ThirdPartyNotices.txt",
+    "lib.json",
+    "Strings/**"
   ],
   "scripts": {
     "test": "nyc ./node_modules/mocha/bin/_mocha --reporter mocha-tap-reporter **/*Tests.js"

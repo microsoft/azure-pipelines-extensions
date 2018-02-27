@@ -1,0 +1,52 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff version="1.2">
+  <file original="lib.json" source-language="en-US" target-language="ja-JP" datatype="plaintext">
+    <body>
+      <trans-unit id="loc.messages.DownloadSummary">
+        <source>Total Files: %s, Processed: %s, Skipped: %s, Failed: %s, Download time: %s secs, Download size: %s</source>
+        <target state="new"/>
+        <note/>
+      </trans-unit>
+      <trans-unit id="loc.messages.DownloadedTo">
+        <source>Downloaded %s to %s</source>
+        <target state="new"/>
+        <note/>
+      </trans-unit>
+      <trans-unit id="loc.messages.DownloadingTo">
+        <source>Downloading %s to %s</source>
+        <target state="new"/>
+        <note/>
+      </trans-unit>
+      <trans-unit id="loc.messages.RetryingDownload">
+        <source>Retrying download of %s, retry count: %s</source>
+        <target state="new"/>
+        <note/>
+      </trans-unit>
+      <trans-unit id="loc.messages.SkippingItem">
+        <source>Skipped processing item %s</source>
+        <target state="new"/>
+        <note/>
+      </trans-unit>
+      <trans-unit id="loc.messages.UnableToReadDirectory">
+        <source>Unable to read directory %s. Error: %s</source>
+        <target state="new"/>
+        <note/>
+      </trans-unit>
+      <trans-unit id="loc.messages.UnhandledException">
+        <source>artifact-engine: unhandled exception %s</source>
+        <target state="new"/>
+        <note/>
+      </trans-unit>
+      <trans-unit id="loc.messages.UnhandledRejection">
+        <source>artifact-engine: unhandled rejection %s</source>
+        <target state="new"/>
+        <note/>
+      </trans-unit>
+      <trans-unit id="loc.messages.failedToParseResponse">
+        <source>Failed to parse response body: %s, got error : %s</source>
+        <target state="new"/>
+        <note/>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>
