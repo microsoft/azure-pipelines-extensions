@@ -21,7 +21,7 @@ $AZURESTACK_ENVIRONMENT = "AzureStack"
 function Get-ProxyUri
 {
     param([String] [Parameter(Mandatory=$true)] $serverUrl)
-
+    
     $proxyUri = [Uri]$null
     $proxy = [System.Net.WebRequest]::GetSystemWebProxy()
     if ($proxy)
@@ -59,7 +59,6 @@ function Add-AzureStackToAzureRmEnvironment {
     $AzureKeyVaultDnsSuffix="vault.$($stackdomain)".ToLowerInvariant()
     $AzureKeyVaultServiceEndpointResourceId= $("https://vault.$stackdomain".ToLowerInvariant())
     $StorageEndpointSuffix = ($stackdomain).ToLowerInvariant()
-
 
     $azureStackEndpointUri = $EndpointURI.ToString() + "/metadata/endpoints?api-version=2015-01-01"
 
