@@ -62,18 +62,18 @@ function Add-AzureStackToAzureRmEnvironment {
 
     $azureStackEndpointUri = $EndpointURI.ToString() + "/metadata/endpoints?api-version=2015-01-01"
 
-    Write-Verbose "Retrieving endpoints from the $ResourceManagerEndpoint"
+    Write-Verbose -Verbose "Retrieving endpoints from the $ResourceManagerEndpoint"
 
     $proxyUri = Get-ProxyUri $azureStackEndpointUri
 
     if ($proxyUri -eq $azureStackEndpointUri)
     {
-        Write-Verbose "No proxy settings"
+        Write-Verbose -Verbose "No proxy settings"
         $endpointData = Invoke-RestMethod -Uri $azureStackEndpointUri -Method Get -ErrorAction Stop
     }
     else
     {
-        Write-Verbose "Using Proxy settings"
+        Write-Verbose -Verbose "Using Proxy settings"
         $endpointData = Invoke-RestMethod -Uri $azureStackEndpointUri -Method Get -Proxy $proxyUri -ErrorAction Stop 
     }   
 
