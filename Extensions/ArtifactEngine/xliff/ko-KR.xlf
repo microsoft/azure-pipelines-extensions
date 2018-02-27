@@ -5,47 +5,47 @@
       <trans-unit id="loc.messages.DownloadSummary">
         <source>Total Files: %s, Processed: %s, Skipped: %s, Failed: %s, Download time: %s secs, Download size: %s</source>
         <target state="translated">총 파일: %s, 처리됨: %s, 건너뜀: %s, 실패함: %s, 다운로드 시간: %s초, 다운로드 크기: %s</target>
-        <note />
+        <note/>
       </trans-unit>
       <trans-unit id="loc.messages.DownloadedTo">
         <source>Downloaded %s to %s</source>
         <target state="translated">%s을(를) %s에 다운로드함</target>
-        <note />
+        <note/>
       </trans-unit>
       <trans-unit id="loc.messages.DownloadingTo">
         <source>Downloading %s to %s</source>
         <target state="translated">%s을(를) %s에 다운로드하는 중</target>
-        <note />
+        <note/>
+      </trans-unit>
+      <trans-unit id="loc.messages.FailedToParseResponse">
+        <source>Failed to parse response body: %s, got error : %s</source>
+        <target state="translated">응답 본문 %s을(를) 구문 분석하지 못했습니다. 오류: %s</target>
+        <note/>
       </trans-unit>
       <trans-unit id="loc.messages.RetryingDownload">
         <source>Retrying download of %s, retry count: %s</source>
         <target state="translated">%s 다운로드를 다시 시도하는 중, 다시 시도 횟수: %s회</target>
-        <note />
+        <note/>
       </trans-unit>
       <trans-unit id="loc.messages.SkippingItem">
         <source>Skipped processing item %s</source>
         <target state="translated">항목 %s의 처리를 건너뜀</target>
-        <note />
+        <note/>
       </trans-unit>
       <trans-unit id="loc.messages.UnableToReadDirectory">
         <source>Unable to read directory %s. Error: %s</source>
         <target state="translated">디렉터리 %s을(를) 읽을 수 없습니다. 오류: %s</target>
-        <note />
+        <note/>
       </trans-unit>
       <trans-unit id="loc.messages.UnhandledException">
         <source>artifact-engine: unhandled exception %s</source>
         <target state="translated">artifact-engine: 처리되지 않은 예외 %s</target>
-        <note />
+        <note/>
       </trans-unit>
       <trans-unit id="loc.messages.UnhandledRejection">
         <source>artifact-engine: unhandled rejection %s</source>
         <target state="translated">artifact-engine: 처리되지 않은 거부 %s</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="loc.messages.failedToParseResponse">
-        <source>Failed to parse response body: %s, got error : %s</source>
-        <target state="translated">응답 본문 %s을(를) 구문 분석하지 못했습니다. 오류: %s</target>
-        <note />
+        <note/>
       </trans-unit>
     </body>
   </file>

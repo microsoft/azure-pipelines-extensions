@@ -1,11 +1,11 @@
 {
-  "loc.messages.DownloadSummary": "Total Files: %s, Processed: %s, Skipped: %s, Failed: %s, Download time: %s secs, Download size: %s",
-  "loc.messages.FailedToParseResponse": "Failed to parse response body: %s, got error : %s",
-  "loc.messages.DownloadingTo": "Downloading %s to %s",
-  "loc.messages.DownloadedTo": "Downloaded %s to %s",
-  "loc.messages.UnableToReadDirectory": "Unable to read directory %s. Error: %s",
-  "loc.messages.RetryingDownload": "Retrying download of %s, retry count: %s",
-  "loc.messages.SkippingItem": "Skipped processing item %s",
-  "loc.messages.UnhandledRejection": "artifact-engine: unhandled rejection %s",
-  "loc.messages.UnhandledException": "artifact-engine: unhandled exception %s"
+  "loc.messages.DownloadSummary": "Dateien gesamt: %s, verarbeitet: %s, übersprungen: %s, fehlerhaft: %s, Downloadzeit: %s Sek., Downloadgröße: %s",
+  "loc.messages.FailedToParseResponse": "Fehler beim Analysieren des Antworttexts: %s. Erhaltener Fehler: %s",
+  "loc.messages.DownloadingTo": "Download von \"%s\" nach \"%s\" wird durchgeführt.",
+  "loc.messages.DownloadedTo": "Download von \"%s\" nach \"%s\" wurde durchgeführt.",
+  "loc.messages.UnableToReadDirectory": "Das Verzeichnis \"%s\" kann nicht gelesen werden. Fehler: %s",
+  "loc.messages.RetryingDownload": "Download von \"%s\" wird erneut versucht, Wiederholungsanzahl: %s",
+  "loc.messages.SkippingItem": "Die Verarbeitung des Elements \"%s\" wird übersprungen.",
+  "loc.messages.UnhandledRejection": "artifact-engine: nicht verarbeitete Zurückweisung %s",
+  "loc.messages.UnhandledException": "artifact-engine: Ausnahmefehler %s"
 }

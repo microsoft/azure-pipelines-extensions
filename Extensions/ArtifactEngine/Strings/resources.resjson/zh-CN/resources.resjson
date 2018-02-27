@@ -1,11 +1,11 @@
 {
-  "loc.messages.DownloadSummary": "Total Files: %s, Processed: %s, Skipped: %s, Failed: %s, Download time: %s secs, Download size: %s",
-  "loc.messages.FailedToParseResponse": "Failed to parse response body: %s, got error : %s",
-  "loc.messages.DownloadingTo": "Downloading %s to %s",
-  "loc.messages.DownloadedTo": "Downloaded %s to %s",
-  "loc.messages.UnableToReadDirectory": "Unable to read directory %s. Error: %s",
-  "loc.messages.RetryingDownload": "Retrying download of %s, retry count: %s",
-  "loc.messages.SkippingItem": "Skipped processing item %s",
-  "loc.messages.UnhandledRejection": "artifact-engine: unhandled rejection %s",
-  "loc.messages.UnhandledException": "artifact-engine: unhandled exception %s"
+  "loc.messages.DownloadSummary": "总文件数: %s，已处理: %s，已跳过: %s，已失败: %s，下载时间: %s 秒，下载大小: %s",
+  "loc.messages.FailedToParseResponse": "未能分析响应正文: %s，显示错误: %s",
+  "loc.messages.DownloadingTo": "正在将 %s 下载至 %s",
+  "loc.messages.DownloadedTo": "已将 %s 下载至 %s",
+  "loc.messages.UnableToReadDirectory": "未能读取目录 %s。错误: %s",
+  "loc.messages.RetryingDownload": "重新尝试下载 %s，重试计数: %s",
+  "loc.messages.SkippingItem": "已跳过处理项目 %s",
+  "loc.messages.UnhandledRejection": "项目引擎: 未处理的拒绝 %s",
+  "loc.messages.UnhandledException": "项目引擎: 未处理的异常 %s"
 }
