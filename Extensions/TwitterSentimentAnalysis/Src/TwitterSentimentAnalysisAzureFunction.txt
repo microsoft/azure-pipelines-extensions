@@ -1,3 +1,13 @@
+// For this azure function you can specify parameter in body like below and run azure function to get sentiment score.
+// {
+//   "hashTag": "ReleaseManagement",
+//   "consumerKey": "z3MIAS6CFryAjes7jeu459oKKE",
+//   "consumerSecret": "J0Xx4N0epU7woYJaLB5mlUYHPCxL22qEl0nbYcXlPTafUjfRBH",
+//   "cognitiveServicesAccessKey": "2dbf45a2af524649a882e39c3138c156",
+//   "cognitiveServicesEndpointRegion": "westus2",
+//   "analyzeTweetsSince": "2018-01-01T07:56:59"
+// }
+
 #r "Newtonsoft.Json"
 #r "System.Web"
 
