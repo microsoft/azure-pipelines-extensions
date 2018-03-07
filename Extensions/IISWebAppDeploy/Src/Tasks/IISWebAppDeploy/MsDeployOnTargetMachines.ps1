@@ -36,7 +36,7 @@ function Get-MsDeployLocation
     [string]$regKeyPath
     )
 
-    $msDeployNotFoundError = "Cannot find MsDeploy.exe location. Verify MsDeploy.exe is installed on $env:ComputeName and try operation again."
+    $msDeployNotFoundError = "Cannot find MsDeploy.exe location. Verify MsDeploy.exe is installed on $env:ComputerName and try operation again."
     
     if( -not (Test-Path -Path $regKeyPath))
     {
