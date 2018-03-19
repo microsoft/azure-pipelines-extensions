@@ -15,8 +15,6 @@ import { TicketState } from '../Models/ticketState';
 export class ArtifactEngine {
     processItems(sourceProvider: models.IArtifactProvider, destProvider: models.IArtifactProvider, artifactEngineOptions?: ArtifactEngineOptions): Promise<models.ArtifactDownloadTicket[]> {
         var artifactDownloadTicketsPromise = new Promise<models.ArtifactDownloadTicket[]>((resolve, reject) => {
-            tl.setResourcePath(path.join(path.dirname(__dirname), 'lib.json'));
-            
             const workers: Promise<void>[] = [];
             artifactEngineOptions = artifactEngineOptions || new ArtifactEngineOptions();
             this.createPatternList(artifactEngineOptions);
@@ -143,6 +141,7 @@ export class ArtifactEngine {
     private patternList: string[];
 }
 
+tl.setResourcePath(path.join(path.dirname(__dirname), 'lib.json'));
 process.on('unhandledRejection', (err) => {
     ci.publishEvent('reliability', <ci.IReliabilityData>{ issueType: 'unhandledRejection', errorMessage: JSON.stringify(err, Object.getOwnPropertyNames(err)) });
     Logger.logError(tl.loc("UnhandledRejection", err));
