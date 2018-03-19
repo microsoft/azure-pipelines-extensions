@@ -50,3 +50,29 @@ Installing the extension adds the following 'Get Twitter Sentiment' gate and age
 
 ## Contact Information
 You can use [RM Extensions on Github](https://github.com/Microsoft/vsts-rm-extensions/issues) to report any issues.
+
+## Troubleshooting
+- Why Twitter Sentiment Analysis gate is failing?
+   - Check Azure function url is correct or not. Azure function url looks like https://twittersentimenttest.azurewebsites.net/api/TwitterGateFunction?code=WgAJDc/C3NRDMex5rVOev126dWx56uaaUfNx7cDRmXLfUEZdNtxM8w==. You need to specify url without 'code' parameter in **Azure function url** input, example:- https://twittersentimenttest.azurewebsites.net/api/TwitterGateFunction. 'code' should be specified in **Azure function key** input, in above example you need specify WgAJDK/C3NRXMexUrVOev319dWUuaYAaUfNx7cDRmSGfUEZdNtxM8w== in **Azure function key** input.
+   
+   - Check **Analyze tweets since** date format. Date and time should be in UTC and format should be yyyy-MM-ddTHH:mm:ssZ
+ 
+   - First validate Azure function from Azure portal. You can specify parameters in 'body' section in Azure function url page like below and run Azure function to get sentiment score.
+   ```
+       {
+         "hashTag": "ReleaseManagement",
+         "consumerKey": "z3MIU6CFryAjes2jeU459oKKE",
+         "consumerSecret": "J0Xp4N0epU6woYJaLM5mlUYHPGxL55qEl0nbYcXlPTafUjfRBH",
+         "cognitiveServicesAccessKey": "2dbf45a2af524649a662e36c3138c156",
+         "cognitiveServicesEndpointRegion": "westus2",
+         "analyzeTweetsSince": "2018-01-01T07:56:59"
+        }
+                  
+    Azure function output looks like below   
+       {
+         "HashTag":"#ReleaseManagement",
+         "Score": 0.9,
+         "NumberOfTweetsParsed": 70
+       }
+
+    
