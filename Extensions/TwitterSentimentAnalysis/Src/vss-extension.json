@@ -3,7 +3,7 @@
 	"id": "vss-services-twittersentimentanalysis",
 	"name": "Twitter Sentiment Analysis",
 	"publisher": "ms-vscs-rm",
-	"version": "0.0.4",
+	"version": "0.0.5",
 	"public": true,
 	"description": "Gate your releases based on sentiment of tweets for a hashtag.",
 	"_description.comment": "The below format to define extensions is currently in preview and may change in future.",
@@ -45,6 +45,11 @@
 	"content": {
 		"details": {
 			"path": "readme.md"
+		}
+	},
+	"links": {
+		"license": {
+			"uri": "https://go.microsoft.com/fwlink/?linkid=870392"
 		}
 	},
 	"contributions": [{
