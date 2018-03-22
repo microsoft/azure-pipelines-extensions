@@ -13,6 +13,7 @@ import { Logger } from '../Engine/logger';
 import { IRequestHandler, IRequestOptions } from './typed-rest-client/Interfaces';
 import { ArtifactItemStore } from '../Store/artifactItemStore';
 import * as factory from './webClientFactory';
+import { error } from 'util';
 
 var handlebars = require('handlebars');
 var tl = require('vsts-task-lib/task');
@@ -57,6 +58,10 @@ export class WebProvider implements models.IArtifactProvider {
                 res.message.on('end', () => {
                     this.artifactItemStore.updateDownloadSize(artifactItem, downloadSize);
                 });
+                res.message.on('error', () => {
+                    reject(error);
+                });
+
                 if (res.message.headers['content-encoding'] === 'gzip') {
                     try {
                         resolve(res.message.pipe(zlib.createUnzip()));
