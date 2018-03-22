@@ -37,6 +37,10 @@ export class FilesystemProvider implements models.IArtifactProvider {
                 contentStream.on('end', () => {
                     this.artifactItemStore.updateDownloadSize(artifactItem, contentStream.bytesRead);
                 });
+                contentStream.on("error",
+                    (error) => {
+                        reject(error);
+                    });
                 resolve(contentStream);
             } catch (error) {
                 reject(error);

@@ -57,6 +57,10 @@ export class WebProvider implements models.IArtifactProvider {
                 res.message.on('end', () => {
                     this.artifactItemStore.updateDownloadSize(artifactItem, downloadSize);
                 });
+                res.message.on('error', (error) => {
+                    reject(error);
+                });
+
                 if (res.message.headers['content-encoding'] === 'gzip') {
                     try {
                         resolve(res.message.pipe(zlib.createUnzip()));
