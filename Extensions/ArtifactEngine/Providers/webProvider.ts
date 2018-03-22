@@ -13,7 +13,6 @@ import { Logger } from '../Engine/logger';
 import { IRequestHandler, IRequestOptions } from './typed-rest-client/Interfaces';
 import { ArtifactItemStore } from '../Store/artifactItemStore';
 import * as factory from './webClientFactory';
-import { error } from 'util';
 
 var handlebars = require('handlebars');
 var tl = require('vsts-task-lib/task');
@@ -58,7 +57,7 @@ export class WebProvider implements models.IArtifactProvider {
                 res.message.on('end', () => {
                     this.artifactItemStore.updateDownloadSize(artifactItem, downloadSize);
                 });
-                res.message.on('error', () => {
+                res.message.on('error', (error) => {
                     reject(error);
                 });
 
