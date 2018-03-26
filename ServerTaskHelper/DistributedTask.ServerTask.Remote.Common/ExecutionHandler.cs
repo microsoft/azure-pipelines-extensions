@@ -41,9 +41,11 @@ namespace DistributedTask.ServerTask.Remote.Common
                     // report task started
                     await taskLogger.Log("Task started").ConfigureAwait(false);
                     await taskClient.ReportTaskStarted(taskProperties.TaskInstanceId, cancellationToken).ConfigureAwait(false);
+
+                    await taskClient.ReportTaskProgress(taskProperties.TaskInstanceId, cancellationToken).ConfigureAwait(false);
+
                     // start client handler execute
                     var executeTask = taskExecutionHandler.ExecuteAsync(taskMessage, taskLogger, cancellationToken).ConfigureAwait(false);
-                    await taskClient.ReportTaskProgress(taskProperties.TaskInstanceId, cancellationToken).ConfigureAwait(false);
                     taskResult = await executeTask;
 
                     // report task completed with status
@@ -87,12 +89,14 @@ namespace DistributedTask.ServerTask.Remote.Common
             {
                 Id = taskProperties.TaskInstanceId,
                 RecordType = "task",
-                Name = taskProperties.TaskInstanceName,
-                Order = 1,
                 StartTime = DateTime.UtcNow,
-                State = TimelineRecordState.Pending,
                 ParentId = taskProperties.JobId,
             };
+
+            if (!string.IsNullOrWhiteSpace(taskProperties.TaskInstanceName))
+            {
+                timelineRecord.Name = taskProperties.TaskInstanceName;
+            }
 
             // this is an upsert call
             await taskClient.UpdateTimelineRecordsAsync(timelineRecord, cancellationToken).ConfigureAwait(false);
