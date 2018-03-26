@@ -21,7 +21,7 @@ namespace DistributedTask.ServerTask.Remote.Common.Request
         private static readonly List<string> MandatoryProperties = new List<string>
         {
             ProjectIdKey,
-            PlandIdKey,
+            PlanIdKey,
             PlanUrlKey,
             JobIdKey,
             TimelineIdKey,
@@ -49,7 +49,7 @@ namespace DistributedTask.ServerTask.Remote.Common.Request
 
             this.ProjectId = ParseGuid(messageProperties, ProjectIdKey);
             this.JobId = ParseGuid(messageProperties, JobIdKey);
-            this.PlanId = ParseGuid(messageProperties, PlandIdKey);
+            this.PlanId = ParseGuid(messageProperties, PlanIdKey);
             this.TimelineId = ParseGuid(messageProperties, TimelineIdKey);
 
             this.TaskInstanceId = messageProperties.ContainsKey(TaskInstanceIdKey)
@@ -94,7 +94,7 @@ namespace DistributedTask.ServerTask.Remote.Common.Request
             }
             else
             {
-                this.TaskInstanceName = "Undefined";
+                this.TaskInstanceName = string.Empty;
             }
         }
 
@@ -112,7 +112,7 @@ namespace DistributedTask.ServerTask.Remote.Common.Request
         private readonly List<string> validHubNameList = new List<string> { "Build", "Release", "Gates" };
         private const string ProjectIdKey = "ProjectId";
         private const string JobIdKey = "JobId";
-        private const string PlandIdKey = "PlanId";
+        private const string PlanIdKey = "PlanId";
         private const string TimelineIdKey = "TimelineId";
         private const string TaskInstanceIdKey = "TaskInstanceId";
         private const string HubNameKey = "HubName";
