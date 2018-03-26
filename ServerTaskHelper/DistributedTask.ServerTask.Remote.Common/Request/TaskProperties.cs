@@ -87,14 +87,9 @@ namespace DistributedTask.ServerTask.Remote.Common.Request
                 this.RequestType = requestType;
             }
 
-            if (messageProperties.ContainsKey(TaskInstanceNameKey) &&
-                !string.IsNullOrEmpty(messageProperties[TaskInstanceNameKey]))
+            if (messageProperties.ContainsKey(TaskInstanceNameKey))
             {
                 this.TaskInstanceName = messageProperties[TaskInstanceNameKey];
-            }
-            else
-            {
-                this.TaskInstanceName = string.Empty;
             }
         }
 
