@@ -1,18 +1,35 @@
-﻿# Artifact Engine
+# Artifact Engine
 
 ## Overview
 Artifact engine is a generic framework which supports download of artifacts from different providers like *jenkins, teamcity, vsts, bitbucket* e.t.c. The framework is extensible and other providers can be easily plugged in the downloader.
 
 ## How to Use
-To use Artifact engine in your tasks or app have a look at [task.ts](task.ts).
+To use Artifact engine in your tasks or app have a look at [E2E.ts](E2ETests/E2E.ts).
 
 ## Architecture
 <img src="https://cdn.rawgit.com/omeshp/ItemLevelDownloader/f7a2d1a1/src/sequence.svg" height=600 width=800/>
 
 ## Development
-*Build*
+**Build**
+---------
 1. Run npm install in ArtifactEngine folder
 2. Use command ctrl-shift-b to build from vscode
 
-*Testing*
-1. Install mocha extension to run tests from vscode
+**Testing**
+----------
+*vscode*
+----------
+1. Install [mocha sidebar](https://marketplace.visualstudio.com/items?itemName=maty.vscode-mocha-sidebar) extension to run tests from vscode.
+2. Optional install [node tdd](https://marketplace.visualstudio.com/items?itemName=prashaantt.node-tdd) extension to automatically run tests on build.
+
+*gulp*
+------
+1. To run ArtifactEngine integration and unit tests from root directory use
+
+    `gulp test --suite=ArtifactEngine`
+2. To run Performance tests update [test config file](test.config.json.example) and rename it to test.config.json  and run
+
+    `gulp test --suite=ArtifactEngine --perf`
+3. To run End-to-End tests update [test config file](test.config.json.example) and rename it to test.config.json  and run
+
+    `gulp test --suite=ArtifactEngine --e2e`

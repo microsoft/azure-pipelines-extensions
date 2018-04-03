@@ -1,0 +1,13 @@
+{
+   "messages": {
+        "DownloadSummary": "Total Files: %s, Processed: %s, Skipped: %s, Failed: %s, Download time: %s secs, Download size: %s",
+        "FailedToParseResponse": "Failed to parse response body: %s, got error : %s",
+        "DownloadingTo": "Downloading %s to %s",
+        "DownloadedTo": "Downloaded %s to %s",
+        "UnableToReadDirectory": "Unable to read directory %s. Error: %s",
+        "RetryingDownload": "Retrying download of %s, retry count: %s",
+        "SkippingItem": "Skipped processing item %s",
+        "UnhandledRejection": "artifact-engine: unhandled rejection %s",
+        "UnhandledException": "artifact-engine: unhandled exception %s"
+    }
+}
