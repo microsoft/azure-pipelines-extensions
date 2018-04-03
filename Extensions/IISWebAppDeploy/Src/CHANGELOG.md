@@ -2,6 +2,10 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.4.6] 5th July 2018
+### Fixed
+- Reorder sqlpackage.exe provider preference order
+
 ## [1.4.5] 24th July 2017
 ### Fixed
 - Fixing issue of surfacing inner exception for WinRM - SQL Dacpac Deploy task
