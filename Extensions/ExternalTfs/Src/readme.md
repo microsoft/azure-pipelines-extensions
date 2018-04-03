@@ -35,7 +35,7 @@ Authentication failed for 'http://.:********@{ExternalTfsServerName}:{port}/tfs/
 
 **Note:** Code artifacts (External TFS version control and TFS GIT) works fine with PAT based VSTS service endpoints.
 
-**2. "External TFS version control" code artifact download fails when agent is running as Network Service. **
+**2. "External TFS version control" code artifact download fails when agent is running as Network Service.**
 Release linked to External TFS Version Control will fail with below error message at download artifact step:
 TF30063: You are not authorized to access http://fabfiber.visualstudio.com/DefaultCollection
 

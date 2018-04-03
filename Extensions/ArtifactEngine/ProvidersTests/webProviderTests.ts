@@ -1,12 +1,30 @@
+var mockery = require("mockery");
+var stream = require("stream");
+
 import * as assert from 'assert';
 var http = require('http');
 
+import * as httpm from '../Providers/typed-rest-client/HttpClient';
 import * as engine from '../Engine';
 import * as models from '../Models';
-import * as providers from '../Providers';
+mockery.registerMock('fs', {
+    createWriteStream: (a) => {
+        var mockedStream = stream.Writable();
+        mockedStream._write = () => { };
+        return mockedStream;
+    },
+    existsSync: () => true,
+    readFile: (filename, encoding, callback) => {
+        callback(undefined, "{}");
+    }
+});
+mockery.enable({
+    warnOnReplace: false,
+    warnOnUnregistered: false,
+    useCleanCache: true
+});
 
-import * as httpm from 'typed-rest-client/HttpClient';
-import * as fs from 'fs';
+import * as providers from '../Providers';
 
 var sinon = require('sinon');
 
@@ -20,9 +38,8 @@ beforeEach((done) => {
     webProvider = new providers.WebProvider("", "", {}, handler);
 
     stubResponse = new httpm.HttpClientResponse(null);
-    sinon.stub(stubResponse, "readBody").returns("{}");
-    stubResponse.message = sinon.spy(http.IncomingMessage);
-    stubResponse.message.headers = {'content-encoding' : 'json'};
+    sinon.stub(stubResponse, "readBody").returns(new Promise((resolve, reject) => { resolve("{}") }));
+    stubResponse.message = { headers: { 'content-encoding': 'json' }, on: (a, b) => { } };
     getStub = sinon.stub(webProvider.httpc, 'get').returns(new Promise<httpm.HttpClientResponse>((resolve, reject) => {
         resolve(stubResponse);
     }));
@@ -35,58 +52,79 @@ beforeEach((done) => {
 
 describe('webProvider.getArtifactItems', () => {
 
-    it('should call http get with correct url', async () => {
+    it('should call http get with correct url', (done) => {
         var getArtifactItemPromise = webProvider.getArtifactItems(artifactItem);
 
         getArtifactItemPromise.then(() => {
             assert.equal(getStub.callCount, 1);
             assert.equal(getStub.args[0][0], "http://stubUrl");
+            done();
+        }, (err) => {
+            throw err;
         });
     });
 
-    it('should replace double slashes from url', async () => {
+    it('should replace double slashes from url', (done) => {
         artifactItem.metadata = { 'downloadUrl': 'http://stubUrl//link' };
-        
+
         var getArtifactItemPromise = webProvider.getArtifactItems(artifactItem);
 
         getArtifactItemPromise.then(() => {
             assert.equal(getStub.callCount, 1);
             assert.equal(getStub.args[0][0], "http://stubUrl/link");
+            done();
+        }, (err) => {
+            throw err;
         });
     });
 });
 
 describe('webProvider.getArtifactItem', () => {
 
-    it('should call http get with correct url', async () => {
+    it('should call http get with correct url', (done) => {
         var getArtifactItemPromise = webProvider.getArtifactItem(artifactItem);
 
         getArtifactItemPromise.then(() => {
             assert.equal(getStub.callCount, 1);
             assert.equal(getStub.args[0][0], "http://stubUrl");
+            done();
+        }, (err) => {
+            throw err;
         });
     });
 
-    it('should replace double slashes from url', async () => {
+    it('should replace double slashes from url', (done) => {
         artifactItem.metadata = { 'downloadUrl': 'http://stubUrl//link' };
-        
+
         var getArtifactItemPromise = webProvider.getArtifactItem(artifactItem);
 
         getArtifactItemPromise.then(() => {
             assert.equal(getStub.callCount, 1);
             assert.equal(getStub.args[0][0], "http://stubUrl/link");
+            done();
+        }, (err) => {
+            throw err;
         });
     });
 
-    it('should Unzip on stream if content type is gzip', async () => {
-        stubResponse.message.headers = {'content-encoding' : 'gzip'};
+    it('should Unzip on stream if content type is gzip', (done) => {
+        stubResponse.message.headers = { 'content-encoding': 'gzip' };
         stubResponse.message.pipe = sinon.spy();
-        
+
         var getArtifactItemPromise = webProvider.getArtifactItem(artifactItem);
 
         getArtifactItemPromise.then(() => {
             assert.equal(stubResponse.message.pipe.callCount, 1);
             assert.equal(stubResponse.message.pipe.args[0][0].constructor.name, 'Unzip');
+            done();
+        }, (err) => {
+            throw err;
         });
     });
+});
+
+// some bug in mockery, need to see how to disable
+after(() => {
+    mockery.deregisterAll();
+    //mockery.disable();
 });
