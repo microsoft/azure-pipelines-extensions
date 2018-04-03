@@ -65,7 +65,7 @@ The extension isn't supported for TFS 2015 update 3, It is only supported TFS "1
 
 **6. I am not able to see the ExternalTfs types in link artifacts UI with TFS 2015 update 2?** 
 
-The extension isn't supported for TFS 2015 update 2, It is only supported TFS "15" RC onwards.
+The extension isn't supported for TFS 2015 update 2, It is only supported TFS "15" RC onwards.   
 
 **7. Where can I learn more about artifacts in Release Management?**
 
