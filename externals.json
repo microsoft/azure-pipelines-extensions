@@ -27,6 +27,8 @@
     "no-cache": [
             "Ansible",
             "DownloadTeamCityArtifacts",
-            "DownloadExternalBuildArtifacts"
+            "DownloadExternalBuildArtifacts",
+            "DownloadArtifactsTfsVersionControl",
+            "DownloadArtifactsTfsGit"
         ]
 }
