@@ -90,7 +90,7 @@ Q.resolve(gitRepositoryPromise).then( function (gitRepository) {
 
 function getRepositoryDetails(tfsEndpoint, repositoryId, projectId){
     var handler = webApim.getBasicHandler(tfsEndpoint.Username, tfsEndpoint.Password);
-    var gitClient = new webApim.WebApi(tfsEndpoint.Url, handler).getQGitApi();
+    var gitClient = new webApim.WebApi(tfsEndpoint.Url, handler).getGitApi();
     var promise = gitClient.getRepository(repositoryId, projectId);
 
     return promise;
