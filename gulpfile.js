@@ -16,6 +16,7 @@ var semver = require('semver');
 var shell = require('shelljs');
 var syncRequest = require('sync-request');
 var request = require('request');
+var xml2js = require('xml2js');
 
 // gulp modules
 var del = require('del');
@@ -42,7 +43,8 @@ if (semver.lt(process.versions.node, MIN_NODE_VER)) {
 //
 var mopts = {
     string: 'suite',
-    default: { suite: '**' }
+    boolean: ['perf', 'e2e'],
+    default: { suite: '**', perf: false, e2e: false }
 };
 
 var options = minimist(process.argv.slice(2), mopts);
@@ -65,6 +67,7 @@ var _tempPath = path.join(__dirname, '_temp');
 var _testRoot = "_build/";
 var _testTemp = "_build/Temp";
 var nugetPath = "_nuget";
+var cultures = ['en-US', 'de-DE', 'es-ES', 'fr-FR', 'it-IT', 'ja-JP', 'ko-KR', 'ru-RU', 'zh-CN', 'zh-TW'];
 
 //-----------------------------------------------------------------------------------------------------------------
 // Build Tasks
@@ -259,7 +262,277 @@ gulp.task("compileNode", ["compilePS"], function(cb){
         .pipe(ts)
         .pipe(gulp.dest(path.join(_buildRoot, 'Extensions')))
         .on('error', errorHandler);
+
+    // Generate loc files 
+    createResjson(cb);
 })
+
+function createResjson(callback) {
+    try {
+        var allLibJson = shell.find(path.join(__dirname, 'Extensions'))
+            .filter(function (file) {
+                return file.match(/(\/|\\)lib\.json$/);
+            });
+
+        allLibJson.forEach(function (libJson) {
+            console.log('Generating resJson for ' + libJson);
+
+            // create a key->value map of the default strings
+            var defaultStrings = {};
+            var lib = JSON.parse(fs.readFileSync(libJson));
+            if (lib.messages) {
+                for (var key of Object.keys(lib.messages)) {
+                    // skip resjson-style comments for localizers
+                    if (!key || key.match(/^_.+\.comment$/)) {
+                        continue;
+                    }
+        
+                    defaultStrings[`loc.messages.${key}`] = lib.messages[key];
+                }
+            }
+
+            // create the culture-specific resjson files
+            for (var culture of cultures) {
+                // initialize the culture-specific strings from the default strings
+                var cultureStrings = {};
+                for (var key of Object.keys(defaultStrings)) {
+                    cultureStrings[key] = defaultStrings[key];
+                }
+
+                // load the culture-specific xliff file
+                var xliffPath = path.join(path.dirname(libJson), 'xliff', `${culture}.xlf`);
+                var stats;
+                try {
+                    stats = fs.statSync(xliffPath);
+                }
+                catch (err) {
+                    if (err.code != 'ENOENT') {
+                        throw err;
+                    }
+                }
+
+                if (stats) {
+                    // parse the culture-specific xliff contents
+                    var parser = new xml2js.Parser();
+                    var xliff;
+                    parser.parseString(
+                        fs.readFileSync(xliffPath),
+                        function (err, result) {
+                            if (err) {
+                                throw err;
+                            }
+        
+                            xliff = result;
+                        });
+
+                    // overlay the translated strings
+                    for (var unit of xliff.xliff.file[0].body[0]['trans-unit']) {
+                        if (unit.target[0].$.state == 'translated' &&
+                            defaultStrings.hasOwnProperty(unit.$.id) &&
+                            defaultStrings[unit.$.id] == unit.source[0]) {
+
+                            cultureStrings[unit.$.id] = unit.target[0]._;
+                        }
+                    }
+                }
+
+                // write the culture-specific resjson file
+                var resjsonPath = path.join(path.dirname(libJson), 'Strings', 'resources.resjson', culture, 'resources.resjson');
+                var resjsonContents = JSON.stringify(cultureStrings, null, 2);
+                shell.mkdir('-p', path.dirname(resjsonPath));
+                fs.writeFileSync(resjsonPath, resjsonContents);
+            }
+        });   
+    }
+    catch (err) {
+        console.log('error:' + err.message);
+        callback(new gutil.PluginError('compileTasks', err.message));
+        throw err;
+    }
+}
+
+function handoff(callback) {
+    // create a key->value map of default strings and comments for localizers
+    //
+    // resjson-style resources:
+    //   "greeting": "Hello",
+    //   "_greeting.comment": "A welcome greeting.",
+    //
+    // for more details about resjson: https://msdn.microsoft.com/en-us/library/windows/apps/hh465254.aspx
+
+    try {
+        var allLibJson = shell.find(path.join(__dirname, 'Extensions'))
+            .filter(function (file) {
+                return file.match(/(\/|\\)lib\.json$/);
+            });
+
+        allLibJson.forEach(function (libJson) {
+            console.log('Generating xliff for ' + libJson);
+
+
+            var defaultStrings = {};
+            var comments = {};
+            var lib = JSON.parse(fs.readFileSync(libJson));
+            if (lib.messages) {
+                for (var key of Object.keys(lib.messages)) {
+                    if (!key) {
+                        throw new Error('key cannot be empty: lib.messages.<key>');
+                    }
+
+                    if (key.match(/^_.+\.comment$/)) {
+                        var commentKey = key;
+                        var valueKey = commentKey.substr(   // trim leading "_"
+                            '_'.length,                     // trim trailing ".comment"
+                            commentKey.length - '_.comment'.length);
+                        comments[`loc.messages.${valueKey}`] = lib.messages[commentKey];
+                        continue;
+                    }
+                    else {
+                        defaultStrings[`loc.messages.${key}`] = lib.messages[key];
+                    }
+                }
+            }
+
+            // create or update the culture-specific xlf files
+            for (var culture of cultures) {
+                if (culture.toUpperCase() == 'EN-US') {
+                    continue;
+                }
+
+                // test whether xliff file exists
+                var xliffPath = path.join(path.dirname(libJson), 'xliff', `${culture}.xlf`);
+                var stats;
+                try {
+                    stats = fs.statSync(xliffPath);
+                }
+                catch (err) {
+                    if (err.code != 'ENOENT') {
+                        throw err;
+                    }
+                }
+
+                var xliff;
+                if (stats) {
+                    // parse the file
+                    var parser = new xml2js.Parser();
+                    parser.parseString(
+                        fs.readFileSync(xliffPath),
+                        function (err, result) {
+                            if (err) {
+                                throw err;
+                            }
+        
+                            xliff = result;
+                        }
+                    )
+                }
+                else {
+                    // create the initial xliff object
+                    xliff = {
+                        "xliff": {
+                            "$": {
+                                "version": "1.2"
+                            },
+                            "file": [
+                                {
+                                    "$": {
+                                        "original": "lib.json",
+                                        "source-language": "en-US",
+                                        "target-language": culture,
+                                        "datatype": "plaintext"
+                                    },
+                                    "body": [
+                                        {
+                                            "trans-unit": []
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                }
+
+                // create a map of trans-unit
+                var unitMap = {};
+                for (var unit of xliff.xliff.file[0].body[0]['trans-unit']) {
+                    unitMap[unit['$'].id] = unit;
+                }
+
+                for (var key of Object.keys(defaultStrings)) {
+                    // add the trans-unit
+                    if (!unitMap.hasOwnProperty(key)) {
+                        unitMap[key] = {
+                            "$": {
+                                "id": key
+                            },
+                            "source": [
+                                defaultStrings[key]
+                            ],
+                            "target": [
+                                {
+                                    "$": {
+                                        "state": "new"
+                                    },
+                                    "_": ""
+                                }
+                            ]
+                        };
+                    }
+                    // update the source, target state, and note
+                    else if (unitMap[key].source[0] != defaultStrings[key]) {
+                        unitMap[key].source = [
+                            defaultStrings[key]
+                        ];
+                        if (unitMap[key].target[0]['$'].state != 'new') {
+                            unitMap[key].target[0]['$'].state = "needs-translation";
+                        }
+                    }
+
+                    // always update the note
+                    unitMap[key].note = [
+                        (comments[key] || "")
+                    ];
+                }
+
+                for (var key of Object.keys(unitMap)) {
+                    // delete the trans-unit
+                    if (!defaultStrings.hasOwnProperty(key)) {
+                        delete unitMap[key];
+                    }
+                }
+
+                // update the body of the xliff object
+                xliff.xliff.file[0].body[0]['trans-unit'] = [];
+                for (var key of Object.keys(unitMap).sort()) {
+                    xliff.xliff.file[0].body[0]['trans-unit'].push(unitMap[key]);
+                }
+
+                // write the xliff file
+                var options = {
+                    "renderOpts": {
+                        "pretty": true,
+                        "indent": "  ",
+                        "newline": os.EOL
+                    },
+                    "xmldec": {
+                        "version": "1.0",
+                        "encoding": "utf-8"
+                    }
+                };
+
+                var builder = new xml2js.Builder(options);
+                var xml = builder.buildObject(xliff);
+                shell.mkdir('-p', path.dirname(xliffPath));
+                fs.writeFileSync(xliffPath, '\ufeff' + xml);
+            }
+        });
+    }
+    catch (err) {
+        console.log('error:' + err.message);
+        callback(new gutil.PluginError('compileTasks', err.message));
+        throw err;
+    }
+}
 
 function runNpmInstall(packagePath) {
     var originalDir = shell.pwd();
@@ -286,6 +559,10 @@ function compileUIExtensions(extensionRoot) {
 }
 
 gulp.task("build", ["compileNode"], function() {
+});
+
+gulp.task("handoff", function(cb) {
+    handoff(cb);
 });
 
 gulp.task("default", ["build"]);
@@ -334,13 +611,30 @@ gulp.task("_mochaTests", ["testResources"], function(){
     process.env['TASK_TEST_TEMP'] =path.join(__dirname, _testTemp);
     shell.rm('-rf', _testTemp);
     shell.mkdir('-p', _testTemp);
+
+    if (options.suite.indexOf("ArtifactEngine") >= 0  && options.e2e) {
+        var suitePath = path.join(_testRoot, "Extensions/" + options.suite + "/**/*E2E.js");
+        console.log(suitePath);
+        var tfBuild = ('' + process.env['TF_BUILD']).toLowerCase() == 'true'
+        return gulp.src([suitePath])
+            .pipe(mocha({ reporter: 'spec', ui: 'bdd', useColors: !tfBuild }));
+    }
+    
+    if (options.suite.indexOf("ArtifactEngine") >= 0  && options.perf) {
+        var suitePath = path.join(_testRoot, "Extensions/" + options.suite + "/**/*Perf.js");
+        console.log(suitePath);
+        var tfBuild = ('' + process.env['TF_BUILD']).toLowerCase() == 'true'
+        return gulp.src([suitePath])
+            .pipe(mocha({ reporter: 'spec', ui: 'bdd', useColors: !tfBuild }));
+    }
+
     var suitePath = path.join(_testRoot,"Extensions/" + options.suite + "/Tests/Tasks", options.suite + '/_suite.js');
     console.log(suitePath);
     var tfBuild = ('' + process.env['TF_BUILD']).toLowerCase() == 'true'
     gulp.src([suitePath])
         .pipe(mocha({ reporter: 'spec', ui: 'bdd', useColors: !tfBuild }));
 
-    var suitePath = path.join(_testRoot,"Extensions/" + options.suite + "/**/*Tests.js");
+    var suitePath = path.join(_testRoot, "Extensions/" + options.suite + "/**/*Tests.js");
     console.log(suitePath);
     var tfBuild = ('' + process.env['TF_BUILD']).toLowerCase() == 'true'
     return gulp.src([suitePath])

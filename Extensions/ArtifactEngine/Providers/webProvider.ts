@@ -7,30 +7,33 @@ import * as stream from 'stream';
 import * as crypto from 'crypto';
 import * as zlib from 'zlib';
 
-var handlebars = require('handlebars');
-import * as httpm from 'typed-rest-client/HttpClient';
-
+import * as httpm from './typed-rest-client/HttpClient';
 import * as models from '../Models';
 import { Logger } from '../Engine/logger';
-import { BasicCredentialHandler } from './Handlers/basiccreds';
-import { IRequestHandler, IRequestOptions } from './Handlers/interfaces';
+import { IRequestHandler, IRequestOptions } from './typed-rest-client/Interfaces';
 import { ArtifactItemStore } from '../Store/artifactItemStore';
+import * as factory from './webClientFactory';
 
-var packagejson = require('../package.json');
+var handlebars = require('handlebars');
+var tl = require('vsts-task-lib/task');
 
 export class WebProvider implements models.IArtifactProvider {
+
+    public artifactItemStore: ArtifactItemStore;
 
     constructor(rootItemsLocation, templateFile: string, variables: any, handler: IRequestHandler, requestOptions?: IRequestOptions) {
         this.rootItemsLocation = rootItemsLocation;
         this.templateFile = templateFile;
-        this.options = requestOptions || {};
-        this.initializeOptions();
-        this.httpc = new httpm.HttpClient('item-level-downloader ' + packagejson.version, [handler], this.options);
+        this.httpc = factory.WebClientFactory.getClient([handler], requestOptions);
         this.variables = variables;
     }
 
     getRootItems(): Promise<models.ArtifactItem[]> {
-        return this.getItems(this.rootItemsLocation);
+        var rootItem = new models.ArtifactItem();
+        rootItem.metadata = { downloadUrl: this.rootItemsLocation };
+        rootItem.path = '';
+        rootItem.itemType = models.ItemType.Folder;
+        return Promise.resolve([rootItem]);
     }
 
     getArtifactItems(artifactItem: models.ArtifactItem): Promise<models.ArtifactItem[]> {
@@ -39,26 +42,39 @@ export class WebProvider implements models.IArtifactProvider {
     }
 
     getArtifactItem(artifactItem: models.ArtifactItem): Promise<NodeJS.ReadableStream> {
-        var promise = new Promise<NodeJS.ReadableStream>(async (resolve, reject) => {
+        var promise = new Promise<NodeJS.ReadableStream>((resolve, reject) => {
             if (!artifactItem.metadata || !artifactItem.metadata['downloadUrl']) {
                 reject("No downloadUrl available to download the item.");
             }
 
+            var downloadSize: number = 0;
             var itemUrl: string = artifactItem.metadata['downloadUrl'];
             itemUrl = itemUrl.replace(/([^:]\/)\/+/g, "$1");
-            var getResponsePromise = this.httpc.get(itemUrl);
-            getResponsePromise.catch(reason => {
+            this.httpc.get(itemUrl).then((res: httpm.HttpClientResponse) => {
+                res.message.on('data', (chunk) => {
+                    downloadSize += chunk.length;
+                });
+                res.message.on('end', () => {
+                    this.artifactItemStore.updateDownloadSize(artifactItem, downloadSize);
+                });
+                res.message.on('error', (error) => {
+                    reject(error);
+                });
+
+                if (res.message.headers['content-encoding'] === 'gzip') {
+                    try {
+                        resolve(res.message.pipe(zlib.createUnzip()));
+                    }
+                    catch (err) {
+                        reject(err);
+                    }
+                }
+                else {
+                    resolve(res.message);
+                }
+            }, (reason) => {
                 reject(reason);
             });
-
-            let res: httpm.HttpClientResponse = await getResponsePromise;
-
-            if (res.message.headers['content-encoding'] === 'gzip') {
-                resolve(res.message.pipe(zlib.createUnzip()));
-            }
-            else {
-                resolve(res.message);
-            }
         });
 
         return promise;
@@ -68,84 +84,43 @@ export class WebProvider implements models.IArtifactProvider {
         throw new Error("Not implemented");
     }
 
+    dispose(): void {
+        this.httpc.dispose();
+    }
+
     private getItems(itemsUrl: string): Promise<models.ArtifactItem[]> {
-        var promise = new Promise<models.ArtifactItem[]>(async (resolve, reject) => {
+        var promise = new Promise<models.ArtifactItem[]>((resolve, reject) => {
             itemsUrl = itemsUrl.replace(/([^:]\/)\/+/g, "$1");
-            let resp: httpm.HttpClientResponse = await this.httpc.get(itemsUrl, { 'Accept': 'application/json' });
-            let body: string = await resp.readBody();
+            this.httpc.get(itemsUrl, { 'Accept': 'application/json' }).then((resp: httpm.HttpClientResponse) => {
+                resp.readBody().then((body: string) => {
+                    fs.readFile(this.getTemplateFilePath(), 'utf8', (err, templateFileContent) => {
+                        if (err) {
+                            Logger.logMessage(err ? JSON.stringify(err) : "");
+                            reject(err);
+                        }
 
-            fs.readFile(this.getTemplateFilePath(), 'utf8', (err, templateFileContent) => {
-                if (err) {
-                    Logger.logError(err ? JSON.stringify(err) : "");
+                        try {
+                            var template = handlebars.compile(templateFileContent);
+                            var response = JSON.parse(body);
+                            var context = this.extend(response, this.variables);
+                            var result = template(context);
+                            var items = JSON.parse(result);
+
+                            resolve(items);
+                        } catch (error) {
+                            Logger.logMessage(tl.loc("FailedToParseResponse", body, error));
+                            reject(error);
+                        }
+                    });
+                }, (err) => {
                     reject(err);
-                }
-
-                var template = handlebars.compile(templateFileContent);
-                try {
-                    var response = JSON.parse(body);
-                    var context = this.extend(response, this.variables);
-                    var result = template(context);
-                    var items = JSON.parse(result);
-
-                    resolve(items);
-                } catch (error) {
-                    Logger.logError("Failed to parse response body: " + body + " , got error : " + error);
-                    reject(error);
-                }
+                });
+            }, (err) => {
+                reject(err);
             });
         });
 
         return promise;
-    }
-
-    private initializeOptions() {
-        // try get proxy setting from environment variable set by VSTS-Task-Lib if there is no proxy setting in the options
-        if (!this.options.proxy || !this.options.proxy.proxyUrl) {
-            if (global['_vsts_task_lib_proxy']) {
-                let proxyFromEnv: any = {
-                    proxyUrl: global['_vsts_task_lib_proxy_url'],
-                    proxyUsername: global['_vsts_task_lib_proxy_username'],
-                    proxyPassword: this._readTaskLibSecrets(global['_vsts_task_lib_proxy_password']),
-                    proxyBypassHosts: JSON.parse(global['_vsts_task_lib_proxy_bypass'] || "[]"),
-                };
-
-                this.options.proxy = proxyFromEnv;
-            }
-        }
-
-        // try get cert setting from environment variable set by VSTS-Task-Lib if there is no cert setting in the options
-        if (!this.options.cert) {
-            if (global['_vsts_task_lib_cert']) {
-                let certFromEnv: any = {
-                    caFile: global['_vsts_task_lib_cert_ca'],
-                    certFile: global['_vsts_task_lib_cert_clientcert'],
-                    keyFile: global['_vsts_task_lib_cert_key'],
-                    passphrase: this._readTaskLibSecrets(global['_vsts_task_lib_cert_passphrase']),
-                };
-
-                this.options.cert = certFromEnv;
-            }
-        }
-    }
-
-    private _readTaskLibSecrets(lookupKey: string): string {
-        // the lookupKey should has following format
-        // base64encoded<keyFilePath>:base64encoded<encryptedContent>
-        if (lookupKey && lookupKey.indexOf(':') > 0) {
-            let lookupInfo: string[] = lookupKey.split(':', 2);
-
-            // file contains encryption key
-            let keyFile = new Buffer(lookupInfo[0], 'base64').toString('utf8');
-            let encryptKey = new Buffer(fs.readFileSync(keyFile, 'utf8'), 'base64');
-
-            let encryptedContent: string = new Buffer(lookupInfo[1], 'base64').toString('utf8');
-
-            let decipher = crypto.createDecipher("aes-256-ctr", encryptKey)
-            let decryptedContent = decipher.update(encryptedContent, 'hex', 'utf8')
-            decryptedContent += decipher.final('utf8');
-
-            return decryptedContent;
-        }
     }
 
     private getTemplateFilePath(): string {
@@ -163,6 +138,5 @@ export class WebProvider implements models.IArtifactProvider {
     private rootItemsLocation: string;
     private templateFile: string;
     private variables: string;
-    public httpc: httpm.HttpClient = new httpm.HttpClient('item-level-downloader');
-    private options: any = {};
+    public httpc: httpm.HttpClient = new httpm.HttpClient('artifact-engine');
 }

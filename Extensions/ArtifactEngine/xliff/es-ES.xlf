@@ -1,0 +1,52 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff version="1.2">
+  <file original="lib.json" source-language="en-US" target-language="es-ES" datatype="plaintext">
+    <body>
+      <trans-unit id="loc.messages.DownloadSummary">
+        <source>Total Files: %s, Processed: %s, Skipped: %s, Failed: %s, Download time: %s secs, Download size: %s</source>
+        <target state="translated">Total de archivos: %s, procesados: %s, omitidos: %s, con errores: %s, tiempo de descarga: %s segundos, tamaño de descarga: %s</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="loc.messages.DownloadedTo">
+        <source>Downloaded %s to %s</source>
+        <target state="translated">%s descargado en %s</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="loc.messages.DownloadingTo">
+        <source>Downloading %s to %s</source>
+        <target state="translated">Descargando %s en %s</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="loc.messages.FailedToParseResponse">
+        <source>Failed to parse response body: %s, got error : %s</source>
+        <target state="translated">No se pudo analizar el cuerpo de la respuesta: %s. Error: %s</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="loc.messages.RetryingDownload">
+        <source>Retrying download of %s, retry count: %s</source>
+        <target state="translated">Reintentando la descarga de %s, número de reintentos: %s</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="loc.messages.SkippingItem">
+        <source>Skipped processing item %s</source>
+        <target state="translated">Procesamiento de %s omitido</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="loc.messages.UnableToReadDirectory">
+        <source>Unable to read directory %s. Error: %s</source>
+        <target state="translated">No se puede leer el directorio %s. Error: %s</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="loc.messages.UnhandledException">
+        <source>artifact-engine: unhandled exception %s</source>
+        <target state="translated">artifact-engine: excepción no controlada: %s</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="loc.messages.UnhandledRejection">
+        <source>artifact-engine: unhandled rejection %s</source>
+        <target state="translated">artifact-engine: rechazo no controlado: %s</target>
+        <note/>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

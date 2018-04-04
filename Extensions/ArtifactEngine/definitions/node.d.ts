@@ -1422,6 +1422,7 @@ declare module "fs" {
     }
 
     export interface ReadStream extends stream.Readable {
+        bytesRead;
         close(): void;
         destroy(): void;
     }

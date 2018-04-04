@@ -6,7 +6,7 @@ import * as tl from 'vsts-task-lib/task';
 import * as models from 'artifact-engine/Models';
 import * as engine from 'artifact-engine/Engine';
 import * as providers from 'artifact-engine/Providers';
-import * as webHandlers from 'artifact-engine/Providers/Handlers';
+import * as webHandlers from 'artifact-engine/Providers/typed-rest-client/Handlers';
 
 tl.setResourcePath(path.join(__dirname, 'task.json'));
 

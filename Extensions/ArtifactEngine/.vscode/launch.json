@@ -5,22 +5,57 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Run e2e tests",
             "type": "node",
             "request": "launch",
             "preLaunchTask": "build",
-            "name": "Run task.ts",
-            "program": "${workspaceRoot}/task.js",
-            "outFiles": [
-                "${workspaceRoot}/out/**/*.js"
-            ]
+            "program": "${workspaceRoot}/node_modules/mocha/bin/_mocha",
+            "stopOnEntry": false,          
+            "args": ["**/*E2E.js"],
+            "runtimeExecutable": null,
+            "env": { "NODE_ENV": "production"}
         },
         {
-            "name": "Run mocha",
+            "name": "Run perf tests",
             "type": "node",
             "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceRoot}/node_modules/mocha/bin/_mocha",
+            "stopOnEntry": false,          
+            "args": ["**/*Perf.js"],
+            "runtimeExecutable": null,
+            "env": { "NODE_ENV": "production"}
+        },
+        {
+            "name": "Run unit tests",
+            "type": "node",
+            "request": "launch",
+            "preLaunchTask": "build",
             "program": "${workspaceRoot}/node_modules/mocha/bin/_mocha",
             "stopOnEntry": false,
             "args": ["**/*Tests.js"],
+            "runtimeExecutable": null,
+            "env": { "NODE_ENV": "production"}
+        },
+        {
+            "name": "Run integration tests",
+            "type": "node",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceRoot}/node_modules/mocha/bin/_mocha",
+            "stopOnEntry": false,
+            "args": ["**/IntegrationTests/*Tests.js"],
+            "runtimeExecutable": null,
+            "env": { "NODE_ENV": "production"}
+        },
+        {
+            "name": "Run proxy tests",
+            "type": "node",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceRoot}/node_modules/mocha/bin/_mocha",
+            "stopOnEntry": false,
+            "args": ["**/IntegrationTests/*proxyTests.js"],
             "runtimeExecutable": null,
             "env": { "NODE_ENV": "production"}
         }

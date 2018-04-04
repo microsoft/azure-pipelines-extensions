@@ -1,4 +1,4 @@
-# ** Ansible extension**
+# **Ansible extension**
 
 This extension includes a build/release task to integrate with [Ansible](http://docs.ansible.com/ansible/latest/index.html). The task executes a given Ansible playbook on a specified list of inventory nodes via command line interface.
 Ansible is an open-source IT automation engine that can configure systems, deploy software and orchestrate application deployments. 
@@ -7,7 +7,7 @@ Ansible uses [Playbooks](http://docs.ansible.com/ansible/latest/playbooks.html) 
 
 This task requires that the Playbook and Inventory files be located either on a private Linux agent or on a remote machine where Ansible automation engine has been installed. Additionally Inventory can also be specified inline or as a Host list.
 
-## ** Prerequisites**
+## **Prerequisites**
 
 ### **Install Ansible automation engine**
 Follow the [installation guidance](http://docs.ansible.com/ansible/latest/intro_installation.html) to install Ansible on a private Linux agent or on a remote machine. Currently Ansible can be run from any machine with Python 2.6 or 2.7 installed (Windows isn’t supported for the control machine).
@@ -22,7 +22,7 @@ If Ansible is installed on a remote machine, you would need to set up an [SSH en
 	
  ![Ansible SSH Endpoint](Images/ansible_endpoint.png)
 	
-## ** Task ** 
+## **Task** 
 Installing the extension adds the following Ansible task which runs a given Playbook:
 
 When Ansible automation engine is located on an Agent machine:
@@ -32,7 +32,7 @@ When Ansible automation engine is located on an Agent machine:
 When Ansible automation engine is located on a remote machine:  
  ![Run Ansible Playbook](Images/ansible_screen_2.png)
 
- ## ** Task arguments** 
+ ## **Task arguments** 
  
  * **Ansible location**:  Location where Ansible automation engine is installed. Can be either a private agent machine or a remote machine. Ansible communicates with remote machines over SSH and would require the SSH endpoint details.
  
@@ -40,7 +40,7 @@ When Ansible automation engine is located on a remote machine:
 
  * **Playbook Source**:  Choose agent machine if playbook is part of a linked artifact and should be copied to the remote Ansible machine. Otherwise, select Ansible machine.
 
- * **Playbook root **\*:  Specify the working directory path where playbook and associated files are located on the agent machine. All the files in this folder will be copied to Ansible machine.
+ * **Playbook root**\*:  Specify the working directory path where playbook and associated files are located on the agent machine. All the files in this folder will be copied to Ansible machine.
 
  * **Playbook file path**\*:  Specify the path to the playbook file to be executed on the Ansible machine. [Playbooks](http://docs.ansible.com/ansible/latest/playbooks.html) declare Ansible’s configuration, deployment, and orchestration steps in YAML format.
 
@@ -62,4 +62,4 @@ This also requires desired sudo user name. \"root\" is used when this field is e
 
 ### **Contact Information**
 
-For further information or to resolve issues, contact RM_Customer_Queries at Microsoft dot com.
+For further information or to resolve issues, contact [Developer Community Forum](https://developercommunity.visualstudio.com/spaces/21/index.html).
