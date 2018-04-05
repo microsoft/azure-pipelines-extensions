@@ -65,7 +65,7 @@ function Get-SqlPackageOnTargetMachine
 
     $maximumVersion = [decimal]$(@($vsVersionNumber, $sqlVersionNumber, $sqlMsiVersionNumber) | Measure-Object -Maximum).Maximum 
     
-    if ($sqlMsiVersion -eq $maximumVersion)
+    if ($sqlMsiVersionNumber -eq $maximumVersion)
     {
         $dacPath = $sqlMsiDacPath
     }
