@@ -4,7 +4,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [1.4.6] 5th July 2018
 ### Fixed
-- Reorder sqlpackage.exe provider preference order
+- Changed order of sqlpackage.exe provider preference order
 
 ## [1.4.5] 24th July 2017
 ### Fixed
