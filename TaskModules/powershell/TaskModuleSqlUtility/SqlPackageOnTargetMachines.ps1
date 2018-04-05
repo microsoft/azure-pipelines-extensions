@@ -63,19 +63,21 @@ function Get-SqlPackageOnTargetMachine
         $vsVersionNumber = 0
     }
 
-    if (($vsVersionNumber -ge $sqlVersionNumber) -and ($vsVersionNumber -ge $sqlMsiVersionNumber))
-    {
-        $dacPath = $vsDacPath
-    }
-    elseif ($sqlVersionNumber -ge $sqlMsiVersionNumber)
-    {
-        $dacPath = $sqlDacPath
-    }
-    else
+    $maximumVersion = [decimal]$(@($vsVersionNumber, $sqlVersionNumber, $sqlMsiVersionNumber) | Measure-Object -Maximum).Maximum 
+    
+    if ($sqlMsiVersionNumber -eq $maximumVersion)
     {
         $dacPath = $sqlMsiDacPath
     }
-
+    elseif ($vsVersionNumber -eq $maximumVersion)
+    {
+        $dacPath = $vsDacPath
+    }
+    elseif ($sqlVersionNumber -eq $maximumVersion) 
+    {
+        $dacPath = $sqlDacPath
+    }
+    
     if ($dacPath -eq $null)
     {
         throw  "Unable to find the location of Dac Framework (SqlPackage.exe) from registry on machine $env:COMPUTERNAME"
