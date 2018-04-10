@@ -1,0 +1,7 @@
+{
+  "name": "DownloadDemoArtifacts",
+  "main": "download.js",
+  "dependencies": {
+    "vsts-task-lib" : "2.0.5"
+  }
+}

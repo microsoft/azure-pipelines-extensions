@@ -1,0 +1,27 @@
+{
+  "id": "15ECB9F3-C0F7-42CF-9CE3-C6DDED17DE81",
+  "name": "DownloadDemoArtifacts",
+  "friendlyName": "Download Artifacts - Demo",
+  "description": "Download artifacts from demo",
+  "helpMarkDown": "",
+  "category": "Utility",
+  "author": "ms-vscs-rm",
+  "version": {
+    "Major": 1,
+    "Minor": 0,
+    "Patch": 0
+  },
+  "demands": [],
+  "minimumAgentVersion": "2.0.0",
+  "inputs": [
+  ],
+  "dataSourceBindings": [
+  ],
+  "instanceNameFormat": "Download Artifacts - Demo",
+  "execution": {
+    "Node": {
+      "target": "download.js",
+      "argumentFormat": ""
+    }
+  }
+}

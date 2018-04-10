@@ -1,0 +1,81 @@
+{
+  "id": "vss-services-demoservice",
+  "name": "Demo artifacts for Release Management",
+  "publisher": "ms-devlabs",
+  "version": "1.0.0",
+  "public": true,
+  "description": "Tools related to connecting with Demo service",
+  "categories": [ "Build and release" ],
+  "Tags": [ "Release", "DevOps", "Artifacts" ],
+  "targets": [
+    {
+      "id": "Microsoft.VisualStudio.Services"
+    }
+  ],
+  "demands": [ "contribution/ms.vss-releaseartifact.artifact-types" ],
+  "icons": {
+    "default": "images\\vss_default.png"
+  },
+  "branding": {
+    "color": "#3B3E43",
+    "theme": "dark"
+  },
+  "content": {
+    "details": {
+      "path": "readme.md"
+    }
+  },
+  "files": [
+    {
+      "path": "Tasks/DownloadDemoArtifacts"
+    }
+  ],
+  "contributions": [
+    {
+      "id": "demo-endpoint-type",
+      "description": "Service Endpoint type for all Demo connections",
+      "type": "ms.vss-endpoint.service-endpoint-type",
+      "targets": [ "ms.vss-endpoint.endpoint-types" ],
+      "properties": {
+        "name": "demo",
+        "displayName": "Demo",
+        "dataSources": [
+        ],
+        "authenticationSchemes": [
+          {
+            "type": "ms.vss-endpoint.endpoint-auth-scheme-basic"
+          }
+        ],
+        "helpMarkDown": "<a href=\"https://msdn.microsoft.com/Library/vs/alm/Release/author-release-definition/understanding-tasks#serviceconnections\" target=\"_blank\"><b>Learn More</b></a>"
+      }
+    },
+    {
+      "id": "demo-task",
+      "type": "ms.vss-distributed-task.task",
+      "targets": [
+        "ms.vss-distributed-task.tasks"
+      ],
+      "properties": {
+        "name": "Tasks/DownloadDemoArtifacts"
+        }
+    },
+    {
+      "id": "demo-release-artifact-type",
+      "description": "Demo Artifact",
+      "type": "ms.vss-releaseartifact.release-artifact-type",
+      "targets": [ "ms.vss-releaseartifact.artifact-types" ],
+      "properties": {
+        "name": "Demo",
+        "displayName": "Demo",
+        "endpointTypeId": "demo",
+        "uniqueSourceIdentifier": "{{connection}}:{{project}}:{{definition}}",
+        "downloadTaskId": "15ECB9F3-C0F7-42CF-9CE3-C6DDED17DE81",
+        "artifactType": "Build",
+        "inputDescriptors": [
+        ],
+        "dataSourceBindings": [
+        ]
+      }
+    }
+  ]
+}
