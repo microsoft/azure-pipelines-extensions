@@ -10,7 +10,7 @@ function getDefaultProps() {
     var isReleaseHost = hostType === 'release' || hostType === "deployment";
     return {
         hostType: hostType,
-        definitionName: '[NonEmail:' + isReleaseHost ? tl.getVariable('RELEASE.DEFINITIONNAME') : tl.getVariable('BUILD.DEFINITIONNAME') + ']',
+        definitionName: '[NonEmail:' + (isReleaseHost ? tl.getVariable('RELEASE.DEFINITIONNAME') : tl.getVariable('BUILD.DEFINITIONNAME')) + ']',
         processId: isReleaseHost ? tl.getVariable('RELEASE.RELEASEID') : tl.getVariable('BUILD.BUILDID'),
         processUrl: isReleaseHost ? tl.getVariable('RELEASE.RELEASEWEBURL') : (tl.getVariable('SYSTEM.TEAMFOUNDATIONSERVERURI') + tl.getVariable('SYSTEM.TEAMPROJECT') + '/_build?buildId=' + tl.getVariable('BUILD.BUILDID')),
         taskDisplayName: tl.getVariable('TASK.DISPLAYNAME'),
