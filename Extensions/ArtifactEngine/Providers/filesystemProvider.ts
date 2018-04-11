@@ -12,14 +12,15 @@ export class FilesystemProvider implements models.IArtifactProvider {
 
     public artifactItemStore: ArtifactItemStore;
 
-    constructor(rootLocation: string) {
+    constructor(rootLocation: string, rootItemPath?: string) {
         this._rootLocation = rootLocation;
+        this._rootItemPath = rootItemPath ? rootItemPath : '';
     }
 
     getRootItems(): Promise<models.ArtifactItem[]> {
         var rootItem = new models.ArtifactItem();
         rootItem.metadata = { downloadUrl: this._rootLocation };
-        rootItem.path = '';
+        rootItem.path = this._rootItemPath;
         rootItem.itemType = models.ItemType.Folder;
         return Promise.resolve([rootItem]);
     }
@@ -130,4 +131,5 @@ export class FilesystemProvider implements models.IArtifactProvider {
     }
 
     private _rootLocation: string;
+    private _rootItemPath: string;
 }

@@ -139,8 +139,8 @@ describe('e2e tests', () => {
         var itemsUrl = "//vscsstor/Users/gykuma/ArtifactEngineTestData/dropz/";
         var variables = {};
 
-        var sourceProvider = new providers.FilesystemProvider(itemsUrl);
-        var dropLocation = path.join(nconf.get('DROPLOCATION'), "fileshareWithMultipleFiles");
+        var sourceProvider = new providers.FilesystemProvider(itemsUrl, "fileshareWithMultipleFiles");
+        var dropLocation = path.join(nconf.get('DROPLOCATION'));
         var destProvider = new providers.FilesystemProvider(dropLocation);
 
         processor.processItems(sourceProvider, destProvider, processorOptions)
