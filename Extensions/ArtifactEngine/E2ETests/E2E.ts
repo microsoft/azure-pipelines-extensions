@@ -141,6 +141,7 @@ describe('e2e tests', () => {
 
         var sourceProvider = new providers.FilesystemProvider(itemsUrl);
         var dropLocation = path.join(nconf.get('DROPLOCATION'), "fileshareWithMultipleFiles");
+        var basePath = path.basename(nconf.get('DROPLOCATION'));
         var destProvider = new providers.FilesystemProvider(dropLocation);
 
         processor.processItems(sourceProvider, destProvider, processorOptions)
@@ -153,8 +154,8 @@ describe('e2e tests', () => {
                     done();
                 });
 
-                assert.equal(tickets.find(x => x.artifactItem.path == "file1.pdb").retryCount, 0);
-                assert.equal(tickets.find(x => x.artifactItem.path == path.join("folder1", "file2.txt")).retryCount, 0);
+                assert.equal(tickets.find(x => x.artifactItem.path == path.join(basePath, "file1.pdb")).retryCount, 0);
+                assert.equal(tickets.find(x => x.artifactItem.path == path.join(basePath, "folder1", "file2.txt")).retryCount, 0);
             }, (error) => {
                 throw error;
             });

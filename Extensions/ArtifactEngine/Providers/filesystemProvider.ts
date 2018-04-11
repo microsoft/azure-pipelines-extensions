@@ -19,7 +19,7 @@ export class FilesystemProvider implements models.IArtifactProvider {
     getRootItems(): Promise<models.ArtifactItem[]> {
         var rootItem = new models.ArtifactItem();
         rootItem.metadata = { downloadUrl: this._rootLocation };
-        rootItem.path = '';
+        rootItem.path = path.basename(this._rootLocation);
         rootItem.itemType = models.ItemType.Folder;
         return Promise.resolve([rootItem]);
     }
