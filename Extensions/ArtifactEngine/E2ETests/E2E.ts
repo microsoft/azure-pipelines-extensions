@@ -130,7 +130,7 @@ describe('e2e tests', () => {
         let processor = new engine.ArtifactEngine();
 
         let processorOptions = new engine.ArtifactEngineOptions();
-        processorOptions.itemPattern = "**";
+        processorOptions.itemPattern = "fileshareWithMultipleFiles\\**";
         processorOptions.parallelProcessingLimit = 8;
         processorOptions.retryIntervalInSeconds = 2;
         processorOptions.retryLimit = 2;
