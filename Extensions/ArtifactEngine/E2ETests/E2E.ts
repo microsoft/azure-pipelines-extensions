@@ -153,8 +153,8 @@ describe('e2e tests', () => {
                     done();
                 });
 
-                assert.equal(tickets.find(x => x.artifactItem.path == "file1.pdb").retryCount, 0);
-                assert.equal(tickets.find(x => x.artifactItem.path == path.join("folder1", "file2.txt")).retryCount, 0);
+                assert.equal(tickets.find(x => x.artifactItem.path == path.join("fileshareWithMultipleFiles", "file1.pdb")).retryCount, 0);
+                assert.equal(tickets.find(x => x.artifactItem.path == path.join("fileshareWithMultipleFiles", "folder1", "file2.txt")).retryCount, 0);
             }, (error) => {
                 throw error;
             });
