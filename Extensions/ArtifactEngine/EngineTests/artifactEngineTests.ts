@@ -52,6 +52,22 @@ describe('artifactEngine.processItems', () => {
     it('should call getArtifactItem only for artifact items that match the download pattern', (done) => {
         var testProvider = new providers.StubProvider();
         var downloadOptions = new engine.ArtifactEngineOptions();
+        downloadOptions.itemPattern = '@(PAth4|path5)/**';
+
+        new engine.ArtifactEngine()
+            .processItems(testProvider, testProvider, downloadOptions)
+            .then(() => {
+                assert.equal(testProvider.getArtifactItemCalledCount, 2);
+                done();
+            }, (err) => {
+                throw err;
+            });
+    });
+
+    var runWindowsBasedTest = process.platform == 'win32' ? it : it.skip;
+    runWindowsBasedTest('should call getArtifactItem only for artifact items that match the download pattern', (done) => {
+        var testProvider = new providers.StubProvider();
+        var downloadOptions = new engine.ArtifactEngineOptions();
         downloadOptions.itemPattern = '@(PAth4|path5)\\**';
 
         new engine.ArtifactEngine()
@@ -80,7 +96,7 @@ describe('artifactEngine.processItems', () => {
     it('should call getArtifactItem only for artifact items that match include pattern', (done) => {
         var testProvider = new providers.StubProvider();
         var downloadOptions = new engine.ArtifactEngineOptions();
-        downloadOptions.itemPattern = 'path1\\**\npath3\\**\n!path4\\**';
+        downloadOptions.itemPattern = 'path1/**\npath3/**\n!path4/**';
 
         new engine.ArtifactEngine()
             .processItems(testProvider, testProvider, downloadOptions)
@@ -123,7 +139,7 @@ describe('artifactEngine.processItems', () => {
     it('should call getArtifactItem only for included artifact items prefering exclude over include pattern', (done) => {
         var testProvider = new providers.StubProvider();
         var downloadOptions = new engine.ArtifactEngineOptions();
-        downloadOptions.itemPattern = 'path1\\**\n!path1\\path2\\**';
+        downloadOptions.itemPattern = 'path1/**\n!path1/path2/**';
 
         new engine.ArtifactEngine()
             .processItems(testProvider, testProvider, downloadOptions)
@@ -138,7 +154,7 @@ describe('artifactEngine.processItems', () => {
     it('should call getArtifactItem only for included artifact items prefering include over exclude pattern', (done) => {
         var testProvider = new providers.StubProvider();
         var downloadOptions = new engine.ArtifactEngineOptions();
-        downloadOptions.itemPattern = '!path1\\**\npath1\\path2\\**';
+        downloadOptions.itemPattern = '!path1/**\npath1/path2/**';
 
         new engine.ArtifactEngine()
             .processItems(testProvider, testProvider, downloadOptions)

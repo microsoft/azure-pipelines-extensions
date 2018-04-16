@@ -85,7 +85,22 @@ export class ArtifactEngine {
         }
         retryCount = retryCount ? retryCount : 0;
         if (item.itemType === models.ItemType.File) {
-            if (tl.match([item.path], this.patternList).length > 0) {
+            var pathToMatch = item.path.replace(/\\/g, '/');
+            var matchOptions = {
+                debug: false,
+                nobrace: true,
+                noglobstar: false,
+                dot: true,
+                noext: false,
+                nocase: true,
+                nonull: false,
+                matchBase: false,
+                nocomment: false,
+                nonegate: false,
+                flipNegate: false
+            };
+
+            if (tl.match([pathToMatch], this.patternList, null, matchOptions).length > 0) {
                 Logger.logInfo("Processing " + item.path);
                 sourceProvider.getArtifactItem(item).then((contentStream) => {
                     Logger.logInfo("Got download stream for item: " + item.path);
@@ -101,7 +116,7 @@ export class ArtifactEngine {
                 });
             }
             else {
-                Logger.logMessage(tl.loc("SkippingItem", item.path));
+                Logger.logMessage(tl.loc("SkippingItem", pathToMatch));
                 this.artifactItemStore.updateState(item, models.TicketState.Skipped);
                 resolve();
             }
