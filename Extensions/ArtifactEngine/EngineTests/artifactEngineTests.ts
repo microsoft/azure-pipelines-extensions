@@ -57,7 +57,7 @@ describe('artifactEngine.processItems', () => {
         new engine.ArtifactEngine()
             .processItems(testProvider, testProvider, downloadOptions)
             .then(() => {
-                assert.equal(testProvider.getArtifactItemCalledCount, 2);
+                assert.equal(testProvider.getArtifactItemCalledCount, 1);
                 done();
             }, (err) => {
                 throw err;
@@ -73,7 +73,7 @@ describe('artifactEngine.processItems', () => {
         new engine.ArtifactEngine()
             .processItems(testProvider, testProvider, downloadOptions)
             .then(() => {
-                assert.equal(testProvider.getArtifactItemCalledCount, 2);
+                assert.equal(testProvider.getArtifactItemCalledCount, 1);
                 done();
             }, (err) => {
                 throw err;
