@@ -125,7 +125,8 @@ describe('e2e tests', () => {
             });
     });
 
-    it('should be able to download build artifact from fileshare', function (done) {
+    var runWindowsBasedTest = process.platform == 'win32' ? it : it.skip;
+    runWindowsBasedTest('should be able to download build artifact from fileshare', function (done) {
         this.timeout(15000);
         let processor = new engine.ArtifactEngine();
 
