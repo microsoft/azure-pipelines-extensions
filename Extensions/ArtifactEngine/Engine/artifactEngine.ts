@@ -92,7 +92,7 @@ export class ArtifactEngine {
                 noglobstar: false,
                 dot: true,
                 noext: false,
-                nocase: true,
+                nocase: false,
                 nonull: false,
                 matchBase: false,
                 nocomment: false,
