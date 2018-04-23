@@ -12,9 +12,9 @@
   ],
   "demands": [],
   "version": {
-    "Major": "1",
-    "Minor": "0",
-    "Patch": "0"
+    "Major": 15,
+    "Minor": 133,
+    "Patch": 5
   },
   "minimumAgentVersion": "1.99.0",
   "instanceNameFormat": "Download Artifacts - Bitbucket",
