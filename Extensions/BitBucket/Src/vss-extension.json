@@ -33,6 +33,9 @@
   "content": {
     "details": {
       "path": "readme.md"
+    },
+    "license": {
+      "path": "mp_terms.md"
     }
   },
   "files": [

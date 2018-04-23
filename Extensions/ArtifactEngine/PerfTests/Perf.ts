@@ -185,8 +185,9 @@ describe('perf tests', () => {
             });
     });
 
+    var runWindowsBasedTest = process.platform == 'win32' ? it : it.skip;
     //Artifact details => Source: FileShare, FilesCount: 301, TotalFileSize: 1.7GB
-    it('should be able to download large size build artifact from fileshare', function (done) {
+    runWindowsBasedTest('should be able to download large size build artifact from fileshare', function (done) {
         this.timeout(900000);   //15mins
         let processor = new engine.ArtifactEngine();
 
@@ -215,7 +216,7 @@ describe('perf tests', () => {
     });
 
     //Artifact details => Source: FileShare, FilesCount: 4037, TotalFileSize: ~18MB
-    it('should be able to download build artifact with large volume of files from fileshare', function (done) {
+    runWindowsBasedTest('should be able to download build artifact with large volume of files from fileshare', function (done) {
         this.timeout(3000000);  //50mins
         let processor = new engine.ArtifactEngine();
 

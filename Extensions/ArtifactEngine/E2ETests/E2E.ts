@@ -125,12 +125,13 @@ describe('e2e tests', () => {
             });
     });
 
-    it('should be able to download build artifact from fileshare', function (done) {
+    var runWindowsBasedTest = process.platform == 'win32' ? it : it.skip;
+    runWindowsBasedTest('should be able to download build artifact from fileshare', function (done) {
         this.timeout(15000);
         let processor = new engine.ArtifactEngine();
 
         let processorOptions = new engine.ArtifactEngineOptions();
-        processorOptions.itemPattern = "**";
+        processorOptions.itemPattern = "fileshareWithMultipleFiles\\**";
         processorOptions.parallelProcessingLimit = 8;
         processorOptions.retryIntervalInSeconds = 2;
         processorOptions.retryLimit = 2;
@@ -139,8 +140,8 @@ describe('e2e tests', () => {
         var itemsUrl = "//vscsstor/Users/gykuma/ArtifactEngineTestData/dropz/";
         var variables = {};
 
-        var sourceProvider = new providers.FilesystemProvider(itemsUrl);
-        var dropLocation = path.join(nconf.get('DROPLOCATION'), "fileshareWithMultipleFiles");
+        var sourceProvider = new providers.FilesystemProvider(itemsUrl, "fileshareWithMultipleFiles");
+        var dropLocation = path.join(nconf.get('DROPLOCATION'));
         var destProvider = new providers.FilesystemProvider(dropLocation);
 
         processor.processItems(sourceProvider, destProvider, processorOptions)
@@ -153,8 +154,8 @@ describe('e2e tests', () => {
                     done();
                 });
 
-                assert.equal(tickets.find(x => x.artifactItem.path == "file1.pdb").retryCount, 0);
-                assert.equal(tickets.find(x => x.artifactItem.path == path.join("folder1", "file2.txt")).retryCount, 0);
+                assert.equal(tickets.find(x => x.artifactItem.path == path.join("fileshareWithMultipleFiles", "file1.pdb")).retryCount, 0);
+                assert.equal(tickets.find(x => x.artifactItem.path == path.join("fileshareWithMultipleFiles", "folder1", "file2.txt")).retryCount, 0);
             }, (error) => {
                 throw error;
             });

@@ -29,6 +29,7 @@
             "DownloadTeamCityArtifacts",
             "DownloadExternalBuildArtifacts",
             "DownloadArtifactsTfsVersionControl",
-            "DownloadArtifactsTfsGit"
+            "DownloadArtifactsTfsGit",
+            "DownloadArtifactsBitbucket"
         ]
 }
