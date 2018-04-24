@@ -61,8 +61,9 @@ Q.resolve(gitRepositoryPromise).then( function (gitRepository) {
     };
     gitw.username = this.username;
     gitw.password = this.password;
+    var retryLimit = 4;
     Q(0).then(function (code) {
-        return gitw.clone(giturl, true, downloadPath, gopt).then(function (result) {
+        return gitCloneResult = await executeWithRetries("gitClone", () =>gitw.clone(giturl, true, downloadPath, gopt).then(function (result) {
             if (isPullRequest) {
                 // clone doesn't pull the refs/pull namespace, so fetch it
                 shell.cd(downloadPath);
@@ -71,6 +72,8 @@ Q.resolve(gitRepositoryPromise).then( function (gitRepository) {
             else {
                 return Q(result);
             }
+        }), retryLimit).catch((reason) => {
+            reject(reason);
         });
     }).then(function (code) {
         shell.cd(downloadPath);
@@ -87,6 +90,30 @@ Q.resolve(gitRepositoryPromise).then( function (gitRepository) {
         tl.exit(1);
     });
 });
+
+function executeWithRetries(operationName, operation, retryCount) {
+    var executePromise = new Promise((resolve, reject) => {
+        executeWithRetriesImplementation(operationName, operation, retryCount, resolve, reject);
+    });
+
+    return executePromise;
+}
+
+function executeWithRetriesImplementation(operationName, operation, currentRetryCount, resolve, reject) {
+    operation().then((result) => {
+        resolve(result);
+    }).catch((error) => {
+        if (currentRetryCount <= 0) {
+            tl.error(tl.loc("OperationFailed", operationName, error));
+            reject(error);
+        }
+        else {
+            console.log(tl.loc('RetryingOperation', operationName, currentRetryCount));
+            currentRetryCount = currentRetryCount - 1;
+            setTimeout(() => executeWithRetriesImplementation(operationName, operation, currentRetryCount, resolve, reject), 4 * 1000);
+        }
+    });
+}
 
 function getRepositoryDetails(tfsEndpoint, repositoryId, projectId){
     var handler = webApim.getBasicHandler(tfsEndpoint.Username, tfsEndpoint.Password);
