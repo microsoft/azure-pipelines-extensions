@@ -268,7 +268,7 @@ In order to describe the salient properties within artifact source contribution,
 | `defaultVersionSpecific` | Fetch all versions of artifact corresponding to specific artifact source | `false` |
 
 ### <a name="authenticationschemes"></a> Authentication scheme values :
-| Authenticat Scheme | Value |
+| Authentication Scheme | Value |
 | :------------- |:-------------|
 | `endpoint-auth-scheme-basic` | `UsernamePassword` |
 | `ms.vss-endpoint.endpoint-auth-scheme-token` | `Token` |
