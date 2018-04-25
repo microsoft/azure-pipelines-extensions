@@ -16,6 +16,7 @@ var branch = tl.getInput("branch");
 var commitId = tl.getInput("version");
 var downloadPath = tl.getInput("downloadPath");
 var tfsEndpoint = getEndpointDetails("connection");
+var retryLimit = 4;
 
 shell.rm('-rf', downloadPath);
 var error = shell.error();
@@ -25,8 +26,7 @@ if(error){
 }
 
 function executeWithRetries (operationName, operation, currentRetryCount) {
-    var deferred = Q.defer()
-    
+    var deferred = Q.defer()   
     operation().then((result) => {
       deferred.resolve(result)
     }).fail((error) => {
@@ -81,7 +81,7 @@ Q.resolve(gitRepositoryPromise).then( function (gitRepository) {
     };
     gitw.username = this.username;
     gitw.password = this.password;
-    Q(0).then(() => executeWithRetries('gitclone', function (code) {
+    Q(0).then(() => executeWithRetries('gitClone', function (code) {
         return gitw.clone(giturl, true, downloadPath, gopt).then(function (result) {
             if (isPullRequest) {
                 // clone doesn't pull the refs/pull namespace, so fetch it
@@ -92,7 +92,7 @@ Q.resolve(gitRepositoryPromise).then( function (gitRepository) {
                 return Q(result);
             }
         });
-    }, 4)).then(function (code) {
+    }, retryLimit)).then(function (code) {
         shell.cd(downloadPath);
         if (isPullRequest) {
             ref = commitId;
