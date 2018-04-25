@@ -24,6 +24,26 @@ if(error){
     tl.exit(1);
 }
 
+function executeWithRetries (operationName, operation, currentRetryCount) {
+    var deferred = Q.defer()
+    
+    operation().then((result) => {
+      deferred.resolve(result)
+    }).fail((error) => {
+      if (currentRetryCount <= 0) {
+        tl.error('OperationFailed: git clone')
+        tl.setResult(tl.TaskResult.Failed, error);
+        deferred.reject(error)
+      }else {
+        console.log('RetryingOperation', operationName, currentRetryCount)
+        currentRetryCount = currentRetryCount - 1
+        setTimeout(() => executeWithRetries(operationName, operation, currentRetryCount), 4 * 1000)
+      }
+    })
+  
+    return deferred.promise
+}
+
 var gitRepositoryPromise = getRepositoryDetails(tfsEndpoint, repositoryId, projectId);
 Q.resolve(gitRepositoryPromise).then( function (gitRepository) {
     var gitw = new gitwm.GitWrapper();
@@ -61,7 +81,7 @@ Q.resolve(gitRepositoryPromise).then( function (gitRepository) {
     };
     gitw.username = this.username;
     gitw.password = this.password;
-    Q(0).then(function (code) {
+    Q(0).then(() => executeWithRetries('gitclone', function (code) {
         return gitw.clone(giturl, true, downloadPath, gopt).then(function (result) {
             if (isPullRequest) {
                 // clone doesn't pull the refs/pull namespace, so fetch it
@@ -72,7 +92,7 @@ Q.resolve(gitRepositoryPromise).then( function (gitRepository) {
                 return Q(result);
             }
         });
-    }).then(function (code) {
+    }, 4)).then(function (code) {
         shell.cd(downloadPath);
         if (isPullRequest) {
             ref = commitId;
@@ -84,6 +104,7 @@ Q.resolve(gitRepositoryPromise).then( function (gitRepository) {
         }
     }).fail(function (error) {
         tl.error(error);
+        tl.setResult(tl.TaskResult.Failed, error);
         tl.exit(1);
     });
 });
