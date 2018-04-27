@@ -16,7 +16,7 @@ var branch = tl.getInput("branch");
 var commitId = tl.getInput("version");
 var downloadPath = tl.getInput("downloadPath");
 var tfsEndpoint = getEndpointDetails("connection");
-var retryLimit = 4;
+var VSTS_HTTP_RETRY = 4;
 
 shell.rm('-rf', downloadPath);
 var error = shell.error();
@@ -31,7 +31,7 @@ function executeWithRetries (operationName, operation, currentRetryCount) {
       deferred.resolve(result)
     }).fail((error) => {
       if (currentRetryCount <= 0) {
-        tl.error('OperationFailed: git clone')
+        tl.error('OperationFailed' + operationName)
         tl.setResult(tl.TaskResult.Failed, error);
         deferred.reject(error)
       }else {
@@ -92,7 +92,7 @@ Q.resolve(gitRepositoryPromise).then( function (gitRepository) {
                 return Q(result);
             }
         });
-    }, retryLimit)).then(function (code) {
+    }, VSTS_HTTP_RETRY)).then(function (code) {
         shell.cd(downloadPath);
         if (isPullRequest) {
             ref = commitId;
