@@ -31,7 +31,7 @@ function executeWithRetries (operationName, operation, currentRetryCount) {
       deferred.resolve(result)
     }).fail((error) => {
       if (currentRetryCount <= 0) {
-        tl.error('OperationFailed' + operationName)
+        tl.error('OperationFailed: ' + operationName)
         tl.setResult(tl.TaskResult.Failed, error);
         deferred.reject(error)
       }else {
