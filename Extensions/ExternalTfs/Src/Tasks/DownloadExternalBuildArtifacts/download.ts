@@ -79,10 +79,9 @@ async function main(): Promise<void> {
             reject(reason);
         });
 
-        console.log("Linked artifacts count: " + artifacts.length);
-
         if (artifacts) {
             var downloadPromises: Array<Promise<any>> = [];
+            console.log("Linked artifacts count: " + artifacts.length);
             artifacts.forEach(async function (artifact, index, artifacts) {
                 let downloaderOptions = new engine.ArtifactEngineOptions();
                 downloaderOptions.itemPattern = itemPattern;
