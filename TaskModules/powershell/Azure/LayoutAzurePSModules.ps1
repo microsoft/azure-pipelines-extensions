@@ -4,14 +4,15 @@
 
 param (
     [string] $layoutPath = "$ENV:System_DefaultWorkingDirectory\AzurePowerShell\Modules",
-    [string] $aggregatedZipPath = "$ENV:System_DefaultWorkingDirectory\AzurePowerShell\ZippedModules"
+    [string] $aggregatedZipPath = "$ENV:System_DefaultWorkingDirectory\AzurePowerShell\ZippedModules",
+    [string] $currentMilestone
 )
 
 $supportedAzureModuleVersions = @("3.8.0", "4.2.1", "5.1.1")
 $supportedAzureRmModuleVersions = @("3.8.0", "4.2.1", "5.1.1")
 
 if (Test-Path -Path $layoutPath) {
-    Write-Output "$Cleaning up directory $layoutPath."
+    Write-Output "Cleaning up directory $layoutPath."
     Remove-Item -Path $layoutPath -Recurse -Force
 }
 
@@ -48,7 +49,7 @@ if (Test-Path -Path $aggregatedZipPath) {
 New-Item -ItemType Directory -Path $aggregatedZipPath | Out-Null
 
 $now = [System.DateTime]::UtcNow
-$aggregatedZipVersion = "1.$('{0:yyyyMMdd}' -f $now).$([System.Math]::Floor($now.timeofday.totalseconds))"
+$aggregatedZipVersion = "$currentMilestone.1.$('{0:yyyyMMdd}' -f $now).$([System.Math]::Floor($now.timeofday.totalseconds))"
 
 Write-Output "Laying out aggregated zip of Azure and AzureRm modules"
 [System.IO.Compression.ZipFile]::CreateFromDirectory($layoutPath, "$aggregatedZipPath\AzurePSModules.$aggregatedZipVersion.zip")
