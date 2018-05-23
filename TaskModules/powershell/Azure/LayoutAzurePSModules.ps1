@@ -12,7 +12,7 @@ $supportedAzureModuleVersions = @("3.8.0", "4.2.1", "5.1.1")
 $supportedAzureRmModuleVersions = @("3.8.0", "4.2.1", "5.1.1")
 
 if (Test-Path -Path $layoutPath) {
-    Write-Output "Cleaning up directory $layoutPath."
+    Write-Host "Cleaning up directory $layoutPath."
     Remove-Item -Path $layoutPath -Recurse -Force
 }
 
@@ -20,7 +20,7 @@ New-Item -ItemType Directory -Path $layoutPath | Out-Null
 
 # Save the Azure modules 
 foreach ($moduleVersion in $supportedAzureModuleVersions) {
-    Write-Output "===================================== Saving Azure module version $moduleVersion ====================================="
+    Write-Host "===================================== Saving Azure module version $moduleVersion ====================================="
     $azureModulePath = Join-Path -Path $layoutPath -ChildPath "azure_$moduleVersion"
     if (!(Test-Path -Path $azureModulePath)) {
         New-Item -ItemType Directory -Path $azureModulePath | Out-Null
@@ -31,7 +31,7 @@ foreach ($moduleVersion in $supportedAzureModuleVersions) {
 
 # Save the AzureRm modules
 foreach ($moduleVersion in $supportedAzureRmModuleVersions) {
-    Write-Output "===================================== Saving AzureRm module version $moduleVersion ====================================="
+    Write-Host "===================================== Saving AzureRm module version $moduleVersion ====================================="
     $azureRmModulePath = Join-Path -Path $layoutPath -ChildPath "azurerm_$moduleVersion"
     if (!(Test-Path -Path $azureRmModulePath)) {
         New-Item -ItemType Directory -Path $azureRmModulePath | Out-Null
@@ -42,14 +42,23 @@ foreach ($moduleVersion in $supportedAzureRmModuleVersions) {
 
 # Zip the modules at location of aggregatedZipPath
 if (Test-Path -Path $aggregatedZipPath) {
-    Write-Output "Cleaning up directory $aggregatedZipPath"
+    Write-Host "Cleaning up directory $aggregatedZipPath"
     Remove-Item -Path $aggregatedZipPath -Recurse -Force
 }
 
 New-Item -ItemType Directory -Path $aggregatedZipPath | Out-Null
 
 $now = [System.DateTime]::UtcNow
-$aggregatedZipVersion = "$currentMilestone.1.$('{0:yyyyMMdd}' -f $now).$([System.Math]::Floor($now.timeofday.totalseconds))"
+$aggregatedZipVersion = "AzurePSModules.$currentMilestone.$('{0:yyyyMMdd}' -f $now).$([System.Math]::Floor($now.timeofday.totalseconds))"
 
-Write-Output "Laying out aggregated zip of Azure and AzureRm modules"
-[System.IO.Compression.ZipFile]::CreateFromDirectory($layoutPath, "$aggregatedZipPath\AzurePSModules.$aggregatedZipVersion.zip")
+# Create a manifest json file
+$manifestObj = @{
+    version = $aggregatedZipVersion
+}
+
+$manifestObj | ConvertTo-Json | Set-Content -Path "$layoutPath\manifest.json"
+
+Write-Host "Laying out aggregated zip of Azure and AzureRm modules"
+[System.IO.Compression.ZipFile]::CreateFromDirectory($layoutPath, "$aggregatedZipPath\$aggregatedZipVersion.zip")
+
+Write-Host "Successfully layed out aggregated zip at $aggregatedZipPath\$aggregatedZipVersion.zip"
