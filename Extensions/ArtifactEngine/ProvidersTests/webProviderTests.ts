@@ -50,9 +50,9 @@ beforeEach((done) => {
     done();
 });
 
-describe('webProvider.getArtifactItems', () => {
+describe('webProvider tests', () => {
 
-    it('should call http get with correct url', (done) => {
+    it('getArtifactItems should call http get with correct url', (done) => {
         var getArtifactItemPromise = webProvider.getArtifactItems(artifactItem);
 
         getArtifactItemPromise.then(() => {
@@ -64,7 +64,7 @@ describe('webProvider.getArtifactItems', () => {
         });
     });
 
-    it('should replace double slashes from url', (done) => {
+    it('getArtifactItems should replace double slashes from url', (done) => {
         artifactItem.metadata = { 'downloadUrl': 'http://stubUrl//link' };
 
         var getArtifactItemPromise = webProvider.getArtifactItems(artifactItem);
@@ -79,9 +79,9 @@ describe('webProvider.getArtifactItems', () => {
     });
 });
 
-describe('webProvider.getArtifactItem', () => {
+describe('webProvider tests', () => {
 
-    it('should call http get with correct url', (done) => {
+    it('getArtifactItem should call http get with correct url', (done) => {
         var getArtifactItemPromise = webProvider.getArtifactItem(artifactItem);
 
         getArtifactItemPromise.then(() => {
@@ -93,7 +93,7 @@ describe('webProvider.getArtifactItem', () => {
         });
     });
 
-    it('should replace double slashes from url', (done) => {
+    it('getArtifactItem should replace double slashes from url', (done) => {
         artifactItem.metadata = { 'downloadUrl': 'http://stubUrl//link' };
 
         var getArtifactItemPromise = webProvider.getArtifactItem(artifactItem);
@@ -107,7 +107,7 @@ describe('webProvider.getArtifactItem', () => {
         });
     });
 
-    it('should Unzip on stream if content type is gzip', (done) => {
+    it('getArtifactItem should Unzip on stream if content type is gzip', (done) => {
         stubResponse.message.headers = { 'content-encoding': 'gzip' };
         stubResponse.message.pipe = sinon.spy();
 
