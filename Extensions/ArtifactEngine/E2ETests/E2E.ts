@@ -111,6 +111,7 @@ describe('e2e tests', () => {
             .then((tickets) => {
                 assert.fail();
             }, (error) => {
+                assert.equal(error.statusCode, 404);
                 done();
             });
     });
