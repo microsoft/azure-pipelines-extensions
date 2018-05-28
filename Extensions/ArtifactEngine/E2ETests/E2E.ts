@@ -89,8 +89,35 @@ describe('e2e tests', () => {
             });
     });
 
+    it('should fail jenkins artifact download if zip location is not found', function (done) {
+        this.timeout(10000);
+
+        let processor = new engine.ArtifactEngine();
+
+        let processorOptions = new engine.ArtifactEngineOptions();
+        processorOptions.itemPattern = "**";
+        processorOptions.parallelProcessingLimit = 8;
+        processorOptions.retryIntervalInSeconds = 2;
+        processorOptions.retryLimit = 2;
+        processorOptions.verbose = true;
+
+        var itemsUrl = "http://rmcdpjenkins2.southindia.cloudapp.azure.com:8080///job/noexistant//8/artifact/*zip*/";
+        var handler = new BasicCredentialHandler(nconf.get('JENKINS:USERNAME'), nconf.get('JENKINS:PASSWORD'));
+        var zipProvider = new providers.ZipProvider(itemsUrl, handler, { ignoreSslError: false });
+        var dropLocation = path.join(nconf.get('DROPLOCATION'), "jenkinsDropWithMultipleFiles.zip");
+        var filesystemProvider = new providers.FilesystemProvider(dropLocation);
+
+        processor.processItems(zipProvider, filesystemProvider, processorOptions)
+            .then((tickets) => {
+                assert.fail();
+            }, (error) => {
+                done();
+            });
+    });
+
     it('should be able to download build artifact from vsts drop', function (done) {
         this.timeout(15000);
+
         let processor = new engine.ArtifactEngine();
 
         let processorOptions = new engine.ArtifactEngineOptions();
@@ -160,4 +187,82 @@ describe('e2e tests', () => {
                 throw error;
             });
     });
+
+    it('should fail download if get artifact items returns 404', function (done) {
+        this.timeout(10000);
+
+        let processor = new engine.ArtifactEngine();
+
+        let processorOptions = new engine.ArtifactEngineOptions();
+        processorOptions.itemPattern = "**";
+        processorOptions.retryLimit = 2;
+        processorOptions.retryIntervalInSeconds = 1;
+        processorOptions.verbose = true;
+
+        var itemsUrl = "https://httpbin.org/status/404";
+        var variables = {};
+
+        var handler = new PersonalAccessTokenCredentialHandler("dummyPat");
+        var webProvider = new providers.WebProvider(itemsUrl, "vsts.handlebars", variables, handler, { ignoreSslError: false });
+        var dropLocation = path.join("dummydroplocation", "vstsDropWithMultipleFiles");
+        var filesystemProvider = new providers.FilesystemProvider(dropLocation);
+
+        processor.processItems(webProvider, filesystemProvider, processorOptions)
+            .then((tickets) => {
+                assert.fail();
+            }, (error) => {
+                assert.equal(error.statusCode, 404);
+                done();
+            });
+    })
+
+    it('should fail download if get artifact items returns 401', function (done) {
+        this.timeout(10000);
+
+        let processor = new engine.ArtifactEngine();
+        let processorOptions = new engine.ArtifactEngineOptions();
+        processorOptions.retryLimit = 1;
+        processorOptions.verbose = true;
+        var itemsUrl = "https://httpbin.org/status/401";
+        var variables = {};
+
+        var handler = new PersonalAccessTokenCredentialHandler("dummyPat");
+        var webProvider = new providers.WebProvider(itemsUrl, "vsts.handlebars", variables, handler, { ignoreSslError: false });
+        var dropLocation = path.join("dummydroplocation", "vstsDropWithMultipleFiles");
+        var filesystemProvider = new providers.FilesystemProvider(dropLocation);
+
+        processor.processItems(webProvider, filesystemProvider, processorOptions)
+            .then((tickets) => {
+                assert.fail();
+            }, (error) => {
+                assert.equal(error.statusCode, 401);
+                done();
+            });
+    })
+
+    it('should fail download if get artifact items returns 500', function (done) {
+        this.timeout(10000);
+
+        let processor = new engine.ArtifactEngine();
+
+        let processorOptions = new engine.ArtifactEngineOptions();
+        processorOptions.retryLimit = 1;
+        processorOptions.verbose = true;
+
+        var itemsUrl = "https://httpbin.org/status/500";
+        var variables = {};
+
+        var handler = new PersonalAccessTokenCredentialHandler("dummyPat");
+        var webProvider = new providers.WebProvider(itemsUrl, "vsts.handlebars", variables, handler, { ignoreSslError: false });
+        var dropLocation = path.join("dummydroplocation", "vstsDropWithMultipleFiles");
+        var filesystemProvider = new providers.FilesystemProvider(dropLocation);
+
+        processor.processItems(webProvider, filesystemProvider, processorOptions)
+            .then((tickets) => {
+                assert.fail();
+            }, (error) => {
+                assert.equal(error.statusCode, 500);
+                done();
+            });
+    })
 });
