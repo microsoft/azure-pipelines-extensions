@@ -1,16 +1,13 @@
 import * as fs from 'fs';
 import * as crypto from 'crypto';
-
-import * as httpm from './typed-rest-client/HttpClient';
-
-var packagejson = require('../package.json');
-
+import { WebClient } from './webClient'
 export class WebClientFactory {
+
     public static getClient(handlers: any[], options: any): any {
         options = options || {};
         options.keepAlive = true;
         this.initializeProxy(options);
-        return new httpm.HttpClient('artifact-engine ' + packagejson.version, handlers, options);
+        return new WebClient(handlers, options);
     }
 
     private static initializeProxy(options) {

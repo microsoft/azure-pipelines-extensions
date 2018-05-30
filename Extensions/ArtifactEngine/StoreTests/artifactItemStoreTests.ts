@@ -6,18 +6,16 @@ import * as models from '../Models';
 import * as providers from '../Providers';
 import { ArtifactItemStore } from '../Store/artifactItemStore';
 
-describe('artifactItemStore.addItem', () => {
-    it('should add artifact item to the artifact store', () => {
+describe('artifactItemStore tests', () => {
+    it('addItem should add artifact item to the artifact store', () => {
         var artifactItemStore = new ArtifactItemStore();
 
         artifactItemStore.addItem(new models.ArtifactItem());
 
         assert.equal(artifactItemStore.size(), 1);
     });
-});
 
-describe('artifactItemStore.addItem', () => {
-    it('should not re-add same artifact item to the artifact store', () => {
+    it('addItem should not re-add same artifact item to the artifact store', () => {
         var artifactItemStore = new ArtifactItemStore();
         var artifactItem = new models.ArtifactItem();
         artifactItem.path = "path1";
@@ -27,10 +25,8 @@ describe('artifactItemStore.addItem', () => {
 
         assert.equal(artifactItemStore.size(), 1);
     });
-});
 
-describe('artifactItemStore.addItems', () => {
-    it('should add artifact items to the artifact store', () => {
+    it('addItems should add artifact items to the artifact store', () => {
         var artifactItemStore = new ArtifactItemStore();
         var artifactItem1 = new models.ArtifactItem();
         artifactItem1.path = "path1";
@@ -41,10 +37,8 @@ describe('artifactItemStore.addItems', () => {
 
         assert.equal(artifactItemStore.size(), 2);
     });
-});
 
-describe('artifactItemStore.getNextItemToProcess', () => {
-    it('should return artifact item to be processed', () => {
+    it('getNextItemToProcess should return artifact item to be processed', () => {
         var artifactItemStore = new ArtifactItemStore();
         var artifactItem = new models.ArtifactItem();
         artifactItem.path = "path1";
@@ -53,20 +47,16 @@ describe('artifactItemStore.getNextItemToProcess', () => {
 
         assert.equal(artifactItemStore.getNextItemToProcess().path, artifactItem.path);
     });
-});
 
-describe('artifactItemStore.getNextItemToProcess', () => {
-    it('should not throw if no items have been added to store', () => {
+    it('getNextItemToProcess should not throw if no items have been added to store', () => {
         var artifactItemStore = new ArtifactItemStore();
 
         artifactItemStore.getNextItemToProcess();
 
         assert.equal(artifactItemStore.getNextItemToProcess(), undefined);
     });
-});
 
-describe('artifactItemStore.getNextItemToProcess', () => {
-    it('should not return already processing item', () => {
+    it('getNextItemToProcess should not return already processing item', () => {
         var artifactItemStore = new ArtifactItemStore();
         var artifactItem1 = new models.ArtifactItem();
         artifactItem1.path = "path1";
@@ -79,10 +69,8 @@ describe('artifactItemStore.getNextItemToProcess', () => {
 
         assert.equal(artifactItemStore.getNextItemToProcess().path, artifactItem2.path);
     });
-});
 
-describe('artifactItemStore.getNextItemToProcess', () => {
-    it('should return undefined if there are no more items to process', () => {
+    it('getNextItemToProcess should return undefined if there are no more items to process', () => {
         var artifactItemStore = new ArtifactItemStore();
         var artifactItem1 = new models.ArtifactItem();
         artifactItem1.path = "path1";
@@ -92,10 +80,8 @@ describe('artifactItemStore.getNextItemToProcess', () => {
 
         assert.equal(artifactItemStore.getNextItemToProcess(), undefined);
     });
-});
 
-describe('artifactItemStore.updateState', () => {
-    it('should update state correctly', () => {
+    it('updateState should update state correctly', () => {
         var artifactItemStore = new ArtifactItemStore();
         var artifactItem1 = new models.ArtifactItem();
         artifactItem1.path = "path1";
@@ -105,20 +91,16 @@ describe('artifactItemStore.updateState', () => {
 
         assert.equal(artifactItemStore.getTickets().find(x => x.artifactItem.path == "path1").state, models.TicketState.Skipped);
     });
-});
 
-describe('artifactItemStore.updateState', () => {
-    it('should not throw if the artifactItem does not exisit in store', () => {
+    it('updateState should not throw if the artifactItem does not exisit in store', () => {
         var artifactItemStore = new ArtifactItemStore();
         var artifactItem1 = new models.ArtifactItem();
         artifactItem1.path = "path1";
 
         artifactItemStore.updateState(artifactItem1, models.TicketState.Skipped);
     });
-});
 
-describe('artifactItemStore.updateState', () => {
-    it('should not update finish time for inqueue state', () => {
+    it('updateState should not update finish time for inqueue state', () => {
         var artifactItemStore = new ArtifactItemStore();
         var artifactItem1 = new models.ArtifactItem();
         artifactItem1.path = "path1";
@@ -128,10 +110,8 @@ describe('artifactItemStore.updateState', () => {
 
         assert.equal(artifactItemStore.getTickets().find(x => x.artifactItem.path == "path1").finishTime, undefined);
     });
-});
 
-describe('artifactItemStore.updateState', () => {
-    it('should not update finish time for processing state', () => {
+    it('updateState should not update finish time for processing state', () => {
         var artifactItemStore = new ArtifactItemStore();
         var artifactItem1 = new models.ArtifactItem();
         artifactItem1.path = "path1";
@@ -141,10 +121,8 @@ describe('artifactItemStore.updateState', () => {
 
         assert.equal(artifactItemStore.getTickets().find(x => x.artifactItem.path == "path1").finishTime, undefined);
     });
-});
 
-describe('artifactItemStore.updateState', () => {
-    it('should update finish time for skipped state', () => {
+    it('updateState should update finish time for skipped state', () => {
         var artifactItemStore = new ArtifactItemStore();
         var artifactItem1 = new models.ArtifactItem();
         artifactItem1.path = "path1";
@@ -154,10 +132,8 @@ describe('artifactItemStore.updateState', () => {
 
         assert.notEqual(artifactItemStore.getTickets().find(x => x.artifactItem.path == "path1").finishTime, undefined);
     });
-});
 
-describe('artifactItemStore.updateState', () => {
-    it('should update finish time for processed state', () => {
+    it('updateState should update finish time for processed state', () => {
         var artifactItemStore = new ArtifactItemStore();
         var artifactItem1 = new models.ArtifactItem();
         artifactItem1.path = "path1";
@@ -167,10 +143,8 @@ describe('artifactItemStore.updateState', () => {
 
         assert.notEqual(artifactItemStore.getTickets().find(x => x.artifactItem.path == "path1").finishTime, undefined);
     });
-});
 
-describe('artifactItemStore.updateState', () => {
-    it('should update finish time for failed state', () => {
+    it('updateState should update finish time for failed state', () => {
         var artifactItemStore = new ArtifactItemStore();
         var artifactItem1 = new models.ArtifactItem();
         artifactItem1.path = "path1";
@@ -180,10 +154,8 @@ describe('artifactItemStore.updateState', () => {
 
         assert.notEqual(artifactItemStore.getTickets().find(x => x.artifactItem.path == "path1").finishTime, undefined);
     });
-});
 
-describe('artifactItemStore.flush', () => {
-    it('should flush all artifact items from artifact store', () => {
+    it('flush should flush all artifact items from artifact store', () => {
         var artifactItemStore = new ArtifactItemStore();
         var artifactItem = new models.ArtifactItem();
         artifactItem.path = "path1";
@@ -194,10 +166,8 @@ describe('artifactItemStore.flush', () => {
 
         assert.equal(artifactItemStore.size(), 0);
     });
-});
 
-describe('artifactItemStore.itemsPendingProcessing', () => {
-    it('should return true if item is in queue', () => {
+    it('itemsPendingProcessing should return true if item is in queue', () => {
         var artifactItemStore = new ArtifactItemStore();
         var artifactItem = new models.ArtifactItem();
         artifactItem.path = "path1";
@@ -206,10 +176,8 @@ describe('artifactItemStore.itemsPendingProcessing', () => {
 
         assert.equal(artifactItemStore.itemsPendingProcessing(), true);
     });
-});
 
-describe('artifactItemStore.itemsPendingProcessing', () => {
-    it('should return true if item is processing', () => {
+    it('itemsPendingProcessing should return true if item is processing', () => {
         var artifactItemStore = new ArtifactItemStore();
         var artifactItem = new models.ArtifactItem();
         artifactItem.path = "path1";
@@ -218,10 +186,8 @@ describe('artifactItemStore.itemsPendingProcessing', () => {
 
         assert.equal(artifactItemStore.itemsPendingProcessing(), true);
     });
-});
 
-describe('artifactItemStore.itemsPendingProcessing', () => {
-    it('should return false if item is skipped', () => {
+    it('itemsPendingProcessing should return false if item is skipped', () => {
         var artifactItemStore = new ArtifactItemStore();
         var artifactItem = new models.ArtifactItem();
         artifactItem.path = "path1";
@@ -230,10 +196,8 @@ describe('artifactItemStore.itemsPendingProcessing', () => {
 
         assert.equal(artifactItemStore.itemsPendingProcessing(), false);
     });
-});
 
-describe('artifactItemStore.itemsPendingProcessing', () => {
-    it('should return false if item is failed', () => {
+    it('itemsPendingProcessing should return false if item is failed', () => {
         var artifactItemStore = new ArtifactItemStore();
         var artifactItem = new models.ArtifactItem();
         artifactItem.path = "path1";
@@ -242,10 +206,8 @@ describe('artifactItemStore.itemsPendingProcessing', () => {
 
         assert.equal(artifactItemStore.itemsPendingProcessing(), false);
     });
-});
 
-describe('artifactItemStore.itemsPendingProcessing', () => {
-    it('should return false if item is processed', () => {
+    it('itemsPendingProcessing should return false if item is processed', () => {
         var artifactItemStore = new ArtifactItemStore();
         var artifactItem = new models.ArtifactItem();
         artifactItem.path = "path1";
@@ -254,18 +216,14 @@ describe('artifactItemStore.itemsPendingProcessing', () => {
 
         assert.equal(artifactItemStore.itemsPendingProcessing(), false);
     });
-});
 
-describe('artifactItemStore.itemsPendingProcessing', () => {
-    it('should return false if no items in queue', () => {
+    it('itemsPendingProcessing should return false if no items in queue', () => {
         var artifactItemStore = new ArtifactItemStore();
 
         assert.equal(artifactItemStore.itemsPendingProcessing(), false);
     });
-});
 
-describe('artifactItemStore.increaseRetryCount', () => {
-    it('should increase retry count of item', () => {
+    it('increaseRetryCount should increase retry count of item', () => {
         var artifactItemStore = new ArtifactItemStore();
         var artifactItem1 = new models.ArtifactItem();
         artifactItem1.path = "path1";
@@ -276,10 +234,8 @@ describe('artifactItemStore.increaseRetryCount', () => {
 
         assert.equal(artifactItemStore.getTickets().find(x => x.artifactItem.path == "path1").retryCount, 2);
     });
-});
 
-describe('artifactItemStore.getRootLocation', () => {
-    it('should return empty if root item is not present', () => {
+    it('getRootLocation should return empty if root item is not present', () => {
         var artifactItemStore = new ArtifactItemStore();
         var artifactItem1 = new models.ArtifactItem();
         artifactItem1.path = "path1";
@@ -288,10 +244,8 @@ describe('artifactItemStore.getRootLocation', () => {
 
         assert.equal(artifactItemStore.getRootLocation(), '');
     });
-});
 
-describe('artifactItemStore.getRootLocation', () => {
-    it('should return empty if root item does not have metadata', () => {
+    it('getRootLocation should return empty if root item does not have metadata', () => {
         var artifactItemStore = new ArtifactItemStore();
         var artifactItem1 = new models.ArtifactItem();
         artifactItem1.path = "";
@@ -300,10 +254,8 @@ describe('artifactItemStore.getRootLocation', () => {
 
         assert.equal(artifactItemStore.getRootLocation(), '');
     });
-});
 
-describe('artifactItemStore.getRootLocation', () => {
-    it('should return location of root item', () => {
+    it('getRootLocation should return location of root item', () => {
         var artifactItemStore = new ArtifactItemStore();
         var artifactItem1 = new models.ArtifactItem();
         artifactItem1.path = "";
@@ -312,10 +264,8 @@ describe('artifactItemStore.getRootLocation', () => {
 
         assert.equal(artifactItemStore.getRootLocation(), '//dummy/drop');
     });
-});
 
-describe('artifactItemStore.updateDownloadSize', () => {
-    it('should update download size of item', () => {
+    it('updateDownloadSize should update download size of item', () => {
         var artifactItemStore = new ArtifactItemStore();
         var artifactItem1 = new models.ArtifactItem();
         var downloadSize = 2000;
@@ -324,10 +274,8 @@ describe('artifactItemStore.updateDownloadSize', () => {
 
         assert.equal(artifactItemStore.getTickets().find(x => x.artifactItem == artifactItem1).downloadSizeInBytes, downloadSize);
     });
-});
 
-describe('artifactItemStore.updateFileSize', () => {
-    it('should update file size of item', () => {
+    it('updateFileSize should update file size of item', () => {
         var artifactItemStore = new ArtifactItemStore();
         var artifactItem1 = new models.ArtifactItem();
         var fileSize = 2000;

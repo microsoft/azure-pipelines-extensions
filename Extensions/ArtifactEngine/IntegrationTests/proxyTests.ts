@@ -12,7 +12,7 @@ import { TicketState } from '../Models/ticketState';
 
 var packagejson = require('../package.json');
 
-describe('Proxy tests', () => {
+describe('proxy tests', () => {
 
     it('should be able to download jenkins artifact under proxy', function (done) {
 

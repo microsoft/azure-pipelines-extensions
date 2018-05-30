@@ -6,9 +6,9 @@ import * as engine from '../Engine';
 import * as models from '../Models';
 import * as providers from '../Providers';
 
-describe('artifactEngine.processItems', () => {
+describe('artifactEngine tests', () => {
 
-    it('should call getRootItemsCalledCount for the given artifact provider', function (done) {
+    it('processItems should call getRootItemsCalledCount for the given artifact provider', function (done) {
         // first test is timing out sometimes in cdp
         this.timeout(5000);
         var testProvider = new providers.StubProvider();
@@ -23,7 +23,7 @@ describe('artifactEngine.processItems', () => {
             });
     });
 
-    it('should call getArtifactItem for all artifact items', (done) => {
+    it('processItems should call getArtifactItem for all artifact items', (done) => {
         var testProvider = new providers.StubProvider();
 
         new engine.ArtifactEngine()
@@ -36,7 +36,7 @@ describe('artifactEngine.processItems', () => {
             });
     });
 
-    it('should call getArtifactItems for all artifact items of type folder', (done) => {
+    it('processItems should call getArtifactItems for all artifact items of type folder', (done) => {
         var testProvider = new providers.StubProvider();
 
         new engine.ArtifactEngine()
@@ -49,7 +49,7 @@ describe('artifactEngine.processItems', () => {
             });
     });
 
-    it('should call getArtifactItem only for artifact items that match the download pattern', (done) => {
+    it('processItems should call getArtifactItem only for artifact items that match the download pattern', (done) => {
         var testProvider = new providers.StubProvider();
         var downloadOptions = new engine.ArtifactEngineOptions();
         downloadOptions.itemPattern = '@(PAth4|path5)/**';
@@ -65,7 +65,7 @@ describe('artifactEngine.processItems', () => {
     });
 
     var runWindowsBasedTest = process.platform == 'win32' ? it : it.skip;
-    runWindowsBasedTest('should call getArtifactItem only for artifact items that match the download pattern', (done) => {
+    runWindowsBasedTest('processItems should call getArtifactItem only for artifact items that match the download pattern', (done) => {
         var testProvider = new providers.StubProvider();
         var downloadOptions = new engine.ArtifactEngineOptions();
         downloadOptions.itemPattern = '@(PAth4|path5)\\**';
@@ -80,7 +80,7 @@ describe('artifactEngine.processItems', () => {
             });
     });
 
-    it('should return items after processing', (done) => {
+    it('processItems should return items after processing', (done) => {
         var testProvider = new providers.StubProvider();
 
         new engine.ArtifactEngine()
@@ -93,7 +93,7 @@ describe('artifactEngine.processItems', () => {
             });
     });
 
-    it('should call getArtifactItem only for artifact items that match include pattern', (done) => {
+    it('processItems should call getArtifactItem only for artifact items that match include pattern', (done) => {
         var testProvider = new providers.StubProvider();
         var downloadOptions = new engine.ArtifactEngineOptions();
         downloadOptions.itemPattern = 'path1/**\npath3/**\n!path4/**';
@@ -108,7 +108,7 @@ describe('artifactEngine.processItems', () => {
             });
     });
 
-    it('should call getArtifactItem for all artifact items if pattern is undefined', (done) => {
+    it('processItems should call getArtifactItem for all artifact items if pattern is undefined', (done) => {
         var testProvider = new providers.StubProvider();
         var downloadOptions = new engine.ArtifactEngineOptions();
         downloadOptions.itemPattern = null;
@@ -123,7 +123,7 @@ describe('artifactEngine.processItems', () => {
             });
     });
 
-    it('should call getArtifactItem for all artifact items if ArtifactEngineOptions is undefined', (done) => {
+    it('processItems should call getArtifactItem for all artifact items if ArtifactEngineOptions is undefined', (done) => {
         var testProvider = new providers.StubProvider();
 
         new engine.ArtifactEngine()
@@ -136,7 +136,7 @@ describe('artifactEngine.processItems', () => {
             });
     });
 
-    it('should call getArtifactItem only for included artifact items prefering exclude over include pattern', (done) => {
+    it('processItems should call getArtifactItem only for included artifact items prefering exclude over include pattern', (done) => {
         var testProvider = new providers.StubProvider();
         var downloadOptions = new engine.ArtifactEngineOptions();
         downloadOptions.itemPattern = 'path1/**\n!path1/path2/**';
@@ -151,7 +151,7 @@ describe('artifactEngine.processItems', () => {
             });
     });
 
-    it('should call getArtifactItem only for included artifact items prefering include over exclude pattern', (done) => {
+    it('processItems should call getArtifactItem only for included artifact items prefering include over exclude pattern', (done) => {
         var testProvider = new providers.StubProvider();
         var downloadOptions = new engine.ArtifactEngineOptions();
         downloadOptions.itemPattern = '!path1/**\npath1/path2/**';

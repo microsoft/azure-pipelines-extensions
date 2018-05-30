@@ -22,7 +22,9 @@ class GitClient {
                     responseString += data;
                 });
                 res.on('end', function () {
+                    console.log(responseString);
                     var changes = JSON.parse(responseString);
+                    console.log(changes);
                     var paths = changes.map(x => x.filename);
                     var updatedPaths = paths.join(',');
                     resolve(updatedPaths);
