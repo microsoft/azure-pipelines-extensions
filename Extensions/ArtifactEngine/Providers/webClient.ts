@@ -1,5 +1,6 @@
 // restrict usage of typed-rest-client to this file
 import * as httpm from './typed-rest-client/HttpClient';
+var tl = require('vsts-task-lib/task');
 
 var packagejson = require('../package.json');
 
@@ -36,7 +37,7 @@ export class WebClient {
 
         if (statusCode > 299) {
             let obj: any;
-            var msg = "Failed request: (" + statusCode + ")";
+            var msg = tl.loc("FailedRequest", statusCode);
             err = new Error(msg);
             err['statusCode'] = statusCode;
 
@@ -45,7 +46,7 @@ export class WebClient {
                 let result: string = await res.readBody();
                 err['result'] = result;
             }
-            catch (err) {
+            catch (error) {
                 // Invalid contents;  leaving result obj null
             }
         }

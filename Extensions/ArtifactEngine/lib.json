@@ -8,6 +8,7 @@
         "RetryingDownload": "Retrying download of %s, retry count: %s",
         "SkippingItem": "Skipped processing item %s",
         "UnhandledRejection": "artifact-engine: unhandled rejection %s",
-        "UnhandledException": "artifact-engine: unhandled exception %s"
+        "UnhandledException": "artifact-engine: unhandled exception %s",
+        "FailedRequest": "Failed request: (statusCode)"
     }
 }

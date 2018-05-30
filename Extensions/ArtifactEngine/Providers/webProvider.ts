@@ -27,7 +27,7 @@ export class WebProvider implements IArtifactProvider {
     constructor(rootItemsLocation, templateFile: string, variables: any, handler: IRequestHandler, requestOptions?: IRequestOptions) {
         this.rootItemsLocation = rootItemsLocation;
         this.templateFile = templateFile;
-        this.httpc = WebClientFactory.getClient([handler], requestOptions);
+        this.webClient = WebClientFactory.getClient([handler], requestOptions);
         this.variables = variables;
     }
 
@@ -53,7 +53,7 @@ export class WebProvider implements IArtifactProvider {
             var downloadSize: number = 0;
             var itemUrl: string = artifactItem.metadata['downloadUrl'];
             itemUrl = itemUrl.replace(/([^:]\/)\/+/g, "$1");
-            this.httpc.get(itemUrl).then((res: HttpClientResponse) => {
+            this.webClient.get(itemUrl).then((res: HttpClientResponse) => {
                 res.message.on('data', (chunk) => {
                     downloadSize += chunk.length;
                 });
@@ -88,13 +88,13 @@ export class WebProvider implements IArtifactProvider {
     }
 
     dispose(): void {
-        this.httpc.dispose();
+        this.webClient.dispose();
     }
 
     private getItems(itemsUrl: string): Promise<ArtifactItem[]> {
         var promise = new Promise<ArtifactItem[]>((resolve, reject) => {
             itemsUrl = itemsUrl.replace(/([^:]\/)\/+/g, "$1");
-            this.httpc.get(itemsUrl, { 'Accept': 'application/json' }).then((res: HttpClientResponse) => {
+            this.webClient.get(itemsUrl, { 'Accept': 'application/json' }).then((res: HttpClientResponse) => {
                 res.readBody().then((body: string) => {
                     fs.readFile(this.getTemplateFilePath(), 'utf8', (err, templateFileContent) => {
                         if (err) {
@@ -141,5 +141,5 @@ export class WebProvider implements IArtifactProvider {
     private rootItemsLocation: string;
     private templateFile: string;
     private variables: string;
-    public httpc: WebClient;
+    public webClient: WebClient;
 }

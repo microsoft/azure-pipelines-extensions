@@ -28,8 +28,8 @@ import * as providers from '../Providers';
 
 var sinon = require('sinon');
 
-var artifactItem;
-var webProvider;
+var artifactItem : models.ArtifactItem;
+var webProvider : providers.WebProvider;
 var getStub;
 var stubResponse;
 
@@ -40,7 +40,7 @@ beforeEach((done) => {
     stubResponse = new httpm.HttpClientResponse(null);
     sinon.stub(stubResponse, "readBody").returns(new Promise((resolve, reject) => { resolve("{}") }));
     stubResponse.message = { headers: { 'content-encoding': 'json' }, on: (a, b) => { } };
-    getStub = sinon.stub(webProvider.httpc, 'get').returns(new Promise<httpm.HttpClientResponse>((resolve, reject) => {
+    getStub = sinon.stub(webProvider.webClient, 'get').returns(new Promise<httpm.HttpClientResponse>((resolve, reject) => {
         resolve(stubResponse);
     }));
 

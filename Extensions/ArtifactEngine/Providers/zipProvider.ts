@@ -16,7 +16,7 @@ export class ZipProvider implements IArtifactProvider {
 
     constructor(zipLocation, handler: IRequestHandler, requestOptions?: IRequestOptions) {
         this.zipLocation = zipLocation;
-        this.httpc = factory.WebClientFactory.getClient([handler], requestOptions);
+        this.webClient = factory.WebClientFactory.getClient([handler], requestOptions);
     }
 
     public getRootItems(): Promise<ArtifactItem[]> {
@@ -40,7 +40,7 @@ export class ZipProvider implements IArtifactProvider {
             var downloadSize: number = 0;
             var itemUrl: string = artifactItem.metadata['downloadUrl'];
             itemUrl = itemUrl.replace(/([^:]\/)\/+/g, "$1");
-            this.httpc.get(itemUrl).then((res: HttpClientResponse) => {
+            this.webClient.get(itemUrl).then((res: HttpClientResponse) => {
                 resolve(res.message);
             }, (reason) => {
                 reject(reason);
@@ -58,5 +58,5 @@ export class ZipProvider implements IArtifactProvider {
     }
 
     private zipLocation: string;
-    public httpc: WebClient;
+    public webClient: WebClient;
 }
