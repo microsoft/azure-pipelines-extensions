@@ -34,7 +34,7 @@ mockery.enable({
 import * as providers from '../Providers';
 import { ArtifactItemStore } from '../Store/artifactItemStore';
 
-describe('filesystemProvider.putArtifactItem', () => {
+describe('filesystemProvider tests', () => {
 
     let localFileProvider;
 
@@ -43,7 +43,7 @@ describe('filesystemProvider.putArtifactItem', () => {
         localFileProvider.artifactItemStore = new ArtifactItemStore();
     });
 
-    it('should not fail if artifactItem metadata is undefined', async (done) => {
+    it('putArtifactItem should not fail if artifactItem metadata is undefined', async (done) => {
         var artifactItem = { fileLength: 0, itemType: models.ItemType.File, path: "path1\\file1", lastModified: null, metadata: undefined };
       
         const s = new stream.Readable();
@@ -58,7 +58,7 @@ describe('filesystemProvider.putArtifactItem', () => {
         });
     });
 
-    it('should return items with updated paths', async (done) => {
+    it('putArtifactItem should return items with updated paths', async (done) => {
         var artifactItem = { fileLength: 0, itemType: models.ItemType.File, path: "path1\\file1", lastModified: null, metadata: null };
 
         const s = new stream.Readable();

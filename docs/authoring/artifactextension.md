@@ -86,7 +86,9 @@ For e.g. below are the release artifact variables for the Bitbucket repo artifac
 ### <a name="artifacturls"></a> Artifact URLs
 Artifact details within release can include the URLs for the artifact source definition & artifact version in order to allow customers to navigate to them from within the Release UI.
 For e.g. here’s how the URLs for the Jenkins job and instance are made available within a release:
- 
+
+![Download Task](images/artifacturls.png)
+
 ### <a name="queryreleases"></a> Query release definitions for an artifact source
 This can be achieved by calling [Definitions](https://docs.microsoft.com/en-us/rest/api/vsts/release/definitions/list) – List REST API and passing the appropriate `artifactSourceId` parameter. Artifact source Id value corresponds to the value of the `uniqueSourceIdentifer` for the artifact type.
 
@@ -215,8 +217,8 @@ In order to describe the salient properties within artifact source contribution,
 | `name` | This represents the name of the artifact type and is used to identify the artifact type when linking artifact source. |
 | `displayName` | This is used to show the name in UI. |
 | `artifactType` | This identifies the [category](#artifactcategories) that the artifact type belongs to. |
-| `endpointTypeId` | This is the type of endpoint that is associated with the artifact source type. When linking artifact source within release definition, VSTS RM UI will list only endpoints of this given type in the input for the endpoint. |
-| `uniqueSourceIdentifer` | This is a mustache template that identifies the artifact source uniquely across other artifact sources associated with VSTS release definitions. For *BitBucket* artifact source type, the uniqueSourceIdentifier is `{{connection}}:{{definition}}:{{branch}}`, where the values for the variables in the mustache expression is fetched from the inputs. |
+| `endpointTypeId` | This is the type of endpoint that is associated with the artifact source type. When linking artifact source within release definition, VSTS RM UI will list only endpoints of this given type in the input for the endpoint. You can also filter the list of endpoint based on authentication scheme like using `bitbucket:UsernamePassword` will limit the endpoints to type `bitbucket` using basic authentication. Refer [authentication values](#authenticationschemes) for authentication schemes filter values. |
+| `uniqueSourceIdentifer` | This is a mustache template that identifies the artifact source uniquely across other artifact sources associated with VSTS release definitions. For *BitBucket* artifact source type, the uniqueSourceIdentifier is `{{connection}}:{{definition}}:{{branch}}`, where the values for the variables in the mustache expression is fetched from the inputs. Some of these variables like `connection` are [well-known input descriptors](#wellknowninputdescriptors) |
 | `downloadTaskId` | This is used to associate the artifact type with the task used to download it as part of deployment. This is optional and need not be specified in case there is no need to download the artifact as part of deployment. |
 | `inputDescriptors` | This is used to represent the various inputs for the artifact source when linking it within release definition. Some of these are the [well-known input descriptors](#wellknowninputdescriptors) that VSTS expects artifact source contribution to declare to be able to allow linking it within release definition & deploying it within a release. In addition to these inputs, the artifact source can include other inputs specific to the type. All the inputs specified when linking the artifact source will be passed as inputs to the Download Artifacts task. The input names in the artifact & task inputs have to match. |
 | `dataSourceBindings` | This is used to represent the REST APIs in the artifact source provider that can be queried by *VSTS* and provide rich artifact integration points. *VSTS* recognizes a bunch of [well-known targets for data source bindings](#wellknowntargets) and leverages them to query and light up the integration points in UI where data needs to be fetched from artifact source provider. |
@@ -264,6 +266,15 @@ In order to describe the salient properties within artifact source contribution,
 | `artifactSourceDefinitionUrl` | URL of specific artifact source (e.g. *VSTS Build* definition URL, *Jenkins* job URL) | `false` |
 | `artifactSourceVersionUrl` | URL of specific artifact version (e.g. *VSTS Build* URL, *Jenkins* job instance URL) | `false` |
 | `defaultVersionSpecific` | Fetch all versions of artifact corresponding to specific artifact source | `false` |
+
+### <a name="authenticationschemes"></a> Authentication scheme values :
+| Authentication Scheme | Value |
+| :------------- |:-------------|
+| `endpoint-auth-scheme-basic` | `UsernamePassword` |
+| `ms.vss-endpoint.endpoint-auth-scheme-token` | `Token` |
+| `endpoint-auth-scheme-cert` | `Certificate` |
+| `endpoint-auth-scheme-JWT` | `JWT` |
+| `endpoint-auth-scheme-none` | `None` |
  
 ## References to custom artifact sources
 A bunch of *VSTS Release* artifact sources are built out of [vsts-rm-extensions](https://github.com/Microsoft/vsts-rm-extensions/) *GitHub* repo.
