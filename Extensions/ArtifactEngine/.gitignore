@@ -1,10 +1,10 @@
 *.js
 *.js.map
 node_modules
-**/config.json
 **/test.config.json
 package-lock.json
 *.d.ts
 !definitions/*.d.ts
 .nyc_output/**
 .taskkey
+xunit.xml
