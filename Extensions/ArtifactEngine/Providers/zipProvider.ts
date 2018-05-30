@@ -2,32 +2,36 @@ import * as fs from 'fs';
 import * as crypto from 'crypto';
 
 import { ArtifactItemStore } from '../Store/artifactItemStore';
-import { IRequestHandler, IRequestOptions } from './typed-rest-client/Interfaces';
-import * as httpm from './typed-rest-client/HttpClient';
-import * as models from '../Models';
-import * as factory from './webClientFactory';
 
-export class ZipProvider implements models.IArtifactProvider {
+import { ArtifactItem, IArtifactProvider, ItemType } from '../Models';
+import * as factory from './webClientFactory';
+import { WebClient } from './webClient'
+
+// only import types from typed-rest-client here
+import { IRequestHandler, IRequestOptions } from './typed-rest-client/Interfaces';
+import { HttpClientResponse } from './typed-rest-client/HttpClient';
+
+export class ZipProvider implements IArtifactProvider {
     public artifactItemStore: ArtifactItemStore;
 
     constructor(zipLocation, handler: IRequestHandler, requestOptions?: IRequestOptions) {
         this.zipLocation = zipLocation;
-        this.httpc = factory.WebClientFactory.getClient([handler], requestOptions);
+        this.webClient = factory.WebClientFactory.getClient([handler], requestOptions);
     }
 
-    public getRootItems(): Promise<models.ArtifactItem[]> {
-        var rootItem = new models.ArtifactItem();
+    public getRootItems(): Promise<ArtifactItem[]> {
+        var rootItem = new ArtifactItem();
         rootItem.metadata = { downloadUrl: this.zipLocation };
         rootItem.path = '';
-        rootItem.itemType = models.ItemType.File;
+        rootItem.itemType = ItemType.File;
         return Promise.resolve([rootItem]);
     }
 
-    public getArtifactItems(artifactItem: models.ArtifactItem): Promise<models.ArtifactItem[]> {
+    public getArtifactItems(artifactItem: ArtifactItem): Promise<ArtifactItem[]> {
         return null;
     }
 
-    public getArtifactItem(artifactItem: models.ArtifactItem): Promise<NodeJS.ReadableStream> {
+    public getArtifactItem(artifactItem: ArtifactItem): Promise<NodeJS.ReadableStream> {
         var promise = new Promise<NodeJS.ReadableStream>((resolve, reject) => {
             if (!artifactItem.metadata || !artifactItem.metadata['downloadUrl']) {
                 reject("No downloadUrl available to download the item.");
@@ -36,7 +40,7 @@ export class ZipProvider implements models.IArtifactProvider {
             var downloadSize: number = 0;
             var itemUrl: string = artifactItem.metadata['downloadUrl'];
             itemUrl = itemUrl.replace(/([^:]\/)\/+/g, "$1");
-            this.httpc.get(itemUrl).then((res: httpm.HttpClientResponse) => {
+            this.webClient.get(itemUrl).then((res: HttpClientResponse) => {
                 resolve(res.message);
             }, (reason) => {
                 reject(reason);
@@ -46,7 +50,7 @@ export class ZipProvider implements models.IArtifactProvider {
         return promise;
     }
 
-    public putArtifactItem(artifactItem: models.ArtifactItem, stream: NodeJS.ReadableStream): Promise<models.ArtifactItem> {
+    public putArtifactItem(artifactItem: ArtifactItem, stream: NodeJS.ReadableStream): Promise<ArtifactItem> {
         return null;
     }
 
@@ -54,5 +58,5 @@ export class ZipProvider implements models.IArtifactProvider {
     }
 
     private zipLocation: string;
-    public httpc: httpm.HttpClient = new httpm.HttpClient('artifact-engine');
+    public webClient: WebClient;
 }

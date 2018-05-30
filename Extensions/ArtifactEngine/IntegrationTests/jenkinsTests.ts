@@ -126,7 +126,30 @@ describe('integration tests', () => {
             });
     });
 
-    it('should fail download if getItem call fails.', (done) => {
+    it('should fail download if getItem call fails with unknown error', (done) => {
+        let processor = new engine.ArtifactEngine();
+        let processorOptions = getArtifactEngineOptions();
+        let webProvider = getJenkinsWebProvider();
+        let stubProvider = new providers.StubProvider();
+        let errorMessage = 'something awful happened';
+
+        nock('http://redvstt-lab43:8080', { "encodedQueryParams": true })
+            .get('/job/ArtifactEngineJob/6/artifact/Extensions/ArtifactEngine/TestData/Jenkins/folder1/file2.txt')
+            .times(2)
+            .replyWithError(errorMessage);
+
+        setUpNock();
+
+        processor.processItems(webProvider, stubProvider, processorOptions)
+            .then((tickets) => {
+                assert.fail();
+            }, (err) => {
+                assert.equal(err.message, errorMessage);
+                done();
+            });
+    });
+
+    it('should fail download if getItem call fails with 404', (done) => {
         let processor = new engine.ArtifactEngine();
         let processorOptions = getArtifactEngineOptions();
         let webProvider = getJenkinsWebProvider();
@@ -135,18 +158,39 @@ describe('integration tests', () => {
         nock('http://redvstt-lab43:8080', { "encodedQueryParams": true })
             .get('/job/ArtifactEngineJob/6/artifact/Extensions/ArtifactEngine/TestData/Jenkins/folder1/file2.txt')
             .times(2)
-            .replyWithError('something awful happened');
+            .reply(404);
 
         setUpNock();
 
-        // disable the test for now since it's writing to error stream which is failing build task.
-        done();
-        /* processor.processItems(webProvider, stubProvider, processorOptions)
+        processor.processItems(webProvider, stubProvider, processorOptions)
             .then((tickets) => {
                 assert.fail();
             }, (err) => {
+                assert.equal(err.statusCode, 404);
                 done();
-            }); */
+            });
+    });
+
+    it('should fail download if getItem call fails with 500', (done) => {
+        let processor = new engine.ArtifactEngine();
+        let processorOptions = getArtifactEngineOptions();
+        let webProvider = getJenkinsWebProvider();
+        let stubProvider = new providers.StubProvider();
+
+        nock('http://redvstt-lab43:8080', { "encodedQueryParams": true })
+            .get('/job/ArtifactEngineJob/6/artifact/Extensions/ArtifactEngine/TestData/Jenkins/folder1/file2.txt')
+            .times(2)
+            .reply(500);
+
+        setUpNock();
+
+        processor.processItems(webProvider, stubProvider, processorOptions)
+            .then((tickets) => {
+                assert.fail();
+            }, (err) => {
+                assert.equal(err.statusCode, 500);
+                done();
+            });
     });
 
     it('should download only artifact items matching include pattern', (done) => {

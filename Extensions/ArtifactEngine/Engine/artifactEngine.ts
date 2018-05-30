@@ -72,11 +72,9 @@ export class ArtifactEngine {
         retryCount?: number) {
         var retryIfRequired = (err) => {
             if (retryCount === artifactEngineOptions.retryLimit - 1) {
-                Logger.logError(err);
                 this.artifactItemStore.updateState(item, models.TicketState.Failed);
                 reject(err);
             } else {
-                Logger.logMessage(err);
                 this.artifactItemStore.increaseRetryCount(item);
                 Logger.logMessage(tl.loc("RetryingDownload", item.path, (retryCount + 1)));
                 setTimeout(() => this
@@ -109,10 +107,12 @@ export class ArtifactEngine {
                             this.artifactItemStore.updateState(item, models.TicketState.Processed);
                             resolve();
                         }, (err) => {
-                            retryIfRequired("Error placing file " + item.path + ": " + err);
+                            Logger.logInfo("Error placing file " + item.path + ": " + err);
+                            retryIfRequired(err);
                         });
                 }, (err) => {
-                    retryIfRequired("Error getting file " + item.path + ": " + err);
+                    Logger.logInfo("Error getting file " + item.path + ": " + err);
+                    retryIfRequired(err);
                 });
             }
             else {
@@ -137,7 +137,8 @@ export class ArtifactEngine {
                 Logger.logInfo("Enqueued " + items.length + " for processing.");
                 resolve();
             }, (err) => {
-                retryIfRequired("Error getting " + item.path + ":" + err);
+                Logger.logInfo("Error getting " + item.path + ":" + err);
+                retryIfRequired(err);
             });
         }
     }
