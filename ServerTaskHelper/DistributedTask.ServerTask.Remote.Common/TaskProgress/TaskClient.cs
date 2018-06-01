@@ -27,13 +27,19 @@ namespace DistributedTask.ServerTask.Remote.Common.TaskProgress
 
         public async Task ReportTaskAssigned(Guid taskId, CancellationToken cancellationToken)
         {
-            var startedEvent = new TaskAssignedEvent(taskProperties.JobId, taskId);
+            var jobId = GetJobId(this.taskProperties.HubName, this.taskProperties.JobId, taskId);
+            taskId = GetTaskId(this.taskProperties.HubName, taskId);
+
+            var startedEvent = new TaskAssignedEvent(jobId, taskId);
             await taskClient.RaisePlanEventAsync(taskProperties.ProjectId, this.taskProperties.HubName, this.taskProperties.PlanId, startedEvent, cancellationToken).ConfigureAwait(false);
         }
 
         public async Task ReportTaskStarted(Guid taskId, CancellationToken cancellationToken)
         {
-            var startedEvent = new TaskStartedEvent(this.taskProperties.JobId, taskId);
+            var jobId = GetJobId(this.taskProperties.HubName, this.taskProperties.JobId, taskId);
+            taskId = GetTaskId(this.taskProperties.HubName, taskId);
+            
+            var startedEvent = new TaskStartedEvent(jobId, taskId);
             await taskClient.RaisePlanEventAsync(this.taskProperties.ProjectId, this.taskProperties.HubName, this.taskProperties.PlanId, startedEvent, cancellationToken).ConfigureAwait(false);
         }
 
@@ -48,9 +54,9 @@ namespace DistributedTask.ServerTask.Remote.Common.TaskProgress
 
         public async Task ReportTaskCompleted(Guid taskId, TaskResult result, CancellationToken cancellationToken)
         {
-            var jobId = this.taskProperties.HubName.Equals("Gates", StringComparison.OrdinalIgnoreCase)
-                ? taskId
-                : this.taskProperties.JobId;
+            var jobId = GetJobId(this.taskProperties.HubName, this.taskProperties.JobId, taskId);
+            taskId = GetTaskId(this.taskProperties.HubName, taskId);
+            
             var completedEvent = new TaskCompletedEvent(jobId, taskId, result);
             await taskClient.RaisePlanEventAsync(this.taskProperties.ProjectId, this.taskProperties.HubName, this.taskProperties.PlanId, completedEvent, cancellationToken).ConfigureAwait(false);
         }
@@ -81,6 +87,20 @@ namespace DistributedTask.ServerTask.Remote.Common.TaskProgress
             taskClient?.Dispose();
             vssConnection = null;
             taskClient = null;
+        }
+
+        private static Guid GetJobId(string hubName, Guid jobId, Guid taskId)
+        {
+            return hubName.Equals("Gates", StringComparison.OrdinalIgnoreCase)
+                ? taskId
+                : jobId;
+        }
+
+        private static Guid GetTaskId(string hubName, Guid taskId)
+        {
+            return hubName.Equals("Gates", StringComparison.OrdinalIgnoreCase)
+                ? Guid.Empty
+                : taskId;
         }
     }
 }
