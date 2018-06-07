@@ -23,7 +23,7 @@ A CacheProvider will be initialized with a “Hash” that reads the old artifac
 		//download all the artifacts
 		Return releasedefinition.Artifacts;
 	}
-	Else
+  Else
 	{
 		//download the artifacts incrementally
     		Initialize cache by reading the hash of artifact type.
