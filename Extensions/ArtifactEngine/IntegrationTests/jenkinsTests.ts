@@ -8,7 +8,7 @@ import { TicketState } from '../Models/ticketState';
 var sinon = require('sinon');
 var nock = require('nock')
 
-describe('Integration tests', () => {
+describe('Integration Tests', () => {
     describe('jenkins tests', () => {
         beforeEach(() => {
             nock.cleanAll();
