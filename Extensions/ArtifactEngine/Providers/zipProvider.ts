@@ -1,6 +1,3 @@
-import * as fs from 'fs';
-import * as crypto from 'crypto';
-
 import { ArtifactItemStore } from '../Store/artifactItemStore';
 import { IRequestHandler, IRequestOptions } from './typed-rest-client/Interfaces';
 import * as httpm from './typed-rest-client/HttpClient';

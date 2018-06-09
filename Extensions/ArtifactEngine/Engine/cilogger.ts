@@ -1,5 +1,3 @@
-import { error } from "util";
-
 var tl = require('vsts-task-lib');
 var packagejson = require('../package.json');
 

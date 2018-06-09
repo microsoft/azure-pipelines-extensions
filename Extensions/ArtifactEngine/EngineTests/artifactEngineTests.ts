@@ -1,9 +1,6 @@
-﻿var mocha = require("mocha");
-
-import * as assert from 'assert';
+﻿import * as assert from 'assert';
 
 import * as engine from '../Engine';
-import * as models from '../Models';
 import * as providers from '../Providers';
 
 describe('artifactEngine.processItems', () => {
