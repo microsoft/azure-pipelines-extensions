@@ -1,12 +1,10 @@
 import * as path from 'path'
 
-var mocha = require("mocha");
 var mockery = require("mockery");
 var stream = require("stream");
 
 import * as assert from 'assert';
 
-import * as engine from '../Engine';
 import * as models from '../Models';
 
 mockery.registerMock('fs', {
