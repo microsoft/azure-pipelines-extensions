@@ -26,8 +26,8 @@ import * as providers from '../Providers';
 
 var sinon = require('sinon');
 
-var artifactItem : models.ArtifactItem;
-var webProvider : providers.WebProvider;
+var artifactItem: models.ArtifactItem;
+var webProvider: providers.WebProvider;
 var getStub;
 var stubResponse;
 
@@ -47,80 +47,80 @@ beforeEach((done) => {
 
     done();
 });
+describe('Unit Tests', () => {
+    describe('webProvider tests', () => {
 
-describe('webProvider tests', () => {
+        it('getArtifactItems should call http get with correct url', (done) => {
+            var getArtifactItemPromise = webProvider.getArtifactItems(artifactItem);
 
-    it('getArtifactItems should call http get with correct url', (done) => {
-        var getArtifactItemPromise = webProvider.getArtifactItems(artifactItem);
+            getArtifactItemPromise.then(() => {
+                assert.equal(getStub.callCount, 1);
+                assert.equal(getStub.args[0][0], "http://stubUrl");
+                done();
+            }, (err) => {
+                throw err;
+            });
+        });
 
-        getArtifactItemPromise.then(() => {
-            assert.equal(getStub.callCount, 1);
-            assert.equal(getStub.args[0][0], "http://stubUrl");
-            done();
-        }, (err) => {
-            throw err;
+        it('getArtifactItems should replace double slashes from url', (done) => {
+            artifactItem.metadata = { 'downloadUrl': 'http://stubUrl//link' };
+
+            var getArtifactItemPromise = webProvider.getArtifactItems(artifactItem);
+
+            getArtifactItemPromise.then(() => {
+                assert.equal(getStub.callCount, 1);
+                assert.equal(getStub.args[0][0], "http://stubUrl/link");
+                done();
+            }, (err) => {
+                throw err;
+            });
         });
     });
 
-    it('getArtifactItems should replace double slashes from url', (done) => {
-        artifactItem.metadata = { 'downloadUrl': 'http://stubUrl//link' };
+    describe('webProvider tests', () => {
 
-        var getArtifactItemPromise = webProvider.getArtifactItems(artifactItem);
+        it('getArtifactItem should call http get with correct url', (done) => {
+            var getArtifactItemPromise = webProvider.getArtifactItem(artifactItem);
 
-        getArtifactItemPromise.then(() => {
-            assert.equal(getStub.callCount, 1);
-            assert.equal(getStub.args[0][0], "http://stubUrl/link");
-            done();
-        }, (err) => {
-            throw err;
+            getArtifactItemPromise.then(() => {
+                assert.equal(getStub.callCount, 1);
+                assert.equal(getStub.args[0][0], "http://stubUrl");
+                done();
+            }, (err) => {
+                throw err;
+            });
+        });
+
+        it('getArtifactItem should replace double slashes from url', (done) => {
+            artifactItem.metadata = { 'downloadUrl': 'http://stubUrl//link' };
+
+            var getArtifactItemPromise = webProvider.getArtifactItem(artifactItem);
+
+            getArtifactItemPromise.then(() => {
+                assert.equal(getStub.callCount, 1);
+                assert.equal(getStub.args[0][0], "http://stubUrl/link");
+                done();
+            }, (err) => {
+                throw err;
+            });
+        });
+
+        it('getArtifactItem should Unzip on stream if content type is gzip', (done) => {
+            stubResponse.message.headers = { 'content-encoding': 'gzip' };
+            stubResponse.message.pipe = sinon.spy();
+
+            var getArtifactItemPromise = webProvider.getArtifactItem(artifactItem);
+
+            getArtifactItemPromise.then(() => {
+                assert.equal(stubResponse.message.pipe.callCount, 1);
+                assert.equal(stubResponse.message.pipe.args[0][0].constructor.name, 'Unzip');
+                done();
+            }, (err) => {
+                throw err;
+            });
         });
     });
 });
-
-describe('webProvider tests', () => {
-
-    it('getArtifactItem should call http get with correct url', (done) => {
-        var getArtifactItemPromise = webProvider.getArtifactItem(artifactItem);
-
-        getArtifactItemPromise.then(() => {
-            assert.equal(getStub.callCount, 1);
-            assert.equal(getStub.args[0][0], "http://stubUrl");
-            done();
-        }, (err) => {
-            throw err;
-        });
-    });
-
-    it('getArtifactItem should replace double slashes from url', (done) => {
-        artifactItem.metadata = { 'downloadUrl': 'http://stubUrl//link' };
-
-        var getArtifactItemPromise = webProvider.getArtifactItem(artifactItem);
-
-        getArtifactItemPromise.then(() => {
-            assert.equal(getStub.callCount, 1);
-            assert.equal(getStub.args[0][0], "http://stubUrl/link");
-            done();
-        }, (err) => {
-            throw err;
-        });
-    });
-
-    it('getArtifactItem should Unzip on stream if content type is gzip', (done) => {
-        stubResponse.message.headers = { 'content-encoding': 'gzip' };
-        stubResponse.message.pipe = sinon.spy();
-
-        var getArtifactItemPromise = webProvider.getArtifactItem(artifactItem);
-
-        getArtifactItemPromise.then(() => {
-            assert.equal(stubResponse.message.pipe.callCount, 1);
-            assert.equal(stubResponse.message.pipe.args[0][0].constructor.name, 'Unzip');
-            done();
-        }, (err) => {
-            throw err;
-        });
-    });
-});
-
 // some bug in mockery, need to see how to disable
 after(() => {
     mockery.deregisterAll();
