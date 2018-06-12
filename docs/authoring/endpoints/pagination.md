@@ -1,18 +1,18 @@
 # Pagination
-The support of pagination is data sources is given by following template:
+The support of pagination in data sources is given by following template:
 ```
 {
      "endpointUrl": “someUrl”
-     "callbackContextTemplate": "" //set of parameters that need to be used in the next call
-     "callbackRequiredTemplate": "boolean" //template decides if further calls need to be made to service
-     "initialContextTemplate": "" //defines the initial set of query params
+     "callbackContextTemplate": ""
+     "callbackRequiredTemplate": "boolean"
+     "initialContextTemplate": ""
 }
 ```
 
 Important fields explained:
 - `endpointUrl` : Standard context here. The url that you intend to call.
 - `callbackContextTemplate` : This is the set of parameters that we will need to call this API again. Generally, this will be derived from the response of the previous call. It's supposed to be a set of key-value pairs.
-- `callbackRequiredTemplate` : This is basically a boolean flag which identifies whether further call to API is needed. It does so based on the response of the previous call.
+- `callbackRequiredTemplate` : This is basically a boolean flag which identifies whether further call to API is needed. It does so based on the response of the previous call. Calling back to the API is the responsibility of the client. In case of VsTest task sampled below, we are doing it from task editor UI.
 - `initialContextTemplate` : This is the set of parameters needed for the first call. It is also a set of key-value pairs.
 
 Depending on the kind of pagination supported by the underlying API, the logic to determine the value of "callbackRequiredTemplate" can be anything. 
@@ -27,6 +27,9 @@ We expect both "callbackContextTemplate" and "callbackRequiredTemplate" to be pr
     "initialContextTemplate":"{\"continuationToken\" : \"{{{system.utcNow}}}\"}"
 }
 ```
+Usually, 2 major pagination patterns are used:
+- `ContinutationToken`: https://blog.philipphauer.de/web-api-pagination-continuation-token/
+- `Skip/Top`: http://sharepoint/sites/AzureUX/Sparta/_layouts/15/WopiFrame2.aspx?sourcedoc=%7b3E014CE9-835D-410A-8807-6743E8201039%7d&file=Azure%20REST%20Design%20Guidelines%20v2.1.docx&action=default&DefaultItemOpen=1
 
 ### Sample Data Source explained
 - `EndpointUrl` : It defines 2 query params, $top and continuationToken, which are needed for pagination in this particular API. Notice that continuationToken is given as a mustache.
@@ -36,6 +39,9 @@ We expect both "callbackContextTemplate" and "callbackRequiredTemplate" to be pr
 
 Note: The author needs to take care of the page size. It should be chosen such that the response of one call does not exceed 2MB. If the response structure changes at some time in future, that needs to be taken care of here also.
 So, keep a buffer to not run into this limitation.
+
+An example can be seen with the VsTest task's data source binding that targets the test plans:
+https://github.com/Microsoft/vsts-tasks/blob/master/Tasks/VsTestV2/task.json
 
 ### Throttling
 Since task owners have been given the liberty to decide the page size and it may result in inefficient behavior if the page size is kept too small, we want to enforce a hard limit on the number of calls we will make to the service. For now, we have decided it to be 5. We will change it, if needed, in future.
