@@ -57,7 +57,7 @@ Finally, when all the files are put to the desired destination, they will be cop
 
 An additional .verify file will also be generated to check the correctness of the cache(i.e. whether the cache has been successfully updated or it failed in between).
 
-Validation(checking if the hash of the downloaded files matches the hash in the corresponding artifact-metadata.csv file) of the downloaded files will be done while copying them to the cache with the option to skip the validation step.
+Validation(checking if the hash of the downloaded files matches the hash in the corresponding artifact-metadata.csv file) of the downloaded files will be done while copying them to the cache with the option to skip the validation step. The validation step in itself has no overhead but the copying of files require an extra disk read(while reading from destination) and an extra disk write(writing to the cache).
 
 For Cache Cleanup the .verify file will contain a lastUpdatedOn which tells when was the folder last used. The agent will iterate over all the folders in artifact engine cache and delete all those which are older than 30 days by reading the .verify file of each folder.
 
