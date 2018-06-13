@@ -54,6 +54,14 @@ export class ZipProvider implements IArtifactProvider {
     public dispose(): void {
     }
 
+    getDestination(): Promise<string> {
+        return Promise.resolve(this.zipLocation);
+    }
+
+    getRelativePath(): Promise<string> {
+        return Promise.resolve("");
+    }
+
     private zipLocation: string;
     public webClient: WebClient;
 }

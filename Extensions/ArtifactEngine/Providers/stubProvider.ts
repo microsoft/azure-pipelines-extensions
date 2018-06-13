@@ -80,6 +80,14 @@ export class StubProvider implements models.IArtifactProvider {
     dispose(): void {
     }
 
+    getDestination(): Promise<string> {
+        return Promise.resolve("");
+    }
+
+    getRelativePath(): Promise<string> {
+        return Promise.resolve("");
+    }
+
     delay(ms: number): Promise<{}> {
         return new Promise(resolve => setTimeout(resolve, ms));
     }

@@ -11,9 +11,11 @@ export class FilesystemProvider implements models.IArtifactProvider {
 
     public artifactItemStore: ArtifactItemStore;
 
-    constructor(rootLocation: string, rootItemPath?: string) {
+    constructor(rootLocation: string, rootItemPath?: string, cleanTargetDirectory?: number) {
         this._rootLocation = rootLocation;
         this._rootItemPath = rootItemPath ? rootItemPath : '';
+        this._cleanTargetDirectory = cleanTargetDirectory ? cleanTargetDirectory : 0;
+        this.directoryCleanedFlag = 0;
     }
 
     getRootItems(): Promise<models.ArtifactItem[]> {
@@ -53,12 +55,21 @@ export class FilesystemProvider implements models.IArtifactProvider {
     public putArtifactItem(item: models.ArtifactItem, stream: NodeJS.ReadableStream): Promise<models.ArtifactItem> {
         return new Promise((resolve, reject) => {
             const outputFilename = path.join(this._rootLocation, item.path);
+            if(this.directoryCleanedFlag === 0) {
+                if(this._cleanTargetDirectory === 1) {
+                    if(fs.existsSync(this._rootLocation)) {
+                        this.deleteFolderRecursive(this._rootLocation)
+                        this.directoryCleanedFlag = 1;
+                    }
+                }
+            }
 
             // create parent folder if it has not already been created
             const folder = path.dirname(outputFilename);
             try {
                 tl.mkdirP(folder);
                 Logger.logMessage(tl.loc("DownloadingTo", item.path, outputFilename));
+                // ENTER the IF...ELSE condition here
                 const outputStream = fs.createWriteStream(outputFilename);
                 stream.pipe(outputStream);
                 stream.on("end",
@@ -78,11 +89,20 @@ export class FilesystemProvider implements models.IArtifactProvider {
                     this.artifactItemStore.updateFileSize(item, outputStream.bytesWritten);
                     resolve(item);
                 });
+                // till here the if the file has to be downloaded.
             }
             catch (err) {
                 reject(err);
             }
         });
+    }
+
+    public getDestination(): Promise<string> {
+        return Promise.resolve(this._rootLocation);
+    }
+
+    public getRelativePath(): Promise<string> {
+        return Promise.resolve(this._rootItemPath);
     }
 
     dispose(): void {
@@ -115,6 +135,7 @@ export class FilesystemProvider implements models.IArtifactProvider {
                         itemType: itemStat.isFile() ? models.ItemType.File : models.ItemType.Folder,
                         path: parentRelativePath ? path.join(parentRelativePath, file) : file,
                         fileLength: itemStat.size,
+                        fileHash: "",
                         lastModified: itemStat.mtime,
                         metadata: { "downloadUrl": filePath }
                     }
@@ -127,8 +148,25 @@ export class FilesystemProvider implements models.IArtifactProvider {
         });
 
         return promise;
-    }
+    } 
+
+    private deleteFolderRecursive(path: string) {
+        var self = this;
+        if( fs.existsSync(path) ) {
+          fs.readdirSync(path).forEach(function(file,index) {
+            var curPath = path + "/" + file;
+            if(fs.lstatSync(curPath).isDirectory()) { // recurse
+              self.deleteFolderRecursive(curPath);
+            } else { // delete file
+              fs.unlinkSync(curPath);
+            }
+          });
+          fs.rmdirSync(path);
+        }
+      }
 
     private _rootLocation: string;
     private _rootItemPath: string;
+    private _cleanTargetDirectory: number;
+    private directoryCleanedFlag: number;
 }

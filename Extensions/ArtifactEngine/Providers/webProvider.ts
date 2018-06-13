@@ -134,6 +134,14 @@ export class WebProvider implements IArtifactProvider {
         return target;
     }
 
+    getDestination(): Promise<string> {
+        return Promise.resolve(this.rootItemsLocation);
+    }
+
+    getRelativePath(): Promise<string> {
+        return Promise.resolve("");
+    }
+
     private rootItemsLocation: string;
     private templateFile: string;
     private variables: string;
