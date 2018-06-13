@@ -254,7 +254,7 @@ To avoid creating or updating a service endpoint with incorrect values for the i
 If this data source isn’t present in the endpoint type, then testing the connection isn’t supported.
 
 `resultSelector` in TestConnection is optional and is not used to determine if the test succeeded or failed. When testing the connection using this datasource, we only check for the HTTP status code of the underlying REST API call. If HTTP `status.code == OK` then the test will succeed.
-```
+
 
 ## Defining URL inline within dataSourceBinding
 
@@ -263,6 +263,7 @@ Datasources are defined within service endpoint type contribution. DataSourceBin
 For e.g. below is a dataSourceBinding for querying alert rules defined in Microsoft.Insights resource provider in Azure.
 
 ```
+"dataSourceBindings": [
 	{
 		"target": "alertRules",
 		"endpointId": "$(connectedServiceNameARM)",
@@ -270,3 +271,5 @@ For e.g. below is a dataSourceBinding for querying alert rules defined in Micros
 		"resultSelector": "jsonpath:$.value[?(@.properties.isEnabled == true)]",
 		"resultTemplate": "{ \"Value\" : \"{{name}}\", \"DisplayValue\":\"{{name}}\"}"
 	}
+]
+```
