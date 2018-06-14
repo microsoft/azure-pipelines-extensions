@@ -3,7 +3,7 @@ import * as models from "../Models"
 export class ArtifactItemStore {
     _downloadTickets: models.ArtifactDownloadTicket[] = [];
 
-    public addItem(item: models.ArtifactItem, hashMap) {
+    public addItem(item: models.ArtifactItem) {
         if (this._downloadTickets.find(x => x.artifactItem.path === item.path)) {
             return;
         }
@@ -18,14 +18,23 @@ export class ArtifactItemStore {
             downloadSizeInBytes: 0,
             fileSizeInBytes: 0
         };
-        artifactDownloadTicket.artifactItem.fileHash =  item.itemType === models.ItemType.Folder ? "" : hashMap[item.path.substring(item.path.indexOf('\\')+1)],
+        if(item.itemType === models.ItemType.Folder)
+            artifactDownloadTicket.artifactItem.fileHash = "";
+        else {
+            if(this.hashMap[item.path.substring(item.path.indexOf('\\')+1)]) 
+                artifactDownloadTicket.artifactItem.fileHash = this.hashMap[item.path.substring(item.path.indexOf('\\')+1)]
+        }        
 
         this._downloadTickets.push(artifactDownloadTicket);
     }
 
-    public addItems(items: models.ArtifactItem[], hashMap): void {
+    public setHashMap(hashMap: Object) {
+        this.hashMap = hashMap;
+    }
+    
+    public addItems(items: models.ArtifactItem[]): void {
         items.map((value: models.ArtifactItem, index: number) => {
-            this.addItem(value,hashMap);
+            this.addItem(value);
         });
     }
 
@@ -100,4 +109,6 @@ export class ArtifactItemStore {
     public flush(): void {
         this._downloadTickets = [];
     }
+
+    private hashMap = {};
 }

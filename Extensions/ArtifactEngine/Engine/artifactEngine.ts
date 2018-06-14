@@ -3,10 +3,7 @@ import * as fs from 'fs';
 import * as readline from 'readline'
 
 var tl = require('vsts-task-lib/task');
-var minimatch = require('minimatch');
-var nconf = require('nconf');
 var crypto = require('crypto');
-var q = require('q');
 
 import * as models from '../Models';
 import * as ci from './cilogger';
@@ -23,7 +20,7 @@ export class ArtifactEngine {
         var artifactDownloadTicketsPromise = new Promise<models.ArtifactDownloadTicket[]>((resolve, reject) => {
             const workers: Promise<void>[] = [];
             artifactEngineOptions = artifactEngineOptions || new ArtifactEngineOptions();
-            artifactEngineOptions.cacheDirectory = artifactEngineOptions.cacheDirectory ? artifactEngineOptions.cacheDirectory : tl.getVariable("AGENT_WORKFOLDER");
+            artifactEngineOptions.artifactCacheDirectory = artifactEngineOptions.artifactCacheDirectory ? artifactEngineOptions.artifactCacheDirectory : tl.getVariable("AGENT_WORKFOLDER");
             this.createPatternList(artifactEngineOptions);
             this.artifactItemStore.flush();
             Logger.verbose = artifactEngineOptions.verbose;
@@ -31,14 +28,15 @@ export class ArtifactEngine {
             this.logger.logProgress();
             sourceProvider.artifactItemStore = this.artifactItemStore;
             destProvider.artifactItemStore = this.artifactItemStore;
+            var key = crypto.createHash('SHA256').update(artifactEngineOptions.artifactCacheKey).digest('hex');
+            sourceProvider.getRelativePath().then((relPath) => {
+                this.cacheProvider = new CacheProvider(artifactEngineOptions.artifactCacheDirectory,key,relPath);
+            });                  
             sourceProvider.getRootItems().then((itemsToProcess: models.ArtifactItem[]) => {
-                this.artifactItemStore.addItems(itemsToProcess,{});
-
-                var resolveHashMaps = new Promise((resolve, reject) => {
+                this.artifactItemStore.addItems(itemsToProcess);
+                var resolveHashPromise = new Promise((resolve) => {
                     sourceProvider.getArtifactItems(itemsToProcess[0]).then((items: models.ArtifactItem[]) => {
-                        sourceProvider.getArtifactItem(items.find(x => x.path === require('path').join(itemsToProcess[0].path, 'artifact-metadata.csv') )).then((hashStream : NodeJS.ReadableStream) => {
-                            
-                            
+                        sourceProvider.getArtifactItem(items.find(x => x.path === require('path').join(itemsToProcess[0].path, 'artifact-metadata.csv') )).then((hashStream : NodeJS.ReadableStream) => {                        
                             var newHashPromise = new Promise((resolve) => {
                                 var newHash = readline.createInterface ({
                                     input : hashStream
@@ -54,19 +52,8 @@ export class ArtifactEngine {
                                 });
                             });
                             newHashPromise.then(() => {
-                                var key = crypto.createHash('SHA256').update(artifactEngineOptions.uniqueUrl).digest('hex');
-                                // change "C:/vsts-agent/_layout/_work" by tl.getVariable("AGENT_WORKFOLDER")
-                                if(fs.existsSync(path.join(artifactEngineOptions.cacheDirectory,"ArtifactEngineCache", key,'verify.txt'))) {
-                                        var cacheProvider : CacheProvider = new CacheProvider(key);
-                                        cacheProvider.makeOldHash().then((res) => {
-                                        this.oldHashMap = res;                                
-                                        resolve();
-                                        });
-                                }
-                                else {
-                                    Logger.logMessage("Cache is not verified or is not present.");
-                                    resolve();
-                                }                                    
+                                this.artifactItemStore.setHashMap(this.newHashMap)
+                                resolve();                                   
                             });                            
                         }, (err) => {
                             Logger.logError(err);
@@ -77,8 +64,8 @@ export class ArtifactEngine {
                         reject(err);
                     });
                 });
-
-                resolveHashMaps.then(() => {
+                
+                resolveHashPromise.then(() => {
                     for (let i = 0; i < artifactEngineOptions.parallelProcessingLimit; ++i) {
                         var worker = new Worker<models.ArtifactItem>(i + 1, item => this.processArtifactItem(sourceProvider, item, destProvider, artifactEngineOptions), () => this.artifactItemStore.getNextItemToProcess(), () => !this.artifactItemStore.itemsPendingProcessing());
                         workers.push(worker.init());
@@ -89,11 +76,10 @@ export class ArtifactEngine {
                         
                         destProvider.getDestination().then((destination) => {
                             sourceProvider.getRelativePath().then((relPath) => {
-                                var key = crypto.createHash('SHA256').update(artifactEngineOptions.uniqueUrl).digest('hex');
-                                // change "C:/vsts-agent/_layout/_work" by tl.getVariable("AGENT_WORKFOLDER")
-                                var cachePath = path.join(artifactEngineOptions.cacheDirectory, "ArtifactEngineCache", key);
+                                var key = crypto.createHash('SHA256').update(artifactEngineOptions.artifactCacheKey).digest('hex');
+                                var cachePath = path.join(artifactEngineOptions.artifactCacheDirectory, "ArtifactEngineCache", key);
                                 if(fs.existsSync(cachePath))
-                                    this.deleteFolderRecursive(cachePath);
+                                    tl.rmRF(cachePath);
                                 var self = this;
                                 this.walk(path.join(destination,relPath), function (err, result) {                                                                        
                                     if (err)
@@ -109,14 +95,12 @@ export class ArtifactEngine {
                                             var fileCachePath = path.join(cachePath,fileRelativePath);
                                             if(!fs.existsSync(path.dirname(fileCachePath))) {                                
                                                 fs.mkdirSync(path.dirname(fileCachePath))
-                                            } 
-                                              
-                                                var res = self.generateHash(file,fileCachePath).then(function (hash) {
-                                                    if(self.newHashMap[fileRelativePath] && self.newHashMap[fileRelativePath] !== hash) {
-                                                        dirtyCache = 1;
-                                                    }
-                                                });
-                                            
+                                            }                                               
+                                            var res = self.generateHash(file,fileCachePath).then(function (hash) {
+                                                if(self.newHashMap[fileRelativePath] && self.newHashMap[fileRelativePath] !== hash) {
+                                                    dirtyCache = 1;
+                                                }
+                                            });                                        
                                             arr2.push(res);    
                                         });
 
@@ -130,24 +114,19 @@ export class ArtifactEngine {
                                                     resolve(self.artifactItemStore.getTickets());
                                                 });
                                                 verifyFile.on('error',(err) => {
-                                                    console.log(err);
+                                                    Logger.logMessage(err);
                                                 });                                          
                                             }
                                             else {                    
                                                 Logger.logMessage("Validation Unsuccessful. Cache not Verified")
-                                                self.deleteFolderRecursive(cachePath);
-                                                resolve(self.artifactItemStore.getTickets());
-                                                
+                                                tl.rmRF(cachePath);
+                                                resolve(self.artifactItemStore.getTickets());                                       
                                             }
                                         });
                                     };
                                 });
                             });                                                        
-                        });
-
-                        
-
-                        
+                        });    
                     }, (err) => {
                         ci.publishEvent('reliability', <ci.IReliabilityData>{ issueType: 'error', errorMessage: JSON.stringify(err, Object.getOwnPropertyNames(err)) });
                         sourceProvider.dispose();
@@ -212,40 +191,42 @@ export class ArtifactEngine {
 
             if (tl.match([pathToMatch], this.patternList, null, matchOptions).length > 0) {
                 Logger.logInfo("Processing " + item.path);
-
-                if(item.fileHash && item.fileHash === this.oldHashMap[item.path.substring(item.path.indexOf('\\')+1)]) {    
-                try {    
-                        Logger.logMessage(`Downloading ${item.path} From Cache........`);
-                        var key = crypto.createHash('SHA256').update(artifactEngineOptions.uniqueUrl).digest('hex');
-                        const inputStream = fs.createReadStream(path.join(artifactEngineOptions.cacheDirectory,"ArtifactEngineCache", key, item.path.substring(item.path.indexOf('\\')+1)));
-                        destProvider.putArtifactItem(item, inputStream).then((item) => {
-                            this.artifactItemStore.updateState(item, models.TicketState.Processed, models.DownloadLocation.Cache);
-                            resolve();
+                this.cacheProvider.getArtifactItem(item).then((contentStream) => {
+                    if(contentStream) {
+                        try {    
+                            Logger.logMessage(`Downloading ${item.path} From Cache........`);                                                        
+                            destProvider.putArtifactItem(item, contentStream).then((item) => {
+                                this.artifactItemStore.updateState(item, models.TicketState.Processed, models.DownloadLocation.Cache);
+                                resolve();
+                            }, (err) => {
+                                Logger.logInfo("Error placing file " + item.path + ": " + err);
+                                retryIfRequired(err);                            
+                            });
+                        }
+                        catch (err) {
+                            Logger.logInfo("Error getting file " + item.path + ": " + err);
+                            retryIfRequired(err);
+                        } 
+                    }
+                    else {
+                        Logger.logMessage(`Downloading ${item.path} From the Source........`);
+                        sourceProvider.getArtifactItem(item).then((contentStream) => {
+                            Logger.logInfo("Got download stream for item: " + item.path);
+                            destProvider.putArtifactItem(item, contentStream)
+                                .then((item) => {
+                                    this.artifactItemStore.updateState(item, models.TicketState.Processed);
+                                    resolve();
+                                }, (err) => {
+                                Logger.logInfo("Error placing file " + item.path + ": " + err);
+                                retryIfRequired(err);
+                                });
                         }, (err) => {
-                            Logger.logInfo("Error placing file " + item.path + ": " + err);
+                            Logger.logInfo("Error getting file " + item.path + ": " + err);
                             retryIfRequired(err);
                         });
                     }
-                    catch (err) {
-                        retryIfRequired("Error getting file " + item.path + ": " + err);
-                    }
-                }
-                else {
-                    Logger.logMessage(`Downloading ${item.path} From the Source........`);
-                    sourceProvider.getArtifactItem(item).then((contentStream) => {
-                        Logger.logInfo("Got download stream for item: " + item.path);
-                        destProvider.putArtifactItem(item, contentStream)
-                            .then((item) => {
-                                this.artifactItemStore.updateState(item, models.TicketState.Processed);
-                                resolve();
-                            }, (err) => {
-                                retryIfRequired("Error placing file " + item.path + ": " + err);
-                            });
-                    }, (err) => {
-                        retryIfRequired("Error getting file " + item.path + ": " + err);
-                    });
-                }                
-            }
+                });                        
+            }          
             else {
                 Logger.logMessage(tl.loc("SkippingItem", pathToMatch));
                 this.artifactItemStore.updateState(item, models.TicketState.Skipped);
@@ -262,7 +243,7 @@ export class ArtifactEngine {
                     return value;
                 });
 
-                this.artifactItemStore.addItems(items,this.newHashMap);
+                this.artifactItemStore.addItems(items);
                 this.artifactItemStore.updateState(item, models.TicketState.Processed);
 
                 Logger.logInfo("Enqueued " + items.length + " for processing.");
@@ -283,22 +264,7 @@ export class ArtifactEngine {
         }
     }
 
-    deleteFolderRecursive(cachePath: string) {
-        var self = this;
-        if( fs.existsSync(cachePath) ) {
-          fs.readdirSync(cachePath).forEach(function(file,index) {
-            var curPath = path.join(cachePath,file);
-            if(fs.lstatSync(curPath).isDirectory()) { // recurse
-              self.deleteFolderRecursive(curPath);
-            } else { // delete file
-              fs.unlinkSync(curPath);
-            }
-          });
-          fs.rmdirSync(cachePath);
-        }
-      }
-
-      walk(dir: string, done) {
+    walk(dir: string, done) {
         var self = this;
         var results = [];
         fs.readdir(dir, function (err, list) {
@@ -325,10 +291,9 @@ export class ArtifactEngine {
                 });
             });
         });
-    };
+    }
     
     generateHash(file: string, cachePath: string ) {
-        //var deferred = q.defer();
         return new Promise((resolve) => {
             var hash = "";
             var hashInterface = crypto.createHash('sha256');
@@ -346,15 +311,14 @@ export class ArtifactEngine {
                 hash = hashInterface.digest('hex').toUpperCase();
                 resolve(hash);
             });
-        })
-            
-    };  
+        })        
+    } 
 
     private artifactItemStore: ArtifactItemStore = new ArtifactItemStore();
     private logger: Logger;
+    private cacheProvider: CacheProvider;
     private patternList: string[];
     private newHashMap = {};
-    private oldHashMap = {};
 }
 
 tl.setResourcePath(path.join(path.dirname(__dirname), 'lib.json'));

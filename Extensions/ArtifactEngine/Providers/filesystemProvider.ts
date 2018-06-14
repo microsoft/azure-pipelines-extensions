@@ -5,17 +5,17 @@ import * as models from '../Models';
 import { Logger } from '../Engine/logger';
 import { ArtifactItemStore } from '../Store/artifactItemStore';
 
-var tl = require('vsts-task-lib');
+var tl = require('vsts-task-lib/task');
 
 export class FilesystemProvider implements models.IArtifactProvider {
 
     public artifactItemStore: ArtifactItemStore;
 
-    constructor(rootLocation: string, rootItemPath?: string, cleanTargetDirectory?: number) {
+    constructor(rootLocation: string, rootItemPath?: string, cleanTargetDirectory?: boolean) {
         this._rootLocation = rootLocation;
         this._rootItemPath = rootItemPath ? rootItemPath : '';
-        this._cleanTargetDirectory = cleanTargetDirectory ? cleanTargetDirectory : 0;
-        this.directoryCleanedFlag = 0;
+        this._cleanTargetDirectory = cleanTargetDirectory ? cleanTargetDirectory : false;
+        this.directoryCleanedFlag = false;
     }
 
     getRootItems(): Promise<models.ArtifactItem[]> {
@@ -55,11 +55,11 @@ export class FilesystemProvider implements models.IArtifactProvider {
     public putArtifactItem(item: models.ArtifactItem, stream: NodeJS.ReadableStream): Promise<models.ArtifactItem> {
         return new Promise((resolve, reject) => {
             const outputFilename = path.join(this._rootLocation, item.path);
-            if(this.directoryCleanedFlag === 0) {
-                if(this._cleanTargetDirectory === 1) {
+            if(!this.directoryCleanedFlag) {
+                if(this._cleanTargetDirectory) {
                     if(fs.existsSync(this._rootLocation)) {
                         this.deleteFolderRecursive(this._rootLocation)
-                        this.directoryCleanedFlag = 1;
+                        this.directoryCleanedFlag = true;
                     }
                 }
             }
@@ -69,7 +69,6 @@ export class FilesystemProvider implements models.IArtifactProvider {
             try {
                 tl.mkdirP(folder);
                 Logger.logMessage(tl.loc("DownloadingTo", item.path, outputFilename));
-                // ENTER the IF...ELSE condition here
                 const outputStream = fs.createWriteStream(outputFilename);
                 stream.pipe(outputStream);
                 stream.on("end",
@@ -89,7 +88,6 @@ export class FilesystemProvider implements models.IArtifactProvider {
                     this.artifactItemStore.updateFileSize(item, outputStream.bytesWritten);
                     resolve(item);
                 });
-                // till here the if the file has to be downloaded.
             }
             catch (err) {
                 reject(err);
@@ -102,7 +100,7 @@ export class FilesystemProvider implements models.IArtifactProvider {
     }
 
     public getRelativePath(): Promise<string> {
-        return Promise.resolve(this._rootItemPath);
+        return Promise.resolve(this._rootItemPath ? this._rootItemPath : '');
     }
 
     dispose(): void {
@@ -167,6 +165,6 @@ export class FilesystemProvider implements models.IArtifactProvider {
 
     private _rootLocation: string;
     private _rootItemPath: string;
-    private _cleanTargetDirectory: number;
-    private directoryCleanedFlag: number;
+    private _cleanTargetDirectory: boolean;
+    private directoryCleanedFlag: boolean;
 }
