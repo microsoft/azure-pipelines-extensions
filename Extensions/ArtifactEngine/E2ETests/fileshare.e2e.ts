@@ -73,7 +73,6 @@ describe('E2E Tests', () => {
             var dropLocation = path.join(nconf.get('DROPLOCATION'));
             var destProvider = new providers.FilesystemProvider(dropLocation,undefined,true);
 
-
             processor.processItems(sourceProvider1, destProvider, processorOptions)
                 .then((tick) => {
                     processor.processItems(sourceProvider2, destProvider, processorOptions)

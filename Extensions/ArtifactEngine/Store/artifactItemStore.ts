@@ -18,13 +18,9 @@ export class ArtifactItemStore {
             downloadSizeInBytes: 0,
             fileSizeInBytes: 0
         };
-        if(item.itemType === models.ItemType.Folder)
-            artifactDownloadTicket.artifactItem.fileHash = "";
-        else {
-            if(this.hashMap[item.path.substring(item.path.indexOf('\\')+1)]) 
-                artifactDownloadTicket.artifactItem.fileHash = this.hashMap[item.path.substring(item.path.indexOf('\\')+1)]
-        }        
-
+        if(this.hashMap[item.path.substring(item.path.indexOf('\\')+1)]) 
+            artifactDownloadTicket.artifactItem.fileHash = this.hashMap[item.path.substring(item.path.indexOf('\\')+1)]
+               
         this._downloadTickets.push(artifactDownloadTicket);
     }
 

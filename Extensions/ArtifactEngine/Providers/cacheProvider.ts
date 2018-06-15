@@ -1,28 +1,27 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import * as readline from 'readline'
-import { resolve } from 'url';
-import * as models from '../Models';
-import { ArtifactItemStore } from '../Store/artifactItemStore';
-import { Logger } from '../Engine/logger';
+import * as readline from 'readline';
+import { resolve } from 'url';;
+var crypto = require('crypto');
 
 var tl = require('vsts-task-lib/task');
 
-
+import * as models from '../Models';
+import { ArtifactItemStore } from '../Store/artifactItemStore';
+import { Logger } from '../Engine/logger';
 
 export class CacheProvider implements models.IArtifactProvider {
 
     public artifactItemStore: ArtifactItemStore;
     
-    constructor(artifactCacheDirectory: string, key: string, relPath?: string) {
+    constructor(artifactCacheDirectory: string, artifactCacheKey: string, relPath?: string) {
         this.artifactCacheDirectory = artifactCacheDirectory;
-        this.key = key;
+        this.key = crypto.createHash('SHA256').update(artifactCacheKey).digest('hex');
         this.relPath = relPath ? relPath : '';
-        this.cacheHashPath = path.join(artifactCacheDirectory, "ArtifactEngineCache", key, 'artifact-metadata.csv');
+        this.cacheHashPath = path.join(artifactCacheDirectory, "ArtifactEngineCache", this.key, 'artifact-metadata.csv');
         this.makeOldHash()
     }
 
-    // throw new Error("Not implemented");
     getRootItems(): Promise<models.ArtifactItem[]> {
         throw new Error("Not implemented");
     }
@@ -38,20 +37,17 @@ export class CacheProvider implements models.IArtifactProvider {
                     const inputStream = fs.createReadStream(path.join(this.artifactCacheDirectory,"ArtifactEngineCache", this.key, artifactItem.path.substring(artifactItem.path.indexOf('\\')+1)));
                     resolve(inputStream);
                 }
-                else {
+                else 
                     resolve(undefined);
-                }
             }
             else {
                 if(artifactItem.fileHash && artifactItem.fileHash === this.oldFileHashMap[artifactItem.path]) {
                     const inputStream = fs.createReadStream(path.join(this.artifactCacheDirectory,"ArtifactEngineCache", this.key, artifactItem.path));
                     resolve(inputStream);
                 }
-                else {
+                else 
                     resolve(undefined);
-                }
-            }
-            
+            }     
         });
         return promise;
     }
@@ -60,11 +56,11 @@ export class CacheProvider implements models.IArtifactProvider {
         throw new Error("Not implemented");
     }
 
-    public getDestination(): Promise<string> {
+    public getDestinationLocation(): string {
         throw new Error("Not implemented");
     }
 
-    public getRelativePath(): Promise<string> {
+    public getRootLocation(): string {
         throw new Error("Not implemented");
     }
 
@@ -83,8 +79,8 @@ export class CacheProvider implements models.IArtifactProvider {
                     this.oldFileHashMap[words[0]] = words[1];
                 });
         
-                oldHash.on('close', () => {
-                    
+                oldHash.on('close', () => {    
+                    Logger.logMessage("Cache Successfully Initialised.")
                 });
             }
             else {
@@ -104,5 +100,4 @@ export class CacheProvider implements models.IArtifactProvider {
     private artifactCacheDirectory: string;
     private key: string;
     private relPath: string;
-
 }

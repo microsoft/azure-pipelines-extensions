@@ -95,12 +95,12 @@ export class FilesystemProvider implements models.IArtifactProvider {
         });
     }
 
-    public getDestination(): Promise<string> {
-        return Promise.resolve(this._rootLocation);
+    public getDestinationLocation(): string {
+        return this._rootLocation;
     }
 
-    public getRelativePath(): Promise<string> {
-        return Promise.resolve(this._rootItemPath ? this._rootItemPath : '');
+    public getRootLocation(): string {
+        return this._rootItemPath ? this._rootItemPath : '';
     }
 
     dispose(): void {

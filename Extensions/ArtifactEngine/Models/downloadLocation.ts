@@ -1,4 +1,4 @@
-export enum DownloadLocation {
-    Cache = <any> "cache",
-    Source = <any> "source"
+export class DownloadLocation {
+    static Cache = <any> "cache";
+    static Source = <any> "source";
 }

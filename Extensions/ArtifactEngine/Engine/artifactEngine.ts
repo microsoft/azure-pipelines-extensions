@@ -1,9 +1,9 @@
 ﻿import * as path from 'path';
 import * as fs from 'fs';
 import * as readline from 'readline'
+var crypto = require('crypto');
 
 var tl = require('vsts-task-lib/task');
-var crypto = require('crypto');
 
 import * as models from '../Models';
 import * as ci from './cilogger';
@@ -28,10 +28,9 @@ export class ArtifactEngine {
             this.logger.logProgress();
             sourceProvider.artifactItemStore = this.artifactItemStore;
             destProvider.artifactItemStore = this.artifactItemStore;
-            var key = crypto.createHash('SHA256').update(artifactEngineOptions.artifactCacheKey).digest('hex');
-            sourceProvider.getRelativePath().then((relPath) => {
-                this.cacheProvider = new CacheProvider(artifactEngineOptions.artifactCacheDirectory,key,relPath);
-            });                  
+            //var key = crypto.createHash('SHA256').update(artifactEngineOptions.artifactCacheKey).digest('hex');
+            var relPath = sourceProvider.getRootLocation();
+            this.cacheProvider = new CacheProvider(artifactEngineOptions.artifactCacheDirectory,artifactEngineOptions.artifactCacheKey,relPath);
             sourceProvider.getRootItems().then((itemsToProcess: models.ArtifactItem[]) => {
                 this.artifactItemStore.addItems(itemsToProcess);
                 var resolveHashPromise = new Promise((resolve) => {
@@ -74,59 +73,57 @@ export class ArtifactEngine {
                     Promise.all(workers).then(() => {
                         this.logger.logSummary();
                         
-                        destProvider.getDestination().then((destination) => {
-                            sourceProvider.getRelativePath().then((relPath) => {
-                                var key = crypto.createHash('SHA256').update(artifactEngineOptions.artifactCacheKey).digest('hex');
-                                var cachePath = path.join(artifactEngineOptions.artifactCacheDirectory, "ArtifactEngineCache", key);
-                                if(fs.existsSync(cachePath))
-                                    tl.rmRF(cachePath);
-                                var self = this;
-                                this.walk(path.join(destination,relPath), function (err, result) {                                                                        
-                                    if (err)
-                                        throw err;
-                                    else {
-                                        var arr2 = [];
-                                        if(!fs.existsSync(path.dirname(cachePath)))
-                                            fs.mkdirSync(path.dirname(cachePath));
-                                        fs.mkdirSync(cachePath); 
-                                        var dirtyCache = 0;                                                                            
-                                        result.forEach(function (file) {                                         
-                                            var fileRelativePath = file.substring(path.join(destination,relPath,'/').length);
-                                            var fileCachePath = path.join(cachePath,fileRelativePath);
-                                            if(!fs.existsSync(path.dirname(fileCachePath))) {                                
-                                                fs.mkdirSync(path.dirname(fileCachePath))
-                                            }                                               
-                                            var res = self.generateHash(file,fileCachePath).then(function (hash) {
-                                                if(self.newHashMap[fileRelativePath] && self.newHashMap[fileRelativePath] !== hash) {
-                                                    dirtyCache = 1;
-                                                }
-                                            });                                        
-                                            arr2.push(res);    
-                                        });
-
-                                        Promise.all(arr2).then(() => {
-                                            if(dirtyCache === 0) {
-                                                var verifyFile = fs.createWriteStream(path.join(cachePath,"verify.txt"));
-                                                verifyFile.write("heloo world", () => {
-                                                    sourceProvider.dispose();
-                                                    destProvider.dispose();
-                                                    verifyFile.close();  
-                                                    resolve(self.artifactItemStore.getTickets());
-                                                });
-                                                verifyFile.on('error',(err) => {
-                                                    Logger.logMessage(err);
-                                                });                                          
-                                            }
-                                            else {                    
-                                                Logger.logMessage("Validation Unsuccessful. Cache not Verified")
-                                                tl.rmRF(cachePath);
-                                                resolve(self.artifactItemStore.getTickets());                                       
-                                            }
-                                        });
-                                    };
+                        var destination = destProvider.getDestinationLocation();
+                        var relPath = sourceProvider.getRootLocation();
+                        var key = crypto.createHash('SHA256').update(artifactEngineOptions.artifactCacheKey).digest('hex');
+                        var cachePath = path.join(artifactEngineOptions.artifactCacheDirectory, "ArtifactEngineCache", key);
+                        if(fs.existsSync(cachePath))
+                            tl.rmRF(cachePath);
+                        var self = this;
+                        this.walk(path.join(destination,relPath), function (err, result) {                                                                        
+                            if (err)
+                                throw err;
+                            else {
+                                var arr2 = [];
+                                if(!fs.existsSync(path.dirname(cachePath)))
+                                    fs.mkdirSync(path.dirname(cachePath));
+                                fs.mkdirSync(cachePath); 
+                                var dirtyCache = 0;                                                                            
+                                result.forEach(function (file) {                                         
+                                    var fileRelativePath = file.substring(path.join(destination,relPath,'/').length);
+                                    var fileCachePath = path.join(cachePath,fileRelativePath);
+                                    if(!fs.existsSync(path.dirname(fileCachePath))) {                                
+                                        fs.mkdirSync(path.dirname(fileCachePath))
+                                    }                                               
+                                    var res = self.generateHash(file,fileCachePath).then(function (hash) {
+                                        if(self.newHashMap[fileRelativePath] && self.newHashMap[fileRelativePath] !== hash) {
+                                            dirtyCache = 1;
+                                        }
+                                    });                                        
+                                    arr2.push(res);    
                                 });
-                            });                                                        
-                        });    
+
+                                Promise.all(arr2).then(() => {
+                                    if(dirtyCache === 0) {
+                                        var verifyFile = fs.createWriteStream(path.join(cachePath,"verify.txt"));
+                                        verifyFile.write("heloo world", () => {
+                                            sourceProvider.dispose();
+                                            destProvider.dispose();
+                                            verifyFile.close();  
+                                            resolve(self.artifactItemStore.getTickets());
+                                        });
+                                        verifyFile.on('error',(err) => {
+                                            Logger.logMessage(err);
+                                        });                                          
+                                    }
+                                    else {                    
+                                        Logger.logMessage("Validation Unsuccessful. Cache not Verified")
+                                        tl.rmRF(cachePath);
+                                        resolve(self.artifactItemStore.getTickets());                                       
+                                    }
+                                });
+                            };
+                        });                                                            
                     }, (err) => {
                         ci.publishEvent('reliability', <ci.IReliabilityData>{ issueType: 'error', errorMessage: JSON.stringify(err, Object.getOwnPropertyNames(err)) });
                         sourceProvider.dispose();

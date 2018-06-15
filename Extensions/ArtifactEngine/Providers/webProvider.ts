@@ -134,12 +134,12 @@ export class WebProvider implements IArtifactProvider {
         return target;
     }
 
-    getDestination(): Promise<string> {
-        return Promise.resolve(this.rootItemsLocation);
+    getDestinationLocation(): string {
+        return this.rootItemsLocation;
     }
 
-    getRelativePath(): Promise<string> {
-        return Promise.resolve("");
+    getRootLocation(): string {
+        return "";
     }
 
     private rootItemsLocation: string;
