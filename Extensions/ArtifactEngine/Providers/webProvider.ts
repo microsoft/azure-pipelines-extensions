@@ -134,11 +134,11 @@ export class WebProvider implements IArtifactProvider {
         return target;
     }
 
-    getDestinationLocation(): string {
+    getRootLocation(): string {
         return this.rootItemsLocation;
     }
 
-    getRootLocation(): string {
+    getRootItemPath(): string {
         return "";
     }
 

@@ -18,7 +18,8 @@ export class CacheProvider implements models.IArtifactProvider {
         this.artifactCacheDirectory = artifactCacheDirectory;
         this.key = crypto.createHash('SHA256').update(artifactCacheKey).digest('hex');
         this.relPath = relPath ? relPath : '';
-        this.cacheHashPath = path.join(artifactCacheDirectory, "ArtifactEngineCache", this.key, 'artifact-metadata.csv');
+        this.cacheDirectory = path.join(artifactCacheDirectory, "ArtifactEngineCache", this.key);
+        this.cacheHashPath = path.join(this.cacheDirectory , 'artifact-metadata.csv');
         this.makeOldHash()
     }
 
@@ -32,22 +33,15 @@ export class CacheProvider implements models.IArtifactProvider {
 
     getArtifactItem(artifactItem: models.ArtifactItem): Promise<NodeJS.ReadableStream> {
         var promise = new Promise<NodeJS.ReadableStream> ((resolve,reject) => {
-            if(this.relPath) {
-                if(artifactItem.fileHash && artifactItem.fileHash === this.oldFileHashMap[artifactItem.path.substring(artifactItem.path.indexOf('\\')+1)]) {
-                    const inputStream = fs.createReadStream(path.join(this.artifactCacheDirectory,"ArtifactEngineCache", this.key, artifactItem.path.substring(artifactItem.path.indexOf('\\')+1)));
-                    resolve(inputStream);
-                }
-                else 
-                    resolve(undefined);
+            if(artifactItem.fileHash && artifactItem.fileHash === this.oldFileHashMap[artifactItem.path.substring(this.relPath.length+1)]) {
+                const inputStream = fs.createReadStream(path.join(this.artifactCacheDirectory,"ArtifactEngineCache", this.key, artifactItem.path.substring(this.relPath.length+1)));
+                inputStream.on('error',(err) => {
+                    throw err;
+                })
+                resolve(inputStream);
             }
-            else {
-                if(artifactItem.fileHash && artifactItem.fileHash === this.oldFileHashMap[artifactItem.path]) {
-                    const inputStream = fs.createReadStream(path.join(this.artifactCacheDirectory,"ArtifactEngineCache", this.key, artifactItem.path));
-                    resolve(inputStream);
-                }
-                else 
-                    resolve(undefined);
-            }     
+            else 
+                resolve(undefined);    
         });
         return promise;
     }
@@ -56,11 +50,11 @@ export class CacheProvider implements models.IArtifactProvider {
         throw new Error("Not implemented");
     }
 
-    public getDestinationLocation(): string {
+    public getRootLocation(): string {
         throw new Error("Not implemented");
     }
 
-    public getRootLocation(): string {
+    public getRootItemPath(): string {
         throw new Error("Not implemented");
     }
 
@@ -68,7 +62,7 @@ export class CacheProvider implements models.IArtifactProvider {
     }
     
     public makeOldHash() : void  {
-        if(fs.existsSync(path.join(this.artifactCacheDirectory,"ArtifactEngineCache",this.key,"verify.txt"))) {
+        if(fs.existsSync(path.join(this.artifactCacheDirectory,"ArtifactEngineCache",this.key,"verify.json"))) {
             if(fs.existsSync(this.cacheHashPath)) {
                 var oldHash = readline.createInterface ({
                     input : fs.createReadStream(this.cacheHashPath)
@@ -95,7 +89,12 @@ export class CacheProvider implements models.IArtifactProvider {
         
     }
 
+    public getCacheDirectory(): string {
+        return this.cacheDirectory;
+    }
+
     private cacheHashPath : string = "";
+    private cacheDirectory : string;
     private oldFileHashMap = {};
     private artifactCacheDirectory: string;
     private key: string;

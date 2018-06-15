@@ -1,5 +1,5 @@
-﻿import * as path from 'path';
-import * as fs from 'fs';
+﻿import * as fs from 'fs';
+import * as path from 'path';
 import * as readline from 'readline'
 var crypto = require('crypto');
 
@@ -13,7 +13,6 @@ import { Logger } from './logger';
 import { Worker } from './worker';
 import { TicketState } from '../Models/ticketState';
 import { CacheProvider } from '../Providers/cacheProvider';
-import { WriteStream } from 'tty';
 
 export class ArtifactEngine {
     processItems(sourceProvider: models.IArtifactProvider, destProvider: models.IArtifactProvider, artifactEngineOptions?: ArtifactEngineOptions): Promise<models.ArtifactDownloadTicket[]> {
@@ -22,49 +21,18 @@ export class ArtifactEngine {
             artifactEngineOptions = artifactEngineOptions || new ArtifactEngineOptions();
             artifactEngineOptions.artifactCacheDirectory = artifactEngineOptions.artifactCacheDirectory ? artifactEngineOptions.artifactCacheDirectory : tl.getVariable("AGENT_WORKFOLDER");
             this.createPatternList(artifactEngineOptions);
+            var artifactName = sourceProvider.getRootItemPath();
+            this.artifactItemStore = new ArtifactItemStore();
             this.artifactItemStore.flush();
             Logger.verbose = artifactEngineOptions.verbose;
             this.logger = new Logger(this.artifactItemStore);
             this.logger.logProgress();
             sourceProvider.artifactItemStore = this.artifactItemStore;
             destProvider.artifactItemStore = this.artifactItemStore;
-            //var key = crypto.createHash('SHA256').update(artifactEngineOptions.artifactCacheKey).digest('hex');
-            var relPath = sourceProvider.getRootLocation();
-            this.cacheProvider = new CacheProvider(artifactEngineOptions.artifactCacheDirectory,artifactEngineOptions.artifactCacheKey,relPath);
+            this.cacheProvider = new CacheProvider(artifactEngineOptions.artifactCacheDirectory,artifactEngineOptions.artifactCacheKey,artifactName);
             sourceProvider.getRootItems().then((itemsToProcess: models.ArtifactItem[]) => {
                 this.artifactItemStore.addItems(itemsToProcess);
-                var resolveHashPromise = new Promise((resolve) => {
-                    sourceProvider.getArtifactItems(itemsToProcess[0]).then((items: models.ArtifactItem[]) => {
-                        sourceProvider.getArtifactItem(items.find(x => x.path === require('path').join(itemsToProcess[0].path, 'artifact-metadata.csv') )).then((hashStream : NodeJS.ReadableStream) => {                        
-                            var newHashPromise = new Promise((resolve) => {
-                                var newHash = readline.createInterface ({
-                                    input : hashStream
-                                });
-                        
-                                newHash.on('line', (line) => {
-                                    var words = line.split(',');
-                                    this.newHashMap[words[0]] = words[1];
-                                });
-                    
-                                newHash.on('close', () => {
-                                    resolve();
-                                });
-                            });
-                            newHashPromise.then(() => {
-                                this.artifactItemStore.setHashMap(this.newHashMap)
-                                resolve();                                   
-                            });                            
-                        }, (err) => {
-                            Logger.logError(err);
-                            reject(err);
-                        });
-                    }, (err) => {
-                        Logger.logError(err);
-                        reject(err);
-                    });
-                });
-                
-                resolveHashPromise.then(() => {
+                this.createNewHashMap(sourceProvider,itemsToProcess).then(() => {
                     for (let i = 0; i < artifactEngineOptions.parallelProcessingLimit; ++i) {
                         var worker = new Worker<models.ArtifactItem>(i + 1, item => this.processArtifactItem(sourceProvider, item, destProvider, artifactEngineOptions), () => this.artifactItemStore.getNextItemToProcess(), () => !this.artifactItemStore.itemsPendingProcessing());
                         workers.push(worker.init());
@@ -73,54 +41,22 @@ export class ArtifactEngine {
                     Promise.all(workers).then(() => {
                         this.logger.logSummary();
                         
-                        var destination = destProvider.getDestinationLocation();
-                        var relPath = sourceProvider.getRootLocation();
-                        var key = crypto.createHash('SHA256').update(artifactEngineOptions.artifactCacheKey).digest('hex');
-                        var cachePath = path.join(artifactEngineOptions.artifactCacheDirectory, "ArtifactEngineCache", key);
-                        if(fs.existsSync(cachePath))
+                        var destination = destProvider.getRootLocation();
+                        var artifactName = sourceProvider.getRootItemPath();                        
+                        var cachePath = this.cacheProvider.getCacheDirectory();
+                        if(fs.existsSync(cachePath)) {
                             tl.rmRF(cachePath);
+                        }
                         var self = this;
-                        this.walk(path.join(destination,relPath), function (err, result) {                                                                        
-                            if (err)
+                        var cacheValidator = false;
+                        this.walk(path.join(destination,artifactName), function (err, result) {                                                                        
+                            if (err) {
                                 throw err;
+                            }
                             else {
-                                var arr2 = [];
-                                if(!fs.existsSync(path.dirname(cachePath)))
-                                    fs.mkdirSync(path.dirname(cachePath));
-                                fs.mkdirSync(cachePath); 
-                                var dirtyCache = 0;                                                                            
-                                result.forEach(function (file) {                                         
-                                    var fileRelativePath = file.substring(path.join(destination,relPath,'/').length);
-                                    var fileCachePath = path.join(cachePath,fileRelativePath);
-                                    if(!fs.existsSync(path.dirname(fileCachePath))) {                                
-                                        fs.mkdirSync(path.dirname(fileCachePath))
-                                    }                                               
-                                    var res = self.generateHash(file,fileCachePath).then(function (hash) {
-                                        if(self.newHashMap[fileRelativePath] && self.newHashMap[fileRelativePath] !== hash) {
-                                            dirtyCache = 1;
-                                        }
-                                    });                                        
-                                    arr2.push(res);    
-                                });
-
-                                Promise.all(arr2).then(() => {
-                                    if(dirtyCache === 0) {
-                                        var verifyFile = fs.createWriteStream(path.join(cachePath,"verify.txt"));
-                                        verifyFile.write("heloo world", () => {
-                                            sourceProvider.dispose();
-                                            destProvider.dispose();
-                                            verifyFile.close();  
-                                            resolve(self.artifactItemStore.getTickets());
-                                        });
-                                        verifyFile.on('error',(err) => {
-                                            Logger.logMessage(err);
-                                        });                                          
-                                    }
-                                    else {                    
-                                        Logger.logMessage("Validation Unsuccessful. Cache not Verified")
-                                        tl.rmRF(cachePath);
-                                        resolve(self.artifactItemStore.getTickets());                                       
-                                    }
+                                var generateHashPromises = self.updateCache(result, destination, artifactName, self, cachePath,cacheValidator);
+                                Promise.all(generateHashPromises).then(() => {
+                                    self.cacheValidation(sourceProvider, destProvider, self, cachePath, resolve, cacheValidator);
                                 });
                             };
                         });                                                            
@@ -188,41 +124,36 @@ export class ArtifactEngine {
 
             if (tl.match([pathToMatch], this.patternList, null, matchOptions).length > 0) {
                 Logger.logInfo("Processing " + item.path);
-                this.cacheProvider.getArtifactItem(item).then((contentStream) => {
-                    if(contentStream) {
-                        try {    
-                            Logger.logMessage(`Downloading ${item.path} From Cache........`);                                                        
-                            destProvider.putArtifactItem(item, contentStream).then((item) => {
-                                this.artifactItemStore.updateState(item, models.TicketState.Processed, models.DownloadLocation.Cache);
-                                resolve();
-                            }, (err) => {
-                                Logger.logInfo("Error placing file " + item.path + ": " + err);
-                                retryIfRequired(err);                            
+                var downloadedFromCache = false;
+                var getContentStream = new Promise<NodeJS.ReadableStream>((resolve,reject) => {
+                    this.cacheProvider.getArtifactItem(item).then((contentStream) => {
+                        if(!contentStream) {
+                            Logger.logMessage(tl.loc("SourceDownload",item.path));
+                            sourceProvider.getArtifactItem(item).then((contentStream) => {                        
+                                Logger.logInfo("Got download stream for item: " + item.path);
+                                resolve(contentStream);
                             });
                         }
-                        catch (err) {
-                            Logger.logInfo("Error getting file " + item.path + ": " + err);
-                            retryIfRequired(err);
-                        } 
-                    }
-                    else {
-                        Logger.logMessage(`Downloading ${item.path} From the Source........`);
-                        sourceProvider.getArtifactItem(item).then((contentStream) => {
-                            Logger.logInfo("Got download stream for item: " + item.path);
-                            destProvider.putArtifactItem(item, contentStream)
-                                .then((item) => {
-                                    this.artifactItemStore.updateState(item, models.TicketState.Processed);
-                                    resolve();
-                                }, (err) => {
-                                Logger.logInfo("Error placing file " + item.path + ": " + err);
-                                retryIfRequired(err);
-                                });
-                        }, (err) => {
-                            Logger.logInfo("Error getting file " + item.path + ": " + err);
-                            retryIfRequired(err);
-                        });
-                    }
-                });                        
+                        else {
+                            Logger.logMessage(tl.loc("CacheDownload",item.path));
+                            downloadedFromCache = true;
+                            resolve(contentStream);
+                        }
+                    });
+                });
+
+                getContentStream.then((contentStream) => {
+                    destProvider.putArtifactItem(item, contentStream).then((item) => {
+                        this.artifactItemStore.updateState(item, models.TicketState.Processed, downloadedFromCache);
+                        resolve();
+                    }, (err) => {
+                        Logger.logInfo("Error placing file " + item.path + ": " + err);
+                        retryIfRequired(err);                            
+                    });
+                }, (err) => {
+                    Logger.logInfo("Error getting file " + item.path + ": " + err);
+                    retryIfRequired(err);
+                });                       
             }          
             else {
                 Logger.logMessage(tl.loc("SkippingItem", pathToMatch));
@@ -261,29 +192,108 @@ export class ArtifactEngine {
         }
     }
 
+    createNewHashMap(sourceProvider: models.IArtifactProvider, itemsToProcess: models.ArtifactItem[]): Promise<string> {
+        return new Promise((resolve,reject) => {
+            sourceProvider.getArtifactItems(itemsToProcess[0]).then((items: models.ArtifactItem[]) => {
+                sourceProvider.getArtifactItem(items.find(x => x.path === path.join(itemsToProcess[0].path, 'artifact-metadata.csv') )).then((hashStream : NodeJS.ReadableStream) => {                        
+                    var newHashPromise = new Promise((resolve) => {
+                        var newHash = readline.createInterface ({
+                            input : hashStream
+                        });
+                
+                        newHash.on('line', (line) => {
+                            var words = line.split(',');
+                            this.newHashMap[words[0]] = words[1];
+                        });
+            
+                        newHash.on('close', () => {
+                            resolve();
+                        });
+                    });
+                    newHashPromise.then(() => {
+                        this.artifactItemStore.setHashMap(this.newHashMap)
+                        resolve();                                   
+                    });                            
+                }, (err) => {
+                    Logger.logError(err);
+                    reject(err);
+                });
+            }, (err) => {
+                Logger.logError(err);
+                reject(err);
+            });
+        });
+    }
+
+    updateCache(result: string[], destination: string, artifactName: string, self, cachePath: string, cacheValidator: boolean): Promise<string>[] {
+        var generateHashPromises = [];
+        if(!fs.existsSync(path.dirname(cachePath))) {
+            tl.mkdirP(path.dirname(cachePath));
+        }
+        tl.mkdirP(cachePath);                                                                            
+        result.forEach(function (file) {                                         
+            var fileRelativePath = file.substring(path.join(destination,artifactName,'/').length);
+            var fileCachePath = path.join(cachePath,fileRelativePath);
+            if(!fs.existsSync(path.dirname(fileCachePath))) {                                
+                tl.mkdirP(path.dirname(fileCachePath))
+            }                                               
+            var res = self.generateHash(file,fileCachePath).then(function (hash) {
+                if(self.newHashMap[fileRelativePath] && self.newHashMap[fileRelativePath] !== hash) {
+                    cacheValidator = true;
+                }
+            });                                        
+            generateHashPromises.push(res);    
+        });
+        return generateHashPromises;
+    }
+
+    cacheValidation(sourceProvider: models.IArtifactProvider, destProvider: models.IArtifactProvider, self, cachePath: string, resolve, cacheValidator: boolean) {
+        if(!cacheValidator) {
+            var verifyFile = fs.createWriteStream(path.join(cachePath,"verify.json"));
+            verifyFile.write(JSON.stringify({lastUpdatedOn: new Date().toISOString()}), () => {
+                sourceProvider.dispose();
+                destProvider.dispose();
+                verifyFile.close();  
+                resolve(self.artifactItemStore.getTickets());
+            });
+            verifyFile.on('error',(err) => {
+                Logger.logMessage(err);
+            });                                          
+        }
+        else {                    
+            Logger.logMessage(tl.loc("UnsuccessfulValidation"))
+            tl.rmRF(cachePath);
+            resolve(self.artifactItemStore.getTickets());                                       
+        }
+    }
+
     walk(dir: string, done) {
         var self = this;
         var results = [];
         fs.readdir(dir, function (err, list) {
-            if (err)
+            if (err) {
                 return done(err);
+            }
             var pending = list.length;
-            if (!pending)
+            if (!pending) {
                 return done(null, results);
+            }
             list.forEach(function (file) {
                 file = path.resolve(dir, file);
                 fs.stat(file, function (err, stat) {
                     if (stat && stat.isDirectory()) {
                         self.walk(file, function (err, res) {                  
                             results = results.concat(res);
-                            if (!--pending)
+                            if (!--pending) {
                                 done(null, results);
+                            }
                         });
                     }
                     else {                        
                         results.push(file);
-                        if (!--pending)
+                        if (!--pending) {
                             done(null, results);
+                        }
                     }
                 });
             });
@@ -299,7 +309,7 @@ export class ArtifactEngine {
             stream.on('data', function (data) {
                 wstream.write(data);
                 wstream.on('error', (err) => {
-                    console.log(err);
+                    throw err;
                 });
                 hashInterface.update(data, 'utf8');                
             });
@@ -309,9 +319,9 @@ export class ArtifactEngine {
                 resolve(hash);
             });
         })        
-    } 
+    }    
 
-    private artifactItemStore: ArtifactItemStore = new ArtifactItemStore();
+    private artifactItemStore: ArtifactItemStore;
     private logger: Logger;
     private cacheProvider: CacheProvider;
     private patternList: string[];

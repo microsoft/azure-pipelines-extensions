@@ -9,6 +9,9 @@
         "SkippingItem": "Skipped processing item %s",
         "UnhandledRejection": "artifact-engine: unhandled rejection %s",
         "UnhandledException": "artifact-engine: unhandled exception %s",
-        "FailedRequest": "Failed request: (statusCode)"
+        "FailedRequest": "Failed request: (statusCode)",
+        "CacheDownload": "Downloading %s From Cache",
+        "SourceDownload": "Downloading %s From Source",
+        "UnsuccessfulValidation": "Validation Unsuccessful. Cache not Verified"
     }
 }

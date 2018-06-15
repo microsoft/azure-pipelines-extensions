@@ -15,7 +15,7 @@ export class FilesystemProvider implements models.IArtifactProvider {
         this._rootLocation = rootLocation;
         this._rootItemPath = rootItemPath ? rootItemPath : '';
         this._cleanTargetDirectory = cleanTargetDirectory ? cleanTargetDirectory : false;
-        this.directoryCleanedFlag = false;
+        this._directoryCleanedFlag = false;
     }
 
     getRootItems(): Promise<models.ArtifactItem[]> {
@@ -55,11 +55,11 @@ export class FilesystemProvider implements models.IArtifactProvider {
     public putArtifactItem(item: models.ArtifactItem, stream: NodeJS.ReadableStream): Promise<models.ArtifactItem> {
         return new Promise((resolve, reject) => {
             const outputFilename = path.join(this._rootLocation, item.path);
-            if(!this.directoryCleanedFlag) {
+            if(!this._directoryCleanedFlag) {
                 if(this._cleanTargetDirectory) {
                     if(fs.existsSync(this._rootLocation)) {
                         tl.rmRF(this._rootLocation)
-                        this.directoryCleanedFlag = true;
+                        this._directoryCleanedFlag = true;
                     }
                 }
             }
@@ -95,11 +95,11 @@ export class FilesystemProvider implements models.IArtifactProvider {
         });
     }
 
-    public getDestinationLocation(): string {
+    public getRootLocation(): string {
         return this._rootLocation;
     }
 
-    public getRootLocation(): string {
+    public getRootItemPath(): string {
         return this._rootItemPath ? this._rootItemPath : '';
     }
 
@@ -151,5 +151,5 @@ export class FilesystemProvider implements models.IArtifactProvider {
     private _rootLocation: string;
     private _rootItemPath: string;
     private _cleanTargetDirectory: boolean;
-    private directoryCleanedFlag: boolean;
+    private _directoryCleanedFlag: boolean;
 }

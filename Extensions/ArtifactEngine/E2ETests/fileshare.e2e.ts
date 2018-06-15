@@ -67,12 +67,11 @@ describe('E2E Tests', () => {
             var itemsUrl1 = "C:/vsts-agent/_layout/_work/9/s/fileshareWithMultipleFiles";
             var itemsUrl2 = "C:/vsts-agent/_layout/_work/10/s/fileshareWithMultipleFiles";
             var variables = {};
-
             var sourceProvider1 = new providers.FilesystemProvider(itemsUrl1, "fileshareWithMultipleFiles");
             var sourceProvider2 = new providers.FilesystemProvider(itemsUrl2, "fileshareWithMultipleFiles");
             var dropLocation = path.join(nconf.get('DROPLOCATION'));
             var destProvider = new providers.FilesystemProvider(dropLocation,undefined,true);
-
+            
             processor.processItems(sourceProvider1, destProvider, processorOptions)
                 .then((tick) => {
                     processor.processItems(sourceProvider2, destProvider, processorOptions)
@@ -80,13 +79,13 @@ describe('E2E Tests', () => {
                             tickets.forEach((ticket) => {
                                 if(ticket.artifactItem.itemType !== models.ItemType.Folder) {
                                     if(ticket.artifactItem.path === "fileshareWithMultipleFiles\\File3.txt") {
-                                        assert.equal(models.DownloadLocation.Cache,ticket.downloadLocation)
+                                        assert.equal(true,ticket.downloadedFromCache)
                                         done();
                                     }
                                     else if(ticket.artifactItem.path === "fileshareWithMultipleFiles\\Folder1\\File1.txt")
-                                        assert.equal(models.DownloadLocation.Cache,ticket.downloadLocation)
+                                        assert.equal(true,ticket.downloadedFromCache)
                                     else if(ticket.artifactItem.path === "fileshareWithMultipleFiles\\Folder1\\File2.txt")
-                                        assert.equal(models.DownloadLocation.Source,ticket.downloadLocation)
+                                        assert.equal(false,ticket.downloadedFromCache)
                                 }
                             });
                         });                                        

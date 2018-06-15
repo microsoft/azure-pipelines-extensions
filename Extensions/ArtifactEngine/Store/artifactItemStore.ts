@@ -10,7 +10,7 @@ export class ArtifactItemStore {
 
         var artifactDownloadTicket: models.ArtifactDownloadTicket = {
             artifactItem: item,
-            downloadLocation: models.DownloadLocation.Source,
+            downloadedFromCache: false,
             state: models.TicketState.InQueue,
             startTime: undefined,
             finishTime: undefined,
@@ -54,12 +54,12 @@ export class ArtifactItemStore {
         return undefined;
     }
 
-    public updateState(item: models.ArtifactItem, state: models.TicketState, location?: models.DownloadLocation) {
+    public updateState(item: models.ArtifactItem, state: models.TicketState, location?: boolean) {
         var processedItem = this._downloadTickets.find(x => x.artifactItem.path === item.path);
         if (processedItem) {
             processedItem.state = state;
             if(location) {
-                processedItem.downloadLocation = location;
+                processedItem.downloadedFromCache = location;
             }
             if (state != models.TicketState.InQueue && state != models.TicketState.Processing) {
                 processedItem.finishTime = new Date();

@@ -80,11 +80,11 @@ export class StubProvider implements models.IArtifactProvider {
     dispose(): void {
     }
 
-    getDestinationLocation(): string {
+    getRootLocation(): string {
         return ("");
     }
 
-    getRootLocation(): string {
+    getRootItemPath(): string {
         return ("");
     }
 

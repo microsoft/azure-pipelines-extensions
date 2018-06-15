@@ -7,7 +7,7 @@ export interface IArtifactProvider {
     getArtifactItems(artifactItem: ArtifactItem): Promise<ArtifactItem[]>;
     getArtifactItem(artifactItem: ArtifactItem): Promise<NodeJS.ReadableStream>;
     putArtifactItem(artifactItem: ArtifactItem, stream: NodeJS.ReadableStream): Promise<ArtifactItem>;
-    getDestinationLocation(): string;
     getRootLocation(): string;
+    getRootItemPath(): string;
     dispose(): void;
 }
