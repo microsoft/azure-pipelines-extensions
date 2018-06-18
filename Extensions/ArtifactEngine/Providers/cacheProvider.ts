@@ -36,7 +36,7 @@ export class CacheProvider implements models.IArtifactProvider {
             if(artifactItem.fileHash && artifactItem.fileHash === this.oldFileHashMap[artifactItem.path.substring(this.relPath.length+1)]) {
                 const inputStream = fs.createReadStream(path.join(this.artifactCacheDirectory,"ArtifactEngineCache", this.key, artifactItem.path.substring(this.relPath.length+1)));
                 inputStream.on('error',(err) => {
-                    throw err;
+                    reject(err);
                 })
                 resolve(inputStream);
             }
@@ -74,19 +74,18 @@ export class CacheProvider implements models.IArtifactProvider {
                 });
         
                 oldHash.on('close', () => {    
-                    Logger.logMessage("Cache Successfully Initialised.")
+                    Logger.logMessage(tl.loc("SuccessfulCaching"))
                 });
             }
             else {
                 this.oldFileHashMap = {};
-                Logger.logMessage("artifact-metadata.csv not found")
+                Logger.logMessage(tl.loc("NoMetadataFile"))
             }
         }
         else {
             this.oldFileHashMap = {}
-            Logger.logMessage("Cache is not verified or present");
+            Logger.logMessage(tl.loc("NoCache"));
         }
-        
     }
 
     public getCacheDirectory(): string {

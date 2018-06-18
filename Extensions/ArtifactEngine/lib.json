@@ -12,6 +12,9 @@
         "FailedRequest": "Failed request: (statusCode)",
         "CacheDownload": "Downloading %s From Cache",
         "SourceDownload": "Downloading %s From Source",
-        "UnsuccessfulValidation": "Validation Unsuccessful. Cache not Verified"
+        "UnsuccessfulValidation": "Validation Unsuccessful. Cache not Verified",
+        "SuccessfulCaching": "Cache Successfully Initialised.",
+        "NoMetadataFile": "Artifact-Metadata.csv file not found.",
+        "NoCache": "Cache is not verified or present."
     }
 }

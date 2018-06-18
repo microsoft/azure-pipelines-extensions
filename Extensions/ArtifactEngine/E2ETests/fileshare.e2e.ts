@@ -59,6 +59,7 @@ describe('E2E Tests', () => {
             processorOptions.itemPattern = "fileshareWithMultipleFiles\\**";
             processorOptions.artifactCacheKey = "default_Collection.123.2048.artifactName";
             processorOptions.artifactCacheDirectory = path.join(nconf.get('CACHE'));
+            processorOptions.enableIncrementalDownload = true;
             processorOptions.parallelProcessingLimit = 8;
             processorOptions.retryIntervalInSeconds = 2;
             processorOptions.retryLimit = 2;

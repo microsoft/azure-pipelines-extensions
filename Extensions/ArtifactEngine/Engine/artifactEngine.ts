@@ -22,7 +22,7 @@ export class ArtifactEngine {
             artifactEngineOptions.artifactCacheDirectory = artifactEngineOptions.artifactCacheDirectory ? artifactEngineOptions.artifactCacheDirectory : tl.getVariable("AGENT_WORKFOLDER");
             this.createPatternList(artifactEngineOptions);
             var artifactName = sourceProvider.getRootItemPath();
-            this.artifactItemStore = new ArtifactItemStore();
+            this.artifactItemStore = new ArtifactItemStore(artifactName);
             this.artifactItemStore.flush();
             Logger.verbose = artifactEngineOptions.verbose;
             this.logger = new Logger(this.artifactItemStore);
@@ -32,7 +32,7 @@ export class ArtifactEngine {
             this.cacheProvider = new CacheProvider(artifactEngineOptions.artifactCacheDirectory,artifactEngineOptions.artifactCacheKey,artifactName);
             sourceProvider.getRootItems().then((itemsToProcess: models.ArtifactItem[]) => {
                 this.artifactItemStore.addItems(itemsToProcess);
-                this.createNewHashMap(sourceProvider,itemsToProcess).then(() => {
+                this.createNewHashMap(sourceProvider,itemsToProcess,artifactEngineOptions).then(() => {
                     for (let i = 0; i < artifactEngineOptions.parallelProcessingLimit; ++i) {
                         var worker = new Worker<models.ArtifactItem>(i + 1, item => this.processArtifactItem(sourceProvider, item, destProvider, artifactEngineOptions), () => this.artifactItemStore.getNextItemToProcess(), () => !this.artifactItemStore.itemsPendingProcessing());
                         workers.push(worker.init());
@@ -40,26 +40,14 @@ export class ArtifactEngine {
         
                     Promise.all(workers).then(() => {
                         this.logger.logSummary();
-                        
-                        var destination = destProvider.getRootLocation();
-                        var artifactName = sourceProvider.getRootItemPath();                        
-                        var cachePath = this.cacheProvider.getCacheDirectory();
-                        if(fs.existsSync(cachePath)) {
-                            tl.rmRF(cachePath);
+                        if(artifactEngineOptions.enableIncrementalDownload) {
+                            this.cacheUpdation(sourceProvider,destProvider,resolve);
                         }
-                        var self = this;
-                        var cacheValidator = false;
-                        this.walk(path.join(destination,artifactName), function (err, result) {                                                                        
-                            if (err) {
-                                throw err;
-                            }
-                            else {
-                                var generateHashPromises = self.updateCache(result, destination, artifactName, self, cachePath,cacheValidator);
-                                Promise.all(generateHashPromises).then(() => {
-                                    self.cacheValidation(sourceProvider, destProvider, self, cachePath, resolve, cacheValidator);
-                                });
-                            };
-                        });                                                            
+                        else {
+                            sourceProvider.dispose();
+                            destProvider.dispose();
+                            resolve(this.artifactItemStore.getTickets()); 
+                        }
                     }, (err) => {
                         ci.publishEvent('reliability', <ci.IReliabilityData>{ issueType: 'error', errorMessage: JSON.stringify(err, Object.getOwnPropertyNames(err)) });
                         sourceProvider.dispose();
@@ -144,8 +132,14 @@ export class ArtifactEngine {
 
                 getContentStream.then((contentStream) => {
                     destProvider.putArtifactItem(item, contentStream).then((item) => {
-                        this.artifactItemStore.updateState(item, models.TicketState.Processed, downloadedFromCache);
-                        resolve();
+                        var cacheValidator = this.artifactItemStore.updateState(item, models.TicketState.Processed, downloadedFromCache)
+                        if(!cacheValidator) {
+                            Logger.logInfo("Hash Validation Failed. Retrying Download of " + item.path);
+                            retryIfRequired(null);
+                        }
+                        else {
+                            resolve();
+                        }
                     }, (err) => {
                         Logger.logInfo("Error placing file " + item.path + ": " + err);
                         retryIfRequired(err);                            
@@ -192,63 +186,66 @@ export class ArtifactEngine {
         }
     }
 
-    createNewHashMap(sourceProvider: models.IArtifactProvider, itemsToProcess: models.ArtifactItem[]): Promise<string> {
+    createNewHashMap(sourceProvider: models.IArtifactProvider, itemsToProcess: models.ArtifactItem[], artifactEngineOptions?: ArtifactEngineOptions): Promise<string> {
         return new Promise((resolve,reject) => {
-            sourceProvider.getArtifactItems(itemsToProcess[0]).then((items: models.ArtifactItem[]) => {
-                sourceProvider.getArtifactItem(items.find(x => x.path === path.join(itemsToProcess[0].path, 'artifact-metadata.csv') )).then((hashStream : NodeJS.ReadableStream) => {                        
-                    var newHashPromise = new Promise((resolve) => {
-                        var newHash = readline.createInterface ({
-                            input : hashStream
-                        });
+            if(!artifactEngineOptions.enableIncrementalDownload) {
+                this.newHashMap = {};
+                resolve();
+            }
+            else {
+                sourceProvider.getArtifactItems(itemsToProcess[0]).then((items: models.ArtifactItem[]) => {
+                    sourceProvider.getArtifactItem(items.find(x => x.path === path.join(itemsToProcess[0].path, 'artifact-metadata.csv') )).then((hashStream : NodeJS.ReadableStream) => {                        
+                        var newHashPromise = new Promise((resolve) => {
+                            var newHash = readline.createInterface ({
+                                input : hashStream
+                            });
+                    
+                            newHash.on('line', (line) => {
+                                var words = line.split(',');
+                                this.newHashMap[words[0]] = words[1];
+                            });
                 
-                        newHash.on('line', (line) => {
-                            var words = line.split(',');
-                            this.newHashMap[words[0]] = words[1];
+                            newHash.on('close', () => {
+                                resolve();
+                            });
                         });
-            
-                        newHash.on('close', () => {
-                            resolve();
-                        });
+                        newHashPromise.then(() => {
+                            this.artifactItemStore.setHashMap(this.newHashMap)
+                            resolve();                                   
+                        });                            
+                    }, (err) => {
+                        Logger.logInfo("Incremental Download Failed. Downloading normally.")
+                        artifactEngineOptions.enableIncrementalDownload = false;
+                        this.newHashMap = {};
+                        resolve();
                     });
-                    newHashPromise.then(() => {
-                        this.artifactItemStore.setHashMap(this.newHashMap)
-                        resolve();                                   
-                    });                            
                 }, (err) => {
-                    Logger.logError(err);
-                    reject(err);
+                    Logger.logInfo("Incremental Download Failed. Downloading normally.")
+                    artifactEngineOptions.enableIncrementalDownload = false;
+                    this.newHashMap = {};
+                    resolve();
                 });
-            }, (err) => {
-                Logger.logError(err);
-                reject(err);
-            });
+            }
         });
     }
 
-    updateCache(result: string[], destination: string, artifactName: string, self, cachePath: string, cacheValidator: boolean): Promise<string>[] {
-        var generateHashPromises = [];
-        if(!fs.existsSync(path.dirname(cachePath))) {
-            tl.mkdirP(path.dirname(cachePath));
+    cacheUpdation(sourceProvider: models.IArtifactProvider, destProvider: models.IArtifactProvider, resolve) {    
+        var destination = destProvider.getRootLocation();
+        var artifactName = sourceProvider.getRootItemPath();                        
+        var cachePath = this.cacheProvider.getCacheDirectory();
+        if(fs.existsSync(cachePath)) {
+            tl.rmRF(cachePath);
         }
-        tl.mkdirP(cachePath);                                                                            
-        result.forEach(function (file) {                                         
-            var fileRelativePath = file.substring(path.join(destination,artifactName,'/').length);
-            var fileCachePath = path.join(cachePath,fileRelativePath);
-            if(!fs.existsSync(path.dirname(fileCachePath))) {                                
-                tl.mkdirP(path.dirname(fileCachePath))
-            }                                               
-            var res = self.generateHash(file,fileCachePath).then(function (hash) {
-                if(self.newHashMap[fileRelativePath] && self.newHashMap[fileRelativePath] !== hash) {
-                    cacheValidator = true;
-                }
-            });                                        
-            generateHashPromises.push(res);    
-        });
-        return generateHashPromises;
-    }
-
-    cacheValidation(sourceProvider: models.IArtifactProvider, destProvider: models.IArtifactProvider, self, cachePath: string, resolve, cacheValidator: boolean) {
-        if(!cacheValidator) {
+        var self = this;
+        var cacheValidator = false;
+        if(this.artifactItemStore._downloadTickets.find(x => x.state === models.TicketState.Failed)) {
+            sourceProvider.dispose();
+            destProvider.dispose();
+            resolve(this.artifactItemStore.getTickets())
+        }
+        else {
+            tl.mkdirP(cachePath);
+            tl.cp((path.join(destination,artifactName)+'/.'), cachePath, '-r');
             var verifyFile = fs.createWriteStream(path.join(cachePath,"verify.json"));
             verifyFile.write(JSON.stringify({lastUpdatedOn: new Date().toISOString()}), () => {
                 sourceProvider.dispose();
@@ -260,39 +257,34 @@ export class ArtifactEngine {
                 Logger.logMessage(err);
             });                                          
         }
-        else {                    
-            Logger.logMessage(tl.loc("UnsuccessfulValidation"))
-            tl.rmRF(cachePath);
-            resolve(self.artifactItemStore.getTickets());                                       
-        }
     }
-
+    
     walk(dir: string, done) {
         var self = this;
-        var results = [];
+        var fileList = [];
         fs.readdir(dir, function (err, list) {
             if (err) {
                 return done(err);
             }
             var pending = list.length;
             if (!pending) {
-                return done(null, results);
+                return done(null, fileList);
             }
             list.forEach(function (file) {
                 file = path.resolve(dir, file);
                 fs.stat(file, function (err, stat) {
                     if (stat && stat.isDirectory()) {
                         self.walk(file, function (err, res) {                  
-                            results = results.concat(res);
+                            fileList = fileList.concat(res);
                             if (!--pending) {
-                                done(null, results);
+                                done(null, fileList);
                             }
                         });
                     }
                     else {                        
-                        results.push(file);
+                        fileList.push(file);
                         if (!--pending) {
-                            done(null, results);
+                            done(null, fileList);
                         }
                     }
                 });
@@ -301,7 +293,7 @@ export class ArtifactEngine {
     }
     
     generateHash(file: string, cachePath: string ) {
-        return new Promise((resolve) => {
+        return new Promise((resolve,reject) => {
             var hash = "";
             var hashInterface = crypto.createHash('sha256');
             var wstream = fs.createWriteStream(cachePath);
@@ -309,7 +301,7 @@ export class ArtifactEngine {
             stream.on('data', function (data) {
                 wstream.write(data);
                 wstream.on('error', (err) => {
-                    throw err;
+                    reject(err);
                 });
                 hashInterface.update(data, 'utf8');                
             });

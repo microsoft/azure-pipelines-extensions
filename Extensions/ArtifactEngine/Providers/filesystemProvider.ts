@@ -1,5 +1,6 @@
 import * as path from 'path';
 import * as fs from 'fs';
+var crypto = require('crypto');
 
 import * as models from '../Models';
 import { Logger } from '../Engine/logger';
@@ -54,30 +55,38 @@ export class FilesystemProvider implements models.IArtifactProvider {
 
     public putArtifactItem(item: models.ArtifactItem, stream: NodeJS.ReadableStream): Promise<models.ArtifactItem> {
         return new Promise((resolve, reject) => {
-            const outputFilename = path.join(this._rootLocation, item.path);
-            if(!this._directoryCleanedFlag) {
-                if(this._cleanTargetDirectory) {
-                    if(fs.existsSync(this._rootLocation)) {
-                        tl.rmRF(this._rootLocation)
-                        this._directoryCleanedFlag = true;
-                    }
+            if(this._cleanTargetDirectory && !this._directoryCleanedFlag) {
+                if(fs.existsSync(this._rootLocation)) {
+                    tl.rmRF(this._rootLocation)
                 }
+                this._directoryCleanedFlag = true;                        
             }
-
+        
             // create parent folder if it has not already been created
+            const outputFilename = path.join(this._rootLocation, item.path);
             const folder = path.dirname(outputFilename);
             try {
                 tl.mkdirP(folder);
                 Logger.logMessage(tl.loc("DownloadingTo", item.path, outputFilename));
+                var hash = "";
+                var hashInterface = crypto.createHash('sha256');
                 const outputStream = fs.createWriteStream(outputFilename);
-                stream.pipe(outputStream);
+                stream.on('data', function (data) {
+                    outputStream.write(data);
+                    outputStream.on('error', (err) => {
+                        reject(err);
+                    });
+                    hashInterface.update(data, 'utf8');                
+                });
                 stream.on("end",
                     () => {
                         Logger.logMessage(tl.loc("DownloadedTo", item.path, outputFilename));
                         if (!item.metadata) {
                             item.metadata = {};
-                        }
-
+                        }                                               
+                        hash = hashInterface.digest('hex').toUpperCase();
+                        item.fileHash = hash;
+                        outputStream.end();
                         item.metadata[models.Constants.DestinationUrlKey] = outputFilename;
                     });
                 stream.on("error",

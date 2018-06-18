@@ -2,6 +2,12 @@ import * as models from "../Models"
 
 export class ArtifactItemStore {
     _downloadTickets: models.ArtifactDownloadTicket[] = [];
+    _artifactName: string = "";
+    private hashMap = {};
+
+    constructor(artifactName?: string) {
+        this._artifactName = artifactName ? artifactName : "";
+    }
 
     public addItem(item: models.ArtifactItem) {
         if (this._downloadTickets.find(x => x.artifactItem.path === item.path)) {
@@ -18,8 +24,8 @@ export class ArtifactItemStore {
             downloadSizeInBytes: 0,
             fileSizeInBytes: 0
         };
-        if(this.hashMap[item.path.substring(item.path.indexOf('\\')+1)]) 
-            artifactDownloadTicket.artifactItem.fileHash = this.hashMap[item.path.substring(item.path.indexOf('\\')+1)]
+        if(this.hashMap[item.path.substring(this._artifactName.length+1)]) 
+            artifactDownloadTicket.artifactItem.fileHash = this.hashMap[item.path.substring(this._artifactName.length+1)]
                
         this._downloadTickets.push(artifactDownloadTicket);
     }
@@ -64,6 +70,12 @@ export class ArtifactItemStore {
             if (state != models.TicketState.InQueue && state != models.TicketState.Processing) {
                 processedItem.finishTime = new Date();
             }
+            if((item.fileHash && item.fileHash === this.hashMap[item.path.substring(this._artifactName.length+1)]) || !this.hashMap[item.path.substring(this._artifactName.length+1)]) {
+                return true;
+            }
+            else {
+                return false;
+            }
         }
     }
 
@@ -105,6 +117,4 @@ export class ArtifactItemStore {
     public flush(): void {
         this._downloadTickets = [];
     }
-
-    private hashMap = {};
 }

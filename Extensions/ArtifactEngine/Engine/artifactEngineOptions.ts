@@ -1,6 +1,7 @@
 ﻿export class ArtifactEngineOptions {
     artifactCacheKey : string = "";
     artifactCacheDirectory: string = "";
+    enableIncrementalDownload: boolean = false;
     retryLimit: number = 5;
     retryIntervalInSeconds: number = 5;
     fileProcessingTimeoutInMinutes: number = 5;
