@@ -29,24 +29,35 @@ export class ArtifactEngine {
             this.logger.logProgress();
             sourceProvider.artifactItemStore = this.artifactItemStore;
             destProvider.artifactItemStore = this.artifactItemStore;
-            this.cacheProvider = new CacheProvider(artifactEngineOptions.artifactCacheDirectory,artifactEngineOptions.artifactCacheKey,artifactName);
+            if (!artifactEngineOptions.enableIncrementalDownload) {
+                artifactEngineOptions.artifactCacheDirectory = '';
+                artifactEngineOptions.artifactCacheKey = '';
+            }
+            this.cacheProvider = new CacheProvider(artifactEngineOptions.artifactCacheDirectory, artifactEngineOptions.artifactCacheKey, artifactName);
             sourceProvider.getRootItems().then((itemsToProcess: models.ArtifactItem[]) => {
                 this.artifactItemStore.addItems(itemsToProcess);
-                this.createNewHashMap(sourceProvider,itemsToProcess,artifactEngineOptions).then(() => {
+                this.createNewHashMap(sourceProvider, itemsToProcess, artifactEngineOptions).then(() => {
                     for (let i = 0; i < artifactEngineOptions.parallelProcessingLimit; ++i) {
                         var worker = new Worker<models.ArtifactItem>(i + 1, item => this.processArtifactItem(sourceProvider, item, destProvider, artifactEngineOptions), () => this.artifactItemStore.getNextItemToProcess(), () => !this.artifactItemStore.itemsPendingProcessing());
                         workers.push(worker.init());
                     }
-        
+
                     Promise.all(workers).then(() => {
                         this.logger.logSummary();
-                        if(artifactEngineOptions.enableIncrementalDownload) {
-                            this.cacheUpdation(sourceProvider,destProvider,resolve);
+                        if (artifactEngineOptions.enableIncrementalDownload) {
+                            if (this.artifactItemStore._downloadTickets.find(x => x.state === models.TicketState.Failed)) {
+                                sourceProvider.dispose();
+                                destProvider.dispose();
+                                resolve(this.artifactItemStore.getTickets());
+                            }
+                            else {
+                                this.cacheUpdation(sourceProvider, destProvider, resolve);
+                            }
                         }
                         else {
                             sourceProvider.dispose();
                             destProvider.dispose();
-                            resolve(this.artifactItemStore.getTickets()); 
+                            resolve(this.artifactItemStore.getTickets());
                         }
                     }, (err) => {
                         ci.publishEvent('reliability', <ci.IReliabilityData>{ issueType: 'error', errorMessage: JSON.stringify(err, Object.getOwnPropertyNames(err)) });
@@ -66,7 +77,7 @@ export class ArtifactEngine {
         return artifactDownloadTicketsPromise;
     }
 
-    processArtifactItem(sourceProvider: models.IArtifactProvider, 
+    processArtifactItem(sourceProvider: models.IArtifactProvider,
         item: models.ArtifactItem,
         destProvider: models.IArtifactProvider,
         artifactEngineOptions: ArtifactEngineOptions): Promise<void> {
@@ -113,17 +124,17 @@ export class ArtifactEngine {
             if (tl.match([pathToMatch], this.patternList, null, matchOptions).length > 0) {
                 Logger.logInfo("Processing " + item.path);
                 var downloadedFromCache = false;
-                var getContentStream = new Promise<NodeJS.ReadableStream>((resolve,reject) => {
+                var getContentStream = new Promise<NodeJS.ReadableStream>((resolve, reject) => {
                     this.cacheProvider.getArtifactItem(item).then((contentStream) => {
-                        if(!contentStream) {
-                            Logger.logMessage(tl.loc("SourceDownload",item.path));
-                            sourceProvider.getArtifactItem(item).then((contentStream) => {                        
+                        if (!contentStream) {
+                            Logger.logMessage(tl.loc("SourceDownload", item.path));
+                            sourceProvider.getArtifactItem(item).then((contentStream) => {
                                 Logger.logInfo("Got download stream for item: " + item.path);
                                 resolve(contentStream);
                             });
                         }
                         else {
-                            Logger.logMessage(tl.loc("CacheDownload",item.path));
+                            Logger.logMessage(tl.loc("CacheDownload", item.path));
                             downloadedFromCache = true;
                             resolve(contentStream);
                         }
@@ -133,7 +144,7 @@ export class ArtifactEngine {
                 getContentStream.then((contentStream) => {
                     destProvider.putArtifactItem(item, contentStream).then((item) => {
                         var cacheValidator = this.artifactItemStore.updateState(item, models.TicketState.Processed, downloadedFromCache)
-                        if(!cacheValidator) {
+                        if (!cacheValidator) {
                             Logger.logInfo("Hash Validation Failed. Retrying Download of " + item.path);
                             retryIfRequired(null);
                         }
@@ -142,13 +153,13 @@ export class ArtifactEngine {
                         }
                     }, (err) => {
                         Logger.logInfo("Error placing file " + item.path + ": " + err);
-                        retryIfRequired(err);                            
+                        retryIfRequired(err);
                     });
                 }, (err) => {
                     Logger.logInfo("Error getting file " + item.path + ": " + err);
                     retryIfRequired(err);
-                });                       
-            }          
+                });
+            }
             else {
                 Logger.logMessage(tl.loc("SkippingItem", pathToMatch));
                 this.artifactItemStore.updateState(item, models.TicketState.Skipped);
@@ -183,36 +194,39 @@ export class ArtifactEngine {
         }
         else {
             this.patternList = artifactEngineOptions.itemPattern.split('\n');
+            if (artifactEngineOptions.enableIncrementalDownload) {
+                this.patternList.push("**\\artifact-metadata.csv");
+            }
         }
     }
 
     createNewHashMap(sourceProvider: models.IArtifactProvider, itemsToProcess: models.ArtifactItem[], artifactEngineOptions?: ArtifactEngineOptions): Promise<string> {
-        return new Promise((resolve,reject) => {
-            if(!artifactEngineOptions.enableIncrementalDownload) {
+        return new Promise((resolve, reject) => {
+            if (!artifactEngineOptions.enableIncrementalDownload) {
                 this.newHashMap = {};
                 resolve();
             }
             else {
                 sourceProvider.getArtifactItems(itemsToProcess[0]).then((items: models.ArtifactItem[]) => {
-                    sourceProvider.getArtifactItem(items.find(x => x.path === path.join(itemsToProcess[0].path, 'artifact-metadata.csv') )).then((hashStream : NodeJS.ReadableStream) => {                        
+                    sourceProvider.getArtifactItem(items.find(x => path.normalize(x.path) === path.join(itemsToProcess[0].path, 'artifact-metadata.csv'))).then((hashStream: NodeJS.ReadableStream) => {
                         var newHashPromise = new Promise((resolve) => {
-                            var newHash = readline.createInterface ({
-                                input : hashStream
+                            var newHash = readline.createInterface({
+                                input: hashStream
                             });
-                    
+
                             newHash.on('line', (line) => {
                                 var words = line.split(',');
                                 this.newHashMap[words[0]] = words[1];
                             });
-                
+
                             newHash.on('close', () => {
                                 resolve();
                             });
                         });
                         newHashPromise.then(() => {
                             this.artifactItemStore.setHashMap(this.newHashMap)
-                            resolve();                                   
-                        });                            
+                            resolve();
+                        });
                     }, (err) => {
                         Logger.logInfo("Incremental Download Failed. Downloading normally.")
                         artifactEngineOptions.enableIncrementalDownload = false;
@@ -229,89 +243,28 @@ export class ArtifactEngine {
         });
     }
 
-    cacheUpdation(sourceProvider: models.IArtifactProvider, destProvider: models.IArtifactProvider, resolve) {    
+    cacheUpdation(sourceProvider: models.IArtifactProvider, destProvider: models.IArtifactProvider, resolve) {
         var destination = destProvider.getRootLocation();
-        var artifactName = sourceProvider.getRootItemPath();                        
+        var artifactName = sourceProvider.getRootItemPath();
         var cachePath = this.cacheProvider.getCacheDirectory();
-        if(fs.existsSync(cachePath)) {
+        if (fs.existsSync(cachePath)) {
             tl.rmRF(cachePath);
         }
         var self = this;
         var cacheValidator = false;
-        if(this.artifactItemStore._downloadTickets.find(x => x.state === models.TicketState.Failed)) {
+        tl.mkdirP(cachePath);
+        tl.cp((path.join(destination, artifactName) + '/.'), cachePath, '-r');
+        var verifyFile = fs.createWriteStream(path.join(cachePath, "verify.json"));
+        verifyFile.write(JSON.stringify({ lastUpdatedOn: new Date().toISOString() }), () => {
             sourceProvider.dispose();
             destProvider.dispose();
-            resolve(this.artifactItemStore.getTickets())
-        }
-        else {
-            tl.mkdirP(cachePath);
-            tl.cp((path.join(destination,artifactName)+'/.'), cachePath, '-r');
-            var verifyFile = fs.createWriteStream(path.join(cachePath,"verify.json"));
-            verifyFile.write(JSON.stringify({lastUpdatedOn: new Date().toISOString()}), () => {
-                sourceProvider.dispose();
-                destProvider.dispose();
-                verifyFile.close();  
-                resolve(self.artifactItemStore.getTickets());
-            });
-            verifyFile.on('error',(err) => {
-                Logger.logMessage(err);
-            });                                          
-        }
-    }
-    
-    walk(dir: string, done) {
-        var self = this;
-        var fileList = [];
-        fs.readdir(dir, function (err, list) {
-            if (err) {
-                return done(err);
-            }
-            var pending = list.length;
-            if (!pending) {
-                return done(null, fileList);
-            }
-            list.forEach(function (file) {
-                file = path.resolve(dir, file);
-                fs.stat(file, function (err, stat) {
-                    if (stat && stat.isDirectory()) {
-                        self.walk(file, function (err, res) {                  
-                            fileList = fileList.concat(res);
-                            if (!--pending) {
-                                done(null, fileList);
-                            }
-                        });
-                    }
-                    else {                        
-                        fileList.push(file);
-                        if (!--pending) {
-                            done(null, fileList);
-                        }
-                    }
-                });
-            });
+            verifyFile.close();
+            resolve(self.artifactItemStore.getTickets());
+        });
+        verifyFile.on('error', (err) => {
+            ci.publishEvent('reliability', <ci.IReliabilityData>{ issueType: 'error', errorMessage: JSON.stringify(err, Object.getOwnPropertyNames(err)) });
         });
     }
-    
-    generateHash(file: string, cachePath: string ) {
-        return new Promise((resolve,reject) => {
-            var hash = "";
-            var hashInterface = crypto.createHash('sha256');
-            var wstream = fs.createWriteStream(cachePath);
-            var stream = fs.createReadStream(file);
-            stream.on('data', function (data) {
-                wstream.write(data);
-                wstream.on('error', (err) => {
-                    reject(err);
-                });
-                hashInterface.update(data, 'utf8');                
-            });
-            stream.on('end', function () {
-                wstream.close();
-                hash = hashInterface.digest('hex').toUpperCase();
-                resolve(hash);
-            });
-        })        
-    }    
 
     private artifactItemStore: ArtifactItemStore;
     private logger: Logger;

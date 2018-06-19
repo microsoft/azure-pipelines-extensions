@@ -1,5 +1,5 @@
 {
-   "messages": {
+    "messages": {
         "DownloadSummary": "Total Files: %s, Processed: %s, Skipped: %s, Failed: %s, Download time: %s secs, Download size: %s",
         "FailedToParseResponse": "Failed to parse response body: %s, got error : %s",
         "DownloadingTo": "Downloading %s to %s",
@@ -15,6 +15,6 @@
         "UnsuccessfulValidation": "Validation Unsuccessful. Cache not Verified",
         "SuccessfulCaching": "Cache Successfully Initialised.",
         "NoMetadataFile": "Artifact-Metadata.csv file not found.",
-        "NoCache": "Cache is not verified or present."
+        "NoCache": "Cache is not verified or is not present."
     }
 }

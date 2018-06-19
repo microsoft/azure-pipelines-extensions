@@ -1,4 +1,4 @@
-﻿import {ArtifactItem} from "./artifactItem";
+﻿import { ArtifactItem } from "./artifactItem";
 import { ArtifactItemStore } from '../Store/artifactItemStore';
 
 export interface IArtifactProvider {

@@ -20,8 +20,9 @@ export class WebProvider implements IArtifactProvider {
 
     public artifactItemStore: ArtifactItemStore;
 
-    constructor(rootItemsLocation, templateFile: string, variables: any, handler: IRequestHandler, requestOptions?: IRequestOptions) {
+    constructor(rootItemsLocation, templateFile: string, variables: any, handler: IRequestHandler, requestOptions?: IRequestOptions, rootItemPath?: string) {
         this.rootItemsLocation = rootItemsLocation;
+        this.rootItemPath = rootItemPath;
         this.templateFile = templateFile;
         this.webClient = WebClientFactory.getClient([handler], requestOptions);
         this.variables = variables;
@@ -30,7 +31,7 @@ export class WebProvider implements IArtifactProvider {
     getRootItems(): Promise<ArtifactItem[]> {
         var rootItem = new ArtifactItem();
         rootItem.metadata = { downloadUrl: this.rootItemsLocation };
-        rootItem.path = '';
+        rootItem.path = this.rootItemPath ? this.rootItemPath : '';
         rootItem.itemType = ItemType.Folder;
         return Promise.resolve([rootItem]);
     }
@@ -139,10 +140,11 @@ export class WebProvider implements IArtifactProvider {
     }
 
     getRootItemPath(): string {
-        return "";
+        return this.rootItemPath;
     }
 
     private rootItemsLocation: string;
+    private rootItemPath: string;
     private templateFile: string;
     private variables: string;
     public webClient: WebClient;

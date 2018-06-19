@@ -1,5 +1,5 @@
 ﻿export class ArtifactEngineOptions {
-    artifactCacheKey : string = "";
+    artifactCacheKey: string = "";
     artifactCacheDirectory: string = "";
     enableIncrementalDownload: boolean = false;
     retryLimit: number = 5;

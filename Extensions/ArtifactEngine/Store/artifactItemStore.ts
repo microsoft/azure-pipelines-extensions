@@ -1,3 +1,5 @@
+import * as path from 'path'
+
 import * as models from "../Models"
 
 export class ArtifactItemStore {
@@ -24,16 +26,16 @@ export class ArtifactItemStore {
             downloadSizeInBytes: 0,
             fileSizeInBytes: 0
         };
-        if(this.hashMap[item.path.substring(this._artifactName.length+1)]) 
-            artifactDownloadTicket.artifactItem.fileHash = this.hashMap[item.path.substring(this._artifactName.length+1)]
-               
+        if (this.hashMap[path.normalize(item.path.substring(this._artifactName.length + 1))]) {
+            artifactDownloadTicket.artifactItem.fileHash = this.hashMap[path.normalize(item.path.substring(this._artifactName.length + 1))]
+        }
         this._downloadTickets.push(artifactDownloadTicket);
     }
 
     public setHashMap(hashMap: Object) {
         this.hashMap = hashMap;
     }
-    
+
     public addItems(items: models.ArtifactItem[]): void {
         items.map((value: models.ArtifactItem, index: number) => {
             this.addItem(value);
@@ -64,13 +66,13 @@ export class ArtifactItemStore {
         var processedItem = this._downloadTickets.find(x => x.artifactItem.path === item.path);
         if (processedItem) {
             processedItem.state = state;
-            if(location) {
+            if (location) {
                 processedItem.downloadedFromCache = location;
             }
             if (state != models.TicketState.InQueue && state != models.TicketState.Processing) {
                 processedItem.finishTime = new Date();
             }
-            if((item.fileHash && item.fileHash === this.hashMap[item.path.substring(this._artifactName.length+1)]) || !this.hashMap[item.path.substring(this._artifactName.length+1)]) {
+            if ((item.downloadedFileHash && item.downloadedFileHash === item.fileHash) || !item.fileHash) {
                 return true;
             }
             else {

@@ -4,6 +4,7 @@ import * as fs from 'fs'
 
 import * as engine from "../Engine"
 import * as providers from "../Providers"
+import * as models from '../Models';
 
 import { PersonalAccessTokenCredentialHandler } from "../Providers/typed-rest-client/handlers/personalaccesstoken";
 
@@ -47,6 +48,109 @@ describe('E2E Tests', () => {
 
                     assert.equal(tickets.find(x => x.artifactItem.path == "dropz/file1.pdb").retryCount, 0);
                     assert.equal(tickets.find(x => x.artifactItem.path == "dropz/folder1/file2.txt").retryCount, 0);
+                }, (error) => {
+                    throw error;
+                });
+        });
+
+        it('should be able to incrementally download build artifact from vsts drop', function (done) {
+            this.timeout(15000);
+
+            let processor = new engine.ArtifactEngine();
+
+            let processorOptions = new engine.ArtifactEngineOptions();
+            processorOptions.itemPattern = "**";
+            processorOptions.artifactCacheKey = "default_Collection.123.2048.vstsdrop";
+            processorOptions.artifactCacheDirectory = path.join(nconf.get('CACHE'));
+            processorOptions.enableIncrementalDownload = true;
+            processorOptions.parallelProcessingLimit = 8;
+            processorOptions.retryIntervalInSeconds = 2;
+            processorOptions.retryLimit = 2;
+            processorOptions.verbose = true;
+
+            var itemsUrl1 = "https://testking123.visualstudio.com/_apis/resources/Containers/2631516?itemPath=drop&isShallow=false";
+            var itemsUrl2 = "https://testking123.visualstudio.com/_apis/resources/Containers/2631521?itemPath=drop&isShallow=false";
+            var variables = {};
+
+            var handler = new PersonalAccessTokenCredentialHandler(nconf.get('VSTS:PAT'));
+            var webProvider1 = new providers.WebProvider(itemsUrl1, "vsts.handlebars", variables, handler, { ignoreSslError: false }, "drop");
+            var webProvider2 = new providers.WebProvider(itemsUrl2, "vsts.handlebars", variables, handler, { ignoreSslError: false }, "drop");
+
+            var dropLocation = path.join(nconf.get('DROPLOCATION'));
+            var filesystemProvider = new providers.FilesystemProvider(dropLocation, undefined, true);
+
+            processor.processItems(webProvider1, filesystemProvider, processorOptions)
+                .then((tick) => {
+                    processor.processItems(webProvider2, filesystemProvider, processorOptions)
+                        .then((tickets) => {
+                            tickets.forEach((ticket) => {
+                                if (ticket.artifactItem.itemType !== models.ItemType.Folder) {
+                                    if (path.normalize(ticket.artifactItem.path) === "drop\\File3.txt") {
+                                        assert.equal(true, ticket.downloadedFromCache)
+                                        done();
+                                    }
+                                    else if (path.normalize(ticket.artifactItem.path) === "drop\\Folder1\\File1.txt") {
+                                        assert.equal(true, ticket.downloadedFromCache)
+                                    }
+                                    else if (path.normalize(ticket.artifactItem.path) === "drop\\Folder1\\File2.txt") {
+                                        assert.equal(false, ticket.downloadedFromCache)
+                                    }
+                                }
+                            });
+                        }, (err) => {
+                            throw err;
+                        });
+                }, (error) => {
+                    throw error;
+                });
+        });
+
+        it('should be able to incrementally download build artifact from vsts drop with different itemPattern', function (done) {
+            this.timeout(15000);
+
+            let processor = new engine.ArtifactEngine();
+
+            let processorOptions = new engine.ArtifactEngineOptions();
+            processorOptions.itemPattern = "drop\\Folder1\\**";
+            processorOptions.artifactCacheKey = "default_Collection.123.2048.vstsdrop";
+            processorOptions.artifactCacheDirectory = path.join(nconf.get('CACHE'));
+            processorOptions.enableIncrementalDownload = true;
+            processorOptions.parallelProcessingLimit = 8;
+            processorOptions.retryIntervalInSeconds = 2;
+            processorOptions.retryLimit = 2;
+            processorOptions.verbose = true;
+
+            var itemsUrl1 = "https://testking123.visualstudio.com/_apis/resources/Containers/2631516?itemPath=drop&isShallow=false";
+            var itemsUrl2 = "https://testking123.visualstudio.com/_apis/resources/Containers/2632010?itemPath=drop&isShallow=false";
+            var variables = {};
+
+            var handler = new PersonalAccessTokenCredentialHandler(nconf.get('VSTS:PAT'));
+            var webProvider1 = new providers.WebProvider(itemsUrl1, "vsts.handlebars", variables, handler, { ignoreSslError: false }, "drop");
+            var webProvider2 = new providers.WebProvider(itemsUrl2, "vsts.handlebars", variables, handler, { ignoreSslError: false }, "drop");
+
+            var dropLocation = path.join(nconf.get('DROPLOCATION'));
+            var filesystemProvider = new providers.FilesystemProvider(dropLocation, undefined, true);
+
+            processor.processItems(webProvider1, filesystemProvider, processorOptions)
+                .then((tick) => {
+                    assert.equal(models.TicketState.Skipped, (tick.find(x => path.normalize(x.artifactItem.path) === "drop\\File3.txt")).state);
+                    processorOptions.itemPattern = "**";
+                    processor.processItems(webProvider2, filesystemProvider, processorOptions)
+                        .then((tickets) => {
+                            tickets.forEach((ticket) => {
+                                if (ticket.artifactItem.itemType !== models.ItemType.Folder) {
+                                    if (path.normalize(ticket.artifactItem.path) === "drop\\File3.txt") {
+                                        assert.equal(false, ticket.downloadedFromCache)
+                                        done();
+                                    }
+                                    else if (path.normalize(ticket.artifactItem.path) === "drop\\Folder1\\File1.txt") {
+                                        assert.equal(true, ticket.downloadedFromCache)
+                                    }
+                                }
+                            });
+                        }, (err) => {
+                            throw err;
+                        });
                 }, (error) => {
                     throw error;
                 });

@@ -354,7 +354,7 @@ export class HttpClient {
         }
         
         // if not using private agent and tunnel agent isn't setup then use global agent
-        if(!agent) {
+        if (!agent) {
             agent = usingSsl ? https.globalAgent : http.globalAgent;
         }
 

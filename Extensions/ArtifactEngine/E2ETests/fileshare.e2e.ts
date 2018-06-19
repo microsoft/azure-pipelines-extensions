@@ -71,25 +71,27 @@ describe('E2E Tests', () => {
             var sourceProvider1 = new providers.FilesystemProvider(itemsUrl1, "fileshareWithMultipleFiles");
             var sourceProvider2 = new providers.FilesystemProvider(itemsUrl2, "fileshareWithMultipleFiles");
             var dropLocation = path.join(nconf.get('DROPLOCATION'));
-            var destProvider = new providers.FilesystemProvider(dropLocation,undefined,true);
-            
+            var destProvider = new providers.FilesystemProvider(dropLocation, undefined, true);
+
             processor.processItems(sourceProvider1, destProvider, processorOptions)
                 .then((tick) => {
                     processor.processItems(sourceProvider2, destProvider, processorOptions)
                         .then((tickets) => {
                             tickets.forEach((ticket) => {
-                                if(ticket.artifactItem.itemType !== models.ItemType.Folder) {
-                                    if(ticket.artifactItem.path === "fileshareWithMultipleFiles\\File3.txt") {
-                                        assert.equal(true,ticket.downloadedFromCache)
+                                if (ticket.artifactItem.itemType !== models.ItemType.Folder) {
+                                    if (ticket.artifactItem.path === "fileshareWithMultipleFiles\\File3.txt") {
+                                        assert.equal(true, ticket.downloadedFromCache)
                                         done();
                                     }
-                                    else if(ticket.artifactItem.path === "fileshareWithMultipleFiles\\Folder1\\File1.txt")
-                                        assert.equal(true,ticket.downloadedFromCache)
-                                    else if(ticket.artifactItem.path === "fileshareWithMultipleFiles\\Folder1\\File2.txt")
-                                        assert.equal(false,ticket.downloadedFromCache)
+                                    else if (ticket.artifactItem.path === "fileshareWithMultipleFiles\\Folder1\\File1.txt") {
+                                        assert.equal(true, ticket.downloadedFromCache)
+                                    }
+                                    else if (ticket.artifactItem.path === "fileshareWithMultipleFiles\\Folder1\\File2.txt") {
+                                        assert.equal(false, ticket.downloadedFromCache)
+                                    }
                                 }
                             });
-                        });                                        
+                        });
                 }, (error) => {
                     throw error;
                 });

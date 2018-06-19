@@ -3,7 +3,7 @@ import { TicketState } from "./ticketState";
 
 export class ArtifactDownloadTicket {
     artifactItem: ArtifactItem;
-    downloadedFromCache : boolean;
+    downloadedFromCache: boolean;
     startTime: Date
     finishTime: Date
     state: TicketState
