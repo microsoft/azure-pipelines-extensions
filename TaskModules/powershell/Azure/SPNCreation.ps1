@@ -1,7 +1,7 @@
 param
 (
-    [Parameter(Mandatory=$true, HelpMessage="Enter Azure Subscription name. You need to be Subscription Admin to execute the script")]
-    [string] $subscriptionName,
+    [Parameter(Mandatory=$false, HelpMessage="Enter Scope Level for endpoint. Scope Level can either be Management Group or Subscription")]
+    [string] $scopeLevel = "Subscription",
 
     [Parameter(Mandatory=$true, HelpMessage="Provide a password for SPN application that you would create; this becomes the service principal's security key")]
     [securestring] $password,
@@ -169,6 +169,16 @@ $homePage = "http://" + $displayName
 $identifierUri = $homePage
 
 
+#Input on basis of Scope Level
+if ($scopeLevel.equals("Subscription"))
+{
+    $subscriptionName = Read-Host 'Enter Azure Subscription name. You need to be Subscription Admin to execute the script'
+}
+else
+{
+    $managementGroupId = Read-Host 'Enter Management Group Id. You need to be Management Group Admin to execute the script'
+}
+
 #Initialize subscription
 $isAzureModulePresent = Get-Module -Name AzureRM* -ListAvailable
 if ([String]::IsNullOrEmpty($isAzureModulePresent) -eq $true)
@@ -203,12 +213,24 @@ if ($environmentName -like $AZURESTACK_ENVIRONMENT)
     }
 }
 
-Write-Output "Provide your credentials to access Azure subscription $subscriptionName" -Verbose
-Login-AzureRmAccount -SubscriptionName $subscriptionName -EnvironmentName $environmentName
-$azureSubscription = Get-AzureRmSubscription -SubscriptionName $subscriptionName
-$connectionName = $azureSubscription.SubscriptionName
-$tenantId = $azureSubscription.TenantId
-$id = $azureSubscription.SubscriptionId
+if ($scopeLevel.equals("Subscription"))
+{
+    Write-Output "Provide your credentials to access Azure subscription $subscriptionName" -Verbose
+    Login-AzureRmAccount -SubscriptionName $subscriptionName -EnvironmentName $environmentName
+    $azureSubscription = Get-AzureRmSubscription -SubscriptionName $subscriptionName
+    $connectionName = $azureSubscription.SubscriptionName
+    $tenantId = $azureSubscription.TenantId
+    $id = $azureSubscription.SubscriptionId
+}
+else
+{
+    Write-Output "Provide your credentials to access Azure Management Group $managementGroupId" -Verbose
+    Connect-AzureRmAccount
+    $azureManagementGroup = Get-AzureRmManagementGroup -GroupName $managementGroupId
+    $connectionName = $azureManagementGroup.DisplayName
+    $tenantId = $azureManagementGroup.TenantId
+    $id = $azureManagementGroup.Name
+}
 
 
 #Create a new AD Application
@@ -230,7 +252,17 @@ Write-Output "SPN creation completed successfully (SPN Name: $spnName)" -Verbose
 Write-Output "Waiting for SPN creation to reflect in Directory before Role assignment"
 Start-Sleep 20
 Write-Output "Assigning role ($spnRole) to SPN App ($appId)" -Verbose
-New-AzureRmRoleAssignment -RoleDefinitionName $spnRole -ServicePrincipalName $appId
+
+if ($scopeLevel.equals("Subscription"))
+{
+    New-AzureRmRoleAssignment -RoleDefinitionName $spnRole -ServicePrincipalName $appId
+}
+else
+{
+    $scope = "/providers/Microsoft.Management/managementGroups/" + $managementGroupId
+    New-AzureRmRoleAssignment -RoleDefinitionName $spnRole -ServicePrincipalName $appId -Scope $scope
+}
+
 Write-Output "SPN role assignment completed successfully" -Verbose
 
 
@@ -239,8 +271,18 @@ Write-Output "`nCopy and Paste below values for Service Connection" -Verbose
 Write-Output "***************************************************************************"
 Write-Output "Connection Name: $connectionName(SPN)"
 Write-Output "Environment: $environmentName"
-Write-Output "Subscription Id: $id"
-Write-Output "Subscription Name: $connectionName"
+
+if ($scopeLevel.equals("Subscription"))
+{
+    Write-Output "Subscription Id: $id"
+    Write-Output "Subscription Name: $connectionName"
+}
+else
+{
+   Write-Output "Management Group Id: $id"
+   Write-Output "Management Group Name: $connectionName" 
+}
+
 Write-Output "Service Principal Id: $appId"
 Write-Output "Service Principal key: <Password that you typed in>"
 Write-Output "Tenant Id: $tenantId"
