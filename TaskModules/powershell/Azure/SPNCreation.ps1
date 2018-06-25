@@ -1,7 +1,13 @@
+[cmdletbinding(
+        DefaultParameterSetName="Subscription"
+    )]
 param
 (
-    [Parameter(Mandatory=$false, HelpMessage="Enter Scope Level for endpoint. Scope Level can either be Management Group or Subscription")]
-    [string] $scopeLevel = "Subscription",
+    [Parameter(ParameterSetName="Subscription",Mandatory=$true, HelpMessage="Enter Azure Subscription name. You need to be Subscription Admin to execute the script")]
+    [string] $subscriptionName,
+
+    [Parameter(ParameterSetName="ManagementGroup",Mandatory=$true, HelpMessage="Enter Azure Management Group Id. You need to be Management Group Admin to execute the script")]
+    [string] $managementGroupId,
 
     [Parameter(Mandatory=$true, HelpMessage="Provide a password for SPN application that you would create; this becomes the service principal's security key")]
     [securestring] $password,
@@ -15,6 +21,7 @@ param
     [Parameter(Mandatory=$false, HelpMessage="Provide AzureStackManagementURL to add AzureStack environment to AzureRmEnvironments.")]
     [string] $azureStackManagementURL
 )
+$PSCmdlet.ParameterSetName
 
 $AZURESTACK_ENVIRONMENT = "AzureStack"
 
@@ -168,16 +175,6 @@ $displayName = [String]::Format("VSTS.{0}.{1}", $userName, $newguid)
 $homePage = "http://" + $displayName
 $identifierUri = $homePage
 
-
-#Input on basis of Scope Level
-if ($scopeLevel.equals("Subscription"))
-{
-    $subscriptionName = Read-Host 'Enter Azure Subscription name. You need to be Subscription Admin to execute the script'
-}
-else
-{
-    $managementGroupId = Read-Host 'Enter Management Group Id. You need to be Management Group Admin to execute the script'
-}
 
 #Initialize subscription
 $isAzureModulePresent = Get-Module -Name AzureRM* -ListAvailable
