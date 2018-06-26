@@ -21,7 +21,7 @@ param
     [Parameter(Mandatory=$false, HelpMessage="Provide AzureStackManagementURL to add AzureStack environment to AzureRmEnvironments.")]
     [string] $azureStackManagementURL
 )
-$PSCmdlet.ParameterSetName
+$scopeLevel = $PSCmdlet.ParameterSetName
 
 $AZURESTACK_ENVIRONMENT = "AzureStack"
 
@@ -241,7 +241,7 @@ Write-Output "Azure AAD Application creation completed successfully (Application
 #Create new SPN
 Write-Output "Creating a new SPN" -Verbose
 $spn = New-AzureRmADServicePrincipal -ApplicationId $appId
-$spnName = $spn.ServicePrincipalName
+$spnName = $spn.ServicePrincipalNames
 Write-Output "SPN creation completed successfully (SPN Name: $spnName)" -Verbose
 
 
@@ -268,7 +268,7 @@ Write-Output "`nCopy and Paste below values for Service Connection" -Verbose
 Write-Output "***************************************************************************"
 Write-Output "Connection Name: $connectionName(SPN)"
 Write-Output "Environment: $environmentName"
-
+Write-Output "Scope Level: $scopeLevel"
 if ($scopeLevel.equals("Subscription"))
 {
     Write-Output "Subscription Id: $id"
