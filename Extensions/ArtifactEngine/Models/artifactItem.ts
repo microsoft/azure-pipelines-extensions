@@ -5,7 +5,7 @@ export class ArtifactItem {
     path: string;
     fileLength: number;
     downloadedFileHash: string;
-    fileHash: string;
+    fileHashInArtifactMetadata: string;
     lastModified: Date;
     metadata: { [key: string]: string }
 

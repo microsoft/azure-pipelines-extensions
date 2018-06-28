@@ -18,22 +18,17 @@ export class ArtifactEngine {
     processItems(sourceProvider: models.IArtifactProvider, destProvider: models.IArtifactProvider, artifactEngineOptions?: ArtifactEngineOptions): Promise<models.ArtifactDownloadTicket[]> {
         var artifactDownloadTicketsPromise = new Promise<models.ArtifactDownloadTicket[]>((resolve, reject) => {
             const workers: Promise<void>[] = [];
-            artifactEngineOptions = artifactEngineOptions || new ArtifactEngineOptions();
-            artifactEngineOptions.artifactCacheDirectory = artifactEngineOptions.artifactCacheDirectory ? artifactEngineOptions.artifactCacheDirectory : tl.getVariable("AGENT_WORKFOLDER");
+            artifactEngineOptions = artifactEngineOptions || new ArtifactEngineOptions();            
             this.createPatternList(artifactEngineOptions);
             var artifactName = sourceProvider.getRootItemPath();
             this.artifactItemStore = new ArtifactItemStore(artifactName);
             this.artifactItemStore.flush();
             Logger.verbose = artifactEngineOptions.verbose;
-            this.logger = new Logger(this.artifactItemStore);
+            this.logger = new Logger(this.artifactItemStore, artifactEngineOptions);
             this.logger.logProgress();
             sourceProvider.artifactItemStore = this.artifactItemStore;
             destProvider.artifactItemStore = this.artifactItemStore;
-            if (!artifactEngineOptions.enableIncrementalDownload) {
-                artifactEngineOptions.artifactCacheDirectory = '';
-                artifactEngineOptions.artifactCacheKey = '';
-            }
-            this.cacheProvider = new CacheProvider(artifactEngineOptions.artifactCacheDirectory, artifactEngineOptions.artifactCacheKey, artifactName);
+            this.cacheProvider = new CacheProvider(artifactEngineOptions.artifactCacheDirectory, artifactEngineOptions.artifactCacheHashKey, artifactName);
             sourceProvider.getRootItems().then((itemsToProcess: models.ArtifactItem[]) => {
                 this.artifactItemStore.addItems(itemsToProcess);
                 this.createNewHashMap(sourceProvider, itemsToProcess, artifactEngineOptions).then(() => {
@@ -51,7 +46,9 @@ export class ArtifactEngine {
                                 resolve(this.artifactItemStore.getTickets());
                             }
                             else {
-                                this.cacheUpdation(sourceProvider, destProvider, resolve);
+                                this.updateCache(sourceProvider, destProvider).then(() => {
+                                    resolve(this.artifactItemStore.getTickets());
+                                });
                             }
                         }
                         else {
@@ -138,15 +135,20 @@ export class ArtifactEngine {
                             downloadedFromCache = true;
                             resolve(contentStream);
                         }
+                    }, (err) => {
+                        ci.publishEvent('reliability', <ci.IReliabilityData>{ issueType: 'error', errorMessage: JSON.stringify(err, Object.getOwnPropertyNames(err)) });
+                        reject(err);
                     });
                 });
 
                 getContentStream.then((contentStream) => {
                     destProvider.putArtifactItem(item, contentStream).then((item) => {
-                        var cacheValidator = this.artifactItemStore.updateState(item, models.TicketState.Processed, downloadedFromCache)
-                        if (!cacheValidator) {
+                        var isDownloadedItemContentValid = this.artifactItemStore.updateState(item, models.TicketState.Processed, downloadedFromCache)
+                        if (!isDownloadedItemContentValid) {
+                            tl.rmRF(path.join(destProvider.getRootLocation(), item.path));
+                            var error = new Error(`Hash Validation of ${item.path} failed while downloading.`);
                             Logger.logInfo("Hash Validation Failed. Retrying Download of " + item.path);
-                            retryIfRequired(null);
+                            retryIfRequired(error);
                         }
                         else {
                             resolve();
@@ -195,7 +197,7 @@ export class ArtifactEngine {
         else {
             this.patternList = artifactEngineOptions.itemPattern.split('\n');
             if (artifactEngineOptions.enableIncrementalDownload) {
-                this.patternList.push("**\\artifact-metadata.csv");
+                this.patternList.push(`**\\${models.Constants.MetadataFile}`);
             }
         }
     }
@@ -203,12 +205,12 @@ export class ArtifactEngine {
     createNewHashMap(sourceProvider: models.IArtifactProvider, itemsToProcess: models.ArtifactItem[], artifactEngineOptions?: ArtifactEngineOptions): Promise<string> {
         return new Promise((resolve, reject) => {
             if (!artifactEngineOptions.enableIncrementalDownload) {
-                this.newHashMap = {};
+                this.filePathToFileHashMap = {};
                 resolve();
             }
             else {
                 sourceProvider.getArtifactItems(itemsToProcess[0]).then((items: models.ArtifactItem[]) => {
-                    sourceProvider.getArtifactItem(items.find(x => path.normalize(x.path) === path.join(itemsToProcess[0].path, 'artifact-metadata.csv'))).then((hashStream: NodeJS.ReadableStream) => {
+                    sourceProvider.getArtifactItem(items.find(x => path.normalize(x.path) === path.join(itemsToProcess[0].path, models.Constants.MetadataFile))).then((hashStream: NodeJS.ReadableStream) => {
                         var newHashPromise = new Promise((resolve) => {
                             var newHash = readline.createInterface({
                                 input: hashStream
@@ -216,7 +218,7 @@ export class ArtifactEngine {
 
                             newHash.on('line', (line) => {
                                 var words = line.split(',');
-                                this.newHashMap[words[0]] = words[1];
+                                this.filePathToFileHashMap[words[0]] = words[1];
                             });
 
                             newHash.on('close', () => {
@@ -224,53 +226,57 @@ export class ArtifactEngine {
                             });
                         });
                         newHashPromise.then(() => {
-                            this.artifactItemStore.setHashMap(this.newHashMap)
+                            this.artifactItemStore.setHashMap(this.filePathToFileHashMap)
                             resolve();
                         });
                     }, (err) => {
-                        Logger.logInfo("Incremental Download Failed. Downloading normally.")
+                        Logger.logInfo("Incremental Download Failed. Downloading normally.");
+                        ci.publishEvent('reliability', <ci.IReliabilityData>{ issueType: 'error', errorMessage: JSON.stringify(err, Object.getOwnPropertyNames(err)) });
                         artifactEngineOptions.enableIncrementalDownload = false;
-                        this.newHashMap = {};
+                        this.filePathToFileHashMap = {};
                         resolve();
                     });
                 }, (err) => {
-                    Logger.logInfo("Incremental Download Failed. Downloading normally.")
+                    Logger.logInfo("Incremental Download Failed. Downloading normally.");
+                    ci.publishEvent('reliability', <ci.IReliabilityData>{ issueType: 'error', errorMessage: JSON.stringify(err, Object.getOwnPropertyNames(err)) });
                     artifactEngineOptions.enableIncrementalDownload = false;
-                    this.newHashMap = {};
+                    this.filePathToFileHashMap = {};
                     resolve();
                 });
             }
         });
     }
 
-    cacheUpdation(sourceProvider: models.IArtifactProvider, destProvider: models.IArtifactProvider, resolve) {
-        var destination = destProvider.getRootLocation();
-        var artifactName = sourceProvider.getRootItemPath();
-        var cachePath = this.cacheProvider.getCacheDirectory();
-        if (fs.existsSync(cachePath)) {
-            tl.rmRF(cachePath);
-        }
-        var self = this;
-        var cacheValidator = false;
-        tl.mkdirP(cachePath);
-        tl.cp((path.join(destination, artifactName) + '/.'), cachePath, '-r');
-        var verifyFile = fs.createWriteStream(path.join(cachePath, "verify.json"));
-        verifyFile.write(JSON.stringify({ lastUpdatedOn: new Date().toISOString() }), () => {
-            sourceProvider.dispose();
-            destProvider.dispose();
-            verifyFile.close();
-            resolve(self.artifactItemStore.getTickets());
-        });
-        verifyFile.on('error', (err) => {
-            ci.publishEvent('reliability', <ci.IReliabilityData>{ issueType: 'error', errorMessage: JSON.stringify(err, Object.getOwnPropertyNames(err)) });
-        });
+    updateCache(sourceProvider: models.IArtifactProvider, destProvider: models.IArtifactProvider) {
+        return new Promise((resolve,reject) => {
+            var destination = destProvider.getRootLocation();
+            var artifactName = sourceProvider.getRootItemPath();
+            var cachePath = this.cacheProvider.getCacheDirectory();
+            if (fs.existsSync(cachePath)) {
+                tl.rmRF(cachePath);
+            }
+            tl.mkdirP(cachePath);
+            tl.cp((path.join(destination, artifactName) + '/.'), cachePath, '-r');
+            var verifyFile = fs.createWriteStream(path.join(cachePath, "verify.json"));
+            verifyFile.write(JSON.stringify({ lastUpdatedOn: new Date().toISOString() }), () => {
+                sourceProvider.dispose();
+                destProvider.dispose();
+                verifyFile.close();
+                resolve();
+            });
+            verifyFile.on('error', (err) => {
+                ci.publishEvent('reliability', <ci.IReliabilityData>{ issueType: 'error', errorMessage: JSON.stringify(err, Object.getOwnPropertyNames(err)) });
+                Logger.logInfo(err);
+                reject(err);
+            });
+        });        
     }
 
     private artifactItemStore: ArtifactItemStore;
     private logger: Logger;
     private cacheProvider: CacheProvider;
     private patternList: string[];
-    private newHashMap = {};
+    private filePathToFileHashMap = {};
 }
 
 tl.setResourcePath(path.join(path.dirname(__dirname), 'lib.json'));

@@ -1,4 +1,7 @@
-﻿import * as assert from 'assert';
+﻿var mock = require('mock-fs');
+var mockery = require("mockery");
+
+import * as assert from 'assert';
 
 import * as engine from '../Engine';
 import * as providers from '../Providers';

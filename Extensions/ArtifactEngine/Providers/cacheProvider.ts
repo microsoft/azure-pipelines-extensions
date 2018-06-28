@@ -14,12 +14,12 @@ export class CacheProvider implements models.IArtifactProvider {
 
     public artifactItemStore: ArtifactItemStore;
 
-    constructor(artifactCacheDirectory: string, artifactCacheKey: string, relPath?: string) {
-        this.artifactCacheDirectory = artifactCacheDirectory;
-        this.key = crypto.createHash('SHA256').update(artifactCacheKey).digest('hex');
+    constructor(artifactCacheDirectory: string, artifactCacheHashKey: string, relPath?: string) {
+        this.artifactCacheDirectory = artifactCacheDirectory ? artifactCacheDirectory : '';
+        this.key = crypto.createHash('SHA256').update(artifactCacheHashKey ? artifactCacheHashKey : '').digest('hex');
         this.relPath = relPath ? relPath : '';
-        this.cacheDirectory = path.join(artifactCacheDirectory, models.Constants.CacheFolder, this.key);
-        this.cacheHashPath = path.join(this.cacheDirectory, 'artifact-metadata.csv');
+        this.cacheDirectory = path.join(this.artifactCacheDirectory, models.Constants.CacheFolder, this.key);
+        this.cacheHashFilePath = path.join(this.cacheDirectory, models.Constants.MetadataFile);
         this.makeOldHash()
     }
 
@@ -33,12 +33,13 @@ export class CacheProvider implements models.IArtifactProvider {
 
     getArtifactItem(artifactItem: models.ArtifactItem): Promise<NodeJS.ReadableStream> {
         var promise = new Promise<NodeJS.ReadableStream>((resolve, reject) => {
-            if (artifactItem.fileHash && artifactItem.fileHash === this.oldFileHashMap[path.normalize(artifactItem.path.substring(this.relPath.length + 1))]
-                && fs.existsSync(path.join(this.artifactCacheDirectory, models.Constants.CacheFolder, this.key, path.normalize(artifactItem.path.substring(this.relPath.length + 1))))) {
+            var pathInArtifactMetadata = path.normalize(artifactItem.path.substring(this.relPath.length + 1));
+            if (artifactItem.fileHashInArtifactMetadata && artifactItem.fileHashInArtifactMetadata === this.filePathToFileHashMap[pathInArtifactMetadata]
+                && fs.existsSync(path.join(this.artifactCacheDirectory, models.Constants.CacheFolder, this.key, pathInArtifactMetadata))) {
                 const inputStream = fs.createReadStream(path.join(this.artifactCacheDirectory, models.Constants.CacheFolder, this.key, artifactItem.path.substring(this.relPath.length + 1)));
                 inputStream.on('error', (err) => {
                     reject(err);
-                })
+                });
                 resolve(inputStream);
             }
             else {
@@ -63,29 +64,29 @@ export class CacheProvider implements models.IArtifactProvider {
     dispose(): void {
     }
 
-    public makeOldHash(): void {
+    private makeOldHash(): void {
         if (fs.existsSync(path.join(this.artifactCacheDirectory, models.Constants.CacheFolder, this.key, "verify.json"))) {
-            if (fs.existsSync(this.cacheHashPath)) {
+            if (fs.existsSync(this.cacheHashFilePath)) {
                 var oldHash = readline.createInterface({
-                    input: fs.createReadStream(this.cacheHashPath)
+                    input: fs.createReadStream(this.cacheHashFilePath)
                 });
 
                 oldHash.on('line', (line) => {
                     var words = line.split(',');
-                    this.oldFileHashMap[words[0]] = words[1];
+                    this.filePathToFileHashMap[words[0]] = words[1];
                 });
 
                 oldHash.on('close', () => {
-                    Logger.logMessage(tl.loc("SuccessfulCaching"))
+                    Logger.logMessage(tl.loc("SuccessfulCaching"));
                 });
             }
             else {
-                this.oldFileHashMap = {};
-                Logger.logMessage(tl.loc("NoMetadataFile"))
+                this.filePathToFileHashMap = {};
+                Logger.logMessage(tl.loc("NoMetadataFile"));
             }
         }
         else {
-            this.oldFileHashMap = {}
+            this.filePathToFileHashMap = {}
             Logger.logMessage(tl.loc("NoCache"));
         }
     }
@@ -94,9 +95,9 @@ export class CacheProvider implements models.IArtifactProvider {
         return this.cacheDirectory;
     }
 
-    private cacheHashPath: string = "";
+    private cacheHashFilePath: string = "";
     private cacheDirectory: string;
-    private oldFileHashMap = {};
+    private filePathToFileHashMap = {};
     private artifactCacheDirectory: string;
     private key: string;
     private relPath: string;

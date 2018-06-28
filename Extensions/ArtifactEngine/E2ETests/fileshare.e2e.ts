@@ -57,7 +57,7 @@ describe('E2E Tests', () => {
 
             let processorOptions = new engine.ArtifactEngineOptions();
             processorOptions.itemPattern = "fileshareWithMultipleFiles\\**";
-            processorOptions.artifactCacheKey = "default_Collection.123.2048.artifactName";
+            processorOptions.artifactCacheHashKey = "default_Collection.123.2048.artifactName";
             processorOptions.artifactCacheDirectory = path.join(nconf.get('CACHE'));
             processorOptions.enableIncrementalDownload = true;
             processorOptions.parallelProcessingLimit = 8;
@@ -71,7 +71,7 @@ describe('E2E Tests', () => {
             var sourceProvider1 = new providers.FilesystemProvider(itemsUrl1, "fileshareWithMultipleFiles");
             var sourceProvider2 = new providers.FilesystemProvider(itemsUrl2, "fileshareWithMultipleFiles");
             var dropLocation = path.join(nconf.get('DROPLOCATION'));
-            var destProvider = new providers.FilesystemProvider(dropLocation, undefined, true);
+            var destProvider = new providers.FilesystemProvider(dropLocation, "fileshareWithMultipleFiles");
 
             processor.processItems(sourceProvider1, destProvider, processorOptions)
                 .then((tick) => {
@@ -88,6 +88,9 @@ describe('E2E Tests', () => {
                                     }
                                     else if (ticket.artifactItem.path === "fileshareWithMultipleFiles\\Folder1\\File2.txt") {
                                         assert.equal(false, ticket.downloadedFromCache)
+                                    }
+                                    else {
+                                        assert.equal(false, ticket.downloadedFromCache);
                                     }
                                 }
                             });

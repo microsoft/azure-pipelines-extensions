@@ -1,14 +1,16 @@
 import { ItemType } from '../Models';
 import { TicketState } from '../Models/ticketState';
 import { ArtifactItemStore } from '../Store/artifactItemStore';
+import { ArtifactEngineOptions } from '../Engine/artifactEngineOptions'
 
 var tl = require('vsts-task-lib');
 import * as ci from './cilogger';
 
 export class Logger {
 
-    constructor(store: ArtifactItemStore) {
+    constructor(store: ArtifactItemStore, options: ArtifactEngineOptions) {
         this.store = store;
+        this.options = options;
         this.startTime = new Date();
     }
 
@@ -63,6 +65,8 @@ export class Logger {
         var skippedItems = fileTickets.filter(x => x.state == TicketState.Skipped);
         var failedItems = fileTickets.filter(x => x.state == TicketState.Failed);
 
+        var enableIncrementalDownload = this.options.enableIncrementalDownload;
+
         var downloadSizeInBytes = 0;
         var fileSizeInBytes = 0;
 
@@ -76,13 +80,13 @@ export class Logger {
         var endTime = new Date();
         var downloadTime = (endTime.valueOf() - this.startTime.valueOf()) / 1000;
         console.log(
-            tl.loc("DownloadSummary", 
-                    fileTickets.length, 
-                    processedItems.length, 
-                    skippedItems.length, 
-                    failedItems.length, 
-                    downloadTime, 
-                    (downloadSizeInMB > 1 ? downloadSizeInMB.toFixed(3) + "MB" : downloadSizeInBytes + "Bytes")));
+            tl.loc("DownloadSummary",
+                fileTickets.length,
+                processedItems.length,
+                skippedItems.length,
+                failedItems.length,
+                downloadTime,
+                (downloadSizeInMB > 1 ? downloadSizeInMB.toFixed(3) + "MB" : downloadSizeInBytes + "Bytes")));
 
         ci.publishEvent('performance',
             {
@@ -94,7 +98,8 @@ export class Logger {
                 failed: failedItems.length,
                 downloadTimeInSeconds: downloadTime,
                 downloadSizeInBytes: downloadSizeInBytes,
-                fileSizeInBytes: fileSizeInBytes
+                fileSizeInBytes: fileSizeInBytes,
+                enableIncrementalDownload: enableIncrementalDownload
             });
 
         if (Logger.verbose) {
@@ -127,5 +132,6 @@ export class Logger {
 
     public static verbose: boolean;
     private store: ArtifactItemStore;
+    private options: ArtifactEngineOptions;
     private startTime: Date;
 }

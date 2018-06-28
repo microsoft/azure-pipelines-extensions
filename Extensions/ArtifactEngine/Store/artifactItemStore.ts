@@ -5,7 +5,7 @@ import * as models from "../Models"
 export class ArtifactItemStore {
     _downloadTickets: models.ArtifactDownloadTicket[] = [];
     _artifactName: string = "";
-    private hashMap = {};
+    private filePathToFileHashMap = {};
 
     constructor(artifactName?: string) {
         this._artifactName = artifactName ? artifactName : "";
@@ -26,14 +26,15 @@ export class ArtifactItemStore {
             downloadSizeInBytes: 0,
             fileSizeInBytes: 0
         };
-        if (this.hashMap[path.normalize(item.path.substring(this._artifactName.length + 1))]) {
-            artifactDownloadTicket.artifactItem.fileHash = this.hashMap[path.normalize(item.path.substring(this._artifactName.length + 1))]
+        var pathInArtifactMetadata = path.normalize(item.path.substring(this._artifactName.length + 1))
+        if (this.filePathToFileHashMap[pathInArtifactMetadata]) {
+            artifactDownloadTicket.artifactItem.fileHashInArtifactMetadata = this.filePathToFileHashMap[pathInArtifactMetadata]
         }
         this._downloadTickets.push(artifactDownloadTicket);
     }
 
-    public setHashMap(hashMap: Object) {
-        this.hashMap = hashMap;
+    public setHashMap(filePathToFileHashMap: Object) {
+        this.filePathToFileHashMap = filePathToFileHashMap;
     }
 
     public addItems(items: models.ArtifactItem[]): void {
@@ -72,7 +73,7 @@ export class ArtifactItemStore {
             if (state != models.TicketState.InQueue && state != models.TicketState.Processing) {
                 processedItem.finishTime = new Date();
             }
-            if ((item.downloadedFileHash && item.downloadedFileHash === item.fileHash) || !item.fileHash) {
+            if ((item.downloadedFileHash && item.downloadedFileHash === item.fileHashInArtifactMetadata) || !item.fileHashInArtifactMetadata) {
                 return true;
             }
             else {

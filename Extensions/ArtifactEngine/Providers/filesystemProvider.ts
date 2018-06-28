@@ -12,10 +12,9 @@ export class FilesystemProvider implements models.IArtifactProvider {
 
     public artifactItemStore: ArtifactItemStore;
 
-    constructor(rootLocation: string, rootItemPath?: string, cleanTargetDirectory?: boolean) {
+    constructor(rootLocation: string, rootItemPath?: string) {
         this._rootLocation = rootLocation;
         this._rootItemPath = rootItemPath ? rootItemPath : '';
-        this._cleanTargetDirectory = cleanTargetDirectory ? cleanTargetDirectory : false;
         this._directoryCleanedFlag = false;
     }
 
@@ -55,9 +54,9 @@ export class FilesystemProvider implements models.IArtifactProvider {
 
     public putArtifactItem(item: models.ArtifactItem, stream: NodeJS.ReadableStream): Promise<models.ArtifactItem> {
         return new Promise((resolve, reject) => {
-            if (this._cleanTargetDirectory && !this._directoryCleanedFlag) {
-                if (fs.existsSync(this._rootLocation)) {
-                    tl.rmRF(this._rootLocation)
+            if (!this._directoryCleanedFlag) {
+                if (fs.existsSync(path.join(this._rootLocation, this._rootItemPath))) {
+                    tl.rmRF(path.join(this._rootLocation, this._rootItemPath));
                 }
                 this._directoryCleanedFlag = true;
             }
@@ -143,7 +142,7 @@ export class FilesystemProvider implements models.IArtifactProvider {
                         path: parentRelativePath ? path.join(parentRelativePath, file) : file,
                         fileLength: itemStat.size,
                         downloadedFileHash: "",
-                        fileHash: "",
+                        fileHashInArtifactMetadata: "",
                         lastModified: itemStat.mtime,
                         metadata: { "downloadUrl": filePath }
                     }
@@ -160,6 +159,5 @@ export class FilesystemProvider implements models.IArtifactProvider {
 
     private _rootLocation: string;
     private _rootItemPath: string;
-    private _cleanTargetDirectory: boolean;
     private _directoryCleanedFlag: boolean;
 }

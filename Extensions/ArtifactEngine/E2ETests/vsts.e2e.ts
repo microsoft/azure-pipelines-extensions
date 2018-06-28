@@ -60,7 +60,7 @@ describe('E2E Tests', () => {
 
             let processorOptions = new engine.ArtifactEngineOptions();
             processorOptions.itemPattern = "**";
-            processorOptions.artifactCacheKey = "default_Collection.123.2048.vstsdrop";
+            processorOptions.artifactCacheHashKey = "default_Collection.123.2048.vstsdrop";
             processorOptions.artifactCacheDirectory = path.join(nconf.get('CACHE'));
             processorOptions.enableIncrementalDownload = true;
             processorOptions.parallelProcessingLimit = 8;
@@ -77,7 +77,7 @@ describe('E2E Tests', () => {
             var webProvider2 = new providers.WebProvider(itemsUrl2, "vsts.handlebars", variables, handler, { ignoreSslError: false }, "drop");
 
             var dropLocation = path.join(nconf.get('DROPLOCATION'));
-            var filesystemProvider = new providers.FilesystemProvider(dropLocation, undefined, true);
+            var filesystemProvider = new providers.FilesystemProvider(dropLocation, "drop");
 
             processor.processItems(webProvider1, filesystemProvider, processorOptions)
                 .then((tick) => {
@@ -94,6 +94,9 @@ describe('E2E Tests', () => {
                                     }
                                     else if (path.normalize(ticket.artifactItem.path) === "drop\\Folder1\\File2.txt") {
                                         assert.equal(false, ticket.downloadedFromCache)
+                                    }
+                                    else {
+                                        assert.equal(false, ticket.downloadedFromCache);
                                     }
                                 }
                             });
@@ -112,7 +115,7 @@ describe('E2E Tests', () => {
 
             let processorOptions = new engine.ArtifactEngineOptions();
             processorOptions.itemPattern = "drop\\Folder1\\**";
-            processorOptions.artifactCacheKey = "default_Collection.123.2048.vstsdrop";
+            processorOptions.artifactCacheHashKey = "default_Collection.123.2048.vstsdrop";
             processorOptions.artifactCacheDirectory = path.join(nconf.get('CACHE'));
             processorOptions.enableIncrementalDownload = true;
             processorOptions.parallelProcessingLimit = 8;
@@ -129,7 +132,7 @@ describe('E2E Tests', () => {
             var webProvider2 = new providers.WebProvider(itemsUrl2, "vsts.handlebars", variables, handler, { ignoreSslError: false }, "drop");
 
             var dropLocation = path.join(nconf.get('DROPLOCATION'));
-            var filesystemProvider = new providers.FilesystemProvider(dropLocation, undefined, true);
+            var filesystemProvider = new providers.FilesystemProvider(dropLocation, "drop");
 
             processor.processItems(webProvider1, filesystemProvider, processorOptions)
                 .then((tick) => {
@@ -145,6 +148,9 @@ describe('E2E Tests', () => {
                                     }
                                     else if (path.normalize(ticket.artifactItem.path) === "drop\\Folder1\\File1.txt") {
                                         assert.equal(true, ticket.downloadedFromCache)
+                                    }
+                                    else {
+                                        assert.equal(false, ticket.downloadedFromCache);
                                     }
                                 }
                             });
