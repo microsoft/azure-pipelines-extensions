@@ -49,6 +49,9 @@ To use this authentication scheme you will need to override following 2 fields i
       }
     }
 ```    
+<b> `Redirect Url` </b> : Used by OAuth supported endpoints to share the tokens with VSTS. Here's the callback url in TFS that should be used for redirection.
+- TFS : http://yourhostname:8080/tfs/DefaultCollection/_admin/oauth2/callback
+- Hosted (VSTS) : https://youraccount.visualstudio.com/_admin/oauth2/callback
 
 E.g below is how `oauth2` authentication scheme is used in *Github Enterprise* endpoint :
 ```
