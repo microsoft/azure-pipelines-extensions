@@ -65,28 +65,32 @@ describe('E2E Tests', () => {
             processorOptions.retryLimit = 2;
             processorOptions.verbose = true;
 
-            var itemsUrl1 = "C:/vsts-agent/_layout/_work/9/s/fileshareWithMultipleFiles";
-            var itemsUrl2 = "C:/vsts-agent/_layout/_work/10/s/fileshareWithMultipleFiles";
+            var itemsUrl1 = "C:/TestData/Old";
+            var itemsUrl2 = "C:/TestData/New";
             var variables = {};
             var sourceProvider1 = new providers.FilesystemProvider(itemsUrl1, "fileshareWithMultipleFiles");
             var sourceProvider2 = new providers.FilesystemProvider(itemsUrl2, "fileshareWithMultipleFiles");
             var dropLocation = path.join(nconf.get('DROPLOCATION'));
-            var destProvider = new providers.FilesystemProvider(dropLocation, "fileshareWithMultipleFiles");
+            var destProvider1 = new providers.FilesystemProvider(dropLocation, "fileshareWithMultipleFiles");
+            var destProvider2 = new providers.FilesystemProvider(dropLocation, "fileshareWithMultipleFiles");
 
-            processor.processItems(sourceProvider1, destProvider, processorOptions)
+            processor.processItems(sourceProvider1, destProvider1, processorOptions)
                 .then((tick) => {
-                    processor.processItems(sourceProvider2, destProvider, processorOptions)
+                    processor.processItems(sourceProvider2, destProvider2, processorOptions)
                         .then((tickets) => {
                             tickets.forEach((ticket) => {
                                 if (ticket.artifactItem.itemType !== models.ItemType.Folder) {
-                                    if (ticket.artifactItem.path === "fileshareWithMultipleFiles\\File3.txt") {
+                                    if (path.normalize(ticket.artifactItem.path) === "fileshareWithMultipleFiles\\File4.txt") {
                                         assert.equal(true, ticket.downloadedFromCache)
                                         done();
                                     }
-                                    else if (ticket.artifactItem.path === "fileshareWithMultipleFiles\\Folder1\\File1.txt") {
-                                        assert.equal(true, ticket.downloadedFromCache)
+                                    else if (path.normalize(ticket.artifactItem.path) === "fileshareWithMultipleFiles\\File3.txt") {
+                                        done(new Error("File3 was downloaded."));
                                     }
-                                    else if (ticket.artifactItem.path === "fileshareWithMultipleFiles\\Folder1\\File2.txt") {
+                                    else if (path.normalize(ticket.artifactItem.path) === "fileshareWithMultipleFiles\\Folder1\\File1.txt") {
+                                        assert.equal(false, ticket.downloadedFromCache)
+                                    }
+                                    else if (path.normalize(ticket.artifactItem.path) === "fileshareWithMultipleFiles\\Folder1\\File2.txt") {
                                         assert.equal(false, ticket.downloadedFromCache)
                                     }
                                     else {

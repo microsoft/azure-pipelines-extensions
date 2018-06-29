@@ -68,8 +68,8 @@ describe('E2E Tests', () => {
             processorOptions.retryLimit = 2;
             processorOptions.verbose = true;
 
-            var itemsUrl1 = "https://testking123.visualstudio.com/_apis/resources/Containers/2631516?itemPath=drop&isShallow=false";
-            var itemsUrl2 = "https://testking123.visualstudio.com/_apis/resources/Containers/2631521?itemPath=drop&isShallow=false";
+            var itemsUrl1 = "https://testking123.visualstudio.com/_apis/resources/Containers/2657897?itemPath=drop&isShallow=false";
+            var itemsUrl2 = "https://testking123.visualstudio.com/_apis/resources/Containers/2658026?itemPath=drop&isShallow=false";
             var variables = {};
 
             var handler = new PersonalAccessTokenCredentialHandler(nconf.get('VSTS:PAT'));
@@ -77,20 +77,24 @@ describe('E2E Tests', () => {
             var webProvider2 = new providers.WebProvider(itemsUrl2, "vsts.handlebars", variables, handler, { ignoreSslError: false }, "drop");
 
             var dropLocation = path.join(nconf.get('DROPLOCATION'));
-            var filesystemProvider = new providers.FilesystemProvider(dropLocation, "drop");
+            var filesystemProvider1 = new providers.FilesystemProvider(dropLocation, "drop");
+            var filesystemProvider2 = new providers.FilesystemProvider(dropLocation, "drop");
 
-            processor.processItems(webProvider1, filesystemProvider, processorOptions)
+            processor.processItems(webProvider1, filesystemProvider1, processorOptions)
                 .then((tick) => {
-                    processor.processItems(webProvider2, filesystemProvider, processorOptions)
+                    processor.processItems(webProvider2, filesystemProvider2, processorOptions)
                         .then((tickets) => {
                             tickets.forEach((ticket) => {
                                 if (ticket.artifactItem.itemType !== models.ItemType.Folder) {
-                                    if (path.normalize(ticket.artifactItem.path) === "drop\\File3.txt") {
+                                    if (path.normalize(ticket.artifactItem.path) === "drop\\File4.txt") {
                                         assert.equal(true, ticket.downloadedFromCache)
                                         done();
                                     }
+                                    else if (path.normalize(ticket.artifactItem.path) === "drop\\File3.txt") {
+                                        done(new Error("File3 was downloaded."));
+                                    }
                                     else if (path.normalize(ticket.artifactItem.path) === "drop\\Folder1\\File1.txt") {
-                                        assert.equal(true, ticket.downloadedFromCache)
+                                        assert.equal(false, ticket.downloadedFromCache)
                                     }
                                     else if (path.normalize(ticket.artifactItem.path) === "drop\\Folder1\\File2.txt") {
                                         assert.equal(false, ticket.downloadedFromCache)
@@ -115,7 +119,7 @@ describe('E2E Tests', () => {
 
             let processorOptions = new engine.ArtifactEngineOptions();
             processorOptions.itemPattern = "drop\\Folder1\\**";
-            processorOptions.artifactCacheHashKey = "default_Collection.123.2048.vstsdrop";
+            processorOptions.artifactCacheHashKey = "default_Collection.123.2048.vstsdropWithDifferentPattern";
             processorOptions.artifactCacheDirectory = path.join(nconf.get('CACHE'));
             processorOptions.enableIncrementalDownload = true;
             processorOptions.parallelProcessingLimit = 8;
@@ -123,8 +127,8 @@ describe('E2E Tests', () => {
             processorOptions.retryLimit = 2;
             processorOptions.verbose = true;
 
-            var itemsUrl1 = "https://testking123.visualstudio.com/_apis/resources/Containers/2631516?itemPath=drop&isShallow=false";
-            var itemsUrl2 = "https://testking123.visualstudio.com/_apis/resources/Containers/2632010?itemPath=drop&isShallow=false";
+            var itemsUrl1 = "https://testking123.visualstudio.com/_apis/resources/Containers/2657897?itemPath=drop&isShallow=false";
+            var itemsUrl2 = "https://testking123.visualstudio.com/_apis/resources/Containers/2658026?itemPath=drop&isShallow=false";
             var variables = {};
 
             var handler = new PersonalAccessTokenCredentialHandler(nconf.get('VSTS:PAT'));
@@ -142,12 +146,18 @@ describe('E2E Tests', () => {
                         .then((tickets) => {
                             tickets.forEach((ticket) => {
                                 if (ticket.artifactItem.itemType !== models.ItemType.Folder) {
-                                    if (path.normalize(ticket.artifactItem.path) === "drop\\File3.txt") {
+                                    if (path.normalize(ticket.artifactItem.path) === "drop\\File4.txt") {
                                         assert.equal(false, ticket.downloadedFromCache)
                                         done();
                                     }
+                                    else if (path.normalize(ticket.artifactItem.path) === "drop\\File3.txt") {
+                                        done(new Error("File3 was downloaded."))
+                                    }
                                     else if (path.normalize(ticket.artifactItem.path) === "drop\\Folder1\\File1.txt") {
-                                        assert.equal(true, ticket.downloadedFromCache)
+                                        assert.equal(false, ticket.downloadedFromCache)
+                                    }
+                                    else if (path.normalize(ticket.artifactItem.path) === "drop\\Folder1\\File2.txt") {
+                                        assert.equal(false, ticket.downloadedFromCache)
                                     }
                                     else {
                                         assert.equal(false, ticket.downloadedFromCache);
