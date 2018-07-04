@@ -74,6 +74,46 @@ describe('Perf Tests', () => {
                     throw error;
                 });
         });
+        
+        //Artifact details => Source: FileShare, FilesCount: 20392, TotalFileSize: ~86MB
+        runWindowsBasedTest('should be able to incrementally download build artifact with large volume of files from fileshare', function (done) {
+            this.timeout(3000000);  //50mins
+            let processor = new engine.ArtifactEngine();
+
+            let processorOptions = new engine.ArtifactEngineOptions();
+            processorOptions.itemPattern = "**";
+            processorOptions.artifactCacheHashKey = "default_Collection.123.2048.artifacte";
+            processorOptions.artifactCacheDirectory = path.join(nconf.get('CACHE'));
+            processorOptions.parallelProcessingLimit = 64;
+            processorOptions.enableIncrementalDownload = true;
+            processorOptions.retryIntervalInSeconds = 2;
+            processorOptions.retryLimit = 4;
+            processorOptions.verbose = true;
+
+            var itemsUrl = "//vscsstor/Users/gykuma/ArtifactEngineTestData2/files20k";
+            var itemsUrl1 = "//vscsstor/Users/gykuma/ArtifactEngineTestData2/files20k_changed";
+
+            var sourceProvider = new providers.FilesystemProvider(itemsUrl, "fileshareWithLargeVolumeFiles");
+            var sourceProvider1 = new providers.FilesystemProvider(itemsUrl1, "fileshareWithLargeVolumeFiles");
+            var dropLocation = path.join(nconf.get('DROPLOCATION'));
+            var filesystemProvider = new providers.FilesystemProvider(dropLocation, "fileshareWithLargeVolumeFiles");
+            var filesystemProvider1 = new providers.FilesystemProvider(dropLocation, "fileshareWithLargeVolumeFiles");
+
+            processor.processItems(sourceProvider, filesystemProvider, processorOptions)
+                .then((tick) => {
+                    processor.processItems(sourceProvider1, filesystemProvider1, processorOptions)
+                        .then((tickets) => {
+                            let fileTickets = tickets.filter(x => x.artifactItem.itemType == ItemType.File && x.state === TicketState.Processed);
+                            assert.equal(fileTickets.length, 20392);
+                            assert(getDownloadSizeInMB(fileTickets) > 70);
+                            done();
+                        }, (error) => {
+                            throw error;
+                        });  
+                }, (error) => {
+                    throw error;
+                });
+        });
     });
 });
 

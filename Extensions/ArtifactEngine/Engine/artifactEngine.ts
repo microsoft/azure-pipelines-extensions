@@ -212,16 +212,27 @@ export class ArtifactEngine {
                 sourceProvider.getArtifactItems(itemsToProcess[0]).then((items: models.ArtifactItem[]) => {
                     sourceProvider.getArtifactItem(items.find(x => path.normalize(x.path) === path.join(itemsToProcess[0].path, models.Constants.MetadataFile))).then((hashStream: NodeJS.ReadableStream) => {
                         var newHashPromise = new Promise((resolve) => {
+                            var isMetadataCorrupt = false;
                             var newHash = readline.createInterface({
                                 input: hashStream
                             });
 
                             newHash.on('line', (line) => {
                                 var words = line.split(',');
-                                this.filePathToFileHashMap[words[0]] = words[1];
+                                if (words.length === 2) {
+                                    this.filePathToFileHashMap[words[0]] = words[1];
+                                }
+                                else {
+                                    Logger.logMessage(tl.loc("MetadataCorrupt"))
+                                    isMetadataCorrupt = true;
+                                }
                             });
 
                             newHash.on('close', () => {
+                                if (isMetadataCorrupt) {
+                                    this.filePathToFileHashMap = {};
+                                    artifactEngineOptions.enableIncrementalDownload = false;
+                                }
                                 resolve();
                             });
                         });

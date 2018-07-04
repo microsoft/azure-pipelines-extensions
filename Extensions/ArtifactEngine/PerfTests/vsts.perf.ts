@@ -82,6 +82,48 @@ describe('Perf Tests', () => {
                     throw error;
                 });
         });
+
+        //Artifact details => Source: BuildContainer, FilesCount: 20392, DownloadSize: ~23MB, TotalFileSize: ~99MB
+        it('should be able to download build artifact with large volume of files from vsts drop', function (done) {
+            this.timeout(1800000);  //30mins
+            let processor = new engine.ArtifactEngine();
+
+            let processorOptions = new engine.ArtifactEngineOptions();
+            processorOptions.itemPattern = "**";
+            processorOptions.artifactCacheHashKey = "default_Collection.123.2048.artifacte1";
+            processorOptions.artifactCacheDirectory = path.join(nconf.get('CACHE'));
+            processorOptions.parallelProcessingLimit = 64;
+            processorOptions.enableIncrementalDownload = true;
+            processorOptions.retryIntervalInSeconds = 2;
+            processorOptions.retryLimit = 4;
+            processorOptions.verbose = true;
+
+            var itemsUrl = "https://testking123.visualstudio.com/_apis/resources/Containers/2689589?itemPath=drop_changed&isShallow=false";
+            var itemsUrl1 = "https://testking123.visualstudio.com/_apis/resources/Containers/2689518?itemPath=drop_changed&isShallow=false";
+            var variables = {};
+
+            var handler = new PersonalAccessTokenCredentialHandler(nconf.get('VSTS:PAT'));
+            var webProvider = new providers.WebProvider(itemsUrl, "vsts.handlebars", variables, handler, { ignoreSslError: false }, "vstsDropWithLargeFiles");
+            var webProvider1 = new providers.WebProvider(itemsUrl1, "vsts.handlebars", variables, handler, { ignoreSslError: false }, "vstsDropWithLargeFiles");
+            var dropLocation = path.join(nconf.get('DROPLOCATION'));
+            var filesystemProvider = new providers.FilesystemProvider(dropLocation, "vstsDropWithLargeFiles");
+            var filesystemProvider1 = new providers.FilesystemProvider(dropLocation, "vstsDropWithLargeFiles");
+
+            processor.processItems(webProvider, filesystemProvider, processorOptions)
+                .then((tick) => {
+                    processor.processItems(webProvider1, filesystemProvider1, processorOptions)
+                        .then((tickets) => {
+                            let fileTickets = tickets.filter(x => x.artifactItem.itemType == ItemType.File && x.state === TicketState.Processed);
+                            assert.equal(fileTickets.length, 20392);
+                            assert(getDownloadSizeInMB(fileTickets) > 15);
+                            done();
+                        }, (error) => {
+                            throw error;
+                        });  
+                }, (error) => {
+                    throw error;
+                });
+        });
     });
 });
 

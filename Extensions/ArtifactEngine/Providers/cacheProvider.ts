@@ -67,16 +67,26 @@ export class CacheProvider implements models.IArtifactProvider {
     private makeOldHash(): void {
         if (fs.existsSync(path.join(this.artifactCacheDirectory, models.Constants.CacheFolder, this.key, "verify.json"))) {
             if (fs.existsSync(this.cacheHashFilePath)) {
+                var isMetadataCorrupt = false;
                 var oldHash = readline.createInterface({
                     input: fs.createReadStream(this.cacheHashFilePath)
                 });
 
                 oldHash.on('line', (line) => {
                     var words = line.split(',');
-                    this.filePathToFileHashMap[words[0]] = words[1];
+                    if (words.length === 2) {
+                        this.filePathToFileHashMap[words[0]] = words[1];
+                    }
+                    else {
+                        Logger.logMessage(tl.loc("CorruptMetadata"));
+                        isMetadataCorrupt = true;
+                    }
                 });
 
                 oldHash.on('close', () => {
+                    if (isMetadataCorrupt) {
+                        this.filePathToFileHashMap = {};
+                    }
                     Logger.logMessage(tl.loc("SuccessfulCaching"));
                 });
             }
