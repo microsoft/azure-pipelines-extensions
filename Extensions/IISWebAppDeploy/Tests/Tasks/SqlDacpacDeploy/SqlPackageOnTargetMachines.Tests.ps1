@@ -62,6 +62,7 @@ $vsVersions = @($vsVersion1, $vsVersion2, $vsVersion3)
 $testDacPath = "C:\test"
 $testDacPath64 = "C:\test64"
 $testdacInstallPath = [System.IO.Path]::Combine($testDacPath, "Dac", "bin", "SqlPackage.exe")
+$testdacVSLastestInstallPath = [System.IO.Path]::Combine($testDacPath, "Common7", "IDE", "Extensions", "Dac", "bin", "SqlPackage.exe")
 $testdacInstallPath64 = [System.IO.Path]::Combine($testDacPath64, "Dac", "bin", "SqlPackage.exe")
 $dacVersionOut = 120
 $testDacVersionHigher = $testDacVersionDirHigher.Name
@@ -405,6 +406,7 @@ Describe "LocateHighestVersionSqlPackageInVS" {
     Context "Visual Studio not present on the machine" {
         Mock Test-Path { return $false } -ParameterFilter { $Path -eq $vsRegKey }
         Mock Test-Path { return $false } -ParameterFilter { $Path -eq $vsRegKey64 }
+        Mock Get-LatestVersionSqlPackageInDacDirectory { return $null, 0 }
         It "Should return null if VS is not present on machine" {
             $vsPath, $version = LocateHighestVersionSqlPackageInVS 
             $vsPath | Should Be $null
@@ -414,6 +416,7 @@ Describe "LocateHighestVersionSqlPackageInVS" {
 
     Context "SQLPackage present in first VS version" {  
         Mock LocateSqlPackageInVS { return $testDacPath, $dacVersionOut } -ParameterFilter {$Version -eq $vsVersion1}
+        Mock Locate-SqlPackageInVSLatest { return $null, 0}
         It "Should return correct sql dacapc path and version from the first version" {
             $vsPath, $version = LocateHighestVersionSqlPackageInVS 
             $vsPath | Should Be $testDacPath
@@ -424,9 +427,21 @@ Describe "LocateHighestVersionSqlPackageInVS" {
     Context "SQLPackage present in second VS version" {
         Mock LocateSqlPackageInVS { return $null, 0 } -ParameterFilter {$Version -eq $vsVersion1}
         Mock LocateSqlPackageInVS { return $testDacPath, $dacVersionOut } -ParameterFilter {$Version -eq $vsVersion2}
+        Mock Locate-SqlPackageInVSLatest { return $null, 0}
         It "Should return correct sql dacapc path and version from the second version" {
             $vsPath, $version = LocateHighestVersionSqlPackageInVS 
             $vsPath | Should Be $testDacPath
+            $version | Should Be $dacVersionOut
+        }
+    }
+
+    Context "SQLPackage present in VS Latest version" {
+        Mock LocateSqlPackageInVS { return $null, 0 } -ParameterFilter {$Version -eq $vsVersion1}
+        Mock LocateSqlPackageInVS { return $testDacPath, $dacVersionOut } -ParameterFilter {$Version -eq $vsVersion2}
+        Mock Get-LatestVersionSqlPackageInDacDirectory { return $testdacVSLastestInstallPath, $dacVersionOut }
+        It "Should return correct sql dacapc path and version from the second version" {
+            $vsPath, $version = LocateHighestVersionSqlPackageInVS 
+            $vsPath | Should Be $testdacVSLastestInstallPath
             $version | Should Be $dacVersionOut
         }
     }
@@ -435,6 +450,7 @@ Describe "LocateHighestVersionSqlPackageInVS" {
         Mock LocateSqlPackageInVS { return $null, 0 } -ParameterFilter {$Version -eq $vsVersion1}
         Mock LocateSqlPackageInVS { return $null, 0 } -ParameterFilter {$Version -eq $vsVersion2}
         Mock LocateSqlPackageInVS { return $null, 0 } -ParameterFilter {$Version -eq $vsVersion3}
+        Mock Locate-SqlPackageInVSLatest { return $null, 0}
         It "Should return null if SqlPackage not found in VS" {
             $vsPath, $version = LocateHighestVersionSqlPackageInVS 
             $vsPath | Should Be $null
