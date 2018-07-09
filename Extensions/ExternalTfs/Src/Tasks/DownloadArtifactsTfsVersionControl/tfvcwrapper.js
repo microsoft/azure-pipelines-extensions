@@ -69,9 +69,17 @@ var TfvcWrapper = (function (_super) {
 
     TfvcWrapper.prototype.get = function (version) {
         if (isTEE === true) {
-            return this._exec('get', ['.', '-recursive', '-version:' + version, '-noprompt'], true);
+            if (!version) {
+                return this._exec('get', ['.', '-recursive', '-noprompt'], true);    
+            } else {
+                return this._exec('get', ['.', '-recursive', '-version:' + version, '-noprompt'], true);
+            }
         } else {
-            return this._exec('get', ['.', '-recursive', '-version:' + version, '-noprompt'], false);
+            if (!version) {
+                return this._exec('get', ['.', '-recursive', '-noprompt'], false);
+            } else {
+                return this._exec('get', ['.', '-recursive', '-version:' + version, '-noprompt'], false);
+            }
         }
     };
 
