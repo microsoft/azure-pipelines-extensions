@@ -314,7 +314,7 @@
           },
           {
             "target": "definition",
-            "dataSourceName": "{{#if paginationEnabled}}DefinitionsPaged{{else}}Definitions{{/if}}",
+            "dataSourceName": "DefinitionsPaged",
             "resultTemplate": "{ Value : \"{{id}}\", DisplayValue : \"{{{name}}}\" }"
           },
           {
