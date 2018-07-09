@@ -7,5 +7,6 @@
   "loc.messages.RetryingDownload": "正在重試下載 %s，重試次數: %s",
   "loc.messages.SkippingItem": "已跳過處理項目 %s",
   "loc.messages.UnhandledRejection": "artifact-engine: 未處理的拒絕 %s",
-  "loc.messages.UnhandledException": "artifact-engine: 未處理的例外狀況 %s"
+  "loc.messages.UnhandledException": "artifact-engine: 未處理的例外狀況 %s",
+  "loc.messages.FailedRequest": "Failed request: (statusCode)"
 }
