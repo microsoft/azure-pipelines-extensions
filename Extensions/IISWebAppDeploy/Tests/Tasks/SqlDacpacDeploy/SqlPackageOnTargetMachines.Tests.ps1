@@ -406,6 +406,7 @@ Describe "LocateHighestVersionSqlPackageInVS" {
     Context "Visual Studio not present on the machine" {
         Mock Test-Path { return $false } -ParameterFilter { $Path -eq $vsRegKey }
         Mock Test-Path { return $false } -ParameterFilter { $Path -eq $vsRegKey64 }
+        Mock Find-VSWhere { return $null }
         It "Should return null if VS is not present on machine" {
             $vsPath, $version = LocateHighestVersionSqlPackageInVS 
             $vsPath | Should Be $null
