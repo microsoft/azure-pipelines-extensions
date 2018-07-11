@@ -362,6 +362,7 @@ function LocateSqlPackageInVS([string] $version)
 function Find-VSWhere {
     $vsWhereLocation = [System.IO.Path]::Combine(${env:ProgramFiles(x86)}, 'Microsoft Visual Studio', 'Installer', 'vswhere.exe')
     if (Test-Path $vsWhereLocation) {
+        Write-Verbose "vswhere.exe location:'$vsWhereLocation'"
         return $vsWhereLocation
     }
     return ''
@@ -388,8 +389,10 @@ function LocateLatestVSVersionUsingVSWhere {
                 $vsPath = $vsInstallation.installationPath
             }
         }
+        Write-Verbose "Latest Visual Studio (version: '$($maxVersion.ToString()))' found at: '$vsPath'"
         return $vsPath
     }
+    Write-Verbose "Cannot locate any Visual Studio installation using vswhere.exe".
     return ''
 }
 
@@ -403,6 +406,7 @@ function LocateHighestVersionSqlPackageInVS()
                 $vsPath = [System.IO.Path]::Combine($vsPath, 'Common7', 'IDE')
                 $dacFullPath, $dacVersion = LocateSqlPackageFromVSInstallationRoot -VSInstallRoot $vsPath
                 if ($dacFullPath -ne $null) {
+                    Write-Verbose "Detected sqlpackage.exe from Visual Studio installation using vswhere.exe. SqlPackage location: $dacFullPath, version: $dacVersion"
                     return $dacFullPath, $dacVersion
                 }
             }
