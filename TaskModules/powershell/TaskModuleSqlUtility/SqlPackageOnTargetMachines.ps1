@@ -365,7 +365,7 @@ function Find-VSWhere {
         Write-Verbose "vswhere.exe location:'$vsWhereLocation'"
         return $vsWhereLocation
     }
-    return ''
+    return $null
 }
 
 function LocateLatestVSVersionUsingVSWhere {
@@ -393,7 +393,7 @@ function LocateLatestVSVersionUsingVSWhere {
         return $vsPath
     }
     Write-Verbose "Cannot locate any Visual Studio installation using vswhere.exe".
-    return ''
+    return $null
 }
 
 function LocateHighestVersionSqlPackageInVS()
