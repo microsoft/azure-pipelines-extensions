@@ -341,6 +341,7 @@ Describe "LocateHighestVersionSqlPackageWithDacMsi" {
 Describe "LocateSqlPackageInVS" {
     Context "Visual Studio not present on the machine" {
         Mock Get-RegistryValueIgnoreError { return $null }
+        Mock Find-VSWhere { return $null }
         It "Should return null if VS is not present on machine" {
             $vsPath, $version = LocateSqlPackageInVS 15.0
             $vsPath | Should Be $null
@@ -414,6 +415,7 @@ Describe "LocateHighestVersionSqlPackageInVS" {
 
     Context "SQLPackage present in first VS version" {  
         Mock LocateSqlPackageInVS { return $testDacPath, $dacVersionOut } -ParameterFilter {$Version -eq $vsVersion1}
+        Mock Find-VSWhere { return $null }
         It "Should return correct sql dacapc path and version from the first version" {
             $vsPath, $version = LocateHighestVersionSqlPackageInVS 
             $vsPath | Should Be $testDacPath
@@ -424,6 +426,7 @@ Describe "LocateHighestVersionSqlPackageInVS" {
     Context "SQLPackage present in second VS version" {
         Mock LocateSqlPackageInVS { return $null, 0 } -ParameterFilter {$Version -eq $vsVersion1}
         Mock LocateSqlPackageInVS { return $testDacPath, $dacVersionOut } -ParameterFilter {$Version -eq $vsVersion2}
+        Mock Find-VSWhere { return $null }
         It "Should return correct sql dacapc path and version from the second version" {
             $vsPath, $version = LocateHighestVersionSqlPackageInVS 
             $vsPath | Should Be $testDacPath
@@ -435,6 +438,7 @@ Describe "LocateHighestVersionSqlPackageInVS" {
         Mock LocateSqlPackageInVS { return $null, 0 } -ParameterFilter {$Version -eq $vsVersion1}
         Mock LocateSqlPackageInVS { return $null, 0 } -ParameterFilter {$Version -eq $vsVersion2}
         Mock LocateSqlPackageInVS { return $null, 0 } -ParameterFilter {$Version -eq $vsVersion3}
+        Mock Find-VSWhere { return $null }
         It "Should return null if SqlPackage not found in VS" {
             $vsPath, $version = LocateHighestVersionSqlPackageInVS 
             $vsPath | Should Be $null
