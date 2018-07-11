@@ -411,7 +411,7 @@ function LocateHighestVersionSqlPackageInVS()
                 }
             }
         } catch {
-            Write-Verbose "Unable to locate sqlpackage.exe from VS installation using vswhere. Error: $($_.Exception.Message)"
+            Write-Verbose "Unable to locate sqlpackage.exe from Visual Studio installation using vswhere. Error: $($_.Exception.Message)"
         }
     }
     # fallback to detecting sqlpackage using the registry method if no vswhere is found or if an error was encountered
