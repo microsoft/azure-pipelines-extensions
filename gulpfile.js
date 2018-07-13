@@ -613,7 +613,7 @@ gulp.task("_mochaTests", ["testResources"], function(){
     shell.mkdir('-p', _testTemp);
 
     if (options.suite.indexOf("ArtifactEngine") >= 0  && options.e2e) {
-        var suitePath = path.join(_testRoot, "Extensions/" + options.suite + "/**/*E2E.js");
+        var suitePath = path.join(_testRoot, "Extensions/" + options.suite + "/**/*e2e.js");
         console.log(suitePath);
         var tfBuild = ('' + process.env['TF_BUILD']).toLowerCase() == 'true'
         return gulp.src([suitePath])
@@ -621,7 +621,7 @@ gulp.task("_mochaTests", ["testResources"], function(){
     }
     
     if (options.suite.indexOf("ArtifactEngine") >= 0  && options.perf) {
-        var suitePath = path.join(_testRoot, "Extensions/" + options.suite + "/**/*Perf.js");
+        var suitePath = path.join(_testRoot, "Extensions/" + options.suite + "/**/*perf.js");
         console.log(suitePath);
         var tfBuild = ('' + process.env['TF_BUILD']).toLowerCase() == 'true'
         return gulp.src([suitePath])

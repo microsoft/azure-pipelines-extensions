@@ -1,6 +1,3 @@
-import * as fs from 'fs';
-import * as crypto from 'crypto';
-
 import { ArtifactItemStore } from '../Store/artifactItemStore';
 
 import { ArtifactItem, IArtifactProvider, ItemType } from '../Models';

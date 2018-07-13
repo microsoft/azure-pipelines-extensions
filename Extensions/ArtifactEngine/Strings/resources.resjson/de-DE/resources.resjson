@@ -7,5 +7,6 @@
   "loc.messages.RetryingDownload": "Download von \"%s\" wird erneut versucht, Wiederholungsanzahl: %s",
   "loc.messages.SkippingItem": "Die Verarbeitung des Elements \"%s\" wird übersprungen.",
   "loc.messages.UnhandledRejection": "artifact-engine: nicht verarbeitete Zurückweisung %s",
-  "loc.messages.UnhandledException": "artifact-engine: Ausnahmefehler %s"
+  "loc.messages.UnhandledException": "artifact-engine: Ausnahmefehler %s",
+  "loc.messages.FailedRequest": "Failed request: (statusCode)"
 }

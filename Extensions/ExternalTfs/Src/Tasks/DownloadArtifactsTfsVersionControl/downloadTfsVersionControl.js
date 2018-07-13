@@ -15,7 +15,7 @@ var tfsEndpoint = getEndpointDetails("connection");
 
 console.log("project: " + projectId.toString());
 console.log("definition: " + repositoryId.toString());
-console.log("version: " + changesetId.toString());
+console.log("version: " + (!!changesetId ? changesetId.toString() : "Latest"));
 console.log("downloadPath: " + downloadPath.toString());
 console.log("tfsEndpoint:" + JSON.stringify(tfsEndpoint));
 
@@ -166,6 +166,11 @@ function getCode() {
         .then(function() {
             shell.cd(downloadPath);
             console.log("Sync workspace: " + newWorkspace.name);
+            
+            if (!changesetId) {
+                console.log("Getting latest changeset as no changeset is specified");
+            }
+
             return tfvcw.get(changesetId)
                 .then(function(retCode) {
                     if (retCode === 0) {
