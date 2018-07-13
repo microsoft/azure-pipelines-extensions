@@ -1,6 +1,5 @@
 import * as path from 'path';
 import * as fs from 'fs';
-import * as zlib from 'zlib';
 
 import * as models from '../Models';
 import { Logger } from '../Engine/logger';

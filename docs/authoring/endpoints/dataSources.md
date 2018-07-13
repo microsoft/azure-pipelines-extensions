@@ -239,7 +239,7 @@ Here’s the result after applying the data source binding corresponding to `Slo
 
 ## Test service endpoint
 
-To avoid creating or updating a service endpoint with incorrect values for the inputs, we support a “Test” action in UI. Upon choosing to “Test” an endpoint, we internally invoke query on a data source with a specific name – `TestConnection`. For e.g. *Azure RM* endpoint type defines the following `TestConnection` data source:
+To avoid creating or updating a service endpoint with incorrect values for the inputs, we support a “Test” action in service endpoint UI. Upon choosing to “Test” an endpoint, we internally invoke query on a data source with a specific name – `TestConnection`. For e.g. *Azure RM* endpoint type defines the following `TestConnection` data source:
 
 ```
 "dataSources": [
@@ -254,3 +254,22 @@ To avoid creating or updating a service endpoint with incorrect values for the i
 If this data source isn’t present in the endpoint type, then testing the connection isn’t supported.
 
 `resultSelector` in TestConnection is optional and is not used to determine if the test succeeded or failed. When testing the connection using this datasource, we only check for the HTTP status code of the underlying REST API call. If HTTP `status.code == OK` then the test will succeed.
+
+
+## Defining URL inline within dataSourceBinding
+
+Datasources are defined within service endpoint type contribution. DataSourceBindings that refer to dataSources are defined in various tasks for e.g. In case a task needs to call into a REST API that is supported by the endpoint type but there is no dataSource defined for that REST API in the endpoint type contribution, then it is possible to define the URL to invoke inline within the dataSourceBinding.
+
+For e.g. below is a dataSourceBinding for querying alert rules defined in Microsoft.Insights resource provider in Azure.
+
+```
+"dataSourceBindings": [
+	{
+		"target": "alertRules",
+		"endpointId": "$(connectedServiceNameARM)",
+		"endpointUrl": "{{endpoint.url}}subscriptions/{{endpoint.subscriptionId}}/resourcegroups/$(ResourceGroupName)/providers/microsoft.insights/alertrules?api-version=2016-03-01&$filter=targetResourceUri eq /subscriptions/{{endpoint.subscriptionId}}/resourceGroups/$(ResourceGroupName)/providers/$(ResourceType)/$(resourceName)",
+		"resultSelector": "jsonpath:$.value[?(@.properties.isEnabled == true)]",
+		"resultTemplate": "{ \"Value\" : \"{{name}}\", \"DisplayValue\":\"{{name}}\"}"
+	}
+]
+```

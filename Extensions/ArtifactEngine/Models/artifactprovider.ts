@@ -1,8 +1,6 @@
 ﻿import {ArtifactItem} from "./artifactItem";
 import { ArtifactItemStore } from '../Store/artifactItemStore';
 
-import {Readable} from "stream";
-
 export interface IArtifactProvider {
     artifactItemStore: ArtifactItemStore;
     getRootItems(): Promise<ArtifactItem[]>;

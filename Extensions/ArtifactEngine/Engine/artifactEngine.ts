@@ -1,8 +1,6 @@
 ﻿import * as path from 'path';
-import * as fs from 'fs';
 
 var tl = require('vsts-task-lib/task');
-var minimatch = require('minimatch');
 
 import * as models from '../Models';
 import * as ci from './cilogger';
@@ -10,7 +8,6 @@ import { ArtifactItemStore } from '../Store/artifactItemStore';
 import { ArtifactEngineOptions } from "./artifactEngineOptions"
 import { Logger } from './logger';
 import { Worker } from './worker';
-import { TicketState } from '../Models/ticketState';
 
 export class ArtifactEngine {
     processItems(sourceProvider: models.IArtifactProvider, destProvider: models.IArtifactProvider, artifactEngineOptions?: ArtifactEngineOptions): Promise<models.ArtifactDownloadTicket[]> {

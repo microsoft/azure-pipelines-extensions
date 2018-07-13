@@ -7,5 +7,6 @@
   "loc.messages.RetryingDownload": "Nouvelle tentative de téléchargement de %s, nombre de tentatives : %s",
   "loc.messages.SkippingItem": "Traitement de l’élément ignoré %s",
   "loc.messages.UnhandledRejection": "artifact-engine : rejet non géré %s",
-  "loc.messages.UnhandledException": "artifact-engine : exception non gérée %s"
+  "loc.messages.UnhandledException": "artifact-engine : exception non gérée %s",
+  "loc.messages.FailedRequest": "Failed request: (statusCode)"
 }
