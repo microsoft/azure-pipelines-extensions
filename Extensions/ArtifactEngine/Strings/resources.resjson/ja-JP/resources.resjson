@@ -7,5 +7,6 @@
   "loc.messages.RetryingDownload": "%s のダウンロードを再試行しています。再試行回数: %s",
   "loc.messages.SkippingItem": "項目 %s の処理をスキップしました",
   "loc.messages.UnhandledRejection": "artifact-engine: ハンドルされない拒否 %s",
-  "loc.messages.UnhandledException": "artifact-engine: ハンドルされない例外 %s"
+  "loc.messages.UnhandledException": "artifact-engine: ハンドルされない例外 %s",
+  "loc.messages.FailedRequest": "Failed request: (statusCode)"
 }
