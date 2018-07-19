@@ -124,6 +124,9 @@
               "isRequired": true,
               "dataType": "string",
               "maxLength": 300
+            },
+            "properties": {
+              "isSearchable": true
             }
           },
           {
@@ -180,7 +183,7 @@
           },
           {
             "target": "definition",
-            "endpointUrl": "{{endpoint.url}}/{{project}}/_apis/build/definitions?api-version=3.0-preview&$top=500&continuationToken={{{continuationToken}}}&queryOrder=2",
+            "endpointUrl": "{{endpoint.url}}/{{project}}/_apis/build/definitions?api-version=3.0-preview&name=*{{name}}*&$top=500&continuationToken={{{continuationToken}}}&queryOrder=2",
             "resultSelector": "jsonpath:$.value[?(@.quality=='definition')]",
             "resultTemplate": "{ Value : \"{{id}}\", DisplayValue : \"{{{name}}}\" }",
             "callbackContextTemplate": "{\"continuationToken\" : \"{{{headers.x-ms-continuationtoken}}}\"}",
