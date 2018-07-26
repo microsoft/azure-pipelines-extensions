@@ -238,8 +238,8 @@ In order to describe the salient properties within artifact source contribution,
 | `connection` | Endpoint used to connect to the artifact source | `true` |
 | `definition` | Artifact source definition (e.g. Build definition in case of *VSTS Build*, Repo in case of *TF Git/ GitHub*, Package in case of *VSTS Package Management*) | `true` |
 | `defaultVersionType` | Default version type specified for the artifact source. It can be one of the [supported default version types](#defaultVersionTypes). In case this input is not specified, then the default value will be `selectDuringReleaseCreationType`. | `false`
-| `defaultVersionSpecific` | Specific version in case `defaultVersionType` is `specificVersionType` | `false`
-| `branch` | Branch input in case `defaultVersionType` is `latestFromBranchType` | `false`
+| `defaultVersionSpecific` | Specific version in case `defaultVersionType` is `specificVersionType` as defined [here](#defaultVersionSpecific) | `false`
+| `branch` | Branch input in case `defaultVersionType` is `latestFromBranchType` as defined [here](#branch) | `false`
 | `artifacts` | First level contents from latest version of a specific artifact source (e.g. Artifacts in a *VSTS Build*, Root files/folders in case of *VSTS Git/GitHub* repo) | `false`
 |||
 
@@ -247,11 +247,110 @@ In order to describe the salient properties within artifact source contribution,
 | Default Version Type Value |  Description  |
 | ------------- |:-------------:|
 | `latestType`      | Latest artifact version |
-| `selectDuringReleaseCreationType`      | Specify at the time or release creation ** |
+| `selectDuringReleaseCreationType`      | Specify at the time or release creation  |
 | `specificVersionType` | Specific version of artifact is provided      |
 | `latestFromBranchType` | Latest artifact version from a specific branch      |
 
-** *In case of auto-triggered release, the latest version will be picked up.*
+*In case of auto-triggered release, the latest version will be picked up.*
+
+Here's an example of how the supported default versions can be specified:
+```
+{
+            "id": "defaultVersionType",
+            "name": "i18n:Default version",
+            "description": "i18n:The default version will be deployed when new releases are created. The version can be changed for manually created releases at the time of release creation",
+            "inputMode": "combo",
+            "isConfidential": false,
+            "hasDynamicValueInformation": false,
+            "validation": {
+              "isRequired": true,
+              "dataType": "string"
+            },
+            "values": {
+              "inputId": "defaultVersionTypeValues",
+              "defaultValue": "selectDuringReleaseCreationType",
+              "isLimitedToPossibleValues": true,
+              "possibleValues": [
+                {
+                  "value": "latestType",
+                  "displayValue": "i18n:Latest"
+                },
+                {
+                  "value": "selectDuringReleaseCreationType",
+                  "displayValue": "i18n:Specify at the time of release creation"
+                },
+                {
+                  "value": "specificVersionType",
+                  "displayValue": "i18n:Specific version"
+                },
+                {
+                  "value": "latestFromBranchType",
+                  "displayValue": "i18n:Latest from specific branch",
+                  "data": {
+                    "visibleRule": "{expression}"
+                  }
+                }
+              ]
+            }
+          },
+```
+
+Note that a visibleRule can be specified as part of data within individual possible values of defaultVersionType inputs (like in the case of latestFromBranchType above). The expression can use the operators == || && and use any of the inputs that are bound to values in the evaluation.
+
+### <a name="defaultVersionSpecific"></a> Default version specific input :
+
+In case of specificVersionType, defaultVersionSpecific input is expected to be defined in the following way:
+```
+          {
+            "id": "defaultVersionSpecific",
+            "name": "i18n: Version",
+            "description": "i18n: Default to specific version",
+            "inputMode": "Combo",
+            "isConfidential": false,
+            "hasDynamicValueInformation": true,
+            "validation": {
+              "isRequired": true,
+              "dataType": "string"
+            },
+            "dependencyInputIds": [
+              "connection",
+              "definition",
+              "defaultVersionType",
+              {additional inputs}
+            ],
+            "properties": {
+              "visibleRule": "defaultVersionType == specificVersionType"
+            }
+          },
+```  
+A data source binding can be defined targeting defaultVersionSpecific input in order to populate the drop-down with appropriate values.
+
+### <a name="branch"></a> Branch input :
+In case of latestFromBranchType, branch input is expected to be defined in the following way:
+```
+          {
+            "id": "branch",
+            "name": "i18n: Branch",
+            "description": "i18n: The latest artifact from selected branch will be included in release.",
+            "inputMode": "Combo",
+            "isConfidential": false,
+            "hasDynamicValueInformation": true,
+            "validation": {
+              "isRequired": true,
+              "dataType": "string"
+            },
+            "dependencyInputIds": [
+              "connection",
+              "definition",
+              "defaultVersionType",
+              {additional inputs}
+            ],
+            "properties": {
+              "visibleRule": "defaultVersionType == latestFromBranchType"
+            }
+          },
+```
+A data source binding can be defined targeting branch input in order to populate the drop-down with appropriate values.
 
 ### <a name="wellknowntargets"></a> Well-known targets for data source bindings :
 | Target | Description | Required |
