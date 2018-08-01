@@ -359,6 +359,6 @@ Auth. header to specify in the HTTP request can be customized when defining the 
 
 Mustache evaluation is supported when constructing the auth. header.
 
-`#base64` is a supported Mustache handler that computes Base64 encoded value of the `username:apitoken` combination.
+`#base64` is a supported Mustache handler that computes Base64 encoded value of the `username:apitoken` combination. [Here's](https://github.com/Microsoft/vsts-rm-extensions/blob/master/docs/authoring/endpoints/mustacheHelpers.md) the list of currently supported mustache helpers.
 
 Auth. parameters in the endpoint can be referred in the expression using `endpoint.*` notation & these get resolved with the values in the endpoint used in the task when evaluating the expression.
