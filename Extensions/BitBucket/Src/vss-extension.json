@@ -3,7 +3,7 @@
   "id": "vss-services-bitbucket",
   "name": "Bitbucket artifacts for Release Management",
   "publisher": "ms-vscs-rm",
-  "version": "15.136.0",
+  "version": "15.136.1",
   "public": true,
   "description": "Tools related to connecting with Bitbucket",
   "_description.comment": "The below format to define artifact extensions is currently in preview and may change in future.",
