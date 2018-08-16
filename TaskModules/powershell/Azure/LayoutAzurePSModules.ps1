@@ -9,7 +9,7 @@ param (
 )
 
 $supportedAzureModuleVersions = @("3.8.0", "4.2.1", "5.1.1")
-$supportedAzureRmModuleVersions = @("3.8.0", "4.2.1", "5.1.1")
+$supportedAzureRmModuleVersions = @("3.8.0", "4.2.1", "5.1.1", "6.7.0")
 
 if (Test-Path -Path $layoutPath) {
     Write-Host "Cleaning up directory $layoutPath."
