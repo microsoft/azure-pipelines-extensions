@@ -552,7 +552,7 @@ function ExecuteCommand
         $ErrorActionPreference = 'SilentlyContinue'
         $result = ""
         Invoke-Expression "& '$FileName' --% $Arguments"  -ErrorVariable errors | ForEach-Object {
-             $result +=  "$_ "
+            $result +=  ("$_ " + [Environment]::NewLine)
         }
 
         foreach($errorMsg in $errors){
@@ -566,4 +566,6 @@ function ExecuteCommand
          Write-Verbose "Deployment failed with error : $result"
          throw  $result
     }
+
+    return $result
 }
