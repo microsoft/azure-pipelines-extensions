@@ -9,8 +9,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DistributedTask.ServerTask.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceBusMessageHandler", "ServiceBusMessageHandler\ServiceBusMessageHandler.csproj", "{06D6287B-F6E6-4483-BFED-DAC11F65110E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AzureFunctionHandler", "AzureFunctionHandler\AzureFunctionHandler.csproj", "{F0859A72-3E18-4E1B-9CBF-70B088627AEB}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
