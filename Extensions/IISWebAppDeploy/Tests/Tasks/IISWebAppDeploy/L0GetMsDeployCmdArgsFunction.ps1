@@ -8,7 +8,6 @@ param()
 
 Register-Mock Import-Module { Write-Verbose "Dummy Import-Module" -Verbose }
 
-# Test 1: When webdeploy package input only provided, msDeployCmdArgs should only contain -source:packge
 $websiteName = "SampleWebApp"
 $webDeployPackage = "WebAppPackage.zip"
 $webDeployParamFile = "webDeployParamFile.xml"
@@ -16,6 +15,7 @@ $overRideParams = "Param=Value"
 
 Register-Mock Test-Path { return $true }
 
+# Test 1: When webdeploy package input only provided, msDeployCmdArgs should only contain -source:packge
 $result = Get-MsDeployCmdArgs -websiteName $websiteName -webDeployPackage $webDeployPackage
 
 Assert-AreEqual ( $result.Contains([string]::Format('-source:package="{0}"', $webDeployPackage) ) ) $true
