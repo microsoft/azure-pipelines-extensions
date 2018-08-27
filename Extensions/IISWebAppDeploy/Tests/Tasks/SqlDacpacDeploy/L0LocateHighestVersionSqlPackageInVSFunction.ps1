@@ -16,7 +16,7 @@ param()
 # Unregister-Mock Find-VSWhere
 
 # Test 2: Should return correct sql dacapc path and version from the first version, SQLPackage present in first VS version
-Register-Mock LocateSqlPackageInVS { return $testDacPath, $dacVersionOut } -ArgumentsEvaluator {$args[0] -eq $vsVersion1}
+# Register-Mock LocateSqlPackageInVS { return $testDacPath, $dacVersionOut } -ArgumentsEvaluator {$args[0] -eq $vsVersion1}
 # Register-Mock LocateSqlPackageInVS { return $testDacPath, $dacVersionOut } -ArgumentsEvaluator {$args[0] -eq $vsVersion1}
 # Register-Mock Find-VSWhere { return $null }
 # $vsPath, $version = LocateHighestVersionSqlPackageInVS 
