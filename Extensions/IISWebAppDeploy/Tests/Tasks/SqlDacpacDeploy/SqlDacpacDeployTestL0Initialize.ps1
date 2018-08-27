@@ -4,8 +4,8 @@
 . $PSScriptRoot\..\..\..\..\Common\DeploymentSDK\Src\InvokeRemoteDeployment.ps1
 . $PSScriptRoot\..\..\..\..\Common\DeploymentSDK\Src\Utility.ps1
 
-mkdir C:\SQL\110 -Force
-mkdir C:\SQL\120 -Force
+mkdir \SQL\110 -Force
+mkdir \SQL\120 -Force
 
 # Constants ------------------------------------------------------------------------
 
