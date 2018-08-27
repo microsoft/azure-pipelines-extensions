@@ -49,9 +49,9 @@ $testDacFxPathx86 = ${env:ProgramFiles(x86)}, "Microsoft SQL Server", "$testDacM
 $testDacFxPath = $env:ProgramFiles, "Microsoft SQL Server", "$testDacMajorVersion12Int", "DAC", "bin", "SqlPackage.exe" -join [System.IO.Path]::DirectorySeparatorChar
 
 # Output --------------------
-$vsVersion1 = "15.0"
-$vsVersion2 = "14.0"
-$vsVersion3 = "12.0"
+$vsVersion1 = "14.0"
+$vsVersion2 = "12.0"
+$vsVersion3 = "10.0"
 $vsVersions = @($vsVersion1, $vsVersion2, $vsVersion3)
 $testDacPath = "C:\test"
 $testDacPath64 = "C:\test64"
