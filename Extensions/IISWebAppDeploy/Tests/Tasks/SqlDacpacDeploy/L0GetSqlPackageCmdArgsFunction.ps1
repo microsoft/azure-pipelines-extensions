@@ -7,6 +7,7 @@ Import-Module Microsoft.PowerShell.Security
 
 # Test 1: Should contain targetmethod as server and no sqluser argument should be present, When target method is server and with windows authentication
 $cmdArgs = Get-SqlPackageCmdArgs -dacpacFile "sample.dacpac" -targetMethod "server" -serverName "localhost" -databaseName "SampleDB" -authscheme "windowsAuthentication"
+
 Assert-AreEqual ($cmdArgs.Contains('/SourceFile:"sample.dacpac" /Action:Publish /TargetServerName:"localhost" /TargetDatabaseName:"SampleDB"')) $true
 Assert-AreEqual ($cmdArgs.Contains('/TargetUser:"dummyuser" /TargetPassword:"dummypassword"')) $false
 
