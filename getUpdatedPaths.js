@@ -24,19 +24,7 @@ class GitClient {
                     responseString += data;
                 });
                 res.on('end', function () {
-                    console.log('here 3');
-                    console.log(responseString);
-                    console.log('here 3.1');
-                    var changes = JSON.parse(responseString);
-                    console.log('here 3.2');
-                    console.log(changes);
-                    console.log('here 3.3');
-                    var paths = changes.map(x => x.filename);
-                    console.log('here 3.4');
-                    var updatedPaths = paths.join(',');
-                    console.log('here 3.5');
-                    console.log('here 4');
-                    resolve(updatedPaths);
+                    resolve('some resolution');
                 });
             });
             req.end();
