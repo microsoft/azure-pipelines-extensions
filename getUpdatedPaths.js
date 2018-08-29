@@ -25,8 +25,8 @@ class GitClient {
                 });
                 res.on('end', function () {
                     console.log(responseString);
-                    var changes = JSON.parse(responseString);	
-                    var paths = changes.map(x => x.filename);	
+                    var changes = JSON.parse(responseString);
+                    var paths = changes.map(x => x.filename);
                     var updatedPaths = paths.join(',');	
                     resolve(updatedPaths);
                 });
