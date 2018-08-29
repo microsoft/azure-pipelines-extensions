@@ -309,6 +309,37 @@ function LocateHighestVersionSqlPackageWithDacMsi()
     return $null, 0
 }
 
+function LocateSqlPackageFromVSInstallationRoot {
+    [CmdletBinding()]
+    Param (
+        [string] $VSInstallRoot
+    )
+    Write-Verbose "Visual Studio install location: $VSInstallRoot"
+
+    $sqlDacRoot = [System.IO.Path]::Combine($VSInstallRoot, "Extensions", "Microsoft", "SQLDB", "DAC")
+
+    if (Test-Path $sqlDacRoot) {
+        $sqlDacLocations = Get-ChildItem $sqlDacRoot | Sort-Object @{e={$_.Name -as [int]}} -Descending
+
+        foreach ($sqlDacLocation in $sqlDacLocations)
+        {
+            $dacVersion = $sqlDacLocation.Name
+            $dacFullPath = [System.IO.Path]::Combine($sqlDacLocation.FullName, "SqlPackage.exe")
+
+            if(Test-Path $dacFullPath -pathtype leaf)
+            {
+                Write-Verbose "Dac Framework installed with Visual Studio found at $dacFullPath on machine $env:COMPUTERNAME"
+                return $dacFullPath, $dacVersion
+            }
+            else
+            {
+                Write-Verbose "Unable to find Dac framework installed with Visual Studio at $($dacVersionDir.FullName) on machine $env:COMPUTERNAME"
+            }
+        }
+    }
+    return $null, 0
+}
+
 function LocateSqlPackageInVS([string] $version)
 {
     $vsRegKeyForVersion = "SOFTWARE", "Microsoft", "VisualStudio", $version -join [System.IO.Path]::DirectorySeparatorChar
@@ -322,38 +353,68 @@ function LocateSqlPackageInVS([string] $version)
 
     if ($vsInstallDir)
     {
-        Write-Verbose "Visual Studio install location: $vsInstallDir"
-
-        $dacExtensionPath = [System.IO.Path]::Combine("Extensions", "Microsoft", "SQLDB", "DAC")
-        $dacParentDir = [System.IO.Path]::Combine($vsInstallDir, $dacExtensionPath)
-
-        if (Test-Path $dacParentDir)
-        {
-            $dacVersionDirs = Get-ChildItem $dacParentDir | Sort-Object @{e={$_.Name -as [int]}} -Descending
-
-            foreach ($dacVersionDir in $dacVersionDirs)
-            {
-                $dacVersion = $dacVersionDir.Name
-                $dacFullPath = [System.IO.Path]::Combine($dacVersionDir.FullName, "SqlPackage.exe")
-
-                if(Test-Path $dacFullPath -pathtype leaf)
-                {
-                    Write-Verbose "Dac Framework installed with Visual Studio found at $dacFullPath on machine $env:COMPUTERNAME"
-                    return $dacFullPath, $dacVersion
-                }
-                else
-                {
-                    Write-Verbose "Unable to find Dac framework installed with Visual Studio at $($dacVersionDir.FullName) on machine $env:COMPUTERNAME"
-                }
-            }
-        }
+        return (LocateSqlPackageFromVSInstallationRoot -VSInstallRoot $vsInstallDir)
     }
 
     return $null, 0
 }
 
+function Find-VSWhere {
+    $vsWhereLocation = [System.IO.Path]::Combine(${env:ProgramFiles(x86)}, 'Microsoft Visual Studio', 'Installer', 'vswhere.exe')
+    if (Test-Path $vsWhereLocation) {
+        Write-Verbose "vswhere.exe location:'$vsWhereLocation'"
+        return $vsWhereLocation
+    }
+    return $null
+}
+
+function LocateLatestVSVersionUsingVSWhere {
+    [CmdletBinding()]
+    Param ([string] $VSWherePath)
+    Remove-Item variable:\LASTEXITCODE -ErrorAction 'SilentlyContinue'
+    $vsInstallations = & $VSWherePath "-legacy" "-prerelease" "-format" "json"
+    $vsInstallations = $($vsInstallations -join '').Trim()
+    if ($LASTEXITCODE -ne 0) {
+        # if lastexitcode is not 0, then vsinstallations variable will contain the error string
+        throw "VSWhere exitcode: '$LASTEXITCODE', error: '$vsInstallations'"
+    }
+    if (![string]::IsNullOrEmpty($vsInstallations)) {
+        $vsInstallations = ConvertFrom-Json $vsInstallations
+        $maxVersion = [version]::new('0.0.0.0')
+        $vsPath = ''
+        foreach ($vsInstallation in $vsInstallations) {
+            $version = [version]::new($vsInstallation.installationVersion)
+            if ($version -gt $maxVersion) {
+                $maxVersion = $version
+                $vsPath = $vsInstallation.installationPath
+            }
+        }
+        Write-Verbose "Latest Visual Studio (version: '$($maxVersion.ToString()))' found at: '$vsPath'"
+        return $vsPath
+    }
+    Write-Verbose "Cannot locate any Visual Studio installation using vswhere.exe".
+    return $null
+}
+
 function LocateHighestVersionSqlPackageInVS()
 {
+    $vsWherePath = Find-VSWhere
+    if (![string]::IsNullOrEmpty($vsWherePath)) {
+        try {
+            $vsPath = LocateLatestVSVersionUsingVSWhere -VSWherePath $vsWherePath -ErrorAction 'Stop'
+            if (![string]::IsNullOrEmpty($vsPath)) {
+                $vsPath = [System.IO.Path]::Combine($vsPath, 'Common7', 'IDE')
+                $dacFullPath, $dacVersion = LocateSqlPackageFromVSInstallationRoot -VSInstallRoot $vsPath
+                if ($dacFullPath -ne $null) {
+                    Write-Verbose "Detected sqlpackage.exe from Visual Studio installation using vswhere.exe. SqlPackage location: $dacFullPath, version: $dacVersion"
+                    return $dacFullPath, $dacVersion
+                }
+            }
+        } catch {
+            Write-Verbose "Unable to locate sqlpackage.exe from Visual Studio installation using vswhere. Error: $($_.Exception.Message)"
+        }
+    }
+    # fallback to detecting sqlpackage using the registry method if no vswhere is found or if an error was encountered
     $vsRegKey = "HKLM:", "SOFTWARE", "Wow6432Node", "Microsoft", "VisualStudio" -join [System.IO.Path]::DirectorySeparatorChar
     $vsRegKey64 = "HKLM:", "SOFTWARE", "Microsoft", "VisualStudio" -join [System.IO.Path]::DirectorySeparatorChar
 
@@ -491,7 +552,7 @@ function ExecuteCommand
         $ErrorActionPreference = 'SilentlyContinue'
         $result = ""
         Invoke-Expression "& '$FileName' --% $Arguments"  -ErrorVariable errors | ForEach-Object {
-             $result +=  "$_ "
+            $result +=  ("$_ " + [Environment]::NewLine)
         }
 
         foreach($errorMsg in $errors){
@@ -505,4 +566,6 @@ function ExecuteCommand
          Write-Verbose "Deployment failed with error : $result"
          throw  $result
     }
+
+    return $result
 }

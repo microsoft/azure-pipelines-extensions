@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.4.8] 16th August 2018
+### Fixed
+- Print SqlPackage output into task logs.
+
+## [1.4.7] 11th July 2018
+### Fixed
+- Use vswhere.exe to detect Visual Studio installation in order to detect sqlpackage.
+
 ## [1.4.6] 5th July 2018
 ### Fixed
 - Changed order of sqlpackage.exe provider preference order

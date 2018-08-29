@@ -3,7 +3,7 @@
   "id": "vss-services-bitbucket",
   "name": "Bitbucket artifacts for Release Management",
   "publisher": "ms-vscs-rm",
-  "version": "15.136.0",
+  "version": "15.136.1",
   "public": true,
   "description": "Tools related to connecting with Bitbucket",
   "_description.comment": "The below format to define artifact extensions is currently in preview and may change in future.",
@@ -79,27 +79,27 @@
         "dataSources": [
           {
             "name": "TestConnection",
-            "endpointUrl": "{{{endpoint.url}}}/2.0/repositories?role=member&pagelen=100",
+            "endpointUrl": "{{{endpoint.url}}}2.0/repositories?role=member&pagelen=100",
             "resultSelector": "jsonpath:$.values[*]"
           },
           {
             "name": "Repositories",
-            "endpointUrl": "{{{endpoint.url}}}/2.0/repositories?role=member&pagelen=100",
+            "endpointUrl": "{{{endpoint.url}}}2.0/repositories?role=member&pagelen=100",
             "resultSelector": "jsonpath:$.values[*]"
           },
           {
             "name": "Branches",
-            "endpointUrl": "{{{endpoint.url}}}/2.0/repositories/{{{definition}}}/refs/branches",
+            "endpointUrl": "{{{endpoint.url}}}2.0/repositories/{{{definition}}}/refs/branches",
             "resultSelector": "jsonpath:$.values[*]"
           },
           {
             "name": "Commits",
-            "endpointUrl": "{{{endpoint.url}}}/2.0/repositories/{{{definition}}}/commits/{{{branch}}}",
+            "endpointUrl": "{{{endpoint.url}}}2.0/repositories/{{{definition}}}/commits/{{{branch}}}",
             "resultSelector": "jsonpath:$.values[*]"
           },
           {
             "name": "LatestCommit",
-            "endpointUrl": "{{{endpoint.url}}}/2.0/repositories/{{{definition}}}/commits/{{{branch}}}",
+            "endpointUrl": "{{{endpoint.url}}}2.0/repositories/{{{definition}}}/commits/{{{branch}}}",
             "resultSelector": "jsonpath:$.values[0]"
           }
         ],
@@ -219,12 +219,12 @@
           },
           {
             "target": "artifacts",
-            "endpointUrl": "{{{endpoint.url}}}/1.0/repositories/{{{definition}}}/src/{{{version}}}//",
+            "endpointUrl": "{{{endpoint.url}}}1.0/repositories/{{{definition}}}/src/{{{version}}}//",
             "resultTemplate": "[ {{#directories}} { \"value\" : \"{{{this}}}\",  \"displayValue\" : \"{{{this}}}\",  \"data\" : { \"artifactType\": \"folder\"  } }{{#unless @last}},{{/unless}} {{/directories}} {{#files}} , { \"value\" : \"{{this.path}}\",  \"displayValue\" : \"{{{this.path}}}\", \"data\" : { \"itemType\": \"file\" } } {{/files}} ]"
           },
           {
             "target": "artifactItems",
-            "endpointUrl": "{{{endpoint.url}}}/1.0/repositories/{{{definition}}}/src/{{{version}}}/{{{itemPath}}}/",
+            "endpointUrl": "{{{endpoint.url}}}1.0/repositories/{{{definition}}}/src/{{{version}}}/{{{itemPath}}}/",
             "resultTemplate": "[ {{#directories}} { \"value\" : \"{{{../itemPath}}}/{{{this}}}\",  \"displayValue\" : \"{{{../itemPath}}}/{{{this}}}\",  \"data\" : { \"itemType\": \"folder\" } }{{#unless @last}},{{/unless}} {{/directories}} {{#files}} , { \"value\" : \"{{this.path}}\",  \"displayValue\" : \"{{{this.path}}}\", \"data\" : { \"itemType\": \"file\" } } {{/files}} ]"
           }
         ],

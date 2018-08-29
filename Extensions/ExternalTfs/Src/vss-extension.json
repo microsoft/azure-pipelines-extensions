@@ -1,7 +1,7 @@
 ﻿{
   "manifestVersion": 1.0,
   "id": "vss-services-externaltfs",
-  "version": "15.136.0",
+  "version": "15.138.1",
   "name": "TFS artifacts for Release Management",
   "publisher": "ms-vscs-rm",
   "description": "Deploy external TFS/ VS-Team-Services artifacts using Release Management",
@@ -314,8 +314,12 @@
           },
           {
             "target": "definition",
-            "dataSourceName": "{{#if paginationEnabled}}DefinitionsPaged{{else}}Definitions{{/if}}",
-            "resultTemplate": "{ Value : \"{{id}}\", DisplayValue : \"{{{name}}}\" }"
+            "endpointUrl": "{{endpoint.url}}/{{project}}/_apis/build/definitions?api-version=3.0-preview&$top=500&continuationToken={{{continuationToken}}}&queryOrder=2",
+            "resultSelector": "jsonpath:$.value[?(@.quality=='definition')]",
+            "resultTemplate": "{ Value : \"{{id}}\", DisplayValue : \"{{{name}}}\" }",
+            "callbackContextTemplate": "{\"continuationToken\" : \"{{{headers.x-ms-continuationtoken}}}\"}",
+            "callbackRequiredTemplate": "{{{#headers.x-ms-continuationtoken}}}true{{{/headers.x-ms-continuationtoken}}}",
+            "initialContextTemplate": "{\"continuationToken\" : \"{{{system.utcNow}}}\"}"
           },
           {
             "target": "versions",

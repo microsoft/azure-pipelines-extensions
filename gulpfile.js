@@ -573,8 +573,9 @@ gulp.task("default", ["build"]);
 
 gulp.task('compileTests', function () {
     var testsPath = path.join(__dirname, 'Extensions/**/Tests', '**/*.ts');
+    var commonFiles = path.join(__dirname, 'Extensions/**/Common', '**/*.ts')
 
-    return gulp.src([testsPath, 'definitions/*.d.ts'])
+    return gulp.src([testsPath, commonFiles, 'definitions/*.d.ts'])
         .pipe(ts)
         .on('error', errorHandler)
         .pipe(gulp.dest(_testRoot+"\\Extensions"));
@@ -607,7 +608,7 @@ gulp.task('testLib_NodeModules', ['testLib'], function () {
 
 gulp.task('testResources', ['testLib_NodeModules', 'ps1tests', 'tstests', 'copyTestData']);
 
-gulp.task("_mochaTests", ["testResources"], function(){
+gulp.task("test", ["testResources"], function(){
     process.env['TASK_TEST_TEMP'] =path.join(__dirname, _testTemp);
     shell.rm('-rf', _testTemp);
     shell.mkdir('-p', _testTemp);
@@ -639,25 +640,6 @@ gulp.task("_mochaTests", ["testResources"], function(){
     var tfBuild = ('' + process.env['TF_BUILD']).toLowerCase() == 'true'
     return gulp.src([suitePath])
         .pipe(mocha({ reporter: 'spec', ui: 'bdd', useColors: !tfBuild }));
-});
-
-gulp.task("test", ["_mochaTests"],function(done){
-    // Runs powershell pester tests ( Unit Test)
-    var pester = spawn('powershell.exe', ['.\\InvokePester.ps1'], { stdio: 'inherit' });
-    pester.on('exit', function(code, signal) {
-        if (code != 0) {
-           throw new gulpUtil.PluginError({
-              plugin: 'test',
-              message: 'Pester Tests Failed!!!'
-           });
-        }
-        else {            done();
-        }
-    });
-    pester.on('error', function(err) {
-        gutil.log('We may be in a non-windows machine or powershell.exe is not in path. Skip pester tests.');
-        done();
-    }); 
 });
 
 //-----------------------------------------------------------------------------------------------------------------
