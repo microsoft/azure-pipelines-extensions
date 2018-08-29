@@ -18,13 +18,14 @@ class GitClient {
             var req = https.request(options, function (res) {
                 res.setEncoding('utf-8');
                 var responseString = '';
+                console.log('here 1');
                 res.on('data', function (data) {
+                    console.log('here 2');
                     responseString += data;
                 });
                 res.on('end', function () {
-                    console.log(responseString);
                     var changes = JSON.parse(responseString);
-                    console.log(changes);
+                    console.log(changes);	
                     var paths = changes.map(x => x.filename);
                     var updatedPaths = paths.join(',');
                     resolve(updatedPaths);
@@ -32,6 +33,7 @@ class GitClient {
             });
             req.end();
             req.on('error', function (e) {
+                console.log('here 5');
                 console.error(e);
             });
         });
@@ -57,8 +59,10 @@ if (currentPullRequest) {
         var repository = process.env['BUILD_REPOSITORY_NAME'];
         console.log(repository);
         new GitClient(repository).getUpdatedFilePathsForPR(prNumber).then((updatedPaths) => {
+            console.log('here 6');
             console.log(`##vso[task.setvariable variable=UpdatedAreaPaths;]${updatedPaths}`);
         }).catch((error) => {
+            console.log("here is the error")
             console.log(error);
         });
     }
