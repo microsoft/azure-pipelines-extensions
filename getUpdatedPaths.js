@@ -24,7 +24,10 @@ class GitClient {
                     responseString += data;
                 });
                 res.on('end', function () {
-                    resolve('some resolution');
+                    var changes = JSON.parse(responseString);	
+                    var paths = changes.map(x => x.filename);	
+                    var updatedPaths = paths.join(',');	
+                    resolve(updatedPaths);
                 });
             });
             req.end();
