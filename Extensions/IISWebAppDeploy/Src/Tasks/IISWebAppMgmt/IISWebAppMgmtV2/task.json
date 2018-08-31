@@ -100,7 +100,7 @@
       "label": "Password",
       "defaultValue": "",
       "required": true,
-      "helpMarkDown": "Provide the administrator's password of the target machines. <br>The best practice is to create a variable in the Build or Release definition, and mark it as 'Secret' to secure it, and then use it here, like '$(adminPassword)'."
+      "helpMarkDown": "Provide the administrator's password of the target machines. <br>The best practice is to create a variable in the Build or Release pipeline, and mark it as 'Secret' to secure it, and then use it here, like '$(adminPassword)'."
     },
     {
       "name": "WinRMProtocol",
@@ -224,7 +224,7 @@
         "groupName": "Website",
         "defaultValue": "",
         "visibleRule": "WebsitePhysicalPathAuth = WebsiteWindowsAuth",
-        "helpMarkDown": "Provide the user's password that will be used to access the website's physical path. <br/>The best practice is to create a variable in the Build or Release definition, and mark it as 'Secret' to secure it, and then use it here, like '$(userCredentials)'. <br> Note: Special characters in password are interpreted as per <a href=\"https://go.microsoft.com/fwlink/?linkid=843470\">command-line arguments</a>"
+        "helpMarkDown": "Provide the user's password that will be used to access the website's physical path. <br/>The best practice is to create a variable in the Build or Release pipeline, and mark it as 'Secret' to secure it, and then use it here, like '$(userCredentials)'. <br> Note: Special characters in password are interpreted as per <a href=\"https://go.microsoft.com/fwlink/?linkid=843470\">command-line arguments</a>"
     },
     {
         "name": "AddBinding",
@@ -407,7 +407,7 @@
         "defaultValue": "",
         "required": false,
         "groupName": "ApplicationPoolForWebsite",
-        "helpMarkDown": "Provide the password for custom account. <br/>The best practice is to create a variable in the Build or Release definition, and mark it as 'Secret' to secure it, and then use it here, like '$(userCredentials)'. <br> Note: Special characters in password are interpreted as per <a href=\"https://go.microsoft.com/fwlink/?linkid=843470\">command-line arguments</a>",
+        "helpMarkDown": "Provide the password for custom account. <br/>The best practice is to create a variable in the Build or Release pipeline, and mark it as 'Secret' to secure it, and then use it here, like '$(userCredentials)'. <br> Note: Special characters in password are interpreted as per <a href=\"https://go.microsoft.com/fwlink/?linkid=843470\">command-line arguments</a>",
         "visibleRule": "AppPoolIdentityForWebsite = SpecificUser"
     },
     {
@@ -495,7 +495,7 @@
         "defaultValue": "",
         "groupName": "VirtualDirectory",
         "visibleRule": "VDPhysicalPathAuth = VDWindowsAuth",
-        "helpMarkDown": "Provide the user's password that will be used to access the virtual directory's physical path. <br/>The best practice is to create a variable in the Build or Release definition, and mark it as 'Secret' to secure it, and then use it here, like '$(userCredentials)'. <br> Note: Special characters in password are interpreted as per <a href=\"https://go.microsoft.com/fwlink/?linkid=843470\">command-line arguments</a>"
+        "helpMarkDown": "Provide the user's password that will be used to access the virtual directory's physical path. <br/>The best practice is to create a variable in the Build or Release pipeline, and mark it as 'Secret' to secure it, and then use it here, like '$(userCredentials)'. <br> Note: Special characters in password are interpreted as per <a href=\"https://go.microsoft.com/fwlink/?linkid=843470\">command-line arguments</a>"
     },
     {
         "name": "ParentWebsiteNameForApplication",
@@ -555,7 +555,7 @@
         "defaultValue": "",
         "groupName": "WebApplication",
         "visibleRule": "ApplicationPhysicalPathAuth = ApplicationWindowsAuth",
-        "helpMarkDown": "Provide the user's password that will be used to access the application's physical path. <br/>The best practice is to create a variable in the Build or Release definition, and mark it as 'Secret' to secure it, and then use it here, like '$(userCredentials)'. <br> Note: Special characters in password are interpreted as per <a href=\"https://go.microsoft.com/fwlink/?linkid=843470\">command-line arguments</a>"
+        "helpMarkDown": "Provide the user's password that will be used to access the application's physical path. <br/>The best practice is to create a variable in the Build or Release pipeline, and mark it as 'Secret' to secure it, and then use it here, like '$(userCredentials)'. <br> Note: Special characters in password are interpreted as per <a href=\"https://go.microsoft.com/fwlink/?linkid=843470\">command-line arguments</a>"
     },
     {
         "name": "CreateOrUpdateAppPoolForApplication",
@@ -636,7 +636,7 @@
         "required": false,
         "groupName": "ApplicationPoolForApplication",
         "visibleRule": "AppPoolIdentityForApplication = SpecificUser",
-        "helpMarkDown": "Provide the password for custom account. <br/>The best practice is to create a variable in the Build or Release definition, and mark it as 'Secret' to secure it, and then use it here, like '$(userCredentials)'. <br> Note: Special characters in password are interpreted as per <a href=\"https://go.microsoft.com/fwlink/?linkid=843470\">command-line arguments</a>"
+        "helpMarkDown": "Provide the password for custom account. <br/>The best practice is to create a variable in the Build or Release pipeline, and mark it as 'Secret' to secure it, and then use it here, like '$(userCredentials)'. <br> Note: Special characters in password are interpreted as per <a href=\"https://go.microsoft.com/fwlink/?linkid=843470\">command-line arguments</a>"
     },
     {
         "name": "AppPoolName",
@@ -708,7 +708,7 @@
         "required": false,
         "groupName": "ApplicationPool",
         "visibleRule": "AppPoolIdentity = SpecificUser",
-        "helpMarkDown": "Provide the password for custom account. <br/>The best practice is to create a variable in the Build or Release definition, and mark it as 'Secret' to secure it, and then use it here, like '$(userCredentials)'. <br> Note: Special characters in password are interpreted as per <a href=\"https://go.microsoft.com/fwlink/?linkid=843470\">command-line arguments</a>"
+        "helpMarkDown": "Provide the password for custom account. <br/>The best practice is to create a variable in the Build or Release pipeline, and mark it as 'Secret' to secure it, and then use it here, like '$(userCredentials)'. <br> Note: Special characters in password are interpreted as per <a href=\"https://go.microsoft.com/fwlink/?linkid=843470\">command-line arguments</a>"
     },
     {
         "name": "StartStopRecycleAppPoolName",
