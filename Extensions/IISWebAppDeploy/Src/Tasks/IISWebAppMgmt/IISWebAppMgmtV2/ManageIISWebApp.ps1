@@ -335,5 +335,5 @@ function Run-RemoteDeployment
         return
     }
 
-    Write-Host "Successfully executed Invoke-Main script for `"$iisDeploymentType`" with action `"$action`"" 
+    Write-Host "Successfully executed Invoke-Main script for `"$iisDeploymentType`" with action `"$action`""
 }
