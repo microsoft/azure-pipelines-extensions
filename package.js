@@ -82,9 +82,9 @@ function copyCommonModules(currentExtnRoot, commonDeps, commonSrc){
                 shell.rm(path.join(targetPath, '*.md'));
                 // Statically link the required internal common modules.
                 var taskDeps;
-                if ((taskDeps = commonDeps[task.name])) {
+                if ((taskDeps = commonDeps[folderName])) {
                     taskDeps.forEach(function (dep) {
-                        gutil.log('Linking ' + dep.module + ' into ' + task.name);
+                        gutil.log('Linking ' + dep.module + ' into ' + folderName);
                         var src = path.join(commonSrc, dep.module, "Src/");
                         var dest = path.join(targetPath, dep.dest);
                         shell.mkdir('-p', dest);

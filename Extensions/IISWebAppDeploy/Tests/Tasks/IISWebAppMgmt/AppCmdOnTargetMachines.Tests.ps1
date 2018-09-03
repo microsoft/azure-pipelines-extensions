@@ -104,7 +104,7 @@ Describe "Tests for verifying Get-AppCmdLocation functionality" {
     }
 }
 
-Describe "Tests for verifying Does-WebSiteExists functionality" {
+Describe "Tests for verifying Test-WebsiteExist functionality" {
 
     Mock Get-AppCmdLocation {return "appcmd.exe", 8}
 
@@ -112,7 +112,7 @@ Describe "Tests for verifying Does-WebSiteExists functionality" {
 
         Mock Run-command { return $null } -ParameterFilter { $failOnErr -eq $false }
 
-        $result = Does-WebSiteExists -siteName "SampleWeb"
+        $result = Test-WebsiteExist -siteName "SampleWeb"
         
         It "function should return false" {
            $result | Should Be $false
@@ -123,7 +123,7 @@ Describe "Tests for verifying Does-WebSiteExists functionality" {
 
         Mock Run-command { return "" } -ParameterFilter { $failOnErr -eq $false }
         
-        $result = Does-WebSiteExists -siteName "SampleWeb"
+        $result = Test-WebsiteExist -siteName "SampleWeb"
 
         It "function should return true" {
             $result | Should Be $true
@@ -131,7 +131,7 @@ Describe "Tests for verifying Does-WebSiteExists functionality" {
     }
 }
 
-Describe "Tests for verifying Does-BindingExists functionality" {
+Describe "Tests for verifying Test-BindingExist functionality" {
 
     $protocal = "http"
     $ipAddress = "*"
@@ -149,7 +149,7 @@ Describe "Tests for verifying Does-BindingExists functionality" {
 
         try
         {
-            $result = Does-BindingExists -siteName "SampleWeb" -protocol $protocol -ipAddress $ipAddress -port $port -hostname $hostname
+            $result = Test-BindingExist -siteName "SampleWeb" -protocol $protocol -ipAddress $ipAddress -port $port -hostname $hostname
         }
         catch
         {
@@ -157,7 +157,7 @@ Describe "Tests for verifying Does-BindingExists functionality" {
         }
         
         
-        It "Does-BindingExists should throw exception"{
+        It "Test-BindingExist should throw exception"{
             ($result.Contains('Given binding already exists for a different website')) | Should Be $true
             ($result.Contains('change the port and retry the operation')) | Should Be $true
         }
@@ -168,9 +168,9 @@ Describe "Tests for verifying Does-BindingExists functionality" {
         Mock Run-command {return @("SITE SampleWeb (id:1,bindings:$binding1,state:Started)" , 
                         "SITE AnotherSite (id:1,bindings:$binding2,state:Started)")} -ParameterFilter { $failOnErr -eq $false }
 
-        $result = Does-BindingExists -siteName "SampleWeb" -protocol $protocol -ipAddress $ipAddress -port $port -hostname $hostname
+        $result = Test-BindingExist -siteName "SampleWeb" -protocol $protocol -ipAddress $ipAddress -port $port -hostname $hostname
         
-        It "Does-BindingExists should return true"{
+        It "Test-BindingExist should return true"{
             $result | Should Be $true
         }
     }
@@ -180,15 +180,15 @@ Describe "Tests for verifying Does-BindingExists functionality" {
         Mock Run-command {return @("SITE SampleWeb (id:1,bindings:$binding2,state:Started)" , 
                         "SITE AnotherSite (id:1,bindings:$binding2,state:Started)")} -ParameterFilter { $failOnErr -eq $false }
 
-        $result = Does-BindingExists -siteName "SampleWeb" -protocol $protocol -ipAddress $ipAddress -port $port -hostname $hostname 4>&1 | Out-String
+        $result = Test-BindingExist -siteName "SampleWeb" -protocol $protocol -ipAddress $ipAddress -port $port -hostname $hostname 4>&1 | Out-String
 
-        It "Does-BindingExists should throw exception"{
+        It "Test-BindingExist should throw exception"{
             ($result.Contains("Does bindings exist for website (`"SampleWeb`") is : False")) | Should Be $true
         }
     }
 }
 
-Describe "Tests for verifying Does-AppPoolExists functionality" {
+Describe "Tests for verifying Test-AppPoolExist functionality" {
 
     Mock Get-AppCmdLocation {return "appcmd.exe", 8}
 
@@ -196,7 +196,7 @@ Describe "Tests for verifying Does-AppPoolExists functionality" {
 
         Mock Run-command { return $null } -ParameterFilter { $failOnErr -eq $false }
 
-        $result = Does-AppPoolExists -appPoolName "SampleAppPool"
+        $result = Test-AppPoolExist -appPoolName "SampleAppPool"
         
         It "function should return false" {
            $result | Should Be $false
@@ -207,7 +207,7 @@ Describe "Tests for verifying Does-AppPoolExists functionality" {
 
         Mock Run-command { return "" } -ParameterFilter { $failOnErr -eq $false }
         
-        $result = Does-AppPoolExists -appPoolName "SampleAppPool"
+        $result = Test-AppPoolExist -appPoolName "SampleAppPool"
 
         It "function should return true" {
             $result | Should Be $true
@@ -384,7 +384,7 @@ Describe "Tests for verifying Add-SslCert functionality" {
     }
 }
 
-Describe "Tests for verifying Create-WebSite functionality" {
+Describe "Tests for verifying Add-Website functionality" {
 
     Context "It should run appcmd add site command"{
 
@@ -394,7 +394,7 @@ Describe "Tests for verifying Create-WebSite functionality" {
         Mock Run-Command -Verifiable { return }
         Mock Get-AppCmdLocation -Verifiable { return $appCmd, 8 }
 
-        $output = Create-WebSite -siteName "Sample Web" -physicalPath "C:\Temp Path" 4>&1 | Out-String
+        $output = Add-Website -siteName "Sample Web" -physicalPath "C:\Temp Path" 4>&1 | Out-String
 
         It "Should contain appcmd add site"{
             ($output.Contains("$appCmd")) | Should Be $true
@@ -404,7 +404,7 @@ Describe "Tests for verifying Create-WebSite functionality" {
     }
 }
 
-Describe "Tests for verifying Create-AppPool functionality" {
+Describe "Tests for verifying Add-AppPool functionality" {
 
     Context "It should run appcmd add apppool command"{
 
@@ -414,7 +414,7 @@ Describe "Tests for verifying Create-AppPool functionality" {
         Mock Run-Command -Verifiable { return }
         Mock Get-AppCmdLocation -Verifiable { return $appCmd, 8 }
 
-        $output = Create-AppPool -appPoolName "Sample App Pool" 4>&1 | Out-String
+        $output = Add-AppPool -appPoolName "Sample App Pool" 4>&1 | Out-String
 
         It "Should contain appcmd add site"{
             ($output.Contains("$appCmd")) | Should Be $true
@@ -424,7 +424,7 @@ Describe "Tests for verifying Create-AppPool functionality" {
     }
 }
 
-Describe "Tests for verifying Run-AdditionalCommands functionality" {
+Describe "Tests for verifying Invoke-AdditionalCommand functionality" {
 
     $AppCmdRegKey = "HKLM:\SOFTWARE\Microsoft\InetStp"
 
@@ -433,7 +433,7 @@ Describe "Tests for verifying Run-AdditionalCommands functionality" {
         Mock Get-AppCmdLocation { return "appcmd.exe", 8 } -ParameterFilter { $RegKeyPath -eq $AppCmdRegKey }
         Mock Run-Command  { return }
 
-        $output = Run-AdditionalCommands -additionalCommands "" 4>&1 | Out-String
+        $output = Invoke-AdditionalCommand -additionalCommands "" 4>&1 | Out-String
 
         It "Should return"{
             ([string]::IsNullOrEmpty($output)) | Should Be $true
@@ -448,7 +448,7 @@ Describe "Tests for verifying Run-AdditionalCommands functionality" {
         Mock Get-AppCmdLocation -Verifiable { return "appcmd.exe", 8 } -ParameterFilter { $RegKeyPath -eq $AppCmdRegKey }
         Mock Run-Command  { return }
 
-        $output = Run-AdditionalCommands -additionalCommands $command1 4>&1 | Out-String
+        $output = Invoke-AdditionalCommand -additionalCommands $command1 4>&1 | Out-String
 
         It "Should return"{
             ($output.Contains("$command1")) | Should Be $true
@@ -466,7 +466,7 @@ Describe "Tests for verifying Run-AdditionalCommands functionality" {
         Mock Get-AppCmdLocation -Verifiable { return "appcmd.exe", 8 } -ParameterFilter { $RegKeyPath -eq $AppCmdRegKey }
         Mock Run-Command  { return }
 
-        $output = Run-AdditionalCommands -additionalCommands $commands 4>&1 | Out-String
+        $output = Invoke-AdditionalCommand -additionalCommands $commands 4>&1 | Out-String
 
         It "Should return"{
             ($output.Contains("$command1")) | Should Be $true
@@ -486,7 +486,7 @@ Describe "Tests for verifying Run-AdditionalCommands functionality" {
         Mock Get-AppCmdLocation -Verifiable { return "appcmd.exe", 8 } -ParameterFilter { $RegKeyPath -eq $AppCmdRegKey }
         Mock Run-Command  { return }
 
-        $output = Run-AdditionalCommands -additionalCommands $commands 4>&1 | Out-String
+        $output = Invoke-AdditionalCommand -additionalCommands $commands 4>&1 | Out-String
 
         It "Should return"{
             ($output.Contains("$command1")) | Should Be $true
@@ -505,7 +505,7 @@ Describe "Tests for verifying Run-AdditionalCommands functionality" {
         Mock Get-AppCmdLocation -Verifiable { return "appcmd.exe", 8 } -ParameterFilter { $RegKeyPath -eq $AppCmdRegKey }
         Mock Run-Command  { return }
 
-        $output = Run-AdditionalCommands -additionalCommands $commands 4>&1 | Out-String
+        $output = Invoke-AdditionalCommand -additionalCommands $commands 4>&1 | Out-String
 
         It "Should return"{
             ($output.Contains("$command1")) | Should Be $true
@@ -531,7 +531,7 @@ Describe "Tests for verifying Run-AdditionalCommands functionality" {
 
 
         It "Should return"{
-            { Run-AdditionalCommands -additionalCommands $commands } | Should Throw $errorMsg 
+            { Invoke-AdditionalCommand -additionalCommands $commands } | Should Throw $errorMsg 
             Assert-MockCalled Get-AppCmdLocation -Exactly -Times 1
             Assert-MockCalled Run-Command -Exactly -Times 1 -ParameterFilter { $command -eq "`"appcmd.exe`" $command2" }
             Assert-MockCalled Run-Command -Exactly -Times 1 -ParameterFilter { $command -ne "`"appcmd.exe`" $command2" }
@@ -555,7 +555,7 @@ Describe "Tests for verifying Run-AdditionalCommands functionality" {
 
 
         It "Should return"{
-            { Run-AdditionalCommands -additionalCommands $commands } | Should Throw $errorMsg
+            { Invoke-AdditionalCommand -additionalCommands $commands } | Should Throw $errorMsg
             Assert-MockCalled Get-AppCmdLocation -Exactly -Times 1
             Assert-MockCalled Run-Command -Exactly -Times 1 -ParameterFilter { $command -eq "`"appcmd.exe`" $command4" }
             Assert-MockCalled Run-Command -Exactly -Times 3 -ParameterFilter { $command -ne "`"appcmd.exe`" $command4" }
@@ -572,7 +572,7 @@ Describe "Tests for verifying Update-WebSite functionality" {
         
         Mock Run-Command -Verifiable { return }
         Mock Get-AppCmdLocation -Verifiable { return $appCmd, 8 }
-        Mock Does-BindingExists -Verifiable { return $false } -ParameterFilter { $SiteName -eq "Sample Web" }
+        Mock Test-BindingExist -Verifiable { return $false } -ParameterFilter { $SiteName -eq "Sample Web" }
 
         $output = Update-WebSite -siteName "Sample Web" -appPoolName "App Pool" -physicalPath "C:\Temp Path" -authType "WebSiteWindowsAuth" -userName "localuser" -password "SomePassword" -addBinding "true" -protocol "http" -ipAddress "All Unassigned" -port "80" -hostname "localhost"  4>&1 | Out-String
 
@@ -592,7 +592,7 @@ Describe "Tests for verifying Update-WebSite functionality" {
         
         Mock Run-Command -Verifiable { return }
         Mock Get-AppCmdLocation -Verifiable { return $appCmd, 8 }
-        Mock Does-BindingExists -Verifiable { return $false } -ParameterFilter { $SiteName -eq "Sample Web" }
+        Mock Test-BindingExist -Verifiable { return $false } -ParameterFilter { $SiteName -eq "Sample Web" }
 
         $output = Update-WebSite -siteName "Sample Web" -appPoolName "App Pool" -physicalPath "C:\Temp Path" -authType "WebSiteWindowsAuth" -userName "localuser" -addBinding "true" -protocol "http" -ipAddress "All Unassigned" -port "80" -hostname "localhost"  4>&1 | Out-String
 
@@ -612,7 +612,7 @@ Describe "Tests for verifying Update-WebSite functionality" {
 
         Mock Run-Command -Verifiable { return }
         Mock Get-AppCmdLocation -Verifiable { return $appCmd, 8 }
-        Mock Does-BindingExists -Verifiable { return $true } -ParameterFilter { $SiteName -eq "SampleWeb" }
+        Mock Test-BindingExist -Verifiable { return $true } -ParameterFilter { $SiteName -eq "SampleWeb" }
          
         $output = Update-WebSite -siteName "SampleWeb" -physicalPath "C:\Temp" -authType "PassThrough" -addBinding "true" -protocol "http" -ipAddress "`"All Unassigned`"" -port "80" -hostname "localhost" 4>&1 | Out-String
 
@@ -632,7 +632,7 @@ Describe "Tests for verifying Update-WebSite functionality" {
 
         Mock Run-Command -Verifiable { return }
         Mock Get-AppCmdLocation -Verifiable { return $appCmd, 8 }
-        Mock Does-BindingExists -Verifiable { return $false } -ParameterFilter { $SiteName -eq "SampleWeb" }
+        Mock Test-BindingExist -Verifiable { return $false } -ParameterFilter { $SiteName -eq "SampleWeb" }
          
         $output = Update-WebSite -siteName "SampleWeb" -physicalPath "C:\Temp" -authType "PassThrough" -addBinding "false" -protocol "http" -ipAddress "`"All Unassigned`"" -port "80" -hostname "localhost" 4>&1 | Out-String
 
@@ -642,7 +642,7 @@ Describe "Tests for verifying Update-WebSite functionality" {
             ($output.Contains("-[path='/'].[path='/'].userName:")) | Should Be $false
             ($output.Contains("-[path='/'].[path='/'].password:")) | Should Be $false
             ($output.Contains("/+bindings")) | Should Be $false
-            Assert-MockCalled Does-BindingExists -Exactly -Times 0 -ParameterFilter { $SiteName -eq "SampleWeb" }
+            Assert-MockCalled Test-BindingExist -Exactly -Times 0 -ParameterFilter { $SiteName -eq "SampleWeb" }
         }
     }
 
@@ -653,7 +653,7 @@ Describe "Tests for verifying Update-WebSite functionality" {
 
         Mock Run-Command -Verifiable { return }
         Mock Get-AppCmdLocation -Verifiable { return $appCmd, 8 }
-        Mock Does-BindingExists -Verifiable { return $false } -ParameterFilter { $SiteName -eq "SampleWeb" }
+        Mock Test-BindingExist -Verifiable { return $false } -ParameterFilter { $SiteName -eq "SampleWeb" }
          
         $output = Update-WebSite -siteName "SampleWeb" -physicalPath $physicalPath -authType "PassThrough" -addBinding "false" -protocol "http" -ipAddress "`"All Unassigned`"" -port "80" -hostname "localhost" 4>&1 | Out-String   
         
@@ -754,15 +754,15 @@ Describe "Tests for verifying Update-AppPool functionality" {
     }
 }
 
-Describe "Tests for verifying Create-And-Update-WebSite functionality" {
+Describe "Tests for verifying Add-And-Update-Website functionality" {
 
     Context "When website does not exist" {
 
-        Mock Does-WebSiteExists -Verifiable { return $false } -ParameterFilter { $SiteName -eq "SampleWeb" }
-        Mock Create-WebSite -Verifiable { return } -ParameterFilter { $siteName -eq "SampleWeb" }
+        Mock Test-WebsiteExist -Verifiable { return $false } -ParameterFilter { $SiteName -eq "SampleWeb" }
+        Mock Add-Website -Verifiable { return } -ParameterFilter { $siteName -eq "SampleWeb" }
         Mock Update-WebSite -Verifiable { return } -ParameterFilter { $siteName -eq "SampleWeb" }
 
-        Create-And-Update-WebSite -siteName "SampleWeb"
+        Add-And-Update-Website -siteName "SampleWeb"
 
         It "Create website should be called"{
             Assert-VerifiableMocks
@@ -771,15 +771,15 @@ Describe "Tests for verifying Create-And-Update-WebSite functionality" {
 
     Context "When website exist" {
 
-        Mock Does-WebSiteExists -Verifiable { return $true } -ParameterFilter { $SiteName -eq "SampleWeb" }
-        Mock Create-WebSite { return } -ParameterFilter { $siteName -eq "SampleWeb" }
+        Mock Test-WebsiteExist -Verifiable { return $true } -ParameterFilter { $SiteName -eq "SampleWeb" }
+        Mock Add-Website { return } -ParameterFilter { $siteName -eq "SampleWeb" }
         Mock Update-WebSite -Verifiable { return } -ParameterFilter { $siteName -eq "SampleWeb" }
 
-        Create-And-Update-WebSite -siteName "SampleWeb"
+        Add-And-Update-Website -siteName "SampleWeb"
 
         It "Create website should not be called"{
             Assert-VerifiableMocks
-            Assert-MockCalled Create-WebSite -Times 0 -Exactly
+            Assert-MockCalled Add-Website -Times 0 -Exactly
         }
     }
 }
@@ -788,8 +788,8 @@ Describe "Tests for verifying Create-And-Update-AppPool functionality" {
 
     Context "When application pool does not exist" {
 
-        Mock Does-AppPoolExists -Verifiable { return $false } -ParameterFilter { $AppPoolName -eq "SampleAppPool" }
-        Mock Create-AppPool -Verifiable { return } -ParameterFilter { $AppPoolName -eq "SampleAppPool" }
+        Mock Test-AppPoolExist -Verifiable { return $false } -ParameterFilter { $AppPoolName -eq "SampleAppPool" }
+        Mock Add-AppPool -Verifiable { return } -ParameterFilter { $AppPoolName -eq "SampleAppPool" }
         Mock Update-AppPool -Verifiable { return } -ParameterFilter { $AppPoolName -eq "SampleAppPool" -and $ClrVersion -eq "2.0" -and $PipeLineMode -eq "Integrated" -and $Identity -eq "SpecificUser" -and $UserName -eq "dummyUser" -and $Password -eq "DummyPassword"}
         
         Create-And-Update-AppPool -appPoolName "SampleAppPool" -clrVersion "2.0" -pipeLineMode "Integrated" -identity "SpecificUser" -userName "dummyUser" -password "DummyPassword"
@@ -801,15 +801,15 @@ Describe "Tests for verifying Create-And-Update-AppPool functionality" {
 
     Context "When application pool exist" {
 
-        Mock Does-AppPoolExists -Verifiable { return $true } -ParameterFilter { $AppPoolName -eq "SampleAppPool" }
-        Mock Create-AppPool { return } -ParameterFilter { $AppPoolName -eq "SampleAppPool" }
+        Mock Test-AppPoolExist -Verifiable { return $true } -ParameterFilter { $AppPoolName -eq "SampleAppPool" }
+        Mock Add-AppPool { return } -ParameterFilter { $AppPoolName -eq "SampleAppPool" }
         Mock Update-AppPool -Verifiable { return } -ParameterFilter { $AppPoolName -eq "SampleAppPool"  -and $ClrVersion -eq "2.0" -and $PipeLineMode -eq "Integrated" -and $Identity -eq "SpecificUser" -and $UserName -eq "dummyUser" -and $Password -eq "DummyPassword"}
 
         Create-And-Update-AppPool -appPoolName "SampleAppPool" -clrVersion "2.0" -pipeLineMode "Integrated" -identity "SpecificUser" -userName "dummyUser" -password "DummyPassword"
 
         It "Create application pool should not be called"{
             Assert-VerifiableMocks
-            Assert-MockCalled Create-AppPool -Times 0 -Exactly
+            Assert-MockCalled Add-AppPool -Times 0 -Exactly
         }
     }
 }
@@ -818,7 +818,7 @@ Describe "Tests for verifying Execute-Main functionality" {
 
     $AppCmdCommands = "ExtraCommands"
     $WebsiteName = "SampleWeb"
-    Mock Run-AdditionalCommands -Verifiable { return } -ParameterFilter { $additionalCommands -eq $AppCmdCommands }
+    Mock Invoke-AdditionalCommand -Verifiable { return } -ParameterFilter { $additionalCommands -eq $AppCmdCommands }
 
     Context "createAppPool is false"{
 
@@ -826,7 +826,7 @@ Describe "Tests for verifying Execute-Main functionality" {
         $CreateAppPool = "false"
         $CreateWebsite = "true"
 
-        Mock Create-And-Update-WebSite -Verifiable { return } -ParameterFilter { $WebsiteName -eq $WebsiteName }
+        Mock Add-And-Update-Website -Verifiable { return } -ParameterFilter { $WebsiteName -eq $WebsiteName }
         Mock Create-And-Update-AppPool { return } -ParameterFilter { $appPoolName -eq $AppPoolName }
 
         Execute-Main -AppPoolName $AppPoolName -CreateWebsite $CreateWebsite -CreateAppPool $CreateAppPool
@@ -843,7 +843,7 @@ Describe "Tests for verifying Execute-Main functionality" {
         $createAppPool = "true"
         $CreateWebsite = "true"
 
-        Mock Create-And-Update-WebSite -Verifiable { return } -ParameterFilter { $WebsiteName -eq $WebsiteName }
+        Mock Add-And-Update-Website -Verifiable { return } -ParameterFilter { $WebsiteName -eq $WebsiteName }
         Mock Create-And-Update-AppPool -Verifiable { return } -ParameterFilter { $appPoolName -eq $AppPoolName }
 
         Execute-Main -AppPoolName $AppPoolName -CreateWebsite $CreateWebsite -CreateAppPool $CreateAppPool
@@ -856,13 +856,13 @@ Describe "Tests for verifying Execute-Main functionality" {
     Context "CreateWebSite is false" {
 
         $CreateWebsite = "false"
-        Mock Create-And-Update-WebSite { return } -ParameterFilter { $SiteName -eq $WebsiteName }
+        Mock Add-And-Update-Website { return } -ParameterFilter { $SiteName -eq $WebsiteName }
 
         Execute-Main -CreateWebsite $CreateWebsite
 
         It "No exception should be thrown"{
             Assert-VerifiableMocks
-            Assert-MockCalled Create-And-Update-WebSite -Times 0
+            Assert-MockCalled Add-And-Update-Website -Times 0
         }
     }
 
@@ -871,7 +871,7 @@ Describe "Tests for verifying Execute-Main functionality" {
         $Protocol = "http"
         $CreateWebsite = "true"
 
-        Mock Create-And-Update-WebSite -Verifiable { return } -ParameterFilter { $SiteName -eq $WebsiteName }
+        Mock Add-And-Update-Website -Verifiable { return } -ParameterFilter { $SiteName -eq $WebsiteName }
         Mock Add-SslCert { return }
         Mock Enable-SNI { return }
 
@@ -891,7 +891,7 @@ Describe "Tests for verifying Execute-Main functionality" {
         $CreateWebsite = "true"
         $AddBinging = "true"
 
-        Mock Create-And-Update-WebSite -Verifiable { return } -ParameterFilter { $SiteName -eq $WebsiteName }
+        Mock Add-And-Update-Website -Verifiable { return } -ParameterFilter { $SiteName -eq $WebsiteName }
         Mock Add-SslCert -Verifiable { return } -ParameterFilter { $Certhash -eq $SslCertThumbPrint }
         Mock Enable-SNI -Verifiable { return } -ParameterFilter { $SiteName -eq $WebsiteName }
         Mock Get-AppCmdLocation -Verifiable { return "appcmd.exe", 8 }

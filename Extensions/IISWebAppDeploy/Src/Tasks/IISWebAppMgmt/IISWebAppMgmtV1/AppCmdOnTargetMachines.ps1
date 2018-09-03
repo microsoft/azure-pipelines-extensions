@@ -183,7 +183,7 @@ function Add-SslCert
         [string]$certhash,
         [string]$hostname,
         [string]$sni,
-        [string]$iisVersion,
+        [int]$iisVersion,
         [string]$ipAddress
     )
 
