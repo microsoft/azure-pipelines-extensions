@@ -3,7 +3,7 @@
   "id": "vss-services-bitbucket",
   "name": "Bitbucket artifacts for Release Management",
   "publisher": "ms-vscs-rm",
-  "version": "15.136.1",
+  "version": "15.141.0",
   "public": true,
   "description": "Tools related to connecting with Bitbucket",
   "_description.comment": "The below format to define artifact extensions is currently in preview and may change in future.",
@@ -194,6 +194,33 @@
                   "dataType": "string",
                   "maxLength": 300
               }
+          },
+          {
+            "id": "defaultVersionType",
+            "name": "i18n:Default version",
+            "description": "i18n:The default version will be deployed when new releases are created. The version can be changed for manually created releases at the time of release creation",
+            "inputMode": "Combo",
+            "isConfidential": false,
+            "hasDynamicValueInformation": false,
+            "values": {
+              "inputId": "defaultVersionType",
+              "defaultValue": "i18n:Latest",
+              "possibleValues": [
+                {
+                  "value": "latestType",
+                  "displayValue": "i18n:Latest"
+                },
+                {
+                  "value": "selectDuringReleaseCreationType",
+                  "displayValue": "i18n:Specify at the time of release creation"
+                }
+              ],
+              "isLimitedToPossibleValues": true
+            },
+            "validation": {
+              "isRequired": true,
+              "dataType": "string"
+            }
           }
         ],
         "dataSourceBindings": [

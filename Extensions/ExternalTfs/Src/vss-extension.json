@@ -1,7 +1,7 @@
 ﻿{
   "manifestVersion": 1.0,
   "id": "vss-services-externaltfs",
-  "version": "15.138.1",
+  "version": "15.141.0",
   "name": "TFS artifacts for Release Management",
   "publisher": "ms-vscs-rm",
   "description": "Deploy external TFS/ VS-Team-Services artifacts using Release Management",
@@ -288,6 +288,33 @@
             }
           },
           {
+            "id": "defaultVersionType",
+            "name": "i18n:Default version",
+            "description": "i18n:The default version will be deployed when new releases are created. The version can be changed for manually created releases at the time of release creation",
+            "inputMode": "Combo",
+            "isConfidential": false,
+            "hasDynamicValueInformation": false,
+            "values": {
+              "inputId": "defaultVersionType",
+              "defaultValue": "i18n:Latest",
+              "possibleValues": [
+                {
+                  "value": "latestType",
+                  "displayValue": "i18n:Latest"
+                },
+                {
+                  "value": "selectDuringReleaseCreationType",
+                  "displayValue": "i18n:Specify at the time of release creation"
+                }
+              ],
+              "isLimitedToPossibleValues": true
+            },
+            "validation": {
+              "isRequired": true,
+              "dataType": "string"
+            }
+          },
+          {
             "id": "artifacts",
             "name": "Artifacts",
             "description": "Build artifacts",
@@ -430,6 +457,33 @@
                         "dataType": "string",
                         "maxLength": 300
                     }
+                },
+                {
+                  "id": "defaultVersionType",
+                  "name": "i18n:Default version",
+                  "description": "i18n:The default version will be deployed when new releases are created. The version can be changed for manually created releases at the time of release creation",
+                  "inputMode": "Combo",
+                  "isConfidential": false,
+                  "hasDynamicValueInformation": false,
+                  "values": {
+                    "inputId": "defaultVersionType",
+                    "defaultValue": "i18n:Latest",
+                    "possibleValues": [
+                      {
+                        "value": "latestType",
+                        "displayValue": "i18n:Latest"
+                      },
+                      {
+                        "value": "selectDuringReleaseCreationType",
+                        "displayValue": "i18n:Specify at the time of release creation"
+                      }
+                    ],
+                    "isLimitedToPossibleValues": true
+                  },
+                  "validation": {
+                    "isRequired": true,
+                    "dataType": "string"
+                  }
                 },
                 {
                     "id": "artifacts",
@@ -577,6 +631,33 @@
                 }
             },
             {
+              "id": "defaultVersionType",
+              "name": "i18n:Default version",
+              "description": "i18n:The default version will be deployed when new releases are created. The version can be changed for manually created releases at the time of release creation",
+              "inputMode": "Combo",
+              "isConfidential": false,
+              "hasDynamicValueInformation": false,
+              "values": {
+                "inputId": "defaultVersionType",
+                "defaultValue": "i18n:Latest",
+                "possibleValues": [
+                  {
+                    "value": "latestType",
+                    "displayValue": "i18n:Latest"
+                  },
+                  {
+                    "value": "selectDuringReleaseCreationType",
+                    "displayValue": "i18n:Specify at the time of release creation"
+                  }
+                ],
+                "isLimitedToPossibleValues": true
+              },
+              "validation": {
+                "isRequired": true,
+                "dataType": "string"
+              }
+            },
+            {
                 "id": "artifacts",
                 "name": "Artifacts",
                 "description": "Source Artifacts",
@@ -706,6 +787,33 @@
               "isRequired": true,
               "dataType": "string",
               "maxLength": 300
+            }
+          },
+          {
+            "id": "defaultVersionType",
+            "name": "i18n:Default version",
+            "description": "i18n:The default version will be deployed when new releases are created. The version can be changed for manually created releases at the time of release creation",
+            "inputMode": "Combo",
+            "isConfidential": false,
+            "hasDynamicValueInformation": false,
+            "values": {
+              "inputId": "defaultVersionType",
+              "defaultValue": "i18n:Latest",
+              "possibleValues": [
+                {
+                  "value": "latestType",
+                  "displayValue": "i18n:Latest"
+                },
+                {
+                  "value": "selectDuringReleaseCreationType",
+                  "displayValue": "i18n:Specify at the time of release creation"
+                }
+              ],
+              "isLimitedToPossibleValues": true
+            },
+            "validation": {
+              "isRequired": true,
+              "dataType": "string"
             }
           },
           {
