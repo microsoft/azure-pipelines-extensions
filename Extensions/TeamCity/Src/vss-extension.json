@@ -78,11 +78,6 @@
             "resultSelector": "jsonpath:$.buildType[*]"
           },
           {
-            "name": "Builds",
-            "endpointUrl": "{{endpoint.url}}httpAuth/app/rest/buildTypes/{{definition}}/builds/?locator=branch:default:any",
-            "resultSelector": "jsonpath:$.build[?(@.status=='SUCCESS')]"
-          },
-          {
             "name": "LatestBuild",
             "endpointUrl": "{{endpoint.url}}httpAuth/app/rest/buildTypes/{{definition}}/builds?locator=branch:default:any&count=1&status=success",
             "resultSelector": "jsonpath:$.build[*]"
@@ -208,8 +203,12 @@
           },
           {
             "target": "versions",
-            "dataSourceName": "Builds",
-            "resultTemplate": "{ Value : \"{{id}}\", DisplayValue : \"{{{number}}}\" }"
+            "endpointUrl": "{{endpoint.url}}httpAuth/app/rest/buildTypes/{{definition}}/builds/?locator=branch:default:any,count:2000,start:0{{skip}}",
+            "resultSelector": "jsonpath:$.build[?(@.status=='SUCCESS')]",
+            "resultTemplate": "{ Value : \"{{id}}\", DisplayValue : \"{{{number}}}\" }",
+            "callbackContextTemplate": "{\"skip\": \"{{add skip 2000}}\"}",
+            "callbackRequiredTemplate": "{{ result.nextHref }}",
+            "initialContextTemplate": "{\"skip\": \"0\"}"
           },
           {
             "target": "latestversion",
