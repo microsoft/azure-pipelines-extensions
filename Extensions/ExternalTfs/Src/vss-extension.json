@@ -295,8 +295,8 @@
             "isConfidential": false,
             "hasDynamicValueInformation": false,
             "values": {
-              "inputId": "defaultVersionType",
-              "defaultValue": "i18n:Latest",
+              "inputId": "defaultVersionTypeValues",
+              "defaultValue": "latestType",
               "possibleValues": [
                 {
                   "value": "latestType",
@@ -466,8 +466,8 @@
                   "isConfidential": false,
                   "hasDynamicValueInformation": false,
                   "values": {
-                    "inputId": "defaultVersionType",
-                    "defaultValue": "i18n:Latest",
+                    "inputId": "defaultVersionTypeValues",
+                    "defaultValue": "latestType",
                     "possibleValues": [
                       {
                         "value": "latestType",
@@ -638,8 +638,8 @@
               "isConfidential": false,
               "hasDynamicValueInformation": false,
               "values": {
-                "inputId": "defaultVersionType",
-                "defaultValue": "i18n:Latest",
+                "inputId": "defaultVersionTypeValues",
+                "defaultValue": "latestType",
                 "possibleValues": [
                   {
                     "value": "latestType",
@@ -797,8 +797,8 @@
             "isConfidential": false,
             "hasDynamicValueInformation": false,
             "values": {
-              "inputId": "defaultVersionType",
-              "defaultValue": "i18n:Latest",
+              "inputId": "defaultVersionTypeValues",
+              "defaultValue": "latestType",
               "possibleValues": [
                 {
                   "value": "latestType",
