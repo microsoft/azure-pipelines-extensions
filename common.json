@@ -21,10 +21,6 @@
     ],
     "IISWebAppMgmtV2": [
         {
-            "module": "DeploymentSDK",
-            "dest": "IISWebAppMgmtV2\\DeploymentSDK"
-        },
-        {
             "module": "TelemetryHelper",
             "dest": "IISWebAppMgmtV2\\TelemetryHelper"
         }

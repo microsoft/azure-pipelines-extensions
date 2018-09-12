@@ -3,7 +3,7 @@ param()
 
 . $PSScriptRoot\..\..\..\..\..\Common\lib\Initialize-Test.ps1
 
-. $PSScriptRoot\..\..\..\..\Src\Tasks\IISWebAppMgmt\IISWebAppMgmtV2\ManageIISWebApp.ps1
+. $PSScriptRoot\..\..\..\..\Src\Tasks\IISWebAppMgmt\IISWebAppMgmtV2\Utility.ps1
 . $PSScriptRoot\..\..\..\..\..\Common\DeploymentSDK\Src\InvokeRemoteDeployment.ps1
 
 $machinesList = "dummyMachinesList"
@@ -16,7 +16,7 @@ $https = "https"
 $filter = "dummyFilter"
 
 # Test: 1
-Register-Mock Invoke-RemoteDeployment { return "" } -ParametersEvaluator { $MachinesList -eq $machinesList -and  $ScriptToRun -eq $script -and $AdminUserName -eq $adminUserName -and $AdminPassword -eq $AdminPassword  -and $Protocol -eq $http -and $TestCertificate -eq "false" -and $DeployInParallel -eq $deployInParallel}
+Register-Mock Invoke-RemoteScript { return "" } -ParametersEvaluator { $MachinesList -eq $machinesList -and  $ScriptToRun -eq $script -and $AdminUserName -eq $adminUserName -and $AdminPassword -eq $AdminPassword  -and $Protocol -eq $http -and $TestCertificate -eq "false" -and $DeployInParallel -eq $deployInParallel}
         
 try
 {
@@ -27,13 +27,13 @@ catch
     $result = $_
 }
 
-Assert-WasCalled Invoke-RemoteDeployment
+Assert-WasCalled Invoke-RemoteScript
 Assert-IsNullOrEmpty $result.Exception
 
-Unregister-Mock Invoke-RemoteDeployment
+Unregister-Mock Invoke-RemoteScript
 
 # Test: 2
-Register-Mock Invoke-RemoteDeployment { return "Error occurred" } -ParametersEvaluator { $MachinesList -eq $machinesList -and  $ScriptToRun -eq $script -and $AdminUserName -eq $adminUserName -and $AdminPassword -eq $AdminPassword  -and $Protocol -eq $http -and $TestCertificate -eq "false" -and $DeployInParallel -eq $deployInParallel}
+Register-Mock Invoke-RemoteScript { return "Error occurred" } -ParametersEvaluator { $MachinesList -eq $machinesList -and  $ScriptToRun -eq $script -and $AdminUserName -eq $adminUserName -and $AdminPassword -eq $AdminPassword  -and $Protocol -eq $http -and $TestCertificate -eq "false" -and $DeployInParallel -eq $deployInParallel}
 
 try
 {
