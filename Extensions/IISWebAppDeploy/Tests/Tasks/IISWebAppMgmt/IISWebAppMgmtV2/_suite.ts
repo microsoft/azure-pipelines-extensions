@@ -39,9 +39,10 @@ describe('IISWebAppMgmtV2 Suite', function () {
             psr.run(path.join(__dirname, 'L0UtilityManageAppPool.ps1'), done);
         })
 
-        it('test iis manage utility - Run-RemoteDeployment function', (done) => {
-            psr.run(path.join(__dirname, 'L0UtilityRunRemoteDeploymentFunction.ps1'), done);
-        })
+        // TODO: raagra: Enable and edit this once the RemoteDeployer code is changed and finalized
+        // it('test iis manage utility - Run-RemoteDeployment function', (done) => {
+        //     psr.run(path.join(__dirname, 'L0UtilityRunRemoteDeploymentFunction.ps1'), done);
+        // })
 
         it('test iis manage utility - Get-HostName function', (done) => {
             psr.run(path.join(__dirname, 'L0GetHostNameFunction.ps1'), done);

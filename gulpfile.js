@@ -198,17 +198,31 @@ gulp.task("compileNode", ["compilePS"], function(cb){
                     cacheNpmPackage(packageName, packageVersion);
                 });
             }
-            // Check for NuGetV2 externals.
+
+            // external NuGet V2 packages
             if (externals.nugetv2) {
-                // Walk the dictionary.
-                var packageNames = Object.keys(externals.nugetv2);
-                packageNames.forEach(function (packageName) {
-                    // Cache the NuGet V2 package.
-                    var packageVersion = externals.nugetv2[packageName].version;
-                    var packageRepository = externals.nugetv2[packageName].repository;
-                    cacheNuGetV2Package(packageRepository, packageName, packageVersion);
-                })
+                var nugetPackages = Object.keys(externals.nugetv2);
+                nugetPackages.forEach(function (package) {
+                    // download and extract the NuGet V2 package
+                    var packageVersion = externals.nugetv2[package].version;
+                    var packageRepository = externals.nugetv2[package].repository;
+                    var copySpecification = externals.nugetv2[package].cp;
+
+                    var packageSource = cacheNuGetV2Package(packageRepository, package, packageVersion);
+
+                    var relativeExternalsPath = path.dirname(externalsJson).replace(new RegExp('/','g'),'\\').replace(path.join(__dirname),'');
+                    if(relativeExternalsPath.startsWith('\\')) {
+                        relativeExternalsPath = relativeExternalsPath.substring(1);
+                    }
+                    var destPath = path.join(_buildRoot, relativeExternalsPath);
+
+                    // copy specific files
+                    if (!!copySpecification) {
+                        copyGroups(copySpecification, packageSource, destPath);
+                    }
+                });
             }
+
             // Check for archive files.
             if (externals.archivePackages) {
                 // Walk the array.
@@ -266,6 +280,66 @@ gulp.task("compileNode", ["compilePS"], function(cb){
     // Generate loc files 
     createResjson(cb);
 })
+
+var copyGroup = function (group, sourceRoot, destRoot) {
+    // example structure to copy a single file:
+    // {
+    //   "source": "foo.dll"
+    // }
+    //
+    // example structure to copy an array of files/folders to a relative directory:
+    // {
+    //   "source": [
+    //     "foo.dll",
+    //     "bar",
+    //   ],
+    //   "dest": "baz/",
+    //   "options": "-R"
+    // }
+    //
+    // example to multiply the copy by .NET culture names supported by TFS:
+    // {
+    //   "source": "<CULTURE_NAME>/foo.dll",
+    //   "dest": "<CULTURE_NAME>/"
+    // }
+    //
+
+    // multiply by culture name (recursive call to self)
+    if (group.dest && group.dest.indexOf('<CULTURE_NAME>') >= 0) {
+        cultureNames.forEach(function (cultureName) {
+            // culture names do not contain any JSON-special characters, so this is OK (albeit a hack)
+            var localizedGroupJson = JSON.stringify(group).replace(/<CULTURE_NAME>/g, cultureName);
+            copyGroup(JSON.parse(localizedGroupJson), sourceRoot, destRoot);
+        });
+
+        return;
+    }
+
+    // build the source array
+    var source = typeof group.source == 'string' ? [group.source] : group.source;
+    source = source.map(function (val) { // root the paths
+        return path.join(sourceRoot, val);
+    });
+
+    // create the destination directory
+    var dest = group.dest ? path.join(destRoot, group.dest) : destRoot + '/';
+    dest = path.normalize(dest);
+    shell.mkdir('-p', dest);
+
+    // copy the files
+    if (group.hasOwnProperty('options') && group.options) {
+        shell.cp(group.options, source, dest);
+    }
+    else {
+        shell.cp(source, dest);
+    }
+}
+
+var copyGroups = function (groups, sourceRoot, destRoot) {
+    groups.forEach(function (group) {
+        copyGroup(group, sourceRoot, destRoot);
+    })
+}
 
 function createResjson(callback) {
     try {
@@ -797,7 +871,7 @@ var cacheArchiveFile = function (url) {
     var targetPath = path.join(_tempPath, 'archive', scrubbedUrl);
     if (shell.test('-d', targetPath)) {
         console.log('Archive file already cached: ' + url);
-        return;
+        return targetPath;
     }
 
     console.log('Downloading archive file: ' + url);
@@ -826,6 +900,8 @@ var cacheArchiveFile = function (url) {
 
     // Remove the remaining partial directory.
     shell.rm('-rf', partialPath);
+
+    return targetPath;
 }
 
 var cacheNpmPackage = function (name, version) {
@@ -927,5 +1003,5 @@ var cacheNuGetV2Package = function (repository, name, version) {
     }
 
     // Cache the archive file.
-    cacheArchiveFile(repository.replace(/\/$/, '') + '/package/' + name + '/' + version);
+    return cacheArchiveFile(repository.replace(/\/$/, '') + '/package/' + name + '/' + version);
 }

@@ -65,10 +65,10 @@ param (
     )
 
 $currentTaskVersionRootDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-$env:CURRENT_TASK_ROOTDIR = Split-Path -Parent $currentTaskVersionRootDir
+$env:CURRENT_TASK_ROOTDIR = $currentTaskVersionRootDir
 
 . $env:CURRENT_TASK_ROOTDIR\TelemetryHelper\TelemetryHelper.ps1
-. $currentTaskVersionRootDir\ManageIISWebApp.ps1
+. $currentTaskVersionRootDir\Utility.ps1
 
 try {
     $appPoolPassword = Escape-SpecialChars -str $appPoolPassword
