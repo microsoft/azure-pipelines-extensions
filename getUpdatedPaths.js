@@ -24,7 +24,7 @@ class GitClient {
                 res.on('end', function () {
                     //console.log(responseString);
                     var changes = JSON.parse(responseString);
-                    console.log(changes);
+                    //console.log(changes);
                     var paths = changes.map(x => x.filename);
                     var updatedPaths = paths.join(',');
                     resolve(updatedPaths);
@@ -39,7 +39,7 @@ class GitClient {
     }
 }
 exports.GitClient = GitClient;
-var currentPullRequest = process.env['BUILD_SOURCEBRANCH'];
+var currentPullRequest = 'refs/pull/492/merge';
 console.log(currentPullRequest);
 
 if (currentPullRequest) {
@@ -54,7 +54,7 @@ if (currentPullRequest) {
     }
     else {
         console.log(prNumber);
-        var repository = process.env['BUILD_REPOSITORY_NAME'];
+        var repository = 'Microsoft/vsts-rm-extensions'
         console.log(repository);
         new GitClient(repository).getUpdatedFilePathsForPR(prNumber).then((updatedPaths) => {
             console.log(`##vso[task.setvariable variable=UpdatedAreaPaths;]${updatedPaths}`);
