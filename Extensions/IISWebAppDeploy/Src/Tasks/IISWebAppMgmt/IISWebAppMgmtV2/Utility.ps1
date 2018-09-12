@@ -371,32 +371,6 @@ function Get-NewPSSessionOption {
     }
 }
 
-function Get-RemoteScriptJobArguments {
-    param (
-        [string] $scriptToRun
-    )
-
-    Trace-VstsEnteringInvocation $MyInvocation
-    try {
-        $scriptArgumentsByName = @{
-            scriptPath = "";
-            scriptArguments = "";
-            inlineScript = $scriptToRun;
-            inline = $true;
-            workingDirectory = "";
-            errorActionPreference = "Stop";
-            ignoreLASTEXITCODE = $false;
-            failOnStdErr = $true;
-            initializationScriptPath = "";
-            sessionVariables = "";
-        }
-
-        return $scriptArgumentsByName
-    } finally {
-        Trace-VstsLeavingInvocation $MyInvocation
-    }
-}
-
 function Run-RemoteDeployment
 {
     param(
