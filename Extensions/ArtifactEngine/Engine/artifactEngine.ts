@@ -128,8 +128,20 @@ export class ArtifactEngine {
                     return value;
                 });
 
-                this.artifactItemStore.addItems(items);
-                this.artifactItemStore.updateState(item, models.TicketState.Processed);
+                if (items.length > 0) {
+                    this.artifactItemStore.addItems(items);
+                    this.artifactItemStore.updateState(item, models.TicketState.Processed);
+                }
+                else {
+                    destProvider.putArtifactItem(item, null)
+                        .then((item) => {
+                            this.artifactItemStore.updateState(item, models.TicketState.Processed);
+                            resolve();
+                        }, (err) => {
+                            Logger.logInfo("Error creating folder " + item.path + ": " + err);
+                            retryIfRequired(err);
+                        });
+                }
 
                 Logger.logInfo("Enqueued " + items.length + " for processing.");
                 resolve();

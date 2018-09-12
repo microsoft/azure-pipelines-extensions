@@ -60,18 +60,23 @@ export class StubProvider implements models.IArtifactProvider {
     putArtifactItem(item: models.ArtifactItem, readStream: NodeJS.ReadableStream): Promise<models.ArtifactItem> {
         var promise = new Promise<models.ArtifactItem>((resolve, reject) => {
             var data = ''
-            readStream.on('data', (chunk) => {
-                data += chunk;
-            });
+            if (item.itemType === models.ItemType.File) {
+                readStream.on('data', (chunk) => {
+                    data += chunk;
+                });
 
-            readStream.on('end', () => {
-                this.itemsUploaded[item.path] = data;
-                resolve(item)
-            });
+                readStream.on('end', () => {
+                    this.itemsUploaded[item.path] = data;
+                    resolve(item);
+                });
 
-            readStream.on('error', () => {
-                reject(item);
-            });
+                readStream.on('error', () => {
+                    reject(item);
+                });
+            }
+            else {
+                resolve(item);
+            }
         });
 
         return promise;
