@@ -24,7 +24,6 @@ function Set-IISWebSite
         [string] $hostNameWithHttp,
         [string] $hostNameWithSNI,
         [string] $sslCertThumbPrint,
-        [string] $bindings,
 
         [string] $createOrUpdateAppPool,
         [string] $appPoolName,
@@ -50,19 +49,14 @@ function Set-IISWebSite
             
             if($addBinding -eq "true") 
             {
-                if([string]::IsNullOrWhiteSpace($bindings)) {
-                    $bindingsArray = @(@{
-                        protocol = $protocol.Trim();
-                        ipAddress = $ipAddress.Trim();
-                        port = $port.Trim();
-                        sniFlag = $serverNameIndication;
-                        sslThumbprint = Test-SSLCertificateThumbprint -sslCertThumbPrint $sslCertThumbPrint -ipAddress $ipAddress -protocol $protocol -port $port ;
-                        hostname = Get-Hostname -port $port -hostNameWithSNI $hostNameWithSNI -hostNameWithHttp $hostNameWithHttp -hostNameWithOutSNI $hostNameWithOutSNI -sni $serverNameIndication ;
-                    })
-                }
-                else {
-                    $bindingsArray = Validate-Bindings -bindings $bindings
-                }
+                $bindingsArray = @(@{
+                    protocol = $protocol.Trim();
+                    ipAddress = $ipAddress.Trim();
+                    port = $port.Trim();
+                    sniFlag = $serverNameIndication;
+                    sslThumbprint = Test-SSLCertificateThumbprint -sslCertThumbPrint $sslCertThumbPrint -ipAddress $ipAddress -protocol $protocol -port $port ;
+                    hostname = Get-Hostname -port $port -hostNameWithSNI $hostNameWithSNI -hostNameWithHttp $hostNameWithHttp -hostNameWithOutSNI $hostNameWithOutSNI -sni $serverNameIndication ;
+                })
             }
 
             $bindingsJson = $bindingsArray | ConvertTo-Json

@@ -22,7 +22,6 @@ param (
     [string]$hostNameWithHttp,
     [string]$hostNameWithSNI,
     [string]$sslCertThumbPrint,
-    [string]$bindings,
     [string]$createOrUpdateAppPoolForWebsite,
     [string]$configureAuthenticationForWebsite,
     [string]$appPoolNameForWebsite,
