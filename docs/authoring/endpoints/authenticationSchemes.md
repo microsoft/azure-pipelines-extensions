@@ -23,7 +23,6 @@ To use this authentication scheme you will need to override following 2 fields i
       "properties": {
         "name": "OAuth2",
         "displayName": "i18n:OAuth2",
-        "featureFlag": "DistributedTask.OAuthConfiguration",
         "authorizationUrl": "",
         "dataSourceBindings": [
           {
