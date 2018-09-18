@@ -75,7 +75,7 @@ async function main(): Promise<void> {
         var templatePath = path.join(__dirname, 'vsts.handlebars');
         var buildApi = vssConnection.getBuildApi();
 
-        var artifacts = await buildApi.getArtifacts(parseInt(buildId), projectId).catch((reason) => {
+        var artifacts = await executeWithRetries("getArtifacts", () => buildApi.getArtifacts(parseInt(buildId), projectId), 3).catch((reason) => {
             reject(reason);
         });
 
@@ -147,6 +147,31 @@ async function main(): Promise<void> {
     });
 
     return promise;
+}
+
+function executeWithRetries(operationName: string, operation: () => Promise<any>, retryCount): Promise<any> {
+    var executePromise = new Promise((resolve, reject) => {
+        executeWithRetriesImplementation(operationName, operation, retryCount, resolve, reject);
+    });
+
+    return executePromise;
+}
+
+function executeWithRetriesImplementation(operationName: string, operation: () => Promise<any>, currentRetryCount, resolve, reject) {
+    operation().then((result) => {
+        resolve(result);
+    }).catch((error) => {
+        if (currentRetryCount <= 0) {
+            tl.error(tl.loc("OperationFailed", operationName, error));
+            reject(error);
+        }
+        else {
+            console.log(tl.loc('RetryingOperation', operationName, currentRetryCount));
+            tl.debug(error);
+            currentRetryCount = currentRetryCount - 1;
+            setTimeout(() => executeWithRetriesImplementation(operationName, operation, currentRetryCount, resolve, reject), 4 * 1000);
+        }
+    });
 }
 
 main()
