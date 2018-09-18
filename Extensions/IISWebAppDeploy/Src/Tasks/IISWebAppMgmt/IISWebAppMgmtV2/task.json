@@ -236,6 +236,24 @@
         "helpMarkDown": "Select the option to add port binding for the website."
     },
     {
+        "name": "CreateOrUpdateAppPoolForWebsite",
+        "type": "boolean",
+        "label": "Create or update app pool",
+        "required": false,
+        "groupName": "Website",
+        "defaultValue": "false",
+        "helpMarkDown": "Select the option to create or update an application pool. If checked, the website will be created in the specified app pool."
+    },
+    {
+        "name": "ConfigureAuthenticationForWebsite",
+        "type": "boolean",
+        "label": "Configure authentication",
+        "required": false,
+        "groupName": "Website",
+        "defaultValue": "false",
+        "helpMarkDown": "Select the option to configure authentication for website."
+    },
+    {
         "name": "Protocol",
         "type": "pickList",
         "label": "Protocol",
@@ -318,24 +336,6 @@
         "defaultValue": "",
         "visibleRule": "Protocol = https",
         "helpMarkDown": "Provide the thumb-print of the Secure Socket Layer certificate that the website is going to use for the HTTPS communication as a 40 character long hexadecimal string. The SSL certificate should be already installed on the Computer, at Local Computer, Personal store."
-    },
-    {
-        "name": "CreateOrUpdateAppPoolForWebsite",
-        "type": "boolean",
-        "label": "Create or update app pool",
-        "required": false,
-        "groupName": "Website",
-        "defaultValue": "false",
-        "helpMarkDown": "Select the option to create or update an application pool. If checked, the website will be created in the specified app pool."
-    },
-    {
-        "name": "ConfigureAuthenticationForWebsite",
-        "type": "boolean",
-        "label": "Configure authentication",
-        "required": false,
-        "groupName": "Website",
-        "defaultValue": "false",
-        "helpMarkDown": "Select the option to configure authentication for website."
     },
     {
         "name": "AppPoolNameForWebsite",
