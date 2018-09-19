@@ -389,7 +389,7 @@ function Run-RemoteDeployment
         $targetMachineNames = Parse-TargetMachineNames -machineNames $machinesList
 
         $sessionOptionArguments = ''
-        if ([System.Convert]::ToBoolean($useTestCertificate))
+        if ([System.Convert]::ToBoolean($testCertificate))
         {
             $sessionOptionArguments = "-SkipCACheck"
         }
