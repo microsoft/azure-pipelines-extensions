@@ -1,0 +1,134 @@
+{
+  "id": "6BBE8736-EE83-4BBF-A0AD-96B118797CC4",
+  "name": "UpdateServiceNowChangeRequest",
+  "friendlyName": "Update ServiceNow Change Request",
+  "description": "Update ServiceNow Change Request",
+  "author": "ServiceNow",
+  "helpMarkDown": "[More Information]()",
+  "category": "Utility",
+  "preview": "true",
+  "visibility": [
+    "Release"
+  ],
+  "runsOn": [
+    "Server"
+  ],
+  "version": {
+    "Major": 0,
+    "Minor": 1,
+    "Patch": 0
+  },
+  "instanceNameFormat": "Update ServiceNow Change Request",
+  "groups": [
+    {
+      "name": "advancedInputs",
+      "displayName": "Advanced",
+      "isExpanded": false
+    }
+  ],
+
+  "inputs": [
+    {
+      "name": "ServiceNowConnection",
+      "type": "connectedService:ServiceNow",
+      "label": "ServiceNow connection",
+      "defaultValue": "",
+      "required": "true",
+      "helpMarkDown": "The ServiceNow endpoint for the ServiceNow instance to query"
+    },
+    {
+      "name": "ChangeRequestNumber",
+      "type": "string",
+      "label": "Change Request Number",
+      "defaultValue": "",
+      "required": true,
+      "helpMarkDown": "Change request that you want to update. Must be a valid change request number in Service now."
+    },
+    {
+      "name": "NewStatus",
+      "type": "pickList",
+      "label": "Updated status of change request",
+      "required": "true",
+      "helpMarkDown": "Status of change request that indicates the change request is ready to be implemented. Task would succeed when the the change request status is same as the provided value.",
+      "properties": {
+        "EditableOptions": "True"
+      }
+    },
+
+    {
+      "name": "CloseCode",
+      "type": "pickList",
+      "label": "Close code",
+      "required": "true",
+      "helpMarkDown": "Closure information",
+      "properties": {
+        "EditableOptions": "True"
+      },
+      "visibleRule": "NewStatus = Closed"
+    },
+    {
+      "name": "CloseNotes",
+      "type": "text",
+      "label": "Close notes",
+      "required": "true",
+      "defaultValue": "",
+      "helpMarkDown": "Closure information",
+      "visibleRule": "NewStatus = Closed"
+    },
+    {
+      "name": "otherParameters",
+      "type": "multiLine",
+      "label": "Additional change request parameters",
+      "required": "false",
+      "groupName": "advancedInputs",
+      "helpMarkDown": "Additional properties of the change request to set. Enter the parameters in Json format. Name must be field name in ServiceNow. This may not be the same as the display label of the field. Value must be a valid, accepted value in serviceNow. Invalid entries are ignored.",
+      "properties": {
+        "editorExtension": "ms.vss-services-azure.azure-servicebus-message-grid"
+      }
+    }
+  ],
+  "dataSourceBindings": [
+    {
+      "target": "NewStatus",
+      "endpointId": "$(ServiceNowConnection)",
+      "dataSourceName": "State"
+    },
+    {
+      "target": "CloseCode",
+      "endpointId": "$(ServiceNowConnection)",
+      "dataSourceName": "Close code"
+    }
+  ],
+
+  "execution": {
+    "HttpRequestChain": {
+      "Execute": [
+        {
+          "RequestInputs": {
+            "EndpointId": "$(ServiceNowConnection)",
+            "EndpointUrl": "$(endpoint.url)/api/now/table/change_request?sysparm_query=number=$(ChangeRequestNumber)&sysparm_fields=sys_id,number,state",
+            "Method": "GET",
+            "Headers": "{\"Content-Type\":\"application/json\", \"Accept\":\"application/json\"}",
+            "WaitForCompletion": "false",
+            "Expression": "eq(jsonpath('$.result[0].number')[0], '$(ChangeRequestNumber)')"
+          },
+          "ExecutionOptions": {
+            "OutputVariables": "{\"CHANGE_SYSTEM_ID\" :  \"jsonpath('$.result[0].sys_id')[0]\"}"
+          }
+        },
+        {
+          "RequestInputs": {
+            "EndpointId": "$(ServiceNowConnection)",
+            "EndpointUrl": "$(endpoint.url)/api/now/table/change_request/$(CHANGE_SYSTEM_ID)?sysparm_fields=state&&sysparm_display_value=true",
+            "Method": "PATCH",
+            "Body": "{\"state\": \"$(NewStatus)\"{{#equals NewStatus 'Closed'}}, \"close_code\": \"$(CloseCode)\", \"close_notes\": \"$(CloseNotes)\"{{/equals}} {{#if otherParameters}}{{toCommaSeparatedKeyValueList otherParameters true}}{{/if}} }",
+            "Headers": "{\"Content-Type\":\"application/json\", \"Accept\":\"application/json\"}",
+            "WaitForCompletion": "false",
+            "Expression": "eq(jsonpath('$.result.state')[0], '$(NewStatus)')"
+          }
+        }
+      ]
+    }
+  }
+}
+
