@@ -127,6 +127,33 @@
             }
           },
           {
+            "id": "defaultVersionType",
+            "name": "Default version",
+            "description": "The default version will be deployed when new releases are created. The version can be changed for manually created releases at the time of release creation",
+            "inputMode": "Combo",
+            "isConfidential": false,
+            "hasDynamicValueInformation": false,
+            "values": {
+              "inputId": "defaultVersionTypeValues",
+              "defaultValue": "latestType",
+              "possibleValues": [
+                {
+                  "value": "latestType",
+                  "displayValue": "Latest"
+                },
+                {
+                  "value": "selectDuringReleaseCreationType",
+                  "displayValue": "Specify at the time of release creation"
+                }
+              ],
+              "isLimitedToPossibleValues": true
+            },
+            "validation": {
+              "isRequired": true,
+              "dataType": "string"
+            }
+          },
+          {
             "id": "artifacts",
             "name": "Artifacts",
             "description": "Build artifacts",
@@ -269,6 +296,33 @@
                         "dataType": "string",
                         "maxLength": 300
                     }
+                },
+                {
+                  "id": "defaultVersionType",
+                  "name": "Default version",
+                  "description": "The default version will be deployed when new releases are created. The version can be changed for manually created releases at the time of release creation",
+                  "inputMode": "Combo",
+                  "isConfidential": false,
+                  "hasDynamicValueInformation": false,
+                  "values": {
+                    "inputId": "defaultVersionTypeValues",
+                    "defaultValue": "latestType",
+                    "possibleValues": [
+                      {
+                        "value": "latestType",
+                        "displayValue": "Latest"
+                      },
+                      {
+                        "value": "selectDuringReleaseCreationType",
+                        "displayValue": "Specify at the time of release creation"
+                      }
+                    ],
+                    "isLimitedToPossibleValues": true
+                  },
+                  "validation": {
+                    "isRequired": true,
+                    "dataType": "string"
+                  }
                 },
                 {
                     "id": "artifacts",
@@ -416,6 +470,33 @@
                 }
             },
             {
+              "id": "defaultVersionType",
+              "name": "Default version",
+              "description": "The default version will be deployed when new releases are created. The version can be changed for manually created releases at the time of release creation",
+              "inputMode": "Combo",
+              "isConfidential": false,
+              "hasDynamicValueInformation": false,
+              "values": {
+                "inputId": "defaultVersionTypeValues",
+                "defaultValue": "latestFromBranchType",
+                "possibleValues": [
+                  {
+                    "value": "latestFromBranchType",
+                    "displayValue": "Latest from the default branch"
+                  },
+                  {
+                    "value": "selectDuringReleaseCreationType",
+                    "displayValue": "Specify at the time of release creation"
+                  }
+                ],
+                "isLimitedToPossibleValues": true
+              },
+              "validation": {
+                "isRequired": true,
+                "dataType": "string"
+              }
+            },
+            {
                 "id": "artifacts",
                 "name": "Artifacts",
                 "description": "Source Artifacts",
@@ -545,6 +626,33 @@
               "isRequired": true,
               "dataType": "string",
               "maxLength": 300
+            }
+          },
+          {
+            "id": "defaultVersionType",
+            "name": "Default version",
+            "description": "The default version will be deployed when new releases are created. The version can be changed for manually created releases at the time of release creation",
+            "inputMode": "Combo",
+            "isConfidential": false,
+            "hasDynamicValueInformation": false,
+            "values": {
+              "inputId": "defaultVersionTypeValues",
+              "defaultValue": "latestType",
+              "possibleValues": [
+                {
+                  "value": "latestType",
+                  "displayValue": "Latest"
+                },
+                {
+                  "value": "selectDuringReleaseCreationType",
+                  "displayValue": "Specify at the time of release creation"
+                }
+              ],
+              "isLimitedToPossibleValues": true
+            },
+            "validation": {
+              "isRequired": true,
+              "dataType": "string"
             }
           },
           {
