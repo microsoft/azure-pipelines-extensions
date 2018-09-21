@@ -163,10 +163,13 @@ function executeWithRetriesImplementation(operationName: string, operation: () =
     }).catch((error) => {
         if (currentRetryCount <= 0) {
             tl.error(tl.loc("OperationFailed", operationName, error));
+            console.log(error);
+            tl.debug(error);
             reject(error);
         }
         else {
             console.log(tl.loc('RetryingOperation', operationName, currentRetryCount));
+            console.log(error);
             tl.debug(error);
             currentRetryCount = currentRetryCount - 1;
             setTimeout(() => executeWithRetriesImplementation(operationName, operation, currentRetryCount, resolve, reject), 4 * 1000);
