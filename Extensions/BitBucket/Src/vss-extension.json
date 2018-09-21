@@ -197,22 +197,22 @@
           },
           {
             "id": "defaultVersionType",
-            "name": "i18n:Default version",
-            "description": "i18n:The default version will be deployed when new releases are created. The version can be changed for manually created releases at the time of release creation",
+            "name": "Default version",
+            "description": "The default version will be deployed when new releases are created. The version can be changed for manually created releases at the time of release creation",
             "inputMode": "Combo",
             "isConfidential": false,
             "hasDynamicValueInformation": false,
             "values": {
               "inputId": "defaultVersionTypeValues",
-              "defaultValue": "latestType",
+              "defaultValue": "latestFromBranchType",
               "possibleValues": [
                 {
-                  "value": "latestType",
-                  "displayValue": "i18n:Latest"
+                  "value": "latestFromBranchType",
+                  "displayValue": "Latest from the default branch"
                 },
                 {
                   "value": "selectDuringReleaseCreationType",
-                  "displayValue": "i18n:Specify at the time of release creation"
+                  "displayValue": "Specify at the time of release creation"
                 }
               ],
               "isLimitedToPossibleValues": true
