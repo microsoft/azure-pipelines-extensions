@@ -173,19 +173,6 @@
       "properties": {
         "EditableOptions": "True"
       }
-    },
-    {
-      "name": "DurationBetweenRetries",
-      "type": "string",
-      "label": "Duration between retries",
-      "required": "true",
-      "defaultValue": "0.00:02:00",
-      "groupName": "completionOptions",
-      "helpMarkDown": "Specify the duration greater than equal to 2 minutes in d.HH:MM:SS format",
-      "validation": {
-        "expression": "and(isMatch(value,'^([0-9]+).([01][0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9])$', 'Multiline'), isMatch(value,'^((?!(0.00:0[0-1]:([0-5][0-9])$)).)*$', 'Multiline') )",
-        "message": "Duration should be in d.HH:MM:SS format and greater than equal to 2 minutes."
-      }
     }
   ],
   "dataSourceBindings": [
@@ -239,7 +226,8 @@
             "Expression": "eq(jsonpath('$.result.state')[0], 'New')"
           },
           "ExecutionOptions": {
-            "OutputVariables": "{\"CHANGE_SYSTEM_ID\" :  \"jsonpath('$.result.sys_id')[0]\", \"CHANGE_REQUEST_NUMBER\" :  \"jsonpath('$.result.number')[0]\"}"
+            "OutputVariables": "{\"CHANGE_SYSTEM_ID\" :  \"jsonpath('$.result.sys_id')[0]\", \"CHANGE_REQUEST_NUMBER\" :  \"jsonpath('$.result.number')[0]\"}",
+            "SkipSectionExpression": "eq(isNullOrEmpty(variables['CHANGE_SYSTEM_ID']), false)"
           }
         },
         {
@@ -252,8 +240,7 @@
             "Expression": "eq(jsonpath('$.result.state')[0], '$(DesiredExitStatus)')"
           },
           "ExecutionOptions": {
-            "ContinuePollingExpression": "ne(jsonpath('$.result.state')[0], '$(DesiredExitStatus)')",
-            "DurationBetweenRetries": "$(DurationBetweenRetries)"
+            "SkipSectionExpression": "eq(isNullOrEmpty(variables['CHANGE_SYSTEM_ID']), true)"
           }
         }
       ]

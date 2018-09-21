@@ -1,12 +1,14 @@
 {
-  "manifestVersion": 1.0,
+  "manifestVersion": 1,
   "id": "vss-services-servicenowchangerequest",
   "name": "ServiceNow change request management",
-  "publisher": "ms-vscs-rm",
+  "publisher": "NishuBansal",
   "version": "0.0.1",
   "public": false,
   "description": "Manage ServiceNow change requests.",
-  "categories": [ "Build and release" ],
+  "categories": [
+    "Build and release"
+  ],
   "Tags": [
     "ServiceNow",
     "Release",
@@ -47,7 +49,9 @@
       "id": "service-endpoint",
       "description": "ServiceNow connection",
       "type": "ms.vss-endpoint.service-endpoint-type",
-      "targets": [ "ms.vss-endpoint.endpoint-types" ],
+      "targets": [
+        "ms.vss-endpoint.endpoint-types"
+      ],
       "properties": {
         "name": "ServiceNow",
         "displayName": "ServiceNow connection",
@@ -137,7 +141,9 @@
     {
       "id": "serviceNowchangerequests-task1",
       "type": "ms.vss-distributed-task.task",
-      "targets": [ "ms.vss-distributed-task.tasks" ],
+      "targets": [
+        "ms.vss-distributed-task.tasks"
+      ],
       "properties": {
         "name": "Tasks/UpdateChangeRequest"
       }
@@ -145,7 +151,9 @@
     {
       "id": "serviceNowchangerequests-task2",
       "type": "ms.vss-distributed-task.task",
-      "targets": [ "ms.vss-distributed-task.tasks" ],
+      "targets": [
+        "ms.vss-distributed-task.tasks"
+      ],
       "properties": {
         "name": "Tasks/CreateAndQueryChangeRequest"
       }
