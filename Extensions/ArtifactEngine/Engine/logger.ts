@@ -45,7 +45,7 @@ export class Logger {
                     + ", Failed: " + failedItems.length
                     + ", Time elapsed: " + ((currentTime.valueOf() - this.startTime.valueOf()) / 1000) + "secs");
 
-                if (this.store.itemsPendingProcessing()) {
+                if (this.store.itemsPendingProcessing() && !this.store.hasDownloadFailed()) {
                     progressLogger();
                 }
             }, 5000);

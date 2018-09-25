@@ -25,7 +25,7 @@ export class ArtifactEngine {
                 this.artifactItemStore.addItems(itemsToProcess);
 
                 for (let i = 0; i < artifactEngineOptions.parallelProcessingLimit; ++i) {
-                    var worker = new Worker<models.ArtifactItem>(i + 1, item => this.processArtifactItem(sourceProvider, item, destProvider, artifactEngineOptions), () => this.artifactItemStore.getNextItemToProcess(), () => !this.artifactItemStore.itemsPendingProcessing());
+                    var worker = new Worker<models.ArtifactItem>(i + 1, item => this.processArtifactItem(sourceProvider, item, destProvider, artifactEngineOptions), () => this.artifactItemStore.getNextItemToProcess(), () => !this.artifactItemStore.itemsPendingProcessing(), () => this.artifactItemStore.hasDownloadFailed());
                     workers.push(worker.init());
                 }
 

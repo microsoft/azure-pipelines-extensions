@@ -3,14 +3,16 @@ export class Worker<T> {
     private execute: (item: T) => Promise<void>;
     private getNextItem: () => T;
     private canExit: () => boolean;
+    private hasDownloadFailed: () => boolean;
 
     private id: number;
 
-    constructor(id: number, execute: (item: T) => Promise<void>, getNextItem: () => T, canExit: () => boolean) {
+    constructor(id: number, execute: (item: T) => Promise<void>, getNextItem: () => T, canExit: () => boolean, hasDownloadFailed: () => boolean) {
         this.id = id;
         this.execute = execute;
         this.getNextItem = getNextItem;
         this.canExit = canExit;
+        this.hasDownloadFailed = hasDownloadFailed;
     }
 
     init(): Promise<void> {
@@ -23,6 +25,11 @@ export class Worker<T> {
 
     spawnWorker(resolve, reject) {
         try {
+            if (this.hasDownloadFailed()) {
+                Logger.logInfo(`Aborting respawning worker, as download failed for some file(s).`);
+                return;
+            }
+            
             let item = this.getNextItem();
             if (!item && !this.canExit()) {
                 Logger.logInfo(`Nothing to process currently, respawing worker ${this.id} after 1 sec.`);
