@@ -153,6 +153,61 @@ describe('Unit Tests', () => {
             assert.notEqual(artifactItemStore.getTickets().find(x => x.artifactItem.path == "path1").finishTime, undefined);
         });
 
+        it('updateState should set hasDownloadFailed to true for failed state', () => {
+            var artifactItemStore = new ArtifactItemStore();
+            var artifactItem1 = new models.ArtifactItem();
+            artifactItem1.path = "path1";
+            artifactItemStore.addItem(artifactItem1);
+
+            artifactItemStore.updateState(artifactItem1, models.TicketState.Failed);
+
+            assert.equal(artifactItemStore.hasDownloadFailed(), true);
+        });
+
+        it('updateState should not set hasDownloadFailed to true for skipped state', () => {
+            var artifactItemStore = new ArtifactItemStore();
+            var artifactItem1 = new models.ArtifactItem();
+            artifactItem1.path = "path1";
+            artifactItemStore.addItem(artifactItem1);
+
+            artifactItemStore.updateState(artifactItem1, models.TicketState.Skipped);
+
+            assert.equal(artifactItemStore.hasDownloadFailed(), false);
+        });
+
+        it('updateState should not set hasDownloadFailed to true for processed state', () => {
+            var artifactItemStore = new ArtifactItemStore();
+            var artifactItem1 = new models.ArtifactItem();
+            artifactItem1.path = "path1";
+            artifactItemStore.addItem(artifactItem1);
+
+            artifactItemStore.updateState(artifactItem1, models.TicketState.Processed);
+
+            assert.equal(artifactItemStore.hasDownloadFailed(), false);
+        });
+
+        it('updateState should not set hasDownloadFailed to true for processing state', () => {
+            var artifactItemStore = new ArtifactItemStore();
+            var artifactItem1 = new models.ArtifactItem();
+            artifactItem1.path = "path1";
+            artifactItemStore.addItem(artifactItem1);
+
+            artifactItemStore.updateState(artifactItem1, models.TicketState.Processing);
+
+            assert.equal(artifactItemStore.hasDownloadFailed(), false);
+        });
+
+        it('updateState should not set hasDownloadFailed to true for inqueue state', () => {
+            var artifactItemStore = new ArtifactItemStore();
+            var artifactItem1 = new models.ArtifactItem();
+            artifactItem1.path = "path1";
+            artifactItemStore.addItem(artifactItem1);
+
+            artifactItemStore.updateState(artifactItem1, models.TicketState.InQueue);
+
+            assert.equal(artifactItemStore.hasDownloadFailed(), false);
+        });
+
         it('flush should flush all artifact items from artifact store', () => {
             var artifactItemStore = new ArtifactItemStore();
             var artifactItem = new models.ArtifactItem();
