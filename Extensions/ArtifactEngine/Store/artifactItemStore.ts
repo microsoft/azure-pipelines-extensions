@@ -2,6 +2,7 @@ import * as models from "../Models"
 
 export class ArtifactItemStore {
     _downloadTickets: models.ArtifactDownloadTicket[] = [];
+    _hasDownloadFailed: boolean = false;
 
     public addItem(item: models.ArtifactItem) {
         if (this._downloadTickets.find(x => x.artifactItem.path === item.path)) {
@@ -54,6 +55,10 @@ export class ArtifactItemStore {
             if (state != models.TicketState.InQueue && state != models.TicketState.Processing) {
                 processedItem.finishTime = new Date();
             }
+
+            if (state === models.TicketState.Failed) {
+                this._hasDownloadFailed = true;
+            }
         }
     }
 
@@ -94,5 +99,10 @@ export class ArtifactItemStore {
 
     public flush(): void {
         this._downloadTickets = [];
+        this._hasDownloadFailed = false;
+    }
+
+    public hasDownloadFailed(): boolean {
+        return this._hasDownloadFailed;
     }
 }
