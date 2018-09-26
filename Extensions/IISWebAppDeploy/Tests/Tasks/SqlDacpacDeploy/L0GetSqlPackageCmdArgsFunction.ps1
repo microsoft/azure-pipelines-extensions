@@ -3,8 +3,6 @@ param()
 
 . $PSScriptRoot\SqlDacpacDeployTestL0Initialize.ps1
 
-Import-Module Microsoft.PowerShell.Security
-
 # Test 1: Should contain targetmethod as server and no sqluser argument should be present, When target method is server and with windows authentication
 $cmdArgs = Get-SqlPackageCmdArgs -dacpacFile "sample.dacpac" -targetMethod "server" -serverName "localhost" -databaseName "SampleDB" -authscheme "windowsAuthentication"
 

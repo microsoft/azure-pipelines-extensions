@@ -1,6 +1,7 @@
-﻿Import-Module $env:CURRENT_TASK_ROOTDIR\DeploymentSDK\InvokeRemoteDeployment.ps1
+﻿Import-Module $env:CURRENT_TASK_ROOTDIR\VstsTaskSdk
+Import-Module $env:CURRENT_TASK_ROOTDIR\RemoteDeployer
 
-Write-Verbose "Entering script ManageIISWebApp.ps1"
+Write-Verbose "Entering script Utility.ps1"
 
 
 function Set-IISWebSite
@@ -23,7 +24,6 @@ function Set-IISWebSite
         [string] $hostNameWithHttp,
         [string] $hostNameWithSNI,
         [string] $sslCertThumbPrint,
-        [string] $bindings,
 
         [string] $createOrUpdateAppPool,
         [string] $appPoolName,
@@ -49,19 +49,14 @@ function Set-IISWebSite
             
             if($addBinding -eq "true") 
             {
-                if([string]::IsNullOrWhiteSpace($bindings)) {
-                    $bindingsArray = @(@{
-                        protocol = $protocol.Trim();
-                        ipAddress = $ipAddress.Trim();
-                        port = $port.Trim();
-                        sniFlag = $serverNameIndication;
-                        sslThumbprint = Test-SSLCertificateThumbprint -sslCertThumbPrint $sslCertThumbPrint -ipAddress $ipAddress -protocol $protocol -port $port ;
-                        hostname = Get-Hostname -port $port -hostNameWithSNI $hostNameWithSNI -hostNameWithHttp $hostNameWithHttp -hostNameWithOutSNI $hostNameWithOutSNI -sni $serverNameIndication ;
-                    })
-                }
-                else {
-                    $bindingsArray = Validate-Bindings -bindings $bindings
-                }
+                $bindingsArray = @(@{
+                    protocol = $protocol.Trim();
+                    ipAddress = $ipAddress.Trim();
+                    port = $port.Trim();
+                    sniFlag = $serverNameIndication;
+                    sslThumbprint = Test-SSLCertificateThumbprint -sslCertThumbPrint $sslCertThumbPrint -ipAddress $ipAddress -protocol $protocol -port $port ;
+                    hostname = Get-Hostname -protocol $protocol -hostNameWithSNI $hostNameWithSNI -hostNameWithHttp $hostNameWithHttp -hostNameWithOutSNI $hostNameWithOutSNI -sni $serverNameIndication ;
+                })
             }
 
             $bindingsJson = $bindingsArray | ConvertTo-Json
@@ -306,6 +301,70 @@ function Escape-SpecialChars
     return $str.Replace('`', '``').Replace('"', '`"').Replace('$', '`$')
 }
 
+function Parse-TargetMachineNames {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true)]
+        [ValidateNotNullOrEmpty()]
+        [string] $machineNames,
+        [ValidateNotNullOrEmpty()]
+        [char] $separator = ','
+    )
+
+    Write-Verbose "Executing Parse-TargetMachineNames"
+    try {
+        $targetMachineNames = $machineNames.ToLowerInvariant().Split($separator) |
+        # multiple connections to the same machine are filtered here
+            Select-Object -Unique |
+                ForEach-Object {
+                    if (![string]::IsNullOrEmpty($_)) {
+                        Write-Verbose "TargetMachineName: '$_'" ;
+                        $_.ToLowerInvariant()
+                    } 
+                }
+
+        return ,$targetMachineNames;
+    }
+    finally {   
+        Write-Verbose "Finished executing Parse-TargetMachineNames"
+    }
+}
+
+function Get-TargetMachineCredential {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true)]
+        [ValidateNotNullOrEmpty()]
+        [string] $userName,
+        [Parameter(Mandatory = $true)]
+        [ValidateNotNullOrEmpty()]
+        [string] $password
+    )
+
+    Write-Verbose "Executing Get-TargetMachineCredential: $($userName)"
+    try {
+        $securePassword = ConvertTo-SecureString -AsPlainText -String $password -Force
+        return (New-Object System.Management.Automation.PSCredential($userName, $securePassword))
+    } finally {
+        Write-Verbose "Finished executing Get-TargetMachineCredential"
+    }
+}
+
+function Get-NewPSSessionOption {
+    [CmdletBinding()]
+    param(
+        [string] $arguments
+    )
+    Write-Verbose "Executing Get-NewPSSessionOption"
+    try {
+        $commandString = "New-PSSessionOption $arguments"
+        Write-Verbose "New-PSSessionOption command: $commandString"
+        return (Invoke-Expression -Command $commandString)
+    } finally {
+        Write-Verbose "Finished executing Get-NewPSSessionOption"
+    }
+}
+
 function Run-RemoteDeployment
 {
     param(
@@ -320,20 +379,73 @@ function Run-RemoteDeployment
         [string]$action
     )
 
-    if ([string]::IsNullOrEmpty($action)) {
-        $action = "CreateOrUpdate"
+    Write-Verbose "Executing Run-RemoteDeployment"
+
+    try {
+        if ([string]::IsNullOrEmpty($action)) {
+            $action = "CreateOrUpdate"
+        }
+
+        $targetMachineNames = Parse-TargetMachineNames -machineNames $machinesList
+
+        $sessionOptionArguments = ''
+        if ([System.Convert]::ToBoolean($testCertificate))
+        {
+            $sessionOptionArguments = "-SkipCACheck"
+        }
+
+        $sessionOption = Get-NewPSSessionOption -arguments $sessionOptionArguments
+        $credential = Get-TargetMachineCredential -userName $adminUserName -password $adminPassword
+
+        $remoteScriptJobArguments = @{
+            scriptPath = "";
+            scriptArguments = "";
+            inlineScript = $scriptToRun;
+            inline = $true;
+            workingDirectory = "";
+            errorActionPreference = "Stop";
+            ignoreLASTEXITCODE = $false;
+            failOnStdErr = $true;
+            initializationScriptPath = "";
+            sessionVariables = "";
+        }
+
+        Write-Host "Starting remote execution of Invoke-Main script for `"$iisDeploymentType`" with action `"$action`""
+
+        $jobResults = @()
+        if($deployInParallel -eq $true) {
+            $jobResults = Invoke-RemoteScript -targetMachineNames $targetMachineNames `
+                                              -credential $credential `
+                                              -protocol $winrmProtocol `
+                                              -remoteScriptJobArguments $remoteScriptJobArguments `
+                                              -sessionOption $sessionOption `
+                                              -uploadLogFiles 
+        } else {
+            foreach($targetMachineName in $targetMachineNames) {
+                $jobResults += Invoke-RemoteScript -targetMachineNames @($targetMachineName) `
+                                                   -credential $credential `
+                                                   -protocol $winrmProtocol `
+                                                   -remoteScriptJobArguments $remoteScriptJobArguments `
+                                                   -sessionOption $sessionOption `
+                                                   -uploadLogFiles
+            }
+        }
+
+        foreach($jobResult in $jobResults) {
+            if ($jobResult.ExitCode -ne 0) {
+                Write-Verbose "Execution on at least one of the target machines has failed."
+                return $jobResults
+            }
+        }
+
+        Write-Verbose "Successfully executed the script on all machines."
+        return $jobResults
     }
-
-    Write-Host "Starting remote execution of Invoke-Main script for `"$iisDeploymentType`" with action `"$action`""
-
-    $errorMessage = Invoke-RemoteDeployment -machinesList $machinesList -scriptToRun $scriptToRun -adminUserName $adminUserName -adminPassword $adminPassword -protocol $winrmProtocol -testCertificate $testCertificate -deployInParallel $deployInParallel
-
-    if(-not [string]::IsNullOrEmpty($errorMessage))
-    {
-        $helpMessage = "For more info please refer to http://aka.ms/iisextnreadme"
-        Write-Error "$errorMessage`n$helpMessage"
-        return
+    catch {
+        Write-Verbose "Exception caught from task: $($_.Exception.ToString())"
+        throw
     }
-
-    Write-Host "Successfully executed Invoke-Main script for `"$iisDeploymentType`" with action `"$action`""
+    finally {
+        Write-Verbose "Finished executing Run-RemoteDeployment"
+    }
 }
