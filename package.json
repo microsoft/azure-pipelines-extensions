@@ -25,7 +25,7 @@
     "q": "^1.4.1",
     "request": "2.72.0",
     "semver": "4.3.3",
-    "shelljs": "^0.6.0",
+    "shelljs": "^0.8.1",
     "sync-request": "3.0.1",
     "through2": "^2.0.1",
     "typescript": "1.8.7",
