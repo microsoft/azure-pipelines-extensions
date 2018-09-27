@@ -43,9 +43,10 @@ describe('IISWebAppMgmtV1 Suite', function () {
             psr.run(path.join(__dirname, 'L0GetScriptToRunFunction.ps1'), done);
         })
 
-        it('test iis manage utility - Run-RemoteDeployment function', (done) => {
-            psr.run(path.join(__dirname, 'L0RunRemoteDeploymentFunction.ps1'), done);
-        })
+        // TODO: raagra: Enable and edit this once the RemoteDeployer code is changed and finalized
+        // it('test iis manage utility - Run-RemoteDeployment function', (done) => {
+        //     psr.run(path.join(__dirname, 'L0RunRemoteDeploymentFunction.ps1'), done);
+        // })
 
         it('test iis manage utility - Main function', (done) => {
             psr.run(path.join(__dirname, 'L0MainFunction.ps1'), done);
