@@ -14,7 +14,7 @@
       "id": "Microsoft.VisualStudio.Services"
     }
   ],
-  "demands": [ "contribution/ms.vss-releaseartifact.artifact-types" ],
+  "demands": [ "contribution/ms.vss-endpoint.externaltfs-endpoint-type" ],
   "icons": {
     "default": "vss_default.png"
   },
