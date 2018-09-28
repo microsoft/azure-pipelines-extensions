@@ -41,7 +41,7 @@ function RunRemoteDeployment
 
     if(-not [string]::IsNullOrEmpty($errorMessage))
     {
-        $helpMessage = "For more info please refer to http://aka.ms/sqlserverdacpackreadme)"
+        $helpMessage = "For more info please refer to http://aka.ms/sqlserverdacpacextensionreadme)"
         Write-Error "$errorMessage`n$helpMessage"
         return
     }
