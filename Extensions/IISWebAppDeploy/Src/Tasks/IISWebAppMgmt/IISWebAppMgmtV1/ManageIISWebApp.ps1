@@ -1,5 +1,4 @@
-﻿Import-Module $env:CURRENT_TASK_ROOTDIR\VstsTaskSdk
-Import-Module $env:CURRENT_TASK_ROOTDIR\RemoteDeployer
+﻿Import-Module $env:CURRENT_TASK_ROOTDIR\DeploymentSDK\InvokeRemoteDeployment.ps1
 
 Write-Verbose "Entering script ManageIISWebApp.ps1"
 
@@ -123,70 +122,6 @@ function Get-ScriptToRun
     return $msDeployOnTargetMachinesScript
 }
 
-function Parse-TargetMachineNames {
-    [CmdletBinding()]
-    param(
-        [Parameter(Mandatory = $true)]
-        [ValidateNotNullOrEmpty()]
-        [string] $machineNames,
-        [ValidateNotNullOrEmpty()]
-        [char] $separator = ','
-    )
-
-    Write-Verbose "Executing Parse-TargetMachineNames"
-    try {
-        $targetMachineNames = $machineNames.ToLowerInvariant().Split($separator) |
-        # multiple connections to the same machine are filtered here
-            Select-Object -Unique |
-                ForEach-Object {
-                    if (![string]::IsNullOrEmpty($_)) {
-                        Write-Verbose "TargetMachineName: '$_'" ;
-                        $_.ToLowerInvariant()
-                    } 
-                }
-
-        return ,$targetMachineNames;
-    }
-    finally {   
-        Write-Verbose "Finished executing Parse-TargetMachineNames"
-    }
-}
-
-function Get-TargetMachineCredential {
-    [CmdletBinding()]
-    param(
-        [Parameter(Mandatory = $true)]
-        [ValidateNotNullOrEmpty()]
-        [string] $userName,
-        [Parameter(Mandatory = $true)]
-        [ValidateNotNullOrEmpty()]
-        [string] $password
-    )
-
-    Write-Verbose "Executing Get-TargetMachineCredential: $($userName)"
-    try {
-        $securePassword = ConvertTo-SecureString -AsPlainText -String $password -Force
-        return (New-Object System.Management.Automation.PSCredential($userName, $securePassword))
-    } finally {
-        Write-Verbose "Finished executing Get-TargetMachineCredential"
-    }
-}
-
-function Get-NewPSSessionOption {
-    [CmdletBinding()]
-    param(
-        [string] $arguments
-    )
-    Write-Verbose "Executing Get-NewPSSessionOption"
-    try {
-        $commandString = "New-PSSessionOption $arguments"
-        Write-Verbose "New-PSSessionOption command: $commandString"
-        return (Invoke-Expression -Command $commandString)
-    } finally {
-        Write-Verbose "Finished executing Get-NewPSSessionOption"
-    }
-}
-
 function Run-RemoteDeployment
 {
     param(
@@ -200,71 +135,18 @@ function Run-RemoteDeployment
         [string]$websiteName
     )
 
-    Write-Verbose "Executing Run-RemoteDeployment"
+    Write-Host "Started creating website: $websiteName"
 
-    try {
-        $targetMachineNames = Parse-TargetMachineNames -machineNames $machinesList
+    $errorMessage = Invoke-RemoteDeployment -machinesList $machinesList -scriptToRun $scriptToRun -adminUserName $adminUserName -adminPassword $adminPassword -protocol $winrmProtocol -testCertificate $testCertificate -deployInParallel $deployInParallel
 
-        $sessionOptionArguments = ''
-        if ([System.Convert]::ToBoolean($testCertificate))
-        {
-            $sessionOptionArguments = "-SkipCACheck"
-        }
-
-        $sessionOption = Get-NewPSSessionOption -arguments $sessionOptionArguments
-        $credential = Get-TargetMachineCredential -userName $adminUserName -password $adminPassword
-
-        $remoteScriptJobArguments = @{
-            scriptPath = "";
-            scriptArguments = "";
-            inlineScript = $scriptToRun;
-            inline = $true;
-            workingDirectory = "";
-            errorActionPreference = "Stop";
-            ignoreLASTEXITCODE = $false;
-            failOnStdErr = $true;
-            initializationScriptPath = "";
-            sessionVariables = "";
-        }
-
-        Write-Host "Starting remote execution of Invoke-Main script for website `"$websiteName`""
-
-        $jobResults = @()
-        if($deployInParallel -eq $true) {
-            $jobResults = Invoke-RemoteScript -targetMachineNames $targetMachineNames `
-                                              -credential $credential `
-                                              -protocol $winrmProtocol `
-                                              -remoteScriptJobArguments $remoteScriptJobArguments `
-                                              -sessionOption $sessionOption `
-                                              -uploadLogFiles 
-        } else {
-            foreach($targetMachineName in $targetMachineNames) {
-                $jobResults += Invoke-RemoteScript -targetMachineNames @($targetMachineName) `
-                                                   -credential $credential `
-                                                   -protocol $winrmProtocol `
-                                                   -remoteScriptJobArguments $remoteScriptJobArguments `
-                                                   -sessionOption $sessionOption `
-                                                   -uploadLogFiles
-            }
-        }
-
-        foreach($jobResult in $jobResults) {
-            if ($jobResult.ExitCode -ne 0) {
-                Write-Verbose "Execution on at least one of the target machines has failed."
-                return $jobResults
-            }
-        }
-
-        Write-Verbose "Successfully executed the script on all machines."
-        return $jobResults
+    if(-not [string]::IsNullOrEmpty($errorMessage))
+    {
+        $helpMessage = "For more info please refer to http://aka.ms/iisextnreadme"
+        Write-Error "$errorMessage`n$helpMessage"
+        return
     }
-    catch {
-        Write-Verbose "Exception caught from task: $($_.Exception.ToString())"
-        throw
-    }
-    finally {
-        Write-Verbose "Finished executing Run-RemoteDeployment"
-    }
+
+    Write-Host "Successfully created website: $websiteName" 
 }
 
 function Main

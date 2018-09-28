@@ -4,6 +4,7 @@ param()
 . $PSScriptRoot\..\..\..\..\..\Common\lib\Initialize-Test.ps1
 
 . $PSScriptRoot\..\..\..\..\Src\Tasks\IISWebAppMgmt\IISWebAppMgmtV1\ManageIISWebApp.ps1
+. $PSScriptRoot\..\..\..\..\..\Common\DeploymentSDK\Src\InvokeRemoteDeployment.ps1
 
 Register-Mock Import-Module { Write-Verbose "Dummy Import-Module" -Verbose }
 
