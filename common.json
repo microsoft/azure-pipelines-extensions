@@ -1,10 +1,6 @@
 {
     "IISWebAppDeploy": [
         {
-            "module": "DeploymentSDK",
-            "dest": "DeploymentSDK"
-        },
-        {
             "module": "TelemetryHelper",
             "dest": "TelemetryHelper"
         }

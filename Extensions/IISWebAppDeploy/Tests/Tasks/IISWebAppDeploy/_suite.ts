@@ -35,9 +35,10 @@ describe('IISWebAppDeployment Suite', function () {
             psr.run(path.join(__dirname, 'L0GetScriptToRunFunction.ps1'), done);
         });
 
-        it('should test Run-RemoteDeployment functionality', (done:MochaDone) => {
-            psr.run(path.join(__dirname, 'L0RunRemoteDeploymentFunction.ps1'), done);
-        });
+        // TODO: raagra: Enable and edit this once the RemoteDeployer code is changed and finalized
+        // it('should test Run-RemoteDeployment functionality', (done:MochaDone) => {
+        //     psr.run(path.join(__dirname, 'L0RunRemoteDeploymentFunction.ps1'), done);
+        // });
 
         it('should test Main functionality', (done:MochaDone) => {
             psr.run(path.join(__dirname, 'L0MainFunction.ps1'), done);
