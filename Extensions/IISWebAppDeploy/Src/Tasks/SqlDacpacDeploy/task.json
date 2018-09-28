@@ -3,7 +3,7 @@
   "name": "SqlDacpacDeploy",
   "friendlyName": "WinRM - SQL Server DB Deployment",
   "description": "Using WinRM connect to host, and deploy database using sqlpackage.exe or Invoke-Sqlcmd",
-  "helpMarkDown": "[More Information](http://aka.ms/sqlserverdacpackreadme)",
+  "helpMarkDown": "[More Information](http://aka.ms/sqlserverdacpacextensionreadme)",
   "category": "Deploy",
   "visibility": [
     "Build",
@@ -16,7 +16,7 @@
   "version": {
     "Major": 1,
     "Minor": 3,
-    "Patch": 8
+    "Patch": 9
   },
   "demands": [
   ],
