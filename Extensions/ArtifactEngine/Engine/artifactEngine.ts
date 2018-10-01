@@ -25,7 +25,7 @@ export class ArtifactEngine {
                 this.artifactItemStore.addItems(itemsToProcess);
 
                 for (let i = 0; i < artifactEngineOptions.parallelProcessingLimit; ++i) {
-                    var worker = new Worker<models.ArtifactItem>(i + 1, item => this.processArtifactItem(sourceProvider, item, destProvider, artifactEngineOptions), () => this.artifactItemStore.getNextItemToProcess(), () => !this.artifactItemStore.itemsPendingProcessing());
+                    var worker = new Worker<models.ArtifactItem>(i + 1, item => this.processArtifactItem(sourceProvider, item, destProvider, artifactEngineOptions), () => this.artifactItemStore.getNextItemToProcess(), () => !this.artifactItemStore.itemsPendingProcessing(), () => this.artifactItemStore.hasDownloadFailed());
                     workers.push(worker.init());
                 }
 
@@ -128,8 +128,20 @@ export class ArtifactEngine {
                     return value;
                 });
 
-                this.artifactItemStore.addItems(items);
-                this.artifactItemStore.updateState(item, models.TicketState.Processed);
+                if (items.length > 0) {
+                    this.artifactItemStore.addItems(items);
+                    this.artifactItemStore.updateState(item, models.TicketState.Processed);
+                }
+                else {
+                    destProvider.putArtifactItem(item, null)
+                        .then((item) => {
+                            this.artifactItemStore.updateState(item, models.TicketState.Processed);
+                            resolve();
+                        }, (err) => {
+                            Logger.logInfo("Error creating folder " + item.path + ": " + err);
+                            retryIfRequired(err);
+                        });
+                }
 
                 Logger.logInfo("Enqueued " + items.length + " for processing.");
                 resolve();
