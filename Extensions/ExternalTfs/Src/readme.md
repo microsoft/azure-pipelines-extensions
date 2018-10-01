@@ -8,7 +8,7 @@ With this extension, you can deploy artifacts from external TFS or VS Team Servi
 
 These Build/Code artifacts could be from different TFS or VS Team Services accounts or from different collections from the same account.
 
-**Note:** This extension work only with VS Team Services and TFS "15" RC onwards. 
+**Note:** This extension work only with VS Team Services and TFS "17" U2 onwards. 
 
 ## Usage
 This extension provides a service endpoint to connect to an external TFS or VS Team Services Collection. Once connected, you can link an artifact from this TFS / VS Team Services.

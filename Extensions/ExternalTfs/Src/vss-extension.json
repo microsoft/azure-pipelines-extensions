@@ -1,7 +1,7 @@
 ﻿{
   "manifestVersion": 1.0,
   "id": "vss-services-externaltfs",
-  "version": "15.141.0",
+  "version": "15.142.0",
   "name": "TFS artifacts for Release Management",
   "publisher": "ms-vscs-rm",
   "description": "Deploy external TFS/ VS-Team-Services artifacts using Release Management",
@@ -14,7 +14,7 @@
       "id": "Microsoft.VisualStudio.Services"
     }
   ],
-  "demands": [ "contribution/ms.vss-releaseartifact.artifact-types" ],
+  "demands": [ "contribution/ms.vss-endpoint.externaltfs-endpoint-type" ],
   "icons": {
     "default": "vss_default.png"
   },

@@ -3,7 +3,7 @@
   "id": "vss-services-teamcity",
   "name": "TeamCity artifacts for Release Management",
   "publisher": "ms-devlabs",
-  "version": "15.141.0",
+  "version": "15.142.0",
   "public": true,
   "description": "Tools related to connecting with TeamCity",
   "_description.comment": "The below format to define artifact extensions is currently in preview and may change in future.",

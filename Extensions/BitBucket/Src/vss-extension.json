@@ -3,7 +3,7 @@
   "id": "vss-services-bitbucket",
   "name": "Bitbucket artifacts for Release Management",
   "publisher": "ms-vscs-rm",
-  "version": "15.141.0",
+  "version": "15.142.0",
   "public": true,
   "description": "Tools related to connecting with Bitbucket",
   "_description.comment": "The below format to define artifact extensions is currently in preview and may change in future.",
@@ -14,7 +14,7 @@
       "id": "Microsoft.VisualStudio.Services"
     }
   ],
-  "demands": [ "contribution/ms.vss-releaseartifact.artifact-types" ],
+  "demands": [ "contribution/ms.vss-endpoint.bitbucket-endpoint-type" ],
   "icons": {
     "default": "images\\vss_default.png"
   },
