@@ -166,7 +166,7 @@ function Invoke-RemoteDeployment
                     }
                     else
                     {
-                        Write-Verbose $output.DeploymentLog
+                        Write-Host $output.DeploymentLog
                     }
                     $Jobs.Remove($job.Id)
                 }
@@ -205,7 +205,7 @@ function Invoke-RemoteDeployment
             }
             else
             {
-                Write-Verbose $deploymentResponse.DeploymentLog
+                Write-Host $deploymentResponse.DeploymentLog
             }
         }
     }
