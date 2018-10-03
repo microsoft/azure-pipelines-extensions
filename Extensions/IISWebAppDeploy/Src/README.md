@@ -17,7 +17,7 @@ The extension installs the following tasks:
 
   ![IIS Web App Deployment Using WinRM](Images/IISWebDeploymentTasks.png)
 
-- **WinRM: IIS Web App Management**: Create or update IIS websites and app pools. The task's detailed documentation is in the [source repo](http://aka.ms/IISMgmt).
+- **WinRM: IIS Web App Management**: Create or update IIS websites and app pools. The task's detailed documentation is in the [source repo](https://github.com/Microsoft/vsts-rm-extensions/blob/master/Extensions/IISWebAppDeploy/Src/Tasks/IISWebAppMgmt/IISWebAppMgmtV1/README_IISAppMgmt.md).
 
   ![WinRM: IIS Web App Management](Images/IISWebManagement.png)
 
