@@ -9,9 +9,6 @@ param
     [Parameter(ParameterSetName="ManagementGroup",Mandatory=$true, HelpMessage="Enter Azure Management Group Id. You need to be Management Group Admin to execute the script")]
     [string] $managementGroupId,
 
-    [Parameter(Mandatory=$true, HelpMessage="Provide a password for SPN application that you would create; this becomes the service principal's security key")]
-    [securestring] $password,
-
     [Parameter(Mandatory=$false, HelpMessage="Provide a SPN role assignment")]
     [string] $spnRole = "owner",
     
@@ -149,21 +146,19 @@ function Get-AzureCmdletsVersion
 
 function Get-Password
 {
+    Add-Type -AssemblyName System.Web
+    $password = [System.Web.Security.Membership]::GeneratePassword(40, 3)
+
     $currentAzurePSVersion = Get-AzureCmdletsVersion
     $azureVersion511 = New-Object System.Version(5, 1, 1)
 
+    $script:plainTextPassword = $password
     if($currentAzurePSVersion -and $currentAzurePSVersion -ge $azureVersion511)
     {
-        return $password
+        $password = ConvertTo-SecureString $password -AsPlainText -Force
     }
-    else
-    {
-        $basicPassword = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($password)
-        $plainPassword = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($basicPassword)
-        [System.Runtime.InteropServices.Marshal]::ZeroFreeBSTR($basicPassword)
 
-        return $plainPassword
-    }
+    return $password
 }
 
 #Initialize
@@ -171,7 +166,7 @@ $ErrorActionPreference = "Stop"
 $VerbosePreference = "SilentlyContinue"
 $userName = ($env:USERNAME).Replace(' ', '')
 $newguid = [guid]::NewGuid()
-$displayName = [String]::Format("VSTS.{0}.{1}", $userName, $newguid)
+$displayName = [String]::Format("AzureDevOps.{0}.{1}", $userName, $newguid)
 $homePage = "http://" + $displayName
 $identifierUri = $homePage
 
@@ -232,8 +227,8 @@ else
 
 #Create a new AD Application
 Write-Output "Creating a new Application in AAD (App URI - $identifierUri)" -Verbose
-$versionSpecificPassword = Get-Password
-$azureAdApplication = New-AzureRmADApplication -DisplayName $displayName -HomePage $homePage -IdentifierUris $identifierUri -Password $versionSpecificPassword -Verbose
+$servicePrincipalKey = Get-Password
+$azureAdApplication = New-AzureRmADApplication -DisplayName $displayName -HomePage $homePage -IdentifierUris $identifierUri -Password $servicePrincipalKey -Verbose
 $appId = $azureAdApplication.ApplicationId
 Write-Output "Azure AAD Application creation completed successfully (Application Id: $appId)" -Verbose
 
@@ -247,7 +242,7 @@ Write-Output "SPN creation completed successfully (SPN Name: $spnName)" -Verbose
 
 #Assign role to SPN
 Write-Output "Waiting for SPN creation to reflect in Directory before Role assignment"
-Start-Sleep 20
+Start-Sleep 30
 Write-Output "Assigning role ($spnRole) to SPN App ($appId)" -Verbose
 
 if ($scopeLevel.equals("Subscription"))
@@ -281,6 +276,6 @@ else
 }
 
 Write-Output "Service Principal Id: $appId"
-Write-Output "Service Principal key: <Password that you typed in>"
+Write-Output "Service Principal key: $script:plainTextPassword"
 Write-Output "Tenant Id: $tenantId"
 Write-Output "***************************************************************************"

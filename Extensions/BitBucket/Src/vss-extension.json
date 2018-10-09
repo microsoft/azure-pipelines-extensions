@@ -3,7 +3,7 @@
   "id": "vss-services-bitbucket",
   "name": "Bitbucket artifacts for Release Management",
   "publisher": "ms-vscs-rm",
-  "version": "15.136.1",
+  "version": "15.142.0",
   "public": true,
   "description": "Tools related to connecting with Bitbucket",
   "_description.comment": "The below format to define artifact extensions is currently in preview and may change in future.",
@@ -14,7 +14,7 @@
       "id": "Microsoft.VisualStudio.Services"
     }
   ],
-  "demands": [ "contribution/ms.vss-releaseartifact.artifact-types" ],
+  "demands": [ "contribution/ms.vss-endpoint.bitbucket-endpoint-type" ],
   "icons": {
     "default": "images\\vss_default.png"
   },
@@ -60,79 +60,6 @@
       ],
       "properties": {
         "name": "Tasks/DownloadArtifactsBitbucket"
-      }
-    },
-    {
-      "id": "bitbucket-endpoint-type",
-      "description": "Service Endpoint type for all Bitbucket connections",
-      "_description.comment": "Don't Localize the word 'Bitbucket'",
-      "type": "ms.vss-endpoint.service-endpoint-type",
-      "targets": [ "ms.vss-endpoint.endpoint-types" ],
-      "properties": {
-        "name": "bitbucket",
-        "displayName": "Bitbucket",
-        "url": {
-            "displayName": "Server Url",
-            "value": "https://api.bitbucket.org/",
-            "helpText": ""
-        },
-        "dataSources": [
-          {
-            "name": "TestConnection",
-            "endpointUrl": "{{{endpoint.url}}}2.0/repositories?role=member&pagelen=100",
-            "resultSelector": "jsonpath:$.values[*]"
-          },
-          {
-            "name": "Repositories",
-            "endpointUrl": "{{{endpoint.url}}}2.0/repositories?role=member&pagelen=100",
-            "resultSelector": "jsonpath:$.values[*]"
-          },
-          {
-            "name": "Branches",
-            "endpointUrl": "{{{endpoint.url}}}2.0/repositories/{{{definition}}}/refs/branches",
-            "resultSelector": "jsonpath:$.values[*]"
-          },
-          {
-            "name": "Commits",
-            "endpointUrl": "{{{endpoint.url}}}2.0/repositories/{{{definition}}}/commits/{{{branch}}}",
-            "resultSelector": "jsonpath:$.values[*]"
-          },
-          {
-            "name": "LatestCommit",
-            "endpointUrl": "{{{endpoint.url}}}2.0/repositories/{{{definition}}}/commits/{{{branch}}}",
-            "resultSelector": "jsonpath:$.values[0]"
-          }
-        ],
-        "authenticationSchemes": [
-          {
-            "type": "ms.vss-endpoint.endpoint-auth-scheme-basic",
-            "inputDescriptors": [
-              {
-                "id": "username",
-                "name": "Username",
-                "description": "Username",
-                "inputMode": "textbox",
-                "isConfidential": false,
-                "validation": {
-                  "isRequired": true,
-                  "dataType": "string"
-                }
-              },
-			  {
-                "id": "password",
-                "name": "Password",
-                "description": "Password",
-                "inputMode": "passwordbox",
-                "isConfidential": true,
-                "validation": {
-                  "isRequired": true,
-                  "dataType": "string"
-                }
-              }
-            ]
-          }
-        ],
-        "helpMarkDown": "<a href=\"https://msdn.microsoft.com/Library/vs/alm/Release/author-release-definition/understanding-tasks#serviceconnections\" target=\"_blank\"><b>Learn More</b></a>"
       }
     },
     {
@@ -194,6 +121,33 @@
                   "dataType": "string",
                   "maxLength": 300
               }
+          },
+          {
+            "id": "defaultVersionType",
+            "name": "Default version",
+            "description": "The default version will be deployed when new releases are created. The version can be changed for manually created releases at the time of release creation",
+            "inputMode": "Combo",
+            "isConfidential": false,
+            "hasDynamicValueInformation": false,
+            "values": {
+              "inputId": "defaultVersionTypeValues",
+              "defaultValue": "latestFromBranchType",
+              "possibleValues": [
+                {
+                  "value": "latestFromBranchType",
+                  "displayValue": "Latest from the default branch"
+                },
+                {
+                  "value": "selectDuringReleaseCreationType",
+                  "displayValue": "Specify at the time of release creation"
+                }
+              ],
+              "isLimitedToPossibleValues": true
+            },
+            "validation": {
+              "isRequired": true,
+              "dataType": "string"
+            }
           }
         ],
         "dataSourceBindings": [

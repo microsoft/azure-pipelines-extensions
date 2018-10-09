@@ -282,5 +282,5 @@ A bunch of *VSTS Release* artifact sources are built out of [vsts-rm-extensions]
 - [*BitBucket*]( https://github.com/Microsoft/vsts-rm-extensions/tree/master/Extensions/BitBucket/Src)
 - [*TeamCity*](https://github.com/Microsoft/vsts-rm-extensions/tree/master/Extensions/TeamCity/Src)
 - [*ExternalTfs*](https://github.com/Microsoft/vsts-rm-extensions/tree/master/Extensions/ExternalTfs/Src)
-- *Jenkins* artifact type is implemented as a built-in contribution. Jenkins download task implementation can be found [here](https://github.com/Microsoft/vsts-tasks/blob/master/Tasks/JenkinsDownloadArtifacts)
-- *VSTS Package Management* artifact type is implemented as a built-in contribution. Package download task implementation can be found [here](https://github.com/Microsoft/vsts-tasks/tree/master/Tasks/DownloadPackage)
+- *Jenkins* artifact type is implemented as a built-in contribution. Jenkins download task implementation can be found [here](https://github.com/Microsoft/vsts-tasks/blob/master/Tasks/JenkinsDownloadArtifactsV1)
+- *VSTS Package Management* artifact type is implemented as a built-in contribution. Package download task implementation can be found [here](https://github.com/Microsoft/vsts-tasks/tree/master/Tasks/DownloadPackageV0)

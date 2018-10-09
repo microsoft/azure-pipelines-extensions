@@ -31,7 +31,7 @@ namespace DistributedTask.ServerTask.Remote.Common
         {
             using (var taskClient = new TaskClient(taskProperties))
             {
-                var taskResult = TaskResult.Abandoned;
+                var taskResult = TaskResult.Failed;
                 try
                 {
                     // create timelinerecord if not provided
@@ -51,7 +51,6 @@ namespace DistributedTask.ServerTask.Remote.Common
                     // report task completed with status
                     await taskLogger.Log("Task completed").ConfigureAwait(false);
                     await taskClient.ReportTaskCompleted(taskProperties.TaskInstanceId, taskResult, cancellationToken).ConfigureAwait(false);
-                    await taskLogger.End().ConfigureAwait(false);
                     return taskResult;
                 }
                 catch (Exception e)
@@ -63,6 +62,13 @@ namespace DistributedTask.ServerTask.Remote.Common
 
                     await taskClient.ReportTaskCompleted(taskProperties.TaskInstanceId, taskResult, cancellationToken).ConfigureAwait(false);
                     throw;
+                }
+                finally
+                {
+                    if (taskLogger != null)
+                    {
+                        await taskLogger.End().ConfigureAwait(false);
+                    }
                 }
             }
         }

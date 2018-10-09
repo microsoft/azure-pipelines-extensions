@@ -52,35 +52,47 @@ export class FilesystemProvider implements models.IArtifactProvider {
 
     public putArtifactItem(item: models.ArtifactItem, stream: NodeJS.ReadableStream): Promise<models.ArtifactItem> {
         return new Promise((resolve, reject) => {
-            const outputFilename = path.join(this._rootLocation, item.path);
+            const outputItemPath = path.join(this._rootLocation, item.path);
 
-            // create parent folder if it has not already been created
-            const folder = path.dirname(outputFilename);
-            try {
-                tl.mkdirP(folder);
-                Logger.logMessage(tl.loc("DownloadingTo", item.path, outputFilename));
-                const outputStream = fs.createWriteStream(outputFilename);
-                stream.pipe(outputStream);
-                stream.on("end",
-                    () => {
-                        Logger.logMessage(tl.loc("DownloadedTo", item.path, outputFilename));
-                        if (!item.metadata) {
-                            item.metadata = {};
-                        }
+            if (item.itemType === models.ItemType.File) {
+                const folder = path.dirname(outputItemPath);
+                try {
+                    // create parent folder if it has not already been created
+                    tl.mkdirP(folder);
 
-                        item.metadata[models.Constants.DestinationUrlKey] = outputFilename;
+                    Logger.logMessage(tl.loc("DownloadingTo", item.path, outputItemPath));
+                    const outputStream = fs.createWriteStream(outputItemPath);
+                    stream.pipe(outputStream);
+                    stream.on("end",
+                        () => {
+                            Logger.logMessage(tl.loc("DownloadedTo", item.path, outputItemPath));
+                            if (!item.metadata) {
+                                item.metadata = {};
+                            }
+
+                            item.metadata[models.Constants.DestinationUrlKey] = outputItemPath;
+                        });
+                    stream.on("error",
+                        (error) => {
+                            reject(error);
+                        });
+                    outputStream.on("finish", () => {
+                        this.artifactItemStore.updateFileSize(item, outputStream.bytesWritten);
+                        resolve(item);
                     });
-                stream.on("error",
-                    (error) => {
-                        reject(error);
-                    });
-                outputStream.on("finish", () => {
-                    this.artifactItemStore.updateFileSize(item, outputStream.bytesWritten);
-                    resolve(item);
-                });
+                }
+                catch (err) {
+                    reject(err);
+                }
             }
-            catch (err) {
-                reject(err);
+            else {
+                try {
+                    tl.mkdirP(outputItemPath);
+                    resolve(item);
+                }
+                catch (err) {
+                    reject(err);
+                }
             }
         });
     }
