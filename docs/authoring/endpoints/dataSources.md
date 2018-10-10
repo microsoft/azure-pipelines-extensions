@@ -269,9 +269,9 @@ For e.g. below is a dataSourceBinding for querying alert rules defined in Micros
 	{
 		"target": "alertRules",
 		"endpointId": "$(connectedServiceNameARM)",
-		"endpointUrl": "{{endpoint.url}}subscriptions/{{endpoint.subscriptionId}}/resourcegroups/$(ResourceGroupName)/providers/microsoft.insights/alertrules?api-version=2016-03-01&$filter=targetResourceUri eq /subscriptions/{{endpoint.subscriptionId}}/resourceGroups/$(ResourceGroupName)/providers/$(ResourceType)/$(resourceName)",
+		"endpointUrl": "{{{endpoint.url}}}subscriptions/{{{endpoint.subscriptionId}}}/resourcegroups/$(ResourceGroupName)/providers/microsoft.insights/alertrules?api-version=2016-03-01&$filter=targetResourceUri eq /subscriptions/{{{endpoint.subscriptionId}}}/resourceGroups/$(ResourceGroupName)/providers/$(ResourceType)/$(resourceName)",
 		"resultSelector": "jsonpath:$.value[?(@.properties.isEnabled == true)]",
-		"resultTemplate": "{ \"Value\" : \"{{name}}\", \"DisplayValue\":\"{{name}}\"}"
+		"resultTemplate": "{ \"Value\" : \"{{{name}}}\", \"DisplayValue\":\"{{{name}}}\"}"
 	}
 ]
 ```
