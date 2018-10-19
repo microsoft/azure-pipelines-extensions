@@ -17,6 +17,11 @@
         <target state="translated">Téléchargement de %s à %s</target>
         <note/>
       </trans-unit>
+      <trans-unit id="loc.messages.FailedRequest">
+        <source>Failed request: (statusCode)</source>
+        <target state="new"/>
+        <note/>
+      </trans-unit>
       <trans-unit id="loc.messages.FailedToParseResponse">
         <source>Failed to parse response body: %s, got error : %s</source>
         <target state="translated">Échec d’analyse du corps de la réponse : %s, erreur : %s</target>
