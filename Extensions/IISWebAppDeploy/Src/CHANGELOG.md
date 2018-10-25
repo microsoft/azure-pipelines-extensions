@@ -2,6 +2,10 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.5.1] 4th October 2018
+### Added
+- Fixing issue of RD save button disabled with version 2.*
+
 ## [1.5.0] 4th October 2018
 ### Added
 - Added IIS Web App Management task V2 (Preview).
