@@ -16,7 +16,7 @@
   "version": {
     "Major": 2,
     "Minor": 0,
-    "Patch": 1
+    "Patch": 2
   },
   "preview": true,
   "demands": [
@@ -29,12 +29,6 @@
           "displayName": "IIS Website",
           "isExpanded": true,
           "visibleRule": "ActionIISWebsite = CreateOrUpdateWebsite"
-      },
-      {
-          "name": "IISBindings",
-          "displayName": "IIS Bindings",
-          "isExpanded": true,
-          "visibleRule": "IISDeploymentType = IISWebsite && ActionIISWebsite = CreateOrUpdateWebsite && AddBinding = true"
       },
       {
           "name": "ApplicationPoolForWebsite",
