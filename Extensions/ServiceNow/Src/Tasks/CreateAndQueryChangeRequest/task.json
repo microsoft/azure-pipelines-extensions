@@ -131,11 +131,7 @@
       "required": "false",
       "defaultValue": "",
       "groupName": "schedule",
-      "helpMarkDown": "Scheduled start time for change request in YYYY-MM-DD HH:MM:SS format",
-      "validation": {
-        "expression": "isMatch(value,'((^[\\d]{4}-(0?[1-9]|1[0-2])-(0?[1-9]|[12][0-9]|3[01]) ([01][0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9])$)|^$)', 'Multiline')",
-        "message": "Planned start date should be in YYYY-MM-DD HH:MM:SS format"
-      }
+      "helpMarkDown": "Scheduled start time for change request should be in UTC and format should be yyyy-MM-ddTHH:mm:ssZ. eg. 2018-01-31T07:56:59Z"
     },
     {
       "name": "scheduleendtime",
@@ -144,11 +140,7 @@
       "required": "false",
       "defaultValue": "",
       "groupName": "schedule",
-      "helpMarkDown": "Scheduled end time for change request in YYYY-MM-DD HH:MM:SS format",
-      "validation": {
-        "expression": "isMatch(value,'((^[\\d]{4}-(0?[1-9]|1[0-2])-(0?[1-9]|[12][0-9]|3[01]) ([01][0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9])$)|^$)', 'Multiline')",
-        "message": "Planned end date should be in YYYY-MM-DD HH:MM:SS format"
-      }
+      "helpMarkDown": "Scheduled end time for change request should be in UTC and format should be yyyy-MM-ddTHH:mm:ssZ. eg. 2018-01-31T07:56:59Z"
     },
     {
       "name": "otherParameters",
@@ -218,15 +210,15 @@
         {
           "RequestInputs": {
             "EndpointId": "$(ServiceNowConnection)",
-            "EndpointUrl": "$(endpoint.url)/api/now/table/change_request?sysparm_fields=state,number,sys_id&&sysparm_display_value=true",
+            "EndpointUrl": "$(endpoint.url)/api/now/import/x_mioms_vsts_integ_change_request_import",
             "Method": "POST",
-            "Body": "{ \"short_description\": \"$(shortdescription)\", \"description\": \"$(description)\", \"category\": \"$(category)\", \"priority\": \"$(priority)\", \"risk\": \"$(risk)\", \"impact\": \"$(impact)\", \"cmdb_ci\": \"$(configurationitem)\", \"assignment_group\": \"$(assignmentgroup)\", \"requested_by_date\": \"$(RELEASE.DEPLOYMENT.STARTTIME)\", \"start_date\": \"$(schedulestarttime)\",  \"end_date\": \"$(scheduleendtime)\" {{#if otherParameters}}{{toCommaSeparatedKeyValueList otherParameters true}}{{/if}} }",
+            "Body": "{  \"u_correlation_id\": \"{{#newGuid}}{{/newGuid}}\",\"u_x_mioms_vsts_s_release_info\": \"Release: $(RELEASE.RELEASEWEBURL) \\r\\n EnvironmentName: $(RELEASE.ENVIRONMENTNAME) \\r\\n Requested By : $(RELEASE.DEPLOYMENT.REQUESTEDFOR)\", \"u_short_description\": \"$(shortdescription)\", \"u_description\": \"$(description)\", \"u_category\": \"$(category)\", \"u_priority\": \"$(priority)\", \"u_risk\": \"$(risk)\", \"u_impact\": \"$(impact)\", \"u_cmdb_ci\": \"$(configurationitem)\", \"u_assignment_group\": \"$(assignmentgroup)\", \"u_requested_by_date\": \"{{toDateTimeFormat '$(RELEASE.DEPLOYMENT.STARTTIME)' 'yyyy-MM-dd HH:mm:ss'}}\", \"u_start_date\": \"{{#if schedulestarttime}}{{toDateTimeFormat schedulestarttime 'yyyy-MM-dd HH:mm:ss'}}{{/if}}\",  \"u_end_date\": \"{{#if schedulestendtime}}{{toDateTimeFormat scheduleendtime 'yyyy-MM-dd HH:mm:ss'}}{{/if}}\" {{#if otherParameters}}{{toCommaSeparatedKeyValueList otherParameters true}}{{/if}} }",
             "Headers": "{\"Content-Type\":\"application/json\", \"Accept\":\"application/json\"}",
             "WaitForCompletion": "false",
-            "Expression": "eq(jsonpath('$.result.state')[0], 'New')"
+            "Expression": "eq(jsonpath('$.result[0].status')[0], 'inserted')"
           },
           "ExecutionOptions": {
-            "OutputVariables": "{\"CHANGE_SYSTEM_ID\" :  \"jsonpath('$.result.sys_id')[0]\", \"CHANGE_REQUEST_NUMBER\" :  \"jsonpath('$.result.number')[0]\"}",
+            "OutputVariables": "{\"CHANGE_SYSTEM_ID\" :  \"jsonpath('$.result[0].sys_id')[0]\", \"CHANGE_REQUEST_NUMBER\" :  \"jsonpath('$.result[0].display_value')[0]\"}",
             "SkipSectionExpression": "eq(isNullOrEmpty(variables['CHANGE_SYSTEM_ID']), false)"
           }
         },
