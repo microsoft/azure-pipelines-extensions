@@ -119,9 +119,9 @@
         {
           "RequestInputs": {
             "EndpointId": "$(ServiceNowConnection)",
-            "EndpointUrl": "$(endpoint.url)/api/now/import/x_mioms_vsts_integ_change_request_import",
+            "EndpointUrl": "$(endpoint.url)/api/now/import/x_mioms_azpipeline_change_request_import",
             "Method": "POST",
-            "Body": "{\"u_correlation_id\": \"$(CHANGE_CORRELATION_ID)\",\"u_state\": \"$(NewStatus)\"{{#equals NewStatus 'Closed'}}, \"u_close_code\": \"$(CloseCode)\", \"u_close_notes\": \"$(CloseNotes)\"{{/equals}} {{#if otherParameters}}{{toCommaSeparatedKeyValueList otherParameters true}}{{/if}} }",
+            "Body": "{\"u_correlation_id\": \"$(CHANGE_CORRELATION_ID)\",\"u_state\": \"$(NewStatus)\"{{#equals '$(NewStatus)' 'Closed'}}, \"u_close_code\": \"$(CloseCode)\", \"u_close_notes\": \"$(CloseNotes)\"{{/equals}} {{#if otherParameters}}{{toCommaSeparatedKeyValueList otherParameters true}}{{/if}} }",
             "Headers": "{\"Content-Type\":\"application/json\", \"Accept\":\"application/json\"}",
             "WaitForCompletion": "false",
             "Expression": "eq(jsonpath('$.result[0].status')[0], 'updated')"
@@ -129,19 +129,6 @@
           "ExecutionOptions": {
             "OutputVariables": "{\"CHANGE_REQUEST_URL\" :  \"jsonpath('$.result[0].record_link')[0]\"}",
             "SkipSectionExpression": "eq(isNullOrEmpty(variables['CHANGE_REQUEST_URL']), false)"
-          }
-        },
-        {
-          "RequestInputs": {
-            "EndpointId": "$(ServiceNowConnection)",
-            "EndpointUrl": "$(CHANGE_REQUEST_URL)?sysparm_fields=state,number&&sysparm_display_value=true",
-            "Method": "GET",
-            "Headers": "{\"Content-Type\":\"application/json\", \"Accept\":\"application/json\"}",
-            "WaitForCompletion": "false",
-            "Expression": "eq(jsonpath('$.result.state')[0], '$(NewStatus)')"
-          },
-          "ExecutionOptions": {
-            "SkipSectionExpression": "eq(isNullOrEmpty(variables['CHANGE_REQUEST_URL']), true)"
           }
         }
       ]
