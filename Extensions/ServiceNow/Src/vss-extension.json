@@ -2,7 +2,7 @@
   "manifestVersion": 1,
   "id": "vss-services-servicenowchangerequest",
   "name": "ServiceNow change request management",
-  "publisher": "NishuBansal",
+  "publisher": "ms-devlabs",
   "version": "0.0.1",
   "public": false,
   "description": "Manage ServiceNow change requests.",
