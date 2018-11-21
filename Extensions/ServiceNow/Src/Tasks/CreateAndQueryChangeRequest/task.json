@@ -11,7 +11,6 @@
     "Release"
   ],
   "runsOn": [
-    "Server",
     "ServerGate"
   ],
   "version": {
