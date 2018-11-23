@@ -1,0 +1,252 @@
+{
+  "manifestVersion": 1.0,
+  "id": "vss-services-circleCI",
+  "name": "CircleCI artifacts for Release Management",
+  "publisher": "pranpati",
+  "version": "15.145.6",
+  "public": false,
+  "description": "Tools related to connecting with CircleCI",
+  "_description.comment": "The below format to define artifact extensions is currently in preview and may change in future.",
+  "categories": [ "Azure Pipelines" ],
+  "Tags": [ "CircleCI", "Release", "DevOps", "Artifacts" ],
+  "targets": [
+    {
+      "id": "Microsoft.VisualStudio.Services"
+    }
+  ],
+  "demands": [ "contribution/ms.vss-releaseartifact.artifact-types" ],
+  "icons": {
+    "default": "images\\icon.png"
+  },
+  "branding": {
+    "color": "#3B3E43",
+    "theme": "dark"
+  },
+  "screenshots": [
+    {
+      "path": "images/screen1.png"
+    },
+    {
+      "path": "images/screen2.png"
+    }
+  ],
+  "content": {
+    "details": {
+      "path": "readme.md"
+    },
+    "license": {
+      "path": "mp_terms.md"
+    }
+  },
+  "files": [
+    {
+      "path": "images/screen1.png",
+      "addressable": true
+    },
+    {
+      "path": "images/screen2.png",
+      "addressable": true
+    },
+    {
+      "path": "Tasks/DownloadCircleCIArtifacts"
+    }
+  ],
+  "contributions": [
+    {
+      "id": "circleCI-endpoint-type",
+      "description": "Service Endpoint type for all CircleCI connections",
+      "_description.comment": "Don't Localize the word 'CircleCI'",
+      "type": "ms.vss-endpoint.service-endpoint-type",
+      "targets": [ "ms.vss-endpoint.endpoint-types" ],
+      "properties": {
+        "name": "circleCI",
+        "displayName": "CircleCI",
+        "dataSources": [
+          {
+            "name": "TestConnection",
+            "endpointUrl": "{{endpoint.url}}/api/v1.1/me",
+            "resultSelector": "jsonpath:$.login"
+          },
+          {
+            "name": "Projects",
+            "endpointUrl": "{{endpoint.url}}api/v1.1/projects",
+            "resultSelector": "jsonpath:$[*]"
+          },
+          {
+            "name": "Builds",
+            "endpointUrl": "{{endpoint.url}}api/v1.1/project/{{definition}}",
+            "resultSelector": "jsonpath:$[*].build_num"
+          },
+          {
+            "name": "LatestBuild",
+            "endpointUrl": "{{endpoint.url}}api/v1.1/project/{{definition}}?limit=1&filter=completed",
+            "resultSelector": "jsonpath:$[*].build_num"
+          },
+          {
+            "name": "Artifacts",
+            "endpointUrl": "{{endpoint.url}}api/v1.1/project/{{definition}}/{{version}}/artifacts",
+            "resultSelector": "jsonpath:$[*]"
+          }
+        ],
+        "authenticationSchemes": [
+          {
+            "type": "ms.vss-endpoint.endpoint-auth-scheme-basic",
+            "inputDescriptors": [
+              {
+                "id": "username",
+                "name": "PAT",
+                "description": "PAT",
+                "inputMode": "passwordbox",
+                "validation": {
+                  "isRequired": false,
+                  "dataType": "string"
+                }
+              },
+              {
+                "id": "password",
+                "name": "Password",
+                "description": "Password",
+                "inputMode": "passwordbox",
+                "isConfidential": true,
+                "validation": {
+                  "isRequired": false,
+                  "dataType": "string"
+                }
+              }]
+          }
+        ],
+        "helpMarkDown": "<a href=\"https://msdn.microsoft.com/Library/vs/alm/Release/author-release-definition/understanding-tasks#serviceconnections\" target=\"_blank\"><b>Learn More</b></a>"
+      }
+    },
+    {
+      "id": "circleCI-task",
+      "type": "ms.vss-distributed-task.task",
+      "targets": [
+        "ms.vss-distributed-task.tasks"
+      ],
+      "properties": {
+        "name": "Tasks/DownloadCircleCIArtifacts"
+        }
+    },
+    {
+      "id": "circleCI-release-artifact-type",
+      "description": "CircleCI Artifact",
+      "type": "ms.vss-releaseartifact.release-artifact-type",
+      "targets": [ "ms.vss-releaseartifact.artifact-types" ],
+      "properties": {
+        "name": "circleCI",
+        "displayName": "CircleCI",
+        "_displayName.comment": "Don't Localize the word 'CircleCI'",
+        "endpointTypeId": "circleCI",
+        "uniqueSourceIdentifier": "{{connection}}:{{project}}:{{definition}}",
+        "downloadTaskId": "15ECB9F3-C0F7-42CF-9CE3-C6DDED17DE83",
+        "artifactType": "Build",
+        "inputDescriptors": [
+          {
+            "id": "connection",
+            "name": "Service Endpoint",
+            "description": "Service Endpoint Id",
+            "inputMode": "Combo",
+            "isConfidential": false,
+            "hasDynamicValueInformation": true,
+            "validation": {
+              "isRequired": true,
+              "dataType": "string",
+              "maxLength": 300
+            }
+          },
+          {
+            "id": "definition",
+            "name": "Project",
+            "description": "Project Id",
+            "inputMode": "Combo",
+            "isConfidential": false,
+            "hasDynamicValueInformation": true,
+            "dependencyInputIds": [
+              "connection"
+            ],
+            "validation": {
+              "isRequired": true,
+              "dataType": "string",
+              "maxLength": 300
+            }
+          },
+          {
+            "id": "defaultVersionType",
+            "name": "Default version",
+            "description": "The default version will be deployed when new releases are created. The version can be changed for manually created releases at the time of release creation",
+            "inputMode": "Combo",
+            "isConfidential": false,
+            "hasDynamicValueInformation": false,
+            "values": {
+              "inputId": "defaultVersionTypeValues",
+              "defaultValue": "latestType",
+              "possibleValues": [
+                {
+                  "value": "latestType",
+                  "displayValue": "Latest"
+                },
+                {
+                  "value": "selectDuringReleaseCreationType",
+                  "displayValue": "Specify at the time of release creation"
+                }
+              ],
+              "isLimitedToPossibleValues": true
+            },
+            "validation": {
+              "isRequired": true,
+              "dataType": "string"
+            }
+          },
+          {
+            "id": "artifacts",
+            "name": "Artifacts",
+            "description": "Build artifacts",
+            "inputMode": "none",
+            "isConfidential": false,
+            "hasDynamicValueInformation": true,
+            "dependencyInputIds": [
+              "connection",
+              "definition",
+              "versions"
+            ],
+            "validation": {
+              "isRequired": false,
+              "dataType": "string",
+              "maxLength": 300
+            }
+          }
+        ],
+        "dataSourceBindings": [
+          {
+            "target": "definition",
+            "dataSourceName": "Projects",
+            "resultTemplate": "{ Value : \"{{{vcs_type}}}/{{{username}}}/{{{reponame}}}\", DisplayValue : \"{{reponame}}\" }"
+          },
+          {
+            "target": "versions",
+            "dataSourceName": "Builds",
+            "resultTemplate": "{ Value : \"{{{defaultResultKey}}}\", DisplayValue : \"{{{defaultResultKey}}}\" }"
+          },
+          {
+            "target": "latestVersion",
+            "dataSourceName": "LatestBuild",
+            "resultTemplate": "{ Value : \"{{{defaultResultKey}}}\", DisplayValue : \"{{{defaultResultKey}}}\" }"
+          },
+          {
+            "target": "artifactDetails",
+            "resultTemplate": "{ Name: \"{{version}}\", StreamType: \"zip\", downloadUrl : \"{{endpoint.url}}downloadArtifacts.html?buildTypeId={{definition}}&buildId={{version}}\" }"
+          },
+          {
+            "target": "artifacts",
+            "dataSourceName": "Artifacts",
+            "resultTemplate": "{ Value : \"{{{path}}}\", DisplayValue : \"{{path}}\", data: { itemType: \"file\" } }"
+          }
+        ],
+        "browsableArtifactTypeMapping": {
+          "folder": "artifactItems"
+        }
+      }
+    }
+  ]
+}

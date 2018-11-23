@@ -1,0 +1,12 @@
+[
+{{#this}}
+  {
+    "path" : "{{this.path}}",
+    "prettyPath" : "{{this.pretty_path}}"
+    "itemType": "file",
+    "metadata" : {
+      "downloadUrl": "{{this.url}}"
+    }
+  }{{#unless @last}},{{/unless}}
+{{/this}}
+]
