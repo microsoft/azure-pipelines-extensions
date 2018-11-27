@@ -14,11 +14,17 @@ The deployment process in Azure pipelines helps in automation of the deployment 
 ## How to use the integration
 1. The integration requires the Azure DevOps application to be installed on the ServiceNow instance.   
    
-   A service account created in ServiceNow and provided the **x_mioms_azpipeline.pipelinesExecution** role would be used for all the        communication.
+   A service account created in ServiceNow and provided the **x_mioms_azpipeline.pipelinesExecution** role would be used for all the communication.
 
 2. Create service connection for ServiceNow in Azure pipelines.Provide username and password for the service account configured in #1
 
+![Service connections](images/connections.png) (images/servicenow_connection.png)
+
 3. Configure a release gate for ServiceNow change management
+
+![Release definition](images/release_definition.png)
+
+![Release gate](images/release_gate.png)
 
 A new change request would be created for each pipeline run.
 Inputs provided in the gate would be set as properties of the change request in ServiceNow.
@@ -39,6 +45,8 @@ Inputs provided in the gate would be set as properties of the change request in 
 - **Desired state**: The gate would succeed and the pipeline continues when the change request status is same as the provided value.
 
 4. Add a task to update the status of the change
+
+![Update task](images/update_task.png)
 
 **Inputs for Update change request task**:
 
