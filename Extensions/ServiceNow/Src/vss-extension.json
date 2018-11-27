@@ -54,7 +54,7 @@
       ],
       "properties": {
         "name": "ServiceNow",
-        "displayName": "ServiceNow connection",
+        "displayName": "ServiceNow",
         "url": {
           "displayName": "ServiceNow Url",
           "helpText": "Url of the ServiceNow instance to connect to."
