@@ -4,8 +4,8 @@
   "name": "ServiceNow change request management",
   "publisher": "ms-devlabs",
   "version": "0.0.1",
-  "public": false,
-  "description": "Manage ServiceNow change requests.",
+  "public": true,
+  "description": "Integrate ServiceNow change management with Azure pipelines",
   "categories": [
     "Build and release"
   ],
@@ -47,7 +47,7 @@
   "contributions": [
     {
       "id": "service-endpoint",
-      "description": "ServiceNow connection",
+      "description": "ServiceNow",
       "type": "ms.vss-endpoint.service-endpoint-type",
       "targets": [
         "ms.vss-endpoint.endpoint-types"

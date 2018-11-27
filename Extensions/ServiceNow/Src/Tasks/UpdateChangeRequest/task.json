@@ -3,10 +3,9 @@
   "name": "UpdateServiceNowChangeRequest",
   "friendlyName": "Update ServiceNow Change Request",
   "description": "Update ServiceNow Change Request",
-  "author": "ServiceNow",
-  "helpMarkDown": "[More Information]()",
+  "author": "Microsoft",
+  "helpMarkDown": "",
   "category": "Utility",
-  "preview": "true",
   "visibility": [
     "Release"
   ],
@@ -42,14 +41,14 @@
       "label": "Change Request Number",
       "defaultValue": "",
       "required": true,
-      "helpMarkDown": "Change request to update. Must be a valid change request number in Service now."
+      "helpMarkDown": "Change request to update. Must be a valid change request number in ServiceNow."
     },
     {
       "name": "NewStatus",
       "type": "pickList",
       "label": "Updated status of change request",
       "required": "true",
-      "helpMarkDown": "Status (label or value) to set for the change request. Task would succeed when the the change request status is same as the provided value.",
+      "helpMarkDown": "Status (label or value) to set for the change request.",
       "properties": {
         "EditableOptions": "True"
       }
@@ -81,7 +80,7 @@
       "label": "Additional change request parameters",
       "required": "false",
       "groupName": "advancedInputs",
-      "helpMarkDown": "Additional properties of the change request to set. Enter the parameters in Json format. Name must be field name in ServiceNow. This may not be the same as the display label of the field. Value must be a valid, accepted value in serviceNow. Invalid entries are ignored.",
+      "helpMarkDown": "Additional change request properties to set. Specified as Key-value pairs in json format, name being the field name (not label) prefixed with 'u_' in ServiceNow and a valid value. Invalid properties are ignored.",
       "properties": {
         "editorExtension": "ms.vss-services-azure.azure-servicebus-message-grid"
       }

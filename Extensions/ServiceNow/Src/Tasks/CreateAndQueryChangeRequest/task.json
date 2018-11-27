@@ -3,10 +3,9 @@
   "name": "CreateAndQueryChangeRequest",
   "friendlyName": "ServiceNow Change Management",
   "description": "Create and Query ServiceNow Change request",
-  "author": "ServiceNow",
-  "helpMarkDown": "[More Information]()",
+  "author": "Microsoft",
+  "helpMarkDown": "",
   "category": "Utility",
-  "preview": "true",
   "visibility": [
     "Release"
   ],
@@ -18,7 +17,7 @@
     "Minor": 1,
     "Patch": 0
   },
-  "instanceNameFormat": "ServiceNow Change Management",
+  "instanceNameFormat": "ServiceNow change management",
   "groups": [
     {
       "name": "schedule",
@@ -51,7 +50,7 @@
       "label": "Short Description",
       "required": "true",
       "defaultValue": "Deployment to $(Release.EnvironmentName) of Release $(Release.ReleaseId)",
-      "helpMarkDown": "Short description of the change request"
+      "helpMarkDown": "Short description of the change request."
     },
     {
       "name": "description",
@@ -59,7 +58,7 @@
       "label": "Description",
       "required": "false",
       "defaultValue": "Deployment to $(Release.EnvironmentName) of Release $(Release.ReleaseId)",
-      "helpMarkDown": "Description of the change request. Use \r\n for newline."
+      "helpMarkDown": "Description of the change request."
     },
     {
       "name": "category",
@@ -148,7 +147,7 @@
       "defaultValue": "",
       "required": "false",
       "groupName": "advancedInputs",
-      "helpMarkDown": "Additional change request properties to set. Specified as Key-value pairs in json format, name being the field name prefixed with 'u_' (not label) in ServiceNow and a valid value. Invalid properties are ignored.",
+      "helpMarkDown": "Additional change request properties to set. Specified as Key-value pairs in json format, name being the field name (not label) prefixed with 'u_' in ServiceNow and a valid value. Invalid properties are ignored.",
       "properties": {
         "editorExtension": "ms.vss-services-azure.azure-servicebus-message-grid"
       }
@@ -160,7 +159,7 @@
       "defaultValue": "New",
       "required": "true",
       "groupName": "completionOptions",
-      "helpMarkDown": "Status of change request that indicates the change request is ready to be implemented. Task would succeed when the the change request status is same as the provided value.",
+      "helpMarkDown": "Status of change request that indicates the change request is ready to be implemented. Gate would succeed when the the change request status is same as the provided value.",
       "properties": {
         "EditableOptions": "True"
       }
