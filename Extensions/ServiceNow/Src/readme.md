@@ -18,7 +18,7 @@ The deployment process in Azure pipelines helps in automation of the deployment 
 
 2. Create service connection for ServiceNow in Azure pipelines.Provide username and password for the service account configured in #1
 
-![Service connections](images/connections.png) ![ServiceNow connection] (images/servicenow_connection.png)
+![ServiceNow connection](images/servicenow_connection.png)
 
 3. Configure a release gate for ServiceNow change management
 
