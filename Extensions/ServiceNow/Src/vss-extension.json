@@ -139,7 +139,7 @@
       }
     },
     {
-      "id": "serviceNowchangerequests-task1",
+      "id": "serviceNowchangerequests-update-task",
       "type": "ms.vss-distributed-task.task",
       "targets": [
         "ms.vss-distributed-task.tasks"
@@ -149,7 +149,7 @@
       }
     },
     {
-      "id": "serviceNowchangerequests-task2",
+      "id": "serviceNowchangerequests-query-task",
       "type": "ms.vss-distributed-task.task",
       "targets": [
         "ms.vss-distributed-task.tasks"

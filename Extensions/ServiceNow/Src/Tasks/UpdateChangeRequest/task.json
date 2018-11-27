@@ -1,5 +1,5 @@
 {
-  "id": "6BBE8736-EE83-4BBF-A0AD-96B118797CC4",
+  "id": "37AC13CA-AEAD-4E19-A5AC-E5366051FC1C",
   "name": "UpdateServiceNowChangeRequest",
   "friendlyName": "Update ServiceNow Change Request",
   "description": "Update ServiceNow Change Request",
@@ -34,7 +34,7 @@
       "label": "ServiceNow connection",
       "defaultValue": "",
       "required": "true",
-      "helpMarkDown": "The ServiceNow endpoint for the ServiceNow instance to query"
+      "helpMarkDown": "Connection to the ServiceNow instance used for change management."
     },
     {
       "name": "ChangeRequestNumber",
@@ -42,14 +42,14 @@
       "label": "Change Request Number",
       "defaultValue": "",
       "required": true,
-      "helpMarkDown": "Change request that you want to update. Must be a valid change request number in Service now."
+      "helpMarkDown": "Change request to update. Must be a valid change request number in Service now."
     },
     {
       "name": "NewStatus",
       "type": "pickList",
       "label": "Updated status of change request",
       "required": "true",
-      "helpMarkDown": "Status of change request that indicates the change request is ready to be implemented. Task would succeed when the the change request status is same as the provided value.",
+      "helpMarkDown": "Status (label or value) to set for the change request. Task would succeed when the the change request status is same as the provided value.",
       "properties": {
         "EditableOptions": "True"
       }
@@ -60,7 +60,7 @@
       "type": "pickList",
       "label": "Close code",
       "required": "true",
-      "helpMarkDown": "Closure information",
+      "helpMarkDown": "Close code (label or value) for the change request",
       "properties": {
         "EditableOptions": "True"
       },
@@ -72,7 +72,7 @@
       "label": "Close notes",
       "required": "true",
       "defaultValue": "",
-      "helpMarkDown": "Closure information",
+      "helpMarkDown": "Notes to be added as closure information to the change request",
       "visibleRule": "NewStatus = Closed"
     },
     {
