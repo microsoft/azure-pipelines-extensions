@@ -37,11 +37,13 @@ Inputs provided in the gate would be set as properties of the change request in 
 **Gate Success Criteria** :
 - **Desired state**: The gate would succeed and the pipeline continues when the change request status is same as the provided value.
 
-5. Add a task to update the status of the change
+4. Add a task to update the status of the change
+
 **Inputs for Update change request task**:
 
 - **Change request number**: Number of the change request that you want to update.
 - **Updated status of change request** : Status of the change request that you want to update. Task would succeed when the change request status is same as the provided value.
+- **Close code and notes**: Closure information for the change request.
 - **Additional change request parameters**:  Additional properties of the change request to set.
 
 
