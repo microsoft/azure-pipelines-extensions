@@ -12,16 +12,17 @@ An agentless task to close (update state of) the change request after the deploy
 The deployment process in Azure pipelines helps in automation of the deployment and complement the controls offered by ServiceNow.
 
 ## How to use the integration
-- The integration requires the Azure DevOps application to be installed on the ServiceNow instance. 
-   A service account created in ServiceNow and provided the x_mioms_azpipeline.pipelinesExecution role would be used for all the     communication.
+1. The integration requires the Azure DevOps application to be installed on the ServiceNow instance. 
+   A service account created in ServiceNow and provided the x_mioms_azpipeline.pipelinesExecution role would be used for all the        communication.
 
-- Create service connection for ServiceNow in Azure pipelines.Provide username and password for the service account configured in #1
+2. Create service connection for ServiceNow in Azure pipelines.Provide username and password for the service account configured in #1
 
-- Configure a release gate for ServiceNow change management
+3. Configure a release gate for ServiceNow change management
 
 A new change request would be created for each pipeline run.
 Inputs provided in the gate would be set as properties of the change request in ServiceNow.
-## Inputs for Gate:
+
+ **Inputs for Gate**:
 - **Short description**: A summary of the change.
 - **Description**: A detailed description of the change.
 - **Category**:  The category of the change, for example, Hardware, Network, Software.
@@ -33,11 +34,11 @@ Inputs provided in the gate would be set as properties of the change request in 
 - **Schedule of change request**: Schedule of the change. Date and time should be in UTC and format should be yyyy-MM-ddTHH:mm:ssZ. eg. 2018-01-31T07:56:59Z.
 - **Additional change request parameters**:  Additional properties of the change request to set. Name must be field name in ServiceNow. This may not be the same as the display label of the field. Value must be a valid, accepted value in ServiceNow. Invalid entries are ignored.
 
-Gate Success Criteria :
+**Gate Success Criteria** :
 - **Desired state**: The gate would succeed and the pipeline continues when the change request status is same as the provided value.
 
-- Add a task to update the status of the change
-## Inputs for Update change request task:
+5. Add a task to update the status of the change
+**Inputs for Update change request task**:
 
 - **Change request number**: Number of the change request that you want to update.
 - **Updated status of change request** : Status of the change request that you want to update. Task would succeed when the change request status is same as the provided value.
