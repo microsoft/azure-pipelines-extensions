@@ -12,7 +12,7 @@ An agentless task to close (update state of) the change request after the deploy
 The deployment process in Azure pipelines helps in automation of the deployment and complement the controls offered by ServiceNow.
 
 ## How to use the integration
-1. The integration requires the **Azure DevOps Pipelines** application to be installed on the ServiceNow instance.   
+1. The integration requires the [Azure DevOps Pipelines](https://store.servicenow.com/sn_appstore_store.do#!/store/application/fa788cb5dbb5630040669c27db961940) application to be installed on the ServiceNow instance.   
    
    A service account created in ServiceNow and provided the **x_mioms_azpipeline.pipelinesExecution** role would be used for all the communication.
 
@@ -23,7 +23,6 @@ The deployment process in Azure pipelines helps in automation of the deployment 
 3. Configure a release gate for ServiceNow change management
 
 ![Release definition](images/release_definition.png)
-
 ![Release gate](images/release_gate.png)
 
 A new change request would be created for each pipeline run.
@@ -43,6 +42,11 @@ Inputs provided in the gate would be set as properties of the change request in 
 
 **Gate Success Criteria** :
 - **Desired state**: The gate would succeed and the pipeline continues when the change request status is same as the provided value.
+
+**Gate Output Variables** :
+ServiceNow gate produces following 2 output variables. You have to specify reference name to be able to user these output variables in Update task. Gate variables can be accessed in agentless phase by prefixing it with "PREDEPLOYGATE".
+- **CHANGE_REQUEST_NUMBER** : Number of the change request created in ServiceNow.
+- **CHANGE_SYSTEM_ID** : System ID of the change request created in ServiceNow.
 
 4. Add a task to update the status of the change
 
