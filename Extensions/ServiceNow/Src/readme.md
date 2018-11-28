@@ -14,7 +14,7 @@ The deployment process in Azure pipelines helps in automation of the deployment 
 ## How to use the integration
 1. Integration requires the [Azure DevOps Pipelines](https://store.servicenow.com/sn_appstore_store.do#!/store/application/fa788cb5dbb5630040669c27db961940) application to be installed on the ServiceNow instance.   
    
-   A service account created in ServiceNow and provided the **x_mioms_azpipeline.pipelinesExecution** role would be used for all the communication.
+   A service account created that has been created in ServiceNow and granted the **x_mioms_azpipeline.pipelinesExecution** role would be used for all the communication.
 
 2. Create service connection for ServiceNow in Azure pipelines.Provide username and password for the service account configured in #1
 
