@@ -43,8 +43,9 @@ Inputs provided in the gate would be set as properties of the change request in 
 **Gate Success Criteria** :
 - **Desired state**: The gate would succeed and the pipeline continues when the change request status is same as the provided value.
 
-**Gate Output Variables** :
-ServiceNow gate produces following 2 output variables. You have to specify reference name to be able to user these output variables in Update task. Gate variables can be accessed in agentless phase by prefixing it with "PREDEPLOYGATE". For eg. say reference name is set to 'gate1' then CHANGE_REQUEST_NUMBER variable can be used in agentless phase by specifying $(PREDEPLOYGATE.gate1.CHANGE_REQUEST_NUMBER).
+**Gate Output Variables** :                                                                                                             
+ServiceNow gate produces following 2 output variables. You have to specify reference name to be able to user these output variables in Update task. Gate variables can be accessed in agentless phase by prefixing it with "PREDEPLOYGATE".                                  For eg. say reference name is set to 'gate1' then CHANGE_REQUEST_NUMBER variable can be used in agentless phase by specifying $(PREDEPLOYGATE.gate1.CHANGE_REQUEST_NUMBER).
+
 - **CHANGE_REQUEST_NUMBER** : Number of the change request created in ServiceNow.
 - **CHANGE_SYSTEM_ID** : System ID of the change request created in ServiceNow.
 
