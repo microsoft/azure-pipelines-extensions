@@ -14,7 +14,7 @@ The deployment process in Azure pipelines helps in automation of the deployment 
 ## How to use the integration
 1. Integration requires the [Azure DevOps Pipelines](https://store.servicenow.com/sn_appstore_store.do#!/store/application/fa788cb5dbb5630040669c27db961940) application to be installed on the ServiceNow instance.   
    
-   A service account created that has been created in ServiceNow and granted the **x_mioms_azpipeline.pipelinesExecution** role would be used for all the communication.
+   A service account created that has been created in ServiceNow and granted the `x_mioms_azpipeline.pipelinesExecution` role would be used for all the communication.
 
 2. Create service connection for ServiceNow in Azure pipelines.Provide username and password for the service account configured in #1
 
@@ -44,7 +44,7 @@ Inputs provided in the gate would be set as properties of the change request in 
 - **Desired state**: The gate would succeed and the pipeline continues when the change request status is same as the provided value.
 
 **Gate Output Variables** :                                                                                                             
-ServiceNow gate produces output variables.                                                                                               You must specify reference name to be able to use these output variables in the deployment workflow. Gate variables can be accessed by using "PREDEPLOYGATE" as a prefix. For eg. when reference name is set to 'gate1', then the change number can be obtained as `$(PREDEPLOYGATE.gate1.CHANGE_REQUEST_NUMBER)`.
+ServiceNow gate produces output variables.                                                                                               You must specify reference name to be able to use these output variables in the deployment workflow. Gate variables can be accessed by using `"PREDEPLOYGATE"` as a prefix. For eg. when reference name is set to 'gate1', then the change number can be obtained as `$(PREDEPLOYGATE.gate1.CHANGE_REQUEST_NUMBER)`.
 
 - **CHANGE_REQUEST_NUMBER** : Number of the change request created in ServiceNow.
 - **CHANGE_SYSTEM_ID** : System ID of the change request created in ServiceNow.
