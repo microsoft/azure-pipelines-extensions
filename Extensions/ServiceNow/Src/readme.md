@@ -12,7 +12,7 @@ An agentless task to close (update state of) the change request after the deploy
 The deployment process in Azure pipelines helps in automation of the deployment and complement the controls offered by ServiceNow.
 
 ## How to use the integration
-1. The integration requires the [Azure DevOps Pipelines](https://store.servicenow.com/sn_appstore_store.do#!/store/application/fa788cb5dbb5630040669c27db961940) application to be installed on the ServiceNow instance.   
+1. Integration requires the [Azure DevOps Pipelines](https://store.servicenow.com/sn_appstore_store.do#!/store/application/fa788cb5dbb5630040669c27db961940) application to be installed on the ServiceNow instance.   
    
    A service account created in ServiceNow and provided the **x_mioms_azpipeline.pipelinesExecution** role would be used for all the communication.
 
