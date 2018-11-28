@@ -31,8 +31,8 @@ Inputs provided in the gate would be set as properties of the change request in 
  **Inputs for Gate**:
 - **Short description**: A summary of the change.
 - **Description**: A detailed description of the change.
-- **Category**:  The category of the change, for example, Hardware, Network, Software.
-- **Priority**: priority of the change.
+- **Category**:  The category of the change `eg. Hardware, Network, Software`.
+- **Priority**: Priority of the change.
 - **Risk**: The risk level for the change.
 - **Impact**: The effect that the change has on business.
 - **Configuration Item**: Configuration item (CI) that the change applies to.
@@ -44,7 +44,7 @@ Inputs provided in the gate would be set as properties of the change request in 
 - **Desired state**: The gate would succeed and the pipeline continues when the change request status is same as the provided value.
 
 **Gate Output Variables** :                                                                                                             
-ServiceNow gate produces output variables.                                                                                               You must specify reference name to be able to use these output variables in the deployment workflow. Gate variables can be accessed by using `"PREDEPLOYGATE"` as a prefix. For eg. when reference name is set to 'gate1', then the change number can be obtained as `$(PREDEPLOYGATE.gate1.CHANGE_REQUEST_NUMBER)`.
+ServiceNow gate produces output variables.                                                                                               You must specify reference name to be able to use these output variables in the deployment workflow. Gate variables can be accessed by using `"PREDEPLOYGATE"` as a `prefix`. For eg. when reference name is set to 'gate1', then the change number can be obtained as `$(PREDEPLOYGATE.gate1.CHANGE_REQUEST_NUMBER)`.
 
 - **CHANGE_REQUEST_NUMBER** : Number of the change request created in ServiceNow.
 - **CHANGE_SYSTEM_ID** : System ID of the change request created in ServiceNow.
