@@ -2,7 +2,7 @@
   "id": "37AC13CA-AEAD-4E19-A5AC-E5366051FC1C",
   "name": "UpdateServiceNowChangeRequest",
   "friendlyName": "Update ServiceNow Change Request",
-  "description": "Update ServiceNow Change Request",
+  "description": "Update ServiceNow change request",
   "author": "Microsoft",
   "helpMarkDown": "",
   "category": "Utility",

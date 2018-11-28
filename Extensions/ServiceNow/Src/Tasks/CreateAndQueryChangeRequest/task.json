@@ -2,7 +2,7 @@
   "id": "539E1E16-0680-4F8E-85D0-95B6FDE76E8C",
   "name": "CreateAndQueryChangeRequest",
   "friendlyName": "ServiceNow Change Management",
-  "description": "Create and Query ServiceNow Change request",
+  "description": "Create new change request in ServiceNow and check for its status",
   "author": "Microsoft",
   "helpMarkDown": "",
   "category": "Utility",
@@ -143,7 +143,7 @@
     {
       "name": "otherParameters",
       "type": "multiLine",
-      "label": "Additional change request parameters.",
+      "label": "Additional change request parameters",
       "defaultValue": "",
       "required": "false",
       "groupName": "advancedInputs",

@@ -1,8 +1,8 @@
 {
   "manifestVersion": 1,
-  "id": "vss-services-servicenowchangerequest",
+  "id": "vss-services-servicenowchangerequestmanagement",
   "name": "ServiceNow change request management",
-  "publisher": "ms-devlabs",
+  "publisher": "NishuBansal",
   "version": "0.0.1",
   "public": true,
   "description": "Integrate ServiceNow change management with Azure pipelines",
