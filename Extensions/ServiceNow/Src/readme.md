@@ -38,7 +38,7 @@ Inputs provided in the gate would be set as properties of the change request in 
 - **Configuration Item**: Configuration item (CI) that the change applies to.
 - **Assignment group**:  The group that the change is assigned to.
 - **Schedule of change request**: Schedule of the change. Date and time should be in UTC and format should be yyyy-MM-ddTHH:mm:ssZ. eg. 2018-01-31T07:56:59Z.
-- **Additional change request parameters**:  Additional properties of the change request to set. Name must be field name prefixed with 'u_' eg. u_backout_plan. This may not be the same as the display label of the field. Value must be a valid, accepted value in ServiceNow. Invalid entries are ignored.
+- **Additional change request parameters**:  Additional properties of the change request to set. Name must be field name (not label) prefixed with 'u_' eg. u_backout_plan. Value must be a valid, accepted value in ServiceNow. Invalid entries are ignored.
 
 **Gate Success Criteria** :
 - **Desired state**: The gate would succeed and the pipeline continues when the change request status is same as the provided value.
