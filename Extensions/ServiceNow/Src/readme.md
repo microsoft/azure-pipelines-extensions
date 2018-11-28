@@ -6,7 +6,7 @@ Specific change management subprocesses include change risk assessment, change s
 With change management, your organization can reduce the risks associated with change, while speeding up the deployments with Azure pipelines. 
 
 This extension enables integration of ServiceNow change management with Azure pipelines.                                                 
-It includes a [release gate](https://docs.microsoft.com/en-us/azure/devops/pipelines/release/approvals/gates?view=vsts) to create a change request in ServiceNow and hold the pipeline till for the change management process to signal implementation.                     
+It includes a [release gate](https://docs.microsoft.com/en-us/azure/devops/pipelines/release/approvals/gates?view=vsts) to create a change request in ServiceNow and hold the pipeline till the change management process signals the implementation.                     
 An agentless task to close (update state of) the change request after the deployment is also provided.
 
 The deployment process in Azure pipelines helps in automation of the deployment and complement the controls offered by ServiceNow.
