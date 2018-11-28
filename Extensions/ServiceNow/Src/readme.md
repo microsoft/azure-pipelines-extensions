@@ -55,7 +55,7 @@ ServiceNow gate produces following 2 output variables. You have to specify refer
 **Inputs for Update change request task**:
 
 - **Change request number**: Number of the change request that you want to update.
-- **Updated status of change request** : Status of the change request that you want to update. Task would succeed when the change request status is same as the provided value.
+- **Updated status of change request** : Status of the change request that you want to update.
 - **Close code and notes**: Closure information for the change request.
 - **Additional change request parameters**:  Additional properties of the change request to set.
 
