@@ -7,7 +7,7 @@
   "public": true,
   "description": "Integrate ServiceNow change management with Azure pipelines",
   "categories": [
-    "Build and release"
+    "Azure Pipelines"
   ],
   "Tags": [
     "ServiceNow",
