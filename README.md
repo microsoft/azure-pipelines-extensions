@@ -1,6 +1,6 @@
-# Release and Deployment extensions (VS Team Services)
+# Azure Pipeline extensions (Azure DevOps Services)
 
-This repository is a common place for all the extensions that RM team publishes through **Microsoft** and **Microsoft DevLabs** publishers.
+This repository is a common place for all the extensions that Azure DevOps team publishes through **Microsoft** and **Microsoft DevLabs** publishers.
 
 ## Extensions
 ### IIS web deploy
