@@ -1,12 +1,11 @@
 ﻿{
-  "id": "3D234B87-ED5A-44C9-A815-BAD99858601F",
+  "id": "539E1E16-0680-4F8E-85D0-95B6FDE76E8C",
   "name": "CreateAndQueryChangeRequest",
   "friendlyName": "ServiceNow Change Management",
-  "description": "Create and Query ServiceNow change request",
-  "author": "ServiceNow",
-  "helpMarkDown": "[More Information]()",
+  "description": "Create new change request in ServiceNow and check for its status",
+  "author": "Microsoft",
+  "helpMarkDown": "",
   "category": "Utility",
-  "preview": "true",
   "visibility": [
     "Release"
   ],
@@ -18,7 +17,7 @@
     "Minor": 1,
     "Patch": 0
   },
-  "instanceNameFormat": "ServiceNow Change Management",
+  "instanceNameFormat": "ServiceNow change management",
   "groups": [
     {
       "name": "schedule",
@@ -43,7 +42,7 @@
       "label": "ServiceNow connection",
       "defaultValue": "",
       "required": "true",
-      "helpMarkDown": "Connection to the ServiceNow instance to manage change requests with"
+      "helpMarkDown": "Connection to the ServiceNow instance used for change management."
     },
     {
       "name": "shortdescription",
@@ -51,7 +50,7 @@
       "label": "Short Description",
       "required": "true",
       "defaultValue": "Deployment to $(Release.EnvironmentName) of Release $(Release.ReleaseId)",
-      "helpMarkDown": "Short description of the change request"
+      "helpMarkDown": "Short description of the change request."
     },
     {
       "name": "description",
@@ -59,14 +58,14 @@
       "label": "Description",
       "required": "false",
       "defaultValue": "Deployment to $(Release.EnvironmentName) of Release $(Release.ReleaseId)",
-      "helpMarkDown": "Description of the change request. Use \r\n for newline."
+      "helpMarkDown": "Description of the change request."
     },
     {
       "name": "category",
       "type": "pickList",
       "label": "Category",
       "required": "true",
-      "helpMarkDown": "Category of the change request. Label and value are both accepted.",
+      "helpMarkDown": "Category (label or value) of the change request.",
       "properties": {
         "EditableOptions": "True"
       }
@@ -76,7 +75,7 @@
       "type": "pickList",
       "label": "Priority",
       "required": "true",
-      "helpMarkDown": "Priority of the change request. Label and value are both accepted.",
+      "helpMarkDown": "Priority (label or value) of the change request.",
       "properties": {
         "EditableOptions": "True"
       }
@@ -86,7 +85,7 @@
       "type": "pickList",
       "label": "Risk",
       "required": "true",
-      "helpMarkDown": "Risk of the change request. Label and value are both accepted.",
+      "helpMarkDown": "Risk (label or value) of the change request.",
       "properties": {
         "EditableOptions": "True"
       }
@@ -96,7 +95,7 @@
       "type": "pickList",
       "label": "Impact",
       "required": "true",
-      "helpMarkDown": "Impact of the change request. Label and value are both accepted.",
+      "helpMarkDown": "Impact (label or value) of the change request.",
       "properties": {
         "EditableOptions": "True"
       }
@@ -107,7 +106,7 @@
       "label": "Configuration Item",
       "required": "false",
       "defaultValue": "",
-      "helpMarkDown": "Configuration item that the change request would be updating. Must match the display name or sys_id of the configuration item in ServiceNow.",
+      "helpMarkDown": "Item or service (display name or sys_id) defined in ServiceNow that is affected by this pipeline.",
       "properties": {
         "EditableOptions": "True"
       }
@@ -118,7 +117,7 @@
       "label": "Assignment Group",
       "required": "false",
       "defaultValue": "",
-      "helpMarkDown": "ServiceNow group that can act on the change request. Must match the display name or sys_id of the user group in ServiceNow.",
+      "helpMarkDown": "Group of ServiceNow users who can approve and update the change request.",
       "properties": {
         "EditableOptions": "True"
       }
@@ -130,7 +129,7 @@
       "required": "false",
       "defaultValue": "",
       "groupName": "schedule",
-      "helpMarkDown": "Scheduled start time for change request should be in UTC and format should be yyyy-MM-ddTHH:mm:ssZ. eg. 2018-01-31T07:56:59Z"
+      "helpMarkDown": "Planned start time of the change request in UTC (yyyy-MM-ddTHH:mm:ssZ format). eg. 2018-01-31T07:56:59Z"
     },
     {
       "name": "scheduleendtime",
@@ -139,16 +138,16 @@
       "required": "false",
       "defaultValue": "",
       "groupName": "schedule",
-      "helpMarkDown": "Scheduled end time for change request should be in UTC and format should be yyyy-MM-ddTHH:mm:ssZ. eg. 2018-01-31T07:56:59Z"
+      "helpMarkDown": "Planned end time of the change request in UTC (yyyy-MM-ddTHH:mm:ssZ format). eg. 2018-01-31T07:56:59Z"
     },
     {
       "name": "otherParameters",
       "type": "multiLine",
-      "label": "Additional change request parameters.",
+      "label": "Additional change request parameters",
       "defaultValue": "",
       "required": "false",
       "groupName": "advancedInputs",
-      "helpMarkDown": "Additional properties of the change request to set. Enter the parameters as key value pairs in Json format. Name must be field name in ServiceNow. This may not be the same as the display label of the field. Value must be a valid, accepted value in serviceNow. Invalid entries are ignored.",
+      "helpMarkDown": "Additional change request properties to set. Specified as Key-value pairs in json format, name being the field name (not label) prefixed with 'u_' in ServiceNow and a valid value. Invalid properties are ignored.",
       "properties": {
         "editorExtension": "ms.vss-services-azure.azure-servicebus-message-grid"
       }
@@ -160,7 +159,7 @@
       "defaultValue": "New",
       "required": "true",
       "groupName": "completionOptions",
-      "helpMarkDown": "Status of change request that indicates the change request is ready to be implemented. Task would succeed when the the change request status is same as the provided value.",
+      "helpMarkDown": "Status of change request that indicates the change request is ready to be implemented. Gate would succeed when the the change request status is same as the provided value.",
       "properties": {
         "EditableOptions": "True"
       }
