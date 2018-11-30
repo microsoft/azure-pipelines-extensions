@@ -99,7 +99,7 @@ For e.g. in case of BitBucket artifact type, a value `artifactSourceId` can be :
 ### <a name="querycommits"></a> Query commits & work items between releases
 VSTS RM supports viewing commits and work items associated with the artifact version for a custom artifact type used between two releases.
 
-[Here](https://github.com/Microsoft/vsts-tasks/blob/984a93f74ce86a706c68a364b826f654de403906/Tasks/JenkinsDownloadArtifacts/jenkinsdownloadartifacts.ts#L202) is the logic that fetches commits & work items associated with Jenkins artifact for DownloadJenkinsArtifacts task.
+[Here](https://github.com/Microsoft/azure-pipelines-tasks/blob/984a93f74ce86a706c68a364b826f654de403906/Tasks/JenkinsDownloadArtifacts/jenkinsdownloadartifacts.ts#L202) is the logic that fetches commits & work items associated with Jenkins artifact for DownloadJenkinsArtifacts task.
 
 Below is how the commits/work items associated with Jenkins artifact between two releases is seen within VSTS RM UI:
 
@@ -108,7 +108,7 @@ Below is how the commits/work items associated with Jenkins artifact between two
 ![Query workitems](images/workitems.png)
 
 ## Artifact Source contribution
-In order to describe the salient properties within artifact source contribution, we will use [*BitBucket*](https://github.com/Microsoft/vsts-rm-extensions/blob/master/Extensions/BitBucket/Src/vss-extension.json) artifact source contribution as an example :
+In order to describe the salient properties within artifact source contribution, we will use [*BitBucket*](https://github.com/Microsoft/azure-pipelines-extensions/blob/master/Extensions/BitBucket/Src/vss-extension.json) artifact source contribution as an example :
 ```
     {
       "id": "bitbucket-release-artifact-type",
@@ -277,10 +277,10 @@ In order to describe the salient properties within artifact source contribution,
 | `endpoint-auth-scheme-none` | `None` |
  
 ## References to custom artifact sources
-A bunch of *VSTS Release* artifact sources are built out of [vsts-rm-extensions](https://github.com/Microsoft/vsts-rm-extensions/) *GitHub* repo.
+A bunch of *VSTS Release* artifact sources are built out of [azure-pipelines-extensions](https://github.com/Microsoft/azure-pipelines-extensions/) *GitHub* repo.
 
-- [*BitBucket*]( https://github.com/Microsoft/vsts-rm-extensions/tree/master/Extensions/BitBucket/Src)
-- [*TeamCity*](https://github.com/Microsoft/vsts-rm-extensions/tree/master/Extensions/TeamCity/Src)
-- [*ExternalTfs*](https://github.com/Microsoft/vsts-rm-extensions/tree/master/Extensions/ExternalTfs/Src)
-- *Jenkins* artifact type is implemented as a built-in contribution. Jenkins download task implementation can be found [here](https://github.com/Microsoft/vsts-tasks/blob/master/Tasks/JenkinsDownloadArtifactsV1)
-- *VSTS Package Management* artifact type is implemented as a built-in contribution. Package download task implementation can be found [here](https://github.com/Microsoft/vsts-tasks/tree/master/Tasks/DownloadPackageV0)
+- [*BitBucket*]( https://github.com/Microsoft/azure-pipelines-extensions/tree/master/Extensions/BitBucket/Src)
+- [*TeamCity*](https://github.com/Microsoft/azure-pipelines-extensions/tree/master/Extensions/TeamCity/Src)
+- [*ExternalTfs*](https://github.com/Microsoft/azure-pipelines-extensions/tree/master/Extensions/ExternalTfs/Src)
+- *Jenkins* artifact type is implemented as a built-in contribution. Jenkins download task implementation can be found [here](https://github.com/Microsoft/azure-pipelines-tasks/tree/master/Tasks/JenkinsDownloadArtifactsV1)
+- *VSTS Package Management* artifact type is implemented as a built-in contribution. Package download task implementation can be found [here](https://github.com/Microsoft/azure-pipelines-tasks/tree/master/Tasks/DownloadPackageV0)

@@ -28,7 +28,7 @@ TFS/VSTS supports a closed set of authentication schemes that can be utilized by
 | JSON web token based OAUTH authentication | `ms.vss-endpoint.endpoint-auth-scheme-JWT` |
 | No authentication | `ms.vss-endpoint.endpoint-auth-scheme-none` |
 
-E.g. [External TFS endpoint type](https://github.com/Microsoft/vsts-rm-extensions/blob/master/Extensions/ExternalTfs/Src/vss-extension.json#L206) specifies the following authentication schemes:
+E.g. [External TFS endpoint type](https://github.com/Microsoft/azure-pipelines-extensions/blob/master/Extensions/ExternalTfs/Src/vss-extension.json#L206) specifies the following authentication schemes:
 
 ```
 "authenticationSchemes": [
