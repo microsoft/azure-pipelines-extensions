@@ -16,11 +16,12 @@
   "version": {
     "Major": 2,
     "Minor": 0,
-    "Patch": 1
+    "Patch": 2
   },
   "preview": true,
   "demands": [
   ],
+  "releaseNotes": "What's new in Version 2.0: <br/>&nbsp;&nbsp; Enhanced the task to manage Web Apps, Virtual Directories, and Application Pools.",
   "minimumAgentVersion": "1.95.0",
   "groups": [
       {
@@ -28,12 +29,6 @@
           "displayName": "IIS Website",
           "isExpanded": true,
           "visibleRule": "ActionIISWebsite = CreateOrUpdateWebsite"
-      },
-      {
-          "name": "IISBindings",
-          "displayName": "IIS Bindings",
-          "isExpanded": true,
-          "visibleRule": "IISDeploymentType = IISWebsite && ActionIISWebsite = CreateOrUpdateWebsite && AddBinding = true"
       },
       {
           "name": "ApplicationPoolForWebsite",
