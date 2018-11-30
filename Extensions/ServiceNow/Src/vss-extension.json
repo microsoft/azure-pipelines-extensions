@@ -1,19 +1,21 @@
 {
   "manifestVersion": 1,
   "id": "vss-services-servicenowchangerequestmanagement",
-  "name": "ServiceNow change request management",
+  "name": "ServiceNow Change Management",
   "publisher": "ms-vscs-rm",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "public": true,
-  "description": "Integrate ServiceNow change management with Azure pipelines",
+  "description": "Integrate ServiceNow Change Management with Azure Pipelines",
   "categories": [
     "Azure Pipelines"
   ],
   "Tags": [
     "ServiceNow",
+    "Change Management",
     "Release",
-    "ReleaseGates",
-    "DevOps"
+    "Release Gates",
+    "DevOps",
+    "Pipelines"
   ],
   "targets": [
     {
@@ -27,9 +29,33 @@
   "icons": {
     "default": "images/servicenow.png"
   },
+  "screenshots": [
+    {
+      "path": "images/change_request_screenshot.png"
+    },
+    {
+      "path": "images/gate_screenshot.png"
+    }
+  ],
   "files": [
     {
       "path": "images/servicenow.png",
+      "addressable": true
+    },
+    {
+      "path": "images/agentless_task.png",
+      "addressable": true
+    },
+    {
+      "path": "images/release_definition.png",
+      "addressable": true
+    },
+    {
+      "path": "images/release_gate.png",
+      "addressable": true
+    },
+    {
+      "path": "images/servicenow_connection.png",
       "addressable": true
     },
     {

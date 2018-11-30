@@ -3,29 +3,29 @@
 
 ServiceNow is a software-as-a-service (SaaS) provider of IT service management (ITSM) software, including change management.
 Specific change management subprocesses include change risk assessment, change scheduling, change approvals and oversight. 
-With change management, your organization can reduce the risks associated with change, while speeding up the deployments with Azure pipelines. 
+With change management, your organization can reduce the risks associated with change, while speeding up the deployments with Azure Pipelines. 
 
-This extension enables integration of ServiceNow change management with Azure pipelines.                                                 
+This extension enables integration of ServiceNow Change Management with Azure Pipelines.                                                 
 It includes a [release gate](https://docs.microsoft.com/en-us/azure/devops/pipelines/release/approvals/gates?view=vsts) to create a change request in ServiceNow and hold the pipeline till the change management process signals the implementation.                     
 An agentless task to close (update state of) the change request after the deployment is also provided.
 
-The deployment process in Azure pipelines helps in automation of the deployment and complement the controls offered by ServiceNow.
+The deployment process in Azure Pipelines helps in automation of the deployment and complement the controls offered by ServiceNow.
 
-## How to use the integration
-1. Integration requires the [Azure DevOps Pipelines](https://store.servicenow.com/sn_appstore_store.do#!/store/application/fa788cb5dbb5630040669c27db961940) application to be installed on the ServiceNow instance.   
+## Usage
+### Integration requires the [Azure Pipelines](https://store.servicenow.com/sn_appstore_store.do#!/store/application/fa788cb5dbb5630040669c27db961940) application to be installed on the ServiceNow instance.   
    
    A service account that has been created in ServiceNow and granted the `x_mioms_azpipeline.pipelinesExecution` role would be used for all the communication.
 
-2. Create service connection for ServiceNow in Azure pipelines.Provide username and password for the service account configured in #1
+### Create service connection for ServiceNow in Azure Pipelines. Provide username and password for the service account configured previously.
 
 ![ServiceNow connection](images/servicenow_connection.png)
 
-3. Configure a release gate for ServiceNow change management
+### Configure a release gate for ServiceNow Change Management.
 
 ![Release definition](images/release_definition.png)
 ![Release gate](images/release_gate.png)
 
-A new change request would be created for each pipeline run.
+A new change request would be created for each run of the pipeline.
 Inputs provided in the gate would be set as properties of the change request in ServiceNow.
 
  **Inputs for Gate**:
@@ -47,9 +47,9 @@ Inputs provided in the gate would be set as properties of the change request in 
 ServiceNow gate produces output variables.                                                                                               You must specify reference name to be able to use these output variables in the deployment workflow. Gate variables can be accessed by using `"PREDEPLOYGATE"` as a `prefix`. For eg. when reference name is set to 'gate1', then the change number can be obtained as `$(PREDEPLOYGATE.gate1.CHANGE_REQUEST_NUMBER)`.
 
 - **CHANGE_REQUEST_NUMBER** : Number of the change request created in ServiceNow.
-- **CHANGE_SYSTEM_ID** : System ID of the change request created in ServiceNow.
+- **CHANGE_SYSTEM_ID** : SystemId of the change request created in ServiceNow.
 
-4. Add a task to update the status of the change
+### Add a task to update the status of the change
 
 ![Update task](images/agentless_task.png)
 
