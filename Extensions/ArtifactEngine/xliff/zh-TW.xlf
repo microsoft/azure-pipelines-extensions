@@ -17,6 +17,11 @@
         <target state="translated">正在將 %s 下載到 %s</target>
         <note/>
       </trans-unit>
+      <trans-unit id="loc.messages.FailedRequest">
+        <source>Failed request: (statusCode)</source>
+        <target state="new"/>
+        <note/>
+      </trans-unit>
       <trans-unit id="loc.messages.FailedToParseResponse">
         <source>Failed to parse response body: %s, got error : %s</source>
         <target state="translated">無法剖析回應主體: %s，收到錯誤: %s</target>

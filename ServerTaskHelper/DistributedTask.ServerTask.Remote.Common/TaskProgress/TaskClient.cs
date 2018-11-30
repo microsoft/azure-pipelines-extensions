@@ -16,6 +16,7 @@ namespace DistributedTask.ServerTask.Remote.Common.TaskProgress
         private readonly TaskProperties taskProperties;
         private TaskHttpClient taskClient;
         private VssConnection vssConnection;
+        private int? PlanVersion;
 
         public TaskClient(TaskProperties taskProperties)
         {
@@ -27,8 +28,8 @@ namespace DistributedTask.ServerTask.Remote.Common.TaskProgress
 
         public async Task ReportTaskAssigned(Guid taskId, CancellationToken cancellationToken)
         {
-            var jobId = GetJobId(this.taskProperties.HubName, this.taskProperties.JobId, taskId);
-            taskId = GetTaskId(this.taskProperties.HubName, taskId);
+            var jobId = await GetJobId(this.taskProperties.HubName, this.taskProperties.JobId, taskId);
+            taskId = await GetTaskId(this.taskProperties.HubName, taskId);
 
             var startedEvent = new TaskAssignedEvent(jobId, taskId);
             await taskClient.RaisePlanEventAsync(taskProperties.ProjectId, this.taskProperties.HubName, this.taskProperties.PlanId, startedEvent, cancellationToken).ConfigureAwait(false);
@@ -36,8 +37,8 @@ namespace DistributedTask.ServerTask.Remote.Common.TaskProgress
 
         public async Task ReportTaskStarted(Guid taskId, CancellationToken cancellationToken)
         {
-            var jobId = GetJobId(this.taskProperties.HubName, this.taskProperties.JobId, taskId);
-            taskId = GetTaskId(this.taskProperties.HubName, taskId);
+            var jobId = await GetJobId(this.taskProperties.HubName, this.taskProperties.JobId, taskId);
+            taskId = await GetTaskId(this.taskProperties.HubName, taskId);
             
             var startedEvent = new TaskStartedEvent(jobId, taskId);
             await taskClient.RaisePlanEventAsync(this.taskProperties.ProjectId, this.taskProperties.HubName, this.taskProperties.PlanId, startedEvent, cancellationToken).ConfigureAwait(false);
@@ -54,8 +55,8 @@ namespace DistributedTask.ServerTask.Remote.Common.TaskProgress
 
         public async Task ReportTaskCompleted(Guid taskId, TaskResult result, CancellationToken cancellationToken)
         {
-            var jobId = GetJobId(this.taskProperties.HubName, this.taskProperties.JobId, taskId);
-            taskId = GetTaskId(this.taskProperties.HubName, taskId);
+            var jobId = await GetJobId(this.taskProperties.HubName, this.taskProperties.JobId, taskId);
+            taskId = await GetTaskId(this.taskProperties.HubName, taskId);
             
             var completedEvent = new TaskCompletedEvent(jobId, taskId, result);
             await taskClient.RaisePlanEventAsync(this.taskProperties.ProjectId, this.taskProperties.HubName, this.taskProperties.PlanId, completedEvent, cancellationToken).ConfigureAwait(false);
@@ -89,18 +90,43 @@ namespace DistributedTask.ServerTask.Remote.Common.TaskProgress
             taskClient = null;
         }
 
-        private static Guid GetJobId(string hubName, Guid jobId, Guid taskId)
+        private async Task<Guid> GetJobId(string hubName, Guid jobId, Guid taskId)
         {
-            return hubName.Equals("Gates", StringComparison.OrdinalIgnoreCase)
-                ? taskId
-                : jobId;
+            if (hubName.Equals("Gates", StringComparison.OrdinalIgnoreCase))
+            {
+                var planVersion = await GetPlanVersion();
+                if (planVersion <= 12)
+                {
+                    return taskId;
+                }
+            }
+
+            return jobId;
         }
 
-        private static Guid GetTaskId(string hubName, Guid taskId)
+        private async Task<Guid> GetTaskId(string hubName, Guid taskId)
         {
-            return hubName.Equals("Gates", StringComparison.OrdinalIgnoreCase)
-                ? Guid.Empty
-                : taskId;
+            if (hubName.Equals("Gates", StringComparison.OrdinalIgnoreCase))
+            {
+                var planVersion = await GetPlanVersion();
+                if (planVersion <= 12)
+                {
+                    return Guid.Empty;
+                }
+            }
+
+            return taskId;
+        }
+
+        private async Task<int> GetPlanVersion()
+        {
+            if (this.PlanVersion == null)
+            {
+                var plan = await taskClient.GetPlanAsync(taskProperties.ProjectId, taskProperties.HubName, taskProperties.PlanId);
+                PlanVersion = plan.Version;
+            }
+
+            return PlanVersion.Value;
         }
     }
 }
