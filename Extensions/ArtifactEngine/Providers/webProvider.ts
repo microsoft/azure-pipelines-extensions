@@ -37,7 +37,8 @@ export class WebProvider implements IArtifactProvider {
 
     getArtifactItems(artifactItem: ArtifactItem): Promise<ArtifactItem[]> {
         var itemsUrl = artifactItem.metadata["downloadUrl"];
-        return this.getItems(itemsUrl);
+        var contentType = artifactItem.contentType;
+        return this.getItems(itemsUrl, contentType);
     }
 
     getArtifactItem(artifactItem: ArtifactItem): Promise<NodeJS.ReadableStream> {
@@ -47,9 +48,10 @@ export class WebProvider implements IArtifactProvider {
             }
 
             var downloadSize: number = 0;
+            var contentType: string = artifactItem.contentType;
             var itemUrl: string = artifactItem.metadata['downloadUrl'];
             itemUrl = itemUrl.replace(/([^:]\/)\/+/g, "$1");
-            this.webClient.get(itemUrl).then((res: HttpClientResponse) => {
+            this.webClient.get(itemUrl, contentType ? { 'Accept': contentType } : undefined).then((res: HttpClientResponse) => {
                 res.message.on('data', (chunk) => {
                     downloadSize += chunk.length;
                 });
@@ -87,10 +89,10 @@ export class WebProvider implements IArtifactProvider {
         this.webClient.dispose();
     }
 
-    private getItems(itemsUrl: string): Promise<ArtifactItem[]> {
+    private getItems(itemsUrl: string, contentType: string): Promise<ArtifactItem[]> {
         var promise = new Promise<ArtifactItem[]>((resolve, reject) => {
             itemsUrl = itemsUrl.replace(/([^:]\/)\/+/g, "$1");
-            this.webClient.get(itemsUrl, { 'Accept': 'application/json' }).then((res: HttpClientResponse) => {
+            this.webClient.get(itemsUrl, contentType ? { 'Accept': contentType } : { 'Accept': 'application/json' }).then((res: HttpClientResponse) => {
                 res.readBody().then((body: string) => {
                     fs.readFile(this.getTemplateFilePath(), 'utf8', (err, templateFileContent) => {
                         if (err) {

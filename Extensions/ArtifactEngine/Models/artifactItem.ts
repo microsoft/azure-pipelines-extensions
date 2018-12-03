@@ -5,6 +5,7 @@ export class ArtifactItem {
     path: string;
     fileLength: number;
     lastModified: Date;
+    contentType: string;
     metadata: { [key: string]: string }
 
     constructor() {
