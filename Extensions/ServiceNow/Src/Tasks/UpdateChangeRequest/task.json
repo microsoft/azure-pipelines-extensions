@@ -48,7 +48,7 @@
       "type": "pickList",
       "label": "Updated status of change request",
       "required": "true",
-      "helpMarkDown": "Status (label or value) to set for the change request.",
+      "helpMarkDown": "Choose or type status (label or value) to set for the change request.",
       "properties": {
         "EditableOptions": "True"
       }
@@ -59,7 +59,7 @@
       "type": "pickList",
       "label": "Close code",
       "required": "true",
-      "helpMarkDown": "Close code (label or value) for the change request",
+      "helpMarkDown": "Choose or type close code (label or value) for the change request",
       "properties": {
         "EditableOptions": "True"
       },
