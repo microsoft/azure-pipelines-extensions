@@ -12,15 +12,15 @@ An agentless task to close (update state of) the change request after the deploy
 The deployment process in Azure Pipelines helps in automation of the deployment and complement the controls offered by ServiceNow.
 
 ## Usage
-### Integration requires the [Azure Pipelines](https://store.servicenow.com/sn_appstore_store.do#!/store/application/fa788cb5dbb5630040669c27db961940) application to be installed on the ServiceNow instance.   
+#### Integration requires the [Azure Pipelines](https://store.servicenow.com/sn_appstore_store.do#!/store/application/fa788cb5dbb5630040669c27db961940) application to be installed on the ServiceNow instance.   
    
    A service account that has been created in ServiceNow and granted the `x_mioms_azpipeline.pipelinesExecution` role would be used for all the communication.
 
-### Create service connection for ServiceNow in Azure Pipelines. Provide username and password for the service account configured previously.
+#### Create service connection for ServiceNow in Azure Pipelines. Provide username and password for the service account configured previously.
 
 ![ServiceNow connection](images/servicenow_connection.png)
 
-### Configure a release gate for ServiceNow Change Management.
+#### Configure a release gate for ServiceNow Change Management.
 
 ![Release definition](images/release_definition.png)
 ![Release gate](images/release_gate.png)
@@ -49,7 +49,7 @@ ServiceNow gate produces output variables.                                     
 - **CHANGE_REQUEST_NUMBER** : Number of the change request created in ServiceNow.
 - **CHANGE_SYSTEM_ID** : SystemId of the change request created in ServiceNow.
 
-### Add a task to update the status of the change
+#### Add a task to update the status of the change
 
 ![Update task](images/agentless_task.png)
 
