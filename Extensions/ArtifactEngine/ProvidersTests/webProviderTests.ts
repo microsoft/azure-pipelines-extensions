@@ -42,7 +42,7 @@ beforeEach((done) => {
         resolve(stubResponse);
     }));
 
-    artifactItem = { fileLength: 0, itemType: models.ItemType.File, path: "path1\\file1", lastModified: null, metadata: null };
+    artifactItem = { fileLength: 0, itemType: models.ItemType.File, path: "path1\\file1", lastModified: null, contentType: undefined, metadata: null };
     artifactItem.metadata = { 'downloadUrl': 'http://stubUrl' };
 
     done();
