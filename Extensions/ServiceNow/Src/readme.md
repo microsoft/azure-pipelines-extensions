@@ -16,11 +16,11 @@ The deployment process in Azure Pipelines helps in automation of the deployment 
    
    A service account that has been created in ServiceNow and granted the `x_mioms_azpipeline.pipelinesExecution` role would be used for all the communication.
 
-### Create service connection for ServiceNow in Azure Pipelines. Provide username and password for the service account configured previously.
+#### Create service connection for ServiceNow in Azure Pipelines. Provide username and password for the service account configured previously.
 
 ![ServiceNow connection](images/servicenow_connection.png)
 
-### Configure a release gate for ServiceNow Change Management.
+#### Configure a release gate for ServiceNow Change Management.
 
 ![Release definition](images/release_definition.png)
 ![Release gate](images/release_gate.png)
@@ -49,7 +49,7 @@ ServiceNow gate produces output variables.                                     
 - **CHANGE_REQUEST_NUMBER** : Number of the change request created in ServiceNow.
 - **CHANGE_SYSTEM_ID** : SystemId of the change request created in ServiceNow.
 
-### Add a task to update the status of the change
+#### Add a task to update the status of the change
 
 ![Update task](images/agentless_task.png)
 
