@@ -156,7 +156,6 @@
       "name": "DesiredExitStatus",
       "type": "pickList",
       "label": "Desired status of change request",
-      "defaultValue": "New",
       "required": "true",
       "groupName": "completionOptions",
       "helpMarkDown": "Choose or type status of change request that indicates the change request is ready to be implemented. Gate would succeed when the the change request status is same as the provided value.",
