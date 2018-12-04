@@ -3,7 +3,7 @@
   "id": "vss-services-servicenowchangerequestmanagement",
   "name": "ServiceNow Change Management",
   "publisher": "ms-vscs-rm",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "public": true,
   "description": "Integrate ServiceNow Change Management with Azure Pipelines",
   "categories": [
@@ -88,13 +88,19 @@
         "dataSources": [
           {
             "name": "Priority",
-            "endpointUrl": "{{endpoint.url}}/api/now/table/sys_choice?sysparm_query=element=priority^name=change_request&sysparm_fields=label",
-            "resultSelector": "jsonpath:$.result[*].label"
+            "endpointUrl": "{{endpoint.url}}/api/now/table/sys_choice?sysparm_query=element=priority^name={{table}}&sysparm_fields=label",
+            "resultSelector": "jsonpath:$.result[*].label",
+            "callbackContextTemplate": "{\"table\": \"task\"}",
+            "callbackRequiredTemplate": "{{#equals table \"change_request\"}}{{isEqualNumber result.count 0}}{{else}}false{{/equals}}",
+            "initialContextTemplate": "{\"table\": \"change_request\"}"
           },
           {
             "name": "State",
-            "endpointUrl": "{{endpoint.url}}/api/now/table/sys_choice?sysparm_query=element=state^name=change_request&sysparm_fields=label",
-            "resultSelector": "jsonpath:$.result[*].label"
+            "endpointUrl": "{{endpoint.url}}/api/now/table/sys_choice?sysparm_query=element=state^name={{table}}&sysparm_fields=label",
+            "resultSelector": "jsonpath:$.result[*].label",
+            "callbackContextTemplate": "{\"table\": \"task\"}",
+            "callbackRequiredTemplate": "{{#equals table \"change_request\"}}{{isEqualNumber result.count 0}}{{else}}false{{/equals}}",
+            "initialContextTemplate": "{\"table\": \"change_request\"}"
           },
           {
             "name": "Risk",
