@@ -1,10 +1,6 @@
-# Azure Pipeline extensions (Azure DevOps Services)
+# Azure Pipeline extensions for Azure DevOps
 
-This repository is a common place for all the extensions that Azure DevOps team publishes through **Microsoft** and **Microsoft DevLabs** publishers.
-
-## Extensions
-### IIS web deploy
-Extension that lets you deploy web application to IIS. [More info](Extensions/IISWebAppDeploy/Src/README.md)
+This repository is a common place for all the extensions that Azure DevOps team publishes as **Microsoft** or **Microsoft DevLabs** publisher.
 
 ## How to Build 
 
