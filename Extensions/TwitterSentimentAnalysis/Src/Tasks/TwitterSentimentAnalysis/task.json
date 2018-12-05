@@ -4,7 +4,7 @@
 	"friendlyName": "Get Twitter Sentiment",
 	"description": "Calculate sentiment of tweets for a hashtag.",
 	"author": "Microsoft Corporation",
-	"helpMarkDown": "[More Information](https://github.com/Microsoft/vsts-rm-extensions/tree/master/Extensions/TwitterSentimentAnalysis/Src)",
+	"helpMarkDown": "[More Information](https://github.com/Microsoft/azure-pipelines-extensions/tree/master/Extensions/TwitterSentimentAnalysis/Src)",
 	"category": "Utility",
 	"preview": "true",
 	"visibility": [

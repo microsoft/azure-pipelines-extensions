@@ -8,7 +8,7 @@ It uses [Text Analytics API](https://azure.microsoft.com/en-in/services/cognitiv
 
 ### Create Azure Function
 
-The gate uses an [Azure function](https://azure.microsoft.com/en-us/services/functions) for a server less on-demand processing of tweets received for a hashtag. [Create](https://docs.microsoft.com/en-us/azure/azure-functions/functions-create-first-azure-function) an HTTP triggered function and use this [sample code](https://github.com/Microsoft/vsts-rm-extensions/blob/master/Extensions/TwitterSentimentAnalysis/Src/TwitterSentimentAnalysisAzureFunction.txt) in the Azure function.
+The gate uses an [Azure function](https://azure.microsoft.com/en-us/services/functions) for a server less on-demand processing of tweets received for a hashtag. [Create](https://docs.microsoft.com/en-us/azure/azure-functions/functions-create-first-azure-function) an HTTP triggered function and use this [sample code](https://github.com/Microsoft/azure-pipelines-extensions/blob/master/Extensions/TwitterSentimentAnalysis/Src/TwitterSentimentAnalysisAzureFunction.txt) in the Azure function.
 
 ### Obtain Consumer key and secret for Twitter
 
@@ -16,7 +16,7 @@ If you don't have twitter application, create [Twitter application](https://apps
 
 ### Obtain Azure Cognitive Services access key
 
-[Text Analytics API](https://azure.microsoft.com/en-in/services/cognitive-services/text-analytics) from Azure Cognitive Services is used in the [sample azure function](https://github.com/Microsoft/vsts-rm-extensions/blob/master/Extensions/TwitterSentimentAnalysis/Src/TwitterSentimentAnalysisAzureFunction.txt) for sentiment analysis of the tweets. Cognitive service access key is required to use Text Analytics APIs. Follow this [guide](https://docs.microsoft.com/en-in/azure/cognitive-services/text-analytics/how-tos/text-analytics-how-to-access-key) to obtain a cognitive service access key. 
+[Text Analytics API](https://azure.microsoft.com/en-in/services/cognitive-services/text-analytics) from Azure Cognitive Services is used in the [sample azure function](https://github.com/Microsoft/azure-pipelines-extensions/blob/master/Extensions/TwitterSentimentAnalysis/Src/TwitterSentimentAnalysisAzureFunction.txt) for sentiment analysis of the tweets. Cognitive service access key is required to use Text Analytics APIs. Follow this [guide](https://docs.microsoft.com/en-in/azure/cognitive-services/text-analytics/how-tos/text-analytics-how-to-access-key) to obtain a cognitive service access key. 
 
 ## Gate
 
@@ -49,7 +49,7 @@ Installing the extension adds the following 'Get Twitter Sentiment' gate and age
  - **Threshold**: Threshold value for average sentiment of the tweets analyzed. If the average sentiment score is less than the threshold, task will fail. Default value is 0.5. Threshold should be between 0 and 1.
 
 ## Contact Information
-You can use [RM Extensions on Github](https://github.com/Microsoft/vsts-rm-extensions/issues) to report any issues.
+You can use [Azure Pipeline Extensions on Github](https://github.com/Microsoft/azure-pipelines-extensions/issues) to report any issues.
 
 ## Troubleshooting
 - Why Twitter Sentiment Analysis gate is failing?
