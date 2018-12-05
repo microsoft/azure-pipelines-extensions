@@ -10,7 +10,7 @@
     "url": "https://github.com/Microsoft/vsts-iiswebdeploy.git"
   },
   "devDependencies": {
-    "adm-zip": "0.4.7",
+    "adm-zip": "0.4.11",
     "del": "^2.2.0",
     "fs-extra": "^0.28.0",
     "gulp": "^3.9.0",
