@@ -51,7 +51,7 @@ Note that data source bindings using these services will work seamlessly in TFS 
 
 Support for tfs:packaging & tfs:feed is added with TFS 2018 Release.
 
-Support for tfs:rm is added with TFS 2018 Update 2 Release.
+Support for tfs:rm & tfs:governance is added with TFS 2018 Update 2 Release.
 
 Support for tfs:ems is added with TFS 2019 Release.
 
