@@ -45,6 +45,34 @@
       "helpMarkDown": "Connection to the ServiceNow instance used for change management."
     },
     {
+      "name": "changeType",
+      "type": "pickList",
+      "label": "Change Type",
+      "required": "false",
+      "helpMarkDown": "Choose or type change type (label or value) of the change request.",
+      "properties": {
+        "EditableOptions": "True"
+      },
+      "options": {
+        "Normal": "Normal",
+        "Standard": "Standard",
+        "Emergency": "Emergency"
+      },
+      "defaultValue": "Normal"
+    },
+    {
+      "name": "standardChanges",
+      "type": "pickList",
+      "label": "Standard Changes",
+      "required": "false",
+      "helpMarkDown": "Choose or type Standard change template for the change request.",
+      "properties": {
+        "EditableOptions": "True"
+      },
+      "defaultValue": "",
+      "visibleRule": "changeType = Standard"
+    },
+    {
       "name": "shortdescription",
       "type": "string",
       "label": "Short Description",
@@ -166,6 +194,13 @@
   ],
   "dataSourceBindings": [
     {
+      "target": "standardChanges",
+      "endpointId": "$(ServiceNowConnection)",
+      "dataSourceName": "StandardChanges",
+      "resultSelector": "jsonpath:$.result[*]",
+      "resultTemplate": "{ \"Value\" : \"{{sys_id}}\", \"DisplayValue\" : \"{{sys_name}}\" }"
+    },
+    {
       "target": "priority",
       "endpointId": "$(ServiceNowConnection)",
       "dataSourceName": "Priority"
@@ -209,7 +244,7 @@
             "EndpointId": "$(ServiceNowConnection)",
             "EndpointUrl": "$(endpoint.url)/api/now/import/x_mioms_azpipeline_change_request_import",
             "Method": "POST",
-            "Body": "{  \"u_correlation_id\": \"{{#newGuid}}{{/newGuid}}\",\"u_x_mioms_azpi_eline_metadata\": \"Release: $(RELEASE.RELEASEWEBURL) \\r\\n EnvironmentName: $(RELEASE.ENVIRONMENTNAME) \\r\\n Requested By : $(RELEASE.DEPLOYMENT.REQUESTEDFOR)\", \"u_short_description\": \"$(shortdescription)\", \"u_description\": \"$(description)\", \"u_category\": \"$(category)\", \"u_priority\": \"$(priority)\", \"u_risk\": \"$(risk)\", \"u_impact\": \"$(impact)\", \"u_cmdb_ci\": \"$(configurationitem)\", \"u_assignment_group\": \"$(assignmentgroup)\", \"u_requested_by_date\": \"{{toDateTimeFormat '$(RELEASE.DEPLOYMENT.STARTTIME)' 'yyyy-MM-dd HH:mm:ss'}}\", \"u_start_date\": \"{{#if schedulestarttime}}{{toDateTimeFormat '$(schedulestarttime)' 'yyyy-MM-dd HH:mm:ss'}}{{/if}}\",  \"u_end_date\": \"{{#if scheduleendtime}}{{toDateTimeFormat '$(scheduleendtime)' 'yyyy-MM-dd HH:mm:ss'}}{{/if}}\" {{#if otherParameters}}{{toCommaSeparatedKeyValueList otherParameters true}}{{/if}} }",
+            "Body": "{  \"u_correlation_id\": \"{{#newGuid}}{{/newGuid}}\",\"u_x_mioms_azpi_eline_metadata\": \"Release: $(RELEASE.RELEASEWEBURL) \\r\\n EnvironmentName: $(RELEASE.ENVIRONMENTNAME) \\r\\n Requested By : $(RELEASE.DEPLOYMENT.REQUESTEDFOR)\", \"u_short_description\": \"$(shortdescription)\", \"u_description\": \"$(description)\",\"u_type\": \"$(changeType)\", \"u_category\": \"$(category)\", \"u_priority\": \"$(priority)\", \"u_risk\": \"$(risk)\", \"u_impact\": \"$(impact)\", \"u_cmdb_ci\": \"$(configurationitem)\", \"u_assignment_group\": \"$(assignmentgroup)\", \"u_requested_by_date\": \"{{toDateTimeFormat '$(RELEASE.DEPLOYMENT.STARTTIME)' 'yyyy-MM-dd HH:mm:ss'}}\", \"u_start_date\": \"{{#if schedulestarttime}}{{toDateTimeFormat '$(schedulestarttime)' 'yyyy-MM-dd HH:mm:ss'}}{{/if}}\",  \"u_end_date\": \"{{#if scheduleendtime}}{{toDateTimeFormat '$(scheduleendtime)' 'yyyy-MM-dd HH:mm:ss'}}{{/if}}\" {{#if otherParameters}}{{toCommaSeparatedKeyValueList otherParameters true}}{{/if}} {{#if standardChanges}} , \"template_id\": \"$(standardChanges)\" {{/if}} }",
             "Headers": "{\"Content-Type\":\"application/json\", \"Accept\":\"application/json\"}",
             "WaitForCompletion": "false",
             "Expression": "eq(jsonpath('$.result[0].status')[0], 'inserted')"
