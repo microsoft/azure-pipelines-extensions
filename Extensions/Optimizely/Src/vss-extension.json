@@ -2,7 +2,7 @@
   "manifestVersion": 1.0,
   "extensionId": "azuredevopsoptimizelyx",
   "name": "Azure Devops Optimizely-X integration",
-  "version": "0.0.44",
+  "version": "0.0.1",
   "publisher": "ms-vscs-rm",
   "description": "Azure Devops extension for Optimizely-X integration.",
   "public": true,
@@ -76,7 +76,7 @@
           {
             "name": "OptimizelyXExperiments",
             "endpointUrl": "{{endpoint.url}}/experiments?project_id={{ProjectId}}",
-            "resultSelector": "jsonpath:$[*]"
+            "resultSelector": "jsonpath:$[?(@.status != 'archived')]"
           }
         ]
       }

@@ -131,7 +131,6 @@ export class TaskOperation {
           }
       });
 
-
       for (let i: number = 0; i < arr.length; i++) {
          let argPair: string = arr[i].trim();
          let lastSpaceIndex: number = argPair.lastIndexOf(' ');

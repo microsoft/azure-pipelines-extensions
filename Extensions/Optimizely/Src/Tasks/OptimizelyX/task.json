@@ -1,5 +1,5 @@
 {
-    "id": "7af33c4e-1e54-454e-a49a-24611aadf127",
+    "id": "7af33c4e-1e54-454e-a49a-24611aadf137",
     "name": "OptimizelyX",
     "friendlyName": "Optimizely-X",
     "description": "Manage Optimizely-X A/B tests.",
@@ -15,7 +15,7 @@
     "version": {
         "Major": 0,
         "Minor": 0,
-        "Patch": 59
+        "Patch": 1
     },
     "releaseNotes": "Manage Optimizely-X A/B tests.",
     "minimumAgentVersion": "2.138.0",
