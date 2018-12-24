@@ -2,7 +2,7 @@
   "manifestVersion": 1.0,
   "extensionId": "azuredevopsoptimizelyx",
   "name": "Azure Devops Optimizely-X integration",
-  "version": "0.0.42",
+  "version": "0.0.44",
   "publisher": "ms-vscs-rm",
   "description": "Azure Devops extension for Optimizely-X integration.",
   "public": true,

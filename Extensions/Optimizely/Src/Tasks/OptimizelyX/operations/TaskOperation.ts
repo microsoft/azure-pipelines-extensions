@@ -125,40 +125,36 @@ export class TaskOperation {
       let arr = new Array<string>();
       let map = new Map<string, number>();
 
-      trafficByVariationString.split(' ').forEach((val) => {
-          if (val == '') {
-
-          } else {
-              arr.push(val);
+      trafficByVariationString.split('-').forEach((val) => {
+          if (!!val) {
+             arr.push(val);
           }
       });
 
-      if (arr.length % 2 == 1) {
-          throw tl.loc("UnableToFindEvenArguments", trafficByVariationString);
-      }
 
-      for (let i: number = 0; i < arr.length; i+=2) {
-          let key: string = arr[i];
+      for (let i: number = 0; i < arr.length; i++) {
+         let argPair: string = arr[i].trim();
+         let lastSpaceIndex: number = argPair.lastIndexOf(' ');
 
-          if (key.startsWith("-")) {
-              key = key.substring(1).toLowerCase();
-          } else {
-              throw tl.loc("InvalidVariationKey", key);
-          }
+         if (lastSpaceIndex == -1) {
+           throw tl.loc("UnableToFindValidArguments", trafficByVariationString);
+         }
 
-          let val: number = Number.parseInt(arr[i+1]);
+         let key: string = argPair.substring(0, lastSpaceIndex).trim().toLowerCase();
+         let valString: string = argPair.substring(lastSpaceIndex+1, argPair.length).trim();
+         let val: number = Number.parseInt(valString);
 
-          if (Number.isNaN(val)) {
-              throw tl.loc("NotValidValueForVariationKey", arr[i+1], key);
-          }
+         if (Number.isNaN(val)) {
+             throw tl.loc("NotValidValueForVariationKey", valString, key);
+         }
 
-          // we need to multiply the traffic value by 100 because the api accepts a traffic value from 0 to 10000
-          // with every 1 percent corresponding to 100 basis points. e.g. in order to vary traffic by 2 percentage points,
-          // you need to increase the current value by 200 basis points.
-          val = val * 100;
+         // we need to multiply the traffic value by 100 because the api accepts a traffic value from 0 to 10000
+         // with every 1 percent corresponding to 100 basis points. e.g. in order to vary traffic by 2 percentage points,
+         // you need to increase the current value by 200 basis points.
+         val = val * 100;
 
-          tl.debug(`Setting key: '${key}' to value: '${val}'`);
-          map.set(key,val);
+         tl.debug(`Setting key: '${key}' to value: '${val}'`);
+         map.set(key,val);
       }
 
       let totalBasisPoints: number = 0;
