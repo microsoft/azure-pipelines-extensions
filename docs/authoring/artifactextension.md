@@ -171,6 +171,11 @@ In order to describe the salient properties within artifact source contribution,
               }
           }
         ],
+        "taskInputMapping":{
+          "connection": "{{{connection}}}",
+          "definition":"{{{definition}}}",
+          "branch": "{{{branch}}}"
+        },
         "dataSourceBindings": [
           {
             "target": "definition",
@@ -222,6 +227,7 @@ In order to describe the salient properties within artifact source contribution,
 | `downloadTaskId` | This is used to associate the artifact type with the task used to download it as part of deployment. This is optional and need not be specified in case there is no need to download the artifact as part of deployment. |
 | `inputDescriptors` | This is used to represent the various inputs for the artifact source when linking it within release definition. Some of these are the [well-known input descriptors](#wellknowninputdescriptors) that VSTS expects artifact source contribution to declare to be able to allow linking it within release definition & deploying it within a release. In addition to these inputs, the artifact source can include other inputs specific to the type. All the inputs specified when linking the artifact source will be passed as inputs to the Download Artifacts task. The input names in the artifact & task inputs have to match. |
 | `dataSourceBindings` | This is used to represent the REST APIs in the artifact source provider that can be queried by *VSTS* and provide rich artifact integration points. *VSTS* recognizes a bunch of [well-known targets for data source bindings](#wellknowntargets) and leverages them to query and light up the integration points in UI where data needs to be fetched from artifact source provider. |
+| `taskInputMapping` | This is used to map the artifact inputs to task inputs. In the above example both task input names and the artifact input names are same. When the both the names are same this property can be ignored. If both the inputs have different names this property comes handy. The left hand side of the mapping denotes the task input name, and the right hand side of the mapping denotes the artifact input name. |
 |||
 
 ### <a name="artifactcategories"></a>*Categories of artifact types* :
