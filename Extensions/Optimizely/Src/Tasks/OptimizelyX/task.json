@@ -1,0 +1,157 @@
+{
+    "id": "7af33c4e-1e54-454e-a49a-24611aadf137",
+    "name": "OptimizelyX",
+    "friendlyName": "Optimizely-X",
+    "description": "Manage Optimizely-X A/B tests.",
+    "helpMarkDown": "[More Information](https://aka.ms/AzDevopsOptimizely-X)",
+    "category": "Deploy",
+    "visibility": [
+        "Release"
+    ],
+    "runsOn": [
+        "Agent"
+    ],
+    "author": "Microsoft Corporation",
+    "version": {
+        "Major": 0,
+        "Minor": 0,
+        "Patch": 58
+    },
+    "releaseNotes": "Manage Optimizely-X A/B tests.",
+    "minimumAgentVersion": "2.138.0",
+    "groups": [
+        {
+            "name": "StartAbTestInputGroup",
+            "displayName": "Start A/B test options",
+            "isExpanded": true,
+            "visibleRule": "Action == StartAbTest"
+        }
+    ],
+    "inputs": [
+        {
+            "name": "OptimizelyXEndpoint",
+            "type": "connectedService:optimizelyx",
+            "label": "Optimizely-X Service Connection",
+            "defaultValue": "",
+            "required": true,
+            "helpMarkDown": "Select the Optimizely-X service endpoint to be used to be used to manage A/B test. [Optimizely-X endpoint](https://aka.ms/)"
+        },
+        {
+            "name": "Action",
+            "type": "pickList",
+            "label": "Action",
+            "defaultValue": "StartAbTest",
+            "required": true,
+            "options": {
+                "StartAbTest": "Start A/B test",
+                "PauseAbTest": "Pause A/B test"
+            },
+            "helpMarkDown": "Specify the action to be performed."
+        },
+        {
+            "name": "Project",
+            "type": "pickList",
+            "label": "Project",
+            "defaultValue": "",
+            "required": true,
+            "properties": {
+                "EditableOptions": true
+            },
+            "helpMarkDown": "Select the name of the project."
+        },
+        {
+            "name": "Experiment",
+            "type": "pickList",
+            "label": "Experiment",
+            "defaultValue": "",
+            "required": true,
+            "properties": {
+                "EditableOptions": true
+            },
+            "helpMarkDown": "Select the name of the A/B test."
+        },
+        {
+            "name": "Traffic",
+            "type": "string",
+            "label": "Traffic",
+            "defaultValue": "100",
+            "required": true,
+            "groupName": "StartAbTestInputGroup",
+            "helpMarkDown": "Specify what percentage of total traffic you would like to A/B test."
+        },
+        {
+            "name": "TrafficByVariation",
+            "type": "multiLine",
+            "label": "Experiment variations",
+            "defaultValue": "",
+            "required": true,
+            "groupName": "StartAbTestInputGroup",
+            "properties": {
+                "editorExtension": "ms.vss-services-azure.parameters-grid"
+            },
+            "helpMarkDown": "Specify variations for the experiment and their corresponding traffic percentages."
+        },
+        {
+            "name": "Audience",
+            "type": "pickList",
+            "label": "Audience",
+            "defaultValue": "",
+            "required": false,
+            "groupName": "StartAbTestInputGroup",
+            "properties": {
+                "MultiSelect": "True",
+                "DisableManageLink": "True",
+                "EditableOptions": "True"
+            },
+            "helpMarkDown": "Specify the Target Audience for this A/B test."
+        }
+    ],
+    "dataSourceBindings": [
+        {
+            "endpointId": "$(OptimizelyXEndpoint)",
+            "target": "Project",
+            "dataSourceName": "OptimizelyXProjects",
+            "resultTemplate": "{ \"Value\" : \"{{{id}}}\", \"DisplayValue\" : \"{{{name}}}\" }"
+        },
+        {
+            "endpointId": "$(OptimizelyXEndpoint)",
+            "target": "Experiment",
+            "dataSourceName": "OptimizelyXExperiments",
+            "resultTemplate": "{ \"Value\" : \"{{{id}}}\", \"DisplayValue\" : \"{{{name}}}\" }",
+            "parameters": {
+                "ProjectId": "$(Project)"
+            }
+        }
+    ],
+    "instanceNameFormat": "Optimizely-X. Action: '$(Action)'",
+    "execution": {
+        "Node": {
+            "target": "Main.js"
+        }
+    },
+    "messages": {
+      "ConstructorFailed": "The task failed while initializing. Error: %s .",
+      "ProjectId": "ProjectId is: '%s'",
+      "ProjectNotFound": "Project: '%s' not found.",
+      "ProjectHasProjectId": "Project '%s' has projectid: '%s'",
+      "EnvironmentNotFound": "Environment: '%s' not found.",
+      "ExperimentWithIdUpdatedSuccessfully": "Experiment with Id: '%s' updated successfully",
+      "FailedToUpdatedExperiment": "Failed to updated experiment with Id: %s.",
+      "ExperimentSuccessfullyPaused": "A/B Test: '%s' has been paused successfully.",
+      "FetchingAudienceId": "fetching audience id for audience name: %s.",
+      "UnableToFindAudience": "Unable to find audience with name: %s.",
+      "ABTestStartedSuccessfully": "A/B Test: '%s' has been started successfully.",
+      "VisitOptimizelyPage": "Visit Optimizely experiments page here:",
+      "WaitingForExperimentToStart": "Waiting for experiment '%s' to start.",
+      "TrafficValueNotValid": "%s is not a valid traffic value.",
+      "TrafficValueCantExceed": "Traffic (value = '%s') cannot be greater than 100.",
+      "TrafficVariationKeyNotDefined": "Traffic Variations does not contain a value for the variation key: %s.",
+      "UnableToFindEvenArguments": "Unable to find an even number of argument pairs. ArgumentString: %s",
+      "InvalidVariationKey": "Invalid variation key: %s",
+      "NotValidValueForVariationKey": "%s cannot be parsed as a number for the key: %s",
+      "TotalTrafficValueNotValid": "Traffic values, when converted to basis points, do not add up to 10000. Provide valid traffic values. current value: '%s'.",
+      "AudienceInfo": "Audience is : %s",
+      "InvalidAction": "Invalid Action: '%s'.",
+      "TaskSucceeded": "Task succeeded."
+    }
+}

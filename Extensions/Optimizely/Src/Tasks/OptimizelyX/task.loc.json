@@ -1,0 +1,157 @@
+{
+  "id": "7af33c4e-1e54-454e-a49a-24611aadf137",
+  "name": "OptimizelyXYZ",
+  "friendlyName": "ms-resource:loc.friendlyName",
+  "description": "ms-resource:loc.description",
+  "helpMarkDown": "ms-resource:loc.helpMarkDown",
+  "category": "Deploy",
+  "visibility": [
+    "Release"
+  ],
+  "runsOn": [
+    "Agent"
+  ],
+  "author": "Microsoft Corporation",
+  "version": {
+    "Major": 0,
+    "Minor": 0,
+    "Patch": 58
+  },
+  "releaseNotes": "ms-resource:loc.releaseNotes",
+  "minimumAgentVersion": "2.138.0",
+  "groups": [
+    {
+      "name": "StartAbTestInputGroup",
+      "displayName": "ms-resource:loc.group.displayName.StartAbTestInputGroup",
+      "isExpanded": true,
+      "visibleRule": "Action == StartAbTest"
+    }
+  ],
+  "inputs": [
+    {
+      "name": "OptimizelyXEndpoint",
+      "type": "connectedService:optimizelyx",
+      "label": "ms-resource:loc.input.label.OptimizelyXEndpoint",
+      "defaultValue": "",
+      "required": true,
+      "helpMarkDown": "ms-resource:loc.input.help.OptimizelyXEndpoint"
+    },
+    {
+      "name": "Action",
+      "type": "pickList",
+      "label": "ms-resource:loc.input.label.Action",
+      "defaultValue": "StartAbTest",
+      "required": true,
+      "options": {
+        "StartAbTest": "Start A/B test",
+        "PauseAbTest": "Pause A/B test"
+      },
+      "helpMarkDown": "ms-resource:loc.input.help.Action"
+    },
+    {
+      "name": "Project",
+      "type": "pickList",
+      "label": "ms-resource:loc.input.label.Project",
+      "defaultValue": "",
+      "required": true,
+      "properties": {
+        "EditableOptions": true
+      },
+      "helpMarkDown": "ms-resource:loc.input.help.Project"
+    },
+    {
+      "name": "Experiment",
+      "type": "pickList",
+      "label": "ms-resource:loc.input.label.Experiment",
+      "defaultValue": "",
+      "required": true,
+      "properties": {
+        "EditableOptions": true
+      },
+      "helpMarkDown": "ms-resource:loc.input.help.Experiment"
+    },
+    {
+      "name": "Traffic",
+      "type": "string",
+      "label": "ms-resource:loc.input.label.Traffic",
+      "defaultValue": "100",
+      "required": true,
+      "groupName": "StartAbTestInputGroup",
+      "helpMarkDown": "ms-resource:loc.input.help.Traffic"
+    },
+    {
+      "name": "TrafficByVariation",
+      "type": "multiLine",
+      "label": "ms-resource:loc.input.label.TrafficByVariation",
+      "defaultValue": "",
+      "required": true,
+      "groupName": "StartAbTestInputGroup",
+      "properties": {
+        "editorExtension": "ms.vss-services-azure.parameters-grid"
+      },
+      "helpMarkDown": "ms-resource:loc.input.help.TrafficByVariation"
+    },
+    {
+      "name": "Audience",
+      "type": "pickList",
+      "label": "ms-resource:loc.input.label.Audience",
+      "defaultValue": "",
+      "required": false,
+      "groupName": "StartAbTestInputGroup",
+      "properties": {
+        "MultiSelect": "True",
+        "DisableManageLink": "True",
+        "EditableOptions": "True"
+      },
+      "helpMarkDown": "ms-resource:loc.input.help.Audience"
+    }
+  ],
+  "dataSourceBindings": [
+    {
+      "endpointId": "$(OptimizelyXEndpoint)",
+      "target": "Project",
+      "dataSourceName": "OptimizelyXProjects",
+      "resultTemplate": "{ \"Value\" : \"{{{id}}}\", \"DisplayValue\" : \"{{{name}}}\" }"
+    },
+    {
+      "endpointId": "$(OptimizelyXEndpoint)",
+      "target": "Experiment",
+      "dataSourceName": "OptimizelyXExperiments",
+      "resultTemplate": "{ \"Value\" : \"{{{id}}}\", \"DisplayValue\" : \"{{{name}}}\" }",
+      "parameters": {
+        "ProjectId": "$(Project)"
+      }
+    }
+  ],
+  "instanceNameFormat": "ms-resource:loc.instanceNameFormat",
+  "execution": {
+    "Node": {
+      "target": "Main.js"
+    }
+  },
+  "messages": {
+    "ConstructorFailed": "ms-resource:loc.messages.ConstructorFailed",
+    "ProjectId": "ms-resource:loc.messages.ProjectId",
+    "ProjectNotFound": "ms-resource:loc.messages.ProjectNotFound",
+    "ProjectHasProjectId": "ms-resource:loc.messages.ProjectHasProjectId",
+    "EnvironmentNotFound": "ms-resource:loc.messages.EnvironmentNotFound",
+    "ExperimentWithIdUpdatedSuccessfully": "ms-resource:loc.messages.ExperimentWithIdUpdatedSuccessfully",
+    "FailedToUpdatedExperiment": "ms-resource:loc.messages.FailedToUpdatedExperiment",
+    "ExperimentSuccessfullyPaused": "ms-resource:loc.messages.ExperimentSuccessfullyPaused",
+    "FetchingAudienceId": "ms-resource:loc.messages.FetchingAudienceId",
+    "UnableToFindAudience": "ms-resource:loc.messages.UnableToFindAudience",
+    "ABTestStartedSuccessfully": "ms-resource:loc.messages.ABTestStartedSuccessfully",
+    "VisitOptimizelyPage": "ms-resource:loc.messages.VisitOptimizelyPage",
+    "WaitingForExperimentToStart": "ms-resource:loc.messages.WaitingForExperimentToStart",
+    "TrafficValueNotValid": "ms-resource:loc.messages.TrafficValueNotValid",
+    "TrafficValueCantExceed": "ms-resource:loc.messages.TrafficValueCantExceed",
+    "TrafficVariationKeyNotDefined": "ms-resource:loc.messages.TrafficVariationKeyNotDefined",
+    "UnableToFindEvenArguments": "ms-resource:loc.messages.UnableToFindEvenArguments",
+    "InvalidVariationKey": "ms-resource:loc.messages.InvalidVariationKey",
+    "NotValidValueForVariationKey": "ms-resource:loc.messages.NotValidValueForVariationKey",
+    "TotalTrafficValueNotValid": "ms-resource:loc.messages.TotalTrafficValueNotValid",
+    "AudienceInfo": "ms-resource:loc.messages.AudienceInfo",
+    "InvalidAction": "ms-resource:loc.messages.InvalidAction",
+    "TaskSucceeded": "ms-resource:loc.messages.TaskSucceeded"
+  }
+}
