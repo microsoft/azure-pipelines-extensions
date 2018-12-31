@@ -97,7 +97,8 @@
             "required": true,
             "groupName": "StartAbTestInputGroup",
             "properties": {
-                "editorExtension": "ms.vss-services-azure.parameters-grid"
+              "resizable": "true",
+              "rows": "10"
             },
             "helpMarkDown": "Specify variations for the experiment and their corresponding traffic percentages."
         },
