@@ -45,7 +45,7 @@ export class TaskOperation {
       console.log(tl.loc("VisitOptimizelyPage") + ` https://app.optimizely.com/v2/projects/${projectId}/experiments`);
   }
 
-  public async stopABTest(experiment: IOptimizelyAlphaBetaTest): Promise<void> {
+  public async pauseABTest(experiment: IOptimizelyAlphaBetaTest): Promise<void> {
       let environmentName: string = this.taskInputs.getEnvironmentName();
       let projectId: string = this.taskInputs.getProjectId();
 
@@ -175,13 +175,6 @@ export class TaskOperation {
       let pat: string = tl.getEndpointAuthorizationParameter(endpointId, 'apitoken', false);
       let oxClient = new OptimizelyXClient(endpointUrl, pat);
       return oxClient;
-  }
-
-  public async setProjectType(): Promise<void> {
-    let projectId = this.taskInputs.getProjectId();
-    let project = await this.optimizelyClient.getProject(projectId);
-
-    this.taskInputs.setProjectType(project.platform);
   }
 
   public getOptimizelyClientInstance() {

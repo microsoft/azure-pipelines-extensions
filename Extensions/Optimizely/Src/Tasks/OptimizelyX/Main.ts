@@ -14,12 +14,12 @@ async function run() {
 
     let projectId: string = taskInputs.getProjectId();
     console.log(tl.loc("ProjectId", projectId));
+    let project = await optimizelyClient.getProject(projectId);
 
-    await taskOperation.setProjectType();
+    taskInputs.setProjectType(project.platform);
 
     let experimentId: string = taskInputs.getExperimentId();
     let experiment: IOptimizelyAlphaBetaTest = await optimizelyClient.getExperiment(projectId, experimentId);
-    let experimentName: string = experiment.name;
 
     experiment = taskOperation.updateTrafficVariation(experiment);
     experiment.audience_conditions = await taskOperation.getAudienceCondition(projectId);
@@ -28,7 +28,7 @@ async function run() {
     if (action.toLowerCase() === 'startabtest') {
         await taskOperation.startABTest(experiment);
     } else if (action.toLowerCase() === 'pauseabtest') {
-        await taskOperation.stopABTest(experiment);
+        await taskOperation.pauseABTest(experiment);
     } else {
         throw tl.loc("InvalidAction", action);
     }

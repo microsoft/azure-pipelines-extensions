@@ -97,19 +97,23 @@ export class OptimizelyXClient {
         let restRes = await this.restClient.update(`experiments/${experimentId}`, experiment);
         tl.debug(`function: 'updateExperiment'. response: '${JSON.stringify(restRes)}'`);
 
-        if (restRes.statusCode === 200) {
-            console.log(tl.loc("ExperimentWithIdUpdatedSuccessfully", experimentId))
-        } else {
+        if (restRes.statusCode != 200) {
             tl.debug(`Unable to updated experiment with Id: '${experimentId}'. Response:`);
             tl.debug(JSON.stringify(restRes));
             throw tl.loc("FailedToUpdatedExperiment", experimentId);
         }
+
+        console.log(tl.loc("ExperimentWithIdUpdatedSuccessfully", experimentId));
     }
 
     public async getEnvironment<T extends IOptimizelyEnvironment>(projectId: string, environmentName: string): Promise<T> {
         let restRes = await this.restClient.get<Array<T>>(`environments?project_id=${projectId}`);
         tl.debug(`function: 'getEnvironment'. response: '${JSON.stringify(restRes)}'`);
         let result = null;
+
+        if (restRes.statusCode != 200) {
+          throw tl.loc("FailedToFetchEnvironment", environmentName);
+        }
 
         restRes.result.forEach((optimizelyEnvironment) => {
             if (optimizelyEnvironment.key.toLocaleLowerCase() === environmentName.toLowerCase()) {
@@ -125,6 +129,10 @@ export class OptimizelyXClient {
         let restRes = await this.restClient.get<Array<T>>(`audiences?project_id=${projectId}`);
         tl.debug(`function: 'getAudienceId'. Response: '${JSON.stringify(restRes)}'`);
         let audienceId: number = null;
+
+        if (restRes.statusCode != 200) {
+          throw tl.loc("FailedToFetchAudience", audienceName);
+        }
 
         restRes.result.forEach((optimizelyAudience) => {
             if (optimizelyAudience.name.toLowerCase() == audienceName.toLowerCase()) {
@@ -143,12 +151,22 @@ export class OptimizelyXClient {
     private async getProjects<T extends OptimizelyProject>(): Promise<Array<T>> {
         let restRes: restm.IRestResponse<Array<T>> = await this.restClient.get<Array<T>>('projects');
         tl.debug(`function: 'getProjects'. response: '${JSON.stringify(restRes)}'`);
+
+        if (restRes.statusCode != 200) {
+          throw tl.loc("FailedToFetchProjects");
+        }
+
         return restRes.result;
     }
 
     private async getExperiments<T extends IOptimizelyAlphaBetaTest>(projectId: string): Promise<Array<T>> {
         let restRes: restm.IRestResponse<Array<T>> = await this.restClient.get<Array<T>>(`experiments?project_id=${projectId}`);
         tl.debug(`function: 'getExperiments'. response: '${JSON.stringify(restRes)}'`);
+
+        if (restRes.statusCode != 200) {
+          throw tl.loc("FailedToFetchExperiments");
+        }
+
         return restRes.result;
     }
 }

@@ -2,20 +2,22 @@
     "id": "7af33c4e-1e54-454e-a49a-24611aadf137",
     "name": "OptimizelyX",
     "friendlyName": "Optimizely-X",
-    "description": "Manage Optimizely-X A/B tests.",
-    "helpMarkDown": "[More Information](https://aka.ms/AzDevopsOptimizely-X)",
+    "description": "Manage Optimizely-X web and full stack projects.",
+    "helpMarkDown": "[More Information](https://github.com/Microsoft/azure-pipelines-extensions/blob/master/Extensions/Optimizely/Src/README.md)",
     "category": "Deploy",
     "visibility": [
+        "Build",
         "Release"
     ],
     "runsOn": [
-        "Agent"
+        "Agent",
+        "DeploymentGroup"
     ],
     "author": "Microsoft Corporation",
     "version": {
         "Major": 0,
         "Minor": 0,
-        "Patch": 1
+        "Patch": 67
     },
     "releaseNotes": "Manage Optimizely-X A/B tests.",
     "minimumAgentVersion": "2.138.0",
@@ -37,6 +39,25 @@
             "helpMarkDown": "Select the Optimizely-X service endpoint to be used to be used to manage A/B test. [Optimizely-X endpoint](https://aka.ms/)"
         },
         {
+            "name": "Project",
+            "type": "pickList",
+            "label": "Project",
+            "defaultValue": "",
+            "required": true,
+            "properties": {
+                "EditableOptions": true
+            },
+            "helpMarkDown": "Select the name of the project."
+        },
+        {
+            "name": "Environment",
+            "type": "string",
+            "label": "Environment",
+            "defaultValue": "Production",
+            "required": false,
+            "helpMarkDown": "Environment of the project. By default environment will be production."
+        },
+        {
             "name": "Action",
             "type": "pickList",
             "label": "Action",
@@ -47,17 +68,6 @@
                 "PauseAbTest": "Pause A/B test"
             },
             "helpMarkDown": "Specify the action to be performed."
-        },
-        {
-            "name": "Project",
-            "type": "pickList",
-            "label": "Project",
-            "defaultValue": "",
-            "required": true,
-            "properties": {
-                "EditableOptions": true
-            },
-            "helpMarkDown": "Select the name of the project."
         },
         {
             "name": "Experiment",
@@ -131,12 +141,17 @@
     },
     "messages": {
       "ConstructorFailed": "The task failed while initializing. Error: %s .",
-      "ProjectId": "ProjectId is: '%s'",
+      "ProjectId": "Project id is: '%s'",
       "ProjectNotFound": "Project: '%s' not found.",
       "ProjectHasProjectId": "Project '%s' has projectid: '%s'",
       "EnvironmentNotFound": "Environment: '%s' not found.",
       "ExperimentWithIdUpdatedSuccessfully": "Experiment with Id: '%s' updated successfully",
       "FailedToUpdatedExperiment": "Failed to updated experiment with Id: %s.",
+      "FailedToFetchExperiment": "Failed to fetch experiment with Id: %s",
+      "FailedToFetchEnvironment": "Failed to fetch environment with name: %s",
+      "FailedToFetchProjects": "Failed to fetch projects.",
+      "FailedToFetchExperiments": "Failed to fetch experiments.",
+      "FailedToFetchAudience": "Failed to fetch audience with name : %s",
       "ExperimentSuccessfullyPaused": "A/B Test: '%s' has been paused successfully.",
       "FetchingAudienceId": "fetching audience id for audience name: %s.",
       "UnableToFindAudience": "Unable to find audience with name: %s.",
