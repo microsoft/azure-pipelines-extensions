@@ -15,7 +15,7 @@ export class OptimizelyTaskParameter {
     try {
       this.endpointId = tl.getInput('OptimizelyXEndpoint', true);
       this.action = tl.getInput('Action', true);
-      this.environmentName = tl.getVariable("Release.EnvironmentName");
+      this.environmentName = tl.getInput("Environment");
       this.projectId = tl.getInput('Project', true);
       this.experimentId = tl.getInput('Experiment', true);
       this.totalTraffic = tl.getInput('Traffic', true);
