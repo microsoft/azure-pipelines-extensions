@@ -7,10 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.TeamFoundation.DistributedTask.WebApi" Version="16.141.1-preview" />
-    <PackageReference Include="Microsoft.VisualStudio.Services.Client" Version="16.141.1-preview" />
-    <PackageReference Include="Microsoft.VisualStudio.Services.DistributedTask.Client" Version="15.112.1-preview" />
-    <PackageReference Include="Microsoft.VisualStudio.Services.InteractiveClient" Version="15.126.0-preview" />
+    <PackageReference Include="Microsoft.TeamFoundation.DistributedTask.WebApi" Version="15.131.1" />
   </ItemGroup>
 
   <ItemGroup>

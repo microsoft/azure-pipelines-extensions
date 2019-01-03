@@ -14,13 +14,14 @@ using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Azure.WebJobs.Host;
 using Microsoft.VisualStudio.Services.Common;
 using Microsoft.VisualStudio.Services.Identity;
+using MyAzureFunctionSampleFunctionHandler;
 
-namespace AzureFunctionHandler
+namespace AzureFunctionSample
 {
     public static class MyFunction
     {
         [FunctionName("MyFunction")]
-        public static async Task<HttpResponseMessage> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)]HttpRequestMessage req, TraceWriter log)
+        public static async Task<HttpResponseMessage> Run([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)]HttpRequestMessage req, TraceWriter log)
         {
             TypeDescriptor.AddAttributes(typeof(IdentityDescriptor), new TypeConverterAttribute(typeof(IdentityDescriptorConverter).FullName));
             TypeDescriptor.AddAttributes(typeof(SubjectDescriptor), new TypeConverterAttribute(typeof(SubjectDescriptorConverter).FullName));
@@ -29,16 +30,16 @@ namespace AzureFunctionHandler
             // Get request body
             var messageBody = await req.Content.ReadAsStringAsync().ConfigureAwait(false);
 
-            // Fetch all the VSTS properties from the headers
+            // Since we expect all the VSTS properties to be in the request headers, fetch them from the headers
+            //
             var taskProperties = GetTaskProperties(req.Headers);
 
-            // Created task execution handler
-            ITaskExecutionHandler myTaskExecutionHandler = new MyTaskExecutionHandler();
+            // Create my own task execution handler. You should replace it with your task execution handler. 
+            ITaskExecutionHandler myAzureFunctionSampleHandler = new MyTaskExecutionHandler();
 
-            var executionHandler = new ExecutionHandler(myTaskExecutionHandler, messageBody, taskProperties);
-            var executionThread = new Thread(() => executionHandler.Execute(CancellationToken.None));
-            executionThread.Start();
-
+            var executionHandler = new ExecutionHandler(myAzureFunctionSampleHandler, messageBody, taskProperties);
+            Task.Run(() => executionHandler.Execute(CancellationToken.None));
+    
             return req.CreateResponse(HttpStatusCode.OK, "Request accepted!");
         }
 
