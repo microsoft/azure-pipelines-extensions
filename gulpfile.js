@@ -85,13 +85,13 @@ gulp.task("clean", function() {
 });
 
 gulp.task("compilePS", ["clean"], function() {
-    
+
     if(args.testAreaPath === undefined )
     {
-        return gulp.src(sourcePaths, { base: "." }).pipe(gulp.dest(_buildRoot)); 
+        return gulp.src(sourcePaths, { base: "." }).pipe(gulp.dest(_buildRoot));
     }
     else
-    {     
+    {
         var areaPathArgument = args.testAreaPath;
         if(areaPathArgument.length > 0 )
         {
@@ -100,15 +100,15 @@ gulp.task("compilePS", ["clean"], function() {
             var filter = [];
             for (var n = 0; n < areaPaths.length; n++) {
                 filter.push(ExtensionFolder + '/' + areaPaths[n] + '/**/*')
-                } 
-                    
-            return gulp.src(filter, { base: "." }).pipe(gulp.dest(_buildRoot)); 
+                }
+
+            return gulp.src(filter, { base: "." }).pipe(gulp.dest(_buildRoot));
         }
         else
         {
             console.log('No module is updated with given change-set');
             // Create a _build/Extensions folder which will be empty
-            return gulp.src(ExtensionFolder, { base: "." }).pipe(gulp.dest(_buildRoot)); 
+            return gulp.src(ExtensionFolder, { base: "." }).pipe(gulp.dest(_buildRoot));
         }
     }
 });
@@ -124,17 +124,17 @@ gulp.task("clean:TaskModuleTest", function(cb) {
 gulp.task('compile:TaskModuleTest', ['clean:TaskModuleTest'], function (cb) {
     var testsPath = path.join('TaskModules', 'powershell', 'Tests', '**/*.ts');
     var testsLibPath = path.join('Extensions', 'Common', 'lib', '**/*.ts');
-    
+
     var tsconfigPath = path.join('TaskModules', 'powershell', 'Tests', 'tsconfig.json');
     if (fs.existsSync(tsconfigPath)) {
         var projLocal = gts.createProject(tsconfigPath, { typescript: typescript });
         var tsLocal = gts(projLocal);
-        
+
         gulp.src([testsLibPath, 'definitions/*.d.ts'])
             .pipe(ts)
             .on("error", errorHandler)
             .pipe(gulp.dest(path.join(_extnBuildRoot, 'Common', 'lib')));
-        
+
         return gulp.src([testsPath, 'definitions/*.d.ts'])
             .pipe(tsLocal)
             .on('error', errorHandler)
@@ -144,7 +144,7 @@ gulp.task('compile:TaskModuleTest', ['clean:TaskModuleTest'], function (cb) {
 
 gulp.task('copy:TaskModuleTest', ['compile:TaskModuleTest'], function (cb) {
     gulp.src([path.join('Extensions', 'Common', 'lib', '**/*')])
-        .pipe(gulp.dest(path.join(_extnBuildRoot, 'Common', 'lib'))); 
+        .pipe(gulp.dest(path.join(_extnBuildRoot, 'Common', 'lib')));
     return gulp.src([path.join('TaskModules', 'powershell', 'Tests', '**/*')])
         .pipe(gulp.dest(TaskModulesTestRoot));
 });
@@ -156,7 +156,7 @@ gulp.task("TaskModuleTest", ['copy:TaskModuleTest'], function() {
 
     var testSuitePath = path.join(TaskModulesTestRoot, options.suite + '/L0.js');
     var tfBuild = ('' + process.env['TF_BUILD']).toLowerCase() == 'true'
-    
+
     gulp.src([testSuitePath])
         .pipe(mocha({ reporter: 'spec', ui: 'bdd', useColors: !tfBuild }));
 });
@@ -277,7 +277,7 @@ gulp.task("compileNode", ["compilePS"], function(cb){
         .pipe(gulp.dest(path.join(_buildRoot, 'Extensions')))
         .on('error', errorHandler);
 
-    // Generate loc files 
+    // Generate loc files
     createResjson(cb);
 })
 
@@ -360,7 +360,7 @@ function createResjson(callback) {
                     if (!key || key.match(/^_.+\.comment$/)) {
                         continue;
                     }
-        
+
                     defaultStrings[`loc.messages.${key}`] = lib.messages[key];
                 }
             }
@@ -395,7 +395,7 @@ function createResjson(callback) {
                             if (err) {
                                 throw err;
                             }
-        
+
                             xliff = result;
                         });
 
@@ -416,7 +416,7 @@ function createResjson(callback) {
                 shell.mkdir('-p', path.dirname(resjsonPath));
                 fs.writeFileSync(resjsonPath, resjsonContents);
             }
-        });   
+        });
     }
     catch (err) {
         console.log('error:' + err.message);
@@ -495,7 +495,7 @@ function handoff(callback) {
                             if (err) {
                                 throw err;
                             }
-        
+
                             xliff = result;
                         }
                     )
@@ -694,7 +694,7 @@ gulp.task("test", ["testResources"], function(){
         return gulp.src([suitePath])
             .pipe(mocha({ reporter: 'spec', ui: 'bdd', useColors: !tfBuild }));
     }
-    
+
     if (options.suite.indexOf("ArtifactEngine") >= 0  && options.perf) {
         var suitePath = path.join(_testRoot, "Extensions/" + options.suite + "/**/*perf.js");
         console.log(suitePath);
@@ -724,7 +724,7 @@ gulp.task("package",  function() {
     if(args.publisher){
         publisherName = args.publisher;
     }
-    
+
     // use gulp package --extension=<Extension_Name> to package an individual package
     if(args.extension){
         createVsixPackage(args.extension);        return;
@@ -745,7 +745,7 @@ gulp.task('nuget-download', function(done) {
 });
 
 gulp.task("package_nuget", ['nuget-download'], function() {
-    
+
     // nuspec
     var version = options.version;
     if (!version) {
@@ -771,12 +771,12 @@ gulp.task("package_nuget", ['nuget-download'], function() {
 
     // Copying extension to contents
     var extensionPath = path.join("_package", options.extension);
-    
+
     shell.rm("-rf", nugetPath);
     var contentsPath = path.join(nugetPath,'pack-source', 'contents');
     shell.mkdir("-p", contentsPath);
     shell.cp(path.join(extensionPath,"*"), contentsPath);
-    
+
     // nuspec
     var pkgName = 'Mseng.MS.TF.RM.Extensions';
     console.log();
@@ -811,20 +811,20 @@ gulp.task("package_nuget", ['nuget-download'], function() {
         .pipe(gulp.dest(nupkgPath));
     console.log();
     console.log('> Package Successful');
-    
+
     if (options.server) {
         console.log();
         console.log('> Publishing .nupkg file to server');
         gulp.src(path.join(nupkgPath, pkgName + "." + options.version + ".nupkg"))
             .pipe(nuget.push({ source: options.server, nuget: exePath, apiKey: 'SkyRise' }));
-        console.log('> Publish Successful');    
+        console.log('> Publish Successful');
     }
 });
 
 
 gulp.task("locCommon",function(){
-    return gulp.src(path.join(__dirname, 'Extensions/Common/**/module.json')) 
-             .pipe(pkgm.LocCommon()); 
+    return gulp.src(path.join(__dirname, 'Extensions/Common/**/module.json'))
+             .pipe(pkgm.LocCommon());
 });
 
 var copyCommonModules = function(extensionName) {
@@ -838,15 +838,18 @@ var copyCommonModules = function(extensionName) {
 var createVsixPackage = function(extensionName) {
     var extnOutputPath = path.join(_packageRoot, extensionName);
     var extnManifestPath = path.join(_extnBuildRoot, extensionName, "Src");
-    del(extnOutputPath);
-    if (publisherName){
-        var manifest = JSON.parse(fs.readFileSync(path.join(extnManifestPath,"vss-extension.json")));
-        manifest.publisher = publisherName;
-        fs.writeFileSync(path.join(extnManifestPath,"vss-extension.json"), JSON.stringify(manifest));
+
+    if(fs.existsSync(extnManifestPath)) {
+      del(extnOutputPath);
+      if (publisherName){
+          var manifest = JSON.parse(fs.readFileSync(path.join(extnManifestPath,"vss-extension.json")));
+          manifest.publisher = publisherName;
+          fs.writeFileSync(path.join(extnManifestPath,"vss-extension.json"), JSON.stringify(manifest));
+      }
+      shell.mkdir("-p", extnOutputPath);
+      var packagingCmd = "tfx extension create --manifest-globs vss-extension.json --root " + extnManifestPath + " --output-path " + extnOutputPath;
+      executeCommand(packagingCmd, function() {});
     }
-    shell.mkdir("-p", extnOutputPath);
-    var packagingCmd = "tfx extension create --manifest-globs vss-extension.json --root " + extnManifestPath + " --output-path " + extnOutputPath;
-    executeCommand(packagingCmd, function() {});
 }
 
 var executeCommand = function(cmd, callback) {
