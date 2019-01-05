@@ -2,8 +2,8 @@
   "manifestVersion": 1,
   "id": "vss-services-servicenowchangerequestmanagement",
   "name": "ServiceNow Change Management",
-  "publisher": "ms-vscs-rm",
-  "version": "0.1.0",
+  "publisher": "NishuBansal",
+  "version": "0.4.2",
   "public": true,
   "description": "Integrate ServiceNow Change Management with Azure Pipelines",
   "categories": [
@@ -88,7 +88,9 @@
         "dataSources": [
           {
             "name": "StandardChanges",
-            "endpointUrl": "{{endpoint.url}}/api/now/table/sys_template?table=change_request&sysparm_fields=sys_id,sys_name"
+            "endpointUrl": "{{endpoint.url}}/api/now/table/sys_template?table=change_request&sysparm_fields=sys_id,sys_name",
+            "resultSelector": "jsonpath:$.result[*]",
+            "resultTemplate": "{ \"Value\" : \"{{sys_id}}\", \"DisplayValue\" : \"{{sys_name}}\" }"
           },
           {
             "name": "Priority",
