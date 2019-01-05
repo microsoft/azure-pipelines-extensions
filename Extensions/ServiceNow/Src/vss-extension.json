@@ -2,8 +2,8 @@
   "manifestVersion": 1,
   "id": "vss-services-servicenowchangerequestmanagement",
   "name": "ServiceNow Change Management",
-  "publisher": "NishuBansal",
-  "version": "0.0.7",
+  "publisher": "ms-vscs-rm",
+  "version": "0.1.0",
   "public": true,
   "description": "Integrate ServiceNow Change Management with Azure Pipelines",
   "categories": [
