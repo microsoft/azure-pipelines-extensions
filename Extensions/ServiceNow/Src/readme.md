@@ -60,4 +60,42 @@ ServiceNow gate produces output variables.                                     
 - **Close code and notes**: Closure information for the change request.
 - **Additional change request parameters**:  Additional properties of the change request to set.
 
+## Steps to add mapping for custom fields in Import set transform map :
+
+##### In order to insert custom fields for a change request (using additional change request parameters), please add mapping of the custom fields in import set transform map by following below steps:
+
+**Adding custom fields in import set table**:                                      
+**Login** to your ServiceNow instance and open link : `https://<Instance-name>.service-now.com/v_ws_editor.do?sysparm_query=name=x_mioms_azpipeline_change_request_import`
+
+1.	Select '**Copy fields from target table**' 
+2.	Select **Target table** 'Change Request [**change_request**] from drop down.
+3.	Click on '**Update**' 
+
+![Update import set table](images/1.edit-import-set-table.png)
+
+**Add mapping in Transform map**
+
+1. Navigate to **System Import Sets > Transform Maps**.
+2. Open the Transform Map named '**change_request_imports**'
+
+![Select transform map](images/2.select-transform-map.png)
+
+1. In the Field Maps related list, **Click New**.
+2. Select the **Source field** (your custom field).
+3. Select the **Target field**
+4. Click **Submit**
+
+![Add field map](images/3.add-field-map.png)
+
+Click **Update**
+
+![Update transform map](images/4.update-transform-map.png)
+
+Field mapping **added**
+
+![Updated field map](images/5.field-map-added.png)
+
+
+
+
 
