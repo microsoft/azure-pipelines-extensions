@@ -98,7 +98,7 @@ namespace HttpRequestSampleWithoutHandler
         private static void SendTaskStartedEvent(HttpClient httpClient, string authToken, string planUri, string projectId, string hubName, string planId, string jobId, string taskInstanceId)
         {
             // Task Event example: 
-            // url: https://vsrm.dev.azure.com/{azuredevopsaccount}/{projectId}/_apis/distributedtask/hubs/{hubName}/plans/{planId}/events?api-version=2.0-preview.1 
+            // url: {planUri}/{projectId}/_apis/distributedtask/hubs/{hubName}/plans/{planId}/events?api-version=2.0-preview.1 
             // body : { "name": "TaskStarted", "taskId": "taskInstanceId", "jobId": "jobId" }
 
             const string TaskEventsUrl = "{0}/{1}/_apis/distributedtask/hubs/{2}/plans/{3}/events?api-version=2.0-preview.1";
@@ -115,7 +115,7 @@ namespace HttpRequestSampleWithoutHandler
         private static void SendTaskCompletedEvent(HttpClient httpClient, string authToken, string planUri, string projectId, string hubName, string planId, string jobId, string taskInstanceId, string result)
         {
             // Task Event example: 
-            // url: https://vsrm.dev.azure.com/{azuredevopsaccount}/{projectId}/_apis/distributedtask/hubs/{hubName}/plans/{planId}/events?api-version=2.0-preview.1 
+            // url: {planUri}/{projectId}/_apis/distributedtask/hubs/{hubName}/plans/{planId}/events?api-version=2.0-preview.1 
             // body : ex: { "name": "TaskCompleted", "taskId": "taskInstanceId", "jobId": "jobId", "result": "succeeded" }
 
             const string TaskEventsUrl = "{0}/{1}/_apis/distributedtask/hubs/{2}/plans/{3}/events?api-version=2.0-preview.1";
@@ -133,7 +133,7 @@ namespace HttpRequestSampleWithoutHandler
         private static void SendTaskLogFeeds(HttpClient httpClient, string authToken, string planUri, string projectId, string hubName, string planId, string jobId, string timeLineId, string message)
         {
             // Task feed example:
-            // url : https://vsrm.dev.azure.com/{azuredevopsaccount}/{projectId}/_apis/distributedtask/hubs/{hubName}/plans/{planId}/timelines/{timelineId}/records/{jobId}/feed?api-version=4.1
+            // url : {planUri}/{projectId}/_apis/distributedtask/hubs/{hubName}/plans/{planId}/timelines/{timelineId}/records/{jobId}/feed?api-version=4.1
             // body : {"value":["2019-01-04T12:32:42.2042287Z Task started."],"count":1}
 
             const string SendTaskFeedUrl = "{0}/{1}/_apis/distributedtask/hubs/{2}/plans/{3}/timelines/{4}/records/{5}/feed?api-version=4.1";
@@ -154,7 +154,7 @@ namespace HttpRequestSampleWithoutHandler
         private static string CreateTaskLog(HttpClient httpClient, string authToken, string planUri, string projectId, string hubName, string planId, string taskInstanceId)
         {
             // Create task log
-            // url: https://vsrm.dev.azure.com/{azuredevopsaccount}/{projectId}/_apis/distributedtask/hubs/{hubName}/plans/{planId}/logs?api-version=4.1"
+            // url: {planUri}/{projectId}/_apis/distributedtask/hubs/{hubName}/plans/{planId}/logs?api-version=4.1"
             // body: {"path":"logs\\{taskInstanceId}"}, example: {"path":"logs\\3b9c4dc6-1e5d-4379-b16c-6231d7620059"}
 
             const string CreateTaskLogUrl = "{0}/{1}/_apis/distributedtask/hubs/{2}/plans/{3}/logs?api-version=4.1";
@@ -169,8 +169,8 @@ namespace HttpRequestSampleWithoutHandler
         private static void AppendToTaskLog(HttpClient httpClient, string authToken, string planUri, string projectId, string hubName, string planId, string taskLogId, string logFilePath)
         {
             // Append to task log
-            // url: https://vsrm.dev.azure.com/{azuredevopsaccount}/{projectId}/_apis/distributedtask/hubs/{hubName}/plans/{planId}/logs/{taskLogId}?api-version=4.1
-            // body: log meesages stream data
+            // url: {planUri}/{projectId}/_apis/distributedtask/hubs/{hubName}/plans/{planId}/logs/{taskLogId}?api-version=4.1
+            // body: log messages stream data
 
             const string AppendLogContentUrl = "{0}/{1}/_apis/distributedtask/hubs/{2}/plans/{3}/logs/{4}?api-version=4.1";
 
@@ -191,7 +191,7 @@ namespace HttpRequestSampleWithoutHandler
         private static void UpdateTaskTimelineRecord(HttpClient httpClient, string authToken, string planUri, string projectId, string hubName, string planId, string timelineId, string taskInstanceId, string taskLogObject)
         {
             // Update timeline record
-            // url: https://vsrm.dev.azure.com/{azuredevopsaccount}/{projectId}/_apis/distributedtask/hubs/{hubName}/plans/{planId}/timelines/{timelineId}/records?api-version=4.1
+            // url: {planUri}/{projectId}/_apis/distributedtask/hubs/{hubName}/plans/{planId}/timelines/{timelineId}/records?api-version=4.1
             // body: {"value":[timelineRecords],"count":1}
             // timelineRecord : {"id": taskInstanceId, "log": taskLogObject}
 
