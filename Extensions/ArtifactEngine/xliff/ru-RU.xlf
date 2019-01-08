@@ -2,55 +2,55 @@
 <xliff version="1.2">
   <file original="lib.json" source-language="en-US" target-language="ru-RU" datatype="plaintext">
     <body>
-      <trans-unit id="loc.messages.DownloadSummary">
+      <trans-unit xmlns="" id="loc.messages.DownloadSummary">
         <source>Total Files: %s, Processed: %s, Skipped: %s, Failed: %s, Download time: %s secs, Download size: %s</source>
         <target state="translated">Всего файлов: %s. Обработано: %s. Пропущено: %s. Сбоев: %s. Время скачивания: %s с. Скачиваемый объем: %s</target>
-        <note/>
+        <note />
       </trans-unit>
-      <trans-unit id="loc.messages.DownloadedTo">
+      <trans-unit xmlns="" id="loc.messages.DownloadedTo">
         <source>Downloaded %s to %s</source>
         <target state="translated">Скачано %s в %s</target>
-        <note/>
+        <note />
       </trans-unit>
-      <trans-unit id="loc.messages.DownloadingTo">
+      <trans-unit xmlns="" id="loc.messages.DownloadingTo">
         <source>Downloading %s to %s</source>
         <target state="translated">Идет скачивание %s в %s</target>
-        <note/>
+        <note />
       </trans-unit>
-      <trans-unit id="loc.messages.FailedRequest">
+      <trans-unit xmlns="" id="loc.messages.FailedRequest">
         <source>Failed request: (statusCode)</source>
-        <target state="new"/>
-        <note/>
+        <target state="new">Сбой запроса: (statusCode)</target>
+        <note />
       </trans-unit>
-      <trans-unit id="loc.messages.FailedToParseResponse">
+      <trans-unit xmlns="" id="loc.messages.FailedToParseResponse">
         <source>Failed to parse response body: %s, got error : %s</source>
         <target state="translated">Не удалось проанализировать текст ответа: %s. Ошибка: %s</target>
-        <note/>
+        <note />
       </trans-unit>
-      <trans-unit id="loc.messages.RetryingDownload">
+      <trans-unit xmlns="" id="loc.messages.RetryingDownload">
         <source>Retrying download of %s, retry count: %s</source>
         <target state="translated">Повторная попытка скачать %s, всего попыток: %s</target>
-        <note/>
+        <note />
       </trans-unit>
-      <trans-unit id="loc.messages.SkippingItem">
+      <trans-unit xmlns="" id="loc.messages.SkippingItem">
         <source>Skipped processing item %s</source>
         <target state="translated">Пропущена обработка элемента %s</target>
-        <note/>
+        <note />
       </trans-unit>
-      <trans-unit id="loc.messages.UnableToReadDirectory">
+      <trans-unit xmlns="" id="loc.messages.UnableToReadDirectory">
         <source>Unable to read directory %s. Error: %s</source>
         <target state="translated">Не удается считать каталог %s. Ошибка: %s</target>
-        <note/>
+        <note />
       </trans-unit>
-      <trans-unit id="loc.messages.UnhandledException">
+      <trans-unit xmlns="" id="loc.messages.UnhandledException">
         <source>artifact-engine: unhandled exception %s</source>
         <target state="translated">artifact-engine: необработанное исключение %s</target>
-        <note/>
+        <note />
       </trans-unit>
-      <trans-unit id="loc.messages.UnhandledRejection">
+      <trans-unit xmlns="" id="loc.messages.UnhandledRejection">
         <source>artifact-engine: unhandled rejection %s</source>
         <target state="translated">artifact-engine: необработанное отклонение %s</target>
-        <note/>
+        <note />
       </trans-unit>
     </body>
   </file>

@@ -2,55 +2,55 @@
 <xliff version="1.2">
   <file original="lib.json" source-language="en-US" target-language="es-ES" datatype="plaintext">
     <body>
-      <trans-unit id="loc.messages.DownloadSummary">
+      <trans-unit xmlns="" id="loc.messages.DownloadSummary">
         <source>Total Files: %s, Processed: %s, Skipped: %s, Failed: %s, Download time: %s secs, Download size: %s</source>
         <target state="translated">Total de archivos: %s, procesados: %s, omitidos: %s, con errores: %s, tiempo de descarga: %s segundos, tamaño de descarga: %s</target>
-        <note/>
+        <note />
       </trans-unit>
-      <trans-unit id="loc.messages.DownloadedTo">
+      <trans-unit xmlns="" id="loc.messages.DownloadedTo">
         <source>Downloaded %s to %s</source>
         <target state="translated">%s descargado en %s</target>
-        <note/>
+        <note />
       </trans-unit>
-      <trans-unit id="loc.messages.DownloadingTo">
+      <trans-unit xmlns="" id="loc.messages.DownloadingTo">
         <source>Downloading %s to %s</source>
         <target state="translated">Descargando %s en %s</target>
-        <note/>
+        <note />
       </trans-unit>
-      <trans-unit id="loc.messages.FailedRequest">
+      <trans-unit xmlns="" id="loc.messages.FailedRequest">
         <source>Failed request: (statusCode)</source>
-        <target state="new"/>
-        <note/>
+        <target state="new">Error en la solicitud: (statusCode)</target>
+        <note />
       </trans-unit>
-      <trans-unit id="loc.messages.FailedToParseResponse">
+      <trans-unit xmlns="" id="loc.messages.FailedToParseResponse">
         <source>Failed to parse response body: %s, got error : %s</source>
         <target state="translated">No se pudo analizar el cuerpo de la respuesta: %s. Error: %s</target>
-        <note/>
+        <note />
       </trans-unit>
-      <trans-unit id="loc.messages.RetryingDownload">
+      <trans-unit xmlns="" id="loc.messages.RetryingDownload">
         <source>Retrying download of %s, retry count: %s</source>
         <target state="translated">Reintentando la descarga de %s, número de reintentos: %s</target>
-        <note/>
+        <note />
       </trans-unit>
-      <trans-unit id="loc.messages.SkippingItem">
+      <trans-unit xmlns="" id="loc.messages.SkippingItem">
         <source>Skipped processing item %s</source>
         <target state="translated">Procesamiento de %s omitido</target>
-        <note/>
+        <note />
       </trans-unit>
-      <trans-unit id="loc.messages.UnableToReadDirectory">
+      <trans-unit xmlns="" id="loc.messages.UnableToReadDirectory">
         <source>Unable to read directory %s. Error: %s</source>
         <target state="translated">No se puede leer el directorio %s. Error: %s</target>
-        <note/>
+        <note />
       </trans-unit>
-      <trans-unit id="loc.messages.UnhandledException">
+      <trans-unit xmlns="" id="loc.messages.UnhandledException">
         <source>artifact-engine: unhandled exception %s</source>
         <target state="translated">artifact-engine: excepción no controlada: %s</target>
-        <note/>
+        <note />
       </trans-unit>
-      <trans-unit id="loc.messages.UnhandledRejection">
+      <trans-unit xmlns="" id="loc.messages.UnhandledRejection">
         <source>artifact-engine: unhandled rejection %s</source>
         <target state="translated">artifact-engine: rechazo no controlado: %s</target>
-        <note/>
+        <note />
       </trans-unit>
     </body>
   </file>
