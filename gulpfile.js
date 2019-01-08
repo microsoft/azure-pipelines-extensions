@@ -710,9 +710,9 @@ gulp.task("test", gulp.series("testResources", function(){
         .pipe(mocha({ reporter: 'spec', ui: 'bdd', useColors: !tfBuild }));
 
     var suitePath = path.join(_testRoot, "Extensions/" + options.suite + "/**/*Tests.js");
-    console.log(suitePath, { allowEmpty: true });
+    console.log(suitePath);
     var tfBuild = ('' + process.env['TF_BUILD']).toLowerCase() == 'true'
-    return gulp.src([suitePath])
+    return gulp.src([suitePath, { allowEmpty: true }])
         .pipe(mocha({ reporter: 'spec', ui: 'bdd', useColors: !tfBuild }));
 }));
 
