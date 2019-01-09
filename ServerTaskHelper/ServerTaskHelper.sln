@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AzureFunctionHandler", "Azu
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AzureFunctionSample", "AzureFunctionSample\AzureFunctionSample.csproj", "{69832419-26C2-4F3E-BB38-DE45CFE33BD9}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HttpRequestSampleWithoutHandler", "HttpRequestSampleWithoutHandler\HttpRequestSampleWithoutHandler.csproj", "{FDD4AE8E-63DE-4C46-BBE1-C8599CC8F155}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -43,6 +45,10 @@ Global
 		{69832419-26C2-4F3E-BB38-DE45CFE33BD9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{69832419-26C2-4F3E-BB38-DE45CFE33BD9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{69832419-26C2-4F3E-BB38-DE45CFE33BD9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FDD4AE8E-63DE-4C46-BBE1-C8599CC8F155}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FDD4AE8E-63DE-4C46-BBE1-C8599CC8F155}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FDD4AE8E-63DE-4C46-BBE1-C8599CC8F155}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FDD4AE8E-63DE-4C46-BBE1-C8599CC8F155}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
