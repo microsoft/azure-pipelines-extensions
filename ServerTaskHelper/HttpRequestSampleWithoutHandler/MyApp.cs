@@ -14,7 +14,7 @@ namespace HttpRequestSampleWithoutHandler
     internal class MyApp
     {
         /*
-        While task execution you can see following logs
+        While task execution you can see following logs in pipeline task log UI.
 
         2019-01-06T13:29:46.8245516Z POST http://localhost:57636/api/mytask
          		Response Code: OK
