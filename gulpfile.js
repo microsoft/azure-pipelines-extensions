@@ -5,7 +5,7 @@ var spawn = require('child_process').spawn;
 var fs = require('fs-extra');
 var path = require('path');
 var os = require('os');
-var tsc = require('gulp-tsc');
+var tsc = require('gulp-typescript');
 
 // build/test script
 var admZip = require('adm-zip');
