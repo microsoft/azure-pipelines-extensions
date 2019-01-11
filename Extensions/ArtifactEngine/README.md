@@ -8,7 +8,7 @@ To use Artifact engine in your tasks or app have a look at [E2E.ts](E2ETests/jen
 ).
 
 ## Architecture
-<img src="https://cdn.rawgit.com/omeshp/ItemLevelDownloader/f7a2d1a1/src/sequence.svg" height=600 width=800/>
+![image](https://github.com/Microsoft/azure-pipelines-extensions/blob/master/Extensions/ArtifactEngine/sequence.svg)
 
 ## Development
 **Build**
