@@ -7,8 +7,11 @@ Artifact engine is a generic framework which supports download of artifacts from
 To use Artifact engine in your tasks or app have a look at [E2E.ts](E2ETests/jenkins.e2e.ts
 ).
 
+## Usage
+![Daily downloads using artifact engine](https://github.com/Microsoft/azure-pipelines-extensions/blob/master/Extensions/ArtifactEngine/usage.png)
+
 ## Architecture
-![image](https://github.com/Microsoft/azure-pipelines-extensions/blob/master/Extensions/ArtifactEngine/sequence.svg)
+![Architecture](https://github.com/Microsoft/azure-pipelines-extensions/blob/master/Extensions/ArtifactEngine/sequence.svg)
 
 ## Development
 **Build**
