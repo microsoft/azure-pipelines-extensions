@@ -8,6 +8,7 @@ import * as providers from "../Providers"
 import { PersonalAccessTokenCredentialHandler } from "../Providers/typed-rest-client/handlers/personalaccesstoken";
 
 var nconf = require('nconf');
+var tl = require('vsts-task-lib/task');
 
 nconf.argv()
     .env()
@@ -30,7 +31,7 @@ describe('E2E Tests', () => {
             var itemsUrl = "https://testking123.visualstudio.com/_apis/resources/Containers/1898832?itemPath=Dropz&isShallow=false";
             var variables = {};
 
-            var handler = new PersonalAccessTokenCredentialHandler(nconf.get('VSTS:PAT'));
+            var handler = new PersonalAccessTokenCredentialHandler(nconf.get('VSTS:PAT') || tl.getVariable('VSTS:PAT'));
             var webProvider = new providers.WebProvider(itemsUrl, "vsts.handlebars", variables, handler, { ignoreSslError: false });
             var dropLocation = path.join(nconf.get('DROPLOCATION'), "vstsDropWithMultipleFiles");
             var filesystemProvider = new providers.FilesystemProvider(dropLocation);
