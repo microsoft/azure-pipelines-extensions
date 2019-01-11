@@ -98,7 +98,7 @@ describe('E2E Tests', () => {
             processorOptions.verbose = true;
 
             var itemsUrl = "http://rmcdpjenkins2.southindia.cloudapp.azure.com:8080///job/noexistant//8/artifact/*zip*/";
-            var handler = new BasicCredentialHandler(nconf.get('JENKINS:USERNAME'), nconf.get('JENKINS:PASSWORD'));
+            var handler = new BasicCredentialHandler(nconf.get('JENKINS:USERNAME'), nconf.get('JENKINS:PASSWORD') || tl.getVariable('JENKINS:PASSWORD'));
             var zipProvider = new providers.ZipProvider(itemsUrl, handler, { ignoreSslError: false });
             var dropLocation = path.join(nconf.get('DROPLOCATION'), "jenkinsDropWithMultipleFiles.zip");
             var filesystemProvider = new providers.FilesystemProvider(dropLocation);
