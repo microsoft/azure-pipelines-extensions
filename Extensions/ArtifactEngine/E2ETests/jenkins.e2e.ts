@@ -8,6 +8,7 @@ import * as providers from "../Providers"
 import { BasicCredentialHandler } from "../Providers/typed-rest-client/handlers/basiccreds";
 
 var nconf = require('nconf');
+var tl = require('vsts-task-lib/task');
 
 nconf.argv()
     .env()
@@ -34,7 +35,7 @@ describe('E2E Tests', () => {
                 "version": "10"
             };
 
-            var handler = new BasicCredentialHandler(nconf.get('JENKINS:USERNAME'), nconf.get('JENKINS:PASSWORD'));
+            var handler = new BasicCredentialHandler(nconf.get('JENKINS:USERNAME'), nconf.get('JENKINS:PASSWORD') || tl.getVariable('JENKINS:PASSWORD'));
             var webProvider = new providers.WebProvider(itemsUrl, "jenkins.handlebars", variables, handler, { ignoreSslError: false });
             var dropLocation = path.join(nconf.get('DROPLOCATION'), "jenkinsDropWithMultipleFiles");
             var filesystemProvider = new providers.FilesystemProvider(dropLocation);
