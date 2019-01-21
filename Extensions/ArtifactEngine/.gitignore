@@ -8,3 +8,4 @@ package-lock.json
 !definitions/*.d.ts
 .nyc_output/**
 .taskkey
+!Providers/typed-rest-client/opensource/node-http-ntlm/ntlm.js
