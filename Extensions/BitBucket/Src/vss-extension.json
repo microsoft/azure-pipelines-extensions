@@ -18,6 +18,10 @@
   "icons": {
     "default": "images\\vss_default.png"
   },
+  "repository": {
+        "type": "git",
+        "uri": "https://github.com/Microsoft/azure-pipelines-extensions/"
+  },
   "branding": {
     "color": "#3B3E43",
     "theme": "dark"
