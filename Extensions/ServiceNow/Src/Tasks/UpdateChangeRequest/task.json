@@ -18,16 +18,13 @@
     "Patch": 0
   },
   "instanceNameFormat": "Update ServiceNow Change Request",
-  "groups": [
-    {
-      "name": "advancedInputs",
-      "displayName": "Advanced",
-      "isExpanded": false
-    }
-  ],
+  "groups": [{
+    "name": "advancedInputs",
+    "displayName": "Advanced",
+    "isExpanded": false
+  }],
 
-  "inputs": [
-    {
+  "inputs": [{
       "name": "ServiceNowConnection",
       "type": "connectedService:ServiceNow",
       "label": "ServiceNow connection",
@@ -86,8 +83,7 @@
       }
     }
   ],
-  "dataSourceBindings": [
-    {
+  "dataSourceBindings": [{
       "target": "NewStatus",
       "endpointId": "$(ServiceNowConnection)",
       "dataSourceName": "State"
@@ -101,8 +97,7 @@
 
   "execution": {
     "HttpRequestChain": {
-      "Execute": [
-        {
+      "Execute": [{
           "RequestInputs": {
             "EndpointId": "$(ServiceNowConnection)",
             "EndpointUrl": "$(endpoint.url)/api/now/table/change_request?sysparm_query=number=$(ChangeRequestNumber)&sysparm_fields=correlation_id,number",
@@ -134,4 +129,3 @@
     }
   }
 }
-
