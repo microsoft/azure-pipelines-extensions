@@ -6,11 +6,12 @@
   "author": "Microsoft",
   "license": "ISC",
   "dependencies": {
+    "guid-typescript": "^1.0.9",
     "scp2": "^0.5.0",
-    "ssh2": "^0.5.5",
     "shelljs": "^0.6.0",
+    "ssh2": "^0.5.5",
     "vso-node-api": "6.0.1-preview ",
-    "vsts-task-lib" : "2.0.5"
+    "vsts-task-lib": "2.0.5"
   },
   "devDependencies": {},
   "scripts": {

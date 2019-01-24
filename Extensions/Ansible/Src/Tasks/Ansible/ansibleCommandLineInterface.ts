@@ -4,6 +4,7 @@ import * as ansibleUtils from './ansibleUtils';
 import { RemoteCommandOptions } from './ansibleUtils'
 import { ansibleTaskParameters } from './ansibleTaskParameters';
 
+var guid = require('guid-typescript');
 var os = require('os');
 var shell = require('shelljs');
 
@@ -130,7 +131,7 @@ export class ansibleCommandLineInterface extends ansibleInterface {
 
         return new Promise<string>(async (resolve, reject) => {
             try {
-                let remoteInventory = '/tmp/' + 'inventory.ini';
+                let remoteInventory = '/tmp/' + guid.Guid.create().toString() + 'inventory.ini';
                 let remoteInventoryPath = '"' + remoteInventory + '"';
                 tl.debug('RemoteInventoryPath = ' + remoteInventoryPath);
 
