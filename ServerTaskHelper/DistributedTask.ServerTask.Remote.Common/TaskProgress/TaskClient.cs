@@ -82,6 +82,30 @@ namespace DistributedTask.ServerTask.Remote.Common.TaskProgress
             await taskClient.AppendTimelineRecordFeedAsync(this.taskProperties.ProjectId, this.taskProperties.HubName, this.taskProperties.PlanId, this.taskProperties.TimelineId, this.taskProperties.JobId, lines).ConfigureAwait(false);
         }
 
+        public async Task SetTaskVariable(Guid taskId, string name, string value, bool isSecret, CancellationToken cancellationToken)
+        {
+            var records = await taskClient.GetRecordsAsync(this.taskProperties.ProjectId, this.taskProperties.HubName, this.taskProperties.PlanId, this.taskProperties.TimelineId, userState: null, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var taskRecord = records.FirstOrDefault(r => r.Id == taskId);
+            taskRecord.Variables[name] = new VariableValue { Value = value, IsSecret = isSecret };
+
+            await taskClient.UpdateTimelineRecordsAsync(this.taskProperties.ProjectId, this.taskProperties.HubName, this.taskProperties.PlanId, this.taskProperties.TimelineId, new List<TimelineRecord> { taskRecord }, cancellationToken).ConfigureAwait(false);
+        }
+
+        public string GetTaskVariable(Guid taskId, string name, CancellationToken cancellationToken)
+        {
+            var records = taskClient.GetRecordsAsync(this.taskProperties.ProjectId, this.taskProperties.HubName, this.taskProperties.PlanId, this.taskProperties.TimelineId, userState: null, cancellationToken: cancellationToken).Result;
+            var taskRecord = records.FirstOrDefault(r => r.Id == taskId);
+            foreach(var varaible in taskRecord.Variables)
+            {
+                if (string.Equals(varaible.Key, name, StringComparison.OrdinalIgnoreCase))
+                {
+                    return varaible.Value.Value;
+                }
+            }
+
+            return null;
+        }
+
         public void Dispose()
         {
             vssConnection?.Dispose();

@@ -7,6 +7,7 @@ using DistributedTask.ServerTask.Remote.Common.TaskProgress;
 using Microsoft.TeamFoundation.DistributedTask.WebApi;
 using Newtonsoft.Json;
 using AzureFunctionSample;
+using System.Linq;
 
 namespace MyAzureFunctionSampleFunctionHandler
 {
@@ -43,6 +44,22 @@ namespace MyAzureFunctionSampleFunctionHandler
             {
                 // Creates the container in Azure
                 await MyApp.CreateContainer(taskLogger, myAppParameters);
+
+                using (var taskClient = new TaskClient(taskMessage.GetTaskProperties()))
+                {
+                    // set variable
+                    await taskClient.SetTaskVariable(taskId: taskMessage.GetTaskProperties().TaskInstanceId, name: "ContainerName", value: "AzPipelineAgent", isSecret: false, cancellationToken: cancellationToken);
+
+                    // get variable
+                    var variableValue = taskClient.GetTaskVariable(taskId: taskMessage.GetTaskProperties().TaskInstanceId, name: "ContainerName", cancellationToken: cancellationToken);
+                    message = $"Variable value: {variableValue}";
+                    await taskLogger.Log(message).ConfigureAwait(false);
+
+                    message = $"{taskMessage.GetTaskProperties().JobId} { taskMessage.GetTaskProperties().PlanId} { taskMessage.GetTaskProperties().TaskInstanceId} { taskMessage.GetTaskProperties().TimelineId}";
+                    await taskLogger.Log(message).ConfigureAwait(false);
+                }
+                
+                
                 return await Task.FromResult(TaskResult.Succeeded);
             }
             catch (Exception ex)
