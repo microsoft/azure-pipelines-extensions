@@ -91,6 +91,9 @@ namespace HttpRequestSampleWithoutHandler
 
                     // Attache task log to the timeline record
                     UpdateTaskTimelineRecord(httpClient, authToken, planUri, projectId, hubName, planId, timelineId, taskInstanceId, taskLogObjectString);
+
+                    // Set task varaible
+                    SetTaskVariable(httpClient, authToken, planUri, projectId, hubName, planId, timelineId, taskInstanceId, "MyAppName", "TestApp", false);
                 }
             }
         }
@@ -212,8 +215,46 @@ namespace HttpRequestSampleWithoutHandler
 
             PatchData(httpClient, updateTaskTimelineRecordUrl, requestBody, authToken);
         }
-        
-        
+
+        private static void SetTaskVariable(HttpClient httpClient, string authToken, string planUri, string projectId, string hubName, string planId, string timelineId, string taskInstanceId, string variableName, string variableValue, bool isSecret)
+        {
+            // Get timeline records
+            const string TimelineRecordsUrl = "{0}/{1}/_apis/distributedtask/hubs/{2}/plans/{3}/timelines/{4}/records?api-version=4.1";
+
+            var timelineRecordsUrl = string.Format(TimelineRecordsUrl, planUri, projectId, hubName, planId, timelineId);
+
+            var response = GetData(httpClient, timelineRecordsUrl, authToken);
+            var timelineRecords = "";
+            if (response.StatusCode == HttpStatusCode.OK)
+            {
+                timelineRecords = response.Content.ReadAsStringAsync().Result;
+                dynamic timelineRecordsData = JsonConvert.DeserializeObject(timelineRecords);
+                JObject timelineRecord = new JObject();
+                foreach (var t in timelineRecordsData["value"])
+                {
+                    string timelineRecordId = (string)t["id"];
+                    if (string.Equals(timelineRecordId, taskInstanceId, StringComparison.OrdinalIgnoreCase))
+                    {
+                        timelineRecord = t;
+                        var taskVaraible = new JObject();
+                        taskVaraible[variableName] = new JObject(new JProperty("value", variableValue), new JProperty("isSecret", isSecret));
+                        timelineRecord.Add(new JProperty("variables", taskVaraible));
+                    }
+                }
+
+                JArray updatedTimelineRecords = new JArray();
+                updatedTimelineRecords.Add(timelineRecord);
+                var requestBodyJObject = new JObject();
+                requestBodyJObject["value"] = updatedTimelineRecords;
+                requestBodyJObject.Add(new JProperty("count", 1));
+
+                var requestBody = JsonConvert.SerializeObject(requestBodyJObject);
+
+                PatchData(httpClient, timelineRecordsUrl, requestBody, authToken);
+            }
+        }
+
+
         private static HttpResponseMessage PostData(HttpClient httpClient, string url, string requestBody, string authToken)
         {
             var buffer = System.Text.Encoding.UTF8.GetBytes(requestBody);
@@ -238,6 +279,15 @@ namespace HttpRequestSampleWithoutHandler
                 string.Format("{0}:{1}", "", authToken))));
 
             return httpClient.PatchAsync(new Uri(url), byteContent).Result;
+        }
+
+        private static HttpResponseMessage GetData(HttpClient httpClient, string url, string authToken)
+        {          
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(
+            System.Text.ASCIIEncoding.ASCII.GetBytes(
+                string.Format("{0}:{1}", "", authToken))));
+
+            return httpClient.GetAsync(new Uri(url)).Result;
         }
     }
 }
