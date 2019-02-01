@@ -207,7 +207,6 @@
       "label": "Planned start date",
       "required": "false",
       "defaultValue": "",
-      "groupName": "schedule",
       "helpMarkDown": "Planned start time of the change request in UTC (yyyy-MM-ddTHH:mm:ssZ format). eg. 2018-01-31T07:56:59Z",
       "visibleRule": "changeRequestAction = createNew"
     },
@@ -217,7 +216,6 @@
       "label": "Planned end date",
       "required": "false",
       "defaultValue": "",
-      "groupName": "schedule",
       "helpMarkDown": "Planned end time of the change request in UTC (yyyy-MM-ddTHH:mm:ssZ format). eg. 2018-01-31T07:56:59Z",
       "visibleRule": "changeRequestAction = createNew"
     },
@@ -227,7 +225,6 @@
       "label": "Additional change request parameters",
       "defaultValue": "",
       "required": "false",
-      "groupName": "advancedInputs",
       "helpMarkDown": "Additional change request properties to set. Specified as Key-value pairs in json format, name being the field name (not label) prefixed with 'u_' in ServiceNow and a valid value. Invalid properties are ignored.",
       "properties": {
         "editorExtension": "ms.vss-services-azure.azure-servicebus-message-grid"
