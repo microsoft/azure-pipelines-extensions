@@ -2,8 +2,8 @@
   "manifestVersion": 1,
   "id": "vss-services-servicenowchangerequestmanagement",
   "name": "ServiceNow Change Management",
-  "publisher": "NishuBansal",
-  "version": "0.7.1",
+  "publisher": "ms-vscs-rm",
+  "version": "0.0.3",
   "public": true,
   "description": "Integrate ServiceNow Change Management with Azure Pipelines",
   "categories": [
@@ -115,8 +115,11 @@
           },
           {
             "name": "Impact",
-            "endpointUrl": "{{endpoint.url}}/api/now/table/sys_choice?sysparm_query=element=Impact^ORDERBYDESCvalue&sysparm_fields=label",
-            "resultSelector": "jsonpath:$.result[*].label"
+            "endpointUrl": "{{endpoint.url}}/api/now/table/sys_choice?sysparm_query=element=Impact^name={{table}}^ORDERBYDESCvalue&sysparm_fields=label",
+            "resultSelector": "jsonpath:$.result[*].label",
+            "callbackContextTemplate": "{\"table\": \"task\"}",
+            "callbackRequiredTemplate": "{{#equals table \"change_request\"}}{{isEqualNumber result.count 0}}{{else}}false{{/equals}}",
+            "initialContextTemplate": "{\"table\": \"change_request\"}"
           },
           {
             "name": "Category",

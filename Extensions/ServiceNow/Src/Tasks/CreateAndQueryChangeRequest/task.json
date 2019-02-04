@@ -319,7 +319,7 @@
         {
           "RequestInputs": {
             "EndpointId": "$(ServiceNowConnection)",
-            "EndpointUrl": "$(endpoint.url)/api/now/table/change_request?sysparm_query=number=$(changeQueryValue)^ORDERBYDESCsys_created_on&sysparm_fields=state,number,correlation_id&&sysparm_display_value=true",
+            "EndpointUrl": "$(endpoint.url)/api/now/table/change_request?sysparm_query=number=$(changeQueryValue)^ORDERBYDESCsys_created_on&sysparm_fields=sys_created_on,state,number,correlation_id&&sysparm_display_value=true",
             "Method": "GET",
             "Headers": "{\"Content-Type\":\"application/json\", \"Accept\":\"application/json\"}",
             "WaitForCompletion": "false",
@@ -333,7 +333,7 @@
         {
           "RequestInputs": {
             "EndpointId": "$(ServiceNowConnection)",
-            "EndpointUrl": "$(endpoint.url)/api/now/table/change_request?sysparm_query=correlation_id=$(changeQueryValue)^ORDERBYDESCsys_created_on&sysparm_fields=state,number,correlation_id&&sysparm_display_value=true",
+            "EndpointUrl": "$(endpoint.url)/api/now/table/change_request?sysparm_query=correlation_id=$(changeQueryValue)^ORDERBYDESCsys_created_on&sysparm_fields=sys_created_on,state,number,correlation_id&&sysparm_display_value=true",
             "Method": "GET",
             "Headers": "{\"Content-Type\":\"application/json\", \"Accept\":\"application/json\"}",
             "WaitForCompletion": "false",
@@ -347,7 +347,7 @@
         {
           "RequestInputs": {
             "EndpointId": "$(ServiceNowConnection)",
-            "EndpointUrl": "$(endpoint.url)/api/now/table/change_request?sysparm_query=$(changeQueryValue)^ORDERBYDESCsys_created_on&sysparm_fields=state,number,correlation_id&&sysparm_display_value=true",
+            "EndpointUrl": "$(endpoint.url)/api/now/table/change_request?sysparm_query=$(changeQueryValue)^ORDERBYDESCsys_created_on&sysparm_fields=sys_created_on,state,number,correlation_id&&sysparm_display_value=true",
             "Method": "GET",
             "Headers": "{\"Content-Type\":\"application/json\", \"Accept\":\"application/json\"}",
             "WaitForCompletion": "false",
@@ -368,10 +368,6 @@
     {
       "name": "CHANGE_SYSTEM_ID",
       "description": "System Id of the change request created in ServiceNow"
-    },
-    {
-      "name": "CORRELATION_ID",
-      "description": "Correlation Id of the change request"
     }
   ]
 }
