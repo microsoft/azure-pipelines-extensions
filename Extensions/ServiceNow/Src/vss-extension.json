@@ -1,35 +1,58 @@
 {
   "manifestVersion": 1,
   "id": "vss-services-servicenowchangerequestmanagement",
-  "name": "ServiceNow change request management",
+  "name": "ServiceNow Change Management",
   "publisher": "ms-vscs-rm",
-  "version": "0.0.1",
+  "version": "0.0.3",
   "public": true,
-  "description": "Integrate ServiceNow change management with Azure pipelines",
+  "description": "Integrate ServiceNow Change Management with Azure Pipelines",
   "categories": [
     "Azure Pipelines"
   ],
   "Tags": [
     "ServiceNow",
+    "Change Management",
     "Release",
-    "ReleaseGates",
-    "DevOps"
+    "Release Gates",
+    "DevOps",
+    "Pipelines"
   ],
   "targets": [
     {
       "id": "Microsoft.VisualStudio.Services.Cloud"
-    },
-    {
-      "id": "Microsoft.TeamFoundation.Server"
     }
   ],
   "demands": [],
   "icons": {
     "default": "images/servicenow.png"
   },
+  "screenshots": [
+    {
+      "path": "images/change_request_screenshot.png"
+    },
+    {
+      "path": "images/gate_screenshot.png"
+    }
+  ],
   "files": [
     {
       "path": "images/servicenow.png",
+      "addressable": true
+    },
+    {
+      "path": "images/agentless_task.png",
+      "addressable": true
+    },
+    {
+      "path": "images/release_definition.png",
+      "addressable": true
+    },
+    {
+      "path": "images/release_gate.png",
+      "addressable": true
+    },
+    {
+      "path": "images/servicenow_connection.png",
       "addressable": true
     },
     {
@@ -62,13 +85,19 @@
         "dataSources": [
           {
             "name": "Priority",
-            "endpointUrl": "{{endpoint.url}}/api/now/table/sys_choice?sysparm_query=element=priority^name=change_request&sysparm_fields=label",
-            "resultSelector": "jsonpath:$.result[*].label"
+            "endpointUrl": "{{endpoint.url}}/api/now/table/sys_choice?sysparm_query=element=priority^name={{table}}&sysparm_fields=label",
+            "resultSelector": "jsonpath:$.result[*].label",
+            "callbackContextTemplate": "{\"table\": \"task\"}",
+            "callbackRequiredTemplate": "{{#equals table \"change_request\"}}{{isEqualNumber result.count 0}}{{else}}false{{/equals}}",
+            "initialContextTemplate": "{\"table\": \"change_request\"}"
           },
           {
             "name": "State",
-            "endpointUrl": "{{endpoint.url}}/api/now/table/sys_choice?sysparm_query=element=state^name=change_request&sysparm_fields=label",
-            "resultSelector": "jsonpath:$.result[*].label"
+            "endpointUrl": "{{endpoint.url}}/api/now/table/sys_choice?sysparm_query=element=state^name={{table}}&sysparm_fields=label",
+            "resultSelector": "jsonpath:$.result[*].label",
+            "callbackContextTemplate": "{\"table\": \"task\"}",
+            "callbackRequiredTemplate": "{{#equals table \"change_request\"}}{{isEqualNumber result.count 0}}{{else}}false{{/equals}}",
+            "initialContextTemplate": "{\"table\": \"change_request\"}"
           },
           {
             "name": "Risk",

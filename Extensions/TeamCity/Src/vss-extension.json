@@ -3,7 +3,7 @@
   "id": "vss-services-teamcity",
   "name": "TeamCity artifacts for Release Management",
   "publisher": "ms-devlabs",
-  "version": "15.142.0",
+  "version": "15.145.0",
   "public": true,
   "description": "Tools related to connecting with TeamCity",
   "_description.comment": "The below format to define artifact extensions is currently in preview and may change in future.",
@@ -17,6 +17,10 @@
   "demands": [ "contribution/ms.vss-releaseartifact.artifact-types" ],
   "icons": {
     "default": "images\\tc-icon128px.png"
+  },
+  "repository": {
+    "type": "git",
+    "uri": "https://github.com/Microsoft/azure-pipelines-extensions/"
   },
   "branding": {
     "color": "#3B3E43",
@@ -194,10 +198,36 @@
                 {
                   "value": "selectDuringReleaseCreationType",
                   "displayValue": "Specify at the time of release creation"
+                },
+                {
+                  "value": "specificVersionType",
+                  "displayValue": "Specify specific version"
                 }
               ],
               "isLimitedToPossibleValues": true
             },
+            "validation": {
+              "isRequired": true,
+              "dataType": "string"
+            }
+          },
+          {
+            "id": "defaultVersionSpecific",
+            "name": "i18n:Version",
+            "description": "i18n:Version",
+            "inputMode": "Combo",
+            "isConfidential": false,
+            "groupName": "[{ \"Key\": \"defaultVersionType\", \"Value\": \"specificVersionType\"}]",
+            "properties": {
+              "visibleRule": "defaultVersionType == specificVersionType"
+            },
+            "hasDynamicValueInformation": true,
+            "dependencyInputIds": [
+              "connection",
+              "project",
+              "definition",
+              "defaultVersionType"
+            ],
             "validation": {
               "isRequired": true,
               "dataType": "string"
@@ -235,6 +265,11 @@
           },
           {
             "target": "versions",
+            "dataSourceName": "Builds",
+            "resultTemplate": "{ Value : \"{{id}}\", DisplayValue : \"{{{number}}}\" }"
+          },
+          {
+            "target": "defaultVersionSpecific",
             "dataSourceName": "Builds",
             "resultTemplate": "{ Value : \"{{id}}\", DisplayValue : \"{{{number}}}\" }"
           },

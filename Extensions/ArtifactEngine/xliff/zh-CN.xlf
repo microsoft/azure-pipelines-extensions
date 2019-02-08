@@ -2,55 +2,55 @@
 <xliff version="1.2">
   <file original="lib.json" source-language="en-US" target-language="zh-CN" datatype="plaintext">
     <body>
-      <trans-unit id="loc.messages.DownloadSummary">
+      <trans-unit xmlns="" id="loc.messages.DownloadSummary">
         <source>Total Files: %s, Processed: %s, Skipped: %s, Failed: %s, Download time: %s secs, Download size: %s</source>
         <target state="translated">总文件数: %s，已处理: %s，已跳过: %s，已失败: %s，下载时间: %s 秒，下载大小: %s</target>
-        <note/>
+        <note />
       </trans-unit>
-      <trans-unit id="loc.messages.DownloadedTo">
+      <trans-unit xmlns="" id="loc.messages.DownloadedTo">
         <source>Downloaded %s to %s</source>
         <target state="translated">已将 %s 下载至 %s</target>
-        <note/>
+        <note />
       </trans-unit>
-      <trans-unit id="loc.messages.DownloadingTo">
+      <trans-unit xmlns="" id="loc.messages.DownloadingTo">
         <source>Downloading %s to %s</source>
         <target state="translated">正在将 %s 下载至 %s</target>
-        <note/>
+        <note />
       </trans-unit>
-      <trans-unit id="loc.messages.FailedRequest">
+      <trans-unit xmlns="" id="loc.messages.FailedRequest">
         <source>Failed request: (statusCode)</source>
-        <target state="new"/>
-        <note/>
+        <target state="new">请求失败: (statusCode)</target>
+        <note />
       </trans-unit>
-      <trans-unit id="loc.messages.FailedToParseResponse">
+      <trans-unit xmlns="" id="loc.messages.FailedToParseResponse">
         <source>Failed to parse response body: %s, got error : %s</source>
         <target state="translated">未能分析响应正文: %s，显示错误: %s</target>
-        <note/>
+        <note />
       </trans-unit>
-      <trans-unit id="loc.messages.RetryingDownload">
+      <trans-unit xmlns="" id="loc.messages.RetryingDownload">
         <source>Retrying download of %s, retry count: %s</source>
         <target state="translated">重新尝试下载 %s，重试计数: %s</target>
-        <note/>
+        <note />
       </trans-unit>
-      <trans-unit id="loc.messages.SkippingItem">
+      <trans-unit xmlns="" id="loc.messages.SkippingItem">
         <source>Skipped processing item %s</source>
         <target state="translated">已跳过处理项目 %s</target>
-        <note/>
+        <note />
       </trans-unit>
-      <trans-unit id="loc.messages.UnableToReadDirectory">
+      <trans-unit xmlns="" id="loc.messages.UnableToReadDirectory">
         <source>Unable to read directory %s. Error: %s</source>
         <target state="translated">未能读取目录 %s。错误: %s</target>
-        <note/>
+        <note />
       </trans-unit>
-      <trans-unit id="loc.messages.UnhandledException">
+      <trans-unit xmlns="" id="loc.messages.UnhandledException">
         <source>artifact-engine: unhandled exception %s</source>
         <target state="translated">项目引擎: 未处理的异常 %s</target>
-        <note/>
+        <note />
       </trans-unit>
-      <trans-unit id="loc.messages.UnhandledRejection">
+      <trans-unit xmlns="" id="loc.messages.UnhandledRejection">
         <source>artifact-engine: unhandled rejection %s</source>
         <target state="translated">项目引擎: 未处理的拒绝 %s</target>
-        <note/>
+        <note />
       </trans-unit>
     </body>
   </file>

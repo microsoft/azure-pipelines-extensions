@@ -65,7 +65,7 @@
       "type": "pickList",
       "label": "Category",
       "required": "true",
-      "helpMarkDown": "Category (label or value) of the change request.",
+      "helpMarkDown": "Choose or type category (label or value) of the change request.",
       "properties": {
         "EditableOptions": "True"
       }
@@ -75,7 +75,7 @@
       "type": "pickList",
       "label": "Priority",
       "required": "true",
-      "helpMarkDown": "Priority (label or value) of the change request.",
+      "helpMarkDown": "Choose or type priority (label or value) of the change request.",
       "properties": {
         "EditableOptions": "True"
       }
@@ -85,7 +85,7 @@
       "type": "pickList",
       "label": "Risk",
       "required": "true",
-      "helpMarkDown": "Risk (label or value) of the change request.",
+      "helpMarkDown": "Choose or type risk (label or value) of the change request.",
       "properties": {
         "EditableOptions": "True"
       }
@@ -95,7 +95,7 @@
       "type": "pickList",
       "label": "Impact",
       "required": "true",
-      "helpMarkDown": "Impact (label or value) of the change request.",
+      "helpMarkDown": "Choose or type impact (label or value) of the change request.",
       "properties": {
         "EditableOptions": "True"
       }
@@ -106,7 +106,7 @@
       "label": "Configuration Item",
       "required": "false",
       "defaultValue": "",
-      "helpMarkDown": "Item or service (display name or sys_id) defined in ServiceNow that is affected by this pipeline.",
+      "helpMarkDown": "Choose or type item or service (display name or sys_id) defined in ServiceNow that is affected by this pipeline.",
       "properties": {
         "EditableOptions": "True"
       }
@@ -117,7 +117,7 @@
       "label": "Assignment Group",
       "required": "false",
       "defaultValue": "",
-      "helpMarkDown": "Group of ServiceNow users who can approve and update the change request.",
+      "helpMarkDown": "Choose or type group of ServiceNow users who can approve and update the change request.",
       "properties": {
         "EditableOptions": "True"
       }
@@ -156,10 +156,9 @@
       "name": "DesiredExitStatus",
       "type": "pickList",
       "label": "Desired status of change request",
-      "defaultValue": "New",
       "required": "true",
       "groupName": "completionOptions",
-      "helpMarkDown": "Status of change request that indicates the change request is ready to be implemented. Gate would succeed when the the change request status is same as the provided value.",
+      "helpMarkDown": "Choose or type status of change request that indicates the change request is ready to be implemented. Gate would succeed when the the change request status is same as the provided value.",
       "properties": {
         "EditableOptions": "True"
       }

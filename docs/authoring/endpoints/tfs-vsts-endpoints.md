@@ -45,13 +45,14 @@ tfs:teamfoundation – Any micro service hosted within TFS (e.g. Build, Test etc
 tfs:packaging – Packaging service
 tfs:feed – Feed service
 tfs:rm – Release Management service
+tfs:governance - Governance service
 tfs:ems - Extension Management service
 ```
 Note that data source bindings using these services will work seamlessly in TFS as well as VSTS.
 
 Support for tfs:packaging & tfs:feed is added with TFS 2018 Release.
 
-Support for tfs:rm is added with TFS 2018 Update 2 Release.
+Support for tfs:rm & tfs:governance is added with TFS 2018 Update 2 Release.
 
 Support for tfs:ems is added with TFS 2019 Release.
 

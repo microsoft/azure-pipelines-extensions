@@ -128,6 +128,7 @@ export class FilesystemProvider implements models.IArtifactProvider {
                         path: parentRelativePath ? path.join(parentRelativePath, file) : file,
                         fileLength: itemStat.size,
                         lastModified: itemStat.mtime,
+                        contentType: undefined,
                         metadata: { "downloadUrl": filePath }
                     }
 

@@ -29,11 +29,10 @@ namespace AzureFunctionHandler
             // Get request body
             var messageBody = await req.Content.ReadAsStringAsync().ConfigureAwait(false);
 
-            // Since we expect all the VSTS properties to be in the request headers, fetch them from the headers
-            //
+            // Fetch all the VSTS properties from the headers
             var taskProperties = GetTaskProperties(req.Headers);
 
-            // Create my own task execution handler. You should replace it with your task execution handler. 
+            // Created task execution handler
             ITaskExecutionHandler myTaskExecutionHandler = new MyTaskExecutionHandler();
 
             var executionHandler = new ExecutionHandler(myTaskExecutionHandler, messageBody, taskProperties);
