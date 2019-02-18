@@ -106,8 +106,11 @@
           },
           {
             "name": "Impact",
-            "endpointUrl": "{{endpoint.url}}/api/now/table/sys_choice?sysparm_query=element=Impact^ORDERBYDESCvalue&sysparm_fields=label",
-            "resultSelector": "jsonpath:$.result[*].label"
+            "endpointUrl": "{{endpoint.url}}/api/now/table/sys_choice?sysparm_query=element=Impact^name={{table}}^ORDERBYDESCvalue&sysparm_fields=label",
+            "resultSelector": "jsonpath:$.result[*].label",
+            "callbackContextTemplate": "{\"table\": \"task\"}",
+            "callbackRequiredTemplate": "{{#equals table \"change_request\"}}{{isEqualNumber result.count 0}}{{else}}false{{/equals}}",
+            "initialContextTemplate": "{\"table\": \"change_request\"}"
           },
           {
             "name": "Category",

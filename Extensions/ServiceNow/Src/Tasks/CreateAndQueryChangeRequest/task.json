@@ -215,7 +215,7 @@
             "Expression": "eq(jsonpath('$.result[0].status')[0], 'inserted')"
           },
           "ExecutionOptions": {
-            "OutputVariables": "{\"CHANGE_SYSTEM_ID\" :  \"jsonpath('$.result[0].sys_id')[0]\", \"CHANGE_REQUEST_NUMBER\" :  \"jsonpath('$.result[0].display_value')[0]\"}",
+            "OutputVariables": "{\"CHANGE_SYSTEM_ID\" :  \"jsonpath('$.result[0].sys_id')[0]\"}",
             "SkipSectionExpression": "eq(isNullOrEmpty(variables['CHANGE_SYSTEM_ID']), false)"
           }
         },
@@ -229,6 +229,7 @@
             "Expression": "eq(jsonpath('$.result.state')[0], '$(DesiredExitStatus)')"
           },
           "ExecutionOptions": {
+            "OutputVariables": "{\"CHANGE_REQUEST_NUMBER\" :  \"jsonpath('$.result.number')[0]\"}",
             "SkipSectionExpression": "eq(isNullOrEmpty(variables['CHANGE_SYSTEM_ID']), true)"
           }
         }
