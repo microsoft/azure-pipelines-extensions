@@ -16,7 +16,7 @@ Go to project settings -> Services tab and create a New Service Endpoint of type
 Once you have set up the service endpoint connection, you would be able to link an external TFS/VS-Team-Services build artifact in your release definition
 ![Linking TeamCity&trade; artifact](images/screen2.png)
 
-[Learn more about artifacts in Release Management](https://msdn.microsoft.com/library/vs/alm/release/author-release-definition/understanding-artifacts). Also you can use [RM Extensions on Github](https://github.com/Microsoft/vsts-rm-extensions/issues) to report any issues.
+[Learn more about artifacts in Release Management](https://msdn.microsoft.com/library/vs/alm/release/author-release-definition/understanding-artifacts). Also you can use [Azure Pipeline Extensions on Github](https://github.com/Microsoft/azure-pipelines-extensions/issues) to report any issues.
 
 **Note: ** TeamCity&trade; is trademark owned by Jetbrains s.r.o.
 

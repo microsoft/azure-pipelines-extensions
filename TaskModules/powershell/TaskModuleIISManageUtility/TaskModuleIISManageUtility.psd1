@@ -13,10 +13,10 @@
     AliasesToExport = ''
     PrivateData = @{
         PSData = @{
-            ProjectUri = 'https://github.com/Microsoft/vsts-rm-extensions'
+            ProjectUri = 'https://github.com/Microsoft/azure-pipelines-extensions'
             CommitHash = '_COMMIT_HASH_' # Do not modify. This value gets replaced at build time.
         }
     }
-    HelpInfoURI = 'https://github.com/Microsoft/vsts-rm-extensions'
+    HelpInfoURI = 'https://github.com/Microsoft/azure-pipelines-extensions'
     DefaultCommandPrefix = ''
 }

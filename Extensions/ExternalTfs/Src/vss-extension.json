@@ -60,6 +60,10 @@
        "path": "Tasks/DownloadExternalBuildArtifacts"
     }
   ],
+  "repository": {
+        "type": "git",
+        "uri": "https://github.com/Microsoft/azure-pipelines-extensions/"
+  },
   "branding": {
       "color": "#5C2D91",
       "theme": "dark"

@@ -10,9 +10,9 @@
 
 |Link to Sample|Description|
 |:----:|----|
-|[HttpRequestHandler](https://github.com/Microsoft/vsts-rm-extensions/tree/master/ServerTaskHelper/HttpRequestHandler)|This sample demonstrates how you can use this library in your product which is integrating with server tasks via [InvokeRestAPI](https://github.com/Microsoft/vsts-tasks/tree/master/Tasks/InvokeRestApi) task. |
-|[ServiceBusMessageHandler](https://github.com/Microsoft/vsts-rm-extensions/tree/master/ServerTaskHelper/ServiceBusMessageHandler)|This sample demonstrates how you can use this library in your product which is integrating with server tasks via [PublishToAzureServiceBus](https://github.com/Microsoft/vsts-tasks/tree/master/Tasks/PublishToAzureServiceBus) task. |
-|[AzureFunctionHandler](https://github.com/Microsoft/vsts-rm-extensions/tree/master/ServerTaskHelper/AzureFunctionHandler)|This sample demonstrates how you can use this library in your product which is integrating with server tasks via [AzureFunction](https://github.com/Microsoft/vsts-tasks/tree/master/Tasks/AzureFunction) task. |
+|[HttpRequestHandler](https://github.com/Microsoft/azure-pipelines-extensions/tree/master/ServerTaskHelper/HttpRequestHandler)|This sample demonstrates how you can use this library in your product which is integrating with server tasks via [InvokeRestAPI](https://github.com/Microsoft/azure-pipelines-tasks/tree/master/Tasks/InvokeRestApiV1) task. |
+|[ServiceBusMessageHandler](https://github.com/Microsoft/azure-pipelines-extensions/tree/master/ServerTaskHelper/ServiceBusMessageHandler)|This sample demonstrates how you can use this library in your product which is integrating with server tasks via [PublishToAzureServiceBus](https://github.com/Microsoft/azure-pipelines-tasks/tree/master/Tasks/PublishToAzureServiceBusV1) task. |
+|[AzureFunctionHandler](https://github.com/Microsoft/azure-pipelines-extensions/tree/master/ServerTaskHelper/AzureFunctionHandler)|This sample demonstrates how you can use this library in your product which is integrating with server tasks via [AzureFunction](https://github.com/Microsoft/azure-pipelines-tasks/tree/master/Tasks/AzureFunctionV1) task. |
 
 #### Important classes in this project:
 |Class|Description|

@@ -1,0 +1,95 @@
+﻿{
+  "manifestVersion": 1.0,
+  "extensionId": "azuredevopsoptimizelyx",
+  "name": "Azure Devops Optimizely-X integration",
+  "version": "0.0.1",
+  "publisher": "ms-vscs-rm",
+  "description": "Azure Devops extension for Optimizely-X integration.",
+  "public": true,
+  "galleryFlags": [
+    "Private"
+  ],
+  "icons": {
+    "default": "images/OptimizelyX_logo.png",
+    "large": "images/OptimizelyX_logo.png"
+  },
+  "categories": [
+    "Build and release"
+  ],
+  "tags": [ ],
+  "links": {
+    "Learn": {
+      "uri": "http://go.microsoft.com/fwlink/?LinkId=616089"
+    }
+  },
+  "branding": {
+    "color": "#f6f7fb",
+    "theme": "light"
+  },
+  "content": {
+    "details": {
+      "path": "README.md"
+    }
+  },
+  "files": [
+    {
+      "path": "Tasks/OptimizelyX"
+    },
+    {
+      "path": "images",
+      "addressable": true
+    }
+  ],
+  "targets": [
+    {
+      "id": "Microsoft.VisualStudio.Services"
+    }
+  ],
+  "contributions": [
+    {
+      "id": "optimizely-endpoint-type",
+      "description": "i18n: Service Connection for Optimizely-X",
+      "type": "ms.vss-endpoint.service-endpoint-type",
+      "targets": [
+        "ms.vss-endpoint.endpoint-types"
+      ],
+      "properties": {
+        "name": "optimizelyx",
+        "displayName": "Optimizely",
+        "url": "https://api.optimizely.com/v2",
+        "authenticationSchemes": [
+          {
+            "type": "ms.vss-endpoint.endpoint-auth-scheme-token"
+          }
+        ],
+        "inputDescriptors": [],
+        "helpLink": {
+          "text": "Learn More",
+          "url": "https://aka.ms/AzDevOpsOptimizelyXHelp"
+        },
+        "dataSources": [
+          {
+            "name": "OptimizelyXProjects",
+            "endpointUrl": "{{endpoint.url}}/projects?filter=project_status:Active",
+            "resultSelector": "jsonpath:$[*]"
+          },
+          {
+            "name": "OptimizelyXExperiments",
+            "endpointUrl": "{{endpoint.url}}/experiments?project_id={{ProjectId}}",
+            "resultSelector": "jsonpath:$[?(@.status != 'archived')]"
+          }
+        ]
+      }
+    },
+    {
+      "id": "optimizelyx-task",
+      "type": "ms.vss-distributed-task.task",
+      "targets": [
+        "ms.vss-distributed-task.tasks"
+      ],
+      "properties": {
+        "name": "Tasks/OptimizelyX"
+      }
+    }
+  ]
+}

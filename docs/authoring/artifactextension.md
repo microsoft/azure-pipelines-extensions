@@ -99,7 +99,7 @@ For e.g. in case of BitBucket artifact type, a value `artifactSourceId` can be :
 ### <a name="querycommits"></a> Query commits & work items between releases
 VSTS RM supports viewing commits and work items associated with the artifact version for a custom artifact type used between two releases.
 
-[Here](https://github.com/Microsoft/vsts-tasks/blob/984a93f74ce86a706c68a364b826f654de403906/Tasks/JenkinsDownloadArtifacts/jenkinsdownloadartifacts.ts#L202) is the logic that fetches commits & work items associated with Jenkins artifact for DownloadJenkinsArtifacts task.
+[Here](https://github.com/Microsoft/azure-pipelines-tasks/blob/984a93f74ce86a706c68a364b826f654de403906/Tasks/JenkinsDownloadArtifacts/jenkinsdownloadartifacts.ts#L202) is the logic that fetches commits & work items associated with Jenkins artifact for DownloadJenkinsArtifacts task.
 
 Below is how the commits/work items associated with Jenkins artifact between two releases is seen within VSTS RM UI:
 
@@ -108,7 +108,7 @@ Below is how the commits/work items associated with Jenkins artifact between two
 ![Query workitems](images/workitems.png)
 
 ## Artifact Source contribution
-In order to describe the salient properties within artifact source contribution, we will use [*BitBucket*](https://github.com/Microsoft/vsts-rm-extensions/blob/master/Extensions/BitBucket/Src/vss-extension.json) artifact source contribution as an example :
+In order to describe the salient properties within artifact source contribution, we will use [*BitBucket*](https://github.com/Microsoft/azure-pipelines-extensions/blob/master/Extensions/BitBucket/Src/vss-extension.json) artifact source contribution as an example :
 ```
     {
       "id": "bitbucket-release-artifact-type",
@@ -171,6 +171,11 @@ In order to describe the salient properties within artifact source contribution,
               }
           }
         ],
+        "taskInputMapping":{
+          "connection": "{{{connection}}}",
+          "definition":"{{{definition}}}",
+          "branch": "{{{branch}}}"
+        },
         "dataSourceBindings": [
           {
             "target": "definition",
@@ -222,6 +227,7 @@ In order to describe the salient properties within artifact source contribution,
 | `downloadTaskId` | This is used to associate the artifact type with the task used to download it as part of deployment. This is optional and need not be specified in case there is no need to download the artifact as part of deployment. |
 | `inputDescriptors` | This is used to represent the various inputs for the artifact source when linking it within release definition. Some of these are the [well-known input descriptors](#wellknowninputdescriptors) that VSTS expects artifact source contribution to declare to be able to allow linking it within release definition & deploying it within a release. In addition to these inputs, the artifact source can include other inputs specific to the type. All the inputs specified when linking the artifact source will be passed as inputs to the Download Artifacts task. The input names in the artifact & task inputs have to match. |
 | `dataSourceBindings` | This is used to represent the REST APIs in the artifact source provider that can be queried by *VSTS* and provide rich artifact integration points. *VSTS* recognizes a bunch of [well-known targets for data source bindings](#wellknowntargets) and leverages them to query and light up the integration points in UI where data needs to be fetched from artifact source provider. |
+| `taskInputMapping` | This is used to map the artifact inputs to task inputs. In the above example both task input names and the artifact input names are same. When both the names are same this property can be ignored. If both the inputs have different names this property comes handy. The left hand side of the mapping denotes the task input name, and the right hand side of the mapping denotes the artifact input name. |
 |||
 
 ### <a name="artifactcategories"></a>*Categories of artifact types* :
@@ -277,10 +283,10 @@ In order to describe the salient properties within artifact source contribution,
 | `endpoint-auth-scheme-none` | `None` |
  
 ## References to custom artifact sources
-A bunch of *VSTS Release* artifact sources are built out of [vsts-rm-extensions](https://github.com/Microsoft/vsts-rm-extensions/) *GitHub* repo.
+A bunch of *VSTS Release* artifact sources are built out of [azure-pipelines-extensions](https://github.com/Microsoft/azure-pipelines-extensions/) *GitHub* repo.
 
-- [*BitBucket*]( https://github.com/Microsoft/vsts-rm-extensions/tree/master/Extensions/BitBucket/Src)
-- [*TeamCity*](https://github.com/Microsoft/vsts-rm-extensions/tree/master/Extensions/TeamCity/Src)
-- [*ExternalTfs*](https://github.com/Microsoft/vsts-rm-extensions/tree/master/Extensions/ExternalTfs/Src)
-- *Jenkins* artifact type is implemented as a built-in contribution. Jenkins download task implementation can be found [here](https://github.com/Microsoft/vsts-tasks/blob/master/Tasks/JenkinsDownloadArtifactsV1)
-- *VSTS Package Management* artifact type is implemented as a built-in contribution. Package download task implementation can be found [here](https://github.com/Microsoft/vsts-tasks/tree/master/Tasks/DownloadPackageV0)
+- [*BitBucket*]( https://github.com/Microsoft/azure-pipelines-extensions/tree/master/Extensions/BitBucket/Src)
+- [*TeamCity*](https://github.com/Microsoft/azure-pipelines-extensions/tree/master/Extensions/TeamCity/Src)
+- [*ExternalTfs*](https://github.com/Microsoft/azure-pipelines-extensions/tree/master/Extensions/ExternalTfs/Src)
+- *Jenkins* artifact type is implemented as a built-in contribution. Jenkins download task implementation can be found [here](https://github.com/Microsoft/azure-pipelines-tasks/tree/master/Tasks/JenkinsDownloadArtifactsV1)
+- *VSTS Package Management* artifact type is implemented as a built-in contribution. Package download task implementation can be found [here](https://github.com/Microsoft/azure-pipelines-tasks/tree/master/Tasks/DownloadPackageV0)
