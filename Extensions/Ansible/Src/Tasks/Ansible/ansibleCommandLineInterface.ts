@@ -130,7 +130,7 @@ export class ansibleCommandLineInterface extends ansibleInterface {
 
         return new Promise<string>(async (resolve, reject) => {
             try {
-                let remoteInventory = ansibleUtils.getUniqueInventoryFilePath();
+                let remoteInventory = ansibleUtils.getTemporaryInventoryFilePath();
                 let remoteInventoryPath = '"' + remoteInventory + '"';
                 tl.debug('RemoteInventoryPath = ' + remoteInventoryPath);
 

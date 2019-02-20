@@ -155,6 +155,6 @@ export function beginRequest(request) {
     }
 }
 
-export function getUniqueInventoryFilePath(): string {
+export function getTemporaryInventoryFilePath(): string {
     return '/tmp/' + TestGuid + 'inventory.ini';
 }

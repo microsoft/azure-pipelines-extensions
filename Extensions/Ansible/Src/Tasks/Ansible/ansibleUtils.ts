@@ -197,7 +197,7 @@ function beginRequestInternal(request: WebRequest): Promise<WebResponse> {
     });
 }
 
-export function getUniqueInventoryFilePath(): string {
+export function getTemporaryInventoryFilePath(): string {
     return '/tmp/' + uuid() + 'inventory.ini';
 }
 
