@@ -100,9 +100,9 @@
       "visibleRule": "changeRequestAction = createNew"
     },
     {
-      "name": "standardChanges",
+      "name": "standardChangeTemplate",
       "type": "pickList",
-      "label": "Standard Changes",
+      "label": "Standard change template",
       "required": "false",
       "helpMarkDown": "Choose or type Standard change template for the change request.",
       "properties": {
@@ -244,9 +244,9 @@
     }
   ],
   "dataSourceBindings": [{
-      "target": "standardChanges",
+      "target": "standardChangeTemplate",
       "endpointId": "$(ServiceNowConnection)",
-      "dataSourceName": "StandardChanges",
+      "dataSourceName": "StandardChangeTemplate",
       "resultTemplate": "{ \"Value\" : \"{{sys_id}}\", \"DisplayValue\" : \"{{sys_name}}\" }"
     },
     {
@@ -287,12 +287,27 @@
   ],
   "execution": {
     "HttpRequestChain": {
-      "Execute": [{
+      "Execute": [
+        {
+          "RequestInputs": {
+            "EndpointId": "$(ServiceNowConnection)",
+            "EndpointUrl": "$(endpoint.url)/api/now/table/sys_scope?sysparm_query=active=true^scope=x_mioms_azpipeline&&sysparm_fields=version",
+            "Method": "GET",
+            "Headers": "{\"Content-Type\":\"application/json\", \"Accept\":\"application/json\"}",
+            "WaitForCompletion": "false",
+            "Expression": "and(eq(count(root['result']), 1), startsWith(jsonpath('$.result[0].version'), '2.'))"
+          },
+          "ExecutionOptions": {
+            "OutputVariables": "{\"SNOW_APP_VERSION\" :  \"jsonpath('$.result[0].version')[0]\"}",
+            "SkipSectionExpression": "eq(isNullOrEmpty(variables['SNOW_APP_VERSION']), false)))"
+          }
+        },
+        {
           "RequestInputs": {
             "EndpointId": "$(ServiceNowConnection)",
             "EndpointUrl": "$(endpoint.url)/api/now/import/x_mioms_azpipeline_change_request_import",
             "Method": "POST",
-            "Body": "{  \"u_correlation_id\": \"{{#newGuid}}{{/newGuid}}\",\"u_x_mioms_azpi_eline_metadata\": \"Release: $(RELEASE.RELEASEWEBURL) \\r\\n EnvironmentName: $(RELEASE.ENVIRONMENTNAME) \\r\\n Requested By : $(RELEASE.DEPLOYMENT.REQUESTEDFOR)\", \"u_short_description\": \"$(shortdescription)\"{{#if description}}, \"u_description\": \"$(description)\" {{/if}},\"u_type\": \"$(changeType)\"{{#if category}}, \"u_category\": \"$(category)\"{{/if}}{{#if priority}}, \"u_priority\": \"$(priority)\"{{/if}}{{#if risk}}, \"u_risk\": \"$(risk)\"{{/if}}{{#if impact}}, \"u_impact\": \"$(impact)\"{{/if}}{{#if configurationitem}}, \"u_cmdb_ci\": \"$(configurationitem)\" {{/if}}{{#if assignmentgroup}}, \"u_assignment_group\": \"$(assignmentgroup)\"{{/if}}, \"u_requested_by_date\": \"{{toDateTimeFormat '$(RELEASE.DEPLOYMENT.STARTTIME)' 'yyyy-MM-dd HH:mm:ss'}}\", \"u_start_date\": \"{{#if schedulestarttime}}{{toDateTimeFormat '$(schedulestarttime)' 'yyyy-MM-dd HH:mm:ss'}}{{/if}}\",  \"u_end_date\": \"{{#if scheduleendtime}}{{toDateTimeFormat '$(scheduleendtime)' 'yyyy-MM-dd HH:mm:ss'}}{{/if}}\" {{#if otherParameters}}{{toCommaSeparatedKeyValueList otherParameters true}}{{/if}} {{#if standardChanges}} , \"template_id\": \"$(standardChanges)\" {{/if}} }",
+            "Body": "{  \"u_correlation_id\": \"{{#newGuid}}{{/newGuid}}\",\"u_type\": \"$(changeType)\",\"u_x_mioms_azpi_eline_metadata\": \"Release: $(RELEASE.RELEASEWEBURL) \\r\\n EnvironmentName: $(RELEASE.ENVIRONMENTNAME) \\r\\n Requested By : $(RELEASE.DEPLOYMENT.REQUESTEDFOR)\", \"u_short_description\": \"$(shortdescription)\"{{#equals changeType 'Normal'}}{{#if description}}, \"u_description\": \"$(description)\"{{/if}}{{#if category}}, \"u_category\": \"$(category)\"{{/if}}{{#if priority}}, \"u_priority\": \"$(priority)\"{{/if}}{{#if risk}}, \"u_risk\": \"$(risk)\"{{/if}}{{#if impact}}, \"u_impact\": \"$(impact)\"{{/if}}{{#if configurationitem}}, \"u_cmdb_ci\": \"$(configurationitem)\" {{/if}}{{#if assignmentgroup}}, \"u_assignment_group\": \"$(assignmentgroup)\"{{/if}}{{/equals}}, \"u_requested_by_date\": \"{{toDateTimeFormat '$(RELEASE.DEPLOYMENT.STARTTIME)' 'yyyy-MM-dd HH:mm:ss'}}\", \"u_start_date\": \"{{#if schedulestarttime}}{{toDateTimeFormat '$(schedulestarttime)' 'yyyy-MM-dd HH:mm:ss'}}{{/if}}\",  \"u_end_date\": \"{{#if scheduleendtime}}{{toDateTimeFormat '$(scheduleendtime)' 'yyyy-MM-dd HH:mm:ss'}}{{/if}}\" {{#if otherParameters}}{{toCommaSeparatedKeyValueList otherParameters true}}{{/if}}{{#equals changeType 'Standard'}}{{#if standardChangeTemplate}} , \"template_id\": \"$(standardChangeTemplate)\" {{/if}}{{/equals}} }",
             "Headers": "{\"Content-Type\":\"application/json\", \"Accept\":\"application/json\"}",
             "WaitForCompletion": "false",
             "Expression": "eq(jsonpath('$.result[0].status')[0], 'inserted')"
@@ -319,11 +334,11 @@
         {
           "RequestInputs": {
             "EndpointId": "$(ServiceNowConnection)",
-            "EndpointUrl": "$(endpoint.url)/api/now/table/change_request?sysparm_query=number=$(changeQueryValue)^ORDERBYDESCsys_created_on&sysparm_fields=sys_created_on,sys_id,state,number,correlation_id&&sysparm_display_value=true",
+            "EndpointUrl": "$(endpoint.url)/api/now/table/change_request?sysparm_query=number=$(changeQueryValue)&sysparm_fields=sys_id,state,number,correlation_id&&sysparm_display_value=true",
             "Method": "GET",
             "Headers": "{\"Content-Type\":\"application/json\", \"Accept\":\"application/json\"}",
             "WaitForCompletion": "false",
-            "Expression": "eq(jsonpath('$.result[0].state')[0], '$(DesiredExitStatus)')"
+            "Expression": "and(eq(count(root['result']), 1), eq(jsonpath('$.result[0].state')[0], '$(DesiredExitStatus)'))"
           },
           "ExecutionOptions": {
             "OutputVariables": "{\"CORRELATION_ID\" :  \"jsonpath('$.result[0].correlation_id')[0]\", \"CHANGE_REQUEST_NUMBER\" :  \"jsonpath('$.result[0].number')[0]\", \"CHANGE_SYSTEM_ID\" :  \"jsonpath('$.result[0].sys_id')[0]\"}",
@@ -333,11 +348,11 @@
         {
           "RequestInputs": {
             "EndpointId": "$(ServiceNowConnection)",
-            "EndpointUrl": "$(endpoint.url)/api/now/table/change_request?sysparm_query=correlation_id=$(changeQueryValue)^ORDERBYDESCsys_created_on&sysparm_fields=sys_created_on,sys_id,state,number,correlation_id&&sysparm_display_value=true",
+            "EndpointUrl": "$(endpoint.url)/api/now/table/change_request?sysparm_query=correlation_id=$(changeQueryValue)&sysparm_fields=sys_id,state,number,correlation_id&&sysparm_display_value=true",
             "Method": "GET",
             "Headers": "{\"Content-Type\":\"application/json\", \"Accept\":\"application/json\"}",
             "WaitForCompletion": "false",
-            "Expression": "eq(jsonpath('$.result[0].state')[0], '$(DesiredExitStatus)')"
+            "Expression": "and(eq(count(root['result']), 1), eq(jsonpath('$.result[0].state')[0], '$(DesiredExitStatus)'))"
           },
           "ExecutionOptions": {
             "OutputVariables": "{\"CORRELATION_ID\" :  \"jsonpath('$.result[0].correlation_id')[0]\", \"CHANGE_REQUEST_NUMBER\" :  \"jsonpath('$.result[0].number')[0]\", \"CHANGE_SYSTEM_ID\" :  \"jsonpath('$.result[0].sys_id')[0]\"}",
@@ -347,11 +362,11 @@
         {
           "RequestInputs": {
             "EndpointId": "$(ServiceNowConnection)",
-            "EndpointUrl": "$(endpoint.url)/api/now/table/change_request?sysparm_query=$(changeQueryValue)^ORDERBYDESCsys_created_on&sysparm_fields=sys_created_on,sys_id,state,number,correlation_id&&sysparm_display_value=true",
+            "EndpointUrl": "$(endpoint.url)/api/now/table/change_request?sysparm_query=$(changeQueryValue)&sysparm_fields=sys_id,state,number,correlation_id&&sysparm_display_value=true",
             "Method": "GET",
             "Headers": "{\"Content-Type\":\"application/json\", \"Accept\":\"application/json\"}",
             "WaitForCompletion": "false",
-            "Expression": "eq(jsonpath('$.result[0].state')[0], '$(DesiredExitStatus)')"
+            "Expression": "and(eq(count(root['result']), 1), eq(jsonpath('$.result[0].state')[0], '$(DesiredExitStatus)'))"
           },
           "ExecutionOptions": {
             "OutputVariables": "{\"CORRELATION_ID\" :  \"jsonpath('$.result[0].correlation_id')[0]\", \"CHANGE_REQUEST_NUMBER\" :  \"jsonpath('$.result[0].number')[0]\", \"CHANGE_SYSTEM_ID\" :  \"jsonpath('$.result[0].sys_id')[0]\"}",

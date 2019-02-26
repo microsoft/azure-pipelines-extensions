@@ -21,7 +21,7 @@
   "groups": [{
     "name": "advancedInputs",
     "displayName": "Advanced",
-    "isExpanded": false
+    "isExpanded": true
   }],
 
   "inputs": [{
@@ -41,6 +41,13 @@
       "helpMarkDown": "Change request to update. Must be a valid change request number in ServiceNow."
     },
     {
+      "name": "UpdateStatus",
+      "type": "boolean",
+      "label": "Update status",
+      "required": "false",
+      "helpMarkDown": "Select this option to update status of the change request "
+    },
+    {
       "name": "NewStatus",
       "type": "pickList",
       "label": "Updated status of change request",
@@ -48,9 +55,9 @@
       "helpMarkDown": "Choose or type status (label or value) to set for the change request.",
       "properties": {
         "EditableOptions": "True"
-      }
+      },
+      "visibleRule": "UpdateStatus = true"
     },
-
     {
       "name": "CloseCode",
       "type": "pickList",
@@ -60,7 +67,7 @@
       "properties": {
         "EditableOptions": "True"
       },
-      "visibleRule": "NewStatus = Closed"
+      "visibleRule": "UpdateStatus = true && NewStatus = Closed"
     },
     {
       "name": "CloseNotes",
@@ -69,7 +76,16 @@
       "required": "true",
       "defaultValue": "",
       "helpMarkDown": "Notes to be added as closure information to the change request",
-      "visibleRule": "NewStatus = Closed"
+      "visibleRule": "UpdateStatus = true && NewStatus = Closed"
+    },
+    {
+      "name": "WorkNotes",
+      "type": "text",
+      "label": "Work notes",
+      "required": "false",
+      "defaultValue": "",
+      "groupName": "advancedInputs",
+      "helpMarkDown": "Work notes for the change request"
     },
     {
       "name": "otherParameters",
@@ -100,11 +116,11 @@
       "Execute": [{
           "RequestInputs": {
             "EndpointId": "$(ServiceNowConnection)",
-            "EndpointUrl": "$(endpoint.url)/api/now/table/change_request?sysparm_query=number=$(ChangeRequestNumber)^ORDERBYDESCsys_created_on&sysparm_fields=sys_created_on,correlation_id,number",
+            "EndpointUrl": "$(endpoint.url)/api/now/table/change_request?sysparm_query=number=$(ChangeRequestNumber)&sysparm_fields=correlation_id,number",
             "Method": "GET",
             "Headers": "{\"Content-Type\":\"application/json\", \"Accept\":\"application/json\"}",
             "WaitForCompletion": "false",
-            "Expression": "eq(jsonpath('$.result[0].number')[0], '$(ChangeRequestNumber)')"
+            "Expression": "and(eq(count(root['result']), 1), eq(jsonpath('$.result[0].number')[0], '$(ChangeRequestNumber)'))"
           },
           "ExecutionOptions": {
             "OutputVariables": "{\"CHANGE_CORRELATION_ID\" :  \"jsonpath('$.result[0].correlation_id')[0]\"}"
@@ -115,7 +131,7 @@
             "EndpointId": "$(ServiceNowConnection)",
             "EndpointUrl": "$(endpoint.url)/api/now/import/x_mioms_azpipeline_change_request_import",
             "Method": "POST",
-            "Body": "{\"u_correlation_id\": \"$(CHANGE_CORRELATION_ID)\",\"u_state\": \"$(NewStatus)\"{{#equals '$(NewStatus)' 'Closed'}}, \"u_close_code\": \"$(CloseCode)\", \"u_close_notes\": \"$(CloseNotes)\"{{/equals}} {{#if otherParameters}}{{toCommaSeparatedKeyValueList otherParameters true}}{{/if}} }",
+            "Body": "{\"u_correlation_id\": \"$(CHANGE_CORRELATION_ID)\",\"u_work_notes\": \"$(WorkNotes)\"{{#equals UpdateStatus 'true'}},\"u_state\": \"$(NewStatus)\"{{#equals '$(NewStatus)' 'Closed'}}, \"u_close_code\": \"$(CloseCode)\", \"u_close_notes\": \"$(CloseNotes)\"{{/equals}}{{/equals}}{{#if otherParameters}}{{toCommaSeparatedKeyValueList otherParameters true}}{{/if}} }",
             "Headers": "{\"Content-Type\":\"application/json\", \"Accept\":\"application/json\"}",
             "WaitForCompletion": "false",
             "Expression": "eq(jsonpath('$.result[0].status')[0], 'updated')"
