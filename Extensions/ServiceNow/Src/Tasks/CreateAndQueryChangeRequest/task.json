@@ -14,19 +14,27 @@
   ],
   "version": {
     "Major": 0,
-    "Minor": 1,
+    "Minor": 6,
     "Patch": 0
   },
   "instanceNameFormat": "ServiceNow change management",
   "groups": [{
       "name": "schedule",
       "displayName": "Schedule of change request",
-      "isExpanded": false
+      "isExpanded": false,
+      "visibleRule": "changeRequestAction = createNew"
+    },
+    {
+      "name": "optionalInputs",
+      "displayName": "Optional inputs",
+      "isExpanded": false,
+      "visibleRule": "changeRequestAction = createNew && changeType = Normal"
     },
     {
       "name": "advancedInputs",
       "displayName": "Advanced",
-      "isExpanded": false
+      "isExpanded": false,
+      "visibleRule": "changeRequestAction = createNew"
     },
     {
       "name": "completionOptions",
@@ -75,12 +83,28 @@
       "visibleRule": "changeRequestAction = useExisting"
     },
     {
-      "name": "changeQueryValue",
+      "name": "changeRequestNumber",
       "type": "string",
-      "label": "Change query value",
+      "label": "Change request number",
       "required": "true",
-      "helpMarkDown": "Change query value",
-      "visibleRule": "changeRequestAction = useExisting"
+      "helpMarkDown": "Change request number",
+      "visibleRule": "changeRequestAction = useExisting && changeQueryCriteria = changeRequestNumber"
+    },
+    {
+      "name": "correlationId",
+      "type": "string",
+      "label": "Correlation Id",
+      "required": "true",
+      "helpMarkDown": "Correlation Id",
+      "visibleRule": "changeRequestAction = useExisting && changeQueryCriteria = correlationId"
+    },
+    {
+      "name": "queryString",
+      "type": "string",
+      "label": "Query string",
+      "required": "true",
+      "helpMarkDown": "Query string",
+      "visibleRule": "changeRequestAction = useExisting  && changeQueryCriteria = queryString"
     },
     {
       "name": "changeType",
@@ -127,7 +151,7 @@
       "required": "false",
       "defaultValue": "Deployment to $(Release.EnvironmentName) of Release $(Release.ReleaseId)",
       "helpMarkDown": "Description of the change request.",
-      "visibleRule": "changeRequestAction = createNew && changeType = Normal"
+      "groupName": "optionalInputs"
     },
     {
       "name": "category",
@@ -139,7 +163,7 @@
       "properties": {
         "EditableOptions": "True"
       },
-      "visibleRule": "changeRequestAction = createNew && changeType = Normal"
+      "groupName": "optionalInputs"
     },
     {
       "name": "priority",
@@ -151,7 +175,7 @@
       "properties": {
         "EditableOptions": "True"
       },
-      "visibleRule": "changeRequestAction = createNew  && changeType = Normal"
+      "groupName": "optionalInputs"
     },
     {
       "name": "risk",
@@ -163,7 +187,7 @@
       "properties": {
         "EditableOptions": "True"
       },
-      "visibleRule": "changeRequestAction = createNew  && changeType = Normal"
+      "groupName": "optionalInputs"
     },
     {
       "name": "impact",
@@ -175,7 +199,7 @@
       "properties": {
         "EditableOptions": "True"
       },
-      "visibleRule": "changeRequestAction = createNew && changeType = Normal"
+      "groupName": "optionalInputs"
     },
     {
       "name": "configurationitem",
@@ -187,7 +211,7 @@
       "properties": {
         "EditableOptions": "True"
       },
-      "visibleRule": "changeRequestAction = createNew && changeType = Normal"
+      "groupName": "optionalInputs"
     },
     {
       "name": "assignmentgroup",
@@ -199,7 +223,7 @@
       "properties": {
         "EditableOptions": "True"
       },
-      "visibleRule": "changeRequestAction = createNew  && changeType = Normal"
+      "groupName": "optionalInputs"
     },
     {
       "name": "schedulestarttime",
@@ -208,7 +232,7 @@
       "required": "false",
       "defaultValue": "",
       "helpMarkDown": "Planned start time of the change request in UTC (yyyy-MM-ddTHH:mm:ssZ format). eg. 2018-01-31T07:56:59Z",
-      "visibleRule": "changeRequestAction = createNew"
+      "groupName": "schedule"
     },
     {
       "name": "scheduleendtime",
@@ -217,7 +241,7 @@
       "required": "false",
       "defaultValue": "",
       "helpMarkDown": "Planned end time of the change request in UTC (yyyy-MM-ddTHH:mm:ssZ format). eg. 2018-01-31T07:56:59Z",
-      "visibleRule": "changeRequestAction = createNew"
+      "groupName": "schedule"
     },
     {
       "name": "otherParameters",
@@ -229,7 +253,7 @@
       "properties": {
         "editorExtension": "ms.vss-services-azure.azure-servicebus-message-grid"
       },
-      "visibleRule": "changeRequestAction = createNew"
+      "groupName": "advancedInputs"
     },
     {
       "name": "DesiredExitStatus",
@@ -291,29 +315,15 @@
         {
           "RequestInputs": {
             "EndpointId": "$(ServiceNowConnection)",
-            "EndpointUrl": "$(endpoint.url)/api/now/table/sys_scope?sysparm_query=active=true^scope=x_mioms_azpipeline&&sysparm_fields=version",
-            "Method": "GET",
-            "Headers": "{\"Content-Type\":\"application/json\", \"Accept\":\"application/json\"}",
-            "WaitForCompletion": "false",
-            "Expression": "and(eq(count(root['result']), 1), startsWith(jsonpath('$.result[0].version'), '2.'))"
-          },
-          "ExecutionOptions": {
-            "OutputVariables": "{\"SNOW_APP_VERSION\" :  \"jsonpath('$.result[0].version')[0]\"}",
-            "SkipSectionExpression": "eq(isNullOrEmpty(variables['SNOW_APP_VERSION']), false)))"
-          }
-        },
-        {
-          "RequestInputs": {
-            "EndpointId": "$(ServiceNowConnection)",
-            "EndpointUrl": "$(endpoint.url)/api/now/import/x_mioms_azpipeline_change_request_import",
+            "EndpointUrl": "$(endpoint.url)/api/x_mioms_azpipeline/change_request_import",
             "Method": "POST",
             "Body": "{  \"u_correlation_id\": \"{{#newGuid}}{{/newGuid}}\",\"u_type\": \"$(changeType)\",\"u_x_mioms_azpi_eline_metadata\": \"Release: $(RELEASE.RELEASEWEBURL) \\r\\n EnvironmentName: $(RELEASE.ENVIRONMENTNAME) \\r\\n Requested By : $(RELEASE.DEPLOYMENT.REQUESTEDFOR)\", \"u_short_description\": \"$(shortdescription)\"{{#equals changeType 'Normal'}}{{#if description}}, \"u_description\": \"$(description)\"{{/if}}{{#if category}}, \"u_category\": \"$(category)\"{{/if}}{{#if priority}}, \"u_priority\": \"$(priority)\"{{/if}}{{#if risk}}, \"u_risk\": \"$(risk)\"{{/if}}{{#if impact}}, \"u_impact\": \"$(impact)\"{{/if}}{{#if configurationitem}}, \"u_cmdb_ci\": \"$(configurationitem)\" {{/if}}{{#if assignmentgroup}}, \"u_assignment_group\": \"$(assignmentgroup)\"{{/if}}{{/equals}}, \"u_requested_by_date\": \"{{toDateTimeFormat '$(RELEASE.DEPLOYMENT.STARTTIME)' 'yyyy-MM-dd HH:mm:ss'}}\", \"u_start_date\": \"{{#if schedulestarttime}}{{toDateTimeFormat '$(schedulestarttime)' 'yyyy-MM-dd HH:mm:ss'}}{{/if}}\",  \"u_end_date\": \"{{#if scheduleendtime}}{{toDateTimeFormat '$(scheduleendtime)' 'yyyy-MM-dd HH:mm:ss'}}{{/if}}\" {{#if otherParameters}}{{toCommaSeparatedKeyValueList otherParameters true}}{{/if}}{{#equals changeType 'Standard'}}{{#if standardChangeTemplate}} , \"template_id\": \"$(standardChangeTemplate)\" {{/if}}{{/equals}} }",
             "Headers": "{\"Content-Type\":\"application/json\", \"Accept\":\"application/json\"}",
             "WaitForCompletion": "false",
-            "Expression": "eq(jsonpath('$.result[0].status')[0], 'inserted')"
+            "Expression": "eq(jsonpath('$.result.status')[0], 'inserted')"
           },
           "ExecutionOptions": {
-            "OutputVariables": "{\"CHANGE_SYSTEM_ID\" :  \"jsonpath('$.result[0].sys_id')[0]\"}",
+            "OutputVariables": "{\"CHANGE_SYSTEM_ID\" :  \"jsonpath('$.result.sys_id')[0]\"}",
             "SkipSectionExpression": "or(eq(eq(taskInputs['changeRequestAction'], 'createNew'), false), and(eq(taskInputs['changeRequestAction'], 'createNew'), eq(isNullOrEmpty(variables['CHANGE_SYSTEM_ID']), false)))"
           }
         },
@@ -334,7 +344,7 @@
         {
           "RequestInputs": {
             "EndpointId": "$(ServiceNowConnection)",
-            "EndpointUrl": "$(endpoint.url)/api/now/table/change_request?sysparm_query=number=$(changeQueryValue)&sysparm_fields=sys_id,state,number,correlation_id&&sysparm_display_value=true",
+            "EndpointUrl": "$(endpoint.url)/api/now/table/change_request?sysparm_query=number=$(changeRequestNumber)&sysparm_fields=sys_id,state,number,correlation_id&&sysparm_display_value=true",
             "Method": "GET",
             "Headers": "{\"Content-Type\":\"application/json\", \"Accept\":\"application/json\"}",
             "WaitForCompletion": "false",
@@ -348,7 +358,7 @@
         {
           "RequestInputs": {
             "EndpointId": "$(ServiceNowConnection)",
-            "EndpointUrl": "$(endpoint.url)/api/now/table/change_request?sysparm_query=correlation_id=$(changeQueryValue)&sysparm_fields=sys_id,state,number,correlation_id&&sysparm_display_value=true",
+            "EndpointUrl": "$(endpoint.url)/api/now/table/change_request?sysparm_query=correlation_id=$(correlationId)&sysparm_fields=sys_id,state,number,correlation_id&&sysparm_display_value=true",
             "Method": "GET",
             "Headers": "{\"Content-Type\":\"application/json\", \"Accept\":\"application/json\"}",
             "WaitForCompletion": "false",
@@ -362,7 +372,7 @@
         {
           "RequestInputs": {
             "EndpointId": "$(ServiceNowConnection)",
-            "EndpointUrl": "$(endpoint.url)/api/now/table/change_request?sysparm_query=$(changeQueryValue)&sysparm_fields=sys_id,state,number,correlation_id&&sysparm_display_value=true",
+            "EndpointUrl": "$(endpoint.url)/api/now/table/change_request?sysparm_query=$(queryString)&sysparm_fields=sys_id,state,number,correlation_id&&sysparm_display_value=true",
             "Method": "GET",
             "Headers": "{\"Content-Type\":\"application/json\", \"Accept\":\"application/json\"}",
             "WaitForCompletion": "false",

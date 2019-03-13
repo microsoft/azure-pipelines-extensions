@@ -14,7 +14,7 @@
   ],
   "version": {
     "Major": 0,
-    "Minor": 1,
+    "Minor": 3,
     "Patch": 0
   },
   "instanceNameFormat": "Update ServiceNow Change Request",
@@ -129,16 +129,12 @@
         {
           "RequestInputs": {
             "EndpointId": "$(ServiceNowConnection)",
-            "EndpointUrl": "$(endpoint.url)/api/now/import/x_mioms_azpipeline_change_request_import",
+            "EndpointUrl": "$(endpoint.url)/api/x_mioms_azpipeline/change_request_import",
             "Method": "POST",
             "Body": "{\"u_correlation_id\": \"$(CHANGE_CORRELATION_ID)\",\"u_work_notes\": \"$(WorkNotes)\"{{#equals UpdateStatus 'true'}},\"u_state\": \"$(NewStatus)\"{{#equals '$(NewStatus)' 'Closed'}}, \"u_close_code\": \"$(CloseCode)\", \"u_close_notes\": \"$(CloseNotes)\"{{/equals}}{{/equals}}{{#if otherParameters}}{{toCommaSeparatedKeyValueList otherParameters true}}{{/if}} }",
             "Headers": "{\"Content-Type\":\"application/json\", \"Accept\":\"application/json\"}",
             "WaitForCompletion": "false",
-            "Expression": "eq(jsonpath('$.result[0].status')[0], 'updated')"
-          },
-          "ExecutionOptions": {
-            "OutputVariables": "{\"CHANGE_REQUEST_URL\" :  \"jsonpath('$.result[0].record_link')[0]\"}",
-            "SkipSectionExpression": "eq(isNullOrEmpty(variables['CHANGE_REQUEST_URL']), false)"
+            "Expression": "eq(jsonpath('$.result.status')[0], 'updated')"
           }
         }
       ]
