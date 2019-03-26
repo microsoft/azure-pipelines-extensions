@@ -315,15 +315,15 @@
         {
           "RequestInputs": {
             "EndpointId": "$(ServiceNowConnection)",
-            "EndpointUrl": "$(endpoint.url)/api/x_mioms_azpipeline/change_request_import",
+            "EndpointUrl": "$(endpoint.url)/api/now/import/x_mioms_azpipeline_change_request_import",
             "Method": "POST",
             "Body": "{  \"u_correlation_id\": \"{{#newGuid}}{{/newGuid}}\",\"u_type\": \"$(changeType)\",\"u_x_mioms_azpi_eline_metadata\": \"Release: $(RELEASE.RELEASEWEBURL) \\r\\n EnvironmentName: $(RELEASE.ENVIRONMENTNAME) \\r\\n Requested By : $(RELEASE.DEPLOYMENT.REQUESTEDFOR)\", \"u_short_description\": \"$(shortdescription)\"{{#equals changeType 'Normal'}}{{#if description}}, \"u_description\": \"$(description)\"{{/if}}{{#if category}}, \"u_category\": \"$(category)\"{{/if}}{{#if priority}}, \"u_priority\": \"$(priority)\"{{/if}}{{#if risk}}, \"u_risk\": \"$(risk)\"{{/if}}{{#if impact}}, \"u_impact\": \"$(impact)\"{{/if}}{{#if configurationitem}}, \"u_cmdb_ci\": \"$(configurationitem)\" {{/if}}{{#if assignmentgroup}}, \"u_assignment_group\": \"$(assignmentgroup)\"{{/if}}{{/equals}}, \"u_requested_by_date\": \"{{toDateTimeFormat '$(RELEASE.DEPLOYMENT.STARTTIME)' 'yyyy-MM-dd HH:mm:ss'}}\", \"u_start_date\": \"{{#if schedulestarttime}}{{toDateTimeFormat '$(schedulestarttime)' 'yyyy-MM-dd HH:mm:ss'}}{{/if}}\",  \"u_end_date\": \"{{#if scheduleendtime}}{{toDateTimeFormat '$(scheduleendtime)' 'yyyy-MM-dd HH:mm:ss'}}{{/if}}\" {{#if otherParameters}}{{toCommaSeparatedKeyValueList otherParameters true}}{{/if}}{{#equals changeType 'Standard'}}{{#if standardChangeTemplate}} , \"template_id\": \"$(standardChangeTemplate)\" {{/if}}{{/equals}} }",
             "Headers": "{\"Content-Type\":\"application/json\", \"Accept\":\"application/json\"}",
             "WaitForCompletion": "false",
-            "Expression": "eq(jsonpath('$.result.status')[0], 'inserted')"
+            "Expression": "eq(jsonpath('$.result[0].status')[0], 'inserted')"
           },
           "ExecutionOptions": {
-            "OutputVariables": "{\"CHANGE_SYSTEM_ID\" :  \"jsonpath('$.result.sys_id')[0]\"}",
+            "OutputVariables": "{\"CHANGE_SYSTEM_ID\" :  \"jsonpath('$.result[0].sys_id')[0]\"}",
             "SkipSectionExpression": "or(eq(eq(taskInputs['changeRequestAction'], 'createNew'), false), and(eq(taskInputs['changeRequestAction'], 'createNew'), eq(isNullOrEmpty(variables['CHANGE_SYSTEM_ID']), false)))"
           }
         },
