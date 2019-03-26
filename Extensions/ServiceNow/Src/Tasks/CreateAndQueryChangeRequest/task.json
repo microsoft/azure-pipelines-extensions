@@ -13,8 +13,8 @@
     "ServerGate"
   ],
   "version": {
-    "Major": 0,
-    "Minor": 6,
+    "Major": 1,
+    "Minor": 150,
     "Patch": 0
   },
   "instanceNameFormat": "ServiceNow change management",
@@ -52,16 +52,16 @@
     },
     {
       "name": "changeRequestAction",
-      "type": "radio",
+      "type": "pickList",
       "label": "Action",
       "required": "false",
-      "helpMarkDown": "Choose action for the change request",
+      "helpMarkDown": "Gate on status of new change request or an existing change request.",
       "properties": {
         "EditableOptions": "False"
       },
       "options": {
         "createNew": "Create new change request",
-        "useExisting": "Query existing change request"
+        "useExisting": "Use existing change request"
       },
       "defaultValue": "createNew"
     },
@@ -70,7 +70,7 @@
       "type": "pickList",
       "label": "Change query criteria",
       "required": "true",
-      "helpMarkDown": "Choose criteria for querying change request. If Multiple records are returned, Latest record will be selected.",
+      "helpMarkDown": "Choose criteria for querying change request. If Multiple records are returned, gate will be failed.",
       "properties": {
         "EditableOptions": "false"
       },
@@ -87,7 +87,7 @@
       "type": "string",
       "label": "Change request number",
       "required": "true",
-      "helpMarkDown": "Change request number",
+      "helpMarkDown": "Change request to use. Must be a valid change request number in ServiceNow.",
       "visibleRule": "changeRequestAction = useExisting && changeQueryCriteria = changeRequestNumber"
     },
     {
@@ -95,7 +95,7 @@
       "type": "string",
       "label": "Correlation Id",
       "required": "true",
-      "helpMarkDown": "Correlation Id",
+      "helpMarkDown": "Change request to use. Must be a valid correlation id in ServiceNow.",
       "visibleRule": "changeRequestAction = useExisting && changeQueryCriteria = correlationId"
     },
     {
@@ -103,17 +103,17 @@
       "type": "string",
       "label": "Query string",
       "required": "true",
-      "helpMarkDown": "Query string",
+      "helpMarkDown": "ServiceNow URL query parameter (sysparm_query) eg. number=CHG0030207.",
       "visibleRule": "changeRequestAction = useExisting  && changeQueryCriteria = queryString"
     },
     {
       "name": "changeType",
       "type": "pickList",
-      "label": "Change Type",
+      "label": "Change type",
       "required": "false",
-      "helpMarkDown": "Choose or type change type (label or value) of the change request.",
+      "helpMarkDown": "Choose type of the change request.",
       "properties": {
-        "EditableOptions": "True"
+        "EditableOptions": "False"
       },
       "options": {
         "Normal": "Normal",
@@ -128,7 +128,7 @@
       "type": "pickList",
       "label": "Standard change template",
       "required": "false",
-      "helpMarkDown": "Choose or type Standard change template for the change request.",
+      "helpMarkDown": "Choose or type change template name for the change request.",
       "properties": {
         "EditableOptions": "True"
       },
@@ -138,7 +138,7 @@
     {
       "name": "shortdescription",
       "type": "string",
-      "label": "Short Description",
+      "label": "Short description",
       "required": "true",
       "defaultValue": "Deployment to $(Release.EnvironmentName) of Release $(Release.ReleaseId)",
       "helpMarkDown": "Short description of the change request.",
@@ -204,10 +204,10 @@
     {
       "name": "configurationitem",
       "type": "pickList",
-      "label": "Configuration Item",
+      "label": "Configuration item",
       "required": "false",
       "defaultValue": "",
-      "helpMarkDown": "Choose or type item or service (display name or sys_id) defined in ServiceNow that is affected by this pipeline.",
+      "helpMarkDown": "Choose or type configuration item (display name or sys_id) defined in ServiceNow that is affected by this pipeline.",
       "properties": {
         "EditableOptions": "True"
       },
@@ -216,7 +216,7 @@
     {
       "name": "assignmentgroup",
       "type": "pickList",
-      "label": "Assignment Group",
+      "label": "Assignment group",
       "required": "false",
       "defaultValue": "",
       "helpMarkDown": "Choose or type group of ServiceNow users who can approve and update the change request.",
@@ -388,15 +388,15 @@
   },
   "OutputVariables": [{
       "name": "CHANGE_REQUEST_NUMBER",
-      "description": "Number of the change request created in ServiceNow"
+      "description": "Number of the change request"
     },
     {
       "name": "CHANGE_SYSTEM_ID",
-      "description": "System Id of the change request created in ServiceNow"
+      "description": "Sys_id of the change request"
     },
     {
       "name": "CORRELATION_ID",
-      "description": "Correlation Id of the change request created in ServiceNow"
+      "description": "Correlation Id of the change request"
     }
   ]
 }

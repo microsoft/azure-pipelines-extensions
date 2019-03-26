@@ -13,8 +13,8 @@
     "Server"
   ],
   "version": {
-    "Major": 0,
-    "Minor": 3,
+    "Major": 1,
+    "Minor": 150,
     "Patch": 0
   },
   "instanceNameFormat": "Update ServiceNow Change Request",
@@ -45,14 +45,15 @@
       "type": "boolean",
       "label": "Update status",
       "required": "false",
-      "helpMarkDown": "Select this option to update status of the change request "
+      "defaultValue": true,
+      "helpMarkDown": "Select this option to update status of the change request."
     },
     {
       "name": "NewStatus",
       "type": "pickList",
       "label": "Updated status of change request",
       "required": "true",
-      "helpMarkDown": "Choose or type status (label or value) to set for the change request.",
+      "helpMarkDown": "Choose or type status to set for the change request.",
       "properties": {
         "EditableOptions": "True"
       },
@@ -85,7 +86,7 @@
       "required": "false",
       "defaultValue": "",
       "groupName": "advancedInputs",
-      "helpMarkDown": "Work notes for the change request"
+      "helpMarkDown": "Work notes to be added for update of the change request."
     },
     {
       "name": "otherParameters",

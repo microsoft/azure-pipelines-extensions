@@ -6,10 +6,11 @@ Specific change management subprocesses include change risk assessment, change s
 With change management, your organization can reduce the risks associated with change, while speeding up the deployments with Azure Pipelines. 
 
 This extension enables integration of ServiceNow Change Management with Azure Pipelines.                                                 
-It includes a [release gate](https://docs.microsoft.com/en-us/azure/devops/pipelines/release/approvals/gates?view=vsts) to create a change request in ServiceNow and hold the pipeline till the change management process signals the implementation.                     
-An agentless task to close (update state of) the change request after the deployment is also provided.
+It includes 
+- A [release gate](https://docs.microsoft.com/en-us/azure/devops/pipelines/release/approvals/gates?view=vsts) to hold the pipeline till the change management process signals implementation for a change request. You can create a new request for every deployment or use an existing change request.                     
+- An agentless task to update a change request during the deployment process. It is typically used as the last task in the stage.
 
-The deployment process in Azure Pipelines helps in automation of the deployment and complement the controls offered by ServiceNow.
+The deployment process in Azure Pipelines helps automate the deployment and complement the controls offered by ServiceNow.
 
 ## Usage
 #### Integration requires the [Azure Pipelines](https://store.servicenow.com/sn_appstore_store.do#!/store/application/fa788cb5dbb5630040669c27db961940) application to be installed on the ServiceNow instance.   
@@ -20,16 +21,29 @@ The deployment process in Azure Pipelines helps in automation of the deployment 
 
 ![ServiceNow connection](images/servicenow_connection.png)
 
+You must have a `compatible Azure Pipelines application` installed on the ServiceNow instance. 
+It is recommended to use the latest version application and gate/task. 
+Use **Verify connection** before using it in the gate or task. 
+
 #### Configure a release gate for ServiceNow Change Management.
 
 ![Release definition](images/release_definition.png)
 ![Release gate](images/release_gate.png)
 
-A new change request would be created for each run of the pipeline.
-Inputs provided in the gate would be set as properties of the change request in ServiceNow.
+**Gate** can be configured to **create a new change request** for every run of the pipeline or **use an existing request**.
+Inputs provided in the gate are used as properties for the new change request in ServiceNow, if applicable.
 
  **Inputs for Gate**:
+- **ServiceNow connection**: Connection to the ServiceNow instance used for change management.
+- **Action**: Gate on status of new change request or an existing change request.
+- **Change type**: Type of the change request.
+- **Standard change template**: Change template name for the change request.
 - **Short description**: A summary of the change.
+- **Change query criteria**: Criteria for querying change request. If Multiple records are returned, gate will be failed.
+- **query string/ change request number/ correlationid**: Change request to use.
+
+Additional properties can be set in the created change request using the following inputs. Note: Available inputs change based on the selected change type. 
+
 - **Description**: A detailed description of the change.
 - **Category**:  The category of the change `eg. Hardware, Network, Software`.
 - **Priority**: Priority of the change.
@@ -46,18 +60,21 @@ Inputs provided in the gate would be set as properties of the change request in 
 **Gate Output Variables** :                                                                                                             
 ServiceNow gate produces output variables.                                                                                               You must specify reference name to be able to use these output variables in the deployment workflow. Gate variables can be accessed by using `"PREDEPLOYGATE"` as a `prefix`. For eg. when reference name is set to 'gate1', then the change number can be obtained as `$(PREDEPLOYGATE.gate1.CHANGE_REQUEST_NUMBER)`.
 
-- **CHANGE_REQUEST_NUMBER** : Number of the change request created in ServiceNow.
-- **CHANGE_SYSTEM_ID** : SystemId of the change request created in ServiceNow.
+- **CHANGE_REQUEST_NUMBER** : Number of the change request.
+- **CHANGE_SYSTEM_ID** : Sys Id of the change request.
+- **CORRELATION_ID** : Correlation Id of the change request.
 
-#### Add a task to update the status of the change
+#### Add a task to update the change request
 
 ![Update task](images/agentless_task.png)
 
 **Inputs for Update change request task**:
-
+- **ServiceNow connection**: Connection to the ServiceNow instance used for change management.
 - **Change request number**: Number of the change request that you want to update.
-- **Updated status of change request** : Status of the change request that you want to update.
+- **Update status**: Select this option to update status of the change request.
+- **Updated status of change request** : Status to set for the change request. This input is available if `Update status` is selected.
 - **Close code and notes**: Closure information for the change request.
+- **Work notes**: Work notes for the change request,
 - **Additional change request parameters**:  Additional properties of the change request to set.
 
 ## Steps to add mapping for custom fields in Import set transform map :

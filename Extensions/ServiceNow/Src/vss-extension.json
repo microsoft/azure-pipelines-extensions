@@ -3,7 +3,7 @@
   "id": "vss-services-servicenowchangerequestmanagement",
   "name": "ServiceNow Change Management",
   "publisher": "NishuBansal",
-  "version": "1.2.9",
+  "version": "1.150.0",
   "public": true,
   "description": "Integrate ServiceNow Change Management with Azure Pipelines",
   "categories": [
@@ -20,9 +20,6 @@
   "targets": [
     {
       "id": "Microsoft.VisualStudio.Services.Cloud"
-    },
-    {
-      "id": "Microsoft.TeamFoundation.Server"
     }
   ],
   "demands": [],
@@ -88,7 +85,7 @@
         "dataSources": [
           {
             "name": "TestConnection",
-            "endpointUrl": "{{endpoint.url}}/api/x_mioms_azpipeline/app_version?app_major_version=2",
+            "endpointUrl": "{{endpoint.url}}/api/x_mioms_azpipeline/app_version?app_major_version=1",
             "resultSelector": "jsonpath:$.result"
           },
           {
@@ -181,7 +178,7 @@
             ]
           }
         ],
-        "helpMarkDown": "<a href=\"url-to-documentation\" target=\"_blank\"><b>Learn More</b></a>"
+        "helpMarkDown": "<a href=\"https://docs.microsoft.com/en-us/azure/devops/pipelines/release/approvals/servicenow?view=azure-devops\" target=\"_blank\"><b>Learn More about ServiceNow integration</b></a>"
       }
     },
     {
