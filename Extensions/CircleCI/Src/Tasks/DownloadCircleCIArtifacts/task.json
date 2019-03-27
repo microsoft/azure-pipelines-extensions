@@ -6,6 +6,7 @@
     "helpMarkDown": "",
     "category": "Utility",
     "author": "ms-vscs-rm",
+    "preview": true,
     "version": {
       "Major": 0,
       "Minor": 150,
@@ -86,7 +87,7 @@
         "resultTemplate": "{ \"Value\" : \"{{{defaultResultKey}}}\", \"DisplayValue\" : \"{{{defaultResultKey}}}\" }"
       }
     ],
-    "instanceNameFormat": "Download Artifacts - CircleCI V0",
+    "instanceNameFormat": "Download Artifacts - CircleCI",
     "execution": {
       "Node": {
         "target": "download.js",

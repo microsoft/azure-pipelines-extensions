@@ -26,6 +26,14 @@
     "color": "#3B3E43",
     "theme": "dark"
   },
+  "screenshots": [
+    {
+      "path": "images/Add_CircleCI_Connection.png"
+    },
+    {
+      "path": "images/Add_CircleCI_Artifact.png"
+    }
+  ],
   "content": {
     "details": {
       "path": "readme.md"
@@ -35,6 +43,14 @@
     }
   },
   "files": [
+    {
+      "path": "images/Add_CircleCI_Connection.png",
+      "addressable": true
+    },
+    {
+      "path": "images/Add_CircleCI_Artifact.png",
+      "addressable": true
+    },
     {
       "path": "Tasks/DownloadCircleCIArtifacts"
     }
@@ -66,7 +82,7 @@
                 "inputMode": "passwordbox",
                 "isConfidential": true,
                 "validation": {
-                  "isRequired": false,
+                  "isRequired": true,
                   "dataType": "string"
                 }
               },
@@ -81,7 +97,8 @@
                 },
                 "values": {
                   "inputId": "passwordInput",
-                  "defaultValue": ""
+                  "defaultValue": "",
+                  "isDisabled": true
                 }
               }
             ]
@@ -129,13 +146,12 @@
         }
     },
     {
-      "id": "circleci-release-artifact-type",
+      "id": "circleci-artifact-type",
       "description": "i18n:CircleCI Artifact",
       "_description.comment": "Don't Localize the word 'CircleCI'",
       "type": "ms.vss-releaseartifact.release-artifact-type",
       "targets": [
-        "ms.vss-releaseartifact.artifact-types",
-        "ms.vss-distributed-task.pipeline-artifact"
+        "ms.vss-releaseartifact.artifact-types"
       ],
       "properties": {
         "name": "CircleCI",
@@ -280,11 +296,6 @@
         ],
         "browsableArtifactTypeMapping": {
           "folder": "artifactItems"
-        },
-        "yamlInputMapping": {
-          "endpoint": "connection",
-          "project": "definition",
-          "pattern": "itemPattern"
         }
       }
     }
