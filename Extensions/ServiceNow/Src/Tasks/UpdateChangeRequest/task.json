@@ -35,7 +35,7 @@
     {
       "name": "ChangeRequestNumber",
       "type": "string",
-      "label": "Change Request Number",
+      "label": "Change request number",
       "defaultValue": "",
       "required": true,
       "helpMarkDown": "Change request to update. Must be a valid change request number in ServiceNow."

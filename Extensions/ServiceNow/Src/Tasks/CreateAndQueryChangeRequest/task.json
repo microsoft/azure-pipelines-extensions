@@ -70,7 +70,7 @@
       "type": "pickList",
       "label": "Change query criteria",
       "required": "true",
-      "helpMarkDown": "Choose criteria for querying change request. If Multiple records are returned, gate will be failed.",
+      "helpMarkDown": "Choose criteria for querying change request. Must uniquely identify the change request. Gate would fail if multiple matching change requests are found.",
       "properties": {
         "EditableOptions": "false"
       },
@@ -111,7 +111,7 @@
       "type": "pickList",
       "label": "Change type",
       "required": "false",
-      "helpMarkDown": "Choose type of the change request.",
+      "helpMarkDown": "Type of the change request.",
       "properties": {
         "EditableOptions": "False"
       },
@@ -140,7 +140,7 @@
       "type": "string",
       "label": "Short description",
       "required": "true",
-      "defaultValue": "Deployment to $(Release.EnvironmentName) of Release $(Release.ReleaseId)",
+      "defaultValue": "Deployment to $(Release.EnvironmentName) of Release $(Release.ReleaseName)",
       "helpMarkDown": "Short description of the change request.",
       "visibleRule": "changeRequestAction = createNew"  
     },
@@ -149,7 +149,7 @@
       "type": "string",
       "label": "Description",
       "required": "false",
-      "defaultValue": "Deployment to $(Release.EnvironmentName) of Release $(Release.ReleaseId)",
+      "defaultValue": "Deployment to $(Release.EnvironmentName) of Release $(Release.ReleaseName)",
       "helpMarkDown": "Description of the change request.",
       "groupName": "optionalInputs"
     },

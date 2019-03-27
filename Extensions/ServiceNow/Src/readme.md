@@ -7,7 +7,7 @@ With change management, your organization can reduce the risks associated with c
 
 This extension enables integration of ServiceNow Change Management with Azure Pipelines.                                                 
 It includes 
-- A [release gate](https://docs.microsoft.com/en-us/azure/devops/pipelines/release/approvals/gates?view=vsts) to hold the pipeline till the change management process signals implementation for a change request. You can create a new request for every deployment or use an existing change request.                     
+- A [release gate](https://docs.microsoft.com/en-us/azure/devops/pipelines/release/approvals/gates?view=vsts) to hold the pipeline till the change management process signals implementation for a change request. You can create a new change request for every deployment or use an existing change request.                     
 - An agentless task to update a change request during the deployment process. It is typically used as the last task in the stage.
 
 The deployment process in Azure Pipelines helps automate the deployment and complement the controls offered by ServiceNow.
@@ -15,15 +15,15 @@ The deployment process in Azure Pipelines helps automate the deployment and comp
 ## Usage
 #### Integration requires the [Azure Pipelines](https://store.servicenow.com/sn_appstore_store.do#!/store/application/fa788cb5dbb5630040669c27db961940) application to be installed on the ServiceNow instance.   
    
-   A service account that has been created in ServiceNow and granted the `x_mioms_azpipeline.pipelinesExecution` role would be used for all the communication.
+A service account (user) must be created in ServiceNow and granted the `x_mioms_azpipeline.pipelinesExecution` role. This user would be used for all the communication.
 
 #### Create service connection for ServiceNow in Azure Pipelines. Provide username and password for the service account configured previously.
 
 ![ServiceNow connection](images/servicenow_connection.png)
 
-You must have a `compatible Azure Pipelines application` installed on the ServiceNow instance. 
-It is recommended to use the latest version application and gate/task. 
 Use **Verify connection** before using it in the gate or task. 
+You must have a compatible Azure Pipelines application installed on the ServiceNow instance. 
+It is recommended to use the latest version application and gate/task. 
 
 #### Configure a release gate for ServiceNow Change Management.
 
@@ -39,20 +39,20 @@ Inputs provided in the gate are used as properties for the new change request in
 - **Change type**: Type of the change request.
 - **Standard change template**: Change template name for the change request.
 - **Short description**: A summary of the change.
-- **Change query criteria**: Criteria for querying change request. If Multiple records are returned, gate will be failed.
+- **Change query criteria**: Criteria for querying change request. Must uniquely identify the change request. Gate would fail if multiple matching change requests are found.
 - **query string/ change request number/ correlationid**: Change request to use.
 
 Additional properties can be set in the created change request using the following inputs. Note: Available inputs change based on the selected change type. 
 
 - **Description**: A detailed description of the change.
-- **Category**:  The category of the change `eg. Hardware, Network, Software`.
+- **Category**:  The category of the change eg. Hardware, Network, Software.
 - **Priority**: Priority of the change.
 - **Risk**: The risk level for the change.
 - **Impact**: The effect that the change has on business.
 - **Configuration Item**: Configuration item (CI) that the change applies to.
 - **Assignment group**:  The group that the change is assigned to.
-- **Schedule of change request**: Schedule of the change.                                                                                                                 Date and time should be in UTC and format should be `yyyy-MM-ddTHH:mm:ssZ. eg. 2018-01-31T07:56:59Z.`
-- **Additional change request parameters**:  Additional properties of the change request to set.                                                                                      `Name must be field name (not label) prefixed with 'u_' eg. u_backout_plan`.                                                            Value must be a valid, accepted value in ServiceNow. Invalid entries are ignored.
+- **Schedule of change request**: Schedule of the change as honored by the ServiceNow workflow.                                                                                                                 Date and time should be in UTC and format should be `yyyy-MM-ddTHH:mm:ssZ. eg. 2018-01-31T07:56:59Z.`
+- **Additional change request parameters**:  Additional properties of the change request to set.                                                                                      Name must be field name (not label) prefixed with 'u_' `eg. u_backout_plan`.                                                            Value must be a valid, accepted value in ServiceNow. Invalid entries are ignored.
 
 **Gate Success Criteria** :
 - **Desired state**: The gate would succeed and the pipeline continues when the change request status is same as the provided value.
@@ -70,7 +70,7 @@ ServiceNow gate produces output variables.                                     
 
 **Inputs for Update change request task**:
 - **ServiceNow connection**: Connection to the ServiceNow instance used for change management.
-- **Change request number**: Number of the change request that you want to update.
+- **Change request number**: Number of the change request to update.
 - **Update status**: Select this option to update status of the change request.
 - **Updated status of change request** : Status to set for the change request. This input is available if `Update status` is selected.
 - **Close code and notes**: Closure information for the change request.
