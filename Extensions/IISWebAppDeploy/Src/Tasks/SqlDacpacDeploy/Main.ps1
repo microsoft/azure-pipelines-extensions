@@ -33,6 +33,13 @@ if ($taskType -ne "dacpac")
     $targetMethod = "server"
 }
 
+# Telemetry for SQL Dacpac deployment
+$encodedServerName = GetSHA256String($serverName)
+$encodedDatabaseName = GetSHA256String($databaseName)
+$telemetryJsonContent = -join("{`"serverName`": `"$encodedServerName`",",
+                              "`"databaseName`": `"$encodedDatabaseName`"}")
+Write-Host "##vso[telemetry.publish area=SqlTelemetry;feature=SqlDacpacDeploy]$telemetryJsonContent"
+
 $sqlMainArgs = @{
     machinesList=$machinesList 
     adminUserName=$adminUserName 
