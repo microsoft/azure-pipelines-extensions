@@ -90,7 +90,7 @@
           },
           {
             "name": "StandardChangeTemplate",
-            "endpointUrl": "{{endpoint.url}}/api/now/table/sys_template?table=change_request&sysparm_fields=sys_id,sys_name",
+            "endpointUrl": "{{endpoint.url}}/api/now/table/sys_template?sysparm_query=table=change_request^active=true&sysparm_fields=sys_id,sys_name",
             "resultSelector": "jsonpath:$.result[*]",
             "resultTemplate": "{ \"Value\" : \"{{sys_id}}\", \"DisplayValue\" : \"{{sys_name}}\" }"
           },
