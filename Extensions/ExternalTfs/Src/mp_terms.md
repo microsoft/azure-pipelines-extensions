@@ -1,6 +1,6 @@
 **MICROSOFT SOFTWARE LICENSE TERMS**
 
-**[MICROSOFT VISUAL STUDIO TEAM SERVICES TOOLS AND EXTENSIONS]**
+**[MICROSOFT AZURE DEVOPS TOOLS AND EXTENSIONS]**
 
 These license terms are an agreement between Microsoft Corporation (or based on where you live, one of its affiliates) and you. They apply to the software named above. The terms also apply to any Microsoft services or updates for the software, except to the extent those have different terms.
 
