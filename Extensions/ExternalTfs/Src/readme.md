@@ -13,16 +13,16 @@ These Build/Code artifacts could be from different TFS or VS Azure Devops accoun
 ## Usage
 This extension provides a service endpoint to connect to an external TFS or Azure Devops Collection. Once connected, you can link an artifact from this TFS / Azure Devops.
 
-### Connecting to an External TFS/VS-Team-Services account & collection
+### Connecting to an External TFS/Azure Devops account & collection
 When using Basic Authentication scheme, enable [Basic Auth on TFS](https://github.com/Microsoft/tfs-cli/blob/master/docs/configureBasicAuth.md)
-![Creating an external TFS/VS-Team-Services service endpoint connection](images/screen1.png)
-![Creating an external TFS/VS-Team-Services service endpoint connection](images/screen2.png)
+![Creating an external TFS/Azure Devops service endpoint connection](images/screen1.png)
+![Creating an external TFS/Azure Devops service endpoint connection](images/screen2.png)
 
 **Note:** You would need to provide the URL to an external account with 'Collection' name in the URL. E.g. https://fabfiber.visualstudio.com/DefaultCollection
 
 ### Linking an external artifact (Build in this example)
-Once you have set up the service endpoint connection, you would be able to link an external TFS/VS-Team-Services build artifact in your release definition
-![Linking an external TFS/VS-Team-Services artifact](images/screen3.png)
+Once you have set up the service endpoint connection, you would be able to link an external TFS/Azure Devops build artifact in your release definition
+![Linking an external TFS/Azure Devops artifact](images/screen3.png)
 
 ### Known Issues
 
@@ -49,7 +49,7 @@ Yes you can. However, the agent that deploys the external TFS Build artifact nee
 
 **2 Can I use a build from another collection of my current TFS?**
 
-Yes. To do this, you would need to add a service endpoint connection to required collection. Once done, you could link an artifact from this collection as an external TFS/VS-Team-Services artifact.
+Yes. To do this, you would need to add a service endpoint connection to required collection. Once done, you could link an artifact from this collection as an external TFS/Azure Devops artifact.
 
 **3. Can I link Xaml Build from my external TFS account?**
 
