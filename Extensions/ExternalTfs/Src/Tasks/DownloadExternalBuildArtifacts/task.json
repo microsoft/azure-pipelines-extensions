@@ -17,10 +17,10 @@
     {
       "name": "connection",
       "type": "connectedService:externaltfs",
-      "label": "Team Foundation Server/Team Services connection",
+      "label": "Team Foundation Server/Azure DevOps connection",
       "defaultValue": "",
       "required": true,
-      "helpMarkDown": "Team Foundation Server/Team Services connection"
+      "helpMarkDown": "Team Foundation Server/Azure DevOps connection"
     },
     {
       "name": "project",
