@@ -8,5 +8,5 @@
   "loc.messages.SkippingItem": "Procesamiento de %s omitido",
   "loc.messages.UnhandledRejection": "artifact-engine: rechazo no controlado: %s",
   "loc.messages.UnhandledException": "artifact-engine: excepción no controlada: %s",
-  "loc.messages.FailedRequest": "Failed request: (statusCode)"
+  "loc.messages.FailedRequest": "Error en la solicitud: (statusCode)"
 }

@@ -8,5 +8,5 @@
   "loc.messages.SkippingItem": "已跳过处理项目 %s",
   "loc.messages.UnhandledRejection": "项目引擎: 未处理的拒绝 %s",
   "loc.messages.UnhandledException": "项目引擎: 未处理的异常 %s",
-  "loc.messages.FailedRequest": "Failed request: (statusCode)"
+  "loc.messages.FailedRequest": "请求失败: (statusCode)"
 }

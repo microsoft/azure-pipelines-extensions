@@ -8,7 +8,7 @@ import * as providers from "../Providers"
 import { BasicCredentialHandler } from "../Providers/typed-rest-client/handlers/basiccreds";
 
 var nconf = require('nconf');
-var tl = require('vsts-task-lib/task');
+var tl = require('azure-pipelines-task-lib/task');
 
 nconf.argv()
     .env()
