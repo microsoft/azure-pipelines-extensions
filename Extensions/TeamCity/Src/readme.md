@@ -1,8 +1,8 @@
 # TeamCity&trade; artifacts for Release management
 
-This extension is an integration point for TeamCity&trade; with Release management in VS Team Services. With this extension, you can deploy artifacts from TeamCity&trade; builds using Release management. 
+This extension is an integration point for TeamCity&trade; with Release management in Azure DevOps. With this extension, you can deploy artifacts from TeamCity&trade; builds using Release management. 
 
-**Note:** This extension work only with VS Team Services and TFS "15" RC onwards.
+**Note:** This extension work only with Azure DevOps and TFS "15" RC onwards.
 
 ## Usage
 This extension provides a service endpoint to connect to TeamCity&trade; account. Once connected, you can link a build artifact from the TeamCity&trade; project and deploy the same using Release management orchestration service.
