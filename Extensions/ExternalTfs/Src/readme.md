@@ -1,17 +1,17 @@
 # TFS artifacts for Release Management
 
-With this extension, you can deploy artifacts from external TFS or VS Team Services. The artifacts could be any of the following from VS Team Services or TFS:
+With this extension, you can deploy artifacts from external TFS or Azure Devops. The artifacts could be any of the following from Azure Devops or TFS:
 1. Build
 2. Xaml Build
 3. Git
 4. Team Foundation Version Control 
 
-These Build/Code artifacts could be from different TFS or VS Team Services accounts or from different collections from the same account.
+These Build/Code artifacts could be from different TFS or VS Azure Devops accounts or from different collections from the same account.
 
-**Note:** This extension work only with VS Team Services and TFS "17" U2 onwards. 
+**Note:** This extension work only with Azure Devops and TFS "17" U2 onwards. 
 
 ## Usage
-This extension provides a service endpoint to connect to an external TFS or VS Team Services Collection. Once connected, you can link an artifact from this TFS / VS Team Services.
+This extension provides a service endpoint to connect to an external TFS or Azure Devops Collection. Once connected, you can link an artifact from this TFS / Azure Devops.
 
 ### Connecting to an External TFS/VS-Team-Services account & collection
 When using Basic Authentication scheme, enable [Basic Auth on TFS](https://github.com/Microsoft/tfs-cli/blob/master/docs/configureBasicAuth.md)
@@ -43,7 +43,7 @@ Workaround - Run agent as admin user(either interactively or as service) when wo
 
 ### FAQs
 
-**1. Can I use an external TFS build artifact that is not accessible from my VS Team Services account?**
+**1. Can I use an external TFS build artifact that is not accessible from my Azure Devops account?**
 
 Yes you can. However, the agent that deploys the external TFS Build artifact needs to have access to the linked artifact (External TFS build artifact).
 
