@@ -1,11 +1,11 @@
 {
   "manifestVersion": 1.0,
   "id": "vss-services-circleci",
-  "name": "CirclCI artifacts for Release Management",
+  "name": "CirclCI artifacts for Release Pipeline",
   "publisher": "ms-vscs-rm",
   "version": "0.150.0",
   "public": true,
-  "description": "Tools related to connecting with CircleCI",
+  "description": "Tool for connecting with CircleCI",
   "_description.comment": "The below format to define artifact extensions is currently in preview and may change in future.",
   "categories": [ "Build and release" ],
   "Tags": [ "CircleCI", "Release", "DevOps", "Artifacts", "Pipelines" ],
@@ -131,8 +131,7 @@
             "resultSelector": "jsonpath:$[*]"
           }
         ],
-        "helpMarkDown": "<a href=\"https://msdn.microsoft.com/Library/vs/alm/Release/author-release-definition/understanding-tasks#serviceconnections\" target=\"_blank\"><b>Learn More</b></a>",
-        "icon": "icons/icon-circleci-logo.png"
+        "helpMarkDown": "<a href=\"https://msdn.microsoft.com/Library/vs/alm/Release/author-release-definition/understanding-tasks#serviceconnections\" target=\"_blank\"><b>Learn More</b></a>"
       }
     },
     {
