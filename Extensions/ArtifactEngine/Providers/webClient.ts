@@ -1,6 +1,6 @@
 // restrict usage of typed-rest-client to this file
 import * as httpm from './typed-rest-client/HttpClient';
-var tl = require('vsts-task-lib/task');
+var tl = require('azure-pipelines-task-lib/task');
 
 var packagejson = require('../package.json');
 

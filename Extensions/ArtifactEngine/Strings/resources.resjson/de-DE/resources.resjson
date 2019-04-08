@@ -8,5 +8,5 @@
   "loc.messages.SkippingItem": "Die Verarbeitung des Elements \"%s\" wird übersprungen.",
   "loc.messages.UnhandledRejection": "artifact-engine: nicht verarbeitete Zurückweisung %s",
   "loc.messages.UnhandledException": "artifact-engine: Ausnahmefehler %s",
-  "loc.messages.FailedRequest": "Failed request: (statusCode)"
+  "loc.messages.FailedRequest": "Fehlerhafte Anforderung: (statusCode)"
 }

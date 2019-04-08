@@ -2,7 +2,7 @@ import { ItemType } from '../Models';
 import { TicketState } from '../Models/ticketState';
 import { ArtifactItemStore } from '../Store/artifactItemStore';
 
-var tl = require('vsts-task-lib');
+var tl = require('azure-pipelines-task-lib');
 import * as ci from './cilogger';
 
 export class Logger {

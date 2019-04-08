@@ -1,4 +1,4 @@
-var tl = require('vsts-task-lib');
+var tl = require('azure-pipelines-task-lib');
 var packagejson = require('../package.json');
 
 const area: string = 'artifact-engine';

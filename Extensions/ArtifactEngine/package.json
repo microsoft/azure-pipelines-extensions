@@ -1,6 +1,6 @@
 {
   "name": "artifact-engine",
-  "version": "0.1.26",
+  "version": "0.1.27",
   "description": "Artifact Engine to download artifacts from jenkins, teamcity, vsts",
   "repository": {
     "type": "git",
@@ -18,7 +18,7 @@
   "dependencies": {
     "handlebars": "4.0.10",
     "minimatch": "3.0.2",
-    "vsts-task-lib": "2.2.1",
+    "azure-pipelines-task-lib": "2.8.0",
     "tunnel": "0.0.4"
   },
   "devDependencies": {
