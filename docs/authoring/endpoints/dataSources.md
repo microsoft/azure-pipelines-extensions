@@ -67,7 +67,7 @@ Result selector can also be an XPATH query. For e.g. *Azure Classic* endpoint ty
     "resultSelector": "xpath://Site/Name"
 }
 ```
- 
+
 ## Data source bindings
 
 In order to refer to data sources defined by endpoint type in tasks, data source bindings are used. For e.g. *AzureRmWebAppDeployment* task defines data source binding referring to the above data source :
@@ -236,6 +236,8 @@ Here’s the result after applying the data source binding corresponding to `Slo
     ]
 }
 ```
+
+**Note**: In case your response is an arrary of strings like `['value1','value2']` you can use template like `"{ Value : "{{defaultResultKey}}", DisplayValue : "{{defaultResultKey}}" }"`.`defaultResultKey` will take on values `value1`, `value2` e.t.c
 
 ## Test service endpoint
 
