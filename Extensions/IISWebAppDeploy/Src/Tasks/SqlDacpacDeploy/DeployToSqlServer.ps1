@@ -241,3 +241,21 @@ function Main
 
     RunRemoteDeployment @remoteDeploymentArgs
 }
+
+function GetSHA256String {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory=$false)]
+        [string] $inputString)
+
+     if ($inputString) {
+        $hashHandler = [System.Security.Cryptography.HashAlgorithm]::Create('sha256')
+        $hash = $hashHandler.ComputeHash([System.Text.Encoding]::UTF8.GetBytes($inputString.ToLower()))
+
+         $hashString = [System.BitConverter]::ToString($hash)
+        $hashString = $hashString.Replace('-', '').ToLower()
+        return $hashString;
+    }
+
+     return ""
+}
