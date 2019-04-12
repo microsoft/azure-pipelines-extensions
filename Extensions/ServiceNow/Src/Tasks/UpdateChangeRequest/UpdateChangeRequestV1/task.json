@@ -117,14 +117,11 @@
       "Execute": [{
           "RequestInputs": {
             "EndpointId": "$(ServiceNowConnection)",
-            "EndpointUrl": "$(endpoint.url)/api/now/table/change_request?sysparm_query=number=$(ChangeRequestNumber)&sysparm_fields=correlation_id,number",
+            "EndpointUrl": "$(endpoint.url)/api/now/table/change_request?sysparm_query=number=$(ChangeRequestNumber)&sysparm_fields=number",
             "Method": "GET",
             "Headers": "{\"Content-Type\":\"application/json\", \"Accept\":\"application/json\"}",
             "WaitForCompletion": "false",
-            "Expression": "and(eq(count(root['result']), 1), eq(jsonpath('$.result[0].number')[0], '$(ChangeRequestNumber)'))"
-          },
-          "ExecutionOptions": {
-            "OutputVariables": "{\"CHANGE_CORRELATION_ID\" :  \"jsonpath('$.result[0].correlation_id')[0]\"}"
+            "Expression": "eq(count(root['result']), 1)"
           }
         },
         {
@@ -132,7 +129,7 @@
             "EndpointId": "$(ServiceNowConnection)",
             "EndpointUrl": "$(endpoint.url)/api/now/import/x_mioms_azpipeline_change_request_import",
             "Method": "POST",
-            "Body": "{\"u_correlation_id\": \"$(CHANGE_CORRELATION_ID)\",\"u_work_notes\": \"$(WorkNotes)\"{{#equals UpdateStatus 'true'}},\"u_state\": \"$(NewStatus)\"{{#equals '$(NewStatus)' 'Closed'}}, \"u_close_code\": \"$(CloseCode)\", \"u_close_notes\": \"$(CloseNotes)\"{{/equals}}{{/equals}}{{#if otherParameters}}{{toCommaSeparatedKeyValueList otherParameters true}}{{/if}} }",
+            "Body": "{\"u_number\": \"$(ChangeRequestNumber)\",\"u_work_notes\": \"$(WorkNotes)\"{{#equals UpdateStatus 'true'}},\"u_state\": \"$(NewStatus)\"{{#equals '$(NewStatus)' 'Closed' 1}}, \"u_close_code\": \"$(CloseCode)\", \"u_close_notes\": \"$(CloseNotes)\"{{/equals}}{{/equals}}{{#if otherParameters}}{{toCommaSeparatedKeyValueList otherParameters true}}{{/if}} }",
             "Headers": "{\"Content-Type\":\"application/json\", \"Accept\":\"application/json\"}",
             "WaitForCompletion": "false",
             "Expression": "eq(jsonpath('$.result[0].status')[0], 'updated')"

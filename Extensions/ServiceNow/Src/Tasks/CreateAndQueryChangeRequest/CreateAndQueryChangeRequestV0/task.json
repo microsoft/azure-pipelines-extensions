@@ -15,7 +15,7 @@
   "version": {
     "Major": 0,
     "Minor": 1,
-    "Patch": 0
+    "Patch": 1
   },
   "instanceNameFormat": "ServiceNow change management",
   "groups": [
@@ -209,7 +209,7 @@
             "EndpointId": "$(ServiceNowConnection)",
             "EndpointUrl": "$(endpoint.url)/api/now/import/x_mioms_azpipeline_change_request_import",
             "Method": "POST",
-            "Body": "{  \"u_correlation_id\": \"{{#newGuid}}{{/newGuid}}\",\"u_x_mioms_azpi_eline_metadata\": \"Release: $(RELEASE.RELEASEWEBURL) \\r\\n EnvironmentName: $(RELEASE.ENVIRONMENTNAME) \\r\\n Requested By : $(RELEASE.DEPLOYMENT.REQUESTEDFOR)\", \"u_short_description\": \"$(shortdescription)\", \"u_description\": \"$(description)\", \"u_category\": \"$(category)\", \"u_priority\": \"$(priority)\", \"u_risk\": \"$(risk)\", \"u_impact\": \"$(impact)\", \"u_cmdb_ci\": \"$(configurationitem)\", \"u_assignment_group\": \"$(assignmentgroup)\", \"u_requested_by_date\": \"{{toDateTimeFormat '$(RELEASE.DEPLOYMENT.STARTTIME)' 'yyyy-MM-dd HH:mm:ss'}}\", \"u_start_date\": \"{{#if schedulestarttime}}{{toDateTimeFormat '$(schedulestarttime)' 'yyyy-MM-dd HH:mm:ss'}}{{/if}}\",  \"u_end_date\": \"{{#if scheduleendtime}}{{toDateTimeFormat '$(scheduleendtime)' 'yyyy-MM-dd HH:mm:ss'}}{{/if}}\" {{#if otherParameters}}{{toCommaSeparatedKeyValueList otherParameters true}}{{/if}} }",
+            "Body": "{  \"u_correlation_id\": \"{{#newGuid}}{{/newGuid}}\",\"u_x_mioms_azpi_eline_metadata\": \"Release: $(RELEASE.RELEASEWEBURL) \\r\\n EnvironmentName: $(RELEASE.ENVIRONMENTNAME) \\r\\n Requested By : {{#equals '$(RELEASE.REASON)' 'Schedule' 1}}Scheduled release{{else}}$(RELEASE.DEPLOYMENT.REQUESTEDFOR){{/equals}}\", \"u_short_description\": \"$(shortdescription)\", \"u_description\": \"$(description)\", \"u_category\": \"$(category)\", \"u_priority\": \"$(priority)\", \"u_risk\": \"$(risk)\", \"u_impact\": \"$(impact)\", \"u_cmdb_ci\": \"$(configurationitem)\", \"u_assignment_group\": \"$(assignmentgroup)\", \"u_requested_by_date\": \"{{toDateTimeFormat '$(RELEASE.DEPLOYMENT.STARTTIME)' 'yyyy-MM-dd HH:mm:ss'}}\", \"u_start_date\": \"{{#if schedulestarttime}}{{toDateTimeFormat '$(schedulestarttime)' 'yyyy-MM-dd HH:mm:ss'}}{{/if}}\",  \"u_end_date\": \"{{#if scheduleendtime}}{{toDateTimeFormat '$(scheduleendtime)' 'yyyy-MM-dd HH:mm:ss'}}{{/if}}\" {{#if otherParameters}}{{toCommaSeparatedKeyValueList otherParameters true}}{{/if}} }",
             "Headers": "{\"Content-Type\":\"application/json\", \"Accept\":\"application/json\"}",
             "WaitForCompletion": "false",
             "Expression": "eq(jsonpath('$.result[0].status')[0], 'inserted')"

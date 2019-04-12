@@ -40,7 +40,7 @@ Inputs provided in the gate are used as properties for the new change request in
 - **Standard change template**: Change template name for the change request.
 - **Short description**: A summary of the change.
 - **Change query criteria**: Criteria for querying change request. Must uniquely identify the change request. Gate would fail if multiple matching change requests are found.
-- **query string/ change request number/ correlationid**: Change request to use.
+- **query string/ change request number**: Change request to use.
 
 Additional properties can be set in the created change request using the following inputs. Note: Available inputs change based on the selected change type. 
 
@@ -62,7 +62,6 @@ ServiceNow gate produces output variables.                                     
 
 - **CHANGE_REQUEST_NUMBER** : Number of the change request.
 - **CHANGE_SYSTEM_ID** : Sys Id of the change request.
-- **CORRELATION_ID** : Correlation Id of the change request.
 
 #### Add a task to update the change request
 

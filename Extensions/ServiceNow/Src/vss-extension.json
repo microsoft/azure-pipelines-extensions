@@ -4,7 +4,7 @@
   "name": "ServiceNow Change Management",
   "publisher": "ms-vscs-rm",
   "version": "2.150.0",
-  "public": true,
+  "public": false,
   "description": "Integrate ServiceNow Change Management with Azure Pipelines",
   "categories": [
     "Azure Pipelines"

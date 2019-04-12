@@ -15,7 +15,7 @@
   "version": {
     "Major": 0,
     "Minor": 1,
-    "Patch": 0
+    "Patch": 1
   },
   "instanceNameFormat": "Update ServiceNow Change Request",
   "groups": [
@@ -109,7 +109,7 @@
             "Method": "GET",
             "Headers": "{\"Content-Type\":\"application/json\", \"Accept\":\"application/json\"}",
             "WaitForCompletion": "false",
-            "Expression": "eq(jsonpath('$.result[0].number')[0], '$(ChangeRequestNumber)')"
+            "Expression": "and(eq(count(root['result']), 1), eq(jsonpath('$.result[0].number')[0], '$(ChangeRequestNumber)'))"
           },
           "ExecutionOptions": {
             "OutputVariables": "{\"CHANGE_CORRELATION_ID\" :  \"jsonpath('$.result[0].correlation_id')[0]\"}"
@@ -120,7 +120,7 @@
             "EndpointId": "$(ServiceNowConnection)",
             "EndpointUrl": "$(endpoint.url)/api/now/import/x_mioms_azpipeline_change_request_import",
             "Method": "POST",
-            "Body": "{\"u_correlation_id\": \"$(CHANGE_CORRELATION_ID)\",\"u_state\": \"$(NewStatus)\"{{#equals '$(NewStatus)' 'Closed'}}, \"u_close_code\": \"$(CloseCode)\", \"u_close_notes\": \"$(CloseNotes)\"{{/equals}} {{#if otherParameters}}{{toCommaSeparatedKeyValueList otherParameters true}}{{/if}} }",
+            "Body": "{\"u_correlation_id\": \"$(CHANGE_CORRELATION_ID)\",\"u_number\": \"$(ChangeRequestNumber)\",\"u_state\": \"$(NewStatus)\"{{#equals '$(NewStatus)' 'Closed' 1}}, \"u_close_code\": \"$(CloseCode)\", \"u_close_notes\": \"$(CloseNotes)\"{{/equals}} {{#if otherParameters}}{{toCommaSeparatedKeyValueList otherParameters true}}{{/if}} }",
             "Headers": "{\"Content-Type\":\"application/json\", \"Accept\":\"application/json\"}",
             "WaitForCompletion": "false",
             "Expression": "eq(jsonpath('$.result[0].status')[0], 'updated')"
