@@ -350,10 +350,10 @@
             "Expression": "eq(count(root['result']), 1)"
           },
           "ExecutionOptions": {
-            "OutputVariables": "{\"CHANGE_REQUEST_NUMBER\" :  \"jsonpath('$.result[0].number')[0]\", \"CHANGE_CORRELATION_ID\" :  \"jsonpath('$.result.correlation_id')[0]\"}",
+            "OutputVariables": "{\"CHANGE_REQUEST_NUMBER\" :  \"jsonpath('$.result[0].number')[0]\", \"CHANGE_CORRELATION_ID\" :  \"jsonpath('$.result[0].correlation_id')[0]\"}",
             "SkipSectionExpression": "or(eq(eq(taskInputs['changeRequestAction'], 'useExisting'), false), and( eq(taskInputs['changeRequestAction'], 'useExisting'), eq(eq(taskInputs['changeQueryCriteria'], 'changeRequestNumber'), false)),and( eq(taskInputs['changeRequestAction'], 'useExisting'), eq(taskInputs['changeQueryCriteria'], 'changeRequestNumber'),eq(isNullOrEmpty(variables['CHANGE_REQUEST_NUMBER']), false)))"
           }
-        }
+        },
         {
           "RequestInputs": {
             "EndpointId": "$(ServiceNowConnection)",
@@ -364,7 +364,7 @@
             "Expression": "eq(count(root['result']), 1)"
           },
           "ExecutionOptions": {
-            "OutputVariables": "{\"CHANGE_REQUEST_NUMBER\" :  \"jsonpath('$.result[0].number')[0]\", \"CHANGE_CORRELATION_ID\" :  \"jsonpath('$.result.correlation_id')[0]\"}",
+            "OutputVariables": "{\"CHANGE_REQUEST_NUMBER\" :  \"jsonpath('$.result[0].number')[0]\", \"CHANGE_CORRELATION_ID\" :  \"jsonpath('$.result[0].correlation_id')[0]\"}",
             "SkipSectionExpression": "or(eq(eq(taskInputs['changeRequestAction'], 'useExisting'), false), and( eq(taskInputs['changeRequestAction'], 'useExisting'), eq(eq(taskInputs['changeQueryCriteria'], 'queryString'), false)),and( eq(taskInputs['changeRequestAction'], 'useExisting'), eq(taskInputs['changeQueryCriteria'], 'queryString'),eq(isNullOrEmpty(variables['CHANGE_REQUEST_NUMBER']), false)))"
           }
         },
