@@ -19,7 +19,7 @@ Note: All the artifacts in this example are of type "folder" and hence are expan
 #### artifactItems
 This data source returns the child items of a given artifact. For example, in the below picture, drop1 artifact item has 2 children items i.e Application Tier and Tools.
 
-![artifactItems](./images/artifactItems.png)
+![artifactItems](./images/artifactItems.PNG)
 
 Note: Even the 2 children items here are also of type folder, expanding them is not supported. Right now we support only 2 levels of folder hierarchy.
 
