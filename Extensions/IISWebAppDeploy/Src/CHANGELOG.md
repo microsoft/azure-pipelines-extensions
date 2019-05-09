@@ -2,6 +2,10 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.5.3] 9th May 2019
+### Added
+- Fixed issue in which starting a remote ps job failed because of incorrect encoding. Original Issue: https://github.com/microsoft/azure-pipelines-tasks/issues/9766
+
 ## [1.5.1] 4th October 2018
 ### Added
 - Fixing issue of RD save button disabled with version 2.*
