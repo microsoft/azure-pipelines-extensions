@@ -1,13 +1,13 @@
 {
   "manifestVersion": 1.0,
-  "id": "vss-services-circleci",
+  "id": "vss-services-circleci-extension",
   "name": "CirclCI artifacts for Release Pipeline",
   "publisher": "ms-vscs-rm",
-  "version": "0.150.0",
+  "version": "0.152.2",
   "public": true,
   "description": "Tool for connecting with CircleCI",
   "_description.comment": "The below format to define artifact extensions is currently in preview and may change in future.",
-  "categories": [ "Build and release" ],
+  "categories": [ "Build and release", "Azure pipelines" ],
   "Tags": [ "CircleCI", "Release", "DevOps", "Artifacts", "Pipelines" ],
   "targets": [
     {
@@ -57,7 +57,7 @@
   ],
   "contributions": [
     {
-      "id": "circleCI-endpoint-type",
+      "id": "circleCI-connection-type",
       "description": "i18n:Service Endpoint type for CircleCI connections",
       "_description.comment": "Don't Localize the word 'CircleCI'",
       "type": "ms.vss-endpoint.service-endpoint-type",
@@ -65,7 +65,7 @@
         "ms.vss-endpoint.endpoint-types"
       ],
       "properties": {
-        "name": "circleCI",
+        "name": "circle-CI",
         "displayName": "CircleCI",
         "url": {
           "isVisible": "false",
@@ -156,7 +156,7 @@
         "name": "CircleCI",
         "displayName": "i18n:CircleCI",
         "_displayName.comment": "Don't Localize the word 'CircleCI'",
-        "endpointTypeId": "circleCI",
+        "endpointTypeId": "circle-CI",
         "uniqueSourceIdentifier": "{{connection}}:{{project}}:{{definition}}",
         "downloadTaskId": "83751EE5-0AEF-4EC3-915F-DFB71B7157E7",
         "artifactType": "Build",

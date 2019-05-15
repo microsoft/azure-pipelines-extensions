@@ -9,14 +9,14 @@
     "preview": true,
     "version": {
       "Major": 0,
-      "Minor": 150,
-      "Patch": 0
+      "Minor": 152,
+      "Patch": 2
     },
     "demands": [],
     "inputs": [
       {
         "name": "connection",
-        "type": "connectedService:circleci",
+        "type": "connectedService:circle-ci",
         "label": "CircleCI Connection",
         "defaultValue": "",
         "required": true,
