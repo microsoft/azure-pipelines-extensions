@@ -1,7 +1,7 @@
 {
   "manifestVersion": 1.0,
   "id": "vss-services-circleci-extension",
-  "name": "CirclCI artifacts for Release Pipeline",
+  "name": "CircleCI artifacts for Release Pipeline",
   "publisher": "ms-vscs-rm",
   "version": "0.152.2",
   "public": true,
