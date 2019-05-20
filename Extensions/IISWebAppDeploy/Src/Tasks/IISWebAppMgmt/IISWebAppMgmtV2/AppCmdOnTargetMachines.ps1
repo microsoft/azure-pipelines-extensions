@@ -148,6 +148,36 @@ function Test-AppPoolExist
     return $false
 }
 
+function Get-AppPoolState
+{
+    param(
+        [string]$appPoolName
+    )
+
+    $appCmdPath, $iisVersion = Get-AppCmdLocation -regKeyPath $AppCmdRegKey
+    $appCmdArgs = [string]::Format(' list apppool /name:"{0}"',$appPoolName)
+    $command = "`"$appCmdPath`" $appCmdArgs"
+
+    Write-Verbose "Checking application pool state. Running command : $command"
+
+    $appPoolInfo = Run-Command -command $command -failOnErr $false
+
+    $appPoolName = $appPoolName.Replace('`', '``').Replace('"', '`"').Replace('$', '`$')
+    if($null -ne $appPoolInfo -and $appPoolInfo -like "*`"$appPoolName`"*")
+    {
+        $found = $appPoolInfo -match 'state:([A-Z])\w+'
+        if ($found) {
+            $stateInfo = $matches[0]
+            if ($stateInfo) {
+                return ($stateInfo -Split ":")[1]
+            }
+        }
+    }
+
+    Write-Verbose "Application Pool (`"$appPoolName`") does not exists"
+    return $null
+}
+
 function Enable-SNI
 {
     param(
@@ -736,6 +766,20 @@ function Start-Stop-Recycle-ApplicationPool {
     $appCmdPath, $iisVersion = Get-AppCmdLocation -regKeyPath $AppCmdRegKey
     $appCmdArgs = [string]::Format('{0} apppool /apppool.name:"{1}"', $action, $appPoolName)
     $command = "`"$appCmdPath`" $appCmdArgs"
+
+    $appPoolState = Get-AppPoolState -appPoolName $appPoolName
+
+    if ($appPoolState)
+    {
+        if ((($appPoolState -like "Started") -and $action -like "start") -or (($appPoolState -like "Stopped") -and $action -like "stop")) {
+            Write-verbose "Application pool '$appPoolName' is already in state of the action '$action'. Hence skipping the operation."
+            return
+        }
+    } 
+    else
+    {
+        Write-Verbose "Unable to detect the state of application pool '$appPoolName'"
+    } 
 
     Write-Verbose "Performing action '$action' on application pool '$appPoolName'. Running command $command"
     Run-Command -command $command
