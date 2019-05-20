@@ -771,10 +771,8 @@ function Start-Stop-Recycle-ApplicationPool {
 
     if ($appPoolState)
     {
-        $isAppPoolInStartedState =  ($appPoolState -like "Started")
-
-        if (($isAppPoolInStartedState -and $action -like "start") -or ((-not $isAppPoolInStartedState) -and $action -like "stop")) {
-            Write-verbose "Application pool '$appPoolName' is already in state of the action '$action'. Hence aborting the operation."
+        if ((($appPoolState -like "Started") -and $action -like "start") -or (($appPoolState -like "Stopped") -and $action -like "stop")) {
+            Write-verbose "Application pool '$appPoolName' is already in state of the action '$action'. Hence skipping the operation."
             return
         }
     } 
