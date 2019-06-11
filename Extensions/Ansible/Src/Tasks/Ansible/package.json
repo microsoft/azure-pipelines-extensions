@@ -1,6 +1,6 @@
 {
   "name": "ansible",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Ansible task for playbook execution",
   "main": "main.js",
   "author": "Microsoft",
