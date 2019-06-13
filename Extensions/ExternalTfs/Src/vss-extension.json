@@ -4,7 +4,7 @@
   "version": "15.145.0",
   "name": "TFS artifacts for Release Management",
   "publisher": "ms-vscs-rm",
-  "description": "Deploy external TFS/ VS-Team-Services artifacts using Release Management",
+  "description": "Deploy external TFS/ Azure DevOps artifacts using Release Management",
   "_description.comment": "The below format to define artifact extensions is currently in preview and may change in future.",
   "public": true,
   "categories": [ "Build and release" ],

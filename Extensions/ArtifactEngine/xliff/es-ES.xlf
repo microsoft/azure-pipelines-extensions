@@ -19,7 +19,7 @@
       </trans-unit>
       <trans-unit xmlns="" id="loc.messages.FailedRequest">
         <source>Failed request: (statusCode)</source>
-        <target state="new">Error en la solicitud: (statusCode)</target>
+        <target state="translated">Error en la solicitud: (statusCode)</target>
         <note />
       </trans-unit>
       <trans-unit xmlns="" id="loc.messages.FailedToParseResponse">

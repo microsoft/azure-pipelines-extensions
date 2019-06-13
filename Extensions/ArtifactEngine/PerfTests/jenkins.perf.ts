@@ -30,13 +30,13 @@ describe('Perf Tests', () => {
             processorOptions.retryLimit = 4;
             processorOptions.verbose = true;
 
-            var itemsUrl = "http://rmcdpjenkins2.southindia.cloudapp.azure.com:8080/job/ReleaseManagement/job/RMCDP/job/ArtifactEngineTests/job/LargeSizeProject/5/api/json?tree=artifacts[*]";
+            var itemsUrl = "http://rmcdpjenkins3.southindia.cloudapp.azure.com:8080/job/ReleaseManagement/job/RMCDP/job/ArtifactEngineTests/job/LargeSizeProject/2/api/json?tree=artifacts[*]";
             var variables = {
                 "endpoint": {
-                    "url": "http://rmcdpjenkins2.southindia.cloudapp.azure.com:8080"
+                    "url": "http://rmcdpjenkins3.southindia.cloudapp.azure.com:8080"
                 },
                 "definition": "ReleaseManagement/job/RMCDP/job/ArtifactEngineTests/job/LargeSizeProject",
-                "version": "5"
+                "version": "2"
             };
 
             var handler = new BasicCredentialHandler(nconf.get('JENKINS:USERNAME'), nconf.get('JENKINS:PASSWORD'));
@@ -67,13 +67,13 @@ describe('Perf Tests', () => {
             processorOptions.retryLimit = 4;
             processorOptions.verbose = true;
 
-            var itemsUrl = "http://rmcdpjenkins2.southindia.cloudapp.azure.com:8080/job/ReleaseManagement/job/RMCDP/job/ArtifactEngineTests/job/LargeVolumeProject/6/api/json?tree=artifacts[*]";
+            var itemsUrl = "http://rmcdpjenkins3.southindia.cloudapp.azure.com:8080/job/ReleaseManagement/job/RMCDP/job/ArtifactEngineTests/job/LargeVolumeProject/1/api/json?tree=artifacts[*]";
             var variables = {
                 "endpoint": {
-                    "url": "http://rmcdpjenkins2.southindia.cloudapp.azure.com:8080"
+                    "url": "http://rmcdpjenkins3.southindia.cloudapp.azure.com:8080"
                 },
                 "definition": "ReleaseManagement/job/RMCDP/job/ArtifactEngineTests/job/LargeVolumeProject",
-                "version": "6"
+                "version": "1"
             };
 
             var handler = new BasicCredentialHandler(nconf.get('JENKINS:USERNAME'), nconf.get('JENKINS:PASSWORD'));
@@ -104,7 +104,7 @@ describe('Perf Tests', () => {
             processorOptions.retryLimit = 2;
             processorOptions.verbose = true;
 
-            var itemsUrl = "http://rmcdpjenkins2.southindia.cloudapp.azure.com:8080/job/ReleaseManagement/job/RMCDP/job/ArtifactEngineTests/job/LargeVolumeProject/6/artifact/*zip*/";
+            var itemsUrl = "http://rmcdpjenkins3.southindia.cloudapp.azure.com:8080/job/ReleaseManagement/job/RMCDP/job/ArtifactEngineTests/job/LargeVolumeProject/1/artifact/*zip*/";
             var handler = new BasicCredentialHandler(nconf.get('JENKINS:USERNAME'), nconf.get('JENKINS:PASSWORD'));
             var zipProvider = new providers.ZipProvider(itemsUrl, handler, { ignoreSslError: false });
             var dropLocation = path.join(nconf.get('DROPLOCATION'), "jenkinsDropWithMultipleFiles.zip");

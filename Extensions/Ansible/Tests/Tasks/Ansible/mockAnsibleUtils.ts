@@ -1,5 +1,7 @@
 import Q = require("q");
 
+export const TestGuid: string = "7d9b7f32-41e5-43ed-8b0e-c6f2874836f8";
+
 export function _writeLine(str) {
     console.log(str);
 }
@@ -151,4 +153,8 @@ export function beginRequest(request) {
         res.body = JSON.parse(body);
         return res;
     }
+}
+
+export function getTemporaryInventoryFilePath(): string {
+    return '/tmp/' + TestGuid + 'inventory.ini';
 }

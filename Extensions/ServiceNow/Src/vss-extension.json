@@ -3,7 +3,7 @@
   "id": "vss-services-servicenowchangerequestmanagement",
   "name": "ServiceNow Change Management",
   "publisher": "ms-vscs-rm",
-  "version": "0.0.3",
+  "version": "3.150.0",
   "public": true,
   "description": "Integrate ServiceNow Change Management with Azure Pipelines",
   "categories": [
@@ -84,6 +84,17 @@
         },
         "dataSources": [
           {
+            "name": "TestConnection",
+            "endpointUrl": "{{endpoint.url}}/api/x_mioms_azpipeline/app_version?app_major_version=3",
+            "resultSelector": "jsonpath:$.result"
+          },
+          {
+            "name": "StandardChangeTemplate",
+            "endpointUrl": "{{endpoint.url}}/api/now/table/sys_template?sysparm_query=table=change_request^active=true&sysparm_fields=sys_id,sys_name",
+            "resultSelector": "jsonpath:$.result[*]",
+            "resultTemplate": "{ \"Value\" : \"{{sys_id}}\", \"DisplayValue\" : \"{{sys_name}}\" }"
+          },
+          {
             "name": "Priority",
             "endpointUrl": "{{endpoint.url}}/api/now/table/sys_choice?sysparm_query=element=priority^name={{table}}&sysparm_fields=label",
             "resultSelector": "jsonpath:$.result[*].label",
@@ -106,8 +117,11 @@
           },
           {
             "name": "Impact",
-            "endpointUrl": "{{endpoint.url}}/api/now/table/sys_choice?sysparm_query=element=Impact^ORDERBYDESCvalue&sysparm_fields=label",
-            "resultSelector": "jsonpath:$.result[*].label"
+            "endpointUrl": "{{endpoint.url}}/api/now/table/sys_choice?sysparm_query=element=Impact^name={{table}}^ORDERBYDESCvalue&sysparm_fields=label",
+            "resultSelector": "jsonpath:$.result[*].label",
+            "callbackContextTemplate": "{\"table\": \"task\"}",
+            "callbackRequiredTemplate": "{{#equals table \"change_request\"}}{{isEqualNumber result.count 0}}{{else}}false{{/equals}}",
+            "initialContextTemplate": "{\"table\": \"change_request\"}"
           },
           {
             "name": "Category",
@@ -164,7 +178,7 @@
             ]
           }
         ],
-        "helpMarkDown": "<a href=\"url-to-documentation\" target=\"_blank\"><b>Learn More</b></a>"
+        "helpMarkDown": "<a href=\"https://docs.microsoft.com/en-us/azure/devops/pipelines/release/approvals/servicenow?view=azure-devops\" target=\"_blank\"><b>Learn More about ServiceNow integration</b></a>"
       }
     },
     {

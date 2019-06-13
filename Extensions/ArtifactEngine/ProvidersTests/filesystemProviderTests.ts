@@ -32,7 +32,7 @@ mockery.enable({
 
 import * as providers from '../Providers';
 import { ArtifactItemStore } from '../Store/artifactItemStore';
-var tl = require("vsts-task-lib");
+var tl = require("azure-pipelines-task-lib");
 
 describe('Unit Tests', () => {
     describe('filesystemProvider tests', () => {

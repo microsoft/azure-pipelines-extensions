@@ -22,6 +22,12 @@ param (
     [string]$deployInParallel
     )
 
+if ([Console]::InputEncoding -is [Text.UTF8Encoding] -and [Console]::InputEncoding.GetPreamble().Length -ne 0) 
+{ 
+	Write-Verbose "Resetting input encoding."
+	[Console]::InputEncoding = New-Object Text.UTF8Encoding $false 
+}
+
 $env:CURRENT_TASK_ROOTDIR = Split-Path -Parent $MyInvocation.MyCommand.Path
 
 . $env:CURRENT_TASK_ROOTDIR\TelemetryHelper\TelemetryHelper.ps1
@@ -32,6 +38,13 @@ if ($taskType -ne "dacpac")
     $additionalArguments = $additionalArgumentsSql
     $targetMethod = "server"
 }
+
+# Telemetry for SQL Dacpac deployment
+$encodedServerName = GetSHA256String($serverName)
+$encodedDatabaseName = GetSHA256String($databaseName)
+$telemetryJsonContent = -join("{`"serverName`": `"$encodedServerName`",",
+                              "`"databaseName`": `"$encodedDatabaseName`"}")
+Write-Host "##vso[telemetry.publish area=SqlTelemetry;feature=SqlDacpacDeploy]$telemetryJsonContent"
 
 $sqlMainArgs = @{
     machinesList=$machinesList 

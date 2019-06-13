@@ -10,6 +10,7 @@
     },
     "no-cache": [
             "Ansible",
+            "DownloadCircleCIArtifacts",
             "DownloadTeamCityArtifacts",
             "DownloadExternalBuildArtifacts",
             "DownloadArtifactsTfsVersionControl",

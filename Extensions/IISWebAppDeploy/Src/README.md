@@ -9,7 +9,7 @@ Using Windows Remote Management (WinRM), connect to the host machine(s) where II
 
 To easily **setup WinRM** on the **host machines**, follow the directions for the **[domain-joined machines](https://www.visualstudio.com/en-us/docs/release/examples/other-servers/net-to-vm)** or the **[workgroup machines](https://www.visualstudio.com/en-us/docs/release/examples/other-servers/net-to-workgroup-vm)**.
 
-The **Visual Studio Team Services** accounts that are using the **preview tasks** wiz. **IIS Web Application Deployment** or **SQL Server Database Deployment**, should move to this extension. All **future enhancements** to the IIS Web App Deployment task or to the SQL Server Database Deployment task will be provided in this extension.
+The **Azure DevOps** accounts that are using the **preview tasks** wiz. **IIS Web Application Deployment** or **SQL Server Database Deployment**, should move to this extension. All **future enhancements** to the IIS Web App Deployment task or to the SQL Server Database Deployment task will be provided in this extension.
 
 ## **Usage**
 
