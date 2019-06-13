@@ -41,7 +41,7 @@ Register-Mock Run-Command { }
 
 Start-Stop-Recycle-ApplicationPool -appPoolName $appPoolName -action $action
 
-Assert-WasCalled -Command Run-Command -Times 1
+Assert-WasCalled -Command Run-Command -Times 2
 Assert-WasCalled -Command Run-Command -- -command "`"appcmdPath`" start apppool /apppool.name:`"Sample App Pool`""
 
 # Test 4 : Stop Application Pool
@@ -53,7 +53,7 @@ Register-Mock Run-Command { }
 
 Start-Stop-Recycle-ApplicationPool -appPoolName $appPoolName -action $action
 
-Assert-WasCalled -Command Run-Command -Times 1
+Assert-WasCalled -Command Run-Command -Times 2
 Assert-WasCalled -Command Run-Command -- -command "`"appcmdPath`" stop apppool /apppool.name:`"Sample App Pool`""
 
 # Test 5 : Recycle Application Pool
@@ -65,5 +65,5 @@ Register-Mock Run-Command { }
 
 Start-Stop-Recycle-ApplicationPool -appPoolName $appPoolName -action $action
 
-Assert-WasCalled -Command Run-Command -Times 1
+Assert-WasCalled -Command Run-Command -Times 2
 Assert-WasCalled -Command Run-Command -- -command "`"appcmdPath`" recycle apppool /apppool.name:`"Sample App Pool`""

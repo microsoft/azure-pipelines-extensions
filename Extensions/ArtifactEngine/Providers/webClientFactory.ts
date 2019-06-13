@@ -11,7 +11,7 @@ export class WebClientFactory {
     }
 
     private static initializeProxy(options) {
-        // try get proxy setting from environment variable set by VSTS-Task-Lib if there is no proxy setting in the options
+        // try get proxy setting from environment variable set by azure-pipelines-task-lib if there is no proxy setting in the options
         if (!options.proxy || !options.proxy.proxyUrl) {
             if (global['_vsts_task_lib_proxy']) {
                 let proxyFromEnv: any = {
@@ -25,7 +25,7 @@ export class WebClientFactory {
             }
         }
 
-        // try get cert setting from environment variable set by VSTS-Task-Lib if there is no cert setting in the options
+        // try get cert setting from environment variable set by azure-pipelines-task-lib if there is no cert setting in the options
         if (!options.cert) {
             if (global['_vsts_task_lib_cert']) {
                 let certFromEnv: any = {
@@ -39,7 +39,7 @@ export class WebClientFactory {
             }
         }
 
-        // try get ignore SSL error setting from environment variable set by VSTS-Task-Lib if there is no ignore SSL error setting in the options
+        // try get ignore SSL error setting from environment variable set by azure-pipelines-task-lib if there is no ignore SSL error setting in the options
         if (!options.ignoreSslError) {
             options.ignoreSslError = !!global['_vsts_task_lib_skip_cert_validation'];
         }

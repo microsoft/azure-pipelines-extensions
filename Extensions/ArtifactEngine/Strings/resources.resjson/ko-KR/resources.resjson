@@ -8,5 +8,5 @@
   "loc.messages.SkippingItem": "항목 %s의 처리를 건너뜀",
   "loc.messages.UnhandledRejection": "artifact-engine: 처리되지 않은 거부 %s",
   "loc.messages.UnhandledException": "artifact-engine: 처리되지 않은 예외 %s",
-  "loc.messages.FailedRequest": "Failed request: (statusCode)"
+  "loc.messages.FailedRequest": "실패한 요청: (statusCode)"
 }

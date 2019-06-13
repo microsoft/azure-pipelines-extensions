@@ -20,7 +20,7 @@ There should be a IIS web server already installed and configured on the pre-exi
 
 To dynamically deploy IIS on machines, use the [PowerShell on Target Machines]((https://github.com/Microsoft/azure-pipelines-tasks/tree/master/Tasks/PowerShellOnTargetMachinesV3)) task and run the ConfigureWebServer.ps1 script on it from the [Fabrikamfiber GitHub Repo](https://github.com/fabrikamfiber/customerservice/tree/master/DeployTemplate). This script will also install the Web Deploy on the machines and is needed for deploying the IIS Web Apps.
 
-###WinRM setup
+### WinRM setup
 This task uses the [Windows Remote Management](https://msdn.microsoft.com/en-us/library/aa384426.aspx) (WinRM) to access domain-joined or workgroup, on-premises physical or virtual machines.
 
 #### Windows Remote Management (WinRM) Setup for On-premises Physical or Virtual Machines
