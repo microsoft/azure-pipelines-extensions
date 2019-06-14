@@ -2,6 +2,10 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.5.4] 12th June 2019
+### Added
+- Fixed issue in which password was getting displayed in the Azure Web app deploy task.
+
 ## [1.5.3] 9th May 2019
 ### Added
 - Fixed issue in which starting a remote ps job failed because of incorrect encoding. Original Issue: https://github.com/microsoft/azure-pipelines-tasks/issues/9766
