@@ -99,7 +99,8 @@
 				"southeastasia": "Southeast Asia",
 				"eastasia": "East Asia",
 				"australiaeast": "Australia East",
-				"brazilsouth": "Brazil South"
+				"brazilsouth": "Brazil South",
+				"canadacentral": "Canada Central"
 			},
 			"required": true,
 			"groupName": "cognitiveServiceInputs",
