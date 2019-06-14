@@ -17,7 +17,7 @@
 	"version": {
 		"Major": 0,
 		"Minor": 0,
-		"Patch": 3
+		"Patch": 4
 	},
 	"instanceNameFormat": "Twitter Sentiment Analysis",
 	"groups": [
@@ -101,6 +101,9 @@
 				"australiaeast": "Australia East",
 				"brazilsouth": "Brazil South",
 				"canadacentral": "Canada Central"
+			},
+			"properties": {
+				"EditableOptions": "True"
 			},
 			"required": true,
 			"groupName": "cognitiveServiceInputs",
