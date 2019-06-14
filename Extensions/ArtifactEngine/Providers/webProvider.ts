@@ -14,7 +14,7 @@ import { IRequestHandler, IRequestOptions } from './typed-rest-client/Interfaces
 import { HttpClientResponse } from './typed-rest-client/HttpClient';
 
 var handlebars = require('handlebars');
-var tl = require('vsts-task-lib/task');
+var tl = require('azure-pipelines-task-lib/task');
 
 export class WebProvider implements IArtifactProvider {
 

@@ -1,5 +1,6 @@
 import assert = require('assert');
 import path = require('path');
+import {TestGuid} from './mockAnsibleUtils';
 
 var mocktest = require('vsts-task-lib/mock-test');
 
@@ -73,28 +74,28 @@ describe('Ansible Suite', function () {
         }
     });
 
-    // it('should run when inventory is inline content for remote machine', (done: MochaDone) => {
-    //     this.timeout(1000);
-    //     let testPath = path.join(__dirname, 'testInventoryToBeInlineForRemoteMachine');
-    //     let runner = new mocktest.MockTestRunner(testPath);
-    //     runner.run();
+    it('should run when inventory is inline content for remote machine', (done: MochaDone) => {
+        this.timeout(1000);
+        let testPath = path.join(__dirname, 'testInventoryToBeInlineForRemoteMachine');
+        let runner = new mocktest.MockTestRunner(testPath);
+        runner.run();
 
-    //     try {
-    //         assert(runner.succeeded, "Should have succeeded");
-    //         assert(runner.stdOutContained('cmd run on remote machine = echo "DUMMY_IP_ADDRESS" > /tmp/inventory.ini'), 'should able to copy the inline content to inventory.ini file on remote machine');
-    //         assert(runner.stdOutContained('cmd run on remote machine = chmod +x /tmp/inventory.ini'), 'should able to make the inventory.ini file as executable for dynamic inventory');
-    //         assert(runner.stdOutContained('cmd run on remote machine = ansible-playbook -i /tmp/inventory.ini /path/to/ansiblePlaybookRoot/ansiblePlaybook.yml'), 'should able to run playbook on remote machine');
-    //         assert(runner.stdOutContained('connection to dummy client established'), 'should able connect to client');
-    //         assert(runner.stdOutContained('connection to dummy client terminated'), 'should able disconnect to client');
-    //         assert(runner.stdOutContained('cmd run on remote machine = rm -f /tmp/inventory.ini', 'should clean all the temporary inventory file on remote machine'));
-    //         done();
-    //     }
-    //     catch (error) {
-    //         console.log("STDERR", runner.stderr);
-    //         console.log("STDOUT", runner.stdout);
-    //         done(error);
-    //     }
-    // });
+        try {
+            assert(runner.succeeded, "Should have succeeded");
+            assert(runner.stdOutContained(`cmd run on remote machine = echo "DUMMY_IP_ADDRESS" > /tmp/${TestGuid}inventory.ini`), 'should able to copy the inline content to inventory.ini file on remote machine');
+            assert(runner.stdOutContained(`cmd run on remote machine = chmod +x /tmp/${TestGuid}inventory.ini`), 'should able to make the inventory.ini file as executable for dynamic inventory');
+            assert(runner.stdOutContained(`cmd run on remote machine = ansible-playbook -i /tmp/${TestGuid}inventory.ini /path/to/ansiblePlaybookRoot/ansiblePlaybook.yml`), 'should able to run playbook on remote machine');
+            assert(runner.stdOutContained('connection to dummy client established'), 'should able connect to client');
+            assert(runner.stdOutContained('connection to dummy client terminated'), 'should able disconnect to client');
+            assert(runner.stdOutContained(`cmd run on remote machine = rm -f /tmp/${TestGuid}inventory.ini`, 'should clean all the temporary inventory file on remote machine'));
+            done();
+        }
+        catch (error) {
+            console.log("STDERR", runner.stderr);
+            console.log("STDOUT", runner.stdout);
+            done(error);
+        }
+    });
 
     it('should run when sudo and additional parameters is present for remote machine', (done: MochaDone) => {
         this.timeout(1000);
@@ -171,24 +172,24 @@ describe('Ansible Suite', function () {
         }
     });
 
-    // it('should run when inventory is inline content for agent machine', (done: MochaDone) => {
-    //     this.timeout(1000);
-    //     let testPath = path.join(__dirname, 'testInventoryToBeInlineForAgentMachine');
-    //     let runner = new mocktest.MockTestRunner(testPath);
-    //     runner.run();
+    it('should run when inventory is inline content for agent machine', (done: MochaDone) => {
+        this.timeout(1000);
+        let testPath = path.join(__dirname, 'testInventoryToBeInlineForAgentMachine');
+        let runner = new mocktest.MockTestRunner(testPath);
+        runner.run();
 
-    //     try {
-    //         assert(runner.succeeded, "Should have succeeded");
-    //         assert(runner.stdOutContained('cmd run on agent machine = echo "DUMMY_IP_ADDRESS" > /tmp/inventory.ini'), 'should able to copy the inline content to inventory.ini file on remote machine');
-    //         assert(runner.stdOutContained('cmd run on agent machine = chmod +x /tmp/inventory.ini'), 'should able to make the inventory.ini file as executable for dynamic inventory');
-    //         assert(runner.stdOutContained('cmd run on agent machine = ansible-playbook -i /tmp/inventory.ini /path/to/ansiblePlaybookRoot/ansiblePlaybook.yml'), 'should able to run playbook on remote machine');
-    //         assert(runner.stdOutContained('cmd run on agent machine = rm -f /tmp/inventory.ini', 'should clean all the temporary inventory file on remote machine'));
-    //         done();
-    //     }
-    //     catch (error) {
-    //         console.log("STDERR", runner.stderr);
-    //         console.log("STDOUT", runner.stdout);
-    //         done(error);
-    //     }
-    // });
+        try {
+            assert(runner.succeeded, "Should have succeeded");
+            assert(runner.stdOutContained(`cmd run on agent machine = echo "DUMMY_IP_ADDRESS" > /tmp/${TestGuid}inventory.ini`), 'should able to copy the inline content to inventory.ini file on remote machine');
+            assert(runner.stdOutContained(`cmd run on agent machine = chmod +x /tmp/${TestGuid}inventory.ini`), 'should able to make the inventory.ini file as executable for dynamic inventory');
+            assert(runner.stdOutContained(`cmd run on agent machine = ansible-playbook -i /tmp/${TestGuid}inventory.ini /path/to/ansiblePlaybookRoot/ansiblePlaybook.yml`), 'should able to run playbook on remote machine');
+            assert(runner.stdOutContained(`cmd run on agent machine = rm -f /tmp/${TestGuid}inventory.ini`, 'should clean all the temporary inventory file on remote machine'));
+            done();
+        }
+        catch (error) {
+            console.log("STDERR", runner.stderr);
+            console.log("STDOUT", runner.stdout);
+            done(error);
+        }
+    });
 });

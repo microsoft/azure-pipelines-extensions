@@ -8,7 +8,7 @@ import * as providers from "../Providers"
 import { PersonalAccessTokenCredentialHandler } from "../Providers/typed-rest-client/handlers/personalaccesstoken";
 
 var nconf = require('nconf');
-var tl = require('vsts-task-lib/task');
+var tl = require('azure-pipelines-task-lib/task');
 
 nconf.argv()
     .env()

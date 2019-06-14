@@ -8,5 +8,5 @@
   "loc.messages.SkippingItem": "項目 %s の処理をスキップしました",
   "loc.messages.UnhandledRejection": "artifact-engine: ハンドルされない拒否 %s",
   "loc.messages.UnhandledException": "artifact-engine: ハンドルされない例外 %s",
-  "loc.messages.FailedRequest": "Failed request: (statusCode)"
+  "loc.messages.FailedRequest": "失敗した要求: (statusCode)"
 }

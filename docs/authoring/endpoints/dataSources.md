@@ -67,7 +67,7 @@ Result selector can also be an XPATH query. For e.g. *Azure Classic* endpoint ty
     "resultSelector": "xpath://Site/Name"
 }
 ```
- 
+
 ## Data source bindings
 
 In order to refer to data sources defined by endpoint type in tasks, data source bindings are used. For e.g. *AzureRmWebAppDeployment* task defines data source binding referring to the above data source :
@@ -237,6 +237,8 @@ Here’s the result after applying the data source binding corresponding to `Slo
 }
 ```
 
+**Note**: In case your response is an arrary of strings like `['value1','value2']` you can use template like `"{ Value : "{{defaultResultKey}}", DisplayValue : "{{defaultResultKey}}" }"`.`defaultResultKey` will take on values `value1`, `value2` e.t.c
+
 ## Test service endpoint
 
 To avoid creating or updating a service endpoint with incorrect values for the inputs, we support a “Test” action in service endpoint UI. Upon choosing to “Test” an endpoint, we internally invoke query on a data source with a specific name – `TestConnection`. For e.g. *Azure RM* endpoint type defines the following `TestConnection` data source:
@@ -267,9 +269,9 @@ For e.g. below is a dataSourceBinding for querying alert rules defined in Micros
 	{
 		"target": "alertRules",
 		"endpointId": "$(connectedServiceNameARM)",
-		"endpointUrl": "{{endpoint.url}}subscriptions/{{endpoint.subscriptionId}}/resourcegroups/$(ResourceGroupName)/providers/microsoft.insights/alertrules?api-version=2016-03-01&$filter=targetResourceUri eq /subscriptions/{{endpoint.subscriptionId}}/resourceGroups/$(ResourceGroupName)/providers/$(ResourceType)/$(resourceName)",
+		"endpointUrl": "{{{endpoint.url}}}subscriptions/{{{endpoint.subscriptionId}}}/resourcegroups/$(ResourceGroupName)/providers/microsoft.insights/alertrules?api-version=2016-03-01&$filter=targetResourceUri eq /subscriptions/{{{endpoint.subscriptionId}}}/resourceGroups/$(ResourceGroupName)/providers/$(ResourceType)/$(resourceName)",
 		"resultSelector": "jsonpath:$.value[?(@.properties.isEnabled == true)]",
-		"resultTemplate": "{ \"Value\" : \"{{name}}\", \"DisplayValue\":\"{{name}}\"}"
+		"resultTemplate": "{ \"Value\" : \"{{{name}}}\", \"DisplayValue\":\"{{{name}}}\"}"
 	}
 ]
 ```

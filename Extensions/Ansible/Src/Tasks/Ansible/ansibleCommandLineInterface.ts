@@ -4,7 +4,6 @@ import * as ansibleUtils from './ansibleUtils';
 import { RemoteCommandOptions } from './ansibleUtils'
 import { ansibleTaskParameters } from './ansibleTaskParameters';
 
-var uuid = require('uuid/v4'); //randomly generated uid
 var os = require('os');
 var shell = require('shelljs');
 
@@ -131,7 +130,7 @@ export class ansibleCommandLineInterface extends ansibleInterface {
 
         return new Promise<string>(async (resolve, reject) => {
             try {
-                let remoteInventory = '/tmp/' + uuid() + 'inventory.ini';
+                let remoteInventory = ansibleUtils.getTemporaryInventoryFilePath();
                 let remoteInventoryPath = '"' + remoteInventory + '"';
                 tl.debug('RemoteInventoryPath = ' + remoteInventoryPath);
 

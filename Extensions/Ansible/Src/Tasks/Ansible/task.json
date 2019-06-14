@@ -10,13 +10,14 @@
         "Release"
     ],
 	"runsOn": [
-        "Agent"
+        "Agent",
+        "DeploymentGroup"
     ],
     "author": "Microsoft Corporation",
     "version": {
         "Major": 0,
         "Minor": 0,
-        "Patch": 4
+        "Patch": 5
     },
     "demands": [],
     "instanceNameFormat": "Run playbook",
@@ -203,7 +204,7 @@
             "helpMarkDown": "Specify [inventory](http://docs.ansible.com/ansible/latest/intro_inventory.html) inline",
             "visibleRule": "inventoriesRemoteMachine = inlineContent",
             "groupName": "inventoryRemoteMachine"
-        },  
+        },
         {
             "name": "inventoriesAgentMachine",
             "type": "pickList",
@@ -258,7 +259,7 @@
             "helpMarkDown": "Specify [inventory](http://docs.ansible.com/ansible/latest/intro_inventory.html) inline",
             "visibleRule": "inventoriesAgentMachine = inlineContent",
             "groupName": "inventoryAgentMachine"
-        },  
+        },
         {
             "name": "sudoEnabled",
             "type": "boolean",
@@ -267,7 +268,7 @@
             "required": false,
             "helpMarkDown": "Run operations with sudo. It works only when the Ansible user is sudoer with nopasswd option.",
             "groupName": "advanced"
-        },     
+        },
         {
             "name": "sudoUser",
             "type": "string",
@@ -277,7 +278,7 @@
             "helpMarkDown": "Desired sudo user. \"root\" is used when this field is empty.",
             "visibleRule": "sudoEnabled = true",
             "groupName": "advanced"
-        },  
+        },
         {
             "name": "args",
             "type": "multiLine",

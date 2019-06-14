@@ -1,6 +1,6 @@
 ﻿import * as path from 'path';
 
-var tl = require('vsts-task-lib/task');
+var tl = require('azure-pipelines-task-lib/task');
 
 import * as models from '../Models';
 import * as ci from './cilogger';
