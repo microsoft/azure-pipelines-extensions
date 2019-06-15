@@ -3,7 +3,7 @@
     "id": "vss-services-kayentadeploymentgate",
     "name": "Kayenta Canary Judge",
     "publisher": "ms-vscs-rm",
-    "version": "0.154.0",
+    "version": "0.154.2",
     "public": false,
     "description": "Integrate Kayenta Canary Judge with Azure Pipelines",
     "categories": [
