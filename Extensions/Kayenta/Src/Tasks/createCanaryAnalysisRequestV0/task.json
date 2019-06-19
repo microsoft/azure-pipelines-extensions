@@ -54,7 +54,7 @@
       "type": "string",       
       "label": "Metric account",
       "required": "true",
-      "helpMarkDown": "Name of metric account configured for Kayenta Ex :- datadog-account",
+      "helpMarkDown": "Name of metric account configured for Kayenta Ex : datadog-account",
       "groupName": "accountConfiguration",
       "properties": {
           "EditableOptions": "True"
@@ -65,7 +65,7 @@
       "type": "string",       
       "label": "Storage account",
       "required": "true",
-      "helpMarkDown": "Name of storage account configured for Kayenta Ex :- google-account",
+      "helpMarkDown": "Name of storage account configured for Kayenta Ex : google-account",
       "groupName": "accountConfiguration",
       "properties": {
           "EditableOptions": "True"
@@ -76,7 +76,7 @@
       "type": "string",      
       "label": "Configuration Account",
       "required": "true",
-      "helpMarkDown": "Configuration account name to fetch canary configurations. Ex :- google-account",
+      "helpMarkDown": "Configuration account name to fetch canary configurations. Ex : google-account",
       "groupName": "accountConfiguration",
       "properties": {
         "EditableOptions": "True"
@@ -99,7 +99,7 @@
         "label": "Marginal threshold",
         "required": "false",
         "defaultValue": "0",
-        "helpMarkDown": "Canary classification will return Marginal if canary-score falls above marginal threshold else return Fail, Ex :- 75.0",
+        "helpMarkDown": "Canary classification will return Marginal if canary-score falls above marginal threshold else return Fail, Ex : 75.0",
         "groupName": "thresholds",
         "properties": {
             "EditableOptions": "True"
@@ -110,7 +110,7 @@
         "type": "string",      
         "label": "Pass threshold",
         "required": "true",
-        "helpMarkDown": "Canary will Pass only if canary-score crosses pass threshold, Ex :- 95.0",
+        "helpMarkDown": "Canary will Pass only if canary-score crosses pass threshold, Ex : 95.0",
         "groupName": "thresholds",
         "properties": {
             "EditableOptions": "True"
@@ -121,7 +121,7 @@
         "type": "string",      
         "label": "Analysis lifetime duration {mins}",
         "required": "true",
-        "helpMarkDown": "Analysis lifetime will continue for this duration, Ex :- 45",
+        "helpMarkDown": "Analysis lifetime will continue for this duration, Ex : 45",
         "groupName": "executionRequest",
         "properties": {
             "EditableOptions": "True"
@@ -144,7 +144,7 @@
         "type": "string",    
         "label": "Analysis interval {mins}",
         "required": "true",
-        "helpMarkDown": "Judgement Analysis will occur after each interval during the lifetime of Analysis, Ex :- 15",
+        "helpMarkDown": "Judgement Analysis will occur after each interval during the lifetime of Analysis, Ex : 15",
         "groupName": "executionRequest",
         "properties": {
             "EditableOptions": "True"
@@ -155,7 +155,7 @@
       "type": "string",       
       "label": "Canary scope",
       "required": "true",
-      "helpMarkDown": "The label/dimension to create canary queries, Ex: myapp-canary-v001",
+      "helpMarkDown": "The label/dimension to create canary queries, Ex : myapp-canary-v001",
       "groupName": "scopes",
       "properties": {
           "EditableOptions": "True"
@@ -166,7 +166,7 @@
       "type": "string",       
       "label": "Canary location",
       "required": "false",
-      "helpMarkDown": "To further differentiate based on server location, Ex :- us-west-2",
+      "helpMarkDown": "To further differentiate based on server location, Ex : us-west-2",
       "groupName": "scopes",
       "properties": {
           "EditableOptions": "True"
@@ -177,7 +177,7 @@
       "type": "string",       
       "label": "Baseline scope",
       "required": "true",
-      "helpMarkDown": "The label/dimension to create baseline queries, Ex: myapp-baseline-v001",
+      "helpMarkDown": "The label/dimension to create baseline queries, Ex : myapp-baseline-v001",
       "groupName": "scopes",
       "properties": {
           "EditableOptions": "True"
@@ -188,7 +188,7 @@
       "type": "string",       
       "label": "Baseline location",
       "required": "false",
-      "helpMarkDown": "To further differentiate based on server location, Ex :- us-west-2",
+      "helpMarkDown": "To further differentiate based on server location, Ex : us-west-2",
       "groupName": "scopes",
       "properties": {
           "EditableOptions": "True"
@@ -200,7 +200,7 @@
       "label": "Scope name",
       "required": "true",
       "defaultValue": "default",
-      "helpMarkDown": "scope-name for canary-execution must be same as metric scope-name, Ex :- default",
+      "helpMarkDown": "scope-name for canary-execution must be same as metric scope-name, Ex : default",
       "groupName": "scopes",
       "properties": {
           "EditableOptions": "True"
@@ -234,7 +234,7 @@
     "label": "Step (seconds)",
     "defaultValue": "60",
     "required": "false",
-    "helpMarkDown": "Kayenta will scrape data after each step in one Interval. Ex :- 10",
+    "helpMarkDown": "Kayenta will scrape data after each step in one Interval. Ex : 10",
     "groupName": "scopes",
     "properties": {
         "EditableOptions": "True"
