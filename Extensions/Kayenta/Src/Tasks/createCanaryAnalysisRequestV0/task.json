@@ -15,7 +15,7 @@
   "version": {
     "Major": 0,
     "Minor": 154,     
-    "Patch": 2
+    "Patch": 3
   },
   "instanceNameFormat": "Kayenta Canary Judge",
   "groups": [
@@ -24,16 +24,21 @@
       "displayName": "Account Configuration",
       "isExpanded": true
     },
-  {
+    {
+      "name": "thresholds",
+      "displayName": "Thresholds",
+      "isExpanded": true
+    },
+    {
     "name": "executionRequest",
     "displayName": "Analysis Configuration",
     "isExpanded": false
-  },
-  {
+    },
+    {
     "name": "scopes",
     "displayName": "Scopes",
     "isExpanded": false
-  }
+    }
 ],
   "inputs": [
     {
@@ -43,26 +48,6 @@
         "defaultValue": "",
         "required": "true",
         "helpMarkDown": "Connection to the Kayenta instance used for canary analysis."
-    },
-    {
-      "name": "configAccountName",
-      "type": "string",      
-      "label": "Configuration Account",
-      "required": "true",
-      "helpMarkDown": "Configuration account name to fetch canary configurations. Ex :- google-account",
-      "properties": {
-        "EditableOptions": "True"
-        }
-    },
-    {
-      "name": "canaryConfig",
-      "type": "pickList",      
-      "label": "Canary config",
-      "required": "true",
-      "helpMarkDown": "Choose the canary-config for the analysis.",
-      "properties": {
-        "EditableOptions": "False"
-        }
     },
     {
       "name": "metricsAccountName",
@@ -87,12 +72,35 @@
         }
     },
     {
+      "name": "configAccountName",
+      "type": "string",      
+      "label": "Configuration Account",
+      "required": "true",
+      "helpMarkDown": "Configuration account name to fetch canary configurations. Ex :- google-account",
+      "groupName": "accountConfiguration",
+      "properties": {
+        "EditableOptions": "True"
+        }
+    },
+    {
+      "name": "canaryConfig",
+      "type": "pickList",      
+      "label": "Canary config",
+      "required": "true",
+      "helpMarkDown": "Choose the canary-config for the analysis.",
+      "groupName": "accountConfiguration",
+      "properties": {
+        "EditableOptions": "False"
+        }
+    },
+    {
         "name": "marginalThreshold",
         "type": "string",       
         "label": "Marginal threshold",
         "required": "false",
         "defaultValue": "0",
         "helpMarkDown": "Canary classification will return Marginal if canary-score falls above marginal threshold else return Fail, Ex :- 75.0",
+        "groupName": "thresholds",
         "properties": {
             "EditableOptions": "True"
           }
@@ -103,6 +111,7 @@
         "label": "Pass threshold",
         "required": "true",
         "helpMarkDown": "Canary will Pass only if canary-score crosses pass threshold, Ex :- 95.0",
+        "groupName": "thresholds",
         "properties": {
             "EditableOptions": "True"
           }
