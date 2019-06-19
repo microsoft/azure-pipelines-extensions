@@ -18,5 +18,4 @@ Once you have set up the service endpoint connection, you would be able to link 
 
 [Learn more about artifacts in Release Management](https://msdn.microsoft.com/library/vs/alm/release/author-release-definition/understanding-artifacts). Also you can use [Azure Pipeline Extensions on Github](https://github.com/Microsoft/azure-pipelines-extensions/issues) to report any issues.
 
-**Note: ** TeamCity&trade; is trademark owned by Jetbrains s.r.o.
-
+**Note:** TeamCity&trade; is trademark owned by Jetbrains s.r.o.
