@@ -65,7 +65,7 @@
       "type": "string",       
       "label": "Storage account",
       "required": "true",
-      "helpMarkDown": "Name of storage account configured for Kayenta Ex :- aws-account",
+      "helpMarkDown": "Name of storage account configured for Kayenta Ex :- google-account",
       "groupName": "accountConfiguration",
       "properties": {
           "EditableOptions": "True"
