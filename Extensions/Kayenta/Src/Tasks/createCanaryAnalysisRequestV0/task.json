@@ -15,7 +15,7 @@
   "version": {
     "Major": 0,
     "Minor": 154,     
-    "Patch": 3
+    "Patch": 2
   },
   "instanceNameFormat": "Kayenta Canary Judge",
   "groups": [
@@ -151,18 +151,6 @@
           }
     },
     {
-        "name": "beginAfterMins",
-        "type": "string",     
-        "label": "Analysis begin after {mins}",
-        "defaultValue": "$(release.deployment.gate.stabilizationTime)",
-        "required": "false",
-        "helpMarkDown": "Analysis will begin after minutes mentioned, Ex : - 5",
-        "groupName": "executionRequest",
-        "properties": {
-            "EditableOptions": "True"
-          }
-    },
-    {
       "name": "experimentScope",
       "type": "string",       
       "label": "Canary scope",
@@ -282,7 +270,7 @@
             "EndpointId": "$(KayentaConnection)",
             "EndpointUrl": "$(endpoint.url)standalone_canary_analysis/$(canaryConfig)?metricsAccountName=$(metricsAccountName)&configurationAccountName=$(configAccountName)&storageAccountName=$(storageAccountName)",
             "Method": "POST",
-            "Body": "{\"analysisIntervalMins\":\"$(analysisIntervalMins)\",\"beginAfterMins\":\"$(beginAfterMins)\",\"lifetimeDurationMins\":\"$(lifetimeDurationMins)\",\"lookbackMins\":\"$(lookbackMins)\",\"scopes\":[{\"controlLocation\":\"$(controlLocation)\",\"controlScope\":\"$(controlScope)\",{{#if endTimeIso}}\"endTimeIso\":\"$(endTimeIso)\",{{/if}}\"experimentLocation\":\"$(experimentLocation)\",\"experimentScope\":\"$(experimentScope)\",{{#if extendedScopeParams}}\"extendedScopeParams\":$(extendedScopeParams),{{/if}}\"scopeName\":\"$(scopeName)\",{{#if startTimeIso}}\"startTimeIso\":\"$(startTimeIso)\",{{/if}}\"step\":\"$(step)\"}],{{#if siteLocal}}\"siteLocal\":$(siteLocal),{{/if}}\"thresholds\":{\"marginal\":\"$(marginalThreshold)\",\"pass\":\"$(passThreshold)\"}}",
+            "Body": "{\"analysisIntervalMins\":\"$(analysisIntervalMins)\",\"beginAfterMins\":\"$(release.deployment.gate.stabilizationTime)\",\"lifetimeDurationMins\":\"$(lifetimeDurationMins)\",\"lookbackMins\":\"$(lookbackMins)\",\"scopes\":[{\"controlLocation\":\"$(controlLocation)\",\"controlScope\":\"$(controlScope)\",{{#if endTimeIso}}\"endTimeIso\":\"$(endTimeIso)\",{{/if}}\"experimentLocation\":\"$(experimentLocation)\",\"experimentScope\":\"$(experimentScope)\",{{#if extendedScopeParams}}\"extendedScopeParams\":$(extendedScopeParams),{{/if}}\"scopeName\":\"$(scopeName)\",{{#if startTimeIso}}\"startTimeIso\":\"$(startTimeIso)\",{{/if}}\"step\":\"$(step)\"}],{{#if siteLocal}}\"siteLocal\":$(siteLocal),{{/if}}\"thresholds\":{\"marginal\":\"$(marginalThreshold)\",\"pass\":\"$(passThreshold)\"}}",
             "Headers": "{\"Content-Type\":\"application/json\", \"Accept\":\"application/json\"}",
             "WaitForCompletion": "false",
             "Expression": "eq(isNullOrEmpty(jsonpath('$.canaryAnalysisExecutionId')[0]),false)"
