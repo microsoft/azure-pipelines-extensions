@@ -1,0 +1,23 @@
+{
+  "name": "googleoptimize",
+  "version": "1.0.0",
+  "description": "",
+  "main": "sample.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "azure-pipelines-task-lib": "^2.8.0",
+    "googleapis": "^28.1.0",
+    "request": "^2.88.0",
+    "rxjs": "^6.5.2",
+    "typed-rest-client": "^1.5.0"
+  },
+  "devDependencies": {
+    "@types/node": "^12.0.4",
+    "@types/q": "^1.5.2",
+    "typescript": "^3.5.1"
+  }
+}

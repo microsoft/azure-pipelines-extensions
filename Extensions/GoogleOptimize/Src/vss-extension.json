@@ -1,0 +1,83 @@
+{
+   "manifestVersion":1,
+   "id":"GoogleOptimize",
+   "version":"1.0.0",
+   "publisher":"ms-vscs-rm",
+   "name":"Google Optimize",
+   "description":"Azure Devops extension for Google Optimizely and content Experiments integration.",
+   "public":false,
+   "icons":{
+      "default":"Tasks/GoogleOptimize/icon.png"
+   },
+   "categories":[
+      "Azure Pipelines"
+   ],
+   "tags":[
+      "Build",
+      "Release"
+   ],
+   "branding":{
+      "color":"rgb(51,65,133)",
+      "theme":"dark"
+   },
+   "targets":[
+      {
+         "id":"Microsoft.VisualStudio.Services.Cloud"
+      },
+      {
+         "id":"Microsoft.TeamFoundation.Server",
+         "version":"[15.3,)"
+      }
+   ],
+   "contributions":[
+      {
+         "id":"optimizely-endpoint-type",
+         "description":"i18n: Service Connection for Google Optimize",
+         "type":"ms.vss-endpoint.service-endpoint-type",
+         "targets":[
+            "ms.vss-endpoint.endpoint-types"
+         ],
+         "properties":{
+            "name":"googleoptimize",
+            "displayName":"Google Optimize",
+            "url":"https://www.googleapis.com/analytics/v3/management",
+            "authenticationSchemes":[
+               {
+                  "type": "ms.vss-endpoint.endpoint-auth-scheme-JWT"
+              } ,
+              {
+                  "type": "ms.vss-endpoint.endpoint-auth-scheme-token"
+              }
+            ],
+            "dataSources": [
+               {
+                  "name":"experimentList",
+                  "endpointUrl":"{{endpoint.url}}/accounts/{{accountId}}/webproperties/{{webPropertyId}}/profiles/{{profileId}}/experiments",
+                  "resultSelector":"jsonpath:$.items[*]"
+               }
+            ]
+         }
+      },
+      {
+         "id":"optimize-task",
+         "type":"ms.vss-distributed-task.task",
+         "targets":[
+            "ms.vss-distributed-task.tasks"
+         ],
+         "properties":{
+            "name":"Tasks/GoogleOptimize"
+         }
+      }
+   ],
+   "files":[
+      {
+         "path":"Tasks/GoogleOptimize"
+      }
+   ],
+   "scopes":[
+      "vso.build",
+      "vso.release",
+      "vso.serviceendpoint",
+      "vso.serviceendpoint_query"
+   ]
+}

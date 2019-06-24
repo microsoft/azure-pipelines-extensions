@@ -1,0 +1,165 @@
+{
+   "id":"e7307da0-85f4-11e9-9dec-fdd4f9b653a3",
+   "name":"GoogleOptimize",
+   "friendlyName":"Google Optimize",
+   "description":"Azure devops extension for google optimize and content experiments",
+   "author":"Microsoft Corporation",
+   "helpMarkDown":"Replace with markdown to show in help",
+   "category":"Utility",
+   "visibility":[
+      "Build",
+      "Release"
+   ],
+   "demands":[
+
+   ],
+   "version":{
+      "Major":"1",
+      "Minor":"0",
+      "Patch":"0"
+   },
+   "preview": "true",
+   "minimumAgentVersion":"1.95.0",
+   "instanceNameFormat":"GoogleOptimize $(message)",
+   "inputs":[
+      {
+         "name":"googleEndpoint",
+         "type":"connectedService:googleoptimize",
+         "label":"Google Optimize Service Connection",
+         "defaultValue":"",
+         "required":true,
+         "helpMarkDown":"Select the Optimize service endpoint to be used to be used to manage A/B test"
+      },
+      {
+         "name":"accountId",
+         "type":"string",
+         "label":"Account Id",
+         "defaultValue":"",
+         "required":true,
+         "helpMarkDown":"Enter the account Id which can be found in account settings inside admin tab"
+      },
+      {
+         "name":"webPropertyId",
+         "type":"string",
+         "label":"Web Property Id",
+         "defaultValue":"UA-XXXXX-Y",
+         "required":true,
+         "helpMarkDown":"Enter the web Property Id which can be found in property settings inside admin tab. Type- UA-XXXXX-Y"
+      },
+      {
+         "name":"profileId",
+         "type":"string",
+         "label":"Profile Id",
+         "defaultValue":"",
+         "required":true,
+         "helpMarkDown":"Enter the profile id which can be found in View Settings under View id"
+      },
+      {
+         "name":"experimentName",
+         "type":"pickList",
+         "label":"Experiment Name",
+         "defaultValue":"",
+         "required":true,
+         "properties":{
+            "EditableOptions":true
+         },
+         "helpMarkDown":"Choose which experiment needs to be updated"
+      },
+      {
+         "name":"action",
+         "type":"pickList",
+         "label":"Action",
+         "defaultValue":"",
+         "required":true,
+         "options":{
+            "UpdateExperiment":"Start/Update an experiment",
+            "PauseExperiment":"Pause an experiment",
+            "StopExperiment":"Stop an experiment"
+
+         },
+         "helpMarkDown":"Select the action to be performed on above experiment"
+      },
+      {
+         "name":"jsonFile",
+         "type":"filePath",
+         "label":"Json File",
+         "defaultValue":"",
+         "required":false,
+         "helpMarkDown":"Json file to update the experiment"
+      },
+      {
+         "name":"trafficCoverage",
+         "type":"string",
+         "label":"Traffic Coverage",
+         "defaultValue":"",
+         "required":false,
+         "helpMarkDown":"A floating-point number between 0 and 1.\nSpecifies the fraction of the traffic that\nparticipates in the experiment.\nCan be changed for a running experiment"
+      },
+      {
+         "name":"equalWeighting",
+         "type":"pickList",
+         "label":"Equal Distribution",
+         "defaultValue":"True",
+         "required":false,
+         "options":{
+            "True":"True",
+            "False":"False"
+         },
+         "helpMarkDown":"Boolean specifying whether to distribute\ntraffic evenly across all variations.\nIf the value is False, content experiments\nfollows the default behavior of adjusting\ntraffic dynamically based on variation performance"
+      }
+   ],
+   "dataSourceBindings":[
+      {
+         "endpointId":"$(googleEndpoint)",
+         "target":"experimentName",
+         "dataSourceName":"experimentList",
+         "resultTemplate":"{ \"ExperimentId\" : \"{{{id}}}\", \"Name\" : \"{{{name}}}\" }" ,
+         "parameters": {
+                "accountId": "$(accountId)",
+                "webPropertyId": "$(webPropertyId)",
+                "profileId" : "$(profileId)"
+            }
+      }
+   ],
+   "execution":{
+      "Node":{
+         "target":"index.js"
+      }
+  },
+  "messages": {
+      "ConstructorFailed": "The task failed while initializing. Error: %s .",
+      "KeyNotFound": "key: '%s' is not a valid key ",
+      "ProjectId": "Project id is: '%s'",
+      "ProjectNotFound": "Project: '%s' not found.",
+      "ProjectHasProjectId": "Project '%s' has projectid: '%s'",
+      "EnvironmentNotFound": "Environment: '%s' not found.",
+      "ExperimentWithIdUpdatedSuccessfully": "Experiment with Id: '%s' updated successfully",
+      "FailedToUpdatedExperiment": "Failed to updated experiment with Id: %s.",
+      "FailedToFetchExperiment": "Failed to fetch experiment with Id: %s",
+      "FailedToFetchEnvironment": "Failed to fetch environment with name: %s",
+      "FailedToFetchProjects": "Failed to fetch projects.",
+      "FailedToFetchExperiments": "Failed to fetch experiments.",
+      "FailedToFetchAudience": "Failed to fetch audience with name : %s",
+      "ExperimentSuccessfullyPaused": "A/B Test: '%s' has been paused successfully.",
+      "FetchingAudienceId": "fetching audience id for audience name: %s.",
+      "UnableToFindAudience": "Unable to find audience with name: %s.",
+      "ABTestStartedSuccessfully": "A/B Test: '%s' has been started successfully.",
+      "VisitOptimizelyPage": "Visit Optimizely experiments page here:",
+      "WaitingForExperimentToStart": "Waiting for experiment '%s' to start.",
+      "TrafficValueNotValid": "%s is not a valid traffic value.",
+      "TrafficValueCantExceed": "Traffic (value = '%s') cannot be greater than 100.",
+      "TrafficVariationKeyNotDefined": "Traffic Variations does not contain a value for the variation key: %s.",
+      "UnableToFindValidArguments": "Unable to find valid arguments. ArgumentString: %s",
+      "InvalidVariationKey": "Invalid variation key: %s",
+      "NotValidValueForVariationKey": "%s cannot be parsed as a number for the key: %s",
+      "TotalTrafficValueNotValid": "Traffic values, when converted to basis points, do not add up to 10000. Provide valid traffic values. current value: '%s'.",
+      "AudienceInfo": "Audience is : %s",
+      "TaskSucceeded": "Task succeeded.",
+      "IdMismatch" : "Experiment Id in provided in json file is different than provided in input",
+      "InvalidAction" : "Proper action is not selected",
+      "PauseFailed" : "Failed to pause the experiment as status is not RUNNING" ,
+      "StopFailed" : "Experiment Failed to Stop" ,
+      "StartFailed" : "Failed to start the experiment as it has already stopped",
+      "IncorrectFilePath" : "File path provided is incorrect"
+    }
+}
