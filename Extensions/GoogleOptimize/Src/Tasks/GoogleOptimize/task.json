@@ -4,7 +4,7 @@
    "friendlyName":"Google Optimize",
    "description":"Azure devops extension for google optimize and content experiments",
    "author":"Microsoft Corporation",
-   "helpMarkDown":"Replace with markdown to show in help",
+   "helpMarkDown":"[More Information](https://github.com/Microsoft/azure-pipelines-extensions/blob/master/Extensions/GoogleOptimize/Src/README.md)",
    "category":"Utility",
    "visibility":[
       "Build",
