@@ -2,15 +2,15 @@ import * as fs from 'fs'
 import * as crypto from 'crypto'
 import * as tl from 'azure-pipelines-task-lib/task'
 const request = require('request');
-import { TaskParameter } from './../models/TaskParameter';
+import {TaskParameter} from './../models/TaskParameter';
 let fs = require("fs");
 
 export class JwtHandler{
-    private issuer : string ;
-    private audience: string ;
-    private scope : string ;
-    private privatekey :string ;
-    private param  : TaskParameter ;
+    private issuer: string;
+    private audience: string;
+    private scope: string;
+    private privatekey: string;
+    private param: TaskParameter;
     private authClaimSet = {};
 
     constructor(){
@@ -23,14 +23,14 @@ export class JwtHandler{
         this.authClaimSet.iss = this.issuer ;
         this.authClaimSet.aud = this.audience ;
         this.authClaimSet.scope = this.scope ;
-
     }
+
     private authHeader = {
     		'alg': 'RS256',
     		'typ': 'JWT'
-    	};
+    };
 
-    private urlEscape(source) {
+    private urlEscape(source){
         return source.replace(/\+/g, '-').replace(/\//g, '_').replace(/\=+$/, '');
     }
 
@@ -45,7 +45,6 @@ export class JwtHandler{
     	let cipher ;
     	let	signatureInput ;
     	let	signatureKey = this.privatekey ;
-        //let	signatureKey = this.privatekey ;
         let	signature ;
     	let	jwt ;
     	this.authClaimSet.iat = now;

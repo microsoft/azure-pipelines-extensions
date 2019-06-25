@@ -3,8 +3,8 @@ import {IVariation , IExperiment} from './IOptimize';
 import {Optimizeclient} from './optimizeclient'
 import * as tl from 'azure-pipelines-task-lib/task';
 import * as schema from './../models/Schema.json'
-
 const fs = require('fs');
+
 export class TaskOperation {
 
     private param: TaskParameter ;
@@ -18,6 +18,7 @@ export class TaskOperation {
         this.oxclient = new Optimizeclient() ;
         this.currentExperiment = this.getExperiment();
     }
+
     public async pauseExperiment(experiment:IExperiment):Promise<void> {
         if(this.currentExperiment.status === "RUNNING"){
             experiment.trafficCoverage = 0 ;
@@ -29,7 +30,6 @@ export class TaskOperation {
     }
 
     public async stopExperiment(experiment:IExperiment ):Promise<void> {
-
         if(this.currentExperiment.status !== "ENDED"){
             experiment.status = "ENDED";
             await this.oxclient.updateExperiment(experiment  , this.param);
@@ -48,18 +48,6 @@ export class TaskOperation {
         else{
             throw tl.loc("StartFailed");
         }
-    }
-
-    public async updateTrafficCoverage(experiment:IExperiment ):Promise<void> {
-        let traffic:number = experiment.trafficCoverage ;
-        if(Number.isNaN(traffic) || (traffic > 1) || (traffic) < 0 ){
-            throw tl.loc("TrafficValueNotValid" , traffic)
-        }
-        await this.oxclient.updateExperiment(experiment , this.param) ;
-    }
-
-    public async updateEqualWeighting(experiment:IExperiment ):Promise<void> {
-        await this.oxclient.updateExperiment(experiment  , this.param);
     }
 
     private async getExperiment():Promise<IExperiment> {

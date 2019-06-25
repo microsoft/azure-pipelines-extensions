@@ -152,7 +152,7 @@
       "UnableToFindValidArguments": "Unable to find valid arguments. ArgumentString: %s",
       "InvalidVariationKey": "Invalid variation key: %s",
       "NotValidValueForVariationKey": "%s cannot be parsed as a number for the key: %s",
-      "TotalTrafficValueNotValid": "Traffic values, when converted to basis points, do not add up to 10000. Provide valid traffic values. current value: '%s'.",
+      "TotalTrafficValueNotValid": "Traffic values provided is not valid. It should be between (0,1]. Provided value: %s)",
       "AudienceInfo": "Audience is : %s",
       "TaskSucceeded": "Task succeeded.",
       "IdMismatch" : "Experiment Id in provided in json file is different than provided in input",
@@ -160,6 +160,7 @@
       "PauseFailed" : "Failed to pause the experiment as status is not RUNNING" ,
       "StopFailed" : "Experiment Failed to Stop" ,
       "StartFailed" : "Failed to start the experiment as it has already stopped",
-      "IncorrectFilePath" : "File path provided is incorrect"
+      "IncorrectFilePath" : "File path provided is incorrect",
+      "FailedToFetchInputs": "Failed to fetch task input"
     }
 }
