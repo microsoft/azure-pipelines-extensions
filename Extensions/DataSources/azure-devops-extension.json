@@ -1,0 +1,29 @@
+{
+  "manifestVersion": 1,
+  "id": "samples",
+  "publisher": "Santosh",
+  "scopes": [
+    "vso.project",
+    "vso.serviceendpoint_query"
+  ],
+  "version": "1.0.0",
+  "name": "Data Sources",
+  "description": "Azure DevOps extension sample",
+  "categories": [
+    "Azure Pipelines"
+  ],
+  "targets": [
+    {
+      "id": "Microsoft.VisualStudio.Services"
+    }
+  ],
+  "icons": {
+    "default": "logo.png"
+  },
+  "files": [
+    {
+      "path": "dist",
+      "addressable": true
+    }
+  ]
+}
