@@ -3,8 +3,8 @@
     "id": "vss-services-kayentadeploymentgate",
     "name": "Kayenta Canary Judge",
     "publisher": "ms-vscs-rm",
-    "version": "0.154.2",
-    "public": false,
+    "version": "0.154.0",
+    "public": true,
     "description": "Integrate Kayenta Canary Judge with Azure Pipelines",
     "categories": [
       "Azure Pipelines"
@@ -23,18 +23,19 @@
         "id": "Microsoft.VisualStudio.Services.Cloud"
       },
       {
-
         "id": "Microsoft.TeamFoundation.Server"
-  
       }
     ],
     "icons": {
         "default": "images/icon.png"
       },
     "screenshots": [
+      {
+        "path": "images/gate_screenshot.png"
+      }
     ],
     "files": [
-        {
+          {
             "path": "images/icon.png",
             "addressable": true
           },
@@ -70,11 +71,9 @@
             "path": "images/input_scopes.png",
             "addressable": true
           },
-         {
-
+          {
             "path": "Tasks/createCanaryAnalysisRequestV0"
-      
-         }
+          }
     ],
     "content": {
         "details": {
@@ -96,13 +95,26 @@
             "displayName": "Kayenta Url",
             "helpText": "Url of the Kayenta instance to connect to."
           },
+          "inputDescriptors": [
+            {
+              "id": "marginalThreshold",
+              "name": "Marginal threshold",
+              "description": "Service Endpoint Id",
+              "inputMode": "Combo",
+              "isConfidential": false,
+              "hasDynamicValueInformation": true,
+              "validation": {
+                "isRequired": true,
+                "dataType": "string"
+              }
+            }
+          ],
           "dataSources": [
             {
               "name": "canaryConfig",
               "endpointUrl": "{{endpoint.url}}/canaryConfig?configAccountName={{configAccountName}}",
               "resultSelector": "jsonpath:$.[*]",
               "resultTemplate": "{ \"Value\" : \"{{id}}\", \"DisplayValue\" : \"{{name}}\" }"
-
             }
           ],
           "authenticationSchemes": [
@@ -117,8 +129,7 @@
                   "isConfidential": false,
                   "validation": {
                     "isRequired": false,
-                    "dataType": "string",
-                    "maxLength": 300
+                    "dataType": "string"
                   }
                 },
                 {
@@ -129,8 +140,7 @@
                   "isConfidential": true,
                   "validation": {
                     "isRequired": false,
-                    "dataType": "string",
-                    "maxLength": 300
+                    "dataType": "string"
                   }
                 }
               ]
@@ -146,8 +156,7 @@
                             "isConfidential": true,
                             "validation": {
                                 "isRequired": false,
-                                "dataType": "string",
-                                "maxLength": 300
+                                "dataType": "string"
                             }
                         }
                     ]
@@ -158,20 +167,13 @@
       },
       {
         "id": "kayentacanaryjudge-query-task",
-
         "type": "ms.vss-distributed-task.task",
-  
         "targets": [
-  
           "ms.vss-distributed-task.tasks"
-  
         ],
-  
         "properties": {
-  
           "name": "Tasks/createCanaryAnalysisRequestV0"
-  
         }
       }
-     ]
-  }
+    ]
+}
