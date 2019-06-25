@@ -4,9 +4,10 @@ import * as tl from 'azure-pipelines-task-lib/task';
 import {TaskParameter} from './../models/TaskParameter';
 import {IVariation, IExperiment} from './IOptimize';
 import {JwtHandler} from './JwtHandler'
-const request = require('request');
-const qs = require('querystring');
-const userAgent:string ;qs = require('querystring');
+let request = require('request');
+let qs = require('querystring');
+let userAgent:string;
+let url: string;
 
 export class Optimizeclient{
 	private jwthandler:JwtHandler;
