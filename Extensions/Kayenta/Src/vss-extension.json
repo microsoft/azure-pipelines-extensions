@@ -95,20 +95,6 @@
             "displayName": "Kayenta Url",
             "helpText": "Url of the Kayenta instance to connect to."
           },
-          "inputDescriptors": [
-            {
-              "id": "marginalThreshold",
-              "name": "Marginal threshold",
-              "description": "Service Endpoint Id",
-              "inputMode": "Combo",
-              "isConfidential": false,
-              "hasDynamicValueInformation": true,
-              "validation": {
-                "isRequired": true,
-                "dataType": "string"
-              }
-            }
-          ],
           "dataSources": [
             {
               "name": "canaryConfig",
