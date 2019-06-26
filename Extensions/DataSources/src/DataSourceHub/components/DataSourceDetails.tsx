@@ -9,7 +9,7 @@ export class DataSourceDetails extends Reflux.Component{
     public onChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, item:string) {
         if(this.props.datasourcesInfo!=null){
             const DataSourceActionCreator = new DataSourceActionCreators({});
-            DataSourceActionCreator.updateDataSource(item,this.props.datasourcesInfo[this.props.selectedDataSource]);
+            DataSourceActionCreator.updateDataSource(item,this.props.currentInputParam);
         }
     }
     
@@ -24,7 +24,7 @@ export class DataSourceDetails extends Reflux.Component{
                         titleSize={TitleSize.Small}
                         />
                         <TextField 
-                        value= {JSON.stringify(this.props.displayInfo,null,4)}
+                        value= {this.props.displayInfo}
                         multiline
                         width={TextFieldWidth.auto}
                         autoAdjustHeight
@@ -40,7 +40,3 @@ export class DataSourceDetails extends Reflux.Component{
         }
     }
 }
-
-
-
-

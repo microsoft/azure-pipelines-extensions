@@ -1,8 +1,8 @@
 import * as Reflux from 'reflux';
 import {DataSourceActions} from '../actions/DataSourceActions';
-import { datasourceExtensionState,payloadInfo } from '../states/DataSourceExtensionState';
+import { DatasourceExtensionState,PayloadInfo } from '../states/DataSourceExtensionState';
 
-export const defaultState: datasourceExtensionState = {
+export const defaultState: DatasourceExtensionState = {
     selectedDataSource:'',
     datasourcesInfo : null,
     displayInfo : null,
@@ -15,7 +15,7 @@ export const defaultState: datasourceExtensionState = {
 
 export class DataSourceStore extends Reflux.Store {
     listenables = DataSourceActions;
-    state:datasourceExtensionState = defaultState;
+    state:DatasourceExtensionState = defaultState;
   
     init() {
         this.listenTo(DataSourceActions.GetDataSources, this.onGetDataSources);
@@ -25,32 +25,35 @@ export class DataSourceStore extends Reflux.Store {
         this.listenTo(DataSourceActions.ExecuteServiceEndpointRequest,this.onExecuteServiceEndpointRequest);
     }   
     
-    private onGetDataSources(payload:payloadInfo) {
+    private onGetDataSources(payload:PayloadInfo) {
         this.setState({
             datasourcesInfo:payload.datasourcesInfo,
             endpointDetails:payload.endpointDetails
         });                         
     }
 
-    private onSelectDataSource(payload:payloadInfo){
+    private onSelectDataSource(payload:PayloadInfo){
         this.setState({
                 selectedDataSource: payload.selectedDataSource,
                 currentInputParam:payload.currentInputParam,
                 result:payload.result,
+                parseError:payload.parseError,
                 displayInfo : payload. displayInfo,
                 executeError :payload.executeError
             });            
     }    
     
-    private onUpdateDataSourceParameters(payload:payloadInfo){
+    private onUpdateDataSourceParameters(payload:PayloadInfo){
         this.setState({
             currentInputParam : {...this.state.currentInputParam, [payload.name]: payload.value},
-            executeError :null
+            executeError :payload.executeError,
+            parseError: payload.parseError,
+            result:payload.result
         })            
     }
 
 
-    private onUpdateDataSource(payload:payloadInfo){
+    private onUpdateDataSource(payload:PayloadInfo){
         this.setState({
             currentInputParam:payload.currentInputParam,
             result: payload.result,
@@ -60,16 +63,11 @@ export class DataSourceStore extends Reflux.Store {
         })               
     }
     
-    private onExecuteServiceEndpointRequest(payload:payloadInfo){
+    private onExecuteServiceEndpointRequest(payload:PayloadInfo){
         this.setState({
             result: payload.result,
-            executeError : payload.executeError
+            executeError : payload.executeError,
+            parseError :payload.parseError
         });
     }  
 };
-
-
-
-
-
-

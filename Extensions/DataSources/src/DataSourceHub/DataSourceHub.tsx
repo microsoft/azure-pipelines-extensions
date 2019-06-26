@@ -9,13 +9,11 @@ class HubContent extends React.Component{
     
     public async componentDidMount() {
         SDK.init();
-       // SDK.getExtensionContext();
-       await SDK.ready();
+        await SDK.ready();
     }
 
     public render(): JSX.Element {
         return (
-            
                 <div className="containerStyle">
                     <DataSourceView/>
                 </div>                   
@@ -24,5 +22,3 @@ class HubContent extends React.Component{
 }
 
 ReactDOM.render(<HubContent />, document.getElementById("root"));
-
-

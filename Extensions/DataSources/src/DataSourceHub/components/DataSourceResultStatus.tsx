@@ -26,7 +26,3 @@ export class DataSourceResultStatus extends Reflux.Component{
         }      
     }  
 }
-
-
-
-

@@ -8,7 +8,7 @@ export class DataSourceExecutionResult extends Reflux.Component{
     public render() {
         if(this.props.result!=null){  
             return  (
-                <div>
+                <div className="rhythm-vertical-16">
                     <DataSourceResultStatus statusCode={this.props.result.statusCode}/>
                     <DataSourceResult result={this.props.result}/>
                     <DataSourceError result={this.props.result} parseError={this.props.parseError} executeError={this.props.executeError} />
@@ -17,14 +17,10 @@ export class DataSourceExecutionResult extends Reflux.Component{
         } 
         else{
             return  (
-                <div>
+                <div className=" rhythm-vertical-16">
                     <DataSourceError result={this.props.result} parseError={this.props.parseError} executeError={this.props.executeError}/>
                 </div>
             );
         }
     }
 }
-
-
-
-

@@ -7,8 +7,3 @@ export const  DataSourceActions = Reflux.createActions([
     "UpdateDataSourceParameters",
     "ExecuteServiceEndpointRequest"
 ]);
-
-
-
-
-

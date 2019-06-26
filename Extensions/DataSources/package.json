@@ -1,7 +1,7 @@
 {
-  "name": "azure-devops-extension-sample",
+  "name": "datasources",
   "version": "1.100.0",
-  "description": "Azure DevOps web extension for Service Endpoints DataSources",
+  "description": "Extension for Service Endpoints DataSources",
   "keywords": [
     "extensions",
     "Azure DevOps",

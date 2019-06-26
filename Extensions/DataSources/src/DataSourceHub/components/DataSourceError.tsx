@@ -22,7 +22,6 @@ export class DataSourceError extends Reflux.Component{
                         severity={MessageCardSeverity.Error}
                     >
                         {this.props.parseError.errorMessage}
-                        {" and it is set to default value"}
                     </MessageCard>
                 );             
         }
@@ -42,7 +41,3 @@ export class DataSourceError extends Reflux.Component{
         }
     }  
 }
-
-
-
-

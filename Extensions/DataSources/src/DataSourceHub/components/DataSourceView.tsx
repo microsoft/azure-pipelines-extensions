@@ -41,7 +41,7 @@ export class DataSourceView extends Reflux.Component{
         return (
             <div className="flex-self-stretch padding-element rhythm-vertical-16">
                 <DataSourceDropdown message={this.state.message} datasourcesInfo={this.state.datasourcesInfo}/>
-                <DataSourceDetails datasourcesInfo={this.state.datasourcesInfo} selectedDataSource={this.state.selectedDataSource} displayInfo={this.state.displayInfo}/> 
+                <DataSourceDetails datasourcesInfo={this.state.datasourcesInfo} currentInputParam={this.state.currentInputParam} displayInfo={this.state.displayInfo}/> 
                 <DataSourceInput displayInfo={this.state.displayInfo} currentInputParam={this.state.currentInputParam} endpointDetails={this.state.endpointDetails}/>
            </div>
         );           
@@ -49,13 +49,9 @@ export class DataSourceView extends Reflux.Component{
 
     private _getResultContent(): JSX.Element {
         return (
-            <div className="flex-self-stretch padding-element">
+            <div className="flex-self-stretch top-padding-element">
                 <DataSourceExecutionResult  result={this.state.result} parseError={this.state.parseError} executeError={this.state.executeError}/>
             </div>
         );
     }    
 }
-
-
-
-

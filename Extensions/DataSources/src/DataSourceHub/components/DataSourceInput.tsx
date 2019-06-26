@@ -4,12 +4,12 @@ import { ButtonGroup } from "azure-devops-ui/ButtonGroup";
 import { Header, TitleSize } from "azure-devops-ui/Header";
 import * as Reflux from 'reflux';
 import { TextField, TextFieldWidth } from "azure-devops-ui/TextField";
-import { payloadInfo} from'../states/DataSourceExtensionstate'
+import { PayloadInfo} from'../states/DataSourceExtensionstate'
 import { DataSourceActionCreators } from "../action-creators/DataSourceActionCreators";
 
 export class DataSourceInput extends Reflux.Component{
     public onInput(name:string, e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, item:string){
-        var payload:payloadInfo={
+        var payload:PayloadInfo={
             "name" : name,
             "value" : item
         }
@@ -79,7 +79,3 @@ export class DataSourceInput extends Reflux.Component{
         }    
     }
 }
-
-
-
-

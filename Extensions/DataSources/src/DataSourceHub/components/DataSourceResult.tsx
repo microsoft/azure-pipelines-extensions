@@ -29,7 +29,3 @@ export class DataSourceResult extends Reflux.Component{
         }
     }  
 }
-
-
-
-

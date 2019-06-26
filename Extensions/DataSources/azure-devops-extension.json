@@ -1,12 +1,12 @@
 {
   "manifestVersion": 1,
-  "id": "samples",
+  "id": "datasources",
   "publisher": "Santosh",
   "scopes": [
     "vso.project",
     "vso.serviceendpoint_query"
   ],
-  "version": "1.0.0",
+  "version": "1.0.496",
   "name": "Data Sources",
   "description": "Azure DevOps extension sample",
   "categories": [

@@ -9,7 +9,7 @@ export class DataSourceDropdown extends Reflux.Component{
     onSelect(event: React.SyntheticEvent<HTMLElement>, item: IListBoxItem<{}>) {
         if(this.props.datasourcesInfo!=null && item.text!=undefined){
             const DataSourceActionCreator = new DataSourceActionCreators({});
-            DataSourceActionCreator.selectDataSource(item.text,this.props.datasourcesInfo[item.text]);
+            DataSourceActionCreator.selectDataSource(item.text,JSON.stringify(this.props.datasourcesInfo[item.text],null,2));
         }   
     }
     
@@ -72,7 +72,3 @@ export class DataSourceDropdown extends Reflux.Component{
         } 
     }  
 }
-
-
-
-
