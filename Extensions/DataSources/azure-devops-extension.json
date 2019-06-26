@@ -1,14 +1,14 @@
 {
   "manifestVersion": 1,
-  "id": "datasources",
-  "publisher": "Santosh",
+  "id": "DataSources",
+  "publisher": "ms-vscs-rm",
   "scopes": [
     "vso.project",
     "vso.serviceendpoint_query"
   ],
-  "version": "1.0.496",
-  "name": "Data Sources",
-  "description": "Azure DevOps extension sample",
+  "version": "1.0.518",
+  "name": "DataSources",
+  "description": "Extension for testing  DataSources in ServiceEndPoint",
   "categories": [
     "Azure Pipelines"
   ],
@@ -17,9 +17,6 @@
       "id": "Microsoft.VisualStudio.Services"
     }
   ],
-  "icons": {
-    "default": "logo.png"
-  },
   "files": [
     {
       "path": "dist",

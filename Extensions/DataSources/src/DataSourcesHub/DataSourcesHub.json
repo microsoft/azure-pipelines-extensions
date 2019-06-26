@@ -1,7 +1,7 @@
 {
     "contributions": [
         {
-            "id": "hub",
+            "id": "DataSources",
             "type": "ms.vss-web.tab",
             "targets": [
                 "ms.vss-distributedtask-web.service-connections-tab-group"
@@ -14,7 +14,7 @@
             ],
             "properties": {
                 "name": "Data Sources",
-                "uri": "dist/DataSourceHub/DataSourceHub.html"
+                "uri": "dist/DataSourcesHub/DataSourcesHub.html"
             }
         }
     ]

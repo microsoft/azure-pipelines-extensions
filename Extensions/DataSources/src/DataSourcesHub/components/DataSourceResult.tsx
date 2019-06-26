@@ -1,16 +1,25 @@
 import * as React from "react";
-import * as Reflux from 'reflux';
 import { Header, TitleSize } from "azure-devops-ui/Header";
 import { TextField, TextFieldWidth } from "azure-devops-ui/TextField";
+import { RESULT } from '../Resources/DataSourceResources';
+import { ServiceEndpointRequestResult } from "azure-devops-extension-api/ServiceEndpoint";
 
-export class DataSourceResult extends Reflux.Component{
+type DataSourceResultProps= {
+    result: ServiceEndpointRequestResult | null
+}
+
+export class DataSourceResult extends React.Component<DataSourceResultProps>{
+    constructor(props:DataSourceResultProps){
+        super(props);
+    }
+
     public render() {
-        if(this.props.result.statusCode=='200'){
+        if(this.props.result!=null && this.props.result.statusCode=='200'){
             return( 
                 <div>
                     <Header
                     className='no-h-padding'
-                    title={"Result"}
+                    title={RESULT}
                     titleSize={TitleSize.Small}
                     />
                     <TextField 

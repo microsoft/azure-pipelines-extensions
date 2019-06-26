@@ -8,7 +8,7 @@
     "Visual Studio Team Services"
   ],
   "scripts": {
-    "clean": "rimraf ./dist",
+    "clean": "rimraf ./target",
     "compile": "npm run clean && webpack --mode production",
     "compile:dev": "npm run clean && webpack --mode development",
     "build": "npm run compile",
@@ -18,13 +18,9 @@
     "publish-extension": "tfx extension publish --manifest-globs azure-devops-extension.json src/**/*.json"
   },
   "dependencies": {
-    "@types/reflux": "^6.4.2",
     "azure-devops-extension-api": "~1.152.1",
     "azure-devops-extension-sdk": "~2.0.8",
     "azure-devops-ui": "~1.152.2",
-    "flux": "^3.1.3",
-    "gulp": "^4.0.2",
-    "object-assign": "^4.1.1",
     "react": "~16.8.1",
     "react-dom": "~16.8.1",
     "reactify": "^1.1.1",

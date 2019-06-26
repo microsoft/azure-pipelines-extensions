@@ -1,6 +1,7 @@
 import * as Reflux from 'reflux';
 import {DataSourceActions} from '../actions/DataSourceActions';
-import { DatasourceExtensionState,PayloadInfo } from '../states/DataSourceExtensionState';
+import { DatasourceExtensionState, PayloadForUpdateDataSourceParameters, PayloadForSelectDataSource, PayloadForUpdateDataSource, DataSourceInfo, PayloadForExecuteServiceEndpointRequest } from '../states/DataSourceExtensionState';
+import { ServiceEndpointDetails } from 'azure-devops-extension-api/ServiceEndpoint';
 
 export const defaultState: DatasourceExtensionState = {
     selectedDataSource:'',
@@ -25,14 +26,14 @@ export class DataSourceStore extends Reflux.Store {
         this.listenTo(DataSourceActions.ExecuteServiceEndpointRequest,this.onExecuteServiceEndpointRequest);
     }   
     
-    private onGetDataSources(payload:PayloadInfo) {
+    private onGetDataSources(datasourcesInfo: DataSourceInfo,endpointDetails:ServiceEndpointDetails) {
         this.setState({
-            datasourcesInfo:payload.datasourcesInfo,
-            endpointDetails:payload.endpointDetails
+            datasourcesInfo:datasourcesInfo,
+            endpointDetails:endpointDetails
         });                         
     }
 
-    private onSelectDataSource(payload:PayloadInfo){
+    private onSelectDataSource(payload:PayloadForSelectDataSource){
         this.setState({
                 selectedDataSource: payload.selectedDataSource,
                 currentInputParam:payload.currentInputParam,
@@ -43,7 +44,7 @@ export class DataSourceStore extends Reflux.Store {
             });            
     }    
     
-    private onUpdateDataSourceParameters(payload:PayloadInfo){
+    private onUpdateDataSourceParameters(payload:PayloadForUpdateDataSourceParameters){
         this.setState({
             currentInputParam : {...this.state.currentInputParam, [payload.name]: payload.value},
             executeError :payload.executeError,
@@ -53,7 +54,7 @@ export class DataSourceStore extends Reflux.Store {
     }
 
 
-    private onUpdateDataSource(payload:PayloadInfo){
+    private onUpdateDataSource(payload:PayloadForUpdateDataSource){
         this.setState({
             currentInputParam:payload.currentInputParam,
             result: payload.result,
@@ -63,7 +64,7 @@ export class DataSourceStore extends Reflux.Store {
         })               
     }
     
-    private onExecuteServiceEndpointRequest(payload:PayloadInfo){
+    private onExecuteServiceEndpointRequest(payload:PayloadForExecuteServiceEndpointRequest){
         this.setState({
             result: payload.result,
             executeError : payload.executeError,

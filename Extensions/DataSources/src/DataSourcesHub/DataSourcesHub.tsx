@@ -1,4 +1,4 @@
-import "./DataSourceHub.scss";
+import "./DataSourcesHub.scss";
 import "es6-promise/auto";
 import * as React from "react";
 import * as SDK from "azure-devops-extension-sdk";
@@ -7,9 +7,8 @@ import * as ReactDOM from "react-dom";
 
 class HubContent extends React.Component{
     
-    public async componentDidMount() {
+    public componentDidMount() {
         SDK.init();
-        await SDK.ready();
     }
 
     public render(): JSX.Element {

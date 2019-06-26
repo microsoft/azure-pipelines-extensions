@@ -2,10 +2,15 @@ import * as React from "react";
 import { Dropdown } from "azure-devops-ui/Dropdown";
 import { IListBoxItem } from "azure-devops-ui/ListBox";
 import { Header, TitleSize } from "azure-devops-ui/Header";
-import * as Reflux from 'reflux';
 import { DataSourceActionCreators } from "../action-creators/DataSourceActionCreators";
+import { DATA_SOURCES,SELECT_DATASOURCE,NO_DATASOURCE,NO_TYPE_MATCH } from '../Resources/DataSourceResources';
+import { DataSourceInfo } from "../states/DataSourceExtensionState";
 
-export class DataSourceDropdown extends Reflux.Component{
+type DataSourceDropDownProps= {
+    datasourcesInfo:DataSourceInfo | null 
+}
+
+export class DataSourceDropdown extends React.Component<DataSourceDropDownProps>{
     onSelect(event: React.SyntheticEvent<HTMLElement>, item: IListBoxItem<{}>) {
         if(this.props.datasourcesInfo!=null && item.text!=undefined){
             const DataSourceActionCreator = new DataSourceActionCreators({});
@@ -14,18 +19,18 @@ export class DataSourceDropdown extends Reflux.Component{
     }
     
     public render() {
-        if(this.props.datasourcesInfo!=null && this.props.datasourcesInfo!=undefined ){
+        if(this.props.datasourcesInfo!==null && this.props.datasourcesInfo!==undefined ){
             if(Object.keys(this.props.datasourcesInfo).length==0){
                 return (
                     <div >
                         <Header
                         className='no-h-padding'
-                        title={"Data Sources"}
+                        title={DATA_SOURCES}
                         titleSize={TitleSize.Small}
                         />
                         <Header
                         className='no-h-padding'
-                        title={"No Data Sources Found"}
+                        title={NO_DATASOURCE}
                         titleSize={TitleSize.Small}
                         />
                      </div>
@@ -38,12 +43,12 @@ export class DataSourceDropdown extends Reflux.Component{
                     <div >
                         <Header
                         className='no-h-padding'
-                        title={"Data Sources"}
+                        title={DATA_SOURCES}
                         titleSize={TitleSize.Small}
                         />
                         <Dropdown
                         className=' example-dropdown'
-                        placeholder={'Select a Data Source'}
+                        placeholder={SELECT_DATASOURCE}
                         onSelect = {this.onSelect.bind(this)}
                         items= {optionItems}
                         />
@@ -56,12 +61,12 @@ export class DataSourceDropdown extends Reflux.Component{
                     <div >
                         <Header
                         className='no-h-padding'
-                        title={"Data Sources"}
+                        title={DATA_SOURCES}
                         titleSize={TitleSize.Small}
                         />
                         <Header
                         className='no-h-padding'
-                        title={"No Type Match Found"}
+                        title={NO_DATASOURCE}
                         titleSize={TitleSize.Small}
                         />
                     </div>

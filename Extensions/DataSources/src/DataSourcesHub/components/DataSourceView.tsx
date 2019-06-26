@@ -8,18 +8,14 @@ import {DataSourceStore} from '../stores/DataSourceStore'
 import { SplitterElementPosition, Splitter } from "azure-devops-ui/Splitter";
 import { DataSourceActionCreators } from "../action-creators/DataSourceActionCreators";
 
-
 export class DataSourceView extends Reflux.Component{
-    constructor(){
-        super({});
-        this.store = DataSourceStore;
-    }
-    
+    store = DataSourceStore;
+       
     componentDidMount() {
         const DataSourceActionCreator = new DataSourceActionCreators({});
         DataSourceActionCreator.getDataSources();
     }
-    
+  
     public render() {
         if(this.state!=null){
             return (         
@@ -27,8 +23,6 @@ export class DataSourceView extends Reflux.Component{
                     <Splitter
                         fixedElement={SplitterElementPosition.Near}
                         initialFixedSize={400}
-                        nearElementClassName="v-scroll-auto custom-scrollbar"
-                        farElementClassName="v-scroll-auto custom-scrollbar"
                         onRenderNearElement={this._getDataSourceContent.bind(this)}
                         onRenderFarElement={this._getResultContent.bind(this)}
                     />
@@ -40,7 +34,7 @@ export class DataSourceView extends Reflux.Component{
     private _getDataSourceContent(){
         return (
             <div className="flex-self-stretch padding-element rhythm-vertical-16">
-                <DataSourceDropdown message={this.state.message} datasourcesInfo={this.state.datasourcesInfo}/>
+                <DataSourceDropdown datasourcesInfo={this.state.datasourcesInfo}/>
                 <DataSourceDetails datasourcesInfo={this.state.datasourcesInfo} currentInputParam={this.state.currentInputParam} displayInfo={this.state.displayInfo}/> 
                 <DataSourceInput displayInfo={this.state.displayInfo} currentInputParam={this.state.currentInputParam} endpointDetails={this.state.endpointDetails}/>
            </div>

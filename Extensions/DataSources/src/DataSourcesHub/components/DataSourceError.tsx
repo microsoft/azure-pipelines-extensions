@@ -1,9 +1,15 @@
 import * as React from "react";
-import * as Reflux from 'reflux';
 import { MessageCard, MessageCardSeverity } from "azure-devops-ui/MessageCard";
+import { ServiceEndpointRequestResult } from "azure-devops-extension-api/ServiceEndpoint";
+import { ParseError, ExecuteError } from "../states/DataSourceExtensionState";
 
+type DataSourceErrorProps= {
+    result: ServiceEndpointRequestResult | null
+    parseError:ParseError|null
+    executeError:ExecuteError|null
+}
 
-export class DataSourceError extends Reflux.Component{
+export class DataSourceError extends React.Component<DataSourceErrorProps>{
     public render() {
         if( this.props.result!=null && this.props.result.errorMessage!=''){
             return (
