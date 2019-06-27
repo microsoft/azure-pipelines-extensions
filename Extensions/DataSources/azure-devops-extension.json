@@ -7,7 +7,7 @@
     "vso.serviceendpoint_query",
     "vso.gallery"
   ],
-  "version": "1.0.548",
+  "version": "1.0.553",
   "name": "DataSources",
   "description": "Extension for testing  DataSources in ServiceEndPoint",
   "categories": [

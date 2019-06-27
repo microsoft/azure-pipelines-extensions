@@ -1,8 +1,11 @@
-export const SUBMIT = 'SUBMIT';
-export const DATA_SOURCES = 'DataSources';
-export const DATA_SOURCE = 'DataSource';
-export const SELECT_DATASOURCE = 'Select a DataSource';
-export const NO_TYPE_MATCH = 'No type match found';
-export const NO_DATASOURCE = 'No DataSources found';
-export const RESULT = 'Result';
-export const STATUS_CODE ='Status Code :'; 
+export class DataSourcesResources {
+
+    static Submit = 'Submit';
+    static DataSources = 'DataSources';
+    static DataSource = 'DataSource';
+    static SelectDataSource = 'Select a DataSource';
+    static NoTypeMatch = 'No type match found';
+    static NoDataSource = 'No DataSources found';
+    static Result = 'Result';
+    static StatusCode = 'Status Code';
+}
