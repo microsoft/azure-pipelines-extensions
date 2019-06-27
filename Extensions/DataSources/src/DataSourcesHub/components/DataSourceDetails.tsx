@@ -2,7 +2,7 @@ import * as React from "react";
 import { Header, TitleSize } from "azure-devops-ui/Header";
 import { TextField, TextFieldWidth } from "azure-devops-ui/TextField";
 import { DataSourcesActionCreators } from "../action-creators/DataSourcesActionCreators";
-import {DataSourcesResources} from '../Resources/DataSourcesResources';
+import { DataSourcesResources } from '../Resources/DataSourcesResources';
 import { Parameters, DataSourceInfo } from "../states/DataSourcesExtensionState";
 
 type DataSourceDetailsProps = {

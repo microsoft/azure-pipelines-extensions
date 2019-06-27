@@ -38,6 +38,9 @@ export class DataSourcesStore extends Reflux.Store {
             selectedDataSource: payload.selectedDataSource,
             currentInputParam: payload.currentInputParam,
             displayInfo: payload.displayInfo,
+            parseError: null,
+            executeError: null,
+            result: null,
 
         });
     }
@@ -55,6 +58,7 @@ export class DataSourcesStore extends Reflux.Store {
     private onUpdateDataSource(payload: UpdateDataSourcePayload) {
         this.setState({
             currentInputParam: payload.currentInputParam,
+            displayInfo:payload.displayInfo,
             result: null,
             parseError: null,
             executeError: null,
