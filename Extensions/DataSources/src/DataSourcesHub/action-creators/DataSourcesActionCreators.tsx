@@ -129,7 +129,7 @@ export class DataSourcesActionCreators extends Reflux.Component {
     private extractParameters(datasourceInfo: string, currentParameters: Parameters | null): Parameters {
         var parameters: Parameters = {};
         var dataSourceEndpointUrlKeyValuePair = datasourceInfo.match(/"endpointUrl"\s*:\s*"[^"]*"/g);
-        if (dataSourceEndpointUrlKeyValuePair !== null) {
+        if (dataSourceEndpointUrlKeyValuePair !== null && dataSourceEndpointUrlKeyValuePair.length==1 ) {
             var dataSourceEndpointUrlValue = dataSourceEndpointUrlKeyValuePair[0].replace(/^"endpointUrl"\s*:\s*"|"$/g, '');
             var inputParameters = dataSourceEndpointUrlValue.match(/{{+[^}#/.]*}}+/g);
             if (inputParameters !== null) {
