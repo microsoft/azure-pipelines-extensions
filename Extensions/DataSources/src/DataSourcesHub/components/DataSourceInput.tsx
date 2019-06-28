@@ -40,6 +40,7 @@ export class DataSourceInput extends React.Component<DataSourceInputProps>{
                         multiline
                         autoAdjustHeight
                         autoComplete
+                        spellCheck={false}
                         onChange={this.onInput.bind(this, name)}
                     />
                 </div>

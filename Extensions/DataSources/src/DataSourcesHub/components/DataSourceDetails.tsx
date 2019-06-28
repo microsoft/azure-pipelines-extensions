@@ -26,12 +26,13 @@ export class DataSourceDetails extends React.Component<DataSourceDetailsProps>{
                     <div className="datasource-detail">
                         <Header
                             className='datasource-details-header'
-                            title={DataSourcesResources.Submit}
+                            title={DataSourcesResources.DataSource}
                             titleSize={TitleSize.Small}
                         />
                         <TextField
                             value={this.props.displayInfo}
                             multiline
+                            spellCheck={false}
                             width={TextFieldWidth.auto}
                             autoAdjustHeight
                             autoComplete
