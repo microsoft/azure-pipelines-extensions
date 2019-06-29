@@ -1,0 +1,178 @@
+{
+    "manifestVersion": 1,
+    "id": "custom-terraform-tasks",
+    "name": "Azure Devops Terraform integration",
+    "version": "0.0.1",
+    "publisher": "ms-vscs-rm",
+    "targets": [
+        {
+            "id": "Microsoft.VisualStudio.Services"
+        }
+    ],
+    "description": "Azure Devops extension for Terraform integration",
+    "categories": [
+        "Azure Pipelines"
+    ],
+    "icons": {
+      "default": "images/icon.png",
+      "large": "images/icon.png"
+    },
+    "files": [
+        {
+            "path": "Tasks/TerraformTaskV1"
+        },
+        {
+            "path": "Tasks/TerraformInstaller"
+        },
+        {
+            "path": "images",
+            "addressable": true
+        }
+    ],
+    "contributions": [
+        {
+            "id": "custom-terraform-installer-task",
+            "type": "ms.vss-distributed-task.task",
+            "targets": [
+                "ms.vss-distributed-task.tasks"
+            ],
+            "properties": {
+                "name": "Tasks/TerraformInstaller"
+            }
+        },
+        {
+            "id": "custom-terraform-release-task",
+            "type": "ms.vss-distributed-task.task",
+            "targets": [
+                "ms.vss-distributed-task.tasks"
+            ],
+            "properties": {
+                "name": "Tasks/TerraformTaskV1"
+            }
+        },
+        {
+            "id": "google-cloud-service-endpoint",
+            "description": "Credentials for connecting to Google Cloud Platform",
+            "type": "ms.vss-endpoint.service-endpoint-type",
+            "targets": [
+                "ms.vss-endpoint.endpoint-types"
+            ],
+            "properties": {
+                "name": "GoogleCloudServiceEndpoint",
+                "displayName": "GCP for Terraform",
+                "helpMarkDown": "[Get JSON Key File](https://console.cloud.google.com/iam-admin/serviceaccounts)",
+                "url": {
+                    "displayName": "Server Url",
+                    "helpText": "GCP homepage",
+                    "value": "https://www.googleapis.com/",
+                    "isVisible": "false"
+                },
+                "dataSources": [
+                    {
+                        "name": "GCP",
+                        "endpointUrl": "{{endpoint.url}}storage/v1/b?project=bold-vial-242405",
+                        "resultSelector": "jsonpath:$.items[*].name"
+                    }
+                ],
+                "authenticationSchemes": [
+                    {
+                        "type": "ms.vss-endpoint.endpoint-auth-scheme-JWT",
+                        "inputDescriptors": [
+                            {
+                                "id": "project",
+                                "name": "project",
+                                "description": "The name of the project in which your resources will be managed",
+                                "inputMode": "textbox",
+                                "isConfidential": false,
+                                "validation": {
+                                    "isRequired": true,
+                                    "dataType": "string"
+                                }
+                            }
+                        ]
+                    }
+                ]
+            }
+        },
+        {
+            "id": "aws-enpoint-type",
+            "description": "Credentials for task invoking AWS services",
+            "type": "ms.vss-endpoint.service-endpoint-type",
+            "targets": [
+                "ms.vss-endpoint.endpoint-types"
+            ],
+            "properties": {
+                "name": "AWS",
+                "displayName": "AWS for Terraform",
+                "url": {
+                    "displayName": "Server Url",
+                    "helpText": "AWS homepage",
+                    "value": "https://s3.amazonaws.com/",
+                    "isVisible": "false"
+                },
+                "dataSources": [
+                    {
+                        "name": "AWS",
+                        "endpointUrl": "{{endpoint.url}}",
+                        "RequestVerb":"GET",
+                        "resultSelector": "xpath://ListAllMyBucketsResult/Buckets/Bucket/Name",
+                        "headers": [
+                            {
+                                "name": "X-Amz-Date",
+                                "value": "{{ #getCurrentUTCDate {} }}"
+                            },
+                            {
+                                "name": "X-Amz-Content-Sha256",
+                                "value": "{{ #getHashedPayload {} }}"
+                            },
+                            {
+                                "name": "Authorization",
+                                "value": "{{ #getAuthorizationHeader { 'username' : 'endpoint.username', 'password' : 'endpoint.password', 'method': 'get' } }}"
+                            }
+                        ]
+                    }                
+                ],
+                "authenticationSchemes": [
+                    {
+                        "type": "ms.vss-endpoint.endpoint-auth-scheme-basic",
+                        "inputDescriptors": [
+                            {
+                                "id": "username",
+                                "name": "Access Key ID",
+                                "description": "The AWS access key ID for signing programmatic requests",
+                                "inputMode": "textbox",
+                                "isConfidential": false,
+                                "validation": {
+                                    "isRequired": true,
+                                    "dataType": "string"
+                                }
+                            },
+                            {
+                                "id": "password",
+                                "name": "Secret Access Key",
+                                "description": "The AWS secret access key for signing programmatic requests",
+                                "inputMode": "passwordbox",
+                                "isConfidential": true,
+                                "validation": {
+                                    "isRequired": true,
+                                    "dataType": "string"
+                                }
+                            },
+                            {
+                                "id": "region",
+                                "name": "Region",
+                                "description": "The region of the AWS bucket to use for storing the state file",
+                                "inputMode": "textbox",
+                                "isConfidential": false,
+                                "validation": {
+                                    "isRequired": false,
+                                    "dataType": "string"
+                                }
+                            }
+                        ]
+                    }
+                ]
+            }
+        }
+    ]
+}
