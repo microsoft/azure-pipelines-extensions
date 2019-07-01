@@ -9,12 +9,9 @@ type DataSourceResultProps = {
 }
 
 export class DataSourceResult extends React.Component<DataSourceResultProps>{
-    constructor(props: DataSourceResultProps) {
-        super(props);
-    }
 
-    public render() {
-        if (this.props.result != null && this.props.result.statusCode == '200') {
+    public render(): JSX.Element {
+        if (this.props.result !== null && this.props.result.statusCode == '200') {
             return (
                 <div>
                     <Header
@@ -28,13 +25,12 @@ export class DataSourceResult extends React.Component<DataSourceResultProps>{
                         readOnly
                         width={TextFieldWidth.auto}
                         autoAdjustHeight
-                        autoComplete
                     />
                 </div>
             );
         }
         else {
-            return (null);
+            return (<div />);
         }
     }
 }

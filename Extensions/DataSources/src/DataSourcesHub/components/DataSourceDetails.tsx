@@ -3,24 +3,17 @@ import { Header, TitleSize } from "azure-devops-ui/Header";
 import { TextField, TextFieldWidth } from "azure-devops-ui/TextField";
 import { DataSourcesActionCreators } from "../action-creators/DataSourcesActionCreators";
 import { DataSourcesResources } from '../Resources/DataSourcesResources';
-import { Parameters, DataSourceInfo } from "../states/DataSourcesExtensionState";
+import { Parameters, DataSourcesMap } from "../Models/DataSourcesExtensionModel";
 
 type DataSourceDetailsProps = {
-    currentInputParam: Parameters | null
-    displayInfo: string | null
-    datasourcesInfo: DataSourceInfo | null
+    currentInputParameters: Parameters | null
+    dataSourceInfoDisplay: string | null
+    dataSourcesMap: DataSourcesMap | null
 }
 
 export class DataSourceDetails extends React.Component<DataSourceDetailsProps>{
-    public onChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, item: string) {
-        if (this.props.datasourcesInfo != null) {
-            let DataSourceActionCreator = new DataSourcesActionCreators(null);
-            DataSourceActionCreator.updateDataSource(item, this.props.currentInputParam);
-        }
-    }
-
-    public render() {
-        if (this.props.displayInfo != null) {
+    public render(): JSX.Element  {
+        if (this.props.dataSourceInfoDisplay !== null) {
             return (
                 <div>
                     <div className="datasource-detail">
@@ -30,12 +23,11 @@ export class DataSourceDetails extends React.Component<DataSourceDetailsProps>{
                             titleSize={TitleSize.Small}
                         />
                         <TextField
-                            value={this.props.displayInfo}
+                            value={this.props.dataSourceInfoDisplay}
                             multiline
                             spellCheck={false}
                             width={TextFieldWidth.auto}
                             autoAdjustHeight
-                            autoComplete
                             onChange={this.onChange.bind(this)}
                         />
                     </div>
@@ -43,7 +35,14 @@ export class DataSourceDetails extends React.Component<DataSourceDetailsProps>{
             );
         }
         else {
-            return (null);
+            return (<div/>);
+        }
+    }
+
+    private onChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, item: string) {
+        if (this.props.dataSourcesMap != null) {
+            let DataSourceActionCreator = DataSourcesActionCreators.getInstance();
+            DataSourceActionCreator.updateDataSource(item, this.props.currentInputParameters);
         }
     }
 }

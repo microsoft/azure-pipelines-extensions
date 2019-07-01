@@ -5,6 +5,6 @@ export const DataSourcesActions = Reflux.createActions([
     "SelectDataSource",
     "UpdateDataSource",
     "UpdateDataSourceParameters",
-    "ExecuteServiceEndpointRequest"
-
+    "ExecuteServiceEndpointRequest",
+    "Error"
 ]);

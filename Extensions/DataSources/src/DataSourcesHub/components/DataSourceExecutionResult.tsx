@@ -3,7 +3,7 @@ import { DataSourceError } from './DataSourceError';
 import { DataSourceResultStatus } from './DataSourceResultStatus';
 import { DataSourceResult } from './DataSourceResult'
 import { ServiceEndpointRequestResult } from "azure-devops-extension-api/ServiceEndpoint";
-import { ParseError, ExecuteError } from "../states/DataSourcesExtensionState";
+import { ParseError, ExecuteError } from "../Models/DataSourcesExtensionModel";
 
 type DataSourceExecutionResultProps = {
     result: ServiceEndpointRequestResult | null
@@ -12,20 +12,20 @@ type DataSourceExecutionResultProps = {
 }
 
 export class DataSourceExecutionResult extends React.Component<DataSourceExecutionResultProps>{
-    public render() {
-        if (this.props.result != null) {
+    public render(): JSX.Element {
+        if (this.props.result !== null) {
             return (
                 <div className="result-content">
                     <DataSourceResultStatus statusCode={this.props.result.statusCode} />
                     <DataSourceResult result={this.props.result} />
-                    <DataSourceError result={this.props.result} parseError={this.props.parseError} executeError={this.props.executeError} />
+                    <DataSourceError resultErrorMessage={this.props.result.errorMessage} parseError={this.props.parseError} executeError={this.props.executeError} />
                 </div>
             );
         }
         else {
             return (
                 <div className="result-content">
-                    <DataSourceError result={this.props.result} parseError={this.props.parseError} executeError={this.props.executeError} />
+                    <DataSourceError resultErrorMessage={null} parseError={this.props.parseError} executeError={this.props.executeError} />
                 </div>
             );
         }

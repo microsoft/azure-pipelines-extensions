@@ -1,64 +1,72 @@
 import * as Reflux from 'reflux';
 import { DataSourcesActions } from '../actions/DataSourcesActions';
-import { DatasourcesExtensionState, UpdateDataSourceParametersPayload, SelectDataSourcePayload, UpdateDataSourcePayload, DataSourceInfo, ExecuteServiceEndpointRequestPayload } from '../states/DataSourcesExtensionState';
-import { ServiceEndpointDetails } from 'azure-devops-extension-api/ServiceEndpoint';
+import { Parameters, ParseError, ExecuteError, UpdateDataSourceParametersPayload, SelectDataSourcePayload, UpdateDataSourcePayload, DataSourcesMap, ExecuteServiceEndpointRequestPayload, ErrorPayload, GetDataSourcesPayload } from '../Models/DataSourcesExtensionModel';
+import { ServiceEndpointDetails, ServiceEndpointRequestResult } from 'azure-devops-extension-api/ServiceEndpoint';
 
-export const defaultState: DatasourcesExtensionState = {
-    selectedDataSource: '',
-    datasourcesInfo: null,
-    displayInfo: null,
-    currentInputParam: null,
-    result: null,
-    endpointDetails: null,
-    parseError: null,
-    executeError: null
-};
+export interface DatasourcesExtensionState {
+    selectedDataSource: string | undefined
+    dataSourcesMap: DataSourcesMap | null
+    dataSourceInfoDisplay: string | null
+    currentInputParameters: Parameters | null
+    endpointDetails: ServiceEndpointDetails | null
+    result: ServiceEndpointRequestResult | null
+    parseError: ParseError | null
+    executeError: ExecuteError | null
+}
 
 export class DataSourcesStore extends Reflux.Store {
     listenables = DataSourcesActions;
-    state: DatasourcesExtensionState = defaultState;
+    state: DatasourcesExtensionState = { 
+        selectedDataSource: '',
+        dataSourcesMap: null,
+        dataSourceInfoDisplay: null,
+        currentInputParameters: null,
+        result: null,
+        endpointDetails: null,
+        parseError: null,
+        executeError: null
+    };
 
-    init() {
+    public init() {
         this.listenTo(DataSourcesActions.GetDataSources, this.onGetDataSources);
         this.listenTo(DataSourcesActions.SelectDataSource, this.onSelectDataSource);
         this.listenTo(DataSourcesActions.UpdateDataSource, this.onUpdateDataSource);
         this.listenTo(DataSourcesActions.UpdateDataSourceParameters, this.onUpdateDataSourceParameters);
         this.listenTo(DataSourcesActions.ExecuteServiceEndpointRequest, this.onExecuteServiceEndpointRequest);
+        this.listenTo(DataSourcesActions.Error, this.onError);
     }
 
-    private onGetDataSources(datasourcesInfo: DataSourceInfo, endpointDetails: ServiceEndpointDetails) {
+    private onGetDataSources(payload: GetDataSourcesPayload) {
         this.setState({
-            datasourcesInfo: datasourcesInfo,
-            endpointDetails: endpointDetails
+            dataSourcesMap: payload.dataSourcesMap,
+            endpointDetails: payload.serviceEndpointDetails
         });
     }
 
     private onSelectDataSource(payload: SelectDataSourcePayload) {
         this.setState({
             selectedDataSource: payload.selectedDataSource,
-            currentInputParam: payload.currentInputParam,
-            displayInfo: payload.displayInfo,
+           currentInputParameters: payload.inputParameters,
+            dataSourceInfoDisplay: payload.dataSourceInfoDisplay,
             parseError: null,
             executeError: null,
-            result: null,
-
+            result: null
         });
     }
 
     private onUpdateDataSourceParameters(payload: UpdateDataSourceParametersPayload) {
         this.setState({
-            currentInputParam: { ...this.state.currentInputParam, [payload.parameterName]: payload.parameterValue },
+            currentInputParameters: { ...this.state.currentInputParameters, [payload.parameterName]: payload.parameterValue },
             parseError: null,
             executeError: null,
-            result: null,
+            result: null
         });
     }
 
-
     private onUpdateDataSource(payload: UpdateDataSourcePayload) {
         this.setState({
-            currentInputParam: payload.currentInputParam,
-            displayInfo:payload.displayInfo,
+            currentInputParameters: payload.inputParameters,
+            dataSourceInfoDisplay:payload.dataSourceInfoDisplay,
             result: null,
             parseError: null,
             executeError: null,
@@ -68,6 +76,14 @@ export class DataSourcesStore extends Reflux.Store {
     private onExecuteServiceEndpointRequest(payload: ExecuteServiceEndpointRequestPayload) {
         this.setState({
             result: payload.result,
+            executeError: null,
+            parseError: null
+        });
+    }
+
+    private onError(payload: ErrorPayload) {
+        this.setState({
+            result: null,
             executeError: payload.executeError,
             parseError: payload.parseError
         });

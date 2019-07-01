@@ -1,5 +1,4 @@
 export class DataSourcesResources {
-
     static Submit = 'Submit';
     static DataSources = 'DataSources';
     static DataSource = 'DataSource';

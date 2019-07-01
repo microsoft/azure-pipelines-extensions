@@ -12,6 +12,7 @@ export class DataSourceResultStatus extends React.Component<DataSourceResultStat
         if (this.props.statusCode == '200') {
             severityType = MessageCardSeverity.Info;
         };
+        
         return (
             <MessageCard
                 className="result-status"

@@ -5,56 +5,29 @@ import { Header, TitleSize } from "azure-devops-ui/Header";
 import { TextField, TextFieldWidth } from "azure-devops-ui/TextField";
 import { DataSourcesActionCreators } from "../action-creators/DataSourcesActionCreators";
 import { DataSourcesResources } from '../Resources/DataSourcesResources';
-import { Parameters } from "../states/DataSourcesExtensionState";
+import { Parameters } from "../Models/DataSourcesExtensionModel";
 import { ServiceEndpointDetails } from "azure-devops-extension-api/ServiceEndpoint";
 
 type DataSourceInputProps = {
-    displayInfo: string | null
-    currentInputParam: Parameters | null
-    endpointDetails: ServiceEndpointDetails | null
+    dataSourceInfoDisplay: string 
+    currentInputParameters: Parameters
+    endpointDetails: ServiceEndpointDetails
 }
 
 export class DataSourceInput extends React.Component<DataSourceInputProps>{
-    public onInput(name: string, e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, item: string) {
-        let DataSourceActionCreator = new DataSourcesActionCreators(null);
-        DataSourceActionCreator.updateDataSourceParameters(name, item);
-    }
 
-    public onSubmit() {
-        let DataSourceActionCreator = new DataSourcesActionCreators(null);
-        DataSourceActionCreator.executeServiceEndpointRequest(this.props.displayInfo, this.props.currentInputParam, this.props.endpointDetails);
-    }
-
-    public renderParameters(name: string) {
-        if (this.props.currentInputParam != null) {
-            return (
-                <div>
-                    <Header
-                        className='datasource-parameters-header'
-                        title={name}
-                        titleSize={TitleSize.Small}
-                    />
-                    <TextField
-                        width={TextFieldWidth.auto}
-                        value={this.props.currentInputParam[name]}
-                        multiline
-                        autoAdjustHeight
-                        autoComplete
-                        spellCheck={false}
-                        onChange={this.onInput.bind(this, name)}
-                    />
-                </div>
-            );
+    public render(): JSX.Element {
+    let inputParameters: JSX.Element[] = [<div/>];
+        if (this.props.currentInputParameters !== null && Object.keys(this.props.currentInputParameters).length !== 0) {
+            var inputParameterNames = Object.keys(this.props.currentInputParameters);
+            inputParameters = inputParameterNames.map(this.getInputParameters.bind(this)); 
         }
-    }
 
-    public render() {
-        if (this.props.currentInputParam != null && Object.keys(this.props.currentInputParam).length != 0) {
-            var inputs = Object.keys(this.props.currentInputParam);
+        if(this.props.currentInputParameters) {
             return (
                 <div >
                     <div className='datasource-parameters'>
-                        {inputs.map(this.renderParameters.bind(this))}
+                        {inputParameters}
                         <ButtonGroup >
                             <Button
                                 text={DataSourcesResources.Submit}
@@ -66,22 +39,42 @@ export class DataSourceInput extends React.Component<DataSourceInputProps>{
                 </div>
             );
         }
-        else if (this.props.currentInputParam != null && Object.keys(this.props.currentInputParam).length == 0) {
+        else {
+            return (<div/>);
+        }
+    }
+
+    private getInputParameters(name: string): JSX.Element {
+        if (this.props.currentInputParameters != null) {
             return (
                 <div>
-                    <div className='datasource-parameters' >
-                        <ButtonGroup>
-                            <Button
-                                text={DataSourcesResources.Submit}
-                                primary={true}
-                                onClick={this.onSubmit.bind(this)}
-                            />
-                        </ButtonGroup>
-                    </div>
-                </div>);
+                    <Header
+                        className='datasource-parameters-header'
+                        title={name}
+                        titleSize={TitleSize.Small}
+                    />
+                    <TextField
+                        width={TextFieldWidth.auto}
+                        value={this.props.currentInputParameters[name]}
+                        multiline
+                        autoAdjustHeight
+                        spellCheck={false}
+                        onChange={this.onInputParameterChange.bind(this, name)}
+                    />
+                </div>
+            );
+        } else {
+            return <div/>;
         }
-        else {
-            return (null);
-        }
+    }
+
+    private onInputParameterChange(name: string, e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, item: string) {
+        let DataSourceActionCreator = DataSourcesActionCreators.getInstance();
+        DataSourceActionCreator.updateDataSourceParameters(name, item);
+    }
+
+    private onSubmit() {
+        let DataSourceActionCreator = DataSourcesActionCreators.getInstance();
+        DataSourceActionCreator.executeServiceEndpointRequest(this.props.dataSourceInfoDisplay, this.props.currentInputParameters, this.props.endpointDetails);
     }
 }
