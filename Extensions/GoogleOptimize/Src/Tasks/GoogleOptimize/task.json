@@ -1,10 +1,10 @@
 {
    "id":"e7307da0-85f4-11e9-9dec-fdd4f9b653a3",
-   "name":"GoogleOptimize",
+   "name":"Google Optimize",
    "friendlyName":"Google Optimize",
-   "description":"Azure devops extension for google optimize and content experiments",
+   "description":"Google Optimize extension for Azure Pipelines",
    "author":"Microsoft Corporation",
-   "helpMarkDown":"[More Information](https://github.com/Microsoft/azure-pipelines-extensions/blob/master/Extensions/GoogleOptimize/Src/README.md)",
+   "helpMarkDown":"[Learn more about this task](https://github.com/Microsoft/azure-pipelines-extensions/blob/master/Extensions/GoogleOptimize/Src/README.md)",
    "category":"Utility",
    "visibility":[
       "Build",
@@ -18,41 +18,50 @@
       "Minor":"0",
       "Patch":"0"
    },
-   "preview": "true",
+   "preview":"true",
    "minimumAgentVersion":"1.95.0",
-   "instanceNameFormat":"GoogleOptimize $(message)",
+   "instanceNameFormat":"Google Optimize $(message)",
    "inputs":[
       {
          "name":"googleEndpoint",
          "type":"connectedService:googleoptimize",
-         "label":"Google Optimize Service Connection",
+         "label":"Optimize Connection",
          "defaultValue":"",
          "required":true,
-         "helpMarkDown":"Select the Optimize service endpoint to be used to be used to manage A/B test"
+         "helpMarkDown":"Select the Optimize service endpoint to be used to manage A/B test"
       },
       {
          "name":"accountId",
-         "type":"string",
+         "type":"pickList",
          "label":"Account Id",
          "defaultValue":"",
          "required":true,
-         "helpMarkDown":"Enter the account Id which can be found in account settings inside admin tab"
+         "properties":{
+            "EditableOptions":false
+         },
+         "helpMarkDown":"Account Id refers to the gmail account which is linked to Google analytics"
       },
       {
          "name":"webPropertyId",
-         "type":"string",
+         "type":"pickList",
          "label":"Web Property Id",
-         "defaultValue":"UA-XXXXX-Y",
+         "defaultValue":"",
          "required":true,
-         "helpMarkDown":"Enter the web Property Id which can be found in property settings inside admin tab. Type- UA-XXXXX-Y"
+         "properties":{
+            "EditableOptions":false
+         },
+         "helpMarkDown":"Web property id refers to your specific website on which experiment is set up"
       },
       {
          "name":"profileId",
-         "type":"string",
+         "type":"pickList",
          "label":"Profile Id",
          "defaultValue":"",
          "required":true,
-         "helpMarkDown":"Enter the profile id which can be found in View Settings under View id"
+         "properties":{
+            "EditableOptions":false
+         },
+         "helpMarkDown":"Profile id is used to provide user management. Particular profile id refers \nto particular user with certain access control"
       },
       {
          "name":"experimentName",
@@ -61,7 +70,7 @@
          "defaultValue":"",
          "required":true,
          "properties":{
-            "EditableOptions":true
+            "EditableOptions":false
          },
          "helpMarkDown":"Choose which experiment needs to be updated"
       },
@@ -72,20 +81,18 @@
          "defaultValue":"",
          "required":true,
          "options":{
-            "UpdateExperiment":"Start/Update an experiment",
-            "PauseExperiment":"Pause an experiment",
+            "UpdateExperiment":"Start or Update experiment",
             "StopExperiment":"Stop an experiment"
-
          },
          "helpMarkDown":"Select the action to be performed on above experiment"
       },
       {
          "name":"jsonFile",
          "type":"filePath",
-         "label":"Json File",
+         "label":"Experiment Configuration File",
          "defaultValue":"",
          "required":false,
-         "helpMarkDown":"Json file to update the experiment"
+         "helpMarkDown":"Json file configure the experiment. Experiment Id is a mandatory field"
       },
       {
          "name":"trafficCoverage",
@@ -113,54 +120,66 @@
          "endpointId":"$(googleEndpoint)",
          "target":"experimentName",
          "dataSourceName":"experimentList",
-         "resultTemplate":"{ \"ExperimentId\" : \"{{{id}}}\", \"Name\" : \"{{{name}}}\" }" ,
-         "parameters": {
-                "accountId": "$(accountId)",
-                "webPropertyId": "$(webPropertyId)",
-                "profileId" : "$(profileId)"
-            }
+         "resultTemplate":"{ \"Value\" : \"{{{id}}}\", \"DisplayValue\" : \"{{{name}}}\" }",
+         "parameters":{
+            "accountId":"$(accountId)",
+            "webPropertyId":"$(webPropertyId)",
+            "profileId":"$(profileId)"
+         }
+      },
+      {
+         "endpointId":"$(googleEndpoint)",
+         "target":"accountId",
+         "dataSourceName":"fetchAccountId",
+         "resultTemplate":"{ \"Value\" : \"{{{id}}}\", \"DisplayValue\" : \"{{{name}}}\" }"
+      },
+      {
+         "endpointId":"$(googleEndpoint)",
+         "target":"webPropertyId",
+         "dataSourceName":"fetchWebPropertyId",
+         "resultTemplate":"{ \"Value\" : \"{{{id}}}\", \"DisplayValue\" : \"{{{websiteUrl}}}\" }",
+         "parameters":{
+            "accountId":"$(accountId)"
+         }
+      },
+      {
+         "endpointId":"$(googleEndpoint)",
+         "target":"profileId",
+         "dataSourceName":"fetchProfileId",
+         "resultTemplate":"{ \"Value\" : \"{{{id}}}\", \"DisplayValue\" : \"{{{id}}}\" }",
+         "parameters":{
+            "webPropertyId":"$(webPropertyId)",
+            "accountId":"$(accountId)"
+         }
       }
    ],
    "execution":{
       "Node":{
          "target":"index.js"
       }
-  },
-  "messages": {
-      "ConstructorFailed": "The task failed while initializing. Error: %s .",
-      "KeyNotFound": "key: '%s' is not a valid key ",
-      "ProjectId": "Project id is: '%s'",
-      "ProjectNotFound": "Project: '%s' not found.",
-      "ProjectHasProjectId": "Project '%s' has projectid: '%s'",
-      "EnvironmentNotFound": "Environment: '%s' not found.",
-      "ExperimentWithIdUpdatedSuccessfully": "Experiment with Id: '%s' updated successfully",
-      "FailedToUpdatedExperiment": "Failed to updated experiment with Id: %s.",
-      "FailedToFetchExperiment": "Failed to fetch experiment with Id: %s",
-      "FailedToFetchEnvironment": "Failed to fetch environment with name: %s",
-      "FailedToFetchProjects": "Failed to fetch projects.",
-      "FailedToFetchExperiments": "Failed to fetch experiments.",
-      "FailedToFetchAudience": "Failed to fetch audience with name : %s",
-      "ExperimentSuccessfullyPaused": "A/B Test: '%s' has been paused successfully.",
-      "FetchingAudienceId": "fetching audience id for audience name: %s.",
-      "UnableToFindAudience": "Unable to find audience with name: %s.",
-      "ABTestStartedSuccessfully": "A/B Test: '%s' has been started successfully.",
-      "VisitOptimizelyPage": "Visit Optimizely experiments page here:",
-      "WaitingForExperimentToStart": "Waiting for experiment '%s' to start.",
-      "TrafficValueNotValid": "%s is not a valid traffic value.",
-      "TrafficValueCantExceed": "Traffic (value = '%s') cannot be greater than 100.",
-      "TrafficVariationKeyNotDefined": "Traffic Variations does not contain a value for the variation key: %s.",
-      "UnableToFindValidArguments": "Unable to find valid arguments. ArgumentString: %s",
-      "InvalidVariationKey": "Invalid variation key: %s",
-      "NotValidValueForVariationKey": "%s cannot be parsed as a number for the key: %s",
-      "TotalTrafficValueNotValid": "Traffic values provided is not valid. It should be between (0,1]. Provided value: %s)",
-      "AudienceInfo": "Audience is : %s",
-      "TaskSucceeded": "Task succeeded.",
-      "IdMismatch" : "Experiment Id in provided in json file is different than provided in input",
-      "InvalidAction" : "Proper action is not selected",
-      "PauseFailed" : "Failed to pause the experiment as status is not RUNNING" ,
-      "StopFailed" : "Experiment Failed to Stop" ,
-      "StartFailed" : "Failed to start the experiment as it has already stopped",
-      "IncorrectFilePath" : "File path provided is incorrect",
-      "FailedToFetchInputs": "Failed to fetch task input"
-    }
+   },
+   "messages":{
+      "ExperimentWithIdUpdatedSuccessfully":"Experiment with Id: '%s' updated successfully",
+      "FailedToUpdateExperiment":"Failed to update experiment with following error: %s",
+      "FailedToFetchExperiment":"Failed to fetch experiment with Id: %s",
+      "TrafficValueNotValid":"%s is not a valid traffic value.",
+      "TrafficVariationKeyNotDefined":"Traffic Variations does not contain a value for the variation key: %s.",
+      "UnableToFindValidArguments":"Unable to find valid arguments. ArgumentString: %s",
+      "InvalidVariationKey":"Invalid variation key: %s",
+      "NotValidValueForVariationKey":"%s cannot be parsed as a number for the key: %s",
+      "TotalTrafficValueNotValid":"Traffic values must be between 0 and 1. Provide valid traffic values. current value: '%s'.",
+      "TaskSucceeded":"Task succeeded.",
+      "IdMismatch":"Experiment Id in provided in json file is different than provided in input",
+      "InvalidAction":"Proper action is not selected",
+      "PauseFailed":"Failed to pause the experiment as status is not RUNNING",
+      "StopFailed":"Cannot Stop an experiment that is in state ENDED",
+      "UpdateFailed":"Failed to update the experiment as it is in state ENDED",
+      "IncorrectFilePath":"File path provided is incorrect",
+      "FailedToParseFile":"Failed to parse the given json file with following error:\n %s",
+      "FailedToFetchInputs":"Failed to fetch input with the following error:\n %s",
+      "FileNotFound":"The JSON file is not found at the given Path. ERROR: %s",
+      "ExperimentFetchedSuccessfully":"Successfully fetched the experiment with name: %s",
+      "AccessTokenGenerationFailed":"Failed to generate access token with Error: %s",
+      "FailedToFetchCurrentExperiment":"Failed to fetch current ExperimentWithIdUpdatedSuccessfully with the following error:\n %s"
+   }
 }

@@ -2,9 +2,9 @@
    "manifestVersion":1,
    "id":"GoogleOptimize",
    "version":"1.0.0",
-   "publisher":"ms-vscs-rm",
+   "publisher":"ms-devlabs",
    "name":"Google Optimize",
-   "description":"Azure Devops extension for Google Optimizely and content Experiments integration.",
+   "description":"Google Optimize extension for Azure Pipelines.",
    "public":false,
    "icons":{
       "default":"Tasks/GoogleOptimize/icon.png"
@@ -40,21 +40,43 @@
          "properties":{
             "name":"googleoptimize",
             "displayName":"Google Optimize",
-            "url":"https://www.googleapis.com/analytics/v3/management",
+            "url":"https://www.googleapis.com/analytics/v3",
             "authenticationSchemes":[
                {
-                  "type": "ms.vss-endpoint.endpoint-auth-scheme-JWT"
-              } ,
-              {
-                  "type": "ms.vss-endpoint.endpoint-auth-scheme-token"
-              }
+                  "type":"ms.vss-endpoint.endpoint-auth-scheme-JWT"
+               }
             ],
-            "dataSources": [
+            "dataSources":[
                {
                   "name":"experimentList",
-                  "endpointUrl":"{{endpoint.url}}/accounts/{{accountId}}/webproperties/{{webPropertyId}}/profiles/{{profileId}}/experiments",
+                  "endpointUrl":"{{endpoint.url}}/management/accounts/{{accountId}}/webproperties/{{webPropertyId}}/profiles/{{profileId}}/experiments",
                   "resultSelector":"jsonpath:$.items[*]"
-               }
+               },
+               {
+                  "name":"fetchAccountId",
+                  "endpointUrl":"{{endpoint.url}}/management/accounts",
+                  "resultSelector":"jsonpath:$.items[*]"
+               },
+               {
+                  "name":"fetchWebPropertyId",
+                  "endpointUrl":"{{endpoint.url}}/management/accounts/{{accountId}}/webproperties",
+                  "resultSelector":"jsonpath:$.items[*]"
+               },
+               {
+                  "name":"fetchProfileId",
+                  "endpointUrl":"{{endpoint.url}}/management/accounts/{{accountId}}/webproperties/{{webPropertyId}}/profiles",
+                  "resultSelector":"jsonpath:$.items[*]"
+              },
+              {
+                 "name":"fetchExperiment",
+                 "endpointUrl":"{{endpoint.url}}/management/accounts/{{accountId}}/webproperties/{{webPropertyId}}/profiles/{{profileId}}/experiments/{{experimentId}}",
+                 "resultSelector":"jsonpath:$.items[*]"
+             },
+             {
+                "name":"fetchData",
+                "endpointUrl":"{{endpoint.url}}/data/ga?ids={{ids}}&start-date={{startDate}}&end-date={{endDate}}&metrics={{metrics}}&dimensions={{dimensions}}",
+                "resultSelector":"jsonpath:$.rows[*]"
+             }
             ]
          }
       },
@@ -71,7 +93,8 @@
    ],
    "files":[
       {
-         "path":"Tasks/GoogleOptimize"
+         "path":"Tasks/GoogleOptimize",
+         "addressable":false
       }
    ],
    "scopes":[

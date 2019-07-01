@@ -1,74 +1,119 @@
 import * as tl from 'azure-pipelines-task-lib/task';
 
-export class TaskParameter{
-    private  endpoint: string;
-    private  accountId: string;
-    private  webPropertyId: string;
-    private  profileId: string;
-    private  experimentName: string;
-    private  experimentId: string;
-    private  action:string;
-    private  trafficCoverage: string | null;
-    private  equalWeighting: string | null;
-    private  filePath: string ;
+export class TaskParameter {
+	private _endpoint: string;
+	private _accountId: string;
+	private _webPropertyId: string;
+	private _profileId: string;
+	private _experimentId: string;
+	private _action: string;
+	private _trafficCoverage: string | null;
+	private _equalWeighting: string | null;
+	private _filePath: string | null;
 
-    constructor() {
-        try{
-            this.endpoint = tl.getInput('googleEndpoint', true);
-            this.accountId = tl.getInput('accountId', true);
-            this.webPropertyId = tl.getInput('webPropertyId', true);
-            this.profileId = tl.getInput('profileId', true);
-            this.experimentId = tl.getInput('experimentName', true);
-            this.experimentName = (tl.getInput('experimentName', true));
-            this.experimentId = (tl.getInput('experimentName', true));
-            this.action = tl.getInput('action' , true);
-            this.trafficCoverage = tl.getInput('trafficCoverage', false);
-            this.equalWeighting = tl.getInput('equalWeighting', false);
-            this.filePath = tl.getInput( 'jsonFile', false)
+	private static _taskParameters: TaskParameter = null;
+
+	constructor () {
+        this.initializeTaskParameters();
+    }
+
+	public static getInstance(): TaskParameter {
+        if(TaskParameter._taskParameters == null) {
+            TaskParameter._taskParameters = new TaskParameter();
         }
-        catch(error) {
-            throw tl.loc("FailedToFetchInputs");
-        }
+        return TaskParameter._taskParameters;
     }
 
-    public getEndpoint(): string {
-        return this.endpoint;
-    }
+	private initializeTaskParameters() {
+		try {
+			this._endpoint = tl.getInput('googleEndpoint', true);
+			this._accountId = tl.getInput('accountId', true);
+			this._webPropertyId = tl.getInput('webPropertyId', true);
+			this._profileId = tl.getInput('profileId', true);
+			this._experimentId = (tl.getInput('experimentName', true));
+			this._action = tl.getInput('action', true);
+			this._trafficCoverage = tl.getInput('trafficCoverage', false);
+			this._equalWeighting = tl.getInput('equalWeighting', false);
+			this._filePath = tl.getInput('jsonFile', false)
+		} catch (error) {
+			throw tl.loc("FailedToFetchInputs", error);
+		}
+	}
 
-    public getAccountId(): string{
-        return this.accountId;
-    }
+	get endpoint(): string {
+		return this._endpoint;
+	}
 
-    public getWebPropertyId(): string{
-        return this.webPropertyId;
-    }
+	set endpoint(value: string) {
+		this._endpoint = value;
+	}
 
-    public getProfileId(): string{
-        return this.profileId;
-    }
+	get accountId(): string {
+		return this._accountId;
+	}
 
-    public getExperimentId(): string{
-        return JSON.parse(this.experimentId).ExperimentId;
-    }
+	set accountId(value: string) {
+		this._accountId = value;
+	}
 
-    public getAction(): string{
-        return this.action;
-    }
+	get webPropertyId(): string {
+		return this._webPropertyId;
+	}
 
-    public getTrafficCoverage(): number | null {
-        let traffic = parseFloat(this.trafficCoverage);
-        if(Number.isNaN(traffic) || traffic <= 0 || traffic > 1){
-            throw tl.loc("TotalTrafficValueNotValid", this.trafficCoverage);
-        }
-        return traffic;
-    }
+	set webPropertyId(value: string) {
+		this._webPropertyId = value;
+	}
 
-    public getEqualWeighting(): boolean | null {
-        return (this.equalWeighting === "True");
-    }
+	get profileId(): string {
+		return this._profileId;
+	}
 
-    public getFilePath(): string | null {
-        return this.filePath;
-    }
+	set profileId(value: string) {
+		this._profileId = value;
+	}
+
+	get experimentId(): string {
+		return this._experimentId;
+	}
+
+	set experimentId(value: string) {
+		this._experimentId = value;
+	}
+
+	get action(): string {
+		return this._action;
+	}
+
+	set action(value: string) {
+		this._action = value;
+	}
+
+	get trafficCoverage(): number | null {
+		let traffic = parseFloat(this._trafficCoverage);
+		if (Number.isNaN(traffic) || traffic <= 0 || traffic > 1) {
+			throw tl.loc("TotalTrafficValueNotValid", this._trafficCoverage);
+		}
+		return traffic;
+	}
+
+	set trafficCoverage(value: number | null) {
+		this._trafficCoverage = value;
+	}
+
+	get equalWeighting(): boolean | null {
+		return (this._equalWeighting === "True");
+	}
+
+	set equalWeighting(value: boolean | null ) {
+		this._equalWeighting = value;
+	}
+
+	get filePath(): string | null {
+		return this._filePath;
+	}
+
+	set filePath(value: string | null) {
+		this._filePath = value;
+	}
 
 }

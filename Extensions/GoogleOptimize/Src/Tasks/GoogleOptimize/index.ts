@@ -1,70 +1,79 @@
 import {Optimizeclient} from './operations/optimizeclient';
-import {IVariation, IExperiment} from './operations/IOptimize';
-import {TaskOperation} from './operations/TaskOperation' ;
-import * as tl from 'azure-pipelines-task-lib/task';
-import * as schema from './models/Schema.json' ;
+import {IVariation,IExperiment} from './models/IOptimize';
+import {TaskOperation} from './operations/TaskOperation';
 import {TaskParameter} from './models/TaskParameter';
+import * as tl from 'azure-pipelines-task-lib/task';
+import * as schema from './models/Schema.json';
+const path = require('path');
 const fs = require('fs');
 
 async function run() {
     try {
-        let param  : TaskParameter = new TaskParameter();
-        let trafficCoverage : number | null = param.getTrafficCoverage() ;
-        let equalWeighting : boolean | null = param.getEqualWeighting() ;
-        let action : string = param.getAction();
-        let filePath : string | null = param.getFilePath() ;
+        tl.setResourcePath(path.join(__dirname + '\\task.json'));
+        let param: TaskParameter = TaskParameter.getInstance();
+        let trafficCoverage: number | null = param.trafficCoverage;
+        let equalWeighting: boolean | null = param.equalWeighting;
+        let action: string = param.action;
+        let filePath: string | null = param.filePath;
 
-        let taskOperation = new TaskOperation() ;
+        let taskOperation = new TaskOperation();
 
-        let experiment: IExperiment ;
+        let experiment: IExperiment;
 
-        if(filePath.endsWith('.json') ) {
-            let rawdata = fs.readFileSync(filePath);
-            experiment = JSON.parse(rawdata);
-            if(param.getExperimentId() != experiment.id) {
-                throw tl.loc("IdMismatch") ;
+        if (filePath.endsWith('.json')) {
+            let rawdata;
+            try {
+                rawdata = fs.readFileSync(filePath);
+            } catch (err) {
+                throw tl.loc("FileNotFound", err);
             }
-            for(var key in experiment){
-               if(!(key in schema)){
-                   throw tl.loc("KeyNotFound" , key) ;
-               }
+
+            try {
+                experiment = JSON.parse(rawdata);
+            } catch (err) {
+                throw tl.loc("FailedToParseFile", err);
             }
-        }
-        else {
+
+            if (param.experimentId != experiment.id) {
+                throw tl.loc("IdMismatch");
+            }
+            for (var key in experiment) {
+                if (!(key in schema)) {
+                    throw tl.loc("KeyNotFound", key);
+                }
+            }
+        } else {
             experiment = {
-                "id" : param.getExperimentId()
-            }
+                "id": param.experimentId
+            };
         }
 
-        if(trafficCoverage != null ) {
-            experiment.trafficCoverage = trafficCoverage ;
+        if (trafficCoverage != null) {
+            experiment.trafficCoverage = trafficCoverage;
         }
 
-        if(equalWeighting != null ) {
-            experiment.equalWeighting = equalWeighting ;
+        if (equalWeighting != null) {
+            experiment.equalWeighting = equalWeighting;
         }
 
-        switch(action){
+        switch (action) {
             case "StopExperiment":
                 await taskOperation.stopExperiment(experiment);
                 break;
             case "UpdateExperiment":
                 await taskOperation.updateExperiment(experiment);
                 break;
-            case "PauseExperiment":
-                await taskOperation.pauseExperiment(experiment);
-                break;
             default:
                 throwError();
         }
-    }
-    catch(err){
-        tl.setResult(tl.TaskResult.Failed , err.message);
+    } catch (err) {
+        console.log(err);
+        tl.setResult(tl.TaskResult.Failed, err);
     }
 }
 
-function throwError(){
+function throwError() {
     throw tl.loc("InvalidAction")
 }
 
-run() ;
+run();
