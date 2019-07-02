@@ -1,7 +1,7 @@
 {
   "name": "datasources",
   "version": "1.100.0",
-  "description": "Extension for Service Endpoints DataSources",
+  "description": "Extension for Service endpoints datasources",
   "keywords": [
     "extensions",
     "Azure DevOps",

@@ -1,15 +1,14 @@
 {
   "manifestVersion": 1,
-  "id": "DataSources",
+  "id": "Datasources",
   "publisher": "ms-vscs-rm",
   "scopes": [
     "vso.project",
-    "vso.serviceendpoint_query",
-    "vso.gallery"
+    "vso.serviceendpoint_query"
   ],
-  "version": "1.0.553",
-  "name": "DataSources",
-  "description": "Extension for testing  DataSources in ServiceEndPoint",
+  "version": "1.0.598",
+  "name": "Datasources",
+  "description": "Extension for testing service endpoint datasources.",
   "categories": [
     "Azure Pipelines"
   ],

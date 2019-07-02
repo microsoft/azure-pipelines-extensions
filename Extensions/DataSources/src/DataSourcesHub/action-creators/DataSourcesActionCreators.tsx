@@ -172,7 +172,7 @@ export class DataSourcesActionCreators extends Reflux.Component {
 
     private getEndpointId(): string | null {
         let currentUrl = document.referrer;
-        let regex_endpoint = /adminservices\?resourceId=(.*)/;
+        let regex_endpoint = /resourceId=(.*)/;
         let endpointMatches = (currentUrl.match(regex_endpoint));
         let endpointId = null;
         if (endpointMatches != null && endpointMatches.length == 2) {
