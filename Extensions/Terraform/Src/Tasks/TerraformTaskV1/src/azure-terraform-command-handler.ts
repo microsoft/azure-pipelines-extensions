@@ -1,6 +1,6 @@
 import tasks = require('azure-pipelines-task-lib/task');
 import {ToolRunner} from 'azure-pipelines-task-lib/toolrunner';
-import {TerraformInit, TerraformApply, TerraformPlan, TerraformDestroy} from './terraform-commands';
+import {TerraformAuthorizationCommandInitializer} from './terraform-commands';
 import {BaseTerraformCommandHandler} from './base-terraform-command-handler';
 
 export class TerraformCommandHandlerAzureRM extends BaseTerraformCommandHandler {
@@ -20,18 +20,16 @@ export class TerraformCommandHandlerAzureRM extends BaseTerraformCommandHandler 
         this.backendConfig.set('arm_client_secret', tasks.getEndpointAuthorizationParameter(backendServiceName, "serviceprincipalkey", true));
     }
 
-    public handleBackend(command: TerraformInit, terraformToolRunner: ToolRunner): void {
-        if (command.backendType && command.backendType === "azurerm") {
-            let backendServiceName = tasks.getInput("backendServiceArm", true);
-            this.setupBackend(backendServiceName);
+    public handleBackend(terraformToolRunner: ToolRunner): void {
+        let backendServiceName = tasks.getInput("backendServiceArm", true);
+        this.setupBackend(backendServiceName);
 
-            for (let [key, value] of this.backendConfig.entries()) {
-                terraformToolRunner.arg(`-backend-config=${key}=${value}`);
-            }
+        for (let [key, value] of this.backendConfig.entries()) {
+            terraformToolRunner.arg(`-backend-config=${key}=${value}`);
         }
     }
 
-    public handleProvider(command: TerraformApply | TerraformPlan | TerraformDestroy, terraformToolRunner: ToolRunner) {
+    public handleProvider(command: TerraformAuthorizationCommandInitializer) {
         if (command.serviceProvidername) {
             process.env['ARM_SUBSCRIPTION_ID']  = tasks.getEndpointDataParameter(command.serviceProvidername, "subscriptionid", false);
             process.env['ARM_TENANT_ID']        = tasks.getEndpointAuthorizationParameter(command.serviceProvidername, "tenantid", false);

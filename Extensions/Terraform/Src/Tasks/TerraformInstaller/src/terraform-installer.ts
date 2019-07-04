@@ -35,7 +35,10 @@ export async function downloadTerraform(inputVersion: string): Promise<string> {
         throw new Error(tasks.loc("TerraformNotFoundInFolder", cachedToolPath));
     }
 
-    fs.chmodSync(terraformPath, "777");
+    if (!isWindows) {
+        fs.chmodSync(terraformPath, "777");
+    }
+    
     return terraformPath;
 }
 

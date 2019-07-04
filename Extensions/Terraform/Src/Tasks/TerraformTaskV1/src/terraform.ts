@@ -1,8 +1,8 @@
 import { ToolRunner } from 'azure-pipelines-task-lib/toolrunner'
-import { BaseTerraformCommand } from './terraform-commands'
+import { TerraformBaseCommandInitializer } from './terraform-commands'
 
 export interface ITerraformToolHandler {
-    createToolRunner(command?: BaseTerraformCommand): ToolRunner;
+    createToolRunner(command?: TerraformBaseCommandInitializer): ToolRunner;
 }
 
 export class TerraformToolHandler implements ITerraformToolHandler {
@@ -12,7 +12,7 @@ export class TerraformToolHandler implements ITerraformToolHandler {
         this.tasks = tasks;
     }
 
-    public createToolRunner(command?: BaseTerraformCommand): ToolRunner {
+    public createToolRunner(command?: TerraformBaseCommandInitializer): ToolRunner {
         let terraformPath;
         try {
             terraformPath = this.tasks.which("terraform", true);

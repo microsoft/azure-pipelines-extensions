@@ -1,6 +1,6 @@
 import tasks = require('azure-pipelines-task-lib/task');
 import {ToolRunner} from 'azure-pipelines-task-lib/toolrunner';
-import {TerraformInit, TerraformApply, TerraformPlan, TerraformDestroy} from './terraform-commands';
+import {TerraformAuthorizationCommandInitializer} from './terraform-commands';
 import {BaseTerraformCommandHandler} from './base-terraform-command-handler';
 import path = require('path');
 import * as uuidV4 from 'uuid/v4';
@@ -28,30 +28,28 @@ export class TerraformCommandHandlerGCP extends BaseTerraformCommandHandler {
 
     private setupBackend(backendServiceName: string) {
         this.backendConfig.set('bucket', tasks.getInput("backendGCPBucketName", true));
-        this.backendConfig.set('prefix', tasks.getInput("backendGCPPrefix", true));
+        this.backendConfig.set('prefix', tasks.getInput("backendGCPPrefix", false));
 
         let jsonKeyFilePath = this.getJsonKeyFilePath(backendServiceName);
 
         this.backendConfig.set('credentials', jsonKeyFilePath);
     }
 
-    public handleBackend(command: TerraformInit, terraformToolRunner: ToolRunner): void {
-        if (command.backendType && command.backendType === "gcp") {
-            let backendServiceName = tasks.getInput("backendServiceGCP", true);
-            this.setupBackend(backendServiceName);
+    public handleBackend(terraformToolRunner: ToolRunner): void {
+        let backendServiceName = tasks.getInput("backendServiceGCP", true);
+        this.setupBackend(backendServiceName);
 
-            for (let [key, value] of this.backendConfig.entries()) {
-                terraformToolRunner.arg(`-backend-config=${key}=${value}`);
-            }
+        for (let [key, value] of this.backendConfig.entries()) {
+            terraformToolRunner.arg(`-backend-config=${key}=${value}`);
         }
     }
 
-    public handleProvider(command: TerraformApply | TerraformPlan | TerraformDestroy, terraformToolRunner: ToolRunner) {
+    public handleProvider(command: TerraformAuthorizationCommandInitializer) {
         if (command.serviceProvidername) {
             let jsonKeyFilePath = this.getJsonKeyFilePath(command.serviceProvidername);
 
             process.env['GOOGLE_CREDENTIALS']  = `${jsonKeyFilePath}`;
-            process.env['GOOGLE_PROJECT']  = tasks.getEndpointAuthorizationParameter(command.serviceProvidername, "project", false);            
+            process.env['GOOGLE_PROJECT']  = tasks.getEndpointDataParameter(command.serviceProvidername, "project", false);            
         }
     }
 }

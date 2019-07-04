@@ -1,23 +1,22 @@
 {
     "id": "FE504ACC-6115-40CB-89FF-191386B5E7BF",
-    "name": "TerraformCustomTask",
-    "friendlyName": "Custom Terraform Task",
-    "description": "Execute terraform cli commands",
-    "author": "Akash Chakrabarti",
+    "name": "TerraformTask",
+    "friendlyName": "Terraform",
+    "description": "Execute terraform commands to provision resources on AzureRM, AWS and GCP",
+    "author": "Microsoft Corporation",
     "helpMarkDown": "",
     "category": "Deploy",
     "visibility": [
+        "Build",
         "Release"
     ],
-    "demands": [
-        "terraform"
-    ],
+    "demands": [],
     "version": {
         "Major": "0",
         "Minor": "0",
-        "Patch": "85"
+        "Patch": "1"
     },
-    "instanceNameFormat": "$(provider) - terraform $(command)",
+    "instanceNameFormat": "terraform : $(provider)",
     "execution": {
         "Node": {
             "target": "src/index.js"
@@ -27,20 +26,20 @@
         {
             "name": "backendAzureRm",
             "displayName": "AzureRM Backend Configuration",
-            "isExpanded": false,
-            "visibleRule": "provider = azurerm && command = init && backendTypeAzureRM = azurerm"
+            "isExpanded": true,
+            "visibleRule": "provider = azurerm && command = init"
         },
         {
             "name": "backendAWS",
             "displayName": "AWS Backend Configuration",
-            "isExpanded": false,
-            "visibleRule": "provider = aws && command = init && backendTypeAWS = aws"
+            "isExpanded": true,
+            "visibleRule": "provider = aws && command = init"
         },
         {
             "name": "backendGCP",
             "displayName": "GCP Backend Configuration",
-            "isExpanded": false,
-            "visibleRule": "provider = gcp && command = init && backendTypeGCP = gcp"
+            "isExpanded": true,
+            "visibleRule": "provider = gcp && command = init"
         }
     ],
     "inputs": [{
@@ -70,7 +69,7 @@
                 "init": "init",
                 "validate": "validate",
                 "plan": "plan",
-                "apply": "apply",
+                "apply": "validate and apply",
                 "destroy": "destroy"
             },
             "properties": {
@@ -89,7 +88,7 @@
             "name": "commandOptions",
             "type": "string",
             "label": "Additional Command Arguments",
-            "helpMarkDown": "Any additional arguments for the selected command such as '-option=value'. Multiple options can also be provided delimited by spaces.",
+            "helpMarkDown": "Any additional arguments for the selected command such as '-option=value' or '-flag'. Multiple options can also be provided delimited by spaces.<br><br>Examples:<br>-out=tfplan (for terraform plan)<br>tfplan -auto-approve (for terraform apply)",
             "required": false
         },
         {
@@ -102,7 +101,7 @@
         },
         {
             "name": "environmentServiceNameAWS",
-            "type": "connectedService:AWS",
+            "type": "connectedService:AWSServiceEndpoint",
             "label": "AWS Environment Subscription",
             "required": false,
             "visibleRule": "provider = aws && command != init && command != validate",
@@ -115,54 +114,6 @@
             "required": false,
             "visibleRule": "provider = gcp && command != init && command != validate",
             "helpMarkDown": "Select a GCP subscription for the deployment"
-        },
-        {
-            "name": "backendTypeAzureRM",
-            "type": "pickList",
-            "label": "Backend Type",
-            "defaultValue": "local",
-            "required": false,
-            "helpMarkDown": "The teraform backend type for AzureRM to use for maintaining the state.",
-            "options": {
-                "local": "local",
-                "azurerm": "azurerm"
-            },
-            "properties": {
-                "EditableOptions": "False"
-            },
-            "visibleRule": "command = init && provider = azurerm"
-        },
-        {
-            "name": "backendTypeAWS",
-            "type": "pickList",
-            "label": "Backend Type",
-            "defaultValue": "local",
-            "required": false,
-            "helpMarkDown": "The teraform backend type for AWS to use for maintaining the state.",
-            "options": {
-                "local": "local",
-                "aws": "aws"
-            },
-            "properties": {
-                "EditableOptions": "False"
-            },
-            "visibleRule": "command = init && provider = aws"
-        },
-        {
-            "name": "backendTypeGCP",
-            "type": "pickList",
-            "label": "Backend Type",
-            "defaultValue": "local",
-            "required": false,
-            "helpMarkDown": "The teraform backend type for GCP to use for maintaining the state.",
-            "options": {
-                "local": "local",
-                "gcp": "gcp"
-            },
-            "properties": {
-                "EditableOptions": "False"
-            },
-            "visibleRule": "command = init && provider = gcp"
         },
         {
             "name": "backendServiceArm",
@@ -215,7 +166,7 @@
         },
         {
             "name": "backendServiceAWS",
-            "type": "connectedService:AWS",
+            "type": "connectedService:AWSServiceEndpoint",
             "label": "AWS Backend Subscription",
             "required": true,
             "helpMarkDown": "AWS subscription for the terraform backend configuration",
@@ -226,10 +177,10 @@
             "type": "pickList",
             "label": "Bucket Name",
             "required": true,
-            "helpMarkDown": "The name of the S3 bucket",
+            "helpMarkDown": "The name of the S3 bucket for storing the state file.",
             "groupName": "backendAWS",
             "properties": {
-                "EditableOptions": "False"
+                "EditableOptions": "True"
             }
         },
         {
@@ -274,12 +225,6 @@
             "required": false,
             "helpMarkDown": "The GCS prefix inside the bucket. The states are stored in an object called <prefix>/<name>.tfstate",
             "groupName": "backendGCP"
-        }
-    ],
-    "outputVariables": [
-        {
-            "name": "TerraformStateFile",
-            "description": "The state file generated from the terraform plan, apply and destroy commands"
         }
     ],
     "dataSourceBindings": [

@@ -3,7 +3,7 @@
     "id": "custom-terraform-tasks",
     "name": "Azure Devops Terraform integration",
     "version": "0.0.1",
-    "publisher": "ms-vscs-rm",
+    "publisher": "ms-devlabs",
     "targets": [
         {
             "id": "Microsoft.VisualStudio.Services"
@@ -13,20 +13,12 @@
     "categories": [
         "Azure Pipelines"
     ],
-    "icons": {
-      "default": "images/icon.png",
-      "large": "images/icon.png"
-    },
     "files": [
         {
             "path": "Tasks/TerraformTaskV1"
         },
         {
             "path": "Tasks/TerraformInstaller"
-        },
-        {
-            "path": "images",
-            "addressable": true
         }
     ],
     "contributions": [
@@ -51,50 +43,6 @@
             }
         },
         {
-            "id": "google-cloud-service-endpoint",
-            "description": "Credentials for connecting to Google Cloud Platform",
-            "type": "ms.vss-endpoint.service-endpoint-type",
-            "targets": [
-                "ms.vss-endpoint.endpoint-types"
-            ],
-            "properties": {
-                "name": "GoogleCloudServiceEndpoint",
-                "displayName": "GCP for Terraform",
-                "helpMarkDown": "[Get JSON Key File](https://console.cloud.google.com/iam-admin/serviceaccounts)",
-                "url": {
-                    "displayName": "Server Url",
-                    "helpText": "GCP homepage",
-                    "value": "https://www.googleapis.com/",
-                    "isVisible": "false"
-                },
-                "dataSources": [
-                    {
-                        "name": "GCP",
-                        "endpointUrl": "{{endpoint.url}}storage/v1/b?project=bold-vial-242405",
-                        "resultSelector": "jsonpath:$.items[*].name"
-                    }
-                ],
-                "authenticationSchemes": [
-                    {
-                        "type": "ms.vss-endpoint.endpoint-auth-scheme-JWT",
-                        "inputDescriptors": [
-                            {
-                                "id": "project",
-                                "name": "project",
-                                "description": "The name of the project in which your resources will be managed",
-                                "inputMode": "textbox",
-                                "isConfidential": false,
-                                "validation": {
-                                    "isRequired": true,
-                                    "dataType": "string"
-                                }
-                            }
-                        ]
-                    }
-                ]
-            }
-        },
-        {
             "id": "aws-enpoint-type",
             "description": "Credentials for task invoking AWS services",
             "type": "ms.vss-endpoint.service-endpoint-type",
@@ -102,7 +50,7 @@
                 "ms.vss-endpoint.endpoint-types"
             ],
             "properties": {
-                "name": "AWS",
+                "name": "AWSServiceEndpoint",
                 "displayName": "AWS for Terraform",
                 "url": {
                     "displayName": "Server Url",
@@ -115,7 +63,12 @@
                         "name": "AWS",
                         "endpointUrl": "{{endpoint.url}}",
                         "RequestVerb":"GET",
-                        "resultSelector": "xpath://ListAllMyBucketsResult/Buckets/Bucket/Name",
+                        "resultSelector": "xpath://ListAllMyBucketsResult/Buckets/Bucket/Name"
+                    }                
+                ],
+                "authenticationSchemes": [
+                    {
+                        "type": "ms.vss-endpoint.endpoint-auth-scheme-basic",
                         "headers": [
                             {
                                 "name": "X-Amz-Date",
@@ -129,12 +82,7 @@
                                 "name": "Authorization",
                                 "value": "{{ #getAuthorizationHeader { 'username' : 'endpoint.username', 'password' : 'endpoint.password', 'method': 'get' } }}"
                             }
-                        ]
-                    }                
-                ],
-                "authenticationSchemes": [
-                    {
-                        "type": "ms.vss-endpoint.endpoint-auth-scheme-basic",
+                        ],
                         "inputDescriptors": [
                             {
                                 "id": "username",
@@ -170,6 +118,76 @@
                                 }
                             }
                         ]
+                    }
+                ]
+            }
+        },
+        {
+            "id": "google-cloud-service-endpoint",
+            "description": "Credentials for connecting to Google Cloud Platform",
+            "type": "ms.vss-endpoint.service-endpoint-type",
+            "targets": [
+                "ms.vss-endpoint.endpoint-types"
+            ],
+            "properties": {
+                "name": "GoogleCloudServiceEndpoint",
+                "displayName": "GCP for Terraform",
+                "helpMarkDown": "[Get JSON Key File](https://console.cloud.google.com/iam-admin/serviceaccounts)",
+                "url": {
+                    "displayName": "Server Url",
+                    "helpText": "GCP homepage",
+                    "value": "https://www.googleapis.com/",
+                    "isVisible": "false"
+                },
+                "dataSources": [
+                    {
+                        "name": "GCP",
+                        "endpointUrl": "{{endpoint.url}}storage/v1/b?project=$(endpoint.project)",
+                        "resultSelector": "jsonpath:$.items[*].name"
+                    }
+                ],
+                "authenticationSchemes": [
+                    {
+                        "type": "ms.vss-endpoint.endpoint-auth-scheme-JWT",
+                        "inputDescriptors": [
+                            {
+                                "id": "Issuer",
+                                "name": "Client Email",
+                                "description": "The client email for creating JWT",
+                                "inputMode": "textbox",
+                                "isConfidential": false,
+                                "validation": {
+                                    "isRequired": false,
+                                    "dataType": "string",
+                                    "maxLength": 300
+                                }
+                            },
+                            {
+                                "id": "Audience",
+                                "name": "Token URI",
+                                "description": "The token uri for creating JWT",
+                                "inputMode": "textbox",
+                                "isConfidential": false,
+                                "validation": {
+                                    "isRequired": true,
+                                    "dataType": "string",
+                                    "maxLength": 300
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "inputDescriptors": [
+                    {
+                        "id": "project",
+                        "name": "Project ID",
+                        "description": "The project id of the GCP project in which your resources will be managed",
+                        "inputMode": "textbox",
+                        "isConfidential": false,
+                        "validation": {
+                            "isRequired": true,
+                            "dataType": "string"
+                        }
                     }
                 ]
             }
