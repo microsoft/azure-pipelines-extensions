@@ -4,14 +4,14 @@ Do Not Translate or Localize
 
 Google Optimize incorporates third party material from the projects listed below. The original copyright notice and the license under which Microsoft received such third party material are set forth below. Microsoft reserves all other rights not expressly granted, whether by implication, estoppel or otherwise.
 
-1.	rxjs(https://github.com/ReactiveX/rxjs; https://rxjs-dev.firebaseapp.com/)
-2.	request (https://github.com/request/request)
+1.    rxjs(https://github.com/ReactiveX/rxjs; https://rxjs-dev.firebaseapp.com/)
+2.    request (https://github.com/request/request)
 
 
 %% rxjs NOTICES, INFORMATION, AND LICENSE BEGIN HERE
 =========================================
 
-				Apache License
+                Apache License
                          Version 2.0, January 2004
                       http://www.apache.org/licenses/
 
