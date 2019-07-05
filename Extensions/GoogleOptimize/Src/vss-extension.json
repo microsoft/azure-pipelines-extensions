@@ -1,96 +1,86 @@
 {
-   "manifestVersion":1,
-   "id":"GoogleOptimize",
-   "version":"1.0.0",
-   "publisher":"ms-devlabs",
-   "name":"Google Optimize",
-   "description":"Google Optimize extension for Azure Pipelines.",
-   "public":false,
-   "icons":{
-      "default":"Tasks/GoogleOptimize/icon.png"
-   },
-   "categories":[
-      "Azure Pipelines"
-   ],
-   "tags":[
-      "Build",
-      "Release"
-   ],
-   "branding":{
-      "color":"rgb(51,65,133)",
-      "theme":"dark"
-   },
-   "targets":[
-      {
-         "id":"Microsoft.VisualStudio.Services.Cloud"
-      },
-      {
-         "id":"Microsoft.TeamFoundation.Server",
-         "version":"[15.3,)"
-      }
-   ],
-   "contributions":[
-      {
-         "id":"GoogleOptimize-endpoint-type",
-         "description":"i18n: Service Connection for Google Optimize",
-         "type":"ms.vss-endpoint.service-endpoint-type",
-         "targets":[
-            "ms.vss-endpoint.endpoint-types"
-         ],
-         "properties":{
-            "name":"googleoptimize",
-            "displayName":"Google Optimize",
-            "url":"https://www.googleapis.com/analytics/v3",
-            "authenticationSchemes":[
-               {
-                  "type":"ms.vss-endpoint.endpoint-auth-scheme-JWT"
-               }
+    "manifestVersion": 1,
+    "id": "GoogleOptimize",
+    "version": "1.0.0",
+    "publisher": "ms-devlabs",
+    "name": "Google Optimize",
+    "description": "Google Optimize extension for Azure Pipelines.",
+    "public": false,
+    "icons": {
+        "default": "Tasks/GoogleOptimize/icon.png"
+    },
+    "categories": [
+        "Build and release"
+    ],
+    "branding": {
+        "color": "rgb(51,65,133)",
+        "theme": "dark"
+    },
+    "targets": [
+        {
+            "id": "Microsoft.VisualStudio.Services.Cloud"
+        },
+        {
+            "id": "Microsoft.TeamFoundation.Server",
+            "version": "[15.3,)"
+        }
+    ],
+    "contributions": [
+        {
+            "id": "GoogleOptimize-endpoint-type",
+            "description": "i18n: Service Connection for Google Optimize",
+            "type": "ms.vss-endpoint.service-endpoint-type",
+            "targets": [
+                "ms.vss-endpoint.endpoint-types"
             ],
-            "dataSources":[
-               {
-                  "name":"experimentList",
-                  "endpointUrl":"{{endpoint.url}}/management/accounts/{{accountId}}/webproperties/{{webPropertyId}}/profiles/{{profileId}}/experiments",
-                  "resultSelector":"jsonpath:$.items[*]"
-               },
-               {
-                  "name":"fetchAccountId",
-                  "endpointUrl":"{{endpoint.url}}/management/accounts",
-                  "resultSelector":"jsonpath:$.items[*]"
-               },
-               {
-                  "name":"fetchWebPropertyId",
-                  "endpointUrl":"{{endpoint.url}}/management/accounts/{{accountId}}/webproperties",
-                  "resultSelector":"jsonpath:$.items[*]"
-               },
-               {
-                  "name":"fetchProfileId",
-                  "endpointUrl":"{{endpoint.url}}/management/accounts/{{accountId}}/webproperties/{{webPropertyId}}/profiles",
-                  "resultSelector":"jsonpath:$.items[*]"
-              }
-            ]
-         }
-      },
-      {
-         "id":"optimize-task",
-         "type":"ms.vss-distributed-task.task",
-         "targets":[
-            "ms.vss-distributed-task.tasks"
-         ],
-         "properties":{
-            "name":"Tasks/GoogleOptimize"
-         }
-      }
-   ],
-   "files":[
-      {
-         "path":"Tasks/GoogleOptimize",
-         "addressable":false
-      }
-   ],
-   "scopes":[
-      "vso.build",
-      "vso.release",
-      "vso.serviceendpoint",
-      "vso.serviceendpoint_query"
-   ]
+            "properties": {
+                "name": "googleoptimize",
+                "displayName": "Google Optimize",
+                "url": "https://www.googleapis.com/analytics/v3",
+                "authenticationSchemes": [
+                    {
+                        "type": "ms.vss-endpoint.endpoint-auth-scheme-JWT"
+                    }
+                ],
+                "dataSources": [
+                    {
+                        "name": "experimentList",
+                        "endpointUrl": "{{endpoint.url}}/management/accounts/{{accountId}}/webproperties/{{webPropertyId}}/profiles/{{profileId}}/experiments",
+                        "resultSelector": "jsonpath:$.items[*]"
+                    },
+                    {
+                        "name": "fetchAccountId",
+                        "endpointUrl": "{{endpoint.url}}/management/accounts",
+                        "resultSelector": "jsonpath:$.items[*]"
+                    },
+                    {
+                        "name": "fetchWebPropertyId",
+                        "endpointUrl": "{{endpoint.url}}/management/accounts/{{accountId}}/webproperties",
+                        "resultSelector": "jsonpath:$.items[*]"
+                    },
+                    {
+                        "name": "fetchProfileId",
+                        "endpointUrl": "{{endpoint.url}}/management/accounts/{{accountId}}/webproperties/{{webPropertyId}}/profiles",
+                        "resultSelector": "jsonpath:$.items[*]"
+                    }
+                ]
+            }
+        },
+        {
+            "id": "optimize-task",
+            "type": "ms.vss-distributed-task.task",
+            "targets": [
+                "ms.vss-distributed-task.tasks"
+            ],
+            "properties": {
+                "name": "Tasks/GoogleOptimize"
+            }
+        }
+    ],
+    "files": [
+        {
+            "path": "Tasks/GoogleOptimize",
+            "addressable": false
+        }
+    ]
 }

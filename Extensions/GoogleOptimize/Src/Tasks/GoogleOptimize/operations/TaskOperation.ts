@@ -12,7 +12,7 @@ export class TaskOperation {
 		this.param = TaskParameter.getInstance();
 	}
 
-    public async stopExperiment(experiment: IExperiment): Promise < void > {
+	public async stopExperiment(experiment: IExperiment): Promise < void > {
 		experiment.status = this.param.Status.ENDED;
 		await this.oxclient.updateExperiment(experiment);
 	}

@@ -13,9 +13,9 @@ export class TaskParameter {
 
 	private static _taskParameters: TaskParameter = null;
 
-	private constructor () {
-        this.initializeTaskParameters();
-    }
+	private constructor() {
+		this.initializeTaskParameters();
+	}
 
 	public const Status = {
 		RUNNING: "RUNNING",
@@ -25,11 +25,11 @@ export class TaskParameter {
 	}
 
 	public static getInstance(): TaskParameter {
-        if(TaskParameter._taskParameters == null) {
-            TaskParameter._taskParameters = new TaskParameter();
-        }
-        return TaskParameter._taskParameters;
-    }
+		if (TaskParameter._taskParameters == null) {
+			TaskParameter._taskParameters = new TaskParameter();
+		}
+		return TaskParameter._taskParameters;
+	}
 
 	private initializeTaskParameters() {
 		try {
