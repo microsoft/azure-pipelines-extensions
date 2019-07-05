@@ -1,6 +1,6 @@
 {
     "manifestVersion": 1,
-    "id": "vss-services-kayentadeploymentgate",
+    "id": "vss-services-kayentacanaryjudge",
     "name": "Kayenta Canary Judge",
     "publisher": "ms-vscs-rm",
     "version": "0.154.0",
@@ -40,19 +40,15 @@
             "addressable": true
           },
           {
-            "path": "images/gate_execution.png",
+            "path": "images/execution_promote.png",
+            "addressable": true
+          },
+          {
+            "path": "images/execution_reject.png",
             "addressable": true
           },
           {
             "path": "images/kayenta_connection.png",
-            "addressable": true
-          },
-          {
-            "path": "images/release_definition.png",
-            "addressable": true
-          },
-          {
-            "path": "images/input_account.png",
             "addressable": true
           },
           {
@@ -95,10 +91,24 @@
             "displayName": "Kayenta Url",
             "helpText": "Url of the Kayenta instance to connect to."
           },
+          "inputDescriptors": [
+            {
+              "id": "canaryConfigAccount",
+              "name": "Canary configuration account",
+              "description": "Canary configuration Account",
+              "inputMode": "textbox",
+              "isConfidential": false,
+              "validation": {
+                "isRequired": false,
+                "dataType": "string"
+              }
+            }
+          ], 
           "dataSources": [
             {
               "name": "canaryConfig",
-              "endpointUrl": "{{endpoint.url}}/canaryConfig?configAccountName={{configAccountName}}",
+              "target": "canaryConfigAccount",
+              "endpointUrl": "{{endpoint.url}}/canaryConfig?configurationAccountName={{endpoint.canaryConfigAccount}}",
               "resultSelector": "jsonpath:$.[*]",
               "resultTemplate": "{ \"Value\" : \"{{id}}\", \"DisplayValue\" : \"{{name}}\" }"
             }
