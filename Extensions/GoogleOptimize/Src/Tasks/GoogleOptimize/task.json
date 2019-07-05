@@ -4,14 +4,11 @@
    "friendlyName":"Google Optimize",
    "description":"Google Optimize extension for Azure Pipelines",
    "author":"Microsoft Corporation",
-   "helpMarkDown":"[Learn more about this task](https://github.com/Microsoft/azure-pipelines-extensions/blob/master/Extensions/GoogleOptimize/Src/README.md)",
+   "helpMarkDown":"[Learn more about this task](https://aka.ms/googleoptimizereadme)",
    "category":"Utility",
    "visibility":[
       "Build",
       "Release"
-   ],
-   "demands":[
-
    ],
    "version":{
       "Major":"1",
@@ -20,13 +17,12 @@
    },
    "preview":"true",
    "minimumAgentVersion":"1.95.0",
-   "instanceNameFormat":"Google Optimize $(message)",
+   "instanceNameFormat":"Google Optimize $(webPropertyId)",
    "inputs":[
       {
          "name":"googleEndpoint",
          "type":"connectedService:googleoptimize",
          "label":"Optimize Connection",
-         "defaultValue":"",
          "required":true,
          "helpMarkDown":"Select the Optimize service endpoint to be used to manage A/B test"
       },
@@ -34,55 +30,39 @@
          "name":"accountId",
          "type":"pickList",
          "label":"Account Id",
-         "defaultValue":"",
          "required":true,
-         "properties":{
-            "EditableOptions":false
-         },
          "helpMarkDown":"Account Id refers to the gmail account which is linked to Google analytics"
       },
       {
          "name":"webPropertyId",
          "type":"pickList",
          "label":"Web Property Id",
-         "defaultValue":"",
          "required":true,
-         "properties":{
-            "EditableOptions":false
-         },
          "helpMarkDown":"Web property id refers to your specific website on which experiment is set up"
       },
       {
          "name":"profileId",
          "type":"pickList",
          "label":"Profile Id",
-         "defaultValue":"",
          "required":true,
-         "properties":{
-            "EditableOptions":false
-         },
          "helpMarkDown":"Profile id is used to provide user management. Particular profile id refers \nto particular user with certain access control"
       },
       {
          "name":"experimentName",
          "type":"pickList",
          "label":"Experiment Name",
-         "defaultValue":"",
          "required":true,
-         "properties":{
-            "EditableOptions":false
-         },
          "helpMarkDown":"Choose which experiment needs to be updated"
       },
       {
          "name":"action",
          "type":"pickList",
          "label":"Action",
-         "defaultValue":"",
+         "defaultValue":"UpdateExperiment",
          "required":true,
          "options":{
             "UpdateExperiment":"Start or Update experiment",
-            "StopExperiment":"Stop an experiment"
+            "StopExperiment":"Stop experiment"
          },
          "helpMarkDown":"Select the action to be performed on above experiment"
       },
@@ -90,16 +70,12 @@
          "name":"jsonFile",
          "type":"filePath",
          "label":"Experiment Configuration File",
-         "defaultValue":"",
-         "required":false,
-         "helpMarkDown":"Json file configure the experiment. Experiment Id is a mandatory field"
+         "helpMarkDown":"Json file to configure the experiment. Experiment Id is a mandatory field"
       },
       {
          "name":"trafficCoverage",
          "type":"string",
          "label":"Traffic Coverage",
-         "defaultValue":"",
-         "required":false,
          "helpMarkDown":"A floating-point number between 0 and 1.\nSpecifies the fraction of the traffic that\nparticipates in the experiment.\nCan be changed for a running experiment"
       },
       {
@@ -107,7 +83,6 @@
          "type":"pickList",
          "label":"Equal Distribution",
          "defaultValue":"True",
-         "required":false,
          "options":{
             "True":"True",
             "False":"False"
@@ -137,7 +112,7 @@
          "endpointId":"$(googleEndpoint)",
          "target":"webPropertyId",
          "dataSourceName":"fetchWebPropertyId",
-         "resultTemplate":"{ \"Value\" : \"{{{id}}}\", \"DisplayValue\" : \"{{{websiteUrl}}}\" }",
+         "resultTemplate":"{ \"Value\" : \"{{{id}}}\", \"DisplayValue\" : \"{{{name}}}\" }",
          "parameters":{
             "accountId":"$(accountId)"
          }

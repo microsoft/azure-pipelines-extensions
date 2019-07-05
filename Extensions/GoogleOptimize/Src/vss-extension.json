@@ -31,7 +31,7 @@
    ],
    "contributions":[
       {
-         "id":"optimizely-endpoint-type",
+         "id":"GoogleOptimize-endpoint-type",
          "description":"i18n: Service Connection for Google Optimize",
          "type":"ms.vss-endpoint.service-endpoint-type",
          "targets":[
@@ -66,17 +66,7 @@
                   "name":"fetchProfileId",
                   "endpointUrl":"{{endpoint.url}}/management/accounts/{{accountId}}/webproperties/{{webPropertyId}}/profiles",
                   "resultSelector":"jsonpath:$.items[*]"
-              },
-              {
-                 "name":"fetchExperiment",
-                 "endpointUrl":"{{endpoint.url}}/management/accounts/{{accountId}}/webproperties/{{webPropertyId}}/profiles/{{profileId}}/experiments/{{experimentId}}",
-                 "resultSelector":"jsonpath:$.items[*]"
-             },
-             {
-                "name":"fetchData",
-                "endpointUrl":"{{endpoint.url}}/data/ga?ids={{ids}}&start-date={{startDate}}&end-date={{endDate}}&metrics={{metrics}}&dimensions={{dimensions}}",
-                "resultSelector":"jsonpath:$.rows[*]"
-             }
+              }
             ]
          }
       },

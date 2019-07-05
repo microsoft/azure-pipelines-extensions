@@ -1,20 +1,20 @@
-import {Optimizeclient} from './operations/optimizeclient';
-import {IVariation,IExperiment} from './models/IOptimize';
+import {IExperiment} from './models/IOptimize';
 import {TaskOperation} from './operations/TaskOperation';
 import {TaskParameter} from './models/TaskParameter';
 import * as tl from 'azure-pipelines-task-lib/task';
 import * as schema from './models/Schema.json';
 const path = require('path');
 const fs = require('fs');
+let keys = [];
 
 async function run() {
     try {
-        tl.setResourcePath(path.join(__dirname + '\\task.json'));
+        tl.setResourcePath(path.join(__dirname , 'task.json'));
         let param: TaskParameter = TaskParameter.getInstance();
         let trafficCoverage: number | null = param.trafficCoverage;
-        let equalWeighting: boolean | null = param.equalWeighting;
+        let equalWeighting: boolean = param.equalWeighting;
         let action: string = param.action;
-        let filePath: string | null = param.filePath;
+        let filePath: string = param.filePath;
 
         let taskOperation = new TaskOperation();
 
@@ -37,24 +37,21 @@ async function run() {
             if (param.experimentId != experiment.id) {
                 throw tl.loc("IdMismatch");
             }
-            for (var key in experiment) {
-                if (!(key in schema)) {
-                    throw tl.loc("KeyNotFound", key);
-                }
-            }
+
+            keyAppender(schema);
+            keyChecker(experiment);
+
         } else {
             experiment = {
                 "id": param.experimentId
             };
         }
 
-        if (trafficCoverage != null) {
+        if(!Number.isNaN(trafficCoverage)) {
             experiment.trafficCoverage = trafficCoverage;
         }
 
-        if (equalWeighting != null) {
-            experiment.equalWeighting = equalWeighting;
-        }
+        experiment.equalWeighting = equalWeighting;
 
         switch (action) {
             case "StopExperiment":
@@ -64,16 +61,32 @@ async function run() {
                 await taskOperation.updateExperiment(experiment);
                 break;
             default:
-                throwError();
+                throw tl.loc("InvalidAction");
         }
     } catch (err) {
-        console.log(err);
         tl.setResult(tl.TaskResult.Failed, err);
     }
 }
 
-function throwError() {
-    throw tl.loc("InvalidAction")
+function keyAppender(obj) {
+    for( var key in obj) {
+        if(typeof obj[key] === 'object') {
+            keyAppender(obj[key]);
+        }
+        keys.push(key);
+    }
+}
+
+function keyChecker(experiment) {
+    for( var key in experiment) {
+        if(typeof experiment[key] === 'object') {
+            keyChecker(experiment[key]);
+        }
+
+        if (keys.indexOf(key) === -1 ) {
+            throw tl.loc("KeyNotFound", key);
+        }
+    }
 }
 
 run();
