@@ -1,8 +1,8 @@
 {
     "id": "a4789e5d-f6e8-431f-add9-379d640a883c",
     "name": "TerraformInstaller",
-    "friendlyName": "Terraform Tool Installer",
-    "description": "Installs a specific version of Terraform on the agent",
+    "friendlyName": "Terraform tool installer",
+    "description": "Find in cache or download a specific version of Terraform and prepend it to the PATH",
     "author": "Microsoft Corporation",
     "helpMarkDown": "",
     "category": "Tool",
@@ -14,7 +14,7 @@
     "version": {
         "Major": "0",
         "Minor": "0",
-        "Patch": "1"
+        "Patch": "11"
     },
     "instanceNameFormat": "Install Terraform $(terraformVersion)",
     "inputs": [

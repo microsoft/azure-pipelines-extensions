@@ -1,4 +1,4 @@
-# Terraform Tool Installer
+# Terraform tool installer
 
 
 ### Overview
@@ -9,7 +9,7 @@ Adding this task before the [Teraform task]() in a build definition ensures you 
 
 ### Contact Information
 
-Please report a problem at [Developer Community Forum](https://developercommunity.visualstudio.com/spaces/21/index.html) if you are facing problems in making this task work.  You can also share feedback about the task like, what more functionality should be added to the task, what other tasks you would like to have, at the same place.
+Please report a problem at [Developer Community Forum](https://developercommunity.visualstudio.com/spaces/21/index.html) if you are facing problems in making this task work. You can also share feedback about the task like, what more functionality should be added to the task, what other tasks you would like to have, at the same place.
 
 
 ### Pre-requisites for the task

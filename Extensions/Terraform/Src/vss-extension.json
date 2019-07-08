@@ -1,7 +1,7 @@
 {
     "manifestVersion": 1,
     "id": "custom-terraform-tasks",
-    "name": "Azure Devops Terraform integration",
+    "name": "Terraform",
     "version": "0.0.1",
     "publisher": "ms-devlabs",
     "targets": [
@@ -9,18 +9,94 @@
             "id": "Microsoft.VisualStudio.Services"
         }
     ],
-    "description": "Azure Devops extension for Terraform integration",
+    "description": "Install terraform and run terraform commands to manage resources on Azure, AWS and GCP.",
     "categories": [
         "Azure Pipelines"
     ],
+    "Tags": [ 
+        "Terraform",
+        "Azure",
+        "AWS",
+        "GCP",
+        "Release", 
+        "DevOps"
+    ],
+    "branding": {
+        "color": "#FFFFFF",
+        "theme": "light"
+    },
+    "icons": {
+        "default": "images/icon.png",
+        "large": "images/icon.png"
+    },
+    "screenshots": [
+        {
+            "path": "images/1_AWS_service_endpoint.PNG"
+        },
+        {
+            "path": "images/2_GCP_service_endpoint.PNG"
+        },
+        {
+            "path": "images/3_Terraform_tool_installer_search.PNG"
+        },
+        {
+            "path": "images/4_Terraform_tool_installer_inputs.PNG"
+        },
+        {
+            "path": "images/5_Terraform_search.PNG"
+        },
+        {
+            "path": "images/6_Terraform_all_inputs.PNG"
+        },
+        {
+            "path": "images/7_Terraform_plan_apply_destroy.PNG"
+        }
+    ],
+    "content": {
+        "details": {
+            "path": "overview.md"
+        }
+    },
     "files": [
         {
             "path": "Tasks/TerraformTaskV1"
         },
         {
             "path": "Tasks/TerraformInstaller"
+        },
+        {
+            "path": "images/1_AWS_service_endpoint.PNG",
+            "addressable": true
+        },
+        {
+            "path": "images/2_GCP_service_endpoint.PNG",
+            "addressable": true
+        },
+        {
+            "path": "images/3_Terraform_tool_installer_search.PNG",
+            "addressable": true
+        },
+        {
+            "path": "images/4_Terraform_tool_installer_inputs.PNG",
+            "addressable": true
+        },
+        {
+            "path": "images/5_Terraform_search.PNG",
+            "addressable": true
+        },
+        {
+            "path": "images/6_Terraform_all_inputs.PNG",
+            "addressable": true
+        },
+        {
+            "path": "images/7_Terraform_plan_apply_destroy.PNG",
+            "addressable": true
         }
     ],
+    "repository": {
+        "type": "git",
+        "uri": "https://github.com/Microsoft/azure-pipelines-extensions/"
+    },
     "contributions": [
         {
             "id": "custom-terraform-installer-task",
@@ -80,14 +156,14 @@
                             },
                             {
                                 "name": "Authorization",
-                                "value": "{{ #getAuthorizationHeader { 'username' : 'endpoint.username', 'password' : 'endpoint.password', 'method': 'get' } }}"
+                                "value": "{{ #getAuthorizationHeader { 'username' : 'endpoint.username', 'password' : 'endpoint.password', 'method' : 'get' } }}"
                             }
                         ],
                         "inputDescriptors": [
                             {
                                 "id": "username",
-                                "name": "Access Key ID",
-                                "description": "The AWS access key ID for signing programmatic requests",
+                                "name": "Access key id",
+                                "description": "The AWS access key id for signing programmatic requests",
                                 "inputMode": "textbox",
                                 "isConfidential": false,
                                 "validation": {
@@ -97,7 +173,7 @@
                             },
                             {
                                 "id": "password",
-                                "name": "Secret Access Key",
+                                "name": "Secret access key",
                                 "description": "The AWS secret access key for signing programmatic requests",
                                 "inputMode": "passwordbox",
                                 "isConfidential": true,
@@ -109,11 +185,11 @@
                             {
                                 "id": "region",
                                 "name": "Region",
-                                "description": "The region of the AWS bucket to use for storing the state file",
+                                "description": "The region of the AWS S3 bucket to use for storing the state file.<br><br>Example: us-east-1.<br><br>Note: This region value is used for signing the programmatic requests. In the task, you can use the buckets in this region for storing the state file.",
                                 "inputMode": "textbox",
                                 "isConfidential": false,
                                 "validation": {
-                                    "isRequired": false,
+                                    "isRequired": true,
                                     "dataType": "string"
                                 }
                             }
@@ -152,8 +228,8 @@
                         "inputDescriptors": [
                             {
                                 "id": "Issuer",
-                                "name": "Client Email",
-                                "description": "The client email for creating JWT",
+                                "name": "Client email",
+                                "description": "The client email field in the JSON key file for creating the JSON Web Token",
                                 "inputMode": "textbox",
                                 "isConfidential": false,
                                 "validation": {
@@ -164,8 +240,8 @@
                             },
                             {
                                 "id": "Audience",
-                                "name": "Token URI",
-                                "description": "The token uri for creating JWT",
+                                "name": "Token uri",
+                                "description": "The token uri field in the JSON key file for creating the JSON Web Token",
                                 "inputMode": "textbox",
                                 "isConfidential": false,
                                 "validation": {
@@ -180,7 +256,7 @@
                 "inputDescriptors": [
                     {
                         "id": "project",
-                        "name": "Project ID",
+                        "name": "Project id",
                         "description": "The project id of the GCP project in which your resources will be managed",
                         "inputMode": "textbox",
                         "isConfidential": false,

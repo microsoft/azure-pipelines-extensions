@@ -1,7 +1,7 @@
 {
-  "loc.friendlyName": "Terraform Installer",
+  "loc.friendlyName": "Terraform tool installer",
   "loc.helpMarkDown": "",
-  "loc.description": "Installs a specific version of Terraform on the agent",
+  "loc.description": "Find in cache or download a specific version of Terraform and prepend it to the PATH",
   "loc.instanceNameFormat": "Install Terraform $(terraformVersion)",
   "loc.input.label.terraformVersion": "Version",
   "loc.input.help.terraformVersion": "The version of Terraform which should be installed on the agent if not already present",

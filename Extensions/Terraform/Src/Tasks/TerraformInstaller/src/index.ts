@@ -4,8 +4,6 @@ import { ToolRunner } from 'azure-pipelines-task-lib/toolrunner';
 import path = require('path');
 import * as installer from './terraform-installer';
 
-tasks.setResourcePath(path.join(__dirname, '..', 'task.json'));
-
 async function configureTerraform() {
     let inputVersion = tasks.getInput("terraformVersion", true);
     let terraformPath = await installer.downloadTerraform(inputVersion);
@@ -26,6 +24,8 @@ async function verifyTerraform() {
 }
 
 async function run() {
+    tasks.setResourcePath(path.join(__dirname, '..', 'task.json'));
+
     try {
         await configureTerraform();
         await verifyTerraform();

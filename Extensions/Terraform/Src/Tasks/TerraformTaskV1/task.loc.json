@@ -14,7 +14,7 @@
   "version": {
     "Major": "0",
     "Minor": "0",
-    "Patch": "98"
+    "Patch": "101"
   },
   "instanceNameFormat": "ms-resource:loc.instanceNameFormat",
   "execution": {
@@ -190,14 +190,6 @@
       "label": "ms-resource:loc.input.label.backendAWSKey",
       "required": true,
       "helpMarkDown": "ms-resource:loc.input.help.backendAWSKey",
-      "groupName": "backendAWS"
-    },
-    {
-      "name": "backendAWSRegion",
-      "type": "string",
-      "label": "ms-resource:loc.input.label.backendAWSRegion",
-      "required": true,
-      "helpMarkDown": "ms-resource:loc.input.help.backendAWSRegion",
       "groupName": "backendAWS"
     },
     {
