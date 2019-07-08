@@ -1,6 +1,6 @@
 {
     "id": "e7307da0-85f4-11e9-9dec-fdd4f9b653a3",
-    "name": "Google Optimize",
+    "name": "google Optimize",
     "friendlyName": "Google Optimize",
     "description": "Google Optimize extension for Azure Pipelines",
     "author": "Microsoft Corporation",
@@ -17,7 +17,7 @@
     },
     "preview": "true",
     "minimumAgentVersion": "1.95.0",
-    "instanceNameFormat": "Google Optimize $(webPropertyId)",
+    "instanceNameFormat": "Google Optimize: $(action)",
     "inputs": [
         {
             "name": "googleEndpoint",
@@ -95,10 +95,7 @@
             "endpointId": "$(googleEndpoint)",
             "target": "experimentName",
             "dataSourceName": "experimentList",
-            "resultTemplate": {
-                "Value": "{{{id}}}",
-                "DisplayValue": "{{{name}}}"
-            },
+            "resultTemplate": "{ \"Value\" : \"{{{id}}}\", \"DisplayValue\" : \"{{{name}}}\" }",
             "parameters": {
                 "accountId": "$(accountId)",
                 "webPropertyId": "$(webPropertyId)",
@@ -109,19 +106,13 @@
             "endpointId": "$(googleEndpoint)",
             "target": "accountId",
             "dataSourceName": "fetchAccountId",
-            "resultTemplate": {
-                "Value": "{{{id}}}",
-                "DisplayValue": "{{{name}}}"
-            }
+            "resultTemplate": "{ \"Value\" : \"{{{id}}}\", \"DisplayValue\" : \"{{{name}}}\" }"
         },
         {
             "endpointId": "$(googleEndpoint)",
             "target": "webPropertyId",
             "dataSourceName": "fetchWebPropertyId",
-            "resultTemplate": {
-                "Value": "{{{id}}}",
-                "DisplayValue": "{{{name}}}"
-            },
+            "resultTemplate": "{ \"Value\" : \"{{{id}}}\", \"DisplayValue\" : \"{{{name}}}\" }",
             "parameters": {
                 "accountId": "$(accountId)"
             }
@@ -130,10 +121,7 @@
             "endpointId": "$(googleEndpoint)",
             "target": "profileId",
             "dataSourceName": "fetchProfileId",
-            "resultTemplate": {
-                "Value": "{{{id}}}",
-                "DisplayValue": "{{{id}}}"
-            },
+            "resultTemplate": "{ \"Value\" : \"{{{id}}}\", \"DisplayValue\" : \"{{{id}}}\" }",
             "parameters": {
                 "webPropertyId": "$(webPropertyId)",
                 "accountId": "$(accountId)"

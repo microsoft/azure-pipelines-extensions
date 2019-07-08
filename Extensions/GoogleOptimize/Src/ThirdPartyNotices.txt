@@ -11,7 +11,7 @@ Google Optimize incorporates third party material from the projects listed below
 %% rxjs NOTICES, INFORMATION, AND LICENSE BEGIN HERE
 =========================================
 
-                Apache License
+                              Apache License
                          Version 2.0, January 2004
                       http://www.apache.org/licenses/
 
