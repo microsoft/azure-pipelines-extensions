@@ -13,7 +13,7 @@ Optimize allows you to test variants of web pages and see how they perform again
 Google Optimize extension for azure devops lets you start , stop and update your experiments in minimal steps. This extension provides you two ways of making changes -
 
 * by entering changes into provided fields in task.
-* by adding a json file with proper [schema](https://aka.ms/AA5j251)
+* by adding a json file with proper [schema](https://aka.ms/googleoptimizeschema)
 
 # Prerequisite
 Before using the extension we need to configure google account in order to get JWT config file.
