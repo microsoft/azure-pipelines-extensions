@@ -16,6 +16,11 @@
       "color":"rgb(51,65,133)",
       "theme":"dark"
    },
+   "content":{
+      "details":{
+         "path":"README.md"
+      }
+   },
    "targets":[
       {
          "id":"Microsoft.VisualStudio.Services.Cloud"
@@ -106,5 +111,11 @@
          "path":"Tasks/GoogleOptimize",
          "addressable":false
       }
+   ],
+   "scopes":[
+      "vso.build",
+      "vso.release",
+      "vso.serviceendpoint",
+      "vso.serviceendpoint_query"
    ]
 }

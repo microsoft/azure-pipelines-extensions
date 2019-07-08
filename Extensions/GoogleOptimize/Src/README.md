@@ -13,7 +13,7 @@ Optimize allows you to test variants of web pages and see how they perform again
 Google Optimize extension for azure devops lets you start , stop and update your experiments in minimal steps. This extension provides you two ways of making changes -
 
 * by entering changes into provided fields in task.
-* by adding a json file with proper [schema](Tasks/GoogleOptimize/models/Schema.json)
+* by adding a json file with proper [schema](https://aka.ms/AA5j251)
 
 # Prerequisite
 Before using the extension we need to configure google account in order to get JWT config file.
@@ -28,16 +28,16 @@ Start or stop an experiment, assign traffic coverage and set traffic distributio
 
 * Search for Google Optimize and click on "Add"
 
-![](images/1.JPG)
+![](https://aka.ms/googleoptimizeimage1)
 
 * Now you need to configure the connection to your "Google" account. Click on "+ New" button on the "Google Optimize service connection" field on the right pane
 * In the new connection dialog, enter a name for the connection and other four field related to your google account.
     * Issuer - client_email
-    * Audience - token_uri
+    * Audience - "https://accounts.google.com/o/oauth2/token"
     * Scope - use this "https://www.googleapis.com/auth/analytics" (without quotes). This scope provide top level access. For specific access level [visit here.](https://developers.google.com/analytics/devguides/config/mgmt/v3/mgmtReference/management/experiments)
     * Private Key - private_key
 
-![](images/2.JPG)
+![](https://aka.ms/googleoptimizeimage2)
 
 * Choose proper account Id , Web Property Id and profile Id from drop down menus.
 * Select which experiment to update.

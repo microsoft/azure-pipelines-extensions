@@ -37,6 +37,13 @@ export class Optimizeclient {
                 throw tl.loc("FailedToFetchCurrentExperiment", currentExperiment.error);
             }
 
+            // For generating link to expeirment report.
+            let accountId = currentExperiment.result.accountId;
+            let internalWebPropertyId = currentExperiment.result.internalWebPropertyId;
+            let profileId = currentExperiment.result.profileId;
+            let experimentId = currentExperiment.result.id
+            let reportUrl = `https://analytics.google.com/analytics/web/#/siteopt-experiment/siteopt-detail/a${accountId}w${internalWebPropertyId}p${profileId}/_r.drilldown=analytics.gwoExperimentId:${experimentId}&createExperimentWizard.experimentId=${experimentId}`
+
             if (currentExperiment.result.status === param.Status.ENDED) {
                 if (experiment.status === param.Status.ENDED) {
                     console.log(tl.loc("StopFailed"));
@@ -61,6 +68,9 @@ export class Optimizeclient {
             }
 
             console.log(tl.loc("ExperimentWithIdUpdatedSuccessfully", experiment.id));
+            console.log();
+            console.log("VIEW REPORT IN ANALYTICS:");
+            console.log(reportUrl)
         })
     }
 }
