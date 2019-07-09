@@ -95,7 +95,7 @@
     ],
     "repository": {
         "type": "git",
-        "uri": "https://github.com/Microsoft/azure-pipelines-extensions/"
+        "uri": "https://github.com/microsoft/azure-pipelines-extensions/tree/master/Extensions/Terraform/Src"
     },
     "contributions": [
         {

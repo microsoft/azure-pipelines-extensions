@@ -4,7 +4,7 @@
     "friendlyName": "Terraform",
     "description": "Execute terraform commands to manage resources on AzureRM, Amazon Web Services(AWS) and Google Cloud Platform(GCP)",
     "author": "Microsoft Corporation",
-    "helpMarkDown": "",
+    "helpMarkDown": "[Learn more about this task](https://aka.ms/AA5j5pf)",
     "category": "Deploy",
     "visibility": [
         "Build",

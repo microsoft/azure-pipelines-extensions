@@ -4,7 +4,7 @@
     "friendlyName": "Terraform tool installer",
     "description": "Find in cache or download a specific version of Terraform and prepend it to the PATH",
     "author": "Microsoft Corporation",
-    "helpMarkDown": "",
+    "helpMarkDown": "[Learn more about this task](https://aka.ms/AA5jd97)",
     "category": "Tool",
     "visibility": [
         "Build",
