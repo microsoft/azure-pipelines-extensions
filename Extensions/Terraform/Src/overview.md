@@ -2,7 +2,7 @@
 
 Terraform is an open-source tool created by HashiCorp for developing, changing and versioning infrastructure safely and efficiently. It provides a service known as "Infrastructure as Code" which enables users to define and provision infrastructure using a high-level configuration language.
 
-## About the Azure DevOps Terraform integration extension
+## About the Terraform extension
 
 This extension provides the following components:
 - A service connection for connecting to an Amazon Web Services(AWS) account
