@@ -91,7 +91,7 @@ Examples:
 	- **Amazon Web Services connection (only if "aws" provider is selected)\*:** Select the AWS connection to use for managing the resources used by the plan, apply and destroy commands.
 	- **Google Cloud Platform connection (only if "gcp" provider is selected)\*:** Select the GCP connection to use for managing the resources used by the plan, apply and destroy commands.
 
-![Plan, apply, destroy](images/7_Terraform_plan_apply_destroy.PNG)
+![Plan, apply, destroy](images/7_Terraform_plan_apply_destroy.png)
 
 ### Setting up AzureRM backend configuration
 
