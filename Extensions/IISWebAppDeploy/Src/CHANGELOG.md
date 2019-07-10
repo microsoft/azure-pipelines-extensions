@@ -2,6 +2,10 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.5.5] 10th July 2019
+### Added
+- Made the IIS Web App Management v2 task non-preview.
+
 ## [1.5.4] 12th June 2019
 ### Added
 - Fixed issue in which password was getting displayed in the Azure Web app deploy task.
