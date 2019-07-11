@@ -12,9 +12,7 @@
         "azure-pipelines-task-lib": "^2.8.0",
         "request": "^2.88.0",
         "rxjs": "^6.5.2",
-        "typed-rest-client": "^1.5.0"
-    },
-    "devDependencies": {
+        "typed-rest-client": "^1.5.0",
         "@types/mocha": "^5.2.7",
         "@types/node": "^12.0.4",
         "@types/q": "^1.5.2",

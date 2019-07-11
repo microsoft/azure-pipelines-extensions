@@ -110,6 +110,9 @@ export class ExperimentUtility {
 						if (analyticsExperimentResult[counter].length === 6) {
 							variationInfo.additionalMetric = Math.round(analyticsExperimentResult[counter][5] * 100) / 100;
 							variationInfo.additionalMetricName = desiredMetric.substring(3, desiredMetric.length);
+							if (variationInfo.additionalMetricName === "sessionDuration" ) {
+								variationInfo.additionalMetricName = "Session Duration";
+							}
 
 						}
 						counter++ ;

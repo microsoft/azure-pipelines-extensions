@@ -1128,7 +1128,7 @@ function addStyle (obj, options) {
 	// If a transform function was defined, run it on the css
 	if (options.transform && obj.css) {
 	    result = typeof options.transform === 'function'
-		 ? options.transform(obj.css) 
+		 ? options.transform(obj.css)
 		 : options.transform.default(obj.css);
 
 	    if (result) {
@@ -7589,6 +7589,9 @@ var __generator = undefined && undefined.__generator || function (thisArg, body)
                                     if (analyticsExperimentResult[counter].length === 6) {
                                         variationInfo.additionalMetric = Math.round(analyticsExperimentResult[counter][5] * 100) / 100;
                                         variationInfo.additionalMetricName = desiredMetric.substring(3, desiredMetric.length);
+                                        if (variationInfo.additionalMetricName === "sessionDuration") {
+                                            variationInfo.additionalMetricName = "Session Duration";
+                                        }
                                     }
                                     counter++;
                                     experimentCardInfo.winner = winner;
@@ -8801,9 +8804,9 @@ var Promise$1 = function () {
   /**
     `finally` will be invoked regardless of the promise's fate just as native
     try/catch/finally behaves
-  
+
     Synchronous example:
-  
+
     ```js
     findAuthor() {
       if (Math.random() > 0.5) {
@@ -8811,7 +8814,7 @@ var Promise$1 = function () {
       }
       return new Author();
     }
-  
+
     try {
       return findAuthor(); // succeed or fail
     } catch(error) {
@@ -8821,9 +8824,9 @@ var Promise$1 = function () {
       // doesn't affect the return value
     }
     ```
-  
+
     Asynchronous example:
-  
+
     ```js
     findAuthor().catch(function(reason){
       return findOtherAuther();
@@ -8831,7 +8834,7 @@ var Promise$1 = function () {
       // author was either found, or not
     });
     ```
-  
+
     @method finally
     @param {Function} callback
     @return {Promise}
@@ -27105,7 +27108,7 @@ function insertNonHydratedInstance(returnFiber, fiber) {
               didNotFindHydratableContainerTextInstance(parentContainer, text);
               break;
             case SuspenseComponent:
-              
+
               break;
           }
           break;

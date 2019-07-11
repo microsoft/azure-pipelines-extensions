@@ -37,7 +37,7 @@ var validateTask = function(folderName, task) {
     }
 
     if (!task.instanceNameFormat) {
-        defer.reject(createError(vn + ': instanceNameFormat is required'));    
+        defer.reject(createError(vn + ': instanceNameFormat is required'));
     }
 
     // resolve if not already rejected
@@ -80,6 +80,8 @@ function copyCommonModules(currentExtnRoot, commonDeps, commonSrc){
                 shell.mkdir('-p', targetPath);
                 shell.rm(path.join(targetPath, '*.csproj'));
                 shell.rm(path.join(targetPath, '*.md'));
+                // Path to UI contribution files
+                uiPath = path.join(currentExtnRoot, "Src", "UIContribution");
                 // Statically link the required internal common modules.
                 var taskDeps;
                 if ((taskDeps = commonDeps[folderName])) {
@@ -89,7 +91,7 @@ function copyCommonModules(currentExtnRoot, commonDeps, commonSrc){
                         var dest = path.join(targetPath, dep.dest);
                         shell.mkdir('-p', dest);
                         fs.copy(src, dest, "*", function (err) {
-                            if (err) return console.error(err) 
+                            if (err) return console.error(err)
                         })
                     })
                 }
@@ -101,9 +103,13 @@ function copyCommonModules(currentExtnRoot, commonDeps, commonSrc){
                              doNotCache = true;
                          }
                      });
-                     
+
                      if(doNotCache) {
-                        util.buildNodeTask(taskDirPath, targetPath);  
+                        util.buildNodeTask(taskDirPath, targetPath);
+                        // For building UI contribution using webpack
+                        if(fs.existsSync(uiPath) && fs.statSync(uiPath).isDirectory()) {
+                            util.buildUIContribution(uiPath,uiPath);
+                        }
                      } else {
 
                         // Determine the vsts-task-lib version.

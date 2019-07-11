@@ -25,7 +25,7 @@ Start or stop an experiment, assign traffic coverage and set traffic distributio
 
 * Search for "Google Analytics Experiments" and click on "Add"
 
-![](https://aka.ms/googleanalyticsexperimentsimages1)
+![](images/1.JPG)
 
 * Now you need to configure the connection to your "Google" account. Click on "+ New" button on the "Google Analytics service connection" field on the right pane
 * In the new connection dialog, enter a name for the connection and other four field related to your google account.
@@ -34,7 +34,7 @@ Start or stop an experiment, assign traffic coverage and set traffic distributio
     * Scope - use this "https://www.googleapis.com/auth/analytics" (without quotes). This scope provide top level access. For specific access level [visit here.](https://developers.google.com/analytics/devguides/config/mgmt/v3/mgmtReference/management/experiments)
     * Private Key - private_key
 
-![](https://aka.ms/googleanalyticsexperimentsimages2)
+![](images/2.JPG)
 
 * Choose proper account Id , Web Property Id and profile Id from drop down menus.
 * Select which experiment to update.

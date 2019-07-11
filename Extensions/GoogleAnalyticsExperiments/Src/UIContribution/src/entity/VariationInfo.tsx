@@ -8,9 +8,6 @@ export class VariationInfo {
 
 	constructor(name: string) {
 		this.Name = name;
-		this.Sessions = 0;
-		this.PageViews = 0;
-		this.BounceRate = 0;
 		this.AdditionalMetric = null;
 		this.AdditionalMetricName = null;
 	}

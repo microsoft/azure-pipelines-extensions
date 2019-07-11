@@ -113,7 +113,7 @@
             "ms.vss-distributed-task.tasks"
          ],
          "properties":{
-            "name":"Tasks/GoogleAnalyticsExperiments"
+            "name":"Tasks/GoogleAnalyticsExperimentsX"
          }
       },
       {
@@ -141,7 +141,7 @@
    ],
    "files":[
       {
-         "path":"Tasks/GoogleAnalyticsExperiments",
+         "path":"Tasks/GoogleAnalyticsExperimentsX",
          "addressable":false
       },
       {
@@ -154,6 +154,10 @@
       },
       {
          "path":"UIContribution/dist",
+         "addressable":true
+      },
+      {
+         "path":"ThirdPartyNotices.txt",
          "addressable":true
       },
       {

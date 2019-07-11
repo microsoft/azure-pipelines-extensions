@@ -2,13 +2,11 @@ import {TaskParameter} from './../models/TaskParameter';
 import {IExperiment, IAuthClaimSet} from './../models/IAnalytics';
 import * as restm from 'typed-rest-client/RestClient';
 import * as tl from 'azure-pipelines-task-lib/task';
-import crypto from 'crypto'
+import * as crypto from 'crypto';
 const request = require('request');
 
 let param: TaskParameter = TaskParameter.getInstance();
 let endpointId = param.endpoint;
-let privatekey: string = tl.getEndpointAuthorizationParameter(endpointId, 'PrivateKey', true);
-let audience: string = tl.getEndpointAuthorizationParameter(endpointId, 'Audience', true);
 let accountId: string = param.accountId;
 let webPropertyId: string = param.webPropertyId;
 let profileId: string = param.profileId;
@@ -20,13 +18,13 @@ let authHeader = {
 
 function getAuthClaimSet() {
     let authClaimSet: IAuthClaimSet = {};
-    let now = parseInt(Date.now() / 1000, 10); // Google wants us to use seconds
+    let currentTimeInSeconds = parseInt(Date.now() / 1000, 10); // Google wants us to use seconds
 
-    authClaimSet.iss = tl.getEndpointAuthorizationParameter(endpointId, 'Issuer', true);
-    authClaimSet.aud = audience;
-    authClaimSet.scope = tl.getEndpointAuthorizationParameter(endpointId, 'Scope', true);
-    authClaimSet.iat = now;
-    authClaimSet.exp = now + 60; // Token valid for one minute
+    authClaimSet.iss = param.issuer;
+    authClaimSet.aud = param.audience;
+    authClaimSet.scope = param.scope;
+    authClaimSet.iat = currentTimeInSeconds;
+    authClaimSet.exp = currentTimeInSeconds + 60; // Token valid for one minute
 
     return authClaimSet;
 }
@@ -40,12 +38,12 @@ function base64Encode(obj: any) {
     return urlEscape(encoded);
 }
 
-export async function UpdateExperimentUtil(restclient: restm.RestClient, experiment: IExperiment) {
+export async function UpdateExperiment(restclient: restm.RestClient, experiment: IExperiment) {
     let restRes = await restclient.update(`management/accounts/${accountId}/webproperties/${webPropertyId}/profiles/${profileId}/experiments/${param.experimentId}`, experiment);
     return restRes;
 }
 
-export async function GetExperimentUtil(restclient: restm.RestClient) {
+export async function GetExperiment(restclient: restm.RestClient) {
     let restRes = await restclient.get < T > (`management/accounts/${accountId}/webproperties/${webPropertyId}/profiles/${profileId}/experiments/${param.experimentId}`);
     return restRes;
 }
@@ -54,7 +52,7 @@ export async function Authorize(callback) {
 
     let cipher;
     let signatureInput;
-    let signatureKey = privatekey;
+    let signatureKey = param.privatekey;
     let signature;
     let jwt;
 
@@ -72,7 +70,7 @@ export async function Authorize(callback) {
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded'
         },
-        uri: audience,
+        uri: param.audience,
         body: 'grant_type=' + escape('urn:ietf:params:oauth:grant-type:jwt-bearer') +
             '&assertion=' + jwt
     }, function(error, response, body) {

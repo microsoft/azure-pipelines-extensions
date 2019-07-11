@@ -10,6 +10,10 @@ export class TaskParameter {
 	private _trafficCoverage: number | null;
 	private _equalWeighting: string;
 	private _filePath: string;
+	private _privateKey: string;
+	private _issuer: string;
+	private _audience: string;
+	private _scope: string;
 
 	private static _taskParameters: TaskParameter = null;
 
@@ -50,6 +54,11 @@ export class TaskParameter {
 
 			this._equalWeighting = tl.getInput('equalWeighting', false);
 			this._filePath = tl.getInput('jsonFile', false)
+
+			this._privateKey = tl.getEndpointAuthorizationParameter(this._endpoint, 'PrivateKey', true);
+			this._issuer = tl.getEndpointAuthorizationParameter(this._endpoint, 'Issuer', true);
+			this._audience = tl.getEndpointAuthorizationParameter(this._endpoint, 'Audience', true);
+			this._scope = tl.getEndpointAuthorizationParameter(this._endpoint, 'Scope', true);
 		} catch (error) {
 			throw tl.loc("FailedToFetchInputs", error);
 		}
@@ -89,6 +98,22 @@ export class TaskParameter {
 
 	get filePath(): string {
 		return this._filePath;
+	}
+
+	get privatekey(): string {
+		return this._privateKey;
+	}
+
+	get audience(): string {
+		return this._audience;
+	}
+
+	get issuer(): string {
+		return this._issuer;
+	}
+
+	get scope(): string {
+		return this._scope;
 	}
 
 }
