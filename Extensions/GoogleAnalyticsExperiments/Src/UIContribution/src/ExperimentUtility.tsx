@@ -5,11 +5,10 @@ import { ErrorPage } from "./component/ErrorPage";
 import { ExperimentCardContainer } from "./component/ExperimentCardContainer";
 import { LoadingSpinner } from "./component/LoadingSpinner";
 import { ExperimentCardInfo } from "./entity/ExperimentCardInfo";
+import { FixedDimensions, FixedMetrics, GoogleAnalyticsTaskID, ReportUrl } from "./entity/ExperimentConstants";
 import { TaskExperimentInfo } from "./entity/TaskExperimentInfo";
 import { VariationInfo } from "./entity/VariationInfo";
 import { ExperimentRESTClient } from "./ExperimentRESTClient";
-
-const GOOGLE_ANALYTICS_TASK_ID = "e7307da0-85f4-11e9-9dec-fdd4f9b653a3";
 
 export class ExperimentUtility {
 
@@ -17,7 +16,7 @@ export class ExperimentUtility {
 	private experimentRESTClient: ExperimentRESTClient;
 
 	constructor() {
-		this.experimentTaskId = GOOGLE_ANALYTICS_TASK_ID;
+		this.experimentTaskId = GoogleAnalyticsTaskID;
 		this.experimentRESTClient = new ExperimentRESTClient();
 	}
 
@@ -61,10 +60,10 @@ export class ExperimentUtility {
 
 				// For generating report url
 				const internalWebPropertyId = analyticsExperiment.internalWebPropertyId;
-				errorURL = `https://analytics.google.com/analytics/web/#/report/siteopt-experiments/a${accountId}w${internalWebPropertyId}p${profileId}/`;
+				errorURL = `${ReportUrl}/a${accountId}w${internalWebPropertyId}p${profileId}/`;
 
 				const ids: string  = `ga:${profileId}`;
-				let metrics: string = "ga:sessions,ga:bounceRate,ga:pageviews";
+				let metrics: string = FixedMetrics;
 				const desiredMetric = analyticsExperiment.objectiveMetric ;
 
 				if (desiredMetric !== "ga:bounces" && desiredMetric !== "ga:pageviews" && desiredMetric !== "ga:sessions" ) {
@@ -74,9 +73,7 @@ export class ExperimentUtility {
 				const created: string = analyticsExperiment.created;
 				const startDate: string = created.substring(0, 10) ;
 				const endDate: string = "today";
-				const dimensions: string = "ga:experimentId,+ga:experimentVariant";
-
-				let winner: string = "Not enough data";
+				const dimensions: string = FixedDimensions;
 
 				const analyticsExperimentResult: any =
 					await this.experimentRESTClient.getExperimentResult(endpointId, experimentId, ids, startDate, endDate, metrics, dimensions );
@@ -97,10 +94,6 @@ export class ExperimentUtility {
 							}
 						}
 
-						if (!!variation.won && variation.won === true) {
-							winner = name;
-						}
-
 						const variationInfo: VariationInfo = new VariationInfo(name);
 
 						variationInfo.sessions = Math.round(analyticsExperimentResult[counter][2] * 100) / 100;
@@ -109,14 +102,16 @@ export class ExperimentUtility {
 
 						if (analyticsExperimentResult[counter].length === 6) {
 							variationInfo.additionalMetric = Math.round(analyticsExperimentResult[counter][5] * 100) / 100;
-							variationInfo.additionalMetricName = desiredMetric.substring(3, desiredMetric.length);
-							if (variationInfo.additionalMetricName === "sessionDuration" ) {
-								variationInfo.additionalMetricName = "Session Duration";
+							// Getting rid of camel casing
+							const metric = desiredMetric.substring(3, desiredMetric.length);
+							variationInfo.additionalMetricName = metric ;
+							for (const char in metric) {
+								if (metric[char] === metric[char].toUpperCase()) {
+									variationInfo.additionalMetricName = metric.replace(metric[char], " " + metric[char]);
+								}
 							}
-
 						}
 						counter++ ;
-						experimentCardInfo.winner = winner ;
 						experimentCardInfo.addVariationInfo(variationInfo);
 
 					}

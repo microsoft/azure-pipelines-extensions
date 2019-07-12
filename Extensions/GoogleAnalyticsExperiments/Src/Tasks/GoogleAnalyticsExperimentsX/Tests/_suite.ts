@@ -22,7 +22,7 @@ describe('L0 for google analytics extension', function () {
 
         console.log(tr.succeeded);
         assert.equal(tr.succeeded, true, 'should have succeeded');
-        assert(tr.stdout.search(`ExperimentWithIdUpdatedSuccessfully`) > 0, 'Should not be able to update the experiment');
+        assert(tr.stdout.search(`ExperimentWithIdUpdatedSuccessfully`) > 0, 'Should be able to update the experiment');
         assert.equal(tr.warningIssues.length, 0, "should have no warnings");
         assert.equal(tr.errorIssues.length, 0, "should have no errors");
 
@@ -39,7 +39,7 @@ describe('L0 for google analytics extension', function () {
 
         console.log(tr.succeeded);
         assert.equal(tr.succeeded, true, 'should have succeeded');
-        assert(tr.stdout.search(`ExperimentWithIdUpdatedSuccessfully`) > 0, 'Should not be able to update the experiment');
+        assert(tr.stdout.search(`ExperimentWithIdUpdatedSuccessfully`) > 0, 'Should be able to update the experiment');
         assert.equal(tr.warningIssues.length, 0, "should have no warnings");
         assert.equal(tr.errorIssues.length, 0, "should have no errors");
 
@@ -55,10 +55,10 @@ describe('L0 for google analytics extension', function () {
         tr.run();
 
         console.log(tr.succeeded);
-        assert.equal(tr.succeeded, false, 'should have succeeded');
-        assert(tr.stdout.search(`FileNotFound`) > 0, 'Should not be able to update the experiment');
+        assert.equal(tr.succeeded, false, 'should not have succeeded');
+        assert(tr.stdout.search(`FailedToLoadFile`) > 0, 'Should not be able to update the experiment');
         assert.equal(tr.warningIssues.length, 0, "should have no warnings");
-        assert.equal(tr.errorIssues.length, 1, "should have no errors");
+        assert.equal(tr.errorIssues.length, 1, "should have 1 errors");
 
         done();
     });
@@ -73,7 +73,7 @@ describe('L0 for google analytics extension', function () {
 
         console.log(tr.succeeded);
         assert.equal(tr.succeeded, true, 'should have succeeded');
-        assert(tr.stdout.search(`ExperimentWithIdUpdatedSuccessfully`) > 0, 'Should not be able to update the experiment');
+        assert(tr.stdout.search(`ExperimentWithIdUpdatedSuccessfully`) > 0, 'Should be able to update the experiment');
         assert.equal(tr.warningIssues.length, 0, "should have no warnings");
         assert.equal(tr.errorIssues.length, 0, "should have no errors");
 
@@ -172,8 +172,7 @@ describe('L0 for google analytics extension', function () {
         tr.run();
 
         console.log(tr.succeeded);
-        assert.equal(tr.succeeded, false, 'should have failed');
-        assert(tr.stdout.search(`AccessTokenGenerationFailed`) > 0, 'Should not be able to update the experiment');
+        assert.equal(tr.succeeded, false, 'Failed to generate access token');
         assert.equal(tr.errorIssues.length, 1, "should have 1 error issue");
 
         done();
@@ -188,8 +187,7 @@ describe('L0 for google analytics extension', function () {
         tr.run();
 
         console.log(tr.succeeded);
-        assert.equal(tr.succeeded, false, 'should have failed');
-        assert(tr.stdout.search(`FailedToFetchCurrentExperiment`) > 0, 'Should not be able to update the experiment');
+        assert.equal(tr.succeeded, false, 'Failed to fetch current experiment');
         assert.equal(tr.warningIssues, 0, "should have no warnings");
 
         done();
@@ -218,10 +216,9 @@ describe('L0 for google analytics extension', function () {
         let tr: ttm.MockTestRunner = new ttm.MockTestRunner(tp);
 
         tr.run();
-        console.log(tr.stdout);
+
         console.log(tr.succeeded);
-        assert.equal(tr.succeeded, false, 'should have failed');
-        assert(tr.stdout.search(`StopFailed`) > 0, 'Should not be able to update the experiment');
+        assert.equal(tr.succeeded, false, 'Failed to stop experiment');
         assert.equal(tr.warningIssues, 0, "should have no warnings");
 
         done();
@@ -236,8 +233,7 @@ describe('L0 for google analytics extension', function () {
         tr.run();
 
         console.log(tr.succeeded);
-        assert.equal(tr.succeeded, false, 'should have failed');
-        assert(tr.stdout.search(`UpdateFailed`) > 0, 'Should not be able to update the experiment');
+        assert.equal(tr.succeeded, false, 'Failed to update experiment');
         assert.equal(tr.warningIssues, 0, "should have no warnings");
 
         done();

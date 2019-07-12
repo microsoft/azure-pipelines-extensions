@@ -24,7 +24,7 @@ async function run() {
             try {
                 rawdata = fs.readFileSync(filePath);
             } catch (err) {
-                throw tl.loc("FileNotFound", err);
+                throw tl.loc("FailedToLoadFile", err);
             }
 
             try {

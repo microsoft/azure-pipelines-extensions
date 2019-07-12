@@ -44,7 +44,7 @@ let incorrectRestRes = {
     }
 }
 
-export async function UpdateExperimentUtil(testclient: restm.RestClient , experiment:IExperiment ) {
+export async function UpdateExperiment(testclient: restm.RestClient , experiment:IExperiment ) {
     if(scope === "endedExperiment") {
         return endedExperiment;
     }
@@ -55,7 +55,7 @@ export async function UpdateExperimentUtil(testclient: restm.RestClient , experi
     return incorrectRestRes;
 };
 
-export async function GetExperimentUtil(testclient: restm.RestClient) {
+export async function GetExperiment(testclient: restm.RestClient) {
     if(scope === "endedExperiment") {
         return endedExperiment;
     }

@@ -21,8 +21,8 @@ export class Analyticsclient {
         Authorize(async function (err: any, token: any) {
             let param: TaskParameter = TaskParameter.getInstance();
             if (token == null) {
-                console.log(tl.loc("AccessTokenGenerationFailed", err));
-                tl.setResult(tl.TaskResult.Failed, err);
+                tl.setResult(tl.TaskResult.Failed, 'Failed to generate access token');
+                throw tl.loc("AccessTokenGenerationFailed", err);
             }
 
             const bearerHandler = new hm.BearerCredentialHandler(token);
@@ -31,8 +31,7 @@ export class Analyticsclient {
             let currentExperiment = await GetExperiment(restclient);
 
             if (currentExperiment.statusCode != 200) {
-                console.log(tl.loc("FailedToFetchCurrentExperiment", JSON.stringify(currentExperiment.error)));
-                tl.setResult(tl.TaskResult.Failed, err);
+                tl.setResult(tl.TaskResult.Failed, 'Failed to fetch current experiment');
                 throw tl.loc("FailedToFetchCurrentExperiment", currentExperiment.error);
             }
 
@@ -45,12 +44,10 @@ export class Analyticsclient {
 
             if (currentExperiment.result.status === param.Status.ENDED) {
                 if (experiment.status === param.Status.ENDED) {
-                    console.log(tl.loc("StopFailed"));
-                    tl.setResult(tl.TaskResult.Failed, err);
+                    tl.setResult(tl.TaskResult.Failed, 'Failed to stop experiment');
                     throw tl.loc("StopFailed");
                 } else {
-                    console.log(tl.loc("UpdateFailed"));
-                    tl.setResult(tl.TaskResult.Failed, err);
+                    tl.setResult(tl.TaskResult.Failed, 'Failed to update experiment');
                     throw tl.loc("UpdateFailed");
                 }
             }
@@ -59,7 +56,6 @@ export class Analyticsclient {
             tl.debug(`function: 'updateExperiment'. response: '${JSON.stringify(restRes)}'`);
 
             if (restRes.statusCode != 200) {
-                console.log(tl.loc("FailedToUpdateExperiment", JSON.stringify(restRes)));
                 tl.setResult(tl.TaskResult.Failed, JSON.stringify(restRes));
                 throw tl.loc("FailedToUpdateExperiment", JSON.stringify(restRes));
             }

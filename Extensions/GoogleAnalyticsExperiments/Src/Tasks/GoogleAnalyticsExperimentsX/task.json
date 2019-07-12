@@ -152,7 +152,7 @@
         "IncorrectFilePath": "File path provided is incorrect",
         "FailedToParseFile": "Failed to parse the given json file with following error:\n %s",
         "FailedToFetchInputs": "Failed to fetch input with the following error:\n %s",
-        "FileNotFound": "The JSON file is not found at the given Path. ERROR: %s",
+        "FailedToLoadFile": "The JSON file is not loaded properly. ERROR: %s",
         "ExperimentFetchedSuccessfully": "Successfully fetched the experiment with name: %s",
         "AccessTokenGenerationFailed": "Failed to generate access token with Error: %s",
         "FailedToFetchCurrentExperiment": "Failed to fetch current ExperimentWithIdUpdatedSuccessfully with the following error:\n %s"

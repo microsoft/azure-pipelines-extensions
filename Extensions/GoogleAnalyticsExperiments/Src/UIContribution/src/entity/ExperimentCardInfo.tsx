@@ -7,7 +7,6 @@ export class ExperimentCardInfo {
 	private AccountId: string;
 	private InternalWebPropertyId: string;
 	private ProfileId: string;
-	private Winner: string;
 	private VariationInfos: VariationInfo[];
 
 	constructor(experimentId: string, experimentName: string, accountId: string, internalWebPropertyId: string, profileId: string) {
@@ -16,7 +15,6 @@ export class ExperimentCardInfo {
 		this.AccountId = accountId;
 		this.InternalWebPropertyId = internalWebPropertyId;
 		this.ProfileId = profileId;
-		this.Winner = null;
 		this.VariationInfos = [];
 	}
 
@@ -54,14 +52,6 @@ export class ExperimentCardInfo {
 
 	get profileId() {
 		return this.ProfileId;
-	}
-
-	get winner() {
-		return this.Winner;
-	}
-
-	set winner(value: string ) {
-		this.Winner = value;
 	}
 
 	public addVariationInfo(variationInfo: VariationInfo) {

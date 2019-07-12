@@ -22,6 +22,7 @@ import { ArrayItemProvider } from "azure-devops-ui/Utilities/Provider";
 // import "./iconFont.css";
 import * as React from "react";
 import { ExperimentCardInfo } from "../entity/ExperimentCardInfo";
+import { ExperimentReportUrl } from "../entity/ExperimentConstants";
 
 interface IExperimentCardProps {
 	experimentCardInfo: ExperimentCardInfo;
@@ -67,7 +68,7 @@ export class ExperimentCard extends React.Component<IExperimentCardProps, {}> {
         const profileId = cardInfo.profileId;
         const internalWebPropertyId = cardInfo.internalWebPropertyId;
         const experimentId = cardInfo.experimentId;
-        const reportUrl = `https://analytics.google.com/analytics/web/#/siteopt-experiment/siteopt-detail/a${accountId}w${internalWebPropertyId}p${profileId}/_r.drilldown=analytics.gwoExperimentId:${experimentId}&createExperimentWizard.experimentId=${experimentId}&rel="noopener"`;
+        const reportUrl = `${ExperimentReportUrl}/a${accountId}w${internalWebPropertyId}p${profileId}/_r.drilldown=analytics.gwoExperimentId:${experimentId}&createExperimentWizard.experimentId=${experimentId}&rel="noopener"`;
         const result = [
             {
                 iconProps: {
