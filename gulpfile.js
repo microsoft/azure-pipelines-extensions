@@ -77,8 +77,7 @@ function errorHandler(err) {
     process.exit(1);
 }
 
-var proj = gts.createProject('./tsconfig.json', { typescript: typescript, declaration: true });
-var ts = gts(proj);
+var rootTsconfigPath = './tsconfig.json';
 
 gulp.task("clean", function() {
     return del([_buildRoot, _packageRoot, nugetPath, _taskModuleBuildRoot]);
@@ -122,6 +121,7 @@ gulp.task("clean:TaskModuleTest", function(cb) {
 });
 
 gulp.task('compile:TaskModuleTest', gulp.series('clean:TaskModuleTest', function (cb) {
+    var proj = gts.createProject(rootTsconfigPath, { typescript: typescript, declaration: true });
     var testsPath = path.join('TaskModules', 'powershell', 'Tests', '**/*.ts');
     var testsLibPath = path.join('Extensions', 'Common', 'lib', '**/*.ts');
 
@@ -131,7 +131,7 @@ gulp.task('compile:TaskModuleTest', gulp.series('clean:TaskModuleTest', function
         var tsLocal = gts(projLocal);
 
         gulp.src([testsLibPath, 'definitions/*.d.ts'])
-            .pipe(ts)
+            .pipe(proj())
             .on("error", errorHandler)
             .pipe(gulp.dest(path.join(_extnBuildRoot, 'Common', 'lib')));
 
@@ -270,10 +270,11 @@ gulp.task("compileNode", gulp.series("compilePS", function(cb){
     runNpmInstall(artifactEnginePath);
 
     // Compile tasks
+    var proj = gts.createProject(rootTsconfigPath, { typescript: typescript, declaration: true });
     var taskFiles = path.join(__dirname, '_build/Extensions/**/Tasks/**/*.ts');
     var artifactEngineFiles = path.join(__dirname, '_build/Extensions/**/ArtifactEngine/**/*.ts');
     gulp.src(['definitions/*.d.ts', taskFiles, artifactEngineFiles, '!**/node_modules/**', '!**/Extensions/ArtifactEngine/definitions/**'])
-        .pipe(ts)
+        .pipe(proj())
         .pipe(gulp.dest(path.join(_buildRoot, 'Extensions')))
         .on('error', errorHandler);
 
@@ -645,44 +646,57 @@ gulp.task("default", gulp.series("build"));
 // Test Tasks
 //-----------------------------------------------------------------------------------------------------------------
 
-gulp.task('compileTests', function () {
+gulp.task('compileTests', function (done) {
+    var proj = gts.createProject(rootTsconfigPath, { typescript: typescript, declaration: true });
     var testsPath = path.join(__dirname, 'Extensions/**/Tests', '**/*.ts');
     var commonFiles = path.join(__dirname, 'Extensions/**/Common', '**/*.ts')
 
-    return gulp.src([testsPath, commonFiles, 'definitions/*.d.ts'])
-        .pipe(ts)
+    gulp.src([testsPath, commonFiles, 'definitions/*.d.ts'])
+        .pipe(proj())
         .on('error', errorHandler)
         .pipe(gulp.dest(_testRoot+"\\Extensions"));
+
+    done();
 });
 
-gulp.task('testLib', gulp.series('compileTests', function () {
-    return gulp.src(['Extensions/Common/lib/**/*'])
+gulp.task('testLib', gulp.series('compileTests', function (done) {
+    gulp.src(['Extensions/Common/lib/**/*'])
         .pipe(gulp.dest(path.join(_testRoot,'Extensions/Common/lib/')));
+
+    done();
 }));
 
-gulp.task('copyTestData', gulp.series('compileTests', function () {
-    return gulp.src(['Extensions/**/Tests/**/data/**'], { dot: true })
+gulp.task('copyTestData', gulp.series('compileTests', function (done) {
+    gulp.src(['Extensions/**/Tests/**/data/**'], { dot: true })
         .pipe(gulp.dest(_testRoot+"\\Extensions"));
+
+    done();
 }));
 
-gulp.task('tstests', gulp.series('compileTests', function () {
-    return gulp.src(['Extensions/**/Tests/**/*.ts', 'Extensions/**/Tests/**/*.json', 'Extensions/**/Tests/**/*.js'])
+gulp.task('tstests', gulp.series('compileTests', function (done) {
+    gulp.src(['Extensions/**/Tests/**/*.ts', 'Extensions/**/Tests/**/*.json', 'Extensions/**/Tests/**/*.js'])
         .pipe(gulp.dest(_testRoot+"\\Extensions"));
+
+    done();
 }));
 
-gulp.task('ps1tests', gulp.series('compileTests', function () {
-    return gulp.src(['Extensions/**/Tests/**/*.ps1', 'Extensions/**/Tests/**/*.json'])
+gulp.task('ps1tests', gulp.series('compileTests', function (done) {
+    gulp.src(['Extensions/**/Tests/**/*.ps1', 'Extensions/**/Tests/**/*.json'])
         .pipe(gulp.dest(_testRoot+"\\Extensions"));
+
+    done();
 }));
 
-gulp.task('testLib_NodeModules', gulp.series('testLib', function () {
-    return gulp.src(path.join(__dirname, 'Extensions/Common/lib/vsts-task-lib/**/*'))
+gulp.task('testLib_NodeModules', gulp.series('testLib', function (done) {
+    gulp.src(path.join(__dirname, 'Extensions/Common/lib/vsts-task-lib/**/*'))
         .pipe(gulp.dest(path.join(_testRoot, 'Extensions/Common/lib/node_modules/vsts-task-lib')));
+
+    done();
 }));
 
 gulp.task('testResources', gulp.parallel('testLib_NodeModules', 'ps1tests', 'tstests', 'copyTestData'));
 
-gulp.task("test", gulp.series("testResources", function(){
+gulp.task("test", gulp.series("testResources", function(done){
     process.env['TASK_TEST_TEMP'] =path.join(__dirname, _testTemp);
     shell.rm('-rf', _testTemp);
     shell.mkdir('-p', _testTemp);
@@ -691,16 +705,20 @@ gulp.task("test", gulp.series("testResources", function(){
         var suitePath = path.join(_testRoot, "Extensions/" + options.suite + "/**/*e2e.js");
         console.log(suitePath);
         var tfBuild = ('' + process.env['TF_BUILD']).toLowerCase() == 'true'
-        return gulp.src([suitePath])
+        gulp.src([suitePath])
             .pipe(mocha({ reporter: 'spec', ui: 'bdd', useColors: !tfBuild }));
+
+        done();
     }
 
     if (options.suite.indexOf("ArtifactEngine") >= 0  && options.perf) {
         var suitePath = path.join(_testRoot, "Extensions/" + options.suite + "/**/*perf.js");
         console.log(suitePath);
         var tfBuild = ('' + process.env['TF_BUILD']).toLowerCase() == 'true'
-        return gulp.src([suitePath])
+        gulp.src([suitePath])
             .pipe(mocha({ reporter: 'spec', ui: 'bdd', useColors: !tfBuild }));
+
+        done();
     }
 
     var suitePath = path.join(_testRoot,"Extensions/" + options.suite + "/Tests/Tasks", options.suite + '/_suite.js');
@@ -708,8 +726,10 @@ gulp.task("test", gulp.series("testResources", function(){
     var suitePath2 = path.join(_testRoot, "Extensions/" + options.suite + "/**/*Tests.js");
     console.log(suitePath2);
     var tfBuild = ('' + process.env['TF_BUILD']).toLowerCase() == 'true'
-    return gulp.src([suitePath, suitePath2], { allowEmpty: true })
+    gulp.src([suitePath, suitePath2], { allowEmpty: true })
         .pipe(mocha({ reporter: 'spec', ui: 'bdd', useColors: !tfBuild }));
+
+    done();
 }));
 
 //-----------------------------------------------------------------------------------------------------------------
