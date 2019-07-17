@@ -646,57 +646,45 @@ gulp.task("default", gulp.series("build"));
 // Test Tasks
 //-----------------------------------------------------------------------------------------------------------------
 
-gulp.task('compileTests', function (done) {
+gulp.task('compileTests', function () {
     var proj = gts.createProject(rootTsconfigPath, { typescript: typescript, declaration: true });
     var testsPath = path.join(__dirname, 'Extensions/**/Tests', '**/*.ts');
     var commonFiles = path.join(__dirname, 'Extensions/**/Common', '**/*.ts')
 
-    gulp.src([testsPath, commonFiles, 'definitions/*.d.ts'])
+    return gulp.src([testsPath, commonFiles, 'definitions/*.d.ts'])
         .pipe(proj())
-        .on('error', errorHandler)
-        .pipe(gulp.dest(_testRoot+"\\Extensions"));
-
-    done();
+        .pipe(gulp.dest(_testRoot+"\\Extensions"))
+        .on('error', errorHandler);
 });
 
-gulp.task('testLib', gulp.series('compileTests', function (done) {
-    gulp.src(['Extensions/Common/lib/**/*'])
+gulp.task('testLib', gulp.series('compileTests', function () {
+    return gulp.src(['Extensions/Common/lib/**/*'])
         .pipe(gulp.dest(path.join(_testRoot,'Extensions/Common/lib/')));
-
-    done();
 }));
 
-gulp.task('copyTestData', gulp.series('compileTests', function (done) {
-    gulp.src(['Extensions/**/Tests/**/data/**'], { dot: true })
+gulp.task('copyTestData', gulp.series('compileTests', function () {
+    return gulp.src(['Extensions/**/Tests/**/data/**'], { dot: true })
         .pipe(gulp.dest(_testRoot+"\\Extensions"));
-
-    done();
 }));
 
-gulp.task('tstests', gulp.series('compileTests', function (done) {
-    gulp.src(['Extensions/**/Tests/**/*.ts', 'Extensions/**/Tests/**/*.json', 'Extensions/**/Tests/**/*.js'])
+gulp.task('tstests', gulp.series('compileTests', function () {
+    return gulp.src(['Extensions/**/Tests/**/*.ts', 'Extensions/**/Tests/**/*.json', 'Extensions/**/Tests/**/*.js'])
         .pipe(gulp.dest(_testRoot+"\\Extensions"));
-
-    done();
 }));
 
-gulp.task('ps1tests', gulp.series('compileTests', function (done) {
-    gulp.src(['Extensions/**/Tests/**/*.ps1', 'Extensions/**/Tests/**/*.json'])
+gulp.task('ps1tests', gulp.series('compileTests', function () {
+    return gulp.src(['Extensions/**/Tests/**/*.ps1', 'Extensions/**/Tests/**/*.json'])
         .pipe(gulp.dest(_testRoot+"\\Extensions"));
-
-    done();
 }));
 
-gulp.task('testLib_NodeModules', gulp.series('testLib', function (done) {
-    gulp.src(path.join(__dirname, 'Extensions/Common/lib/vsts-task-lib/**/*'))
+gulp.task('testLib_NodeModules', gulp.series('testLib', function () {
+    return gulp.src(path.join(__dirname, 'Extensions/Common/lib/vsts-task-lib/**/*'))
         .pipe(gulp.dest(path.join(_testRoot, 'Extensions/Common/lib/node_modules/vsts-task-lib')));
-
-    done();
 }));
 
 gulp.task('testResources', gulp.parallel('testLib_NodeModules', 'ps1tests', 'tstests', 'copyTestData'));
 
-gulp.task("test", gulp.series("testResources", function(done){
+gulp.task("test", gulp.series("testResources", function(){
     process.env['TASK_TEST_TEMP'] =path.join(__dirname, _testTemp);
     shell.rm('-rf', _testTemp);
     shell.mkdir('-p', _testTemp);
@@ -705,20 +693,16 @@ gulp.task("test", gulp.series("testResources", function(done){
         var suitePath = path.join(_testRoot, "Extensions/" + options.suite + "/**/*e2e.js");
         console.log(suitePath);
         var tfBuild = ('' + process.env['TF_BUILD']).toLowerCase() == 'true'
-        gulp.src([suitePath])
+        return gulp.src([suitePath])
             .pipe(mocha({ reporter: 'spec', ui: 'bdd', useColors: !tfBuild }));
-
-        done();
     }
 
     if (options.suite.indexOf("ArtifactEngine") >= 0  && options.perf) {
         var suitePath = path.join(_testRoot, "Extensions/" + options.suite + "/**/*perf.js");
         console.log(suitePath);
         var tfBuild = ('' + process.env['TF_BUILD']).toLowerCase() == 'true'
-        gulp.src([suitePath])
+        return gulp.src([suitePath])
             .pipe(mocha({ reporter: 'spec', ui: 'bdd', useColors: !tfBuild }));
-
-        done();
     }
 
     var suitePath = path.join(_testRoot,"Extensions/" + options.suite + "/Tests/Tasks", options.suite + '/_suite.js');
@@ -726,10 +710,8 @@ gulp.task("test", gulp.series("testResources", function(done){
     var suitePath2 = path.join(_testRoot, "Extensions/" + options.suite + "/**/*Tests.js");
     console.log(suitePath2);
     var tfBuild = ('' + process.env['TF_BUILD']).toLowerCase() == 'true'
-    gulp.src([suitePath, suitePath2], { allowEmpty: true })
+    return gulp.src([suitePath, suitePath2], { allowEmpty: true })
         .pipe(mocha({ reporter: 'spec', ui: 'bdd', useColors: !tfBuild }));
-
-    done();
 }));
 
 //-----------------------------------------------------------------------------------------------------------------
