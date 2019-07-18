@@ -15,10 +15,9 @@
   "author": "Microsoft Corporation",
   "version": {
     "Major": 2,
-    "Minor": 0,
-    "Patch": 4
+    "Minor": 1,
+    "Patch": 0
   },
-  "preview": true,
   "demands": [
   ],
   "releaseNotes": "What's new in Version 2.0: <br/>&nbsp;&nbsp; Enhanced the task to manage Web Apps, Virtual Directories, and Application Pools.",
