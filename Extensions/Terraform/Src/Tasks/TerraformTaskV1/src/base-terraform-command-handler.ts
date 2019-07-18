@@ -1,24 +1,18 @@
 import {TerraformToolHandler, ITerraformToolHandler} from './terraform';
-import {ToolRunner, IExecOptions, IExecSyncOptions} from 'azure-pipelines-task-lib/toolrunner';
+import {ToolRunner, IExecOptions, IExecSyncOptions, IExecSyncResult} from 'azure-pipelines-task-lib/toolrunner';
 import {TerraformBaseCommandInitializer, TerraformAuthorizationCommandInitializer} from './terraform-commands';
 import tasks = require('azure-pipelines-task-lib/task');
+import path = require('path');
+import * as uuidV4 from 'uuid/v4';
+const fs = require('fs');
 
-export interface ITerraformCommandHandler {
+export abstract class BaseTerraformCommandHandler {
     providerName: string;
     terraformToolHandler: ITerraformToolHandler;
     backendConfig: Map<string, string>;
 
-    init(): Promise<number>;
-    plan(): Promise<number>;
-    apply(): Promise<number>;
-    destroy(): Promise<number>;
-    validate(): Promise<number>;
-}
-
-export abstract class BaseTerraformCommandHandler implements ITerraformCommandHandler {
-    providerName: string;
-    terraformToolHandler: ITerraformToolHandler;
-    backendConfig: Map<string, string>;
+    abstract handleBackend(terraformToolRunner: ToolRunner);
+    abstract handleProvider(command: TerraformAuthorizationCommandInitializer);
     
     constructor() {
         this.providerName = "";
@@ -26,7 +20,26 @@ export abstract class BaseTerraformCommandHandler implements ITerraformCommandHa
         this.backendConfig = new Map<string, string>();
     }
 
-    protected warnIfMultipleProviders(): void {
+    public compareVersions(version1: string, version2: string) {
+        let versionNumbers1: string[] = version1.split('.');
+        let versionNumbers2: string[] = version2.split('.');
+
+        const smallerLength = Math.min(versionNumbers1.length, versionNumbers2.length);
+        
+        let versionNumbersInt1: number[] = new Array(smallerLength);
+        let versionNumbersInt2: number[] = new Array(smallerLength);
+        
+        for (let i = 0; i < smallerLength; i++) {
+            versionNumbersInt1[i] = parseInt(versionNumbers1[i], 10);
+            versionNumbersInt2[i] = parseInt(versionNumbers2[i], 10);
+            if (versionNumbersInt1[i] > versionNumbersInt2[i]) return 1;
+            if (versionNumbersInt1[i] < versionNumbersInt2[i]) return -1;        
+        }
+
+        return versionNumbersInt1.length == versionNumbersInt2.length ? 0: (versionNumbersInt1.length < versionNumbersInt2.length ? -1 : 1);
+    }
+
+    public warnIfMultipleProviders(): void {
         let terraformPath;
         try {
             terraformPath = tasks.which("terraform", true);
@@ -47,7 +60,7 @@ export abstract class BaseTerraformCommandHandler implements ITerraformCommandHa
         }
     }
 
-    protected getServiceProviderNameFromProviderInput(): string {
+    public getServiceProviderNameFromProviderInput(): string {
         let provider: string = tasks.getInput("provider", true);
         
         switch (provider) {
@@ -56,8 +69,6 @@ export abstract class BaseTerraformCommandHandler implements ITerraformCommandHa
             case "gcp"    : return "GCP";
         }
     }
-
-    abstract handleBackend(terraformToolRunner: ToolRunner);
 
     public async init(): Promise<number> {
         let initCommand = new TerraformBaseCommandInitializer(
@@ -79,7 +90,31 @@ export abstract class BaseTerraformCommandHandler implements ITerraformCommandHa
         });
     }
 
-    public async plan(): Promise<number> {
+    protected checkIfShowCommandSupportsJsonOutput(): number {
+        let terraformPath;
+        try {
+            terraformPath = tasks.which("terraform", true);
+        } catch(err) {
+            throw new Error(tasks.loc("TerraformToolNotFound"));
+        }
+        
+        let terraformToolRunner: ToolRunner = tasks.tool(terraformPath);
+        terraformToolRunner.arg("version");
+
+        let outputContents = terraformToolRunner.execSync(<IExecSyncOptions>{
+            cwd: tasks.getInput("workingDirectory")
+        }).stdout;
+
+        let outputLines: string[] = outputContents.split('\n');
+        // First line has the format "Terraform v0.12.1"
+        let firstLine = outputLines[0];
+        // Extract only the version information from the first line i.e. "0.12.1"
+        let currentVersion = firstLine.substring(11);
+        // Check to see if this version is greater than or equal to 0.12.0
+        return this.compareVersions(currentVersion, "0.12.0");
+    }
+
+    public async onlyPlan(): Promise<number> {
         this.warnIfMultipleProviders();
         let serviceName = `environmentServiceName${this.getServiceProviderNameFromProviderInput()}`;
         let planCommand = new TerraformAuthorizationCommandInitializer(
@@ -102,10 +137,98 @@ export abstract class BaseTerraformCommandHandler implements ITerraformCommandHa
         });
     }
 
-    public async apply(): Promise<number> {
-        this.warnIfMultipleProviders();
+    public setOutputVariableToPlanFilePath() {
+        // Do terraform version to check if version is >= 0.12.0
+        if (this.checkIfShowCommandSupportsJsonOutput() >= 0) {
+            let terraformTool;
+            let fileStream;
+
+            // Do terraform plan with -out flag to output the binary plan file
+            const binaryPlanFilePath = path.resolve(`plan-binary-${uuidV4()}.tfplan`);
+            const tempFileForPlanOutput = path.resolve(`temp-plan-${uuidV4()}.txt`);
+
+            let serviceName = `environmentServiceName${this.getServiceProviderNameFromProviderInput()}`;
+            let planCommand = new TerraformAuthorizationCommandInitializer(
+                "plan",
+                tasks.getInput("workingDirectory"),
+                tasks.getInput(serviceName, true),
+                `-out=${binaryPlanFilePath}`
+            );
+            try {
+                terraformTool = this.terraformToolHandler.createToolRunner(planCommand);
+                this.handleProvider(planCommand);
+                fileStream = fs.createWriteStream(tempFileForPlanOutput);
+                terraformTool.execSync(<IExecSyncOptions>{
+                    cwd: planCommand.workingDirectory,
+                    outStream: fileStream
+                });
+            } catch (err) {
+                throw err;
+            }
+
+            // Do terraform show with -json flag to output the json plan file
+            const jsonPlanFilePath = path.resolve(`plan-json-${uuidV4()}.json`);
+            const tempFileForJsonPlanOutput = path.resolve(`temp-plan-json-${uuidV4()}.json`)
+            let commandOutput: IExecSyncResult;
+            let showCommand = new TerraformBaseCommandInitializer(
+                "show",
+                tasks.getInput("workingDirectory"),
+                `-json ${binaryPlanFilePath}`
+            );
+            try {
+                terraformTool = this.terraformToolHandler.createToolRunner(showCommand);
+                fileStream = fs.createWriteStream(tempFileForJsonPlanOutput);
+                commandOutput = terraformTool.execSync(<IExecSyncOptions>{
+                    cwd: showCommand.workingDirectory,
+                    outStream: fileStream
+                });
+            } catch (err) {
+                throw err;
+            }
+
+            // Write command output to the json plan file
+            tasks.writeFile(jsonPlanFilePath, commandOutput.stdout);
+            // Set the output variable to the json plan file path
+            tasks.setVariable('jsonPlanFilePath', jsonPlanFilePath);
+
+            // Delete all the files that are not needed any further
+            if (tasks.exist(binaryPlanFilePath)) {
+                tasks.rmRF(binaryPlanFilePath);
+            }
+
+            if (tasks.exist(tempFileForPlanOutput)) {
+                tasks.rmRF(tempFileForPlanOutput);
+            }
+
+            if (tasks.exist(tempFileForJsonPlanOutput)) {
+                tasks.rmRF(tempFileForJsonPlanOutput);
+            }
+
+        } else {
+            tasks.warning("Terraform show command does not support -json flag for terraform versions older than 0.12.0. The output variable named 'jsonPlanFilePath' was not set.")
+        }
+    }
+
+    public async plan(): Promise<number> {
         try {
-            await this.validate();
+            await this.onlyPlan();
+            this.setOutputVariableToPlanFilePath();
+        } catch (err) {
+            throw err;
+        }
+
+        return Promise.resolve(0);
+    }
+
+    public async onlyApply(): Promise<number> {
+        let terraformTool;
+        try {
+            this.warnIfMultipleProviders();
+            let validateCommand = new TerraformBaseCommandInitializer("validate", tasks.getInput("workingDirectory"), '');
+            terraformTool = this.terraformToolHandler.createToolRunner(validateCommand);
+            await terraformTool.exec(<IExecOptions> {
+                cwd: validateCommand.workingDirectory
+            });
         } catch (err) {
             throw err;
         }
@@ -125,7 +248,6 @@ export abstract class BaseTerraformCommandHandler implements ITerraformCommandHa
             additionalArgs
         );
 
-        let terraformTool;
         try {
             terraformTool = this.terraformToolHandler.createToolRunner(applyCommand);
             this.handleProvider(applyCommand);
@@ -136,6 +258,49 @@ export abstract class BaseTerraformCommandHandler implements ITerraformCommandHa
         return terraformTool.exec(<IExecOptions> {
             cwd: applyCommand.workingDirectory
         });
+    }
+
+    public setOutputVariableToJsonOutputVariablesFilesPath() {
+        let additionalArgs: string = `-json`
+        let outputCommand = new TerraformBaseCommandInitializer(
+            "output",
+            tasks.getInput("workingDirectory"),
+            additionalArgs
+        );
+
+        let terraformTool;
+        try {
+            terraformTool = this.terraformToolHandler.createToolRunner(outputCommand);
+        } catch (err) {
+            throw err ;
+        }
+
+        const jsonOutputVariablesFilePath = path.resolve(`output-${uuidV4()}.json`);
+        const tempFileForJsonOutputVariables = path.resolve(`temp-output-${uuidV4()}.json`);
+        const fileStream = fs.createWriteStream(tempFileForJsonOutputVariables);
+        let commandOutput = terraformTool.execSync(<IExecSyncOptions>{
+            cwd: outputCommand.workingDirectory,
+            outStream: fileStream
+        });
+
+        tasks.writeFile(jsonOutputVariablesFilePath, commandOutput.stdout);
+        tasks.setVariable('jsonOutputVariablesPath', jsonOutputVariablesFilePath);
+
+        // Delete the temp file as it is not needed further
+        if (tasks.exist(tempFileForJsonOutputVariables)) {
+            tasks.rmRF(tempFileForJsonOutputVariables);
+        }
+    }
+
+    public async apply(): Promise<number> {
+        try {
+            await this.onlyApply();
+            this.setOutputVariableToJsonOutputVariablesFilesPath();
+        } catch (err) {
+            throw err;
+        }
+
+        return Promise.resolve(0);
     };
 
     public async destroy(): Promise<number> {
@@ -167,8 +332,6 @@ export abstract class BaseTerraformCommandHandler implements ITerraformCommandHa
             cwd: destroyCommand.workingDirectory
         });
     };
-
-    abstract handleProvider(command: TerraformAuthorizationCommandInitializer);
 
     public async validate(): Promise<number> {
         let validateCommand = new TerraformBaseCommandInitializer(

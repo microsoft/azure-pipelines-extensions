@@ -14,7 +14,7 @@
   "version": {
     "Major": "0",
     "Minor": "0",
-    "Patch": "11"
+    "Patch": "15"
   },
   "instanceNameFormat": "ms-resource:loc.instanceNameFormat",
   "inputs": [
@@ -32,6 +32,12 @@
       "target": "src/index.js"
     }
   },
+  "outputVariables": [
+    {
+      "name": "terraformLocation",
+      "description": "The location of the terraform binary that was installed on the agent."
+    }
+  ],
   "messages": {
     "VerifyTerraformInstallation": "ms-resource:loc.messages.VerifyTerraformInstallation",
     "InputVersionNotValidSemanticVersion": "ms-resource:loc.messages.InputVersionNotValidSemanticVersion",

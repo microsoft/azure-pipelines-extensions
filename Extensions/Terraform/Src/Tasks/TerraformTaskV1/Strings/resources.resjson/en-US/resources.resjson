@@ -1,6 +1,6 @@
 {
   "loc.friendlyName": "Terraform",
-  "loc.helpMarkDown": "",
+  "loc.helpMarkDown": "[Learn more about this task](https://aka.ms/AA5j5pf)",
   "loc.description": "Execute terraform commands to manage resources on AzureRM, Amazon Web Services(AWS) and Google Cloud Platform(GCP)",
   "loc.instanceNameFormat": "Terraform : $(provider)",
   "loc.group.displayName.backendAzureRm": "AzureRM backend configuration",

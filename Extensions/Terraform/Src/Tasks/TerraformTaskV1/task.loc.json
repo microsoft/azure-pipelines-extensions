@@ -1,6 +1,6 @@
 {
   "id": "FE504ACC-6115-40CB-89FF-191386B5E7BF",
-  "name": "TerraformTask",
+  "name": "TerraformTaskV1",
   "friendlyName": "ms-resource:loc.friendlyName",
   "description": "ms-resource:loc.description",
   "author": "Microsoft Corporation",
@@ -14,7 +14,7 @@
   "version": {
     "Major": "0",
     "Minor": "0",
-    "Patch": "101"
+    "Patch": "135"
   },
   "instanceNameFormat": "ms-resource:loc.instanceNameFormat",
   "execution": {
@@ -83,7 +83,7 @@
       "label": "ms-resource:loc.input.label.workingDirectory",
       "defaultValue": "$(System.DefaultWorkingDirectory)",
       "helpMarkDown": "ms-resource:loc.input.help.workingDirectory",
-      "required": "false"
+      "required": false
     },
     {
       "name": "commandOptions",
@@ -96,7 +96,7 @@
       "name": "environmentServiceNameAzureRM",
       "type": "connectedService:AzureRM",
       "label": "ms-resource:loc.input.label.environmentServiceNameAzureRM",
-      "required": false,
+      "required": true,
       "visibleRule": "provider = azurerm && command != init && command != validate",
       "helpMarkDown": "ms-resource:loc.input.help.environmentServiceNameAzureRM"
     },
@@ -104,7 +104,7 @@
       "name": "environmentServiceNameAWS",
       "type": "connectedService:AWSServiceEndpoint",
       "label": "ms-resource:loc.input.label.environmentServiceNameAWS",
-      "required": false,
+      "required": true,
       "visibleRule": "provider = aws && command != init && command != validate",
       "helpMarkDown": "ms-resource:loc.input.help.environmentServiceNameAWS"
     },
@@ -112,7 +112,7 @@
       "name": "environmentServiceNameGCP",
       "type": "connectedService:GoogleCloudServiceEndpoint",
       "label": "ms-resource:loc.input.label.environmentServiceNameGCP",
-      "required": false,
+      "required": true,
       "visibleRule": "provider = gcp && command != init && command != validate",
       "helpMarkDown": "ms-resource:loc.input.help.environmentServiceNameGCP"
     },
@@ -181,7 +181,7 @@
       "helpMarkDown": "ms-resource:loc.input.help.backendAWSBucketName",
       "groupName": "backendAWS",
       "properties": {
-        "EditableOptions": "True"
+        "EditableOptions": "False"
       }
     },
     {
@@ -248,6 +248,16 @@
       "target": "backendGCPBucketName",
       "endpointId": "$(backendServiceGCP)",
       "dataSourceName": "GCP"
+    }
+  ],
+  "outputVariables": [
+    {
+      "name": "jsonPlanFilePath",
+      "description": "The location of the terraform plan file in JSON format that was created. This file can be used by tasks which are written for tools such as [Open Policy Agent](https://www.openpolicyagent.org/docs/latest/terraform/)<br><br>Note: This variable will only be set if 'command' input is set to 'plan'."
+    },
+    {
+      "name": "jsonOutputVariablesPath",
+      "description": "The location of the JSON file which contains the output variables set by the user in the terraform config files.<br><br>Note: This variable will only be set if 'command' input is set to 'apply'."
     }
   ],
   "messages": {

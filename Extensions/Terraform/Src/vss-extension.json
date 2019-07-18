@@ -2,7 +2,7 @@
     "manifestVersion": 1,
     "id": "custom-terraform-tasks",
     "name": "Terraform",
-    "version": "0.0.1",
+    "version": "0.1.1",
     "publisher": "ms-devlabs",
     "targets": [
         {
@@ -49,7 +49,7 @@
             "path": "images/6_Terraform_all_inputs.PNG"
         },
         {
-            "path": "images/7_Terraform_plan_apply_destroy.PNG"
+            "path": "images/7_Terraform_plan_apply_destroy.png"
         }
     ],
     "content": {
@@ -89,7 +89,7 @@
             "addressable": true
         },
         {
-            "path": "images/7_Terraform_plan_apply_destroy.PNG",
+            "path": "images/7_Terraform_plan_apply_destroy.png",
             "addressable": true
         }
     ],
