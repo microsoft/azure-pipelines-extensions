@@ -78,12 +78,9 @@ export abstract class BaseTerraformCommandHandler {
         );
         
         let terraformTool;
-        try {
-            terraformTool = this.terraformToolHandler.createToolRunner(initCommand);
-            this.handleBackend(terraformTool);
-        } catch (err) {
-            throw err;
-        }
+        
+        terraformTool = this.terraformToolHandler.createToolRunner(initCommand);
+        this.handleBackend(terraformTool);
         
         return terraformTool.exec(<IExecOptions> {
             cwd: initCommand.workingDirectory
@@ -125,13 +122,9 @@ export abstract class BaseTerraformCommandHandler {
         );
         
         let terraformTool;
-        try {
-            terraformTool = this.terraformToolHandler.createToolRunner(planCommand);
-            this.handleProvider(planCommand);
-        } catch (err) {
-            throw err;
-        }
-
+        terraformTool = this.terraformToolHandler.createToolRunner(planCommand);
+        this.handleProvider(planCommand);
+    
         return terraformTool.exec(<IExecOptions> {
             cwd: planCommand.workingDirectory
         });
@@ -154,17 +147,13 @@ export abstract class BaseTerraformCommandHandler {
                 tasks.getInput(serviceName, true),
                 `-out=${binaryPlanFilePath}`
             );
-            try {
-                terraformTool = this.terraformToolHandler.createToolRunner(planCommand);
-                this.handleProvider(planCommand);
-                fileStream = fs.createWriteStream(tempFileForPlanOutput);
-                terraformTool.execSync(<IExecSyncOptions>{
-                    cwd: planCommand.workingDirectory,
-                    outStream: fileStream
-                });
-            } catch (err) {
-                throw err;
-            }
+            terraformTool = this.terraformToolHandler.createToolRunner(planCommand);
+            this.handleProvider(planCommand);
+            fileStream = fs.createWriteStream(tempFileForPlanOutput);
+            terraformTool.execSync(<IExecSyncOptions>{
+                cwd: planCommand.workingDirectory,
+                outStream: fileStream
+            });
 
             // Do terraform show with -json flag to output the json plan file
             const jsonPlanFilePath = path.resolve(`plan-json-${uuidV4()}.json`);
@@ -175,16 +164,12 @@ export abstract class BaseTerraformCommandHandler {
                 tasks.getInput("workingDirectory"),
                 `-json ${binaryPlanFilePath}`
             );
-            try {
-                terraformTool = this.terraformToolHandler.createToolRunner(showCommand);
-                fileStream = fs.createWriteStream(tempFileForJsonPlanOutput);
-                commandOutput = terraformTool.execSync(<IExecSyncOptions>{
-                    cwd: showCommand.workingDirectory,
-                    outStream: fileStream
-                });
-            } catch (err) {
-                throw err;
-            }
+            terraformTool = this.terraformToolHandler.createToolRunner(showCommand);
+            fileStream = fs.createWriteStream(tempFileForJsonPlanOutput);
+            commandOutput = terraformTool.execSync(<IExecSyncOptions>{
+                cwd: showCommand.workingDirectory,
+                outStream: fileStream
+            });
 
             // Write command output to the json plan file
             tasks.writeFile(jsonPlanFilePath, commandOutput.stdout);
@@ -210,28 +195,20 @@ export abstract class BaseTerraformCommandHandler {
     }
 
     public async plan(): Promise<number> {
-        try {
-            await this.onlyPlan();
-            this.setOutputVariableToPlanFilePath();
-        } catch (err) {
-            throw err;
-        }
+        await this.onlyPlan();
+        this.setOutputVariableToPlanFilePath();
 
         return Promise.resolve(0);
     }
 
     public async onlyApply(): Promise<number> {
         let terraformTool;
-        try {
-            this.warnIfMultipleProviders();
-            let validateCommand = new TerraformBaseCommandInitializer("validate", tasks.getInput("workingDirectory"), '');
-            terraformTool = this.terraformToolHandler.createToolRunner(validateCommand);
-            await terraformTool.exec(<IExecOptions> {
-                cwd: validateCommand.workingDirectory
-            });
-        } catch (err) {
-            throw err;
-        }
+        this.warnIfMultipleProviders();
+        let validateCommand = new TerraformBaseCommandInitializer("validate", tasks.getInput("workingDirectory"), '');
+        terraformTool = this.terraformToolHandler.createToolRunner(validateCommand);
+        await terraformTool.exec(<IExecOptions> {
+            cwd: validateCommand.workingDirectory
+        });
         
         let serviceName = `environmentServiceName${this.getServiceProviderNameFromProviderInput()}`;
         let autoApprove: string = '-auto-approve';
@@ -248,12 +225,8 @@ export abstract class BaseTerraformCommandHandler {
             additionalArgs
         );
 
-        try {
-            terraformTool = this.terraformToolHandler.createToolRunner(applyCommand);
-            this.handleProvider(applyCommand);
-        } catch (err) {
-            throw err;
-        }
+        terraformTool = this.terraformToolHandler.createToolRunner(applyCommand);
+        this.handleProvider(applyCommand);
 
         return terraformTool.exec(<IExecOptions> {
             cwd: applyCommand.workingDirectory
@@ -269,11 +242,7 @@ export abstract class BaseTerraformCommandHandler {
         );
 
         let terraformTool;
-        try {
-            terraformTool = this.terraformToolHandler.createToolRunner(outputCommand);
-        } catch (err) {
-            throw err ;
-        }
+        terraformTool = this.terraformToolHandler.createToolRunner(outputCommand);
 
         const jsonOutputVariablesFilePath = path.resolve(`output-${uuidV4()}.json`);
         const tempFileForJsonOutputVariables = path.resolve(`temp-output-${uuidV4()}.json`);
@@ -293,12 +262,8 @@ export abstract class BaseTerraformCommandHandler {
     }
 
     public async apply(): Promise<number> {
-        try {
-            await this.onlyApply();
-            this.setOutputVariableToJsonOutputVariablesFilesPath();
-        } catch (err) {
-            throw err;
-        }
+        await this.onlyApply();
+        this.setOutputVariableToJsonOutputVariablesFilesPath();
 
         return Promise.resolve(0);
     };
@@ -321,12 +286,8 @@ export abstract class BaseTerraformCommandHandler {
         );
 
         let terraformTool;
-        try {
-            terraformTool = this.terraformToolHandler.createToolRunner(destroyCommand);
-            this.handleProvider(destroyCommand);
-        } catch (err) {
-            throw err ;
-        }
+        terraformTool = this.terraformToolHandler.createToolRunner(destroyCommand);
+        this.handleProvider(destroyCommand);
 
         return terraformTool.exec(<IExecOptions> {
             cwd: destroyCommand.workingDirectory
@@ -341,11 +302,7 @@ export abstract class BaseTerraformCommandHandler {
         );
 
         let terraformTool;
-        try {
-            terraformTool = this.terraformToolHandler.createToolRunner(validateCommand);
-        } catch (err) {
-            throw err;
-        }
+        terraformTool = this.terraformToolHandler.createToolRunner(validateCommand);
 
         return terraformTool.exec(<IExecOptions>{
             cwd: validateCommand.workingDirectory
