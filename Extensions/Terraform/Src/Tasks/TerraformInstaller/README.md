@@ -29,3 +29,8 @@ The task can run on the following build agent operating systems:
 Example: 
     To install Terraform version 0.11.4, use 0.11.4
 For getting more details about exact version, refer [this link](https://releases.hashicorp.com/terraform/)
+
+
+### Output Variables
+
+* **Terraform location:** This variable can be used to refer to the location of the terraform binary that was installed on the agent in subsequent tasks.

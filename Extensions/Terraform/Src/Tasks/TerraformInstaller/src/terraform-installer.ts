@@ -38,7 +38,9 @@ export async function downloadTerraform(inputVersion: string): Promise<string> {
     if (!isWindows) {
         fs.chmodSync(terraformPath, "777");
     }
-    
+
+    tasks.setVariable('terraformLocation', terraformPath);
+
     return terraformPath;
 }
 
