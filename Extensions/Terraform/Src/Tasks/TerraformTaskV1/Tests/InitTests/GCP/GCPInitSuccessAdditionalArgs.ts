@@ -7,7 +7,7 @@ let tr: tmrm.TaskMockRunner = new tmrm.TaskMockRunner(tp);
 
 tr.setInput('provider', 'gcp');
 tr.setInput('command', 'init');
-tr.setInput('workingDirectory', './../../DemoProject/GCP');
+tr.setInput('workingDirectory', 'DummyWorkingDirectory');
 tr.setInput('commandOptions', '-no-color');
 
 tr.setInput('backendServiceGCP', 'GCP');

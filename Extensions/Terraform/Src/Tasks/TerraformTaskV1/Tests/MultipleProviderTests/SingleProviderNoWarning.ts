@@ -7,7 +7,7 @@ let tr: tmrm.TaskMockRunner = new tmrm.TaskMockRunner(tp);
 
 tr.setInput('provider', 'azurerm');
 tr.setInput('command', 'validate');
-tr.setInput('workingDirectory', './../DemoProject/Azure');
+tr.setInput('workingDirectory', 'DummyWorkingDirectory');
 tr.setInput('commandOptions', '');
 
 let a: ma.TaskLibAnswers = <ma.TaskLibAnswers> {

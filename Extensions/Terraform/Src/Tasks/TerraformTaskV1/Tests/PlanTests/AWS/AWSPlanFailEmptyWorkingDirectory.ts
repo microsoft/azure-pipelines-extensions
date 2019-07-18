@@ -7,7 +7,7 @@ let tr: tmrm.TaskMockRunner = new tmrm.TaskMockRunner(tp);
 
 tr.setInput('provider', 'aws');
 tr.setInput('command', 'plan');
-tr.setInput('workingDirectory', './../../DemoProject/EmptyDirectory');
+tr.setInput('workingDirectory', 'DummyWorkingDirectory');
 tr.setInput('environmentServiceNameAWS', 'AWS');
 tr.setInput('commandOptions', '-no-color');
 

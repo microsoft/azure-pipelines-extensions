@@ -7,7 +7,7 @@ let tr: tmrm.TaskMockRunner = new tmrm.TaskMockRunner(tp);
 
 tr.setInput('provider', 'gcp');
 tr.setInput('command', 'validate');
-tr.setInput('workingDirectory', './../../DemoProject/EmptyDirectory');
+tr.setInput('workingDirectory', 'DummyWorkingDirectory');
 
 let a: ma.TaskLibAnswers = <ma.TaskLibAnswers> {
     "which": {

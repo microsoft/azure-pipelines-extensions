@@ -7,7 +7,7 @@ let tr: tmrm.TaskMockRunner = new tmrm.TaskMockRunner(tp);
 
 tr.setInput('provider', 'aws');
 tr.setInput('command', 'destroy');
-tr.setInput('workingDirectory', path.join(__dirname, '..', '..', 'DemoProject', 'AWS'));
+tr.setInput('workingDirectory', 'DummyWorkingDirectory');
 tr.setInput('environmentServiceNameAWS', 'AWS');
 tr.setInput('commandOptions', '-auto-approve -no-color');
 
