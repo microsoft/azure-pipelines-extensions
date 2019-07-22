@@ -59,6 +59,26 @@
       "addressable": true
     },
     {
+      "path": "images/1_edit-import-set-table.png",
+      "addressable": true
+    },
+    {
+      "path": "images/2_select-transform-map.png",
+      "addressable": true
+    },
+    {
+      "path": "images/3_add-field-map.png",
+      "addressable": true
+    },
+    {
+      "path": "images/4_update-transform-map.png",
+      "addressable": true
+    },
+    {
+      "path": "images/5_field-map-added.png",
+      "addressable": true
+    },
+    {
       "path": "Tasks/CreateAndQueryChangeRequest"
     },
     {

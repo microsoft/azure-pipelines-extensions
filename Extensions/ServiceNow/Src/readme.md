@@ -5,7 +5,10 @@ ServiceNow is a software-as-a-service (SaaS) provider of IT service management (
 Specific change management subprocesses include change risk assessment, change scheduling, change approvals and oversight. 
 With change management, your organization can reduce the risks associated with change, while speeding up the deployments with Azure Pipelines. 
 
-This extension enables integration of ServiceNow Change Management with Azure Pipelines.                                                 
+This extension enables integration of ServiceNow Change Management with Azure Pipelines.
+
+**Note**: This extension works only with Azure DevOps Services and Azure DevOps Server 2019 Update 1 onwards.
+
 It includes 
 - A [release gate](https://docs.microsoft.com/en-us/azure/devops/pipelines/release/approvals/gates?view=vsts) to hold the pipeline till the change management process signals implementation for a change request. You can create a new change request for every deployment or use an existing change request.                     
 - An agentless task to update a change request during the deployment process. It is typically used as the last task in the stage.
@@ -73,7 +76,7 @@ ServiceNow gate produces output variables.                                     
 - **Update status**: Select this option to update status of the change request.
 - **Updated status of change request** : Status to set for the change request. This input is available if `Update status` is selected.
 - **Close code and notes**: Closure information for the change request.
-- **Work notes**: Work notes for the change request,
+- **Work notes**: Work notes for the change request.
 - **Additional change request parameters**:  Additional properties of the change request to set.
 
 ## Steps to add mapping for custom fields in Import set transform map :
@@ -87,31 +90,26 @@ ServiceNow gate produces output variables.                                     
 2.	Select **Target table** 'Change Request [**change_request**] from drop down.
 3.	Click on '**Update**' 
 
-![Update import set table](images/1.edit-import-set-table.png)
+![Update import set table](images/1_edit-import-set-table.png)
 
 **Add mapping in Transform map**
 
 1. Navigate to **System Import Sets > Transform Maps**.
 2. Open the Transform Map named '**change_request_imports**'
 
-![Select transform map](images/2.select-transform-map.png)
+![Select transform map](images/2_select-transform-map.png)
 
 1. In the Field Maps related list, **Click New**.
 2. Select the **Source field** (your custom field).
 3. Select the **Target field**
 4. Click **Submit**
 
-![Add field map](images/3.add-field-map.png)
+![Add field map](images/3_add-field-map.png)
 
 Click **Update**
 
-![Update transform map](images/4.update-transform-map.png)
+![Update transform map](images/4_update-transform-map.png)
 
 Field mapping **added**
 
-![Updated field map](images/5.field-map-added.png)
-
-
-
-
-
+![Updated field map](images/5_field-map-added.png)
