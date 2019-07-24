@@ -440,15 +440,15 @@ function Update-AppPool
         $password = $appPoolCredentials.GetNetworkCredential().password
         
         $appCmdArgs = [string]::Format('{0} -processModel.identityType:SpecificUser', $appCmdArgs)
-        if (-not [string]::IsNullOrWhiteSpace($userName)) {
-            $appCmdArgs = [string]::Format('{0} -processModel.userName:"{1}"',`
-                                $appCmdArgs, $userName)
+        if (-not [string]::IsNullOrWhiteSpace($userName))
+        {
+            $appCmdArgs = [string]::Format('{0} -processModel.userName:"{1}"',$appCmdArgs, $userName)
         }
-        if (-not [string]::IsNullOrWhiteSpace($password)) {
-            $appCmdArgsLog = [string]::Format('{0} -processModel.password:"****"',`
-                                $appCmdArgs)
-            $appCmdArgs = [string]::Format('{0} -processModel.password:"{1}"',`
-                                $appCmdArgs, $password)
+        
+        if (-not [string]::IsNullOrWhiteSpace($password))
+        {
+            $appCmdArgsLog = [string]::Format('{0} -processModel.password:"****"',$appCmdArgs)
+            $appCmdArgs = [string]::Format('{0} -processModel.password:"{1}"',$appCmdArgs, $password)
         }
     }
     else
@@ -458,9 +458,12 @@ function Update-AppPool
 
     $appCmdPath, $iisVersion = Get-AppCmdLocation -regKeyPath $AppCmdRegKey
     
-    if($appCmdArgs -match "processModel.password") {
+    if($appCmdArgs -match "processModel.password")
+    {
         $commandLog = "`"$appCmdPath`" $appCmdArgsLog"
-    } else {
+    }
+    else
+    {
         $commandLog = "`"$appCmdPath`" $appCmdArgs"
     }
 	
