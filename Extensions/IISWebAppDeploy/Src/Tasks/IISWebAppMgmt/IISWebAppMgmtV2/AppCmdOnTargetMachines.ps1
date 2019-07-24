@@ -438,34 +438,34 @@ function Update-AppPool
     {
         $userName = $appPoolCredentials.UserName
         $password = $appPoolCredentials.GetNetworkCredential().password
-		$hidingPassword = '***'
+        $hidingPassword = '***'
         
         $appCmdArgs = [string]::Format('{0} -processModel.identityType:SpecificUser', $appCmdArgs)
         if (-not [string]::IsNullOrWhiteSpace($userName)) {
             $appCmdArgs = [string]::Format('{0} -processModel.userName:"{1}"',`
                                 $appCmdArgs, $userName)
-			$appCmdArgsLog = $appCmdArgs
+        $appCmdArgsLog = $appCmdArgs
         }
         if (-not [string]::IsNullOrWhiteSpace($password)) {
             $appCmdArgs = [string]::Format('{0} -processModel.password:"{1}"',`
                                 $appCmdArgs, $password)
-			$appCmdArgsLog = [string]::Format('{0} -processModel.password:"{1}"',`
+            $appCmdArgsLog = [string]::Format('{0} -processModel.password:"{1}"',`
                                 $appCmdArgsLog, $hidingPassword)
         }
     }
     else
     {
         $appCmdArgs = [string]::Format('{0} -processModel.identityType:{1}', $appCmdArgs, $identity)
-		$appCmdArgsLog = [string]::Format('{0} -processModel.identityType:{1}', $appCmdArgsLog, $identity)
+        $appCmdArgsLog = [string]::Format('{0} -processModel.identityType:{1}', $appCmdArgsLog, $identity)
     }
 
     $appCmdPath, $iisVersion = Get-AppCmdLocation -regKeyPath $AppCmdRegKey
-	
-	if($appCmdArgs -match "processModel.password") {
-	    $commandLog = "`"$appCmdPath`" $appCmdArgsLog"
-	} else {
-	    $commandLog = "`"$appCmdPath`" $appCmdArgs"
-	}
+    
+    if($appCmdArgs -match "processModel.password") {
+        $commandLog = "`"$appCmdPath`" $appCmdArgsLog"
+    } else {
+        $commandLog = "`"$appCmdPath`" $appCmdArgs"
+    }
 	
     Write-Verbose "Updating application pool properties. Running command : $commandLog"
     Run-Command -command $command
