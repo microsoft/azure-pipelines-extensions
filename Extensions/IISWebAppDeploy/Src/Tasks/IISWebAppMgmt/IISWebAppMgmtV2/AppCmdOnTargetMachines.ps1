@@ -467,6 +467,7 @@ function Update-AppPool
         $commandLog = "`"$appCmdPath`" $appCmdArgs"
     }
 	
+    $command = "`"$appCmdPath`" $appCmdArgs"
     Write-Verbose "Updating application pool properties. Running command : $commandLog"
     Run-Command -command $command
 }
