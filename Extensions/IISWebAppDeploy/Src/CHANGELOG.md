@@ -2,9 +2,13 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
-## [1.5.5] 24th July 2019
+## [1.5.7] 26th July 2019
 ### Added
 - Hiding the password in IIS Web App Management v2 task.
+
+## [1.5.6] 25th July 2019
+### Added
+- Reduce sleep time for WinRM based tasks.
 
 ## [1.5.5] 10th July 2019
 ### Added
