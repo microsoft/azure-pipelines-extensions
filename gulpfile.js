@@ -77,8 +77,7 @@ function errorHandler(err) {
     process.exit(1);
 }
 
-var proj = gts.createProject('./tsconfig.json', { typescript: typescript, declaration: true });
-var ts = gts(proj);
+var rootTsconfigPath = './tsconfig.json';
 
 gulp.task("clean", function() {
     return del([_buildRoot, _packageRoot, nugetPath, _taskModuleBuildRoot]);
@@ -122,6 +121,7 @@ gulp.task("clean:TaskModuleTest", function(cb) {
 });
 
 gulp.task('compile:TaskModuleTest', gulp.series('clean:TaskModuleTest', function (cb) {
+    var proj = gts.createProject(rootTsconfigPath, { typescript: typescript, declaration: true });
     var testsPath = path.join('TaskModules', 'powershell', 'Tests', '**/*.ts');
     var testsLibPath = path.join('Extensions', 'Common', 'lib', '**/*.ts');
 
@@ -131,7 +131,7 @@ gulp.task('compile:TaskModuleTest', gulp.series('clean:TaskModuleTest', function
         var tsLocal = gts(projLocal);
 
         gulp.src([testsLibPath, 'definitions/*.d.ts'])
-            .pipe(ts)
+            .pipe(proj())
             .on("error", errorHandler)
             .pipe(gulp.dest(path.join(_extnBuildRoot, 'Common', 'lib')));
 
@@ -270,10 +270,11 @@ gulp.task("compileNode", gulp.series("compilePS", function(cb){
     runNpmInstall(artifactEnginePath);
 
     // Compile tasks
+    var proj = gts.createProject(rootTsconfigPath, { typescript: typescript, declaration: true });
     var taskFiles = path.join(__dirname, '_build/Extensions/**/Tasks/**/*.ts');
     var artifactEngineFiles = path.join(__dirname, '_build/Extensions/**/ArtifactEngine/**/*.ts');
     gulp.src(['definitions/*.d.ts', taskFiles, artifactEngineFiles, '!**/node_modules/**', '!**/Extensions/ArtifactEngine/definitions/**'])
-        .pipe(ts)
+        .pipe(proj())
         .pipe(gulp.dest(path.join(_buildRoot, 'Extensions')))
         .on('error', errorHandler);
 
@@ -646,13 +647,14 @@ gulp.task("default", gulp.series("build"));
 //-----------------------------------------------------------------------------------------------------------------
 
 gulp.task('compileTests', function () {
+    var proj = gts.createProject(rootTsconfigPath, { typescript: typescript, declaration: true });
     var testsPath = path.join(__dirname, 'Extensions/**/Tests', '**/*.ts');
     var commonFiles = path.join(__dirname, 'Extensions/**/Common', '**/*.ts')
 
     return gulp.src([testsPath, commonFiles, 'definitions/*.d.ts'])
-        .pipe(ts)
-        .on('error', errorHandler)
-        .pipe(gulp.dest(_testRoot+"\\Extensions"));
+        .pipe(proj())
+        .pipe(gulp.dest(_testRoot+"\\Extensions"))
+        .on('error', errorHandler);
 });
 
 gulp.task('testLib', gulp.series('compileTests', function () {
