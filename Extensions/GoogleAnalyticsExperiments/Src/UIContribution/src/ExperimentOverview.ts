@@ -11,10 +11,10 @@ VSS.register("registeredEnvironmentObject", {
 		return "extension's context, for commands related to this extension.";
 	},
 	isDisabled:  (state) =>  {
-		return false;
+		return !experimentUtility.isExperimentationTaskAvailable(state);;
 	},
 	isInvisible:  (state) => {
-		return false;
+		return !experimentUtility.isExperimentationTaskAvailable(state);
 	},
 	pageTitle: (state) => {
 		return "Experiment";

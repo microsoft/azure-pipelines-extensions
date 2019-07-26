@@ -1,7 +1,7 @@
 {
    "manifestVersion":1.0,
    "id":"GoogleAnalytics",
-   "version":"0.0.1",
+   "version":"0.0.2",
    "publisher":"ms-devlabs",
    "name":"Google Analytics Experiments",
    "description":"Google Analytics Experiments extension for Azure Pipelines.",

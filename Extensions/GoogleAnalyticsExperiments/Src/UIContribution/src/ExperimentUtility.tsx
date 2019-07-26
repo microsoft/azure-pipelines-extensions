@@ -139,6 +139,18 @@ export class ExperimentUtility {
 		}
 	}
 
+	public isExperimentationTaskAvailable(vssConfiguration) {
+		const experimentsInfo = this.getExperimentInfoByProjectIdMap(vssConfiguration);
+		return !this.isEmptyObject(experimentsInfo) ;
+	}
+
+ 	public isEmptyObject( obj ) {
+		for (const field of Object.keys(obj)) {
+			return false;
+		}
+		return true;
+	}
+
 	private addDataNode(textContent) {
 		const listView = document.getElementById("experimentsInfo");
 		const listViewItem = document.createElement("li");
