@@ -75,7 +75,7 @@ export class ArtifactEngine {
                 this.artifactItemStore.increaseRetryCount(item);
                 Logger.logMessage(tl.loc("RetryingDownload", item.path, (retryCount + 1)));
                 setTimeout(() => this
-                    .processArtifactItemImplementation(sourceProvider, item, destProvider, artifactEngineOptions, resolve, reject, retryCount + 1), artifactEngineOptions.retryIntervalInSeconds * 1000);
+                    .processArtifactItemImplementation(sourceProvider, item, destProvider, artifactEngineOptions, resolve, reject, retryCount + 1), (artifactEngineOptions.retryIntervalInSeconds * (3 ^ (retryCount + 1)) * 1000));
             }
         }
         retryCount = retryCount ? retryCount : 0;
