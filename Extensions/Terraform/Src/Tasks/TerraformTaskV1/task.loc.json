@@ -14,7 +14,7 @@
   "version": {
     "Major": "0",
     "Minor": "0",
-    "Patch": "135"
+    "Patch": "137"
   },
   "instanceNameFormat": "ms-resource:loc.instanceNameFormat",
   "execution": {
@@ -132,7 +132,7 @@
       "helpMarkDown": "ms-resource:loc.input.help.backendAzureRmResourceGroupName",
       "groupName": "backendAzureRm",
       "properties": {
-        "EditableOptions": "False"
+        "EditableOptions": "True"
       }
     },
     {
@@ -143,7 +143,7 @@
       "helpMarkDown": "ms-resource:loc.input.help.backendAzureRmStorageAccountName",
       "groupName": "backendAzureRm",
       "properties": {
-        "EditableOptions": "False"
+        "EditableOptions": "True"
       }
     },
     {
@@ -154,7 +154,7 @@
       "helpMarkDown": "ms-resource:loc.input.help.backendAzureRmContainerName",
       "groupName": "backendAzureRm",
       "properties": {
-        "EditableOptions": "False"
+        "EditableOptions": "True"
       }
     },
     {
@@ -181,7 +181,7 @@
       "helpMarkDown": "ms-resource:loc.input.help.backendAWSBucketName",
       "groupName": "backendAWS",
       "properties": {
-        "EditableOptions": "False"
+        "EditableOptions": "True"
       }
     },
     {
@@ -208,7 +208,7 @@
       "helpMarkDown": "ms-resource:loc.input.help.backendGCPBucketName",
       "groupName": "backendGCP",
       "properties": {
-        "EditableOptions": "False"
+        "EditableOptions": "True"
       }
     },
     {

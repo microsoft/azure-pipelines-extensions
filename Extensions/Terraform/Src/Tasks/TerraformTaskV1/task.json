@@ -14,7 +14,7 @@
     "version": {
         "Major": "0",
         "Minor": "0",
-        "Patch": "135"
+        "Patch": "137"
     },
     "instanceNameFormat": "Terraform : $(provider)",
     "execution": {
@@ -131,7 +131,7 @@
             "helpMarkDown": "The name of the resource group which contains the storage account selected below.",
             "groupName": "backendAzureRm",
             "properties": {
-                "EditableOptions": "False"
+                "EditableOptions": "True"
             }
         },
         {
@@ -142,7 +142,7 @@
             "helpMarkDown": "The name of the storage account which contains the Azure Blob container selected below.",
             "groupName": "backendAzureRm",
             "properties": {
-                "EditableOptions": "False"
+                "EditableOptions": "True"
             }
         },
         {
@@ -153,7 +153,7 @@
             "helpMarkDown": "The name of the Azure Blob container in which to store the Terraform remote state file.",
             "groupName": "backendAzureRm",
             "properties": {
-                "EditableOptions": "False"
+                "EditableOptions": "True"
             }
         },
         {
@@ -180,7 +180,7 @@
             "helpMarkDown": "The name of the Amazon Simple Storage Service(S3) bucket for storing the Terraform remote state file.<br><br>NOTE: The region of this bucket (e.g. us-east-1) must be specified in the AWS service connection that you must set up. To set up an AWS service connection, click on the 'Help(i)' button of the above input named 'Amazon Web Services connection'",
             "groupName": "backendAWS",
             "properties": {
-                "EditableOptions": "False"
+                "EditableOptions": "True"
             }
         },
         {
@@ -207,7 +207,7 @@
             "helpMarkDown": "The name of the GCP storage bucket for storing the Terraform remote state file.",
             "groupName": "backendGCP",
             "properties": {
-                "EditableOptions": "False"
+                "EditableOptions": "True"
             }
         },
         {
