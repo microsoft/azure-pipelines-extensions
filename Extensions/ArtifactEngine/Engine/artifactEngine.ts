@@ -77,7 +77,7 @@ export class ArtifactEngine {
                 // retry interval sequence 5s 15s 45s 135s
                 // 2 min is the time limit for freeing of ports
                 setTimeout(() => this
-                    .processArtifactItemImplementation(sourceProvider, item, destProvider, artifactEngineOptions, resolve, reject, retryCount + 1), (artifactEngineOptions.retryIntervalInSeconds * (3 ^ (retryCount + 1)) * 1000));
+                    .processArtifactItemImplementation(sourceProvider, item, destProvider, artifactEngineOptions, resolve, reject, retryCount + 1), this.getRetryIntervalInSeconds(artifactEngineOptions.retryIntervalInSeconds, retryCount) * 1000);
             }
         }
         retryCount = retryCount ? retryCount : 0;
@@ -152,6 +152,12 @@ export class ArtifactEngine {
                 retryIfRequired(err);
             });
         }
+    }
+
+    private getRetryIntervalInSeconds(baseRetryInterval: number, retryCount: number): number {
+        let MaxRetryLimitInSeconds = 360;
+        var exponentialBackOff = baseRetryInterval * (3 ^ (retryCount + 1));
+        return exponentialBackOff < MaxRetryLimitInSeconds ? exponentialBackOff : MaxRetryLimitInSeconds ;
     }
 
     createPatternList(artifactEngineOptions: ArtifactEngineOptions) {
