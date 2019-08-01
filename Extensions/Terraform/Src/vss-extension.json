@@ -10,6 +10,7 @@
         }
     ],
     "description": "Install terraform and run terraform commands to manage resources on Azure, AWS and GCP.",
+    "public": true,
     "categories": [
         "Azure Pipelines"
     ],
