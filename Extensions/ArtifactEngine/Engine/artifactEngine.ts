@@ -74,6 +74,8 @@ export class ArtifactEngine {
             } else {
                 this.artifactItemStore.increaseRetryCount(item);
                 Logger.logMessage(tl.loc("RetryingDownload", item.path, (retryCount + 1)));
+                // retry interval sequence 5s 15s 45s 135s
+                // 2 min is the time limit for freeing of ports
                 setTimeout(() => this
                     .processArtifactItemImplementation(sourceProvider, item, destProvider, artifactEngineOptions, resolve, reject, retryCount + 1), (artifactEngineOptions.retryIntervalInSeconds * (3 ^ (retryCount + 1)) * 1000));
             }
