@@ -14,7 +14,7 @@ $regKeyWithNoInstallPath = "HKLM:\SOFTWARE\Microsoft"
 Assert-Throws { Get-MsDeployLocation -regKeyPath $regKeyWithNoInstallPath }
 
 # Test 2: Should throw when Get-ChildItem fails as MsDeploy not installed on the machine
-$msDeployNotFoundError = "Cannot find MsDeploy.exe location. Verify MsDeploy.exe is installed on $env:ComputeName and try operation again."
+$msDeployNotFoundError = "Cannot find MsDeploy.exe location. Verify MsDeploy.exe is installed on $env:ComputerName and try operation again."
 $inValidInstallPathRegKey = "HKLM:\SOFTWARE\Microsoft\IIS Extensions\Invalid"
 
 Assert-Throws { Get-MsDeployLocation -regKeyPath $inValidInstallPathRegKey } $msDeployNotFoundError 
