@@ -3,7 +3,7 @@
   "id": "vss-services-servicenowchangerequestmanagement",
   "name": "ServiceNow Change Management",
   "publisher": "ms-vscs-rm",
-  "version": "3.156.0",
+  "version": "3.156.1",
   "public": true,
   "description": "Integrate ServiceNow Change Management with Azure Pipelines",
   "categories": [
@@ -171,6 +171,32 @@
             "callbackContextTemplate": "{\"skip\": \"{{add skip 1000}}\"}",
             "callbackRequiredTemplate": "{{isEqualNumber result.count 1000}}",
             "initialContextTemplate": "{\"skip\": \"0\"}"
+          },
+          {
+            "name": "AccessToken",
+            "endpointUrl": "{{{configuration.Url}}}/oauth_token.do",
+            "requestVerb": "Post",
+            "requestContent": "grant_type=authorization_code&code={{{AuthorizationCode}}}&client_id={{{configuration.ClientId}}}&client_secret={{{configuration.ClientSecret}}}&redirect_uri={{{RedirectUrl}}}",
+            "resultSelector": "jsonpath:$",
+            "headers": [
+              {
+                "name": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ]
+          },
+          {
+            "name": "RefreshToken",
+            "endpointUrl": "{{{configuration.Url}}}/oauth_token.do",
+            "requestVerb": "Post",
+            "requestContent": "grant_type=refresh_token&refresh_token={{{RefreshToken}}}&client_id={{{configuration.ClientId}}}&client_secret={{{configuration.ClientSecret}}}",
+            "resultSelector": "jsonpath:$",
+            "headers": [
+              {
+                "name": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ]
           }
         ],
         "authenticationSchemes": [
@@ -197,6 +223,23 @@
                   "isRequired": false,
                   "dataType": "string"
                 }
+              }
+            ]
+          },
+          {
+            "displayName": "i18n:OAuth2",
+            "type": "ms.vss-endpoint.endpoint-auth-scheme-oauth2",
+            "authorizationUrl": "{{{configuration.Url}}}/oauth_auth.do?client_id={{{configuration.ClientId}}}&response_type=code&redirect_uri={{{RedirectUrl}}}",
+            "dataSourceBindings": [
+              {
+                "target": "AccessToken",
+                "dataSourceName": "AccessToken",
+                "resultTemplate": "{\"AccessToken\" : \"{{{access_token}}}\", \"RefreshToken\" : \"{{{refresh_token}}}\", \"ExpiresIn\" : \"{{{expires_in}}}\", \"TokenType\" : \"{{{token_type}}}\", \"Scope\" : \"{{{scope}}}\", \"Error\" : \"{{{error}}}\", \"ErrorDescription\" : \"{{{error_description}}}\"}"
+              },
+              {
+                "target": "RefreshToken",
+                "dataSourceName": "RefreshToken",
+                "resultTemplate": "{\"AccessToken\" : \"{{{access_token}}}\", \"RefreshToken\" : \"{{{refresh_token}}}\", \"ExpiresIn\" : \"{{{expires_in}}}\", \"TokenType\" : \"{{{token_type}}}\", \"Scope\" : \"{{{scope}}}\", \"Error\" : \"{{{error}}}\", \"ErrorDescription\" : \"{{{error_description}}}\"}"
               }
             ]
           }
