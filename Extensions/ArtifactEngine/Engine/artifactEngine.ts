@@ -156,8 +156,8 @@ export class ArtifactEngine {
 
     private getRetryIntervalInSeconds(baseRetryInterval: number, retryCount: number): number {
         let MaxRetryLimitInSeconds = 360;
-        var exponentialBackOff = baseRetryInterval * (3 ^ (retryCount + 1));
-        return exponentialBackOff < MaxRetryLimitInSeconds ? exponentialBackOff : MaxRetryLimitInSeconds ;
+        var exponentialBackOff = baseRetryInterval * Math.pow(3, (retryCount + 1));
+        return exponentialBackOff < MaxRetryLimitInSeconds ? exponentialBackOff : MaxRetryLimitInSeconds;
     }
 
     createPatternList(artifactEngineOptions: ArtifactEngineOptions) {
