@@ -176,7 +176,7 @@
             "name": "AccessToken",
             "endpointUrl": "{{{configuration.Url}}}/oauth_token.do",
             "requestVerb": "Post",
-            "requestContent": "grant_type=authorization_code&code={{{AuthorizationCode}}}&client_id={{{configuration.ClientId}}}&client_secret={{{configuration.ClientSecret}}}&redirect_uri={{{RedirectUrl}}}",
+            "requestContent": "grant_type=authorization_code&code={{{#uriDataEncode 1 AuthorizationCode}}}{{{/uridataencode}}}&client_id={{{#uriDataEncode 1 configuration.ClientId}}}{{{/uridataencode}}}&client_secret={{{#uriDataEncode 1 configuration.ClientSecret}}}{{{/uridataencode}}}&redirect_uri={{{#uriDataEncode 1 RedirectUrl}}}{{{/uridataencode}}}",
             "resultSelector": "jsonpath:$",
             "headers": [
               {
@@ -189,7 +189,7 @@
             "name": "RefreshToken",
             "endpointUrl": "{{{configuration.Url}}}/oauth_token.do",
             "requestVerb": "Post",
-            "requestContent": "grant_type=refresh_token&refresh_token={{{RefreshToken}}}&client_id={{{configuration.ClientId}}}&client_secret={{{configuration.ClientSecret}}}",
+            "requestContent": "grant_type=refresh_token&refresh_token={{{#uriDataEncode 1 RefreshToken}}}{{{/uridataencode}}}&client_id={{{#uriDataEncode 1 configuration.ClientId}}}{{{/uridataencode}}}&client_secret={{{#uriDataEncode 1 configuration.ClientSecret}}}{{{/uridataencode}}}",
             "resultSelector": "jsonpath:$",
             "headers": [
               {
@@ -229,6 +229,12 @@
           {
             "displayName": "i18n:OAuth2",
             "type": "ms.vss-endpoint.endpoint-auth-scheme-oauth2",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{{endpoint.AccessToken}}}"
+              }
+            ],
             "authorizationUrl": "{{{configuration.Url}}}/oauth_auth.do?client_id={{{configuration.ClientId}}}&response_type=code&redirect_uri={{{RedirectUrl}}}",
             "dataSourceBindings": [
               {
