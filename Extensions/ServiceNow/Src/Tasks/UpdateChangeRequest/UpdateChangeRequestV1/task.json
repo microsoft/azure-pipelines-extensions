@@ -15,7 +15,7 @@
   "version": {
     "Major": 1,
     "Minor": 150,
-    "Patch": 0
+    "Patch": 1
   },
   "instanceNameFormat": "Update ServiceNow Change Request",
   "groups": [{
@@ -103,12 +103,14 @@
   "dataSourceBindings": [{
       "target": "NewStatus",
       "endpointId": "$(ServiceNowConnection)",
-      "dataSourceName": "State"
+      "dataSourceName": "State",
+      "resultTemplate": "{ \"Value\" : \"{{value}}\", \"DisplayValue\" : \"{{label}}\" }"
     },
     {
       "target": "CloseCode",
       "endpointId": "$(ServiceNowConnection)",
-      "dataSourceName": "Close code"
+      "dataSourceName": "Close code",
+      "resultTemplate": "{ \"Value\" : \"{{value}}\", \"DisplayValue\" : \"{{label}}\" }"
     }
   ],
 
