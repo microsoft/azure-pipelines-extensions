@@ -1,7 +1,7 @@
 {
     "manifestVersion": 1,
     "id": "geneva-monitor-extension",
-    "publisher": "testUsr",
+    "publisher": "ms-vscs-rm",
     "version": "1.0.0",
     "name": "Geneva Monitor Extension",
     "public": false,
