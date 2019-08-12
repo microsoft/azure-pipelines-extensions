@@ -3,7 +3,7 @@
   "id": "vss-services-servicenowchangerequestmanagement",
   "name": "ServiceNow Change Management",
   "publisher": "ms-vscs-rm",
-  "version": "3.156.4",
+  "version": "3.156.1",
   "public": true,
   "description": "Integrate ServiceNow Change Management with Azure Pipelines",
   "categories": [
@@ -170,6 +170,32 @@
             "callbackContextTemplate": "{\"skip\": \"{{add skip 1000}}\"}",
             "callbackRequiredTemplate": "{{isEqualNumber result.count 1000}}",
             "initialContextTemplate": "{\"skip\": \"0\"}"
+          },
+          {
+            "name": "AccessToken",
+            "endpointUrl": "{{{configuration.Url}}}/oauth_token.do",
+            "requestVerb": "Post",
+            "requestContent": "grant_type=authorization_code&code={{{#uriDataEncode 1 AuthorizationCode}}}{{{/uridataencode}}}&client_id={{{#uriDataEncode 1 configuration.ClientId}}}{{{/uridataencode}}}&client_secret={{{#uriDataEncode 1 configuration.ClientSecret}}}{{{/uridataencode}}}&redirect_uri={{{#uriDataEncode 1 RedirectUrl}}}{{{/uridataencode}}}",
+            "resultSelector": "jsonpath:$",
+            "headers": [
+              {
+                "name": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ]
+          },
+          {
+            "name": "RefreshToken",
+            "endpointUrl": "{{{configuration.Url}}}/oauth_token.do",
+            "requestVerb": "Post",
+            "requestContent": "grant_type=refresh_token&refresh_token={{{#uriDataEncode 1 RefreshToken}}}{{{/uridataencode}}}&client_id={{{#uriDataEncode 1 configuration.ClientId}}}{{{/uridataencode}}}&client_secret={{{#uriDataEncode 1 configuration.ClientSecret}}}{{{/uridataencode}}}",
+            "resultSelector": "jsonpath:$",
+            "headers": [
+              {
+                "name": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ]
           }
         ],
         "authenticationSchemes": [
@@ -196,6 +222,29 @@
                   "isRequired": false,
                   "dataType": "string"
                 }
+              }
+            ]
+          },
+          {
+            "displayName": "i18n:OAuth2",
+            "type": "ms.vss-endpoint.endpoint-auth-scheme-oauth2",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{{endpoint.AccessToken}}}"
+              }
+            ],
+            "authorizationUrl": "{{{configuration.Url}}}/oauth_auth.do?client_id={{{configuration.ClientId}}}&response_type=code&redirect_uri={{{RedirectUrl}}}",
+            "dataSourceBindings": [
+              {
+                "target": "AccessToken",
+                "dataSourceName": "AccessToken",
+                "resultTemplate": "{\"AccessToken\" : \"{{{access_token}}}\", \"RefreshToken\" : \"{{{refresh_token}}}\", \"ExpiresIn\" : \"{{{expires_in}}}\", \"TokenType\" : \"{{{token_type}}}\", \"Scope\" : \"{{{scope}}}\", \"Error\" : \"{{{error}}}\", \"ErrorDescription\" : \"{{{error_description}}}\"}"
+              },
+              {
+                "target": "RefreshToken",
+                "dataSourceName": "RefreshToken",
+                "resultTemplate": "{\"AccessToken\" : \"{{{access_token}}}\", \"RefreshToken\" : \"{{{refresh_token}}}\", \"ExpiresIn\" : \"{{{expires_in}}}\", \"TokenType\" : \"{{{token_type}}}\", \"Scope\" : \"{{{scope}}}\", \"Error\" : \"{{{error}}}\", \"ErrorDescription\" : \"{{{error_description}}}\"}"
               }
             ]
           }
