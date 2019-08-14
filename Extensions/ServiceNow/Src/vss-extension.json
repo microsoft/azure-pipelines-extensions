@@ -114,47 +114,46 @@
           {
             "name": "StandardChangeTemplate",
             "endpointUrl": "{{endpoint.url}}/api/now/table/sys_template?sysparm_query=table=change_request^active=true&sysparm_fields=sys_id,sys_name",
-            "resultSelector": "jsonpath:$.result[*]",
-            "resultTemplate": "{ \"Value\" : \"{{sys_id}}\", \"DisplayValue\" : \"{{sys_name}}\" }"
+            "resultSelector": "jsonpath:$.result[*]"
           },
           {
             "name": "Priority",
-            "endpointUrl": "{{endpoint.url}}/api/now/table/sys_choice?sysparm_query=element=priority^name={{table}}&sysparm_fields=label",
-            "resultSelector": "jsonpath:$.result[*].label",
+            "endpointUrl": "{{endpoint.url}}/api/now/table/sys_choice?sysparm_query=element=priority^name={{table}}^language=en&sysparm_fields=label,value",
+            "resultSelector": "jsonpath:$.result[*]",
             "callbackContextTemplate": "{\"table\": \"task\"}",
             "callbackRequiredTemplate": "{{#equals table \"change_request\"}}{{isEqualNumber result.count 0}}{{else}}false{{/equals}}",
             "initialContextTemplate": "{\"table\": \"change_request\"}"
           },
           {
             "name": "State",
-            "endpointUrl": "{{endpoint.url}}/api/now/table/sys_choice?sysparm_query=element=state^name={{table}}&sysparm_fields=label",
-            "resultSelector": "jsonpath:$.result[*].label",
+            "endpointUrl": "{{endpoint.url}}/api/now/table/sys_choice?sysparm_query=element=state^name={{table}}^language=en&sysparm_fields=label,value",
+            "resultSelector": "jsonpath:$.result[*]",
             "callbackContextTemplate": "{\"table\": \"task\"}",
             "callbackRequiredTemplate": "{{#equals table \"change_request\"}}{{isEqualNumber result.count 0}}{{else}}false{{/equals}}",
             "initialContextTemplate": "{\"table\": \"change_request\"}"
           },
           {
             "name": "Risk",
-            "endpointUrl": "{{endpoint.url}}/api/now/table/sys_choice?sysparm_query=name=change_request^element=Risk^ORDERBYDESCvalue&sysparm_fields=label",
-            "resultSelector": "jsonpath:$.result[*].label"
+            "endpointUrl": "{{endpoint.url}}/api/now/table/sys_choice?sysparm_query=element=Risk^name=change_request^language=en^ORDERBYDESCvalue&sysparm_fields=label,value",
+            "resultSelector": "jsonpath:$.result[*]"
           },
           {
             "name": "Impact",
-            "endpointUrl": "{{endpoint.url}}/api/now/table/sys_choice?sysparm_query=element=Impact^name={{table}}^ORDERBYDESCvalue&sysparm_fields=label",
-            "resultSelector": "jsonpath:$.result[*].label",
+            "endpointUrl": "{{endpoint.url}}/api/now/table/sys_choice?sysparm_query=element=Impact^name={{table}}^language=en^ORDERBYDESCvalue&sysparm_fields=label,value",
+            "resultSelector": "jsonpath:$.result[*]",
             "callbackContextTemplate": "{\"table\": \"task\"}",
             "callbackRequiredTemplate": "{{#equals table \"change_request\"}}{{isEqualNumber result.count 0}}{{else}}false{{/equals}}",
             "initialContextTemplate": "{\"table\": \"change_request\"}"
           },
           {
             "name": "Category",
-            "endpointUrl": "{{endpoint.url}}/api/now/table/sys_choice?sysparm_query=name=change_request^element=category^inactive!=true&sysparm_fields=label",
-            "resultSelector": "jsonpath:$.result[*].label"
+            "endpointUrl": "{{endpoint.url}}/api/now/table/sys_choice?sysparm_query=name=change_request^element=category^inactive!=true^language=en&sysparm_fields=label,value",
+            "resultSelector": "jsonpath:$.result[*]"
           },
           {
             "name": "Close code",
-            "endpointUrl": "{{endpoint.url}}/api/now/table/sys_choice?sysparm_query=element=Close_Code^ORDERBYDESCvalue&sysparm_fields=label&name=change_request",
-            "resultSelector": "jsonpath:$.result[*].label"
+            "endpointUrl": "{{endpoint.url}}/api/now/table/sys_choice?sysparm_query=element=name=change_request^Close_Code^language=en^ORDERBYDESCvalue&sysparm_fields=label,value",
+            "resultSelector": "jsonpath:$.result[*]"
           },
           {
             "name": "Configuration Item",

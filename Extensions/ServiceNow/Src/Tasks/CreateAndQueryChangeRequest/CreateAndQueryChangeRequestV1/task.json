@@ -15,7 +15,7 @@
   "version": {
     "Major": 1,
     "Minor": 150,
-    "Patch": 0
+    "Patch": 1
   },
   "instanceNameFormat": "ServiceNow change management",
   "groups": [{
@@ -275,27 +275,32 @@
     {
       "target": "priority",
       "endpointId": "$(ServiceNowConnection)",
-      "dataSourceName": "Priority"
+      "dataSourceName": "Priority",
+      "resultTemplate": "{ \"Value\" : \"{{value}}\", \"DisplayValue\" : \"{{label}}\" }"
     },
     {
       "target": "risk",
       "endpointId": "$(ServiceNowConnection)",
-      "dataSourceName": "Risk"
+      "dataSourceName": "Risk",
+      "resultTemplate": "{ \"Value\" : \"{{value}}\", \"DisplayValue\" : \"{{label}}\" }"
     },
     {
       "target": "impact",
       "endpointId": "$(ServiceNowConnection)",
-      "dataSourceName": "Impact"
+      "dataSourceName": "Impact",
+      "resultTemplate": "{ \"Value\" : \"{{value}}\", \"DisplayValue\" : \"{{label}}\" }"
     },
     {
       "target": "category",
       "endpointId": "$(ServiceNowConnection)",
-      "dataSourceName": "Category"
+      "dataSourceName": "Category",
+      "resultTemplate": "{ \"Value\" : \"{{value}}\", \"DisplayValue\" : \"{{label}}\" }"
     },
     {
       "target": "DesiredExitStatus",
       "endpointId": "$(ServiceNowConnection)",
-      "dataSourceName": "State"
+      "dataSourceName": "State",
+      "resultTemplate": "{ \"Value\" : \"{{value}}\", \"DisplayValue\" : \"{{label}}\" }"
     },
     {
       "target": "configurationitem",
@@ -329,7 +334,7 @@
         {
           "RequestInputs": {
             "EndpointId": "$(ServiceNowConnection)",
-            "EndpointUrl": "$(endpoint.url)/api/now/table/change_request/$(CHANGE_SYSTEM_ID)?sysparm_fields=state,number&&sysparm_display_value=true",
+            "EndpointUrl": "$(endpoint.url)/api/now/table/change_request/$(CHANGE_SYSTEM_ID)?sysparm_fields=state,number",
             "Method": "GET",
             "Headers": "{\"Content-Type\":\"application/json\", \"Accept\":\"application/json\"}",
             "WaitForCompletion": "false",
@@ -343,7 +348,7 @@
         {
           "RequestInputs": {
             "EndpointId": "$(ServiceNowConnection)",
-            "EndpointUrl": "$(endpoint.url)/api/now/table/change_request?number=$(changeRequestNumber)&sysparm_fields=number,sys_id,correlation_id&&sysparm_display_value=true",
+            "EndpointUrl": "$(endpoint.url)/api/now/table/change_request?number=$(changeRequestNumber)&sysparm_fields=number,sys_id,correlation_id",
             "Method": "GET",
             "Headers": "{\"Content-Type\":\"application/json\", \"Accept\":\"application/json\"}",
             "WaitForCompletion": "false",
@@ -357,7 +362,7 @@
         {
           "RequestInputs": {
             "EndpointId": "$(ServiceNowConnection)",
-            "EndpointUrl": "$(endpoint.url)/api/now/table/change_request?sysparm_query=$(queryString)&sysparm_fields=number,sys_id,correlation_id&&sysparm_display_value=true",
+            "EndpointUrl": "$(endpoint.url)/api/now/table/change_request?sysparm_query=$(queryString)&sysparm_fields=number,sys_id,correlation_id",
             "Method": "GET",
             "Headers": "{\"Content-Type\":\"application/json\", \"Accept\":\"application/json\"}",
             "WaitForCompletion": "false",
@@ -386,7 +391,7 @@
         {
           "RequestInputs": {
             "EndpointId": "$(ServiceNowConnection)",
-            "EndpointUrl": "$(endpoint.url)/api/now/table/change_request?sysparm_query=number=$(changeRequestNumber)&sysparm_fields=sys_id,state,number&&sysparm_display_value=true",
+            "EndpointUrl": "$(endpoint.url)/api/now/table/change_request?sysparm_query=number=$(changeRequestNumber)&sysparm_fields=sys_id,state,number",
             "Method": "GET",
             "Headers": "{\"Content-Type\":\"application/json\", \"Accept\":\"application/json\"}",
             "WaitForCompletion": "false",
@@ -400,7 +405,7 @@
         {
           "RequestInputs": {
             "EndpointId": "$(ServiceNowConnection)",
-            "EndpointUrl": "$(endpoint.url)/api/now/table/change_request?sysparm_query=$(queryString)&sysparm_fields=sys_id,state,number&&sysparm_display_value=true",
+            "EndpointUrl": "$(endpoint.url)/api/now/table/change_request?sysparm_query=$(queryString)&sysparm_fields=sys_id,state,number",
             "Method": "GET",
             "Headers": "{\"Content-Type\":\"application/json\", \"Accept\":\"application/json\"}",
             "WaitForCompletion": "false",
