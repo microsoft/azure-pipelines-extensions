@@ -108,6 +108,8 @@
     }
   },
   "messages": {
-    "DownloadArtifacts": "ms-resource:loc.messages.DownloadArtifacts"
+    "DownloadArtifacts": "Downloading artifacts from : %s",
+    "ArtifactsSuccessfullyDownloaded": "Successfully downloaded artifacts to %s",
+    "UnsupportedArtifactType": "Unsupported artifact type: %s"
   }
 }
