@@ -15,7 +15,7 @@
   "version": {
     "Major": 1,
     "Minor": 150,
-    "Patch": 1
+    "Patch": 18
   },
   "instanceNameFormat": "ServiceNow change management",
   "groups": [{
@@ -255,6 +255,22 @@
       "groupName": "advancedInputs"
     },
     {
+      "name": "successCriteria",
+      "type": "pickList",
+      "label": "Success criteria",
+      "defaultValue": "desiredStatus",
+      "options": {
+        "advanced": "Advanced success criteria",
+        "desiredStatus": "Desired status of change request"
+      },
+      "required": "false",
+      "helpMarkDown": "Choose success criteria for change request.",
+      "properties": {
+         "EditableOptions": "false"
+      },
+      "groupName": "completionOptions"
+    },
+    {
       "name": "DesiredExitStatus",
       "type": "pickList",
       "label": "Desired status of change request",
@@ -263,7 +279,17 @@
       "helpMarkDown": "Choose or type status of change request that indicates the change request is ready to be implemented. Gate would succeed when the the change request status is same as the provided value.",
       "properties": {
         "EditableOptions": "True"
-      }
+      },
+      "visibleRule": "successCriteria = desiredStatus"
+    },
+    {
+      "name": "AdvancedSuccessCriteria",
+      "type": "string",
+      "label": "Advanced success criteria.",
+      "required": "false",
+      "groupName": "completionOptions",
+      "helpMarkDown": "Type complex expression for success criteria.",
+      "visibleRule": "successCriteria = advanced"
     }
   ],
   "dataSourceBindings": [{
@@ -334,20 +360,6 @@
         {
           "RequestInputs": {
             "EndpointId": "$(ServiceNowConnection)",
-            "EndpointUrl": "$(endpoint.url)/api/now/table/change_request/$(CHANGE_SYSTEM_ID)?sysparm_fields=state,number",
-            "Method": "GET",
-            "Headers": "{\"Content-Type\":\"application/json\", \"Accept\":\"application/json\"}",
-            "WaitForCompletion": "false",
-            "Expression": "eq(jsonpath('$.result.state')[0], '$(DesiredExitStatus)')"
-          },
-          "ExecutionOptions": {
-            "OutputVariables": "{\"CHANGE_REQUEST_NUMBER\" :  \"jsonpath('$.result.number')[0]\"}",
-            "SkipSectionExpression": "or(eq(eq(taskInputs['changeRequestAction'], 'createNew'), false), and(eq(taskInputs['changeRequestAction'], 'createNew'), eq(isNullOrEmpty(variables['CHANGE_SYSTEM_ID']), true)))"
-          }
-        },
-        {
-          "RequestInputs": {
-            "EndpointId": "$(ServiceNowConnection)",
             "EndpointUrl": "$(endpoint.url)/api/now/table/change_request?number=$(changeRequestNumber)&sysparm_fields=number,sys_id,correlation_id",
             "Method": "GET",
             "Headers": "{\"Content-Type\":\"application/json\", \"Accept\":\"application/json\"}",
@@ -355,7 +367,7 @@
             "Expression": "eq(count(root['result']), 1)"
           },
           "ExecutionOptions": {
-            "OutputVariables": "{\"CHANGE_REQUEST_NUMBER\" :  \"jsonpath('$.result[0].number')[0]\", \"CHANGE_CORRELATION_ID\" :  \"jsonpath('$.result[0].correlation_id')[0]\"}",
+            "OutputVariables": "{\"CHANGE_REQUEST_NUMBER\" :  \"jsonpath('$.result[0].number')[0]\", \"CHANGE_CORRELATION_ID\" :  \"jsonpath('$.result[0].correlation_id')[0]\", \"CHANGE_SYSTEM_ID\" :  \"jsonpath('$.result[0].sys_id')[0]\"}",
             "SkipSectionExpression": "or(eq(eq(taskInputs['changeRequestAction'], 'useExisting'), false), and( eq(taskInputs['changeRequestAction'], 'useExisting'), eq(eq(taskInputs['changeQueryCriteria'], 'changeRequestNumber'), false)),and( eq(taskInputs['changeRequestAction'], 'useExisting'), eq(taskInputs['changeQueryCriteria'], 'changeRequestNumber'),eq(isNullOrEmpty(variables['CHANGE_REQUEST_NUMBER']), false)))"
           }
         },
@@ -369,7 +381,7 @@
             "Expression": "eq(count(root['result']), 1)"
           },
           "ExecutionOptions": {
-            "OutputVariables": "{\"CHANGE_REQUEST_NUMBER\" :  \"jsonpath('$.result[0].number')[0]\", \"CHANGE_CORRELATION_ID\" :  \"jsonpath('$.result[0].correlation_id')[0]\"}",
+            "OutputVariables": "{\"CHANGE_REQUEST_NUMBER\" :  \"jsonpath('$.result[0].number')[0]\", \"CHANGE_CORRELATION_ID\" :  \"jsonpath('$.result[0].correlation_id')[0]\", \"CHANGE_SYSTEM_ID\" :  \"jsonpath('$.result[0].sys_id')[0]\"}",
             "SkipSectionExpression": "or(eq(eq(taskInputs['changeRequestAction'], 'useExisting'), false), and( eq(taskInputs['changeRequestAction'], 'useExisting'), eq(eq(taskInputs['changeQueryCriteria'], 'queryString'), false)),and( eq(taskInputs['changeRequestAction'], 'useExisting'), eq(taskInputs['changeQueryCriteria'], 'queryString'),eq(isNullOrEmpty(variables['CHANGE_REQUEST_NUMBER']), false)))"
           }
         },
@@ -391,29 +403,29 @@
         {
           "RequestInputs": {
             "EndpointId": "$(ServiceNowConnection)",
-            "EndpointUrl": "$(endpoint.url)/api/now/table/change_request?sysparm_query=number=$(changeRequestNumber)&sysparm_fields=sys_id,state,number",
+            "EndpointUrl": "$(endpoint.url)/api/now/table/change_request/$(CHANGE_SYSTEM_ID)?sysparm_display_value=true",
             "Method": "GET",
             "Headers": "{\"Content-Type\":\"application/json\", \"Accept\":\"application/json\"}",
             "WaitForCompletion": "false",
-            "Expression": "and(eq(count(root['result']), 1), eq(jsonpath('$.result[0].state')[0], '$(DesiredExitStatus)'))"
+            "Expression": "$(AdvancedSuccessCriteria)"
           },
           "ExecutionOptions": {
-            "OutputVariables": "{ \"CHANGE_REQUEST_NUMBER\" :  \"jsonpath('$.result[0].number')[0]\", \"CHANGE_SYSTEM_ID\" :  \"jsonpath('$.result[0].sys_id')[0]\"}",
-            "SkipSectionExpression": "or(eq(eq(taskInputs['changeRequestAction'], 'useExisting'), false), and(eq(taskInputs['changeRequestAction'], 'useExisting'), eq(eq(taskInputs['changeQueryCriteria'], 'changeRequestNumber'), false)))"
+            "OutputVariables": "{\"CHANGE_REQUEST_NUMBER\" :  \"jsonpath('$.result.number')[0]\"}",
+            "SkipSectionExpression": "or(eq('$(successCriteria)', 'desired'),eq(isNullOrEmpty(variables['CHANGE_SYSTEM_ID']), true))"
           }
         },
         {
           "RequestInputs": {
             "EndpointId": "$(ServiceNowConnection)",
-            "EndpointUrl": "$(endpoint.url)/api/now/table/change_request?sysparm_query=$(queryString)&sysparm_fields=sys_id,state,number",
+            "EndpointUrl": "$(endpoint.url)/api/now/table/change_request/$(CHANGE_SYSTEM_ID)?sysparm_fields=state,number",
             "Method": "GET",
             "Headers": "{\"Content-Type\":\"application/json\", \"Accept\":\"application/json\"}",
             "WaitForCompletion": "false",
-            "Expression": "and(eq(count(root['result']), 1), eq(jsonpath('$.result[0].state')[0], '$(DesiredExitStatus)'))"
+            "Expression": "eq(jsonpath('$.result.state')[0],'$(DesiredExitStatus)')"
           },
           "ExecutionOptions": {
-            "OutputVariables": "{\"CHANGE_REQUEST_NUMBER\" :  \"jsonpath('$.result[0].number')[0]\", \"CHANGE_SYSTEM_ID\" :  \"jsonpath('$.result[0].sys_id')[0]\"}",
-            "SkipSectionExpression": "or(eq(eq(taskInputs['changeRequestAction'], 'useExisting'), false), and(eq(taskInputs['changeRequestAction'], 'useExisting'), eq(eq(taskInputs['changeQueryCriteria'], 'queryString'), false)))"
+            "OutputVariables": "{\"CHANGE_REQUEST_NUMBER\" :  \"jsonpath('$.result.number')[0]\"}",
+            "SkipSectionExpression": "or(eq('$(successCriteria)', 'advanced'),eq(isNullOrEmpty(variables['CHANGE_SYSTEM_ID']), true))"
           }
         }
       ]
