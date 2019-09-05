@@ -56,8 +56,7 @@
             },
             "ExecutionOptions": {
               "OutputVariables": {
-                  "responseObj": "addFieldToJsonAndSerialize(addObjectToJsonAndSerialize('$.variables', '$(releaseVariableName)', '{\"isSecret\":\"$(isSecret)\"}'), '$.variables.$(releaseVariableName)', 'value', variables['$(stageVariableName)'])",
-                  "stageVar": "variables['$(stageVariableName)']"
+                  "responseObj": "addFieldToJsonAndSerialize(addObjectToJsonAndSerialize('$.variables', '$(releaseVariableName)', '{\"isSecret\":\"$(isSecret)\"}'), '$.variables.$(releaseVariableName)', 'value', variables['$(stageVariableName)'])"
                 }
             }
           },

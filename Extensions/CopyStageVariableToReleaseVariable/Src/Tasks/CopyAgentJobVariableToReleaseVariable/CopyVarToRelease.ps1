@@ -8,8 +8,8 @@ Import-VstsLocStrings -LiteralPath $env:CURRENT_TASK_ROOTDIR\task.json
 
 try
 {
-    $stageVariableNames = Get-VstsInput -Name StageVariableNames -Require
-    $releaseVariableNames = Get-VstsInput -Name ReleaseVariableNames
+    $stageVariableNames = Get-VstsInput -Name stageVariableNames -Require
+    $releaseVariableNames = Get-VstsInput -Name releaseVariableNames
     $stageVariableNamesArray = $stageVariableNames.Split(',', [System.StringSplitOptions]::RemoveEmptyEntries)
     $releaseVariableNamesArray = @()
     if (!$releaseVariableNames)
@@ -49,7 +49,7 @@ try
     {
         $stageVariableValue = Get-VstsTaskVariable -Name $stageVariableNamesArray[$i] -Require
         $value = [PSCustomObject]@{value=$stageVariableValue}
-        Write-Verbose (Get-VstsLocString -Key "AssignReleaseVariable" -ArgumentList @($stageVariableNamesArray[$i], $releaseVariableNamesArray[$i]))
+        Write-Host (Get-VstsLocString -Key "PS_AssignReleaseVariable" -ArgumentList $stageVariableNamesArray[$i], $releaseVariableNamesArray[$i])
         $release.variables | Add-Member -Name $releaseVariableNamesArray[$i] -MemberType NoteProperty -Value $value -Force
     }
 
@@ -57,7 +57,8 @@ try
     $updatedRelease = [Text.Encoding]::UTF8.GetBytes($updatedRelease)
 
     Write-Verbose "Updating release.."
-    $content2 = Invoke-RestMethod -Uri $releaseUri -Method Put -Headers $headers -ContentType "application/json" -Body $updatedRelease -Verbose -Debug
+    $content = Invoke-RestMethod -Uri $releaseUri -Method Put -Headers $headers -ContentType "application/json" -Body $updatedRelease -Verbose -Debug
+    Write-Host (Get-VstsLocString -Key "PS_UpdatedRelease" -ArgumentList $content.id)
 } 
 finally {
 	Trace-VstsLeavingInvocation $MyInvocation
