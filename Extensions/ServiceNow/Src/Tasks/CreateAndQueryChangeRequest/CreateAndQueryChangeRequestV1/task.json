@@ -15,7 +15,7 @@
   "version": {
     "Major": 1,
     "Minor": 150,
-    "Patch": 18
+    "Patch": 2
   },
   "instanceNameFormat": "ServiceNow change management",
   "groups": [{
