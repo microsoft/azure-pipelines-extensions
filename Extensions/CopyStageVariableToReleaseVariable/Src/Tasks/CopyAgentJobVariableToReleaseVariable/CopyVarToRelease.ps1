@@ -34,12 +34,17 @@ try
     $endpoint = Get-VstsEndpoint -Name SystemVssConnection -Require
     $accessToken = [string]($endpoint.auth.parameters.AccessToken)
 
+    if(!$accessToken)
+    {
+        Throw (Get-VstsLocString -Key "PS_AccessTokenNotAvailable")
+    }
+
     $ba = (":{0}" -f $accessToken)
     $ba = [System.Text.Encoding]::UTF8.GetBytes($ba)
     $ba = [System.Convert]::ToBase64String($ba)
     $headers = @{Authorization=("Basic{0}" -f $ba);ContentType="application/json"}
 
-    $releaseUri = "$collectionUri/$teamProject/_apis/release/releases/$releaseId" + "?api-version=5.0"
+    $releaseUri = "$collectionUri/$teamProject/_apis/release/releases/$releaseId" + "?api-version=5.1"
 
     Write-Verbose "Fetching release.."
 

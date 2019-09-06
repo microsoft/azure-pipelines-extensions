@@ -50,6 +50,8 @@
     },
     "messages":{
       "ReleaseVarLengthShoulbeSameAsStageVarLength" : "The number of release variable names for stage variable names does not match. Please specify a release variable name for every stage variable specified.",
+      "JS_AccessTokenNotAvailable": "Failed to get access token.",
+      "PS_AccessTokenNotAvailable": "Failed to get access token.",
       "JS_AssignReleaseVariable" : "Assigning the value of %s to release variable %s",
       "PS_AssignReleaseVariable" : "Assigning the value of {0} to release variable {1}",
       "FailedToFetchRelease": "Failed to get release.",

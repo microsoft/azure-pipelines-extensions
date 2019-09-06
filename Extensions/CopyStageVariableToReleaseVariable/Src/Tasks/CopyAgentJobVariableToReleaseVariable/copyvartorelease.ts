@@ -18,6 +18,7 @@ async function run() {
         }
         else
         {
+            tl.debug("Creating release variables with the same name as the stage variables");
             releaseVariableNamesArray = stageVariableNamesArray;
         }
 
@@ -26,16 +27,23 @@ async function run() {
         var releaseId = tl.getVariable("Release.ReleaseId");
 
         const accessToken: string = tl.getEndpointAuthorizationParameter('SYSTEMVSSCONNECTION', 'ACCESSTOKEN', false);
+        if (!accessToken)
+        {
+            throw new Error(tl.loc("JS_AccessTokenNotAvailable"));
+        }
 
         let authHandler = azdev.getHandlerFromToken(accessToken);
         let connection = new azdev.WebApi(collectionUri, authHandler);    
         let releaseApiObject: ReleaseApi.IReleaseApi  = await connection.getReleaseApi();
 
         tl.debug("Get release");
-        var release: ReleaseInterfaces.Release = await releaseApiObject.getRelease(teamProject, releaseId);
-        if (!release)
+        try
         {
-            throw new Error("FailedToFetchRelease");
+            var release: ReleaseInterfaces.Release = await releaseApiObject.getRelease(teamProject, releaseId);
+        }
+        catch(error)
+        {
+            throw new Error(tl.loc("FailedToFetchRelease", error));
         }
 
         var variables  = release.variables;
@@ -46,6 +54,7 @@ async function run() {
             console.log(tl.loc("JS_AssignReleaseVariable", stageVariableNamesArray[i], releaseVariableNamesArray[i]));
             variables[releaseVariableNamesArray[i]] = configurationVariableValue;
         }
+
         try
         {
             var updatedRelease = await releaseApiObject.updateRelease(release, teamProject, releaseId);
