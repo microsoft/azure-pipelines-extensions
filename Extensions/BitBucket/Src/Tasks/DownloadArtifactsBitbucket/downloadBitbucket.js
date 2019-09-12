@@ -32,11 +32,13 @@ var options = {
 
 https.request(options, function (rs) {
     var result;
+    var response = '';
     rs.on('data', function (data) {
         tl.debug("repository details:" + data)
-        result = JSON.parse(data);
+        response += data
     });
     rs.on('end', function () {
+        result = JSON.parse(response);
         tl.debug("result:" + JSON.stringify(result));
         var sch = new scw.SourceControlWrapper(result.scm);
         
