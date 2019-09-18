@@ -36,7 +36,7 @@ export class TerraformCommandHandlerAzureRM extends BaseTerraformCommandHandler 
             process.env['ARM_TENANT_ID']        = tasks.getEndpointAuthorizationParameter(command.serviceProvidername, "tenantid", false);
             process.env['ARM_CLIENT_ID']        = tasks.getEndpointAuthorizationParameter(command.serviceProvidername, "serviceprincipalid", false);
             process.env['ARM_CLIENT_SECRET']    = tasks.getEndpointAuthorizationParameter(command.serviceProvidername, "serviceprincipalkey", false);
-            process.env['ARM_ENVIRONMENT']      = tasks.getEndpointDataParameter(command.serviceProvidername, "environment", true);
+            process.env['ARM_ENVIRONMENT']      = tasks.getEndpointDataParameter(command.serviceProvidername, "environment", false);
         }
     }
 }
