@@ -60,7 +60,7 @@
     },
     "files": [
         {
-            "path": "Tasks/TerraformTaskV0"
+            "path": "Tasks/TerraformTask"
         },
         {
             "path": "Tasks/TerraformInstaller"
@@ -116,11 +116,11 @@
                 "ms.vss-distributed-task.tasks"
             ],
             "properties": {
-                "name": "Tasks/TerraformTaskV0"
+                "name": "Tasks/TerraformTask"
             }
         },
         {
-            "id": "aws-enpoint-type",
+            "id": "aws-endpoint-type",
             "description": "Credentials for task invoking AWS services",
             "type": "ms.vss-endpoint.service-endpoint-type",
             "targets": [
