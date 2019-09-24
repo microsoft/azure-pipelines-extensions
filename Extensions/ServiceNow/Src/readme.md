@@ -7,7 +7,8 @@ With change management, your organization can reduce the risks associated with c
 
 This extension enables integration of ServiceNow Change Management with Azure Pipelines.
 
-**Note**: This extension works only with Azure DevOps Services and Azure DevOps Server 2019 Update 1 onwards.
+> [!NOTE] 
+> This extension works only with Azure DevOps Services and Azure DevOps Server 2019 Update 1 onwards..
 
 It includes 
 - A [release gate](https://docs.microsoft.com/en-us/azure/devops/pipelines/release/approvals/gates?view=vsts) to hold the pipeline till the change management process signals implementation for a change request. You can create a new change request for every deployment or use an existing change request.                     
@@ -17,52 +18,42 @@ The deployment process in Azure Pipelines helps automate the deployment and comp
 
 ## Usage
 #### Integration requires the [Azure Pipelines](https://store.servicenow.com/sn_appstore_store.do#!/store/application/fa788cb5dbb5630040669c27db961940) application to be installed on the ServiceNow instance.   
-   
-A service account (user) must be created in ServiceNow and granted the `x_mioms_azpipeline.pipelinesExecution` role. This user would be used for all the communication.
+
+For the two services to communicate, Azure DevOps should be registered in ServiceNow as an OAuth app. [Learn more](#Register Azure DevOps in ServiceNow as an OAuth App)
+As an alternative, you can also create service account (user) in ServiceNow and grant the `x_mioms_azpipeline.pipelinesExecution` role to it. The communication between the services would be Basic auth using this user.
 
 #### Create service connection for ServiceNow in Azure Pipelines
- 
- ##### Provide username and password for the service account configured previously.
+Service connection in Azure DevOps store the connection details for external services. The connection details are securely passed to tasks and gates during execution, hence enabling communication with the services.
+ServiceNow service connection supports two authentication types - Basic and oAuth. [Learn more](https://docs.microsoft.com/en-us/azure/devops/extend/develop/auth-schemes?view=azure-devops) about authentication schemes.
+
+> You must have a compatible Azure Pipelines application installed on the ServiceNow instance. 
+> It is recommended to use the latest version application and gate/task. 
+
+ ###### Basic authentication
+ This needs a service account (user) to be created in ServiceNow.
+ Provide username and password for the service account configured for basic auth.
 
 ![ServiceNow connection](images/servicenow_connection.png)
 
 Use **Verify connection** before using it in the gate or task. 
-
- #### Register Azure DevOps in ServiceNow as an OAuth App
-
- If you plan to use OAuth to connect to your ServiceNow instance from Azure DevOps account, you first need to register the Azure DevOps as an OAuth app in ServiceNow. For details see [Creating an endpoint for clients to acccess the ServiceNow instance.](https://docs.servicenow.com/bundle/newyork-platform-administration/page/administer/security/task/t_CreateEndpointforExternalClients.html)
-
-Procedure
-
-1. Navigate to **System OAuth > Application Registry** and then click **New**.
-2. On the interceptor page, click **Create an OAuth API endpoint for external clients** and then fill in the form. For the Redirect URL, use the following pattern to construct the URL.
-{Azure DevOps Services Organization URL}/_admin/oauth2/callback
-For example: http://dev.azure.com/fabrikam/_admin/oauth2/callback
-3. Click **Submit**.
-4. Upon submission, you will see a page provides the **Client ID** and **Client secret** for your registered OAuth application.
-
-#### Register your OAuth configuration in Azure DevOps Services
-
-1. Sign into the web portal for Azure DevOps Services.
-2. Add the ServiceNow OAuth configuration to your organization.
-3. Open **Organization settings>Oauth configurations** and choose **Add Oauth configuration**.
+ 
+#### oAuth2 authentication
+This needs Azure DevOps to be registered in ServiceNow as an OAuth app.
+Two steps are required for using oAuth2 authentication.
+##### Register your OAuth configuration in Azure DevOps Services
+1. Sign into Azure DevOps Services.
+2. Add oAuth configuration from  **Organization settings>Oauth configurations**
 
 ![Add Oauth configuration](images/add-oauth-configuration-organization.png)
 
-4. Fill in the form that appears and then choose **Create**. 
+3. Create an oAuth configurion using the oAuth application details obtained while registering Azure DevOps as an OAuth app in ServiceNow. 
 
 ![Add OAuth configuration](images/add-oauth-configuration.png)
 
-#### Create OAuth service connection for ServiceNow in Azure Pipelines
+##### Create OAuth service connection for ServiceNow
+ Use the OAuth configuration created above and provide the ServiceNow instance Url.
  
- ##### Provide OAuth configuration configured previously for your ServiceNow instance.
-
  ![Add OAuth service connection](images/oauth_servicenow_connection.png)
-
-
-You must have a compatible Azure Pipelines application installed on the ServiceNow instance. 
-It is recommended to use the latest version application and gate/task. 
-
 
 #### Configure a release gate for ServiceNow Change Management.
 
@@ -90,7 +81,7 @@ Additional properties can be set in the created change request using the followi
 - **Impact**: The effect that the change has on business.
 - **Configuration Item**: Configuration item (CI) that the change applies to.
 - **Assignment group**:  The group that the change is assigned to.
-- **Schedule of change request**: Schedule of the change as honored by the ServiceNow workflow.                                                                                                                 Date and time should be in UTC and format should be `yyyy-MM-ddTHH:mm:ssZ. eg. 2018-01-31T07:56:59Z.`
+- **Schedule of change request**: Schedule of the change as honored by the ServiceNow workflow. Date and time should be in UTC and format should be `yyyy-MM-ddTHH:mm:ssZ. eg. 2018-01-31T07:56:59Z.`
 - **Additional change request parameters**:  Additional properties of the change request to set.                                                                                      Name must be field name (not label) prefixed with 'u_' `eg. u_backout_plan`.                                                            Value must be a valid, accepted value in ServiceNow. Invalid entries are ignored.
 
 **Gate Success Criteria** :
@@ -98,7 +89,7 @@ Additional properties can be set in the created change request using the followi
 - **Advanced**: Specifies an expression that controls when this gate should succeed. Example - `and(eq(root['result'].state, 'New'),eq(root['result'].risk, 'Low'))`. [More information on expressions](https://docs.microsoft.com/en-us/azure/devops/pipelines/process/expressions?view=azure-devops)
 
 **Gate Output Variables** :                                                                                                             
-ServiceNow gate produces output variables.                                                                                               You must specify reference name to be able to use these output variables in the deployment workflow. Gate variables can be accessed by using `"PREDEPLOYGATE"` as a `prefix`. For eg. when reference name is set to 'gate1', then the change number can be obtained as `$(PREDEPLOYGATE.gate1.CHANGE_REQUEST_NUMBER)`.
+ServiceNow gate produces output variables.                                                                                               You must specify reference name to be able to use these output variables in the deployment workflow. Gate variables can be accessed by using `"PREDEPLOYGATE"` as a `prefix` in an agentless job in the workflow. For eg. when reference name is set to 'gate1', then the change number can be obtained as `$(PREDEPLOYGATE.gate1.CHANGE_REQUEST_NUMBER)`.
 
 - **CHANGE_REQUEST_NUMBER** : Number of the change request.
 - **CHANGE_SYSTEM_ID** : Sys Id of the change request.
@@ -116,7 +107,23 @@ ServiceNow gate produces output variables.                                     
 - **Work notes**: Work notes for the change request.
 - **Additional change request parameters**:  Additional properties of the change request to set.
 
-## Steps to add mapping for custom fields in Import set transform map :
+The update task would fail if none of the fields in the change request are updated during the execution of the task. ServiceNow ignores invalid fields and values passed to the task. 
+
+## FAQs
+### Register Azure DevOps in ServiceNow as an OAuth App
+
+If you plan to use OAuth to connect to your ServiceNow instance from Azure DevOps account, you first need to register the Azure DevOps as an OAuth app in ServiceNow. For details see [Creating an endpoint for clients to acccess the ServiceNow instance.](https://docs.servicenow.com/bundle/newyork-platform-administration/page/administer/security/task/t_CreateEndpointforExternalClients.html)
+
+##### Procedure
+
+1. Navigate to **System OAuth > Application Registry** and then click **New**.
+2. On the interceptor page, click **Create an OAuth API endpoint for external clients** and then fill in the form. For the Redirect URL, use the following pattern to construct the URL.
+{Azure DevOps Services Organization URL}/_admin/oauth2/callback
+For example: http://dev.azure.com/fabrikam/_admin/oauth2/callback
+3. Click **Submit**.
+4. Upon submission, you will see a page provides the **Client ID** and **Client secret** for your registered OAuth application.
+
+### Steps to add mapping for custom fields in Import set transform map :
 
 ##### In order to insert custom fields for a change request (using additional change request parameters), please add mapping of the custom fields in import set transform map by following below steps:
 
