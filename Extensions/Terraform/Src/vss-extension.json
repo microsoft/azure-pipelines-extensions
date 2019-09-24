@@ -60,7 +60,7 @@
     },
     "files": [
         {
-            "path": "Tasks/TerraformTaskV1"
+            "path": "Tasks/TerraformTaskV0"
         },
         {
             "path": "Tasks/TerraformInstaller"
@@ -116,7 +116,7 @@
                 "ms.vss-distributed-task.tasks"
             ],
             "properties": {
-                "name": "Tasks/TerraformTaskV1"
+                "name": "Tasks/TerraformTaskV0"
             }
         },
         {
