@@ -29,7 +29,7 @@ ServiceNow service connection supports two authentication types - Basic and oAut
 > You must have a compatible Azure Pipelines application installed on the ServiceNow instance. 
 > It is recommended to use the latest version application and gate/task. 
 
- ###### Basic authentication
+ ##### Basic authentication
  This needs a service account (user) to be created in ServiceNow.
  Provide username and password for the service account configured for basic auth.
 
@@ -37,10 +37,10 @@ ServiceNow service connection supports two authentication types - Basic and oAut
 
 Use **Verify connection** before using it in the gate or task. 
  
-#### oAuth2 authentication
+##### oAuth2 authentication
 This needs Azure DevOps to be registered in ServiceNow as an OAuth app.
 Two steps are required for using oAuth2 authentication.
-##### Register your OAuth configuration in Azure DevOps Services
+###### Register your OAuth configuration in Azure DevOps Services
 1. Sign into Azure DevOps Services.
 2. Add oAuth configuration from  **Organization settings>Oauth configurations**
 
@@ -50,7 +50,7 @@ Two steps are required for using oAuth2 authentication.
 
 ![Add OAuth configuration](images/add-oauth-configuration.png)
 
-##### Create OAuth service connection for ServiceNow
+###### Create OAuth service connection for ServiceNow
  Use the OAuth configuration created above and provide the ServiceNow instance Url.
  
  ![Add OAuth service connection](images/oauth_servicenow_connection.png)
