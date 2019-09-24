@@ -45,11 +45,11 @@ export class TerraformCommandHandlerGCP extends BaseTerraformCommandHandler {
     }
 
     public handleProvider(command: TerraformAuthorizationCommandInitializer) {
-        if (command.serviceProvidername) {
-            let jsonKeyFilePath = this.getJsonKeyFilePath(command.serviceProvidername);
+        if (command.serviceProviderName) {
+            let jsonKeyFilePath = this.getJsonKeyFilePath(command.serviceProviderName);
 
             process.env['GOOGLE_CREDENTIALS']  = `${jsonKeyFilePath}`;
-            process.env['GOOGLE_PROJECT']  = tasks.getEndpointDataParameter(command.serviceProvidername, "project", false);            
+            process.env['GOOGLE_PROJECT']  = tasks.getEndpointDataParameter(command.serviceProviderName, "project", false);            
         }
     }
 }

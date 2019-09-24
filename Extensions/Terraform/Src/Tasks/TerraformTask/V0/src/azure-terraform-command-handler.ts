@@ -30,11 +30,11 @@ export class TerraformCommandHandlerAzureRM extends BaseTerraformCommandHandler 
     }
 
     public handleProvider(command: TerraformAuthorizationCommandInitializer) {
-        if (command.serviceProvidername) {
-            process.env['ARM_SUBSCRIPTION_ID']  = tasks.getEndpointDataParameter(command.serviceProvidername, "subscriptionid", false);
-            process.env['ARM_TENANT_ID']        = tasks.getEndpointAuthorizationParameter(command.serviceProvidername, "tenantid", false);
-            process.env['ARM_CLIENT_ID']        = tasks.getEndpointAuthorizationParameter(command.serviceProvidername, "serviceprincipalid", false);
-            process.env['ARM_CLIENT_SECRET']    = tasks.getEndpointAuthorizationParameter(command.serviceProvidername, "serviceprincipalkey", false);
+        if (command.serviceProviderName) {
+            process.env['ARM_SUBSCRIPTION_ID']  = tasks.getEndpointDataParameter(command.serviceProviderName, "subscriptionid", false);
+            process.env['ARM_TENANT_ID']        = tasks.getEndpointAuthorizationParameter(command.serviceProviderName, "tenantid", false);
+            process.env['ARM_CLIENT_ID']        = tasks.getEndpointAuthorizationParameter(command.serviceProviderName, "serviceprincipalid", false);
+            process.env['ARM_CLIENT_SECRET']    = tasks.getEndpointAuthorizationParameter(command.serviceProviderName, "serviceprincipalkey", false);
         }
     }
 }

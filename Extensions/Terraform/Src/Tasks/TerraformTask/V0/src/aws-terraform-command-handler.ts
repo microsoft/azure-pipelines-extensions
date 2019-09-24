@@ -27,9 +27,9 @@ export class TerraformCommandHandlerAWS extends BaseTerraformCommandHandler {
     }
 
     public handleProvider(command: TerraformAuthorizationCommandInitializer) {
-        if (command.serviceProvidername) {
-            process.env['AWS_ACCESS_KEY_ID']  = tasks.getEndpointAuthorizationParameter(command.serviceProvidername, "username", false);
-            process.env['AWS_SECRET_ACCESS_KEY']  = tasks.getEndpointAuthorizationParameter(command.serviceProvidername, "password", false);            
+        if (command.serviceProviderName) {
+            process.env['AWS_ACCESS_KEY_ID']  = tasks.getEndpointAuthorizationParameter(command.serviceProviderName, "username", false);
+            process.env['AWS_SECRET_ACCESS_KEY']  = tasks.getEndpointAuthorizationParameter(command.serviceProviderName, "password", false);            
         }
     }
 }

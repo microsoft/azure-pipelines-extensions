@@ -15,15 +15,15 @@ export class TerraformBaseCommandInitializer {
 }
 
 export class TerraformAuthorizationCommandInitializer extends TerraformBaseCommandInitializer {
-    readonly serviceProvidername: string;
+    readonly serviceProviderName: string;
 
     constructor(
         name: string,
         workingDirectory: string,
-        serviceProvidername: string,
+        serviceProviderName: string,
         additionalArgs?: string | undefined
     ) {
         super(name, workingDirectory, additionalArgs);
-        this.serviceProvidername = serviceProvidername;
+        this.serviceProviderName = serviceProviderName;
     }
 }
