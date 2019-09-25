@@ -79,6 +79,18 @@
       "addressable": true
     },
     {
+      "path": "images/add-oauth-configuration.png",
+      "addressable": true
+    },
+    {
+      "path": "images/add-oauth-configuration-organization.png",
+      "addressable": true
+    },
+    {
+      "path": "images/oauth_servicenow_connection.png",
+      "addressable": true
+    },  
+    {
       "path": "Tasks/CreateAndQueryChangeRequest"
     },
     {
