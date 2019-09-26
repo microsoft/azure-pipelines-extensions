@@ -14,7 +14,7 @@
     ],
     "version": {
         "Major": 0,
-        "Minor": 1,
+        "Minor": 158,
         "Patch": 0
     },
     "instanceNameFormat": "Create a release variable ",
@@ -44,7 +44,7 @@
             ]
         },
         "Node": {
-            "target": "copyvartoRelease.js",
+            "target": "copyvartorelease.js",
             "argumentFormat": ""
         }
     },

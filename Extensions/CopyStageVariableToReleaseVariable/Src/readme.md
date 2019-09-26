@@ -14,7 +14,7 @@ The extension installs the following tasks:
 - **Stage variable names**: Enter the stage variable name whose value you want to assign to the release variable. Use commas to separate multiple stage variables.
 - **Release variables names**: Enter the release variable name you want create. Use commas to separate multiple release variable names for multiple stage variables names. If empty, release variables will be created with the same name as the stage variables
 
-**Copy Agentless job variable to Release variable**: Assigns the value of a agentless stage variable to a new release variable. Task inputs are as follows:
+**Copy agentless job variable to Release variable**: Assigns the value of a agentless stage variable to a new release variable. Task inputs are as follows:
 
 - **Stage variable name**: Enter the stage variable name whose value you want to assign to a release variable.
 - **Release variables name**: Enter the release variable name you want create.
