@@ -121,7 +121,6 @@ If you plan to use OAuth to connect to your ServiceNow instance from Azure DevOp
 1. Navigate to **System OAuth > Application Registry** and then click **New**.
 2. On the interceptor page, click **Create an OAuth API endpoint for external clients** and then fill in the form. For the **Redirect URL**, use the following pattern to construct the URL.
 `{Azure DevOps Services Organization URL}/_admin/oauth2/callback`.
-For example: http://dev.azure.com/fabrikam/_admin/oauth2/callback
 3. Click **Submit**.
 4. Upon submission, you will see a page provides the **Client ID** and **Client secret** for your registered OAuth application.
 
