@@ -45,6 +45,19 @@ export interface IOptimizelyAudience {
     name: string;
 }
 
+export interface IOptimizelyFeature {
+    id: string;
+    key: string;
+    variables: Array<IOptimizelyVariable>
+    environments: any;
+}
+
+export interface IOptimizelyVariable {
+    key: string;
+    type: string;
+    default_value: string;
+}
+
 export class OptimizelyXClient {
     private restClient: restm.RestClient;
 
@@ -57,7 +70,7 @@ export class OptimizelyXClient {
         let token: string = "";
         if (pat.startsWith('Bearer ')) {
             token = pat.replace("Bearer ", "");
-        } else if (this.pat.startsWith('bearer ')) {
+        } else if (pat.startsWith('bearer ')) {
             token = pat.replace("bearer ", "");
         } else {
             token = pat;
@@ -104,6 +117,26 @@ export class OptimizelyXClient {
         }
 
         console.log(tl.loc("ExperimentWithIdUpdatedSuccessfully", experimentId));
+    }
+
+    public async getFeature<T extends IOptimizelyFeature>(featureId: string): Promise<T> {
+        let restRes: restm.IRestResponse<T> = await this.restClient.get<T>(`features/${featureId}`);
+        tl.debug(`function: 'getFeature'. response: '${JSON.stringify(restRes)}'`);
+        let feature = restRes.result;
+        return feature;
+    }
+
+    public async updateFeature<T extends IOptimizelyFeature>(featureId: string, feature: T) {
+        let restRes = await this.restClient.update(`features/${featureId}`, feature);
+        tl.debug(`function: 'updateFeature'. response: '${JSON.stringify(restRes)}'`);
+
+        if (restRes.statusCode != 200) {
+            tl.debug(`Unable to updated feature with Id: '${featureId}'. Response:`);
+            tl.debug(JSON.stringify(restRes));
+            throw tl.loc("FailedToUpdatedFeature", featureId);
+        }
+
+        console.log(tl.loc("FeatureWithIdUpdatedSuccessfully", featureId));
     }
 
     public async getEnvironment<T extends IOptimizelyEnvironment>(projectId: string, environmentName: string): Promise<T> {

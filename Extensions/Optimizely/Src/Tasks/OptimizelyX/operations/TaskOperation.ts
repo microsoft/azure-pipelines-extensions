@@ -1,4 +1,4 @@
-import { OptimizelyXClient, IOptimizelyAlphaBetaTest, IOptimizelyEnvironment, OptimizelyExperimentStatus } from './OptimizelyXClient';
+import { OptimizelyXClient, IOptimizelyAlphaBetaTest, IOptimizelyEnvironment, OptimizelyExperimentStatus, IOptimizelyFeature, IOptimizelyVariable } from './OptimizelyXClient';
 import { OptimizelyTaskParameter } from './../models/OptimizelyTaskParameter'
 import * as tl from 'azure-pipelines-task-lib/task';
 
@@ -70,17 +70,89 @@ export class TaskOperation {
       console.log(tl.loc("ExperimentSuccessfullyPaused", experimentName));
   }
 
+  public configureVariables(feature: IOptimizelyFeature, featureVars: string): IOptimizelyFeature {
+
+        let variables = undefined;
+        try {
+            variables = JSON.parse(featureVars);
+        } catch (err) {
+            throw(tl.loc("VariablesInWrongFormat", JSON.stringify(err)));
+        }
+
+        let existingVariablesByNameMap = {};
+        feature.variables.forEach(element => {
+            existingVariablesByNameMap[element.key] = element;
+        });
+
+        variables.forEach(element => {
+
+            if (!!existingVariablesByNameMap[element.name]) {
+                existingVariablesByNameMap[element.name].default_value = element.value;
+            } else {
+                let varObj: IOptimizelyVariable = {
+                    "key": element.name,
+                    "type": element.type,
+                    "default_value": element.value
+                }
+    
+                feature.variables.push(varObj);
+            }
+        });
+
+        return feature;
+  }
+
+  public async updateFeature(feature: IOptimizelyFeature) {
+      let isFeatureOn: boolean = this.taskInputs.getFeatureState();
+      let totalTraffic: number = this.getValidatedTrafficValue();
+      let projectId: string = this.taskInputs.getProjectId();
+      let featureVars = this.taskInputs.getFeatureVariables();
+      let audienceCondition = this.getAudienceCondition(projectId);
+
+      if (!!featureVars) {
+          this.configureVariables(feature, featureVars);
+      }
+
+      let environmentName: string = this.taskInputs.getEnvironmentName();
+
+      Object.keys(feature.environments).forEach((value) => {
+         if (value.toLocaleLowerCase() ==  environmentName.toLowerCase()) {
+            let rollOutRule: any = feature.environments[value].rollout_rules[0];
+            rollOutRule["percentage_included"] = totalTraffic * 100;
+            rollOutRule["enabled"] = isFeatureOn;
+            rollOutRule["audience"] = audienceCondition;
+         }
+      });
+
+      await this.optimizelyClient.updateFeature(feature.id, feature);
+
+      let counter: number = 6;
+      while (counter > 0) {
+          console.log(tl.loc("WaitingForFeatureToUpdate", feature.key));
+          await this.sleep(10000);
+          counter--;
+      }
+
+      console.log(tl.loc("FeatureUpdatedSuccessfully", feature.key));
+  }
+
+  public getValidatedTrafficValue() {
+        let totalTrafficParameter : string = this.taskInputs.getTotalTraffic();
+        let totalTraffic: number = Number.parseInt(totalTrafficParameter);
+
+        if (Number.isNaN(totalTraffic)) {
+            throw tl.loc("TrafficValueNotValid", totalTrafficParameter);
+        }
+
+        if (totalTraffic > 100) {
+            throw tl.loc("TrafficValueCantExceed", totalTraffic);
+        }
+
+        return totalTraffic;
+  }
+
   public updateTrafficVariation(experiment: IOptimizelyAlphaBetaTest): IOptimizelyAlphaBetaTest {
-      let totalTrafficParameter : string = this.taskInputs.getTotalTraffic();
-      let totalTraffic: number = Number.parseInt(totalTrafficParameter);
-
-      if (Number.isNaN(totalTraffic)) {
-          throw tl.loc("TrafficValueNotValid", totalTrafficParameter);
-      }
-
-      if (totalTraffic > 100) {
-          throw tl.loc("TrafficValueCantExceed", totalTraffic);
-      }
+      let totalTraffic: number = this.getValidatedTrafficValue();
 
       let holdBack: number = 10000 - (totalTraffic * 100);
       experiment.holdback = holdBack;
@@ -173,7 +245,7 @@ export class TaskOperation {
       let endpointId: string = this.taskInputs.getEndpointId();
       let endpointUrl: string = tl.getEndpointUrl(endpointId, false);
       let pat: string = tl.getEndpointAuthorizationParameter(endpointId, 'apitoken', false);
-      let oxClient = new OptimizelyXClient(endpointUrl, pat);
+      let oxClient = new OptimizelyXClient(endpointUrl, pat, null);
       return oxClient;
   }
 
