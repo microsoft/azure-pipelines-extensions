@@ -1,4 +1,4 @@
-import { OptimizelyXClient, IOptimizelyAlphaBetaTest, IOptimizelyEnvironment, OptimizelyExperimentStatus } from './operations/OptimizelyXClient';
+import { OptimizelyXClient, IOptimizelyAlphaBetaTest, IOptimizelyEnvironment, OptimizelyExperimentStatus, IOptimizelyFeature } from './operations/OptimizelyXClient';
 import { OptimizelyTaskParameter } from './models/OptimizelyTaskParameter'
 import { TaskOperation } from './operations/TaskOperation';
 import * as tl from 'azure-pipelines-task-lib/task';
@@ -18,20 +18,31 @@ async function run() {
 
     taskInputs.setProjectType(project.platform);
 
-    let experimentId: string = taskInputs.getExperimentId();
-    let experiment: IOptimizelyAlphaBetaTest = await optimizelyClient.getExperiment(projectId, experimentId);
+    let operationType: string = taskInputs.getType();
 
-    experiment = taskOperation.updateTrafficVariation(experiment);
-    experiment.audience_conditions = await taskOperation.getAudienceCondition(projectId);
+    if (operationType == "experiment") {
+        let experimentId: string = taskInputs.getExperimentId();
+        let experiment: IOptimizelyAlphaBetaTest = await optimizelyClient.getExperiment(projectId, experimentId);
 
-    let action: string = taskInputs.getAction();
-    if (action.toLowerCase() === 'startabtest') {
-        await taskOperation.startABTest(experiment);
-    } else if (action.toLowerCase() === 'pauseabtest') {
-        await taskOperation.pauseABTest(experiment);
-    } else {
-        throw tl.loc("InvalidAction", action);
+        experiment = taskOperation.updateTrafficVariation(experiment);
+        experiment.audience_conditions = await taskOperation.getAudienceCondition(projectId);
+
+        let action: string = taskInputs.getAction();
+        if (action.toLowerCase() === 'startexperiment') {
+            await taskOperation.startABTest(experiment);
+        } else if (action.toLowerCase() === 'pauseexperiment') {
+            await taskOperation.pauseABTest(experiment);
+        } else {
+            throw tl.loc("InvalidAction", action);
+        }
+    } else if (operationType == "feature") {
+        let featureId: string = taskInputs.getFeatureId();
+        let feature: IOptimizelyFeature = await optimizelyClient.getFeature(featureId);
+
+        await taskOperation.updateFeature(feature);
     }
+
+    
 }
 
 run().then((value) => {
