@@ -80,6 +80,8 @@ function copyCommonModules(currentExtnRoot, commonDeps, commonSrc){
                 shell.mkdir('-p', targetPath);
                 shell.rm(path.join(targetPath, '*.csproj'));
                 shell.rm(path.join(targetPath, '*.md'));
+                // Path to UI contribution files
+                uiPath = path.join(currentExtnRoot, "Src", "UIContribution");
                 // Statically link the required internal common modules.
                 var taskDeps;
                 if ((taskDeps = commonDeps[folderName])) {
@@ -103,7 +105,11 @@ function copyCommonModules(currentExtnRoot, commonDeps, commonSrc){
                      });
                      
                      if(doNotCache) {
-                        util.buildNodeTask(taskDirPath, targetPath);  
+                        util.buildNodeTask(taskDirPath, targetPath); 
+                         // For building UI contribution using webpack
+                         if(fs.existsSync(uiPath) && fs.statSync(uiPath).isDirectory()) {
+                            util.buildUIContribution(uiPath,uiPath);
+                        }
                      } else {
 
                         // Determine the vsts-task-lib version.
