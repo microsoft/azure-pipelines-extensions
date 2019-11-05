@@ -3,7 +3,7 @@
   "id": "vss-services-servicenowchangerequestmanagement",
   "name": "ServiceNow Change Management",
   "publisher": "ms-vscs-rm",
-  "version": "4.159.0",
+  "version": "4.161.0",
   "public": true,
   "description": "Integrate ServiceNow Change Management with Azure Pipelines",
   "categories": [
@@ -120,7 +120,7 @@
         "dataSources": [
           {
             "name": "TestConnection",
-            "endpointUrl": "{{endpoint.url}}/api/x_mioms_azpipeline/app_version?app_major_version=3",
+            "endpointUrl": "{{endpoint.url}}/api/x_mioms_azpipeline/app_version?app_major_version=4",
             "resultSelector": "jsonpath:$.result"
           },
           {
