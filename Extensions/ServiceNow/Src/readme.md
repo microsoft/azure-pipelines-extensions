@@ -127,7 +127,7 @@ If you plan to use OAuth to connect to your ServiceNow instance from Azure DevOp
 ### Debugging advanced success criteria expression specified in gate
 1. Run a release pipeline which has ServiceNow gate configured in [debug mode](!https://icm.ad.msft.net/imp/v3/incidents/details/148524877/home).
 2. View gate logs and look for expression parsing result. You will see why expression evaluation failed.
-3. As expression evaluation is based on response to Get change request API call to ServiceNow instance. Check ServiceNow response and confirms if the properties returned in API response matches to the one used in expression.
+3. As expression evaluation is based on response to Get change request API call to ServiceNow instance. Check ServiceNow response and confirms if the properties returned in API response matches to the one used in expression..
 
 ### Steps to add mapping for custom fields in Import set transform map :
 
