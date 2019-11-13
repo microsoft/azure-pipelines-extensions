@@ -75,7 +75,7 @@
         "name": "Bitbucket",
         "displayName": "Bitbucket",
         "_displayName.comment": "Don't Localize the word 'Bitbucket'",
-        "endpointTypeId": "bitbucket:UsernamePassword",
+        "endpointTypeId": "bitbucket",
         "uniqueSourceIdentifier": "{{connection}}:{{definition}}:{{branch}}",
         "downloadTaskId": "A4CD16BE-6028-4077-8015-34F008F55477",
         "artifactType": "SourceControl",
