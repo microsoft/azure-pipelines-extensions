@@ -269,7 +269,8 @@
   "dataSourceBindings": [{
       "target": "standardChangeTemplate",
       "endpointId": "$(ServiceNowConnection)",
-      "dataSourceName": "StandardChangeTemplate"
+      "dataSourceName": "StandardChangeTemplate",
+      "resultTemplate": "{ \"Value\" : \"{{sys_id}}\", \"DisplayValue\" : \"{{sys_name}}\" }"
     },
     {
       "target": "priority",
