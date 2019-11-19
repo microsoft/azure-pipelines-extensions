@@ -15,7 +15,7 @@
   "version": {
     "Major": 0,
     "Minor": 1,
-    "Patch": 2
+    "Patch": 3
   },
   "instanceNameFormat": "ServiceNow change management",
   "groups": [
@@ -168,32 +168,27 @@
     {
       "target": "priority",
       "endpointId": "$(ServiceNowConnection)",
-      "dataSourceName": "Priority",
-      "resultTemplate": "{ \"Value\" : \"{{value}}\", \"DisplayValue\" : \"{{label}}\" }"
+      "dataSourceName": "PriorityLabel"
     },
     {
       "target": "risk",
       "endpointId": "$(ServiceNowConnection)",
-      "dataSourceName": "Risk",
-      "resultTemplate": "{ \"Value\" : \"{{value}}\", \"DisplayValue\" : \"{{label}}\" }"
+      "dataSourceName": "RiskLabel"
     },
     {
       "target": "impact",
       "endpointId": "$(ServiceNowConnection)",
-      "dataSourceName": "Impact",
-      "resultTemplate": "{ \"Value\" : \"{{value}}\", \"DisplayValue\" : \"{{label}}\" }"
+      "dataSourceName": "ImpactLabel"
     },
     {
       "target": "category",
       "endpointId": "$(ServiceNowConnection)",
-      "dataSourceName": "Category",
-      "resultTemplate": "{ \"Value\" : \"{{value}}\", \"DisplayValue\" : \"{{label}}\" }"
+      "dataSourceName": "CategoryLabel"
     },
     {
       "target": "DesiredExitStatus",
       "endpointId": "$(ServiceNowConnection)",
-      "dataSourceName": "State",
-      "resultTemplate": "{ \"Value\" : \"{{value}}\", \"DisplayValue\" : \"{{label}}\" }"
+      "dataSourceName": "StateLabel"
     },
     {
       "target": "configurationitem",
@@ -227,7 +222,7 @@
         {
           "RequestInputs": {
             "EndpointId": "$(ServiceNowConnection)",
-            "EndpointUrl": "$(endpoint.url)/api/now/table/change_request/$(CHANGE_SYSTEM_ID)?sysparm_fields=state,number",
+            "EndpointUrl": "$(endpoint.url)/api/now/table/change_request/$(CHANGE_SYSTEM_ID)?sysparm_fields=state,number&&sysparm_display_value=true",
             "Method": "GET",
             "Headers": "{\"Content-Type\":\"application/json\", \"Accept\":\"application/json\"}",
             "WaitForCompletion": "false",
