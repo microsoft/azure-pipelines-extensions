@@ -169,7 +169,7 @@
           },
           {
             "name": "PriorityLabel",
-            "endpointUrl": "{{endpoint.url}}/api/now/table/sys_choice?sysparm_query=element=priority^name={{table}}^language=en&sysparm_fields=label",
+            "endpointUrl": "{{endpoint.url}}/api/now/table/sys_choice?sysparm_query=element=priority^name={{table}}&sysparm_fields=label",
             "resultSelector": "jsonpath:$.result[*].label",
             "callbackContextTemplate": "{\"table\": \"task\"}",
             "callbackRequiredTemplate": "{{#equals table \"change_request\"}}{{isEqualNumber result.count 0}}{{else}}false{{/equals}}",
@@ -177,7 +177,7 @@
           },
           {
             "name": "StateLabel",
-            "endpointUrl": "{{endpoint.url}}/api/now/table/sys_choice?sysparm_query=element=state^name={{table}}^language=en&sysparm_fields=label",
+            "endpointUrl": "{{endpoint.url}}/api/now/table/sys_choice?sysparm_query=element=state^name={{table}}&sysparm_fields=label",
             "resultSelector": "jsonpath:$.result[*].label",
             "callbackContextTemplate": "{\"table\": \"task\"}",
             "callbackRequiredTemplate": "{{#equals table \"change_request\"}}{{isEqualNumber result.count 0}}{{else}}false{{/equals}}",
@@ -185,12 +185,12 @@
           },
           {
             "name": "RiskLabel",
-            "endpointUrl": "{{endpoint.url}}/api/now/table/sys_choice?sysparm_query=element=Risk^name=change_request^language=en^ORDERBYDESCvalue&sysparm_fields=label",
+            "endpointUrl": "{{endpoint.url}}/api/now/table/sys_choice?sysparm_query=element=Risk^name=change_request^ORDERBYDESCvalue&sysparm_fields=label",
             "resultSelector": "jsonpath:$.result[*].label"
           },
           {
             "name": "ImpactLabel",
-            "endpointUrl": "{{endpoint.url}}/api/now/table/sys_choice?sysparm_query=element=Impact^name={{table}}^language=en^ORDERBYDESCvalue&sysparm_fields=label",
+            "endpointUrl": "{{endpoint.url}}/api/now/table/sys_choice?sysparm_query=element=Impact^name={{table}}^ORDERBYDESCvalue&sysparm_fields=label",
             "resultSelector": "jsonpath:$.result[*].label",
             "callbackContextTemplate": "{\"table\": \"task\"}",
             "callbackRequiredTemplate": "{{#equals table \"change_request\"}}{{isEqualNumber result.count 0}}{{else}}false{{/equals}}",
@@ -198,12 +198,12 @@
           },
           {
             "name": "CategoryLabel",
-            "endpointUrl": "{{endpoint.url}}/api/now/table/sys_choice?sysparm_query=name=change_request^element=category^inactive!=true^language=en&sysparm_fields=label",
+            "endpointUrl": "{{endpoint.url}}/api/now/table/sys_choice?sysparm_query=name=change_request^element=category^inactive!=true&sysparm_fields=label",
             "resultSelector": "jsonpath:$.result[*].label"
           },
           {
             "name": "CloseCodeLabel",
-            "endpointUrl": "{{endpoint.url}}/api/now/table/sys_choice?sysparm_query=element=name=change_request^Close_Code^language=en^ORDERBYDESCvalue&sysparm_fields=label",
+            "endpointUrl": "{{endpoint.url}}/api/now/table/sys_choice?sysparm_query=element=name=change_request^Close_Code^ORDERBYDESCvalue&sysparm_fields=label",
             "resultSelector": "jsonpath:$.result[*].label"
           },
           {
