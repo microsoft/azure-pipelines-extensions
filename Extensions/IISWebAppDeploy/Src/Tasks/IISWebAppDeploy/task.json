@@ -14,9 +14,9 @@
   ],
   "author": "Microsoft Corporation",
   "version": {
-    "Major": 1,
-    "Minor": 4,
-    "Patch": 7
+    "Major": 2,
+    "Minor": 0,
+    "Patch": 0
   },
   "demands": [
   ],
@@ -166,12 +166,15 @@
       "helpMarkDown": "Select the option to deploy the website in-parallel on the target machines."
     }
   ],
-    "instanceNameFormat": "Deploy IIS App: $(WebDeployPackage)",
-    "execution": {
-      "PowerShell": {
-        "target": "$(currentDirectory)\\Main.ps1",
-        "argumentFormat": "",
-        "workingDirectory": "$(currentDirectory)"
-      }
-}
+  "instanceNameFormat": "Deploy IIS App: $(WebDeployPackage)",
+  "execution": {
+    "PowerShell3": {
+      "target": "Main.ps1"
+    }
+  },
+  "messages": {
+    "MsDeployNotFoundError": "Cannot find MsDeploy.exe location. Verify MsDeploy.exe is installed on $env:ComputerName and try operation again.",
+    "WebDeployPackageDoesNotExist": "Package '{0}' does not exist.",
+    "WebDeployParamFileDoesNotExist": "Param File '{0}' does not exist."
+  }
 }
