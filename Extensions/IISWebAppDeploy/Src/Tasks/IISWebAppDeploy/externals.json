@@ -1,0 +1,21 @@
+
+{
+    "nugetv2": {
+        "VstsTaskSdk": {
+            "version": "0.8.2",
+            "repository": "https://www.powershellgallery.com/api/v2/",
+            "cp": [
+                {
+                    "source": [
+                        "*.ps1",
+                        "*.psd1",
+                        "*.psm1",
+                        "lib.json",
+                        "Strings"
+                    ],
+                    "dest": "VstsTaskSdk/"
+                }
+            ]
+        }
+    }
+}

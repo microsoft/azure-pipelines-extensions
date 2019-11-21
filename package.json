@@ -34,6 +34,7 @@
     "yargs": "^4.7.1"
   },
   "dependencies": {
-    "natives": "^1.1.6"
+    "natives": "^1.1.6",
+    "node": "^10.15.3"
   }
 }
