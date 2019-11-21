@@ -62,8 +62,18 @@ function Set-IISWebSite
             $bindingsJson = $bindingsArray | ConvertTo-Json
             $bindingsJson = Escape-SpecialChars $bindingsJson
 
+            if (-not [String]::IsNullOrEmpty($physicalPathAuthUserPassword)) 
+            {
+                $physicalPathAuthUserPassword = Escape-SpecialChars $physicalPathAuthUserPassword -secret
+            }
+
             if ($createOrUpdateAppPool -eq "true") 
             {
+                if (-not [String]::IsNullOrEmpty($appPoolPassword))
+                {
+                    $appPoolPassword = Escape-SpecialChars $appPoolPassword -secret
+                }
+
                 Write-Verbose "Initiating action 'create or update' website with user specified application pool."
                 return "Invoke-Main -ActionIISWebsite $actionIISWebsite -WebsiteName `"$websiteName`" -PhysicalPath `"$physicalPath`" -PhysicalPathAuth `"$physicalPathAuth`" -PhysicalPathAuthUsername `"$physicalPathAuthUserName`" -PhysicalPathAuthUserPassword `"$physicalPathAuthUserPassword`" -AddBinding $addBinding -Bindings `"$bindingsJson`" -ActionIISApplicationPool `"CreateOrUpdateAppPool`" -AppPoolName `"$appPoolName`" -DotNetVersion `"$dotNetVersion`" -PipeLineMode `"$pipeLineMode`" -AppPoolIdentity $appPoolIdentity -AppPoolUsername `"$appPoolUsername`" -AppPoolPassword `"$appPoolPassword`" -configureAuthentication $configureAuthentication -anonymousAuthentication $anonymousAuthentication -basicAuthentication $basicAuthentication -windowsAuthentication $windowsAuthentication -AppCmdCommands `"$appCmdCommands`""
             }
@@ -101,6 +111,11 @@ function Set-IISVirtualDirectory
     Repair-Inputs -siteName ([ref]$parentWebsiteName) -virtualPath ([ref]$virtualPath) -physicalPath ([ref]$physicalPath) -physicalPathAuthuser ([ref]$physicalPathAuthUserName)
     Test-Inputs -virtualPath $virtualPath
 
+    if (-not [String]::IsNullOrEmpty($physicalPathAuthUserPassword)) 
+    {
+        $physicalPathAuthUserPassword = Escape-SpecialChars $physicalPathAuthUserPassword -secret
+    }
+
     Write-Verbose "Initiating action 'create or update' virtual directory."
     return "Invoke-Main -CreateVirtualDirectory `$true -WebsiteName `"$parentWebsiteName`" -VirtualPath `"$virtualPath`" -PhysicalPath `"$physicalPath`" -PhysicalPathAuth `"$PhysicalPathAuth`" -PhysicalPathAuthUsername `"$physicalPathAuthUserName`" -PhysicalPathAuthUserPassword `"$physicalPathAuthUserPassword`" -AppCmdCommands `"$appCmdCommands`""
 }
@@ -128,8 +143,18 @@ function Set-IISWebApplication
     Repair-Inputs -siteName ([ref]$parentWebsiteName) -virtualPath ([ref]$virtualPath) -physicalPath ([ref]$physicalPath) -physicalPathAuthuser ([ref]$physicalPathAuthUserName) -poolName ([ref]$appPoolName) -appPoolUser ([ref]$appPoolUsername) 
     Test-Inputs -virtualPath $virtualPath
 
+    if (-not [String]::IsNullOrEmpty($physicalPathAuthUserPassword)) 
+    {
+        $physicalPathAuthUserPassword = Escape-SpecialChars $physicalPathAuthUserPassword -secret
+    }
+
     if ($createOrUpdateAppPool -eq "true") 
-    {        
+    { 
+        if (-not [String]::IsNullOrEmpty($appPoolPassword)) 
+        {
+            $appPoolPassword = Escape-SpecialChars $appPoolPassword -secret
+        }
+
         Write-Verbose "Initiating action 'create or update' application with user specified application pool."
         return "Invoke-Main -CreateApplication `$true -WebsiteName `"$parentWebsiteName`" -VirtualPath `"$virtualPath`" -PhysicalPath `"$physicalPath`" -PhysicalPathAuth `"$applicationPhysicalPathAuth`" -PhysicalPathAuthUsername `"$physicalPathAuthUserName`" -PhysicalPathAuthUserPassword `"$physicalPathAuthUserPassword`" -ActionIISApplicationPool `"CreateOrUpdateAppPool`" -AppPoolName `"$appPoolName`" -DotNetVersion `"$dotNetVersion`" -PipeLineMode `"$pipeLineMode`" -AppPoolIdentity $appPoolIdentity -AppPoolUsername `"$appPoolUsername`" -AppPoolPassword `"$appPoolPassword`" -AppCmdCommands `"$appCmdCommands`""
     }
@@ -159,6 +184,10 @@ function Set-IISApplicationPool
         "CreateOrUpdateAppPool" 
         {
             Repair-Inputs -poolName ([ref]$appPoolName) -appPoolUser ([ref]$appPoolUsername) 
+            if (-not [String]::IsNullOrEmpty($appPoolPassword)) 
+            {
+                $appPoolPassword = Escape-SpecialChars $appPoolPassword -secret
+            }
 
             Write-Verbose "Initiating action 'create or update' application pool."
             return "Invoke-Main -ActionIISApplicationPool $actionIISApplicationPool -AppPoolName `"$appPoolName`" -DotNetVersion `"$dotNetVersion`" -PipeLineMode `"$pipeLineMode`" -AppPoolIdentity $appPoolIdentity -AppPoolUsername `"$appPoolUsername`" -AppPoolPassword `"$appPoolPassword`" -AppCmdCommands `"$appCmdCommands`""
@@ -295,10 +324,20 @@ function Validate-Bindings {
 function Escape-SpecialChars
 {
     param(
-        [string]$str
+        [string] $str,
+        [switch] $secret
     )
 
-    return $str.Replace('`', '``').Replace('"', '`"').Replace('$', '`$')
+    $escapedStr = $str.Replace('`', '``').Replace('"', '`"').Replace('$', '`$')
+
+    if ($secret) 
+    {
+        # mask both original and escaped string if it is a secret variable
+        Write-Host "##vso[task.setvariable variable=f13679253bf44b74afbd244ae83ca735;isSecret=true]$str"
+        Write-Host "##vso[task.setvariable variable=f13679253bf44b74afbd244ae83ca735;isSecret=true]$escapedStr"
+    }
+
+    return $escapedStr
 }
 
 function Parse-TargetMachineNames {
