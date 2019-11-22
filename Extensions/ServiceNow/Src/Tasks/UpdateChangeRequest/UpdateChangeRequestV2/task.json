@@ -15,7 +15,7 @@
   "version": {
     "Major": 2,
     "Minor": 162,
-    "Patch": 0
+    "Patch": 1
   },
   "instanceNameFormat": "Update ServiceNow Change Request",
   "groups": [{
@@ -68,7 +68,7 @@
       "properties": {
         "EditableOptions": "True"
       },
-      "visibleRule": "UpdateStatus = true && NewStatus = Closed"
+      "visibleRule": "UpdateStatus = true && NewStatus = 3"
     },
     {
       "name": "CloseNotes",
@@ -77,7 +77,7 @@
       "required": "true",
       "defaultValue": "",
       "helpMarkDown": "Notes to be added as closure information to the change request",
-      "visibleRule": "UpdateStatus = true && NewStatus = Closed"
+      "visibleRule": "UpdateStatus = true && NewStatus = 3"
     },
     {
       "name": "WorkNotes",
@@ -134,7 +134,7 @@
             "EndpointId": "$(ServiceNowConnection)",
             "EndpointUrl": "$(endpoint.url)/api/now/import/x_mioms_azpipeline_change_request_import",
             "Method": "POST",
-            "Body": "{\"u_number\": \"$(ChangeRequestNumber)\",\"u_correlation_id\": \"$(CHANGE_CORRELATION_ID)\",\"u_work_notes\": \"$(WorkNotes)\"{{#equals UpdateStatus 'true'}},\"u_state\": \"$(NewStatus)\"{{#equals '$(NewStatus)' 'Closed' 1}}, \"u_close_code\": \"$(CloseCode)\", \"u_close_notes\": \"$(CloseNotes)\"{{/equals}}{{/equals}}{{#if otherParameters}}{{toCommaSeparatedKeyValueList otherParameters true}}{{/if}} }",
+            "Body": "{\"u_number\": \"$(ChangeRequestNumber)\",\"u_correlation_id\": \"$(CHANGE_CORRELATION_ID)\",\"u_work_notes\": \"$(WorkNotes)\"{{#equals UpdateStatus 'true'}},\"u_state\": \"$(NewStatus)\"{{#equals '$(NewStatus)' '3' 1}}, \"u_close_code\": \"$(CloseCode)\", \"u_close_notes\": \"$(CloseNotes)\"{{/equals}}{{/equals}}{{#if otherParameters}}{{toCommaSeparatedKeyValueList otherParameters true}}{{/if}} }",
             "Headers": "{\"Content-Type\":\"application/json\", \"Accept\":\"application/json\"}",
             "WaitForCompletion": "false",
             "Expression": "eq(jsonpath('$.result[0].status')[0], 'updated')"
