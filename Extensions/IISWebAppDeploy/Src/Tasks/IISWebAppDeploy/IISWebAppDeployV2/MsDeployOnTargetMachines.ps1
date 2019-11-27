@@ -36,21 +36,23 @@ function Get-MsDeployLocation
     [string]$regKeyPath
     )
     
+    $msDeployNotFoundError = "Cannot find MsDeploy.exe location. Verify MsDeploy.exe is installed on $env:ComputerName and try operation again."
+
     if( -not (Test-Path -Path $regKeyPath))
     {
-        throw (Get-VstsLocString -Key "MsDeployNotFoundError") 
+        throw $msDeployNotFoundError 
     }
 
     $path = (Get-ChildItem -Path $regKeyPath | Select -Last 1).GetValue("InstallPath")
 
     if($path -eq $null)
     {
-        throw (Get-VstsLocString -Key "MsDeployNotFoundError")
+        throw $msDeployNotFoundError
     }
 
     if( -not (Test-Path -Path $path))
     {
-        throw (Get-VstsLocString -Key "MsDeployNotFoundError") 
+        throw $msDeployNotFoundError
     }
 
     Write-Verbose "MsDeploy Install location: $path"
@@ -76,7 +78,7 @@ function Get-MsDeployCmdArgs
 
     if(-not ( Test-Path -Path $webDeployPackage))
     {
-        throw (Get-VstsLocString -Key "WebDeployPackageDoesNotExist" -ArgumentList $webDeployPackage)
+        throw "Package does not exist : `"$webDeployPackage`""
     }
 
     $msDeployCmdArgs = [String]::Format(" -verb:sync")
@@ -103,7 +105,7 @@ function Get-MsDeployCmdArgs
     
         if(-not ( Test-Path -Path $webDeployParamFile))
         {
-            throw (Get-VstsLocString -Key "WebDeployParamFileDoesNotExist" -ArgumentList $webDeployParamFile)
+            throw "Param file does not exist : `"$webDeployParamFile`""
         }
 
         $msDeployCmdArgs += [string]::Format(' -setParamFile="{0}"', $webDeployParamFile)
@@ -179,7 +181,7 @@ function Is-Directory
 
     if(-not (Test-Path -Path $Path))
     {
-        throw (Get-VstsLocString -Key "WebDeployPackageDoesNotExist" -ArgumentList $Path)
+        throw "$Path doesn't exists."
     }
     if((Get-Item $Path) -is [System.IO.DirectoryInfo])
     {

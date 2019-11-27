@@ -41,14 +41,16 @@ Unregister-Mock Test-Path
 
 # Test 4: When webDeploy package does not exist, Should throw exception
 $InvalidPkg = "n:\Invalid\pkg.zip"
+$errMsg = "Package does not exist : `"$InvalidPkg`""
 
-Assert-Throws { Get-MsDeployCmdArgs -websiteName $websiteName -webDeployPackage $InvalidPkg -webDeployParamFile $webDeployParamFile -overRideParams $overRideParams } -MessagePattern "WebDeployPackageDoesNotExist *"
+Assert-Throws { Get-MsDeployCmdArgs -websiteName $websiteName -webDeployPackage $InvalidPkg -webDeployParamFile $webDeployParamFile -overRideParams $overRideParams } $errMsg
 
 # Test 5: When setParamFile does not exist, Should throw exception
 Register-Mock Test-Path { return $true } -ParametersEvaluator { $Path -eq $webDeployPackage }
 $InvalidParamFile = "n:\Invalid\param.xml"
+$errMsg = "Param file does not exist : `"$InvalidParamFile`""
 
-Assert-Throws { Get-MsDeployCmdArgs -websiteName $websiteName -webDeployPackage $webDeployPackage -webDeployParamFile $InvalidParamFile -overRideParams $overRideParams } -MessagePattern "WebDeployParamFileDoesNotExist *"
+Assert-Throws { Get-MsDeployCmdArgs -websiteName $websiteName -webDeployPackage $webDeployPackage -webDeployParamFile $InvalidParamFile -overRideParams $overRideParams } $errMsg
 
 Unregister-Mock Test-Path
 

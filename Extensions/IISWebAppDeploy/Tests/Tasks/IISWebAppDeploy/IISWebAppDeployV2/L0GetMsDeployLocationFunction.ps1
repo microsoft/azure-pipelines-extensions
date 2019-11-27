@@ -16,4 +16,4 @@ Assert-Throws { Get-MsDeployLocation -regKeyPath $regKeyWithNoInstallPath }
 # Test 2: Should throw when Get-ChildItem fails as MsDeploy not installed on the machine
 $inValidInstallPathRegKey = "HKLM:\SOFTWARE\Microsoft\IIS Extensions\Invalid"
 
-Assert-Throws { Get-MsDeployLocation -regKeyPath $inValidInstallPathRegKey } -MessagePattern "MsDeployNotFoundError"
+Assert-Throws { Get-MsDeployLocation -regKeyPath $inValidInstallPathRegKey } $msDeployNotFoundError
