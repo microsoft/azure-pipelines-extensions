@@ -175,6 +175,7 @@
   "messages": {
     "MsDeployNotFoundError": "Cannot find MsDeploy.exe location. Verify MsDeploy.exe is installed on $env:ComputerName and try operation again.",
     "WebDeployPackageDoesNotExist": "Package '{0}' does not exist.",
-    "WebDeployParamFileDoesNotExist": "Param File '{0}' does not exist."
+    "WebDeployParamFileDoesNotExist": "Param File '{0}' does not exist.",
+    "HelpMessage": "The error is '{0}'. For more info please refer to http://aka.ms/iisextnreadme."
   }
 }

@@ -66,8 +66,7 @@ function Run-RemoteDeployment
 
     if(-not [string]::IsNullOrEmpty($errorMessage))
     {
-        $helpMessage = "For more info please refer to http://aka.ms/iisextnreadme"
-        Write-Error "$errorMessage`n$helpMessage"
+        Write-Error -Message (Get-VstsLocString -Key HelpMessage -ArgumentList $errorMessage)
         return
     }
 
