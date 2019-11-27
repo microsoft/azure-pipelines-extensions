@@ -60,7 +60,7 @@ function Run-RemoteDeployment
         [string]$webDeployPackage
     )
 
-    Write-Host "Starting deployment of IIS Web Deploy Package : $webDeployPackage"
+    Write-Host (Get-VstsLocString -Key 'StartDeployIISWebDeployPackage' -ArgumentList $webDeployPackage)
 
     $errorMessage = Invoke-RemoteDeployment -machinesList $machinesList -scriptToRun $scriptToRun -adminUserName $adminUserName -adminPassword $adminPassword -protocol $winrmProtocol -testCertificate $testCertificate -deployInParallel $deployInParallel
 
@@ -71,7 +71,7 @@ function Run-RemoteDeployment
         return
     }
 
-    Write-Host "Successfully deployed IIS Web Deploy Package : $webDeployPackage"
+    Write-Host (Get-VstsLocString -Key 'IISWebAppDeployPackageSuccessful' -ArgumentList $webDeployPackage)
 }
 
 function Main

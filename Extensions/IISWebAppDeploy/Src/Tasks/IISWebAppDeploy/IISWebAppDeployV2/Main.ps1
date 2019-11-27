@@ -11,20 +11,20 @@ Trace-VstsEnteringInvocation $MyInvocation
 Import-VstsLocStrings -LiteralPath $env:CURRENT_TASK_ROOTDIR\task.json
 
 # Get inputs for the task
-$machinesList = Get-VstsInput -Name MachinesList -Require
+$machinesList = Get-VstsInput -Name machinesList -Require
 $adminUserName = Get-VstsInput -Name AdminUserName -Require
 $adminPassword = Get-VstsInput -Name AdminPassword -Require
-$winrmProtocol = Get-VstsInput -Name WinrmProtocol -Require
-$testCertificate = Get-VstsInput -Name TestCertificate
+$winrmProtocol = Get-VstsInput -Name WinRMProtocol -Require
+$testCertificate = Get-VstsInput -Name TestCertificate -AsBool
 $webDeployPackage = Get-VstsInput -Name WebDeployPackage -Require
 $webDeployParamFile = Get-VstsInput -Name WebDeployParamFile
 $overRideParams = Get-VstsInput -Name OverRideParams
 $websiteName = Get-VstsInput -Name WebsiteName -Require
-$removeAdditionalFiles = Get-VstsInput -Name RemoveAdditionalFiles
-$excludeFilesFromAppData = Get-VstsInput -Name ExcludeFilesFromAppData
-$takeAppOffline = Get-VstsInput -Name TakeAppOffline
+$removeAdditionalFiles = Get-VstsInput -Name RemoveAdditionalFiles -AsBool
+$excludeFilesFromAppData = Get-VstsInput -Name ExcludeFilesFromAppData -AsBool
+$takeAppOffline = Get-VstsInput -Name TakeAppOffline -AsBool
 $additionalArguments = Get-VstsInput -Name AdditionalArguments
-$deployInParallel = Get-VstsInput -Name DeployInParallel
+$deployInParallel = Get-VstsInput -Name DeployInParallel -AsBool
 
 try
 {
