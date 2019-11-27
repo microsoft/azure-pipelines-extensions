@@ -11,68 +11,68 @@ Trace-VstsEnteringInvocation $MyInvocation
 Import-VstsLocStrings -LiteralPath $env:CURRENT_TASK_ROOTDIR\task.json
 
 # Get inputs for the task
-$machinesList = Get-VstsInput -Name MachinesList -Require
+$machinesList = Get-VstsInput -Name machinesList -Require
 $adminUserName = Get-VstsInput -Name AdminUserName -Require
 $adminPassword = Get-VstsInput -Name AdminPassword -Require
-$winrmProtocol = Get-VstsInput -Name WinrmProtocol -Require
+$winrmProtocol = Get-VstsInput -Name WinRMProtocol -Require
 $testCertificate = Get-VstsInput -Name TestCertificate
-$iisDeploymentType = Get-VstsInput -Name WebDeployPackage -Require
-$actionIISWebsite = Get-VstsInput -Name WebDeployParamFile
-$actionIISApplicationPool = Get-VstsInput -Name OverRideParams
-$startStopWebsiteName = Get-VstsInput -Name WebsiteName -Require
-$websiteName = Get-VstsInput -Name RemoveAdditionalFiles
-$websitePhysicalPath = Get-VstsInput -Name ExcludeFilesFromAppData
-$websitePhysicalPathAuth = Get-VstsInput -Name TakeAppOffline
-$websiteAuthUserName = Get-VstsInput -Name AdditionalArguments
-$websiteAuthUserPassword = Get-VstsInput -Name DeployInParallel
-$addBinding = Get-VstsInput -Name MachinesList -Require
-$protocol = Get-VstsInput -Name AdminUserName -Require
-$ipAddress = Get-VstsInput -Name AdminPassword -Require
-$port = Get-VstsInput -Name WinrmProtocol -Require
-$serverNameIndication = Get-VstsInput -Name TestCertificate
-$hostNameWithOutSNI = Get-VstsInput -Name WebDeployPackage -Require
-$hostNameWithHttp = Get-VstsInput -Name WebDeployParamFile
-$hostNameWithSNI = Get-VstsInput -Name OverRideParams
-$sslCertThumbPrint = Get-VstsInput -Name WebsiteName -Require
-$createOrUpdateAppPoolForWebsite = Get-VstsInput -Name RemoveAdditionalFiles
-$configureAuthenticationForWebsite = Get-VstsInput -Name ExcludeFilesFromAppData
-$appPoolNameForWebsite = Get-VstsInput -Name TakeAppOffline
-$dotNetVersionForWebsite = Get-VstsInput -Name AdditionalArguments
-$pipeLineModeForWebsite = Get-VstsInput -Name DeployInParallel
-$appPoolIdentityForWebsite = Get-VstsInput -Name MachinesList -Require
-$appPoolUsernameForWebsite = Get-VstsInput -Name AdminUserName -Require
-$appPoolPasswordForWebsite = Get-VstsInput -Name AdminPassword -Require
-$anonymousAuthenticationForWebsite = Get-VstsInput -Name WinrmProtocol -Require
-$basicAuthenticationForWebsite = Get-VstsInput -Name TestCertificate
-$windowsAuthenticationForWebsite = Get-VstsInput -Name WebDeployPackage -Require
-$parentWebsiteNameForVD = Get-VstsInput -Name WebDeployParamFile
-$virtualPathForVD = Get-VstsInput -Name OverRideParams
-$physicalPathForVD = Get-VstsInput -Name WebsiteName -Require
-$vdPhysicalPathAuth = Get-VstsInput -Name RemoveAdditionalFiles
-$vdAuthUserName = Get-VstsInput -Name ExcludeFilesFromAppData
-$vdAuthUserPassword = Get-VstsInput -Name TakeAppOffline
-$parentWebsiteNameForApplication = Get-VstsInput -Name WinrmProtocol -Require
-$virtualPathForApplication = Get-VstsInput -Name TestCertificate
-$physicalPathForApplication = Get-VstsInput -Name WebDeployPackage -Require
-$applicationPhysicalPathAuth = Get-VstsInput -Name WebDeployParamFile
-$applicationAuthUserName = Get-VstsInput -Name OverRideParams
-$applicationAuthUserPassword = Get-VstsInput -Name WebsiteName -Require
-$createOrUpdateAppPoolForApplication = Get-VstsInput -Name RemoveAdditionalFiles
-$appPoolNameForApplication = Get-VstsInput -Name ExcludeFilesFromAppData
-$dotNetVersionForApplication = Get-VstsInput -Name TakeAppOffline
-$pipeLineModeForApplication = Get-VstsInput -Name WebsiteName -Require
-$appPoolIdentityForApplication = Get-VstsInput -Name RemoveAdditionalFiles
-$appPoolUsernameForApplication = Get-VstsInput -Name ExcludeFilesFromAppData
-$appPoolPasswordForApplication = Get-VstsInput -Name TakeAppOffline
-$appPoolName = Get-VstsInput -Name WinrmProtocol -Require
-$dotNetVersion = Get-VstsInput -Name TestCertificate
-$pipeLineMode = Get-VstsInput -Name WebDeployPackage -Require
-$appPoolIdentity = Get-VstsInput -Name WebDeployParamFile
-$appPoolUsername = Get-VstsInput -Name OverRideParams
-$appPoolPassword = Get-VstsInput -Name WebsiteName -Require
-$startStopRecycleAppPoolName = Get-VstsInput -Name RemoveAdditionalFiles
-$appCmdCommands = Get-VstsInput -Name ExcludeFilesFromAppData
-$deployInParallel = Get-VstsInput -Name TakeAppOffline
+$iisDeploymentType = Get-VstsInput -Name IISDeploymentType -Require
+$actionIISWebsite = Get-VstsInput -Name ActionIISWebsite -Require
+$actionIISApplicationPool = Get-VstsInput -Name ActionIISApplicationPool -Require
+$startStopWebsiteName = Get-VstsInput -Name StartStopWebsiteName -Require
+$websiteName = Get-VstsInput -Name WebsiteName -Require
+$websitePhysicalPath = Get-VstsInput -Name WebsitePhysicalPath -Require
+$websitePhysicalPathAuth = Get-VstsInput -Name WebsitePhysicalPathAuth -Require
+$websiteAuthUserName = Get-VstsInput -Name WebsiteAuthUserName -Require
+$websiteAuthUserPassword = Get-VstsInput -Name WebsiteAuthUserPassword
+$addBinding = Get-VstsInput -Name AddBinding
+$protocol = Get-VstsInput -Name Protocol -Require
+$ipAddress = Get-VstsInput -Name IPAddress -Require
+$port = Get-VstsInput -Name Port -Require
+$serverNameIndication = Get-VstsInput -Name ServerNameIndication
+$hostNameWithOutSNI = Get-VstsInput -Name HostNameWithOutSNI
+$hostNameWithHttp = Get-VstsInput -Name HostNameWithHttp
+$hostNameWithSNI = Get-VstsInput -Name HostNameWithSNI -Require
+$sslCertThumbPrint = Get-VstsInput -Name SSLCertThumbPrint -Require
+$createOrUpdateAppPoolForWebsite = Get-VstsInput -Name CreateOrUpdateAppPoolForWebsite
+$configureAuthenticationForWebsite = Get-VstsInput -Name ConfigureAuthenticationForWebsite
+$appPoolNameForWebsite = Get-VstsInput -Name AppPoolNameForWebsite -Require
+$dotNetVersionForWebsite = Get-VstsInput -Name DotNetVersionForWebsite -Require
+$pipeLineModeForWebsite = Get-VstsInput -Name PipeLineModeForWebsite -Require
+$appPoolIdentityForWebsite = Get-VstsInput -Name AppPoolIdentityForWebsite -Require
+$appPoolUsernameForWebsite = Get-VstsInput -Name AppPoolUsernameForWebsite -Require
+$appPoolPasswordForWebsite = Get-VstsInput -Name AppPoolPasswordForWebsite
+$anonymousAuthenticationForWebsite = Get-VstsInput -Name AnonymousAuthenticationForWebsite
+$basicAuthenticationForWebsite = Get-VstsInput -Name BasicAuthenticationForWebsite
+$windowsAuthenticationForWebsite = Get-VstsInput -Name WindowsAuthenticationForWebsite
+$parentWebsiteNameForVD = Get-VstsInput -Name ParentWebsiteNameForVD -Require
+$virtualPathForVD = Get-VstsInput -Name VirtualPathForVD -Require
+$physicalPathForVD = Get-VstsInput -Name PhysicalPathForVD -Require
+$vdPhysicalPathAuth = Get-VstsInput -Name VDPhysicalPathAuth
+$vdAuthUserName = Get-VstsInput -Name VDAuthUserName -Require
+$vdAuthUserPassword = Get-VstsInput -Name VDAuthUserPassword
+$parentWebsiteNameForApplication = Get-VstsInput -Name ParentWebsiteNameForApplication -Require
+$virtualPathForApplication = Get-VstsInput -Name VirtualPathForApplication -Require
+$physicalPathForApplication = Get-VstsInput -Name PhysicalPathForApplication -Require
+$applicationPhysicalPathAuth = Get-VstsInput -Name ApplicationPhysicalPathAuth
+$applicationAuthUserName = Get-VstsInput -Name ApplicationAuthUserName -Require
+$applicationAuthUserPassword = Get-VstsInput -Name ApplicationAuthUserPassword
+$createOrUpdateAppPoolForApplication = Get-VstsInput -Name CreateOrUpdateAppPoolForApplication
+$appPoolNameForApplication = Get-VstsInput -Name AppPoolNameForApplication -Require
+$dotNetVersionForApplication = Get-VstsInput -Name DotNetVersionForApplication -Require
+$pipeLineModeForApplication = Get-VstsInput -Name PipeLineModeForApplication -Require
+$appPoolIdentityForApplication = Get-VstsInput -Name AppPoolIdentityForApplication -Require
+$appPoolUsernameForApplication = Get-VstsInput -Name AppPoolUsernameForApplication -Require
+$appPoolPasswordForApplication = Get-VstsInput -Name AppPoolPasswordForApplication
+$appPoolName = Get-VstsInput -Name AppPoolName -Require
+$dotNetVersion = Get-VstsInput -Name DotNetVersion -Require
+$pipeLineMode = Get-VstsInput -Name PipeLineMode -Require
+$appPoolIdentity = Get-VstsInput -Name AppPoolIdentity -Require
+$appPoolUsername = Get-VstsInput -Name AppPoolUsername -Require
+$appPoolPassword = Get-VstsInput -Name AppPoolPassword
+$startStopRecycleAppPoolName = Get-VstsInput -Name StartStopRecycleAppPoolName -Require
+$appCmdCommands = Get-VstsInput -Name AppCmdCommands
+$deployInParallel = Get-VstsInput -Name DeployInParallel
 
 if ([Console]::InputEncoding -is [Text.UTF8Encoding] -and [Console]::InputEncoding.GetPreamble().Length -ne 0) 
 { 
@@ -81,7 +81,7 @@ if ([Console]::InputEncoding -is [Text.UTF8Encoding] -and [Console]::InputEncodi
 }
 
 . $env:CURRENT_TASK_ROOTDIR\TelemetryHelper\TelemetryHelper.ps1
-. $currentTaskVersionRootDir\Utility.ps1
+. $env:CURRENT_TASK_ROOTDIR\Utility.ps1
 
 try {
     $appPoolPassword = Escape-SpecialChars -str $appPoolPassword
