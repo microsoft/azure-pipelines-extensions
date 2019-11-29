@@ -3,7 +3,7 @@
   "id": "vss-services-servicenowchangerequestmanagement",
   "name": "ServiceNow Change Management",
   "publisher": "ms-vscs-rm",
-  "version": "3.156.1",
+  "version": "4.162.1",
   "public": true,
   "description": "Integrate ServiceNow Change Management with Azure Pipelines",
   "categories": [
@@ -79,6 +79,18 @@
       "addressable": true
     },
     {
+      "path": "images/add-oauth-configuration.png",
+      "addressable": true
+    },
+    {
+      "path": "images/add-oauth-configuration-organization.png",
+      "addressable": true
+    },
+    {
+      "path": "images/oauth_servicenow_connection.png",
+      "addressable": true
+    },  
+    {
       "path": "Tasks/CreateAndQueryChangeRequest"
     },
     {
@@ -108,7 +120,7 @@
         "dataSources": [
           {
             "name": "TestConnection",
-            "endpointUrl": "{{endpoint.url}}/api/x_mioms_azpipeline/app_version?app_major_version=3",
+            "endpointUrl": "{{endpoint.url}}/api/x_mioms_azpipeline/app_version?app_major_version=4",
             "resultSelector": "jsonpath:$.result"
           },
           {
@@ -152,8 +164,47 @@
           },
           {
             "name": "Close code",
-            "endpointUrl": "{{endpoint.url}}/api/now/table/sys_choice?sysparm_query=element=name=change_request^Close_Code^language=en^ORDERBYDESCvalue&sysparm_fields=label,value",
+            "endpointUrl": "{{endpoint.url}}/api/now/table/sys_choice?sysparm_query=name=change_request^element=Close_Code^language=en^ORDERBYDESCvalue&sysparm_fields=label,value",
             "resultSelector": "jsonpath:$.result[*]"
+          },
+          {
+            "name": "PriorityLabel",
+            "endpointUrl": "{{endpoint.url}}/api/now/table/sys_choice?sysparm_query=element=priority^name={{table}}&sysparm_fields=label",
+            "resultSelector": "jsonpath:$.result[*].label",
+            "callbackContextTemplate": "{\"table\": \"task\"}",
+            "callbackRequiredTemplate": "{{#equals table \"change_request\"}}{{isEqualNumber result.count 0}}{{else}}false{{/equals}}",
+            "initialContextTemplate": "{\"table\": \"change_request\"}"
+          },
+          {
+            "name": "StateLabel",
+            "endpointUrl": "{{endpoint.url}}/api/now/table/sys_choice?sysparm_query=element=state^name={{table}}&sysparm_fields=label",
+            "resultSelector": "jsonpath:$.result[*].label",
+            "callbackContextTemplate": "{\"table\": \"task\"}",
+            "callbackRequiredTemplate": "{{#equals table \"change_request\"}}{{isEqualNumber result.count 0}}{{else}}false{{/equals}}",
+            "initialContextTemplate": "{\"table\": \"change_request\"}"
+          },
+          {
+            "name": "RiskLabel",
+            "endpointUrl": "{{endpoint.url}}/api/now/table/sys_choice?sysparm_query=element=Risk^name=change_request^ORDERBYDESCvalue&sysparm_fields=label",
+            "resultSelector": "jsonpath:$.result[*].label"
+          },
+          {
+            "name": "ImpactLabel",
+            "endpointUrl": "{{endpoint.url}}/api/now/table/sys_choice?sysparm_query=element=Impact^name={{table}}^ORDERBYDESCvalue&sysparm_fields=label",
+            "resultSelector": "jsonpath:$.result[*].label",
+            "callbackContextTemplate": "{\"table\": \"task\"}",
+            "callbackRequiredTemplate": "{{#equals table \"change_request\"}}{{isEqualNumber result.count 0}}{{else}}false{{/equals}}",
+            "initialContextTemplate": "{\"table\": \"change_request\"}"
+          },
+          {
+            "name": "CategoryLabel",
+            "endpointUrl": "{{endpoint.url}}/api/now/table/sys_choice?sysparm_query=name=change_request^element=category^inactive!=true&sysparm_fields=label",
+            "resultSelector": "jsonpath:$.result[*].label"
+          },
+          {
+            "name": "CloseCodeLabel",
+            "endpointUrl": "{{endpoint.url}}/api/now/table/sys_choice?sysparm_query=name=change_request^element=Close_Code^ORDERBYDESCvalue&sysparm_fields=label",
+            "resultSelector": "jsonpath:$.result[*].label"
           },
           {
             "name": "Configuration Item",
