@@ -1,12 +1,12 @@
 import Q = require('q');
 import assert = require('assert');
 var path = require('path');
-var psm = require('../../../../Common/lib/psRunner');
+var psm = require('../../../../../Common/lib/psRunner');
 var shell = require('shelljs');
 var ps = shell.which('powershell.exe');
 var psr = null;
 
-describe('IISWebAppDeployment Suite', function () {
+describe('IISWebAppDeployV2 Suite', function () {
     this.timeout(20000);
 
     before((done) => {
