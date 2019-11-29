@@ -66,7 +66,7 @@ function Run-RemoteDeployment
 
     if(-not [string]::IsNullOrEmpty($errorMessage))
     {
-        Write-Error -Message (Get-VstsLocString -Key HelpMessage -ArgumentList $errorMessage)
+        Write-Error -Message (Get-VstsLocString -Key 'HelpMessage' -ArgumentList $errorMessage)
         return
     }
 
