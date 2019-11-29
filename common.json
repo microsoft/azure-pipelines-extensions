@@ -1,12 +1,22 @@
 {
-    "IISWebAppDeploy": [
+    "IISWebAppDeployV1": [
         {
             "module": "DeploymentSDK",
-            "dest": "DeploymentSDK"
+            "dest": "IISWebAppDeployV1\\DeploymentSDK"
         },
         {
             "module": "TelemetryHelper",
-            "dest": "TelemetryHelper"
+            "dest": "IISWebAppDeployV1\\TelemetryHelper"
+        }
+    ],
+    "IISWebAppDeployV2": [
+        {
+            "module": "DeploymentSDK",
+            "dest": "IISWebAppDeployV2\\DeploymentSDK"
+        },
+        {
+            "module": "TelemetryHelper",
+            "dest": "IISWebAppDeployV2\\TelemetryHelper"
         }
     ],
     "IISWebAppMgmtV1": [
