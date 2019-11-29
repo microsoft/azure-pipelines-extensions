@@ -7,9 +7,6 @@ $env:CURRENT_TASK_ROOTDIR = Split-Path -Parent $MyInvocation.MyCommand.Path
 
 Import-Module $env:CURRENT_TASK_ROOTDIR\ps_modules\VstsTaskSdk
 
-# Import the loc strings.
-Import-VstsLocStrings -LiteralPath $env:CURRENT_TASK_ROOTDIR\task.json
-
 # Get inputs for the task
 $machinesList = Get-VstsInput -Name machinesList -Require
 $adminUserName = Get-VstsInput -Name AdminUserName -Require
