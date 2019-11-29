@@ -1,11 +1,11 @@
 [CmdletBinding()]
 param()
 
+Trace-VstsEnteringInvocation $MyInvocation
+
 $env:CURRENT_TASK_ROOTDIR = Split-Path -Parent $MyInvocation.MyCommand.Path
 
 Import-Module $env:CURRENT_TASK_ROOTDIR\ps_modules\VstsTaskSdk
-
-Trace-VstsEnteringInvocation $MyInvocation
 
 # Import the loc strings.
 Import-VstsLocStrings -LiteralPath $env:CURRENT_TASK_ROOTDIR\task.json

@@ -171,10 +171,5 @@
     "PowerShell3": {
       "target": "Main.ps1"
     }
-  },
-  "messages": {
-    "StartDeployIISWebDeployPackage": "Starting deployment of IIS Web Deploy Package : '{0}'",
-    "IISWebAppDeployPackageSuccessful": "Successfully deployed IIS Web Deploy Package : '{0}'",
-    "HelpMessage": "The error is '{0}'. For more info please refer to http://aka.ms/iisextnreadme."
   }
 }

@@ -60,17 +60,18 @@ function Run-RemoteDeployment
         [string]$webDeployPackage
     )
 
-    Write-Host (Get-VstsLocString -Key 'StartDeployIISWebDeployPackage' -ArgumentList $webDeployPackage)
+    Write-Host "Starting deployment of IIS Web Deploy Package : $webDeployPackage"
 
     $errorMessage = Invoke-RemoteDeployment -machinesList $machinesList -scriptToRun $scriptToRun -adminUserName $adminUserName -adminPassword $adminPassword -protocol $winrmProtocol -testCertificate $testCertificate -deployInParallel $deployInParallel
 
     if(-not [string]::IsNullOrEmpty($errorMessage))
     {
-        Write-Error -Message (Get-VstsLocString -Key 'HelpMessage' -ArgumentList $errorMessage)
+        $helpMessage = "For more info please refer to http://aka.ms/iisextnreadme"
+        Write-Error "$errorMessage`n$helpMessage"
         return
     }
 
-    Write-Host (Get-VstsLocString -Key 'IISWebAppDeployPackageSuccessful' -ArgumentList $webDeployPackage)
+    Write-Host "Successfully deployed IIS Web Deploy Package : $webDeployPackage"
 }
 
 function Main
