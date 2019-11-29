@@ -449,7 +449,7 @@ function Run-RemoteDeployment
             sessionVariables = "";
         }
 
-        Write-Host (Get-VstsLocString -Key 'StartRemoteExecution' -ArgumentList @($iisDeploymentType, $action))
+        Write-Host "Starting remote execution of Invoke-Main script for `"$iisDeploymentType`" with action `"$action`""
 
         $jobResults = @()
         if($deployInParallel -eq $true) {
