@@ -1,0 +1,74 @@
+{
+    "id": "B89A647B-E45F-4A86-BB85-E7019474AA1D",
+    "name": "ProvisionExperiment",
+    "friendlyName": "Provision Experiment",
+    "description": "Provision Experiments in Control Tower",
+    "helpMarkDown": "",
+    "category": "Deploy",
+    "visibility": [
+        "Build",
+        "Release"
+    ],
+    "author": "Microsoft Corporation",
+    "version": {
+        "major": 0,
+        "minor": 0,
+        "patch": 1
+    },
+    "inputs": [
+        {
+            "name": "ServiceConnectionId",
+            "aliases": ["azureSubscription"],
+            "type": "connectedService:AzureRM",
+            "label": "Azure Subscription",
+            "defaultValue": "",
+            "required": true,
+            "helpMarkDown": "Select the Azure Resource Manager subscription for the deployment."
+        },
+        {
+            "name": "Action",
+            "type": "pickList",
+            "label": "Action",
+            "defaultValue": "",
+            "required": true,
+            "options": {
+			    "CreateFeature": "Create Feature Rollout",
+				"CreateProgression": "Create progression"
+            },
+            "helpMarkDown": "Select the action you want to perform"
+        },
+        {
+            "name": "FeatureId",
+            "type": "string",
+            "label": "Experiment Id",
+            "required": true,
+            "defaultValue": "",
+			"visibleRule": "Action = CreateProgression",
+            "helpMarkDown": "Select the experiment you want to edit."
+        },
+	    {
+            "name": "FeatureJsonPath",
+            "type": "filePath",
+            "label": "Feature JSON Path",
+            "defaultValue": "",
+            "required": true,
+            "visibleRule": "Action = CreateFeature",
+            "helpMarkDown": "Json string for feature object"
+        },
+	    {
+            "name": "ProgressionJsonPath",
+            "type": "filePath",
+            "label": "Progression JSON Path",
+            "defaultValue": "",
+            "required": true,
+            "visibleRule": "Action = CreateProgression",
+            "helpMarkDown": "Json string for progression object"
+        }
+    ],
+    "execution": {
+        "Node": {
+            "target": "main.js"
+        }
+    },
+    "instanceNameFormat": "Provision experiment"
+}

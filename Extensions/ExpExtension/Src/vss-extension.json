@@ -1,0 +1,71 @@
+{
+    "manifestVersion": "1",
+    "id": "expfeaturerollout",
+    "name": "Exp Feature Rollout",
+    "version": "0.0.1",
+    "publisher": "ms-vscs-rm",
+    "description": "Exp feature rollout",
+    "public": true,
+    "categories": [
+        "Build and release"
+    ],
+    "files": [
+        {
+            "path": "Tasks/FeatureRollout"
+        },
+        {
+            "path": "Tasks/ManageExperiment"
+        },
+        {
+			"path": "UIContribution/static/index.html",
+			"addressable": true
+        },
+        {
+			"path": "UIContribution/node_modules/vss-web-extension-sdk/lib",
+			"addressable": true,
+			"packagePath": "UIContribution/lib"
+		}
+    ],
+    "targets": [
+        {
+            "id": "Microsoft.VisualStudio.Services"
+        }
+    ],
+    "contributions": [
+        {
+            "id": "featurerollout-task",
+            "type": "ms.vss-distributed-task.task",
+            "targets": [
+                "ms.vss-distributed-task.tasks"
+            ],
+            "properties": {
+                "name": "Tasks/FeatureRollout"
+            }
+        },
+        {
+            "id": "manageexperiment-task",
+            "type": "ms.vss-distributed-task.task",
+            "targets": [
+                "ms.vss-distributed-task.tasks"
+            ],
+            "properties": {
+                "name": "Tasks/ManageExperiment"
+            }
+        },
+        {
+			"id": "featurerollout-OverviewTab",
+			"type": "ms.vss-web.tab",
+			"targets": [
+				"ms.vss-releaseManagement-web.release-environment-editor-tab"
+			],
+			"properties": {
+				"name": "Experiment Overview",
+				"description": "Shows the experiment overview",
+				"uri": "UIContribution/static/index.html",
+                "registeredObjectId": "registeredEnvironmentObject",
+                "order": "9999",
+				"dynamic": true
+			}
+		}
+    ]
+}
