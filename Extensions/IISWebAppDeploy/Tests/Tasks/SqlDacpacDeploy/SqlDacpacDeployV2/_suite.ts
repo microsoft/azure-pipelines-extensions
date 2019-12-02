@@ -2,12 +2,12 @@ import Q = require('q');
 import assert = require('assert');
 const fs = require('fs');
 var path = require('path');
-var psm = require('../../../../Common/lib/psRunner');
+var psm = require('../../../../../Common/lib/psRunner');
 var shell = require('shelljs');
 var ps = shell.which('powershell.exe');
 var psr = null;
 
-describe('SqlDacpacDeploy Suite', function () {
+describe('SqlDacpacDeployV2 Suite', function () {
     this.timeout(20000);
 
     before((done) => {
