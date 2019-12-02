@@ -248,10 +248,8 @@
   ],
   "instanceNameFormat": "Deploy using : $(TaskType)",
   "execution": {
-    "PowerShell": {
-      "target": "$(currentDirectory)\\Main.ps1",
-      "argumentFormat": "",
-      "workingDirectory": "$(currentDirectory)"
+    "PowerShell3": {
+      "target": "Main.ps1"
     }
   }
 }
