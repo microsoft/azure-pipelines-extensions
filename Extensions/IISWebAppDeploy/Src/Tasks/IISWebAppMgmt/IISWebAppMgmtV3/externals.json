@@ -28,7 +28,7 @@
                         "Strings"
                     ],
                     "dest": "RemoteDeployer/",
-					"options": "-R"
+                    "options": "-R"
                 }
             ]
         }
