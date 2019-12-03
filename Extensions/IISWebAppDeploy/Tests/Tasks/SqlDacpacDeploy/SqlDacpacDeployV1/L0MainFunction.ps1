@@ -3,7 +3,7 @@ param()
 
 . $PSScriptRoot\..\..\..\..\..\Common\lib\Initialize-Test.ps1
 
-. $PSScriptRoot\..\..\..\..\Src\Tasks\SqlDacpacDeployV1\DeployToSqlServer.ps1
+. $PSScriptRoot\..\..\..\..\Src\Tasks\SqlDacpacDeploy\SqlDacpacDeployV1\DeployToSqlServer.ps1
 . $PSScriptRoot\..\..\..\..\..\Common\DeploymentSDK\Src\InvokeRemoteDeployment.ps1
 . $PSScriptRoot\..\..\..\..\..\Common\DeploymentSDK\Src\Utility.ps1
 

@@ -2,7 +2,7 @@
 param()
 
 . $PSScriptRoot\..\..\..\..\..\Common\lib\Initialize-Test.ps1
-. $PSScriptRoot\..\..\..\..\Src\Tasks\SqlDacpacDeployV1\TaskModuleSqlUtility\SqlQueryOnTargetMachines.ps1
+. $PSScriptRoot\..\..\..\..\Src\Tasks\SqlDacpacDeploy\SqlDacpacDeployV1\TaskModuleSqlUtility\SqlQueryOnTargetMachines.ps1
 
 Register-Mock Import-Module { Write-Verbose "Dummy Import-Module" -Verbose }
 
