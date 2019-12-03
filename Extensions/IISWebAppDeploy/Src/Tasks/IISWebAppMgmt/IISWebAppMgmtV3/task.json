@@ -734,7 +734,7 @@
     "instanceNameFormat": "Manage $(IISDeploymentType)",
     "execution": {
         "PowerShell3": {
-        "target": "Main.ps1"
+            "target": "Main.ps1"
         }
     }
 }

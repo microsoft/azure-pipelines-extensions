@@ -27,7 +27,8 @@
                         "module.json",
                         "Strings"
                     ],
-                    "dest": "RemoteDeployer/"
+                    "dest": "RemoteDeployer/",
+					"options": "-R"
                 }
             ]
         }
