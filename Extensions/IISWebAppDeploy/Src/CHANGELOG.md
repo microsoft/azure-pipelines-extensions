@@ -2,6 +2,10 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.5.9] 5th December 2019
+### Added
+- Moved the tasks IISWebAppDeploy, IISWebAppMgmt and SqlDacpacDeploy to PS3 Handler.
+
 ## [1.5.8] 7th November 2019
 ### Added
 - Bug fix: Escape special characters $,'," in password in IIS Web App Management v2 task.
