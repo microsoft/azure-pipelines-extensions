@@ -1,8 +1,8 @@
-. $PSScriptRoot\..\..\..\..\Common\lib\Initialize-Test.ps1
+. $PSScriptRoot\..\..\..\..\..\Common\lib\Initialize-Test.ps1
 
-. $PSScriptRoot\..\..\..\Src\Tasks\SqlDacpacDeploy\TaskModuleSqlUtility\SqlPackageOnTargetMachines.ps1
-. $PSScriptRoot\..\..\..\..\Common\DeploymentSDK\Src\InvokeRemoteDeployment.ps1
-. $PSScriptRoot\..\..\..\..\Common\DeploymentSDK\Src\Utility.ps1
+. $PSScriptRoot\..\..\..\..\Src\Tasks\SqlDacpacDeploy\SqlDacpacDeployV1\TaskModuleSqlUtility\SqlPackageOnTargetMachines.ps1
+. $PSScriptRoot\..\..\..\..\..\Common\DeploymentSDK\Src\InvokeRemoteDeployment.ps1
+. $PSScriptRoot\..\..\..\..\..\Common\DeploymentSDK\Src\Utility.ps1
 
 mkdir \SQL\110 -Force
 mkdir \SQL\120 -Force

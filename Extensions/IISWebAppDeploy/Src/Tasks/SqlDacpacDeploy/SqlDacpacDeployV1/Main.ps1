@@ -9,7 +9,6 @@ param (
     [string]$sqlFile,
     [string]$inlineSql,
     [string]$targetMethod,
-    [string]$targetMethodSql,
     [string]$serverName,
     [string]$databaseName,
     [string]$authscheme,

@@ -41,14 +41,24 @@
             "dest": "IISWebAppMgmtV3\\TelemetryHelper"
         }
     ],
-    "SqlDacpacDeploy": [
+    "SqlDacpacDeployV1": [
         {
             "module": "DeploymentSDK",
-            "dest": "DeploymentSDK"
+            "dest": "SqlDacpacDeployV1\\DeploymentSDK"
         },
         {
             "module": "TelemetryHelper",
-            "dest": "TelemetryHelper"
+            "dest": "SqlDacpacDeployV1\\TelemetryHelper"
+        }
+    ],
+    "SqlDacpacDeployV2": [
+        {
+            "module": "DeploymentSDK",
+            "dest": "SqlDacpacDeployV2\\DeploymentSDK"
+        },
+        {
+            "module": "TelemetryHelper",
+            "dest": "SqlDacpacDeployV2\\TelemetryHelper"
         }
     ]
 }

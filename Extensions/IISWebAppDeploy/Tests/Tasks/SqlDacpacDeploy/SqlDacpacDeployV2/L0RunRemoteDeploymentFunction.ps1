@@ -1,11 +1,11 @@
 [CmdletBinding()]
 param()
 
-. $PSScriptRoot\..\..\..\..\Common\lib\Initialize-Test.ps1
+. $PSScriptRoot\..\..\..\..\..\Common\lib\Initialize-Test.ps1
 
-. $PSScriptRoot\..\..\..\Src\Tasks\SqlDacpacDeploy\DeployToSqlServer.ps1
-. $PSScriptRoot\..\..\..\..\Common\DeploymentSDK\Src\InvokeRemoteDeployment.ps1
-. $PSScriptRoot\..\..\..\..\Common\DeploymentSDK\Src\Utility.ps1
+. $PSScriptRoot\..\..\..\..\Src\Tasks\SqlDacpacDeploy\SqlDacpacDeployV2\DeployToSqlServer.ps1
+. $PSScriptRoot\..\..\..\..\..\Common\DeploymentSDK\Src\InvokeRemoteDeployment.ps1
+. $PSScriptRoot\..\..\..\..\..\Common\DeploymentSDK\Src\Utility.ps1
 
 Register-Mock Import-Module { Write-Verbose "Dummy Import-Module" -Verbose }
 
