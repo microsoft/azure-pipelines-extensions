@@ -9,7 +9,7 @@ export class ExpAuthorizer {
         this._httpClient = new HttpClient(userAgent);
     }
 
-    public async getAccessToken() {
+    public async getAccessToken(): Promise<string> {
         let servicePrincipalClientId = tl.getEndpointAuthorizationParameter(this._serviceConnectionId, 'serviceprincipalid', false);
         let servicePrincipalKey = tl.getEndpointAuthorizationParameter(this._serviceConnectionId, 'serviceprincipalkey', false);
         let tenantId = tl.getEndpointAuthorizationParameter(this._serviceConnectionId, 'tenantid', false);
@@ -34,14 +34,16 @@ export class ExpAuthorizer {
         let responseBody = await response.readBody();
         if (response.message.statusCode === 200) {
             if (!!responseBody) {
-                return JSON.parse(responseBody)['access_token'];
+                let accessToken = JSON.parse(responseBody)['access_token'];
+                tl.setSecret(accessToken);
+                return accessToken;
             }
             else {
-                throw new Error(`Unable to fetch access token. The response body is empty. ${JSON.stringify(response.message)}`)
+                throw new Error(tl.loc('UnableToFetchAccessTokenNullResponse', JSON.stringify(response)));
             }
         }
         else {
-            throw new Error(`Unable to fetch access token. Check if the service principal credentials are valid and have appropriate permissions. ${JSON.stringify(response.message)} ${responseBody}`)
+            throw new Error(tl.loc('UnableToFetchAccessToken', JSON.stringify(response.message), responseBody));
         }
     }
     

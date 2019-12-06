@@ -1,11 +1,8 @@
 {
-  "name": "featurerollout",
+  "name": "provisionexperiment",
   "version": "1.0.0",
-  "description": "exp feature rollout",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
+  "description": "Provision experiments in control tower",
+  "main": "main.js",
   "author": "Microsoft Corporation",
   "license": "MIT",
   "dependencies": {

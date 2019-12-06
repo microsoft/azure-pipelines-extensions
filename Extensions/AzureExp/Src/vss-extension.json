@@ -1,23 +1,31 @@
 {
     "manifestVersion": "1",
-    "id": "expfeaturerollout",
-    "name": "Exp Feature Rollout",
-    "version": "0.0.1",
+    "id": "azureexp",
+    "name": "Azure Exp",
+    "version": "1.0.0",
     "publisher": "ms-vscs-rm",
-    "description": "Exp feature rollout",
+    "description": "Azure Exp feature rollout",
     "public": true,
     "categories": [
         "Build and release"
     ],
     "files": [
         {
-            "path": "Tasks/FeatureRollout"
+            "path": "Tasks/ProvisionExperimentV1"
         },
         {
-            "path": "Tasks/ManageExperiment"
+            "path": "Tasks/ManageExperimentV1"
         },
         {
 			"path": "UIContribution/static/index.html",
+			"addressable": true
+        },
+        {
+			"path": "UIContribution/scripts/main.js",
+			"addressable": true
+        },
+        {
+			"path": "UIContribution/scripts/experimentOverview.js",
 			"addressable": true
         },
         {
@@ -33,13 +41,13 @@
     ],
     "contributions": [
         {
-            "id": "featurerollout-task",
+            "id": "provisionexperiment-task",
             "type": "ms.vss-distributed-task.task",
             "targets": [
                 "ms.vss-distributed-task.tasks"
             ],
             "properties": {
-                "name": "Tasks/FeatureRollout"
+                "name": "Tasks/ProvisionExperimentV1"
             }
         },
         {
@@ -49,11 +57,11 @@
                 "ms.vss-distributed-task.tasks"
             ],
             "properties": {
-                "name": "Tasks/ManageExperiment"
+                "name": "Tasks/ManageExperimentV1"
             }
         },
         {
-			"id": "featurerollout-OverviewTab",
+			"id": "azureexp-OverviewTab",
 			"type": "ms.vss-web.tab",
 			"targets": [
 				"ms.vss-releaseManagement-web.release-environment-editor-tab"
@@ -67,5 +75,11 @@
 				"dynamic": true
 			}
 		}
-    ]
+    ],
+    "scopes": [
+		"vso.build",
+		"vso.release",
+		"vso.serviceendpoint",
+		"vso.serviceendpoint_query"
+	]
 }

@@ -3,25 +3,25 @@
     "name": "ProvisionExperiment",
     "friendlyName": "Provision Experiment",
     "description": "Provision Experiments in Control Tower",
-    "helpMarkDown": "",
+    "author": "Microsoft Corporation",
+    "helpMarkDown": "[More Information](Get Link here)",
     "category": "Deploy",
     "visibility": [
         "Build",
         "Release"
     ],
-    "author": "Microsoft Corporation",
     "version": {
-        "major": 0,
+        "major": 1,
         "minor": 0,
-        "patch": 1
+        "patch": 0
     },
+    "instanceNameFormat": "Provision experiment - $(Action)",
     "inputs": [
         {
             "name": "ServiceConnectionId",
             "aliases": ["azureSubscription"],
             "type": "connectedService:AzureRM",
             "label": "Azure Subscription",
-            "defaultValue": "",
             "required": true,
             "helpMarkDown": "Select the Azure Resource Manager subscription for the deployment."
         },
@@ -29,7 +29,6 @@
             "name": "Action",
             "type": "pickList",
             "label": "Action",
-            "defaultValue": "",
             "required": true,
             "options": {
 			    "CreateFeature": "Create Feature Rollout",
@@ -40,29 +39,26 @@
         {
             "name": "FeatureId",
             "type": "string",
-            "label": "Experiment Id",
+            "label": "Feature Id",
             "required": true,
-            "defaultValue": "",
 			"visibleRule": "Action = CreateProgression",
             "helpMarkDown": "Select the experiment you want to edit."
         },
 	    {
             "name": "FeatureJsonPath",
             "type": "filePath",
-            "label": "Feature JSON Path",
-            "defaultValue": "",
+            "label": "Feature JSON path",
             "required": true,
             "visibleRule": "Action = CreateFeature",
-            "helpMarkDown": "Json string for feature object"
+            "helpMarkDown": "Json file path of feature object"
         },
 	    {
             "name": "ProgressionJsonPath",
             "type": "filePath",
-            "label": "Progression JSON Path",
-            "defaultValue": "",
+            "label": "Progression JSON path",
             "required": true,
             "visibleRule": "Action = CreateProgression",
-            "helpMarkDown": "Json string for progression object"
+            "helpMarkDown": "Json file path of progression object"
         }
     ],
     "execution": {
@@ -70,5 +66,13 @@
             "target": "main.js"
         }
     },
-    "instanceNameFormat": "Provision experiment"
+    "messages": {
+        "InvalidAction": "Invalid action %s",
+        "BeginFeatureRollout": "Begin creating feature rollout.",
+        "FeatureRolloutComplete": "Feature rollout is successfully created with id %s. Visit https://exp.microsoft.com/a/feature/%s for more details.",
+        "BeginCreatingProgression": "Begin creating progression",
+        "ProgressionComplete": "Progression is successfully created with id {0}. Visit https://exp.microsoft.com/a/feature/%s for more details.",
+        "UnableToFetchAccessTokenNullResponse": "Unable to fetch access token. The response body is empty. %s",
+        "UnableToFetchAccessToken": "Unable to fetch access token. Check if the service principal credentials are valid and have appropriate permissions. %s %s"
+    }
 }

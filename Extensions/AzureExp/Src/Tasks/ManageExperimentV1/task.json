@@ -5,41 +5,52 @@
     "description": "Manage Experiments in Control Tower",
     "author": "Microsoft Corporation",
     "helpMarkDown": "[More Information](Get Link here)",
-    "category": "Utility",
+    "category": "Deploy",
     "visibility": [
         "Build",
         "Release"
     ],
     "version": {
-        "Major": 0,
+        "Major": 1,
         "Minor": 0,
-        "Patch": 1
+        "Patch": 0
     },
     "minimumAgentVersion": "1.95.0",
-    "instanceNameFormat": "Manage Experiment",
+    "instanceNameFormat": "$(Action) Experiment",
     "inputs": [
         {
             "name": "ServiceConnectionId",
             "aliases": ["azureSubscription"],
             "type": "connectedService:AzureRM",
             "label": "Azure Subscription",
-            "defaultValue": "",
             "required": true,
             "helpMarkDown": "Select the Azure Resource Manager subscription for the deployment."
         },
         {
-            "name": "ExperimentId",
+            "name": "FeatureId",
             "type": "string",
-            "label": "Experiment Id",
+            "label": "Feature Id",
             "required": true,
-            "defaultValue": "",
-            "helpMarkDown": "Select the experiment you want to edit."
+            "helpMarkDown": "Feature Id of the experiment to manage."
+        },
+        {
+            "name": "ProgressionId",
+            "type": "string",
+            "label": "Progression Id",
+            "required": true,
+            "helpMarkDown": "Progression Id of the experiment to manage."
+        },
+        {
+            "name": "ExperimentName",
+            "type": "string",
+            "label": "Experiment Name",
+            "required": true,
+            "helpMarkDown": "Name of the experiment to manage."
         },
         {
             "name": "Action",
             "type": "pickList",
             "label": "Action",
-            "defaultValue": "",
             "required": true,
             "options": {
                 "Start": "Start the experiment",
@@ -47,28 +58,19 @@
                 "Stop": "Stop the experiment"
             },
             "helpMarkDown": "Select the action you want to perform"
-        },
-        {
-            "name": "FlightsTraffic",
-            "type": "string",
-            "label": "Flights traffic exposures",
-            "defaultValue": "",
-            "required": true,
-            "visibleRule": "Action = ChangeTraffic",
-            "helpMarkDown": "Semicolon separated flight exposure. Example: 'flight1':10';'flight2':20"
-        }
-    ],
-    "dataSourceBindings": [
-        {
-            "target": "ExperimentId",
-            "endpointId": "$(ConnectedServiceName)",
-            "dataSourceName": "ControlTowerExperiments",
-            "resultTemplate": "{ \"Value\" : \"{{{Id}}}\", \"DisplayValue\" : \"{{{Name}}}\" }"
         }
     ],
     "execution": {
         "Node": {
             "target": "main.js"
         }
+    },
+    "messages": {
+        "InvalidAction": "Invalid Action %s",
+        "InitiateAction": "Initiate action %s on experiment %s",
+        "InitiatedAction": "Initiated action %s on experiment %s",
+        "ExperimentNotFound": "Unable to find experiment %s in progression %s",
+        "UnableToFetchAccessTokenNullResponse": "Unable to fetch access token. The response body is empty. %s",
+        "UnableToFetchAccessToken": "Unable to fetch access token. Check if the service principal credentials are valid and have appropriate permissions. %s %s"
     }
 }
