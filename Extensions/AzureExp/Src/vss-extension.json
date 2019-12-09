@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "publisher": "ms-vscs-rm",
     "description": "Azure Exp feature rollout",
-    "public": true,
+    "public": false,
     "categories": [
         "Build and release"
     ],
