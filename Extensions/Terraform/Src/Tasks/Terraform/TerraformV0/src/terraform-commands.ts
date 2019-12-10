@@ -9,9 +9,9 @@ export class TerraformBaseCommandInitializer {
         additionalArgs?: string | undefined
     ) {
         this.name = name;
-        this.workingDirectory = workingDirectory;  
+        this.workingDirectory = workingDirectory;
         this.additionalArgs = additionalArgs;
-    } 
+    }
 }
 
 export class TerraformAuthorizationCommandInitializer extends TerraformBaseCommandInitializer {
