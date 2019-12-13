@@ -118,7 +118,7 @@
             "required": false
         },
         {
-            "name": "environmentServiceNameAzureRM",
+            "name": "providerServiceAzureRM",
             "type": "connectedService:AzureRM",
             "label": "Provider Connection",
             "required": true,
@@ -126,7 +126,7 @@
             "helpMarkDown": "Azure subscription connection to deploy with."
         },
         {
-            "name": "environmentServiceNameAWS",
+            "name": "providerServiceAWS",
             "type": "connectedService:AWSServiceEndpoint",
             "label": "Provider Connection",
             "required": true,
@@ -134,11 +134,11 @@
             "helpMarkDown": "AWS connection to deploy with.<br><br>Note: If your connection is not listed or if you want to use an existing connection, you can setup an Amazon Web Services service connection using the 'Add' or 'Manage' button."
         },
         {
-            "name": "environmentServiceNameGCP",
+            "name": "providerServiceGoogle",
             "type": "connectedService:GoogleCloudServiceEndpoint",
             "label": "Provider Connection",
             "required": true,
-            "visibleRule": "provider = gcp && command != init && command != validate",
+            "visibleRule": "provider = google && command != init && command != validate",
             "helpMarkDown": "Google Cloud connection to deploy with.<br><br>Note: If your connection is not listed or if you want to use an existing connection, you can setup a Google Cloud Platform service connection using the 'Add' or 'Manage' button."
         },
         {
@@ -230,7 +230,7 @@
             "type": "pickList",
             "label": "Storage Bucket",
             "required": true,
-            "helpMarkDown": "The name of the GCP storage bucket for storing the Terraform remote state file.",
+            "helpMarkDown": "The name of the Google storage bucket for storing the Terraform remote state file.",
             "groupName": "backendGCS",
             "properties": {
                 "EditableOptions": "True"
@@ -241,7 +241,7 @@
             "type": "string",
             "label": "Path",
             "required": false,
-            "helpMarkDown": "The relative path to the state file inside the GCP bucket. For example, if you give the input as 'terraform', then the state file, named default.tfstate, will be stored inside an object called terraform.",
+            "helpMarkDown": "The relative path to the state file inside the GCS bucket. For example, if you give the input as 'terraform', then the state file, named default.tfstate, will be stored inside an object called terraform.",
             "groupName": "backendGCS"
         }
     ],

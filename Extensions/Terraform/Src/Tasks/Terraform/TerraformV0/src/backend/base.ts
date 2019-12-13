@@ -3,9 +3,9 @@ import tasks = require('azure-pipelines-task-lib/task');
 
 export abstract class TFBackend {
     protected backendConfig: Map<string, string>;
-    backendServiceName: String;
+    backendServiceName: string;
 
-    protected abstract setupBackend(backendServiceName: String);
+    protected abstract setupBackend(backendServiceName: string);
     constructor() {
         this.backendConfig = new Map<string, string>();
         this.backendServiceName = "backendService" + tasks.getInput("backend", true)
