@@ -1,4 +1,4 @@
-import { TerraformCommandHandlerGCP } from './../../../src/gcp-terraform-command-handler';
+import { TerraformCommandHandlerGCP } from '../../../src/provider/google';
 import tl = require('azure-pipelines-task-lib');
 
 let terraformCommandHandlerGCP: TerraformCommandHandlerGCP = new TerraformCommandHandlerGCP();

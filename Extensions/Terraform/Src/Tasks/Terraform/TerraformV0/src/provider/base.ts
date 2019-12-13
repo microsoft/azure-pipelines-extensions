@@ -1,23 +1,18 @@
-import {TerraformToolHandler, ITerraformToolHandler} from './terraform';
+import {TerraformToolHandler, ITerraformToolHandler} from '../terraform';
 import {ToolRunner, IExecOptions, IExecSyncOptions, IExecSyncResult} from 'azure-pipelines-task-lib/toolrunner';
-import {TerraformBaseCommandInitializer, TerraformAuthorizationCommandInitializer} from './terraform-commands';
+import {TerraformBaseCommandInitializer, TerraformAuthorizationCommandInitializer} from '../terraform-commands';
 import tasks = require('azure-pipelines-task-lib/task');
 import path = require('path');
 import * as uuidV4 from 'uuid/v4';
 const fs = require('fs');
 
-export abstract class BaseTerraformCommandHandler {
-    providerName: string;
+export abstract class TFProvider {
+    protected providerName: string;
     terraformToolHandler: ITerraformToolHandler;
-    backendConfig: Map<string, string>;
-
-    abstract handleBackend(terraformToolRunner: ToolRunner);
-    abstract handleProvider(command: TerraformAuthorizationCommandInitializer);
     
     constructor() {
-        this.providerName = "";
+        this.providerName = tasks.getInput("provider", true) //values are either: azurerm, aws or google
         this.terraformToolHandler = new TerraformToolHandler(tasks);
-        this.backendConfig = new Map<string, string>();
     }
 
     public compareVersions(version1: string, version2: string) {
@@ -66,7 +61,7 @@ export abstract class BaseTerraformCommandHandler {
         switch (provider) {
             case "azurerm": return "AzureRM";
             case "aws"    : return "AWS";
-            case "gcp"    : return "GCP";
+            case "google"    : return "GCP";
         }
     }
 

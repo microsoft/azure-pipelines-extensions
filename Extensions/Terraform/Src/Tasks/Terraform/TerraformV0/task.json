@@ -25,22 +25,28 @@
     },
     "groups": [
         {
-            "name": "backendAzureRm",
+            "name": "backendAzureRM",
             "displayName": "Backend",
             "isExpanded": true,
             "visibleRule": "backend = azurerm && command = init"
         },
         {
-            "name": "backendAWS",
+            "name": "backendS3",
             "displayName": "Backend",
             "isExpanded": true,
             "visibleRule": "backend = s3 && command = init"
         },
         {
-            "name": "backendGCP",
+            "name": "backendGCS",
             "displayName": "Backend",
             "isExpanded": true,
             "visibleRule": "backend = gcs && command = init"
+        },
+        {
+            "name": "backendRemote",
+            "displayName": "Backend",
+            "isExpanded":true,
+            "visibleRule": "backend = remote && command = init"
         }
     ],
     "inputs": [
@@ -53,7 +59,7 @@
             "helpMarkDown": "The selected backend type where state will managed from.",
             "options": {
                 "local": "Local Filesystem",
-                "remote": "Terraform Cloud",
+                "remote": "Terraform Cloud or Enterprise",
                 "azurerm": "Azure Blob Storage",
                 "s3": "AWS S3 Bucket",
                 "gcs": "Google Cloud Storage"
@@ -72,7 +78,7 @@
             "options": {
                 "azurerm": "Azure",
                 "aws": "AWS",
-                "gcp": "Google"
+                "google": "Google"
             },
             "properties": {
                 "editableOptions": "False"
@@ -136,136 +142,136 @@
             "helpMarkDown": "Google Cloud connection to deploy with.<br><br>Note: If your connection is not listed or if you want to use an existing connection, you can setup a Google Cloud Platform service connection using the 'Add' or 'Manage' button."
         },
         {
-            "name": "backendServiceArm",
+            "name": "backendServiceAzureRM",
             "type": "connectedService:AzureRM",
             "label": "Connection",
             "required": true,
             "helpMarkDown": "Azure resource manager subscription for the terraform backend configuration",
-            "groupName": "backendAzureRm"
+            "groupName": "backendAzureRM"
         },
         {
-            "name": "backendAzureRmResourceGroupName",
+            "name": "backendAzureRMResourceGroupName",
             "type": "pickList",
             "label": "Resource Group",
             "required": true,
             "helpMarkDown": "The name of the resource group which contains the storage account selected below.",
-            "groupName": "backendAzureRm",
+            "groupName": "backendAzureRM",
             "properties": {
                 "EditableOptions": "True"
             }
         },
         {
-            "name": "backendAzureRmStorageAccountName",
+            "name": "backendAzureRMStorageAccountName",
             "type": "pickList",
             "label": "Storage Account",
             "required": true,
             "helpMarkDown": "The name of the storage account which contains the Azure Blob container selected below.",
-            "groupName": "backendAzureRm",
+            "groupName": "backendAzureRM",
             "properties": {
                 "EditableOptions": "True"
             }
         },
         {
-            "name": "backendAzureRmContainerName",
+            "name": "backendAzureRMContainerName",
             "type": "pickList",
             "label": "Blob Container",
             "required": true,
             "helpMarkDown": "The name of the Azure Blob container in which to store the Terraform remote state file.",
-            "groupName": "backendAzureRm",
+            "groupName": "backendAzureRM",
             "properties": {
                 "EditableOptions": "True"
             }
         },
         {
-            "name": "backendAzureRmKey",
+            "name": "backendAzureRMKey",
             "type": "string",
             "label": "File Path",
             "required": true,
             "helpMarkDown": "The path to the Terraform remote state file inside the container.<br>For example, if you want to store the state file, named terraform.tfstate, inside a folder, named tf, then give the input 'tf/terraform.tfstate'",
-            "groupName": "backendAzureRm"
+            "groupName": "backendAzureRM"
         },
         {
-            "name": "backendServiceAWS",
+            "name": "backendServiceS3",
             "type": "connectedService:AWSServiceEndpoint",
             "label": "Connection",
             "required": true,
             "helpMarkDown": "Amazon Web Services connection for the terraform backend configuration.<br><br>Note: If your connection is not listed or if you want to use an existing connection, you can setup an Amazon Web Services service connection using the 'Add' or 'Manage' button.",
-            "groupName": "backendAWS"
+            "groupName": "backendS3"
         },
         {
-            "name": "backendAWSBucketName",
+            "name": "backendS3BucketName",
             "type": "pickList",
             "label": "S3 Bucket",
             "required": true,
             "helpMarkDown": "The name of the Amazon Simple Storage Service (S3) bucket for storing the Terraform remote state file.<br><br>NOTE: The region of this bucket (e.g. us-east-1) must be specified in the AWS service connection that you must set up. To set up an AWS service connection, click on the 'Help(i)' button of the above input named 'Amazon Web Services connection'",
-            "groupName": "backendAWS",
+            "groupName": "backendS3",
             "properties": {
                 "EditableOptions": "True"
             }
         },
         {
-            "name": "backendAWSKey",
+            "name": "backendS3Key",
             "type": "string",
             "label": "File Path",
             "required": true,
             "helpMarkDown": "The path to the state file inside the Amazon S3 bucket.<br>For example, if you want to store the state file, named terraform.tfstate, inside a folder, named tf, then give the input 'tf/terraform.tfstate'.",
-            "groupName": "backendAWS"
+            "groupName": "backendS3"
         },
         {
-            "name": "backendServiceGCP",
+            "name": "backendServiceGCS",
             "type": "connectedService:GoogleCloudServiceEndpoint",
             "label": "Connection",
             "required": true,
             "helpMarkDown": "Google Cloud Platform connection for the terraform backend configuration.<br><br>Note: If your connection is not listed or if you want to use an existing connection, you can setup a Google Cloud Platform service connection using the 'Add' or 'Manage' button.",
-            "groupName": "backendGCP"
+            "groupName": "backendGCS"
         },
         {
-            "name": "backendGCPBucketName",
+            "name": "backendGCSBucketName",
             "type": "pickList",
             "label": "Storage Bucket",
             "required": true,
             "helpMarkDown": "The name of the GCP storage bucket for storing the Terraform remote state file.",
-            "groupName": "backendGCP",
+            "groupName": "backendGCS",
             "properties": {
                 "EditableOptions": "True"
             }
         },
         {
-            "name": "backendGCPPrefix",
+            "name": "backendGCSPrefix",
             "type": "string",
             "label": "Path",
             "required": false,
             "helpMarkDown": "The relative path to the state file inside the GCP bucket. For example, if you give the input as 'terraform', then the state file, named default.tfstate, will be stored inside an object called terraform.",
-            "groupName": "backendGCP"
+            "groupName": "backendGCS"
         }
     ],
     "dataSourceBindings": [
         {
-            "target": "backendAzureRmResourceGroupName",
-            "endpointId": "$(backendServiceArm)",
+            "target": "backendAzureRMResourceGroupName",
+            "endpointId": "$(backendServiceAzureRM)",
             "endpointUrl": "{{{endpoint.url}}}subscriptions/{{{endpoint.subscriptionId}}}/resourcegroups?api-version=2019-05-01",
             "resultSelector": "jsonpath:$.value[*].name"
         },
         {
-            "target": "backendAzureRmStorageAccountName",
-            "endpointId": "$(backendServiceArm)",
-            "endpointUrl": "{{{endpoint.url}}}subscriptions/{{{endpoint.subscriptionId}}}/resourceGroups/$(backendAzureRmResourceGroupName)/providers/Microsoft.Storage/storageAccounts?api-version=2019-04-01",
+            "target": "backendAzureRMStorageAccountName",
+            "endpointId": "$(backendServiceAzureRM)",
+            "endpointUrl": "{{{endpoint.url}}}subscriptions/{{{endpoint.subscriptionId}}}/resourceGroups/$(backendAzureRMResourceGroupName)/providers/Microsoft.Storage/storageAccounts?api-version=2019-04-01",
             "resultSelector": "jsonpath:$.value[*].name"
         },
         {
-            "target": "backendAzureRmContainerName",
-            "endpointId": "$(backendServiceArm)",
-            "endpointUrl": "{{{endpoint.url}}}subscriptions/{{{endpoint.subscriptionId}}}/resourceGroups/$(backendAzureRmResourceGroupName)/providers/Microsoft.Storage/storageAccounts/$(backendAzureRmStorageAccountName)/blobServices/default/containers?api-version=2019-04-01",
+            "target": "backendAzureRMContainerName",
+            "endpointId": "$(backendServiceAzureRM)",
+            "endpointUrl": "{{{endpoint.url}}}subscriptions/{{{endpoint.subscriptionId}}}/resourceGroups/$(backendAzureRMResourceGroupName)/providers/Microsoft.Storage/storageAccounts/$(backendAzureRMStorageAccountName)/blobServices/default/containers?api-version=2019-04-01",
             "resultSelector": "jsonpath:$.value[*].name"
         },
         {
-            "target": "backendAWSBucketName",
-            "endpointId": "$(backendServiceAWS)",
+            "target": "backendS3BucketName",
+            "endpointId": "$(backendServiceS3)",
             "dataSourceName": "AWS"
         },
         {
-            "target": "backendGCPBucketName",
-            "endpointId": "$(backendServiceGCP)",
+            "target": "backendGCSBucketName",
+            "endpointId": "$(backendServiceGCS)",
             "dataSourceName": "GCP"
         }
     ],

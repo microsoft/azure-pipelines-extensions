@@ -1,7 +1,7 @@
-import { BaseTerraformCommandHandler } from './base-terraform-command-handler';
-import { TerraformCommandHandlerAzureRM } from './azure-terraform-command-handler';
-import { TerraformCommandHandlerAWS } from './aws-terraform-command-handler';
-import { TerraformCommandHandlerGCP } from './gcp-terraform-command-handler';
+import { BaseTerraformCommandHandler } from './provider/base';
+import { TerraformCommandHandlerAzureRM } from './provider/azurerm';
+import { TerraformCommandHandlerAWS } from './provider/aws';
+import { TerraformCommandHandlerGCP } from './provider/google';
 
 export interface IParentCommandHandler {
     execute(providerName: string, command: string): Promise<number>;
@@ -12,6 +12,8 @@ export class ParentCommandHandler implements IParentCommandHandler {
         // Create corresponding command handler according to provider name
         let provider: BaseTerraformCommandHandler;
 
+
+        // TODO: INTRODUCE BACKEND in addition to PROVIDER
         switch(providerName) {
             case "azurerm":
                 provider = new TerraformCommandHandlerAzureRM();
