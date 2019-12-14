@@ -14,6 +14,7 @@ export class ParentCommandHandler {
             case "azurerm": provider = new TFProvider.AzureRM(); break;
             case "aws": provider = new TFProvider.AWS(); break;
             case "google": provider = new TFProvider.Google(); break;
+            default: throw new Error("Invalid provider specified. Please select AzureRM, AWS or Google.")
         }
 
         switch(backendType) {
@@ -22,6 +23,7 @@ export class ParentCommandHandler {
             case "azurerm": backend = new TFBackend.AzureRM(); break;
             case "s3": backend = new TFBackendS3(); break;
             case "gcs": backend = new TFBackendGCS(); break;
+            default: throw new Error("Invalid backend specified. Please select Local, Remote, AzureRM, S3 or GCS.")
         }
 
         // Run the corrresponding command according to command name

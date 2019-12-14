@@ -5,6 +5,8 @@ export class TFBackendRemote extends TFBackend {
     constructor() { super(); }
 
     protected setupBackend(backendServiceName: string) {
+        // TODO: Update this config for the real Terraform Cloud / Enterprise connection details
+
         this.backendConfig.set('hostname', tasks.getInput("backendRemoteHostName", true));
         this.backendConfig.set('organization', tasks.getInput("backendRemoteOrganization", true));
         this.backendConfig.set('region', tasks.getEndpointAuthorizationParameter(backendServiceName, "region", true));
