@@ -1,29 +1,29 @@
-export class TerraformBaseCommandInitializer {
+export class Terraform {
     public readonly name: string;
-    public readonly workingDirectory: string;
-    public readonly additionalArgs: string | undefined;
+    public readonly dir: string;
+    public readonly args: string | undefined;
 
     constructor(
         name: string,
-        workingDirectory: string,
-        additionalArgs?: string | undefined
+        dir: string,
+        args?: string | undefined
     ) {
         this.name = name;
-        this.workingDirectory = workingDirectory;
-        this.additionalArgs = additionalArgs;
+        this.dir = dir;
+        this.args = args;
     }
 }
 
-export class TerraformAuthorizationCommandInitializer extends TerraformBaseCommandInitializer {
-    readonly serviceProviderName: string;
+export class TerraformCommand extends Terraform {
+    readonly providerServiceName: string;
 
     constructor(
         name: string,
-        workingDirectory: string,
-        serviceProviderName: string,
-        additionalArgs?: string | undefined
+        dir: string,
+        providerServiceName: string,
+        args?: string | undefined
     ) {
-        super(name, workingDirectory, additionalArgs);
-        this.serviceProviderName = serviceProviderName;
+        super(name, dir, args);
+        this.providerServiceName = providerServiceName;
     }
 }

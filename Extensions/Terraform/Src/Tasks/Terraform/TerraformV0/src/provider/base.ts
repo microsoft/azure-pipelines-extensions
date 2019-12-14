@@ -4,6 +4,7 @@ export abstract class TFProvider {
     protected providerServiceName: string;
     
     constructor() {
-        this.providerServiceName = "providerService" + tasks.getInput("provider", true) //values are either: azurerm, aws or google
+        this.providerServiceName = "providerService" + tasks.getInput("provider", true)
+        //values are currently only either: azurerm, aws or google
     }
 }

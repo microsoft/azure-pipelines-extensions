@@ -1,6 +1,6 @@
-import {TerraformToolHandler, ITerraformToolHandler} from '../terraform';
+import {TerraformToolHandler, ITerraformToolHandler} from './terraform';
 import {ToolRunner, IExecOptions, IExecSyncOptions, IExecSyncResult} from 'azure-pipelines-task-lib/toolrunner';
-import {TerraformBaseCommandInitializer, TerraformAuthorizationCommandInitializer} from '../terraform-commands';
+import {Terraform, TerraformCommand} from './terraform-commands';
 import tasks = require('azure-pipelines-task-lib/task');
 import path = require('path');
 import * as uuidV4 from 'uuid/v4';
@@ -55,7 +55,7 @@ export class ToolCommands {
     }
 
     public async init(): Promise<number> {
-        let initCommand = new TerraformBaseCommandInitializer(
+        let initCommand = new Terraform(
             "init",
             tasks.getInput("workingDirectory"),
             tasks.getInput("commandOptions")
@@ -67,7 +67,7 @@ export class ToolCommands {
         this.handleBackend(terraformTool);
 
         return terraformTool.exec(<IExecOptions>{
-            cwd: initCommand.workingDirectory
+            cwd: initCommand.dir
         });
     }
 
@@ -97,7 +97,7 @@ export class ToolCommands {
 
     public async onlyPlan(): Promise<number> {
         this.warnIfMultipleProviders();
-        let planCommand = new TerraformAuthorizationCommandInitializer(
+        let planCommand = new TerraformCommand(
             "plan",
             tasks.getInput("workingDirectory"),
             tasks.getInput(this.providerServiceName, true),
@@ -109,7 +109,7 @@ export class ToolCommands {
         this.handleProvider(planCommand);
 
         return terraformTool.exec(<IExecOptions>{
-            cwd: planCommand.workingDirectory
+            cwd: planCommand.dir
         });
     }
 
@@ -123,7 +123,7 @@ export class ToolCommands {
             const binaryPlanFilePath = path.resolve(`plan-binary-${uuidV4()}.tfplan`);
             const tempFileForPlanOutput = path.resolve(`temp-plan-${uuidV4()}.txt`);
 
-            let planCommand = new TerraformAuthorizationCommandInitializer(
+            let planCommand = new TerraformCommand(
                 "plan",
                 tasks.getInput("workingDirectory"),
                 tasks.getInput(this.providerServiceName, true),
@@ -133,7 +133,7 @@ export class ToolCommands {
             this.handleProvider(planCommand);
             fileStream = fs.createWriteStream(tempFileForPlanOutput);
             terraformTool.execSync(<IExecSyncOptions>{
-                cwd: planCommand.workingDirectory,
+                cwd: planCommand.dir,
                 outStream: fileStream
             });
 
@@ -141,7 +141,7 @@ export class ToolCommands {
             const jsonPlanFilePath = path.resolve(`plan-json-${uuidV4()}.json`);
             const tempFileForJsonPlanOutput = path.resolve(`temp-plan-json-${uuidV4()}.json`)
             let commandOutput: IExecSyncResult;
-            let showCommand = new TerraformBaseCommandInitializer(
+            let showCommand = new Terraform(
                 "show",
                 tasks.getInput("workingDirectory"),
                 `-json ${binaryPlanFilePath}`
@@ -149,7 +149,7 @@ export class ToolCommands {
             terraformTool = this.terraformToolHandler.createToolRunner(showCommand);
             fileStream = fs.createWriteStream(tempFileForJsonPlanOutput);
             commandOutput = terraformTool.execSync(<IExecSyncOptions>{
-                cwd: showCommand.workingDirectory,
+                cwd: showCommand.dir,
                 outStream: fileStream
             });
 
@@ -186,10 +186,10 @@ export class ToolCommands {
     public async onlyApply(): Promise<number> {
         let terraformTool;
         this.warnIfMultipleProviders();
-        let validateCommand = new TerraformBaseCommandInitializer("validate", tasks.getInput("workingDirectory"), '');
+        let validateCommand = new Terraform("validate", tasks.getInput("workingDirectory"), '');
         terraformTool = this.terraformToolHandler.createToolRunner(validateCommand);
         await terraformTool.exec(<IExecOptions>{
-            cwd: validateCommand.workingDirectory
+            cwd: validateCommand.dir
         });
 
         let autoApprove: string = '-auto-approve';
@@ -199,7 +199,7 @@ export class ToolCommands {
             additionalArgs = `${autoApprove} ${additionalArgs}`;
         }
 
-        let applyCommand = new TerraformAuthorizationCommandInitializer(
+        let applyCommand = new TerraformCommand(
             "apply",
             tasks.getInput("workingDirectory"),
             tasks.getInput(this.providerServiceName, true),
@@ -210,13 +210,13 @@ export class ToolCommands {
         this.handleProvider(applyCommand);
 
         return terraformTool.exec(<IExecOptions>{
-            cwd: applyCommand.workingDirectory
+            cwd: applyCommand.dir
         });
     }
 
     public setOutputVariableToJsonOutputVariablesFilesPath() {
         let additionalArgs: string = `-json`
-        let outputCommand = new TerraformBaseCommandInitializer(
+        let outputCommand = new Terraform(
             "output",
             tasks.getInput("workingDirectory"),
             additionalArgs
@@ -229,7 +229,7 @@ export class ToolCommands {
         const tempFileForJsonOutputVariables = path.resolve(`temp-output-${uuidV4()}.json`);
         const fileStream = fs.createWriteStream(tempFileForJsonOutputVariables);
         let commandOutput = terraformTool.execSync(<IExecSyncOptions>{
-            cwd: outputCommand.workingDirectory,
+            cwd: outputCommand.dir,
             outStream: fileStream
         });
 
@@ -258,7 +258,7 @@ export class ToolCommands {
             additionalArgs = `${autoApprove} ${additionalArgs}`;
         }
 
-        let destroyCommand = new TerraformAuthorizationCommandInitializer(
+        let destroyCommand = new TerraformCommand(
             "destroy",
             tasks.getInput("workingDirectory"),
             tasks.getInput(this.providerServiceName, true),
@@ -270,12 +270,12 @@ export class ToolCommands {
         this.handleProvider(destroyCommand);
 
         return terraformTool.exec(<IExecOptions>{
-            cwd: destroyCommand.workingDirectory
+            cwd: destroyCommand.dir
         });
     };
 
     public async validate(): Promise<number> {
-        let validateCommand = new TerraformBaseCommandInitializer(
+        let validateCommand = new Terraform(
             "validate",
             tasks.getInput("workingDirectory"),
             tasks.getInput("commandOptions")
@@ -285,7 +285,7 @@ export class ToolCommands {
         terraformTool = this.terraformToolHandler.createToolRunner(validateCommand);
 
         return terraformTool.exec(<IExecOptions>{
-            cwd: validateCommand.workingDirectory
+            cwd: validateCommand.dir
         });
     }
 }

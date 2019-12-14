@@ -7,7 +7,7 @@ async function run() {
 
     let parentHandler = new ParentCommandHandler();
     try {
-        await parentHandler.execute(tl.getInput("provider", true), tl.getInput("command", true));
+        await parentHandler.execute(tl.getInput("backend", true), tl.getInput("provider", true), tl.getInput("command", true));
         tl.setResult(tl.TaskResult.Succeeded, "");
     } catch (error) {
         tl.setResult(tl.TaskResult.Failed, error.message);
