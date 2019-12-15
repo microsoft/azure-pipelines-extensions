@@ -1,0 +1,85 @@
+{
+    "manifestVersion": "1",
+    "id": "azureexp",
+    "name": "Azure Exp",
+    "version": "1.0.0",
+    "publisher": "ms-vscs-rm",
+    "description": "Azure Exp feature rollout",
+    "public": false,
+    "categories": [
+        "Build and release"
+    ],
+    "files": [
+        {
+            "path": "Tasks/ProvisionExperimentV1"
+        },
+        {
+            "path": "Tasks/ManageExperimentV1"
+        },
+        {
+			"path": "UIContribution/static/index.html",
+			"addressable": true
+        },
+        {
+			"path": "UIContribution/scripts/main.js",
+			"addressable": true
+        },
+        {
+			"path": "UIContribution/scripts/experimentOverview.js",
+			"addressable": true
+        },
+        {
+			"path": "UIContribution/node_modules/vss-web-extension-sdk/lib",
+			"addressable": true,
+			"packagePath": "UIContribution/lib"
+		}
+    ],
+    "targets": [
+        {
+            "id": "Microsoft.VisualStudio.Services"
+        }
+    ],
+    "contributions": [
+        {
+            "id": "provisionexperiment-task",
+            "type": "ms.vss-distributed-task.task",
+            "targets": [
+                "ms.vss-distributed-task.tasks"
+            ],
+            "properties": {
+                "name": "Tasks/ProvisionExperimentV1"
+            }
+        },
+        {
+            "id": "manageexperiment-task",
+            "type": "ms.vss-distributed-task.task",
+            "targets": [
+                "ms.vss-distributed-task.tasks"
+            ],
+            "properties": {
+                "name": "Tasks/ManageExperimentV1"
+            }
+        },
+        {
+			"id": "azureexp-OverviewTab",
+			"type": "ms.vss-web.tab",
+			"targets": [
+				"ms.vss-releaseManagement-web.release-environment-editor-tab"
+			],
+			"properties": {
+				"name": "Experiment Overview",
+				"description": "Shows the experiment overview",
+				"uri": "UIContribution/static/index.html",
+                "registeredObjectId": "registeredEnvironmentObject",
+                "order": "9999",
+				"dynamic": true
+			}
+		}
+    ],
+    "scopes": [
+		"vso.build",
+		"vso.release",
+		"vso.serviceendpoint",
+		"vso.serviceendpoint_query"
+	]
+}
