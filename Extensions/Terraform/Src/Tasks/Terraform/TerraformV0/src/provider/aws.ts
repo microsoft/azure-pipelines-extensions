@@ -4,8 +4,8 @@ import { TFProvider } from './base';
 export class TFProviderAWS extends TFProvider {
     constructor() { super(); }
 
-    public handleProvider(providerServiceName: string) {
-        process.env['AWS_ACCESS_KEY_ID'] = tasks.getEndpointAuthorizationParameter(providerServiceName, "username", false);
-        process.env['AWS_SECRET_ACCESS_KEY'] = tasks.getEndpointAuthorizationParameter(providerServiceName, "password", false);
+    public HandleProvider() {
+        process.env['AWS_ACCESS_KEY_ID'] = tasks.getEndpointAuthorizationParameter(this.providerServiceName, "username", false);
+        process.env['AWS_SECRET_ACCESS_KEY'] = tasks.getEndpointAuthorizationParameter(this.providerServiceName, "password", false);
     }
 }

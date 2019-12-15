@@ -8,4 +8,6 @@ export abstract class TFProvider {
         this.providerServiceName = "providerService" + tasks.getInput("provider", true)
         //values are currently only either: azurerm, aws or google
     }
+
+    public abstract HandleProvider();
 }

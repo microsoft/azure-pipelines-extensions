@@ -12,9 +12,9 @@ export abstract class TFBackend {
         this.setupBackend(this.backendServiceName);
     }
 
-    public handleBackend(terraformToolRunner: ToolRunner): void {
+    public HandleBackend(toolRunner: ToolRunner): void {
         for (let [key, value] of this.backendConfig.entries()) {
-            terraformToolRunner.arg(`-backend-config=${key}=${value}`);
+            toolRunner.arg(`-backend-config=${key}=${value}`);
         }
     }
 }
