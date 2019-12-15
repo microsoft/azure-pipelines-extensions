@@ -1,6 +1,6 @@
 import tasks = require('azure-pipelines-task-lib/task');
 
-export abstract class TFProvider {
+export abstract class Provider {
     protected providerServiceName: string;
     static providerServiceName: any;
     

@@ -1,7 +1,7 @@
 import tasks = require('azure-pipelines-task-lib/task');
-import { TFProvider } from './base';
+import { Provider } from './base';
 
-export class TFProviderAWS extends TFProvider {
+export class ProviderAWS extends Provider {
     constructor() { super(); }
 
     public HandleProvider() {

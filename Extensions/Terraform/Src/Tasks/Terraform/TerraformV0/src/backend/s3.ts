@@ -1,7 +1,7 @@
 import tasks = require('azure-pipelines-task-lib/task');
-import {TFBackend} from './base';
+import {Backend} from './base';
 
-export class TFBackendS3 extends TFBackend {
+export class BackendS3 extends Backend {
     constructor() { super(); }
 
     protected setupBackend(backendServiceName: string) {

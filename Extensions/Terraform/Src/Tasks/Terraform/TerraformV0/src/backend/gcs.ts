@@ -1,8 +1,8 @@
 import tasks = require('azure-pipelines-task-lib/task');
-import { TFBackend } from './base';
+import { Backend } from './base';
 import { GoogleHelpers } from "../Helpers"
 
-export class TFBackendGCS extends TFBackend {
+export class BackendGCS extends Backend {
     constructor() { super(); }
 
     protected setupBackend(backendServiceName: string) {

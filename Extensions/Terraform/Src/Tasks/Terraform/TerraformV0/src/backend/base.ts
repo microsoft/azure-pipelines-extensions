@@ -1,7 +1,7 @@
 import {ToolRunner} from 'azure-pipelines-task-lib/toolrunner';
 import tasks = require('azure-pipelines-task-lib/task');
 
-export abstract class TFBackend {
+export abstract class Backend {
     protected backendConfig: Map<string, string>;
     backendServiceName: string;
 

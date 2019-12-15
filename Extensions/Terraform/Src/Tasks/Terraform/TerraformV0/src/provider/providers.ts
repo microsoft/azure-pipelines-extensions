@@ -1,4 +1,4 @@
-export { TFProvider as Base } from "./base"
-export { TFProviderAWS as AWS } from "./aws"
-export { TFProviderAzureRM as AzureRM } from "./azurerm"
-export { TFProviderGoogle as Google } from "./google"
+export { Provider as Base } from "./base"
+export { ProviderAWS as AWS } from "./aws"
+export { ProviderAzureRM as AzureRM } from "./azurerm"
+export { ProviderGoogle as Google } from "./google"

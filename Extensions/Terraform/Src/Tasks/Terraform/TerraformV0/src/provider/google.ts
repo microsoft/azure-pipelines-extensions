@@ -1,8 +1,8 @@
 import tasks = require('azure-pipelines-task-lib/task');
-import { TFProvider } from './base';
+import { Provider } from './base';
 import { GoogleHelpers } from "../Helpers"
 
-export class TFProviderGoogle extends TFProvider {
+export class ProviderGoogle extends Provider {
     constructor() { super(); }
 
     public HandleProvider() {

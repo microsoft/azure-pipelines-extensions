@@ -1,17 +1,17 @@
 import tl = require('azure-pipelines-task-lib/task');
 import trl = require('azure-pipelines-task-lib/toolrunner');
-import { TFProvider } from './provider/base';
-import { TFBackend } from './backend/base';
+import { Provider } from './provider/base';
+import { Backend } from './backend/base';
 import { GenericHelpers } from './Helpers'
 
 export class Terraform {
 
     private dir: string;
     private args: string | undefined;
-    private provider: TFProvider;
-    private backend: TFBackend;
+    private provider: Provider;
+    private backend: Backend;
 
-    constructor(backend: TFBackend, provider: TFProvider) {
+    constructor(backend: Backend, provider: Provider) {
         this.provider = provider;
         this.backend = backend;
         this.dir = tl.getInput("workingDirectory");
