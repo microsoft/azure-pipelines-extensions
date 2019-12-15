@@ -3,13 +3,9 @@ import tr = require('azure-pipelines-task-lib/toolrunner');
 import { TFProvider } from './provider/base';
 import { TFBackend } from './backend/base';
 import { GenericHelpers } from './Helpers'
-//import path = require('path');
-//import * as uuidV4 from 'uuid/v4';
-//const fs = require('fs');
 
 export class Terraform {
 
-    private toolRunner: tr.ToolRunner;
     private dir: string;
     private args: string | undefined;
     private provider: TFProvider;
@@ -20,38 +16,40 @@ export class Terraform {
         this.backend = backend;
         this.dir = tl.getInput("workingDirectory");
         this.args = tl.getInput("commandOptions");
-
-        this.toolRunner = Terraform.getToolRunner();
-        if (this.provider) { this.provider.HandleProvider(); }
-        if (this.backend) { this.backend.HandleBackend(this.toolRunner); }
     }
 
-    private static getToolRunner(): tr.ToolRunner {
+    private getToolRunner(): tr.ToolRunner {
         let terraformPath: string;
         try { terraformPath = tl.which("terraform", true); }
         catch (err) { throw new Error(tl.loc("TerraformToolNotFound")); }
         return tl.tool(terraformPath);
     }
 
-    private async command(name: string) {
+    private async command(name: string, args: string) {
+
+        let toolRunner = this.getToolRunner();
         if (this.ProviderCount() > 1) { tl.warning("Multiple provider blocks specified in the .tf files in the current working drectory."); }
-        this.toolRunner.arg(name);
-        if (this.args) { this.toolRunner.line(this.args); }
-        return this.toolRunner.exec(<tr.IExecOptions>{ cwd: this.dir });
+
+        toolRunner.arg(name);
+        if (args) { toolRunner.line(args); }
+        if (this.provider) { this.provider.HandleProvider(); }
+        if (this.backend) { this.backend.HandleBackend(toolRunner); }
+
+        return toolRunner.exec(<tr.IExecOptions>{ cwd: this.dir });
     }
 
 
-    private async onlyApply() { this.addAutoApproveArg(); return this.command("apply"); }
-    private async onlyPlan() { return await this.command("plan"); }
+    private async onlyApply() { return this.command("apply", this.addAutoApproveArg()); }
+    private async onlyPlan() { return await this.command("plan", this.args); }
 
-    public async init() { return await this.command("init"); }
-    public async validate() { return await this.command("validate"); }
+    public async init() { return await this.command("init", this.args); }
+    public async validate() { return await this.command("validate", this.args); }
     public async plan() { return await this.onlyPlan(); }
     public async apply() { return await this.onlyApply(); };
-    public async destroy() { this.addAutoApproveArg(); return await this.command("destroy"); };
+    public async destroy() { return await this.command("destroy", this.addAutoApproveArg()); };
 
     private supportsJsonOutput(): boolean {
-        let tool = Terraform.getToolRunner();
+        let tool = this.getToolRunner();
         tool.arg("version");
 
         let outputContents = tool.execSync(<tr.IExecSyncOptions>{ cwd: this.dir }).stdout;
@@ -66,16 +64,20 @@ export class Terraform {
 
     private addAutoApproveArg() {
         let autoApprove: string = '-auto-approve';
-        if (this.args.includes(autoApprove) === false) { this.args = `${autoApprove} ${this.args}`; }
+        return this.args.includes(autoApprove) === false ? `${autoApprove} ${this.args}` : this.args;
     }
 
     private ProviderCount(): number {
 
-        let tool = Terraform.getToolRunner();
+        let tool = this.getToolRunner();
         tool.arg("providers");
         let commandOutput = tool.execSync(<tr.IExecSyncOptions>{ cwd: this.dir });
         return (commandOutput.stdout.match(/provider/g) || []).length;
     }
+
+    //import path = require('path');
+    //import * as uuidV4 from 'uuid/v4';
+    //const fs = require('fs');
 
     // // TODO: Fix this
     // public setOutputVariableToJsonOutputVariablesFilesPath() {
