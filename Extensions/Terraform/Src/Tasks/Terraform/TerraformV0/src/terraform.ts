@@ -104,7 +104,7 @@ export class Terraform {
     //         const binaryPlanFilePath = path.resolve(`plan-binary-${uuidV4()}.tfplan`);
     //         const tempFileForPlanOutput = path.resolve(`temp-plan-${uuidV4()}.txt`);
 
-    //         this.command("plan", `-out=${binaryPlanFilePath}`);
+    //         this.command("plan", `${this.args} -out=${binaryPlanFilePath}`);
     //         let fileStream = fs.createWriteStream(tempFileForPlanOutput);
     //         this.toolRunner.execSync(<tr.IExecSyncOptions>{ cwd: this.dir, outStream: fileStream });
 

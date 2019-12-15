@@ -9,5 +9,6 @@ export class TFProviderAzureRM extends TFProvider {
         process.env['ARM_TENANT_ID'] = tasks.getEndpointAuthorizationParameter(this.providerServiceName, "tenantid", false);
         process.env['ARM_CLIENT_ID'] = tasks.getEndpointAuthorizationParameter(this.providerServiceName, "serviceprincipalid", false);
         process.env['ARM_CLIENT_SECRET'] = tasks.getEndpointAuthorizationParameter(this.providerServiceName, "serviceprincipalkey", false);
+        process.env['ARM_ENVIRONMENT'] = tasks.getEndpointDataParameter(this.providerServiceName, "environment", false);
     }
 }

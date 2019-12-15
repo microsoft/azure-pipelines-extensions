@@ -13,5 +13,6 @@ export class TFBackendAzureRM extends TFBackend {
         this.backendConfig.set('arm_tenant_id', tasks.getEndpointAuthorizationParameter(backendServiceName, "tenantid", true));
         this.backendConfig.set('arm_client_id', tasks.getEndpointAuthorizationParameter(backendServiceName, "serviceprincipalid", true));
         this.backendConfig.set('arm_client_secret', tasks.getEndpointAuthorizationParameter(backendServiceName, "serviceprincipalkey", true));
+        this.backendConfig.set('arm_environment', tasks.getEndpointDataParameter(backendServiceName, "environment", true));
     }
 }
