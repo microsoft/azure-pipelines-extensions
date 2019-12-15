@@ -4,14 +4,17 @@ import {Terraform, TerraformCommand} from './terraform-commands';
 import tasks = require('azure-pipelines-task-lib/task');
 import path = require('path');
 import * as uuidV4 from 'uuid/v4';
+import { TFProvider } from './provider/base';
 const fs = require('fs');
 
 export class ToolCommands {
 
-
     terraformToolHandler: ITerraformToolHandler;
-    constructor() {
-       this.terraformToolHandler = new TerraformToolHandler(tasks);
+    providerServiceName = TFProvider.providerServiceName;
+
+//FIXME: reimplement
+    public handleBackend(terraformToolRunner: ToolRunner){
+        this.terraformToolHandler = new TerraformToolHandler(tasks);
     }
 
     public compareVersions(version1: string, version2: string) {
@@ -111,6 +114,11 @@ export class ToolCommands {
         return terraformTool.exec(<IExecOptions>{
             cwd: planCommand.dir
         });
+    }
+
+// FIXME: implement proper method
+    handleProvider(planCommand: TerraformCommand) {
+        throw new Error("Method not implemented.");
     }
 
     public setOutputVariableToPlanFilePath() {
