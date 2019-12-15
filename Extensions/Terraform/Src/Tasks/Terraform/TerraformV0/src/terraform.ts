@@ -1,5 +1,5 @@
 import tl = require('azure-pipelines-task-lib/task');
-import tr = require('azure-pipelines-task-lib/toolrunner');
+import trl = require('azure-pipelines-task-lib/toolrunner');
 import { TFProvider } from './provider/base';
 import { TFBackend } from './backend/base';
 import { GenericHelpers } from './Helpers'
@@ -18,7 +18,7 @@ export class Terraform {
         this.args = tl.getInput("commandOptions");
     }
 
-    private getToolRunner(): tr.ToolRunner {
+    private getToolRunner(): trl.ToolRunner {
         let terraformPath: string;
         try { terraformPath = tl.which("terraform", true); }
         catch (err) { throw new Error(tl.loc("TerraformToolNotFound")); }
@@ -35,7 +35,7 @@ export class Terraform {
         if (this.provider) { this.provider.HandleProvider(); }
         if (this.backend) { this.backend.HandleBackend(toolRunner); }
 
-        return toolRunner.exec(<tr.IExecOptions>{ cwd: this.dir });
+        return toolRunner.exec(<trl.IExecOptions>{ cwd: this.dir });
     }
 
 
@@ -52,7 +52,7 @@ export class Terraform {
         let tool = this.getToolRunner();
         tool.arg("version");
 
-        let outputContents = tool.execSync(<tr.IExecSyncOptions>{ cwd: this.dir }).stdout;
+        let outputContents = tool.execSync(<trl.IExecSyncOptions>{ cwd: this.dir }).stdout;
         let outputLines: string[] = outputContents.split('\n');
         // First line has the format "Terraform v0.12.1"
         let firstLine = outputLines[0];
@@ -71,7 +71,7 @@ export class Terraform {
 
         let tool = this.getToolRunner();
         tool.arg("providers");
-        let commandOutput = tool.execSync(<tr.IExecSyncOptions>{ cwd: this.dir });
+        let commandOutput = tool.execSync(<trl.IExecSyncOptions>{ cwd: this.dir });
         return (commandOutput.stdout.match(/provider/g) || []).length;
     }
 
