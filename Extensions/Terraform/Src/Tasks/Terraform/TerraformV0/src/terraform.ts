@@ -5,6 +5,12 @@ import { Backend } from './backend/base';
 import { GenericHelpers } from './Helpers'
 
 export class Terraform {
+    static warnIfMultipleProviders() {
+        throw new Error("Method not implemented.");
+    }
+    public warnIfMultipleProviders() {
+        console.log("warnIfMultipleProviders() Method not implemented.");
+    }
 
     private dir: string;
     private args: string | undefined;
@@ -39,8 +45,8 @@ export class Terraform {
     }
 
 
-    private async onlyApply() { return this.command("apply", this.addAutoApproveArg()); }
-    private async onlyPlan() { return await this.command("plan", this.args); }
+    public async onlyApply() { return this.command("apply", this.addAutoApproveArg()); }
+    public async onlyPlan() { return await this.command("plan", this.args); }
 
     public async init() { return await this.command("init", this.args); }
     public async validate() { return await this.command("validate", this.args); }

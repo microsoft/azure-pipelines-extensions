@@ -1,11 +1,13 @@
-import { ToolCommands as TerraformCommandHandlerAzureRM } from '../../../src/toolcmds';
+import { Terraform as terraformCommandHandlerAzureRM } from '../../../src/terraform';
 import tl = require('azure-pipelines-task-lib');
 
-let terraformCommandHandlerAzureRM: TerraformCommandHandlerAzureRM = new TerraformCommandHandlerAzureRM();
+let backend:any = "azurerm"
+let provider:any = "azurerm"
+let TerraformCommandHandlerAzureRM: terraformCommandHandlerAzureRM = new terraformCommandHandlerAzureRM(backend, provider);
 
 export async function run() {
     try {
-        const response = await terraformCommandHandlerAzureRM.destroy();
+        const response = await TerraformCommandHandlerAzureRM.destroy();
         if (response === 0) {
             tl.setResult(tl.TaskResult.Succeeded, 'AzureDestroySuccessAdditionalArgsWithAutoApproveL0 should have succeeded.');
         } else{

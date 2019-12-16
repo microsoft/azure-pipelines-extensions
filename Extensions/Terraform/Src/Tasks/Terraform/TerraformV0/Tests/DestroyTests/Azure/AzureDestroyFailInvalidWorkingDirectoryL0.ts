@@ -1,11 +1,13 @@
-import { ToolCommands as TerraformCommandHandlerAzureRM } from '../../../src/toolcmds';
+import { Terraform as terraformCommandHandlerAzureRM } from '../../../src/terraform';
 import tl = require('azure-pipelines-task-lib');
 
-let terraformCommandHandlerAzureRM: TerraformCommandHandlerAzureRM = new TerraformCommandHandlerAzureRM();
+let backend:any = "azurerm"
+let provider:any = "azurerm"
+let TerraformCommandHandlerAzureRM: terraformCommandHandlerAzureRM = new terraformCommandHandlerAzureRM(backend, provider);
 
 export async function run() {
     try {
-        await terraformCommandHandlerAzureRM.destroy();
+        await TerraformCommandHandlerAzureRM.destroy();
     } catch(error) {
         tl.setResult(tl.TaskResult.Failed, 'AzureDestroyFailInvalidWorkingDirectoryL0 should have succeeded but failed with error.');
     }

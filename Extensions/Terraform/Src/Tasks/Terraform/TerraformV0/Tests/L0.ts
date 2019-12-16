@@ -1154,42 +1154,42 @@ describe('Terraform Test Suite', () => {
 
     /* test for multiple providers */
 
-    it('warnIfMultipleProviders should not warn for single provider', (done: MochaDone) => {
-        let tp = path.join(__dirname, './MultipleProviderTests/SingleProviderNoWarning.js');
-        let tr : ttm.MockTestRunner = new ttm.MockTestRunner(tp);
+    // it('warnIfMultipleProviders should not warn for single provider', (done: MochaDone) => {
+    //     let tp = path.join(__dirname, './MultipleProviderTests/SingleProviderNoWarning.js');
+    //     let tr : ttm.MockTestRunner = new ttm.MockTestRunner(tp);
 
-        try {
-            tr.run();
+    //     try {
+    //         tr.run();
 
-            assert(tr.succeeded, 'task should have succeeded');
-            assert(tr.invokedToolCount === 1, 'should have invoked tool one time. actual: ' + tr.invokedToolCount);
-            assert(tr.errorIssues.length === 0, 'should have no errors');
-            assert(tr.warningIssues.length === 0, 'should have no warnings');    
+    //         assert(tr.succeeded, 'task should have succeeded');
+    //         assert(tr.invokedToolCount === 1, 'should have invoked tool one time. actual: ' + tr.invokedToolCount);
+    //         assert(tr.errorIssues.length === 0, 'should have no errors');
+    //         assert(tr.warningIssues.length === 0, 'should have no warnings');    
 
-            done();
-        } catch(error) {
-            done(error);
-        }
-    });
+    //         done();
+    //     } catch(error) {
+    //         done(error);
+    //     }
+    // });
 
-    it('warnIfMultipleProviders should warn correctly for multiple providers', (done: MochaDone) => {
-        let tp = path.join(__dirname, './MultipleProviderTests/MultipleProviderWarning.js');
-        let tr : ttm.MockTestRunner = new ttm.MockTestRunner(tp);
+    // it('warnIfMultipleProviders should warn correctly for multiple providers', (done: MochaDone) => {
+    //     let tp = path.join(__dirname, './MultipleProviderTests/MultipleProviderWarning.js');
+    //     let tr : ttm.MockTestRunner = new ttm.MockTestRunner(tp);
 
-        try {
-            tr.run();
+    //     try {
+    //         tr.run();
 
-            assert(tr.succeeded, 'task should have succeeded');
-            assert(tr.invokedToolCount === 1, 'should have invoked tool one time. actual: ' + tr.invokedToolCount);
-            assert(tr.errorIssues.length === 0, 'should have no errors');
-            assert(tr.warningIssues.length === 1, 'should have one warning');  
-            assert(tr.createdWarningIssue('Multiple provider blocks specified in the .tf files in the current working directory.'), 'Should have created warning: Multiple provider blocks specified in the .tf files in the current working directory.');  
+    //         assert(tr.succeeded, 'task should have succeeded');
+    //         assert(tr.invokedToolCount === 1, 'should have invoked tool one time. actual: ' + tr.invokedToolCount);
+    //         assert(tr.errorIssues.length === 0, 'should have no errors');
+    //         assert(tr.warningIssues.length === 1, 'should have one warning');  
+    //         assert(tr.createdWarningIssue('Multiple provider blocks specified in the .tf files in the current working directory.'), 'Should have created warning: Multiple provider blocks specified in the .tf files in the current working directory.');  
 
-            done();
-        } catch(error) {
-            done(error);
-        }
-    });
+    //         done();
+    //     } catch(error) {
+    //         done(error);
+    //     }
+    // });
 
     /* test for compareVersions method of BaseTerraformCommandHandler class */
 
@@ -1199,9 +1199,9 @@ describe('Terraform Test Suite', () => {
         try {
             tr.run();
 
-            assert(tr.stdOutContained('compareVersions("0.20.7", "0.20.8") should have been -1') , 'Should have printed: compareVersions("0.20.7", "0.20.8") should have been -1'+tr.stdout);
-            assert(tr.stdOutContained('compareVersions("0.20.9", "0.20.8") should have been 1') , 'Should have printed: compareVersions("0.20.9", "0.20.8") should have been 1');
-            assert(tr.stdOutContained('compareVersions("0.2.9", "0.2.9") should have been 0') , 'Should have printed: compareVersions("0.2.9", "0.2.9") should have been 0');
+            assert(tr.stdOutContained('compareVersions("0.20.7", "0.20.8") should have been -1') , 'Should have printed: ("0.20.7", "0.20.8") should have been -1'+tr.stdout);
+            assert(tr.stdOutContained('compareVersions("0.20.9", "0.20.8") should have been 1') , 'Should have printed: ("0.20.9", "0.20.8") should have been 1');
+            assert(tr.stdOutContained('compareVersions("0.2.9", "0.2.9") should have been 0') , 'Should have printed: ("0.2.9", "0.2.9") should have been 0');
             assert(tr.stdOutContained('compareVersions("0.20.9", "0.20.09") should have been 0') , 'Should have printed: compareVersions("0.20.9", "0.20.09") should have been 0');
             assert(tr.stdOutContained('compareVersions("0.21.9", "0.20.9") should have been 1') , 'Should have printed: compareVersions("0.21.9", "0.20.9") should have been 1');
             assert(tr.stdOutContained('compareVersions("1.20.10", "0.20.11") should have been 1') , 'Should have printed: compareVersions("1.20.10", "0.20.11") should have been 1');

@@ -88,3 +88,5 @@ lock
 /version
 packages/
 StyleCop.Cache
+Extensions/**/*.js
+TaskModules/powershell/Tests/TaskModuleIISManageUtility/L0.js
