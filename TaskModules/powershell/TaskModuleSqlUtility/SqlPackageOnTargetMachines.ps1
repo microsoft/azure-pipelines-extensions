@@ -372,7 +372,7 @@ function LocateLatestVSVersionUsingVSWhere {
     [CmdletBinding()]
     Param ([string] $VSWherePath)
     Remove-Item variable:\LASTEXITCODE -ErrorAction 'SilentlyContinue'
-    $vsInstallations = & $VSWherePath "-legacy" "-prerelease" "-format" "json"
+    $vsInstallations = & $VSWherePath "-legacy" "-prerelease" "-products" "*" "-format" "json"
     $vsInstallations = $($vsInstallations -join '').Trim()
     if ($LASTEXITCODE -ne 0) {
         # if lastexitcode is not 0, then vsinstallations variable will contain the error string
