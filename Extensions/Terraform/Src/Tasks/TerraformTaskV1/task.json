@@ -103,7 +103,7 @@
             "name": "environmentServiceNameAWS",
             "type": "connectedService:AWSServiceEndpoint",
             "label": "Amazon Web Services connection",
-            "required": true,
+            "required": false,
             "visibleRule": "provider = aws && command != init && command != validate",
             "helpMarkDown": "Select an Amazon Web Services connection for the deployment.<br><br>Note: If your connection is not listed or if you want to use an existing connection, you can setup an Amazon Web Services service connection using the 'Add' or 'Manage' button."
         },
