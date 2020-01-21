@@ -1,7 +1,0 @@
-{
-    "taskModule": [{
-        "name": "TaskModuleSqlUtility",
-        "type":"powershell",
-        "dest":"."
-    }]
-}

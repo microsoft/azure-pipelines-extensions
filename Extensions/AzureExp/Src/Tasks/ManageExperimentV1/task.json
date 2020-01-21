@@ -13,7 +13,7 @@
     "version": {
         "Major": 1,
         "Minor": 0,
-        "Patch": 0
+        "Patch": 2
     },
     "minimumAgentVersion": "1.95.0",
     "instanceNameFormat": "$(Action) Experiment",
@@ -21,7 +21,7 @@
         {
             "name": "ServiceConnectionId",
             "aliases": ["azureSubscription"],
-            "type": "connectedService:AzureRM",
+            "type": "connectedService:azureexpserviceconnection",
             "label": "Azure Subscription",
             "required": true,
             "helpMarkDown": "Select the Azure Resource Manager subscription for the deployment."
@@ -55,7 +55,8 @@
             "options": {
                 "Start": "Start the experiment",
 				"Advance": "Advance the experiment",
-                "Stop": "Stop the experiment"
+                "Stop": "Stop the experiment",
+                "StopAllExperiments": "Stop all experiments"
             },
             "helpMarkDown": "Select the action you want to perform"
         }
@@ -71,6 +72,6 @@
         "InitiatedAction": "Initiated action %s on experiment %s",
         "ExperimentNotFound": "Unable to find experiment %s in progression %s",
         "UnableToFetchAccessTokenNullResponse": "Unable to fetch access token. The response body is empty. %s",
-        "UnableToFetchAccessToken": "Unable to fetch access token. Check if the service principal credentials are valid and have appropriate permissions. %s %s"
+        "UnableToFetchAccessToken": "Unable to fetch access token. Check if the service principal credentials are valid and have appropriate permissions. Status Code: %s %s"
     }
 }

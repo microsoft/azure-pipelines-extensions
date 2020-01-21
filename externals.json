@@ -17,6 +17,7 @@
             "DownloadArtifactsTfsGit",
             "DownloadArtifactsBitbucket",
             "OptimizelyX",
+            "ProvisionExperiment",
             "CopyAgentJobVariableToReleaseVariable"
         ]
 }

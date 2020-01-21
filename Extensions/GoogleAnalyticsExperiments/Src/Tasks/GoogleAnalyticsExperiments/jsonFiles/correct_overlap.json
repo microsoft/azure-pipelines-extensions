@@ -1,7 +1,0 @@
-{
-   "id":"dummyExperimentName",
-   "winnerConfidenceLevel":0.95,
-   "minimumExperimentLengthInDays":14,
-   "trafficCoverage":0.50,
-   "equalWeighting":true
-}

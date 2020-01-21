@@ -5,7 +5,8 @@ import { ExpAuthorizer } from './expauthorizer';
 export enum ExperimentAction {
     Start = "Start",
     Advance = "Advance",
-    Stop = "Stop"
+    Stop = "Stop",
+    StopAllExperiments = "StopAllExperiments"
 }
 
 export default class ExperimentManager {
@@ -16,7 +17,7 @@ export default class ExperimentManager {
         this._progressionId = progressionId;
     }
 
-    public async executeAction(experimentId: string, action: ExperimentAction): Promise<void> {
+    public async executeAction(action: ExperimentAction, experimentId?: string): Promise<void> {
         let requestUrl = `https://exp.microsoft.com/api/experiments/${experimentId}`;
         let accessToken = await this._expAuthorizer.getAccessToken();
         let options: IRequestOptions = {
@@ -37,6 +38,9 @@ export default class ExperimentManager {
             case ExperimentAction.Stop: { 
                 requestUrl = `${requestUrl}/stop`; 
                 break; 
+            }
+            case ExperimentAction.StopAllExperiments: {
+
             }
             default: {
                 throw new Error(tl.loc('InvalidAction', action));
@@ -72,6 +76,10 @@ export default class ExperimentManager {
 
         tl.debug(`Experiment: ${JSON.stringify(experiment)}`);
         return experiment;
+    }
+
+    public async getExperiments() {
+        // TODO
     }
 
     private _restClient: RestClient;

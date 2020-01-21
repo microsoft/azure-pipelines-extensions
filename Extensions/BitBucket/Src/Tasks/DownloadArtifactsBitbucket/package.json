@@ -1,8 +1,0 @@
-{
-  "name": "DownloadArtifactsBitbucket",
-  "main": "download.js",
-  "dependencies": {
-    "vso-node-api": "6.0.1-preview",
-    "vsts-task-lib": "2.2.1"
-  }
-}

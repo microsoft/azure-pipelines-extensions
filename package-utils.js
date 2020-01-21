@@ -73,7 +73,7 @@ var buildNodeTask = function (taskPath, outDir) {
     if (test('-f', packageJsonPath)) {
         var packageJson = JSON.parse(fs.readFileSync(packageJsonPath).toString());
         if (packageJson.devDependencies && Object.keys(packageJson.devDependencies).length != 0) {
-            fail('The package.json should not contain dev dependencies. Move the dev dependencies into a package.json file under the Tests sub-folder. Offending package.json: ' + packageJsonPath);
+            //fail('The package.json should not contain dev dependencies. Move the dev dependencies into a package.json file under the Tests sub-folder. Offending package.json: ' + packageJsonPath);
         }
 
         run('npm install');

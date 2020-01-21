@@ -19,7 +19,7 @@ async function run() {
         let experimentmanager = new ExperimentManager(featureId, progressionId, serviceConnectionId, tl.getVariable("AZURE_HTTP_USER_AGENT"));
         let experiment = await experimentmanager.getExperiment(experimentName);
 
-        await experimentmanager.executeAction(experiment.Id, ExperimentAction[action]);
+        await experimentmanager.executeAction(ExperimentAction[action], experiment.Id);
     }
     catch (error) {
         tl.setResult(tl.TaskResult.Failed, error);

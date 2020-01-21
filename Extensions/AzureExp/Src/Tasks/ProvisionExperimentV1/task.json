@@ -13,7 +13,7 @@
     "version": {
         "major": 1,
         "minor": 0,
-        "patch": 0
+        "patch": 2
     },
     "instanceNameFormat": "Provision experiment - $(Action)",
     "inputs": [
@@ -71,8 +71,8 @@
         "BeginFeatureRollout": "Begin creating feature rollout.",
         "FeatureRolloutComplete": "Feature rollout is successfully created with id %s. Visit https://exp.microsoft.com/a/feature/%s for more details.",
         "BeginCreatingProgression": "Begin creating progression",
-        "ProgressionComplete": "Progression is successfully created with id {0}. Visit https://exp.microsoft.com/a/feature/%s for more details.",
+        "ProgressionComplete": "Progression is successfully created with id %s. Visit https://exp.microsoft.com/a/feature/%s for more details.",
         "UnableToFetchAccessTokenNullResponse": "Unable to fetch access token. The response body is empty. %s",
-        "UnableToFetchAccessToken": "Unable to fetch access token. Check if the service principal credentials are valid and have appropriate permissions. %s %s"
+        "UnableToFetchAccessToken": "Unable to fetch access token. Check if the service principal credentials are valid and have appropriate permissions. Status Code: %s %s"
     }
 }

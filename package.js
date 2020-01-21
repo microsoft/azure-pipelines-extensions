@@ -47,6 +47,7 @@ var validateTask = function(folderName, task) {
 var _tempPath = path.join(__dirname, '_temp');
 
 function copyCommonModules(currentExtnRoot, commonDeps, commonSrc){
+    console.log('copy common modules');
     return through.obj(
 
         function(taskJson, encoding, done) {
@@ -96,7 +97,8 @@ function copyCommonModules(currentExtnRoot, commonDeps, commonSrc){
                     })
                 }
                 var externals = require('./externals.json');
-                if (task.execution['Node']) {
+                
+                if (task.execution['Node'] || task.execution['node']) {
                      var doNotCache = false;
                      externals['no-cache'].forEach(function(ext){
                          if(ext == task.name) {
