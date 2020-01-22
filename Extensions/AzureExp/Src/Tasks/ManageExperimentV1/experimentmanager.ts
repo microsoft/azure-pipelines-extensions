@@ -5,7 +5,8 @@ import { ExpAuthorizer } from './expauthorizer';
 export enum ExperimentAction {
     Start = "Start",
     Advance = "Advance",
-    Stop = "Stop"
+    Stop = "Stop",
+    StopAllExperiments = "StopAllExperiments"
 }
 
 export default class ExperimentManager {
@@ -16,7 +17,7 @@ export default class ExperimentManager {
         this._progressionId = progressionId;
     }
 
-    public async executeAction(experimentId: string, action: ExperimentAction): Promise<void> {
+    public async executeAction(action: ExperimentAction, experimentId: string): Promise<void> {
         let requestUrl = `https://exp.microsoft.com/api/experiments/${experimentId}`;
         let accessToken = await this._expAuthorizer.getAccessToken();
         let options: IRequestOptions = {
@@ -50,7 +51,10 @@ export default class ExperimentManager {
         tl.debug(JSON.stringify(response));
     }
 
-    public async getExperiment(experimentName: string): Promise<any> {
+    /**
+     * @param experimentName filter by experiment name
+     */
+    public async getExperiments(experimentName?: string): Promise<any[]> {
         let requestUrl = `https://exp.microsoft.com/api/features/${this._featureId}/progressions/${this._progressionId}`;
         let accessToken = await this._expAuthorizer.getAccessToken();
         let options: IRequestOptions = {
@@ -64,14 +68,21 @@ export default class ExperimentManager {
         tl.debug(JSON.stringify(response));
 
         let progression = response.result as any;
-        let experiment = progression.Studies.find(e => e.Name == experimentName);
 
-        if (!experiment) {
-            throw new Error(tl.loc('ExperimentNotFound', experimentName, this._progressionId));
+        if (!!progression.Studies && progression.Studies.length > 0) {
+            let experiments = progression.Studies as any[];
+            if (!!experimentName) {
+                experiments = experiments.filter(e => e.Name == experimentName);
+                if (experiments.length === 0) {
+                    throw new Error(`Experiment '${experimentName}' not found in the progression ${this._progressionId} and feature ${this._featureId}`);
+                }
+            }
+    
+            tl.debug(`Experiment: ${JSON.stringify(experiments)}`);
+            return experiments;
         }
 
-        tl.debug(`Experiment: ${JSON.stringify(experiment)}`);
-        return experiment;
+        throw new Error( `No experiments found in the progression ${this._progressionId} and feature ${this._featureId}`);
     }
 
     private _restClient: RestClient;

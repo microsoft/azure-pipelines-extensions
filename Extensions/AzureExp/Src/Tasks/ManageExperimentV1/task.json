@@ -16,12 +16,12 @@
         "Patch": 0
     },
     "minimumAgentVersion": "1.95.0",
-    "instanceNameFormat": "$(Action) Experiment",
+    "instanceNameFormat": "Manage experiment - $(Action)",
     "inputs": [
         {
             "name": "ServiceConnectionId",
             "aliases": ["azureSubscription"],
-            "type": "connectedService:AzureRM",
+            "type": "connectedService:azureexpserviceconnection",
             "label": "Azure Subscription",
             "required": true,
             "helpMarkDown": "Select the Azure Resource Manager subscription for the deployment."
@@ -41,23 +41,25 @@
             "helpMarkDown": "Progression Id of the experiment to manage."
         },
         {
-            "name": "ExperimentName",
-            "type": "string",
-            "label": "Experiment Name",
-            "required": true,
-            "helpMarkDown": "Name of the experiment to manage."
-        },
-        {
             "name": "Action",
             "type": "pickList",
             "label": "Action",
             "required": true,
             "options": {
-                "Start": "Start the experiment",
-				"Advance": "Advance the experiment",
-                "Stop": "Stop the experiment"
+                "Start": "Start experiment",
+				        "Advance": "Advance experiment",
+                "Stop": "Stop experiment",
+                "StopAllExperiments": "Stop all experiments"
             },
             "helpMarkDown": "Select the action you want to perform"
+        },
+        {
+            "name": "ExperimentName",
+            "type": "string",
+            "label": "Experiment Name",
+            "required": true,
+            "helpMarkDown": "Name of the experiment to manage.",
+            "visibleRule": "Action = Start || Action = Stop || Action = Advance"
         }
     ],
     "execution": {
@@ -71,6 +73,6 @@
         "InitiatedAction": "Initiated action %s on experiment %s",
         "ExperimentNotFound": "Unable to find experiment %s in progression %s",
         "UnableToFetchAccessTokenNullResponse": "Unable to fetch access token. The response body is empty. %s",
-        "UnableToFetchAccessToken": "Unable to fetch access token. Check if the service principal credentials are valid and have appropriate permissions. %s %s"
+        "UnableToFetchAccessToken": "Unable to fetch access token. Check if the service principal credentials are valid and have appropriate permissions. Status Code: %s %s"
     }
 }
