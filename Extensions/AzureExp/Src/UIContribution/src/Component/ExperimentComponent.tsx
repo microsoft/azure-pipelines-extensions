@@ -10,18 +10,20 @@ import {
     SimpleTableCell
 } from "azure-devops-ui/Table";
 import { ObservableValue } from 'azure-devops-ui/Core/Observable';
-import { ArrayItemProvider, IItemProvider } from 'azure-devops-ui/Utilities/Provider';import { TitleSize } from 'azure-devops-ui/Header';
-;
+import { ArrayItemProvider, IItemProvider } from 'azure-devops-ui/Utilities/Provider';
+import { TitleSize } from 'azure-devops-ui/Header';
 
 export interface ITableItem extends ISimpleTableCell {
     treatment: string;
     control: string;
     starttime: string;
     status: string;
+    scorecard: string;
 }
 
 export interface IExperimentComponentProps {
     experiment: any;
+    scorecards: any;
 }
 
 const ExperimentState = {
@@ -41,7 +43,6 @@ export class ExperimentComponent extends React.Component<IExperimentComponentPro
         return (
             <div className='experiment-card'>
                 <Card
-                    className='flex-grow bolt-table-card'
                     contentProps={{ contentPadding: false }}
                     titleProps={{text: this.props.experiment.Name, size: TitleSize.Small} as ICardTitleProps} 
                 >
@@ -63,14 +64,14 @@ export class ExperimentComponent extends React.Component<IExperimentComponentPro
                 name: 'Treatment %',
                 readonly: true,
                 renderCell: renderSimpleCell,
-                width: new ObservableValue(200)
+                width: new ObservableValue(100)
             },
             {
                 id: 'control',
                 name: 'Control %',
                 readonly: false,
                 renderCell: renderSimpleCell,
-                width: new ObservableValue(200)
+                width: new ObservableValue(100)
             },
             {
                 id: 'starttime',
@@ -91,7 +92,7 @@ export class ExperimentComponent extends React.Component<IExperimentComponentPro
                 name: 'Scorecard',
                 readonly: true,
                 renderCell: renderSimpleCell,
-                width: new ObservableValue(200)
+                width: new ObservableValue(500)
             },
             ColumnFill 
         ] as Array<ITableColumn<ITableItem>>;
@@ -105,6 +106,7 @@ export class ExperimentComponent extends React.Component<IExperimentComponentPro
             stage['ParallelSteps'].forEach((step) => {
                 tableItem.treatment = step['FlightTrafficMap'][Object.keys(step['FlightTrafficMap'])[0]] || '--';
                 tableItem.control = step['FlightTrafficMap'][Object.keys(step['FlightTrafficMap'])[1]] || '--';
+                tableItem.scorecard = !!this.props.scorecards[step.Id] ? this.props.scorecards[step.Id].ScorecardLink || '--' : '--';
             });
 
             tableItem.status = stage.State;

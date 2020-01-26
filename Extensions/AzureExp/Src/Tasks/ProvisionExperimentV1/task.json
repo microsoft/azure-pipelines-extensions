@@ -13,17 +13,17 @@
     "version": {
         "major": 1,
         "minor": 0,
-        "patch": 2
+        "patch": 5
     },
     "instanceNameFormat": "Provision experiment - $(Action)",
     "inputs": [
         {
             "name": "ServiceConnectionId",
             "aliases": ["azureSubscription"],
-            "type": "connectedService:AzureRM",
-            "label": "Azure Subscription",
+            "type": "connectedService:azureexpserviceconnection",
+            "label": "Exp Service Connection",
             "required": true,
-            "helpMarkDown": "Select the Azure Resource Manager subscription for the deployment."
+            "helpMarkDown": "Select the Exp Service Connection for deployment."
         },
         {
             "name": "Action",

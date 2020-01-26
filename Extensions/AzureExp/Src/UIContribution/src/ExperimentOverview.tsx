@@ -10,12 +10,17 @@ import ExpUtility from './ExpUtility';
 import { LoadingSpinner } from './Component/LoadingSpinner';
 import { MessageCard, MessageCardSeverity } from 'azure-devops-ui/MessageCard';
 import { Card, ICardTitleProps } from 'azure-devops-ui/Card';
-import { TitleSize, Header } from 'azure-devops-ui/Header';
+import { TitleSize } from 'azure-devops-ui/Header';
 import { Link } from 'azure-devops-ui/Link';
 import { Icon } from 'azure-devops-ui/Icon';
+import { Table, renderSimpleCell, ITableColumn, SimpleTableCell } from 'azure-devops-ui/Table';
+import { ObservableValue } from 'azure-devops-ui/Core/Observable';
+import { ArrayItemProvider } from 'azure-devops-ui/Utilities/Provider';
 
 export interface IExperimentOverviewState {
     progression: any;
+    feature: any;
+    scorecards: any;
     loaded: boolean;
     error?: string;
 }
@@ -24,8 +29,10 @@ export class ExperimentOverview extends React.Component<{}, IExperimentOverviewS
     constructor(props) {
         super(props);
         this.state = {
+            loaded: false,
             progression: null,
-            loaded: false
+            scorecards: null,
+            feature: null
         };
 
         this._expClient = new ExpRestClient();
@@ -55,10 +62,14 @@ export class ExperimentOverview extends React.Component<{}, IExperimentOverviewS
                     }
 
                     let serviceConnectionId = ExpUtility.getServiceConnectionId(context);
-                    this._expClient.getProgression(serviceConnectionId, featureId, progressionId).then((progression) => {
+                    this._getUIObjects(serviceConnectionId, featureId, progressionId).then(([feature, progression, scorecards]) => {
                         console.log(progression);
+                        console.log(feature);
+                        console.log(scorecards);
                         this.setState({
                             progression: progression,
+                            feature: feature,
+                            scorecards: scorecards,
                             loaded: true,
                             error: ''
                         });
@@ -74,35 +85,40 @@ export class ExperimentOverview extends React.Component<{}, IExperimentOverviewS
     }
 
 	public render(): JSX.Element {
-        let featureRolloutMetadata = !!this.state.progression && this.state.progression['Studies'][0]['FeatureRolloutMetadata'];
 		return (
 			<div>
                 {!this.state.loaded && <LoadingSpinner />}
-                {!!this.state.error && this.getErrorComponent(this.state.error)}
-                {!!this.state.progression && !!featureRolloutMetadata &&
+                {!!this.state.error && this._getErrorComponent(this.state.error)}
+                {!!this.state.progression && !!this.state.feature && !!this.state.scorecards &&
                     <Card
+                        contentProps={{
+                            className: 'feature-card-content'
+                        }}
                         className='feature-card'
                         titleProps={{
-                            text: featureRolloutMetadata.Name, 
+                            text: this.state.feature.Name, 
                             size: TitleSize.Large
                         } as ICardTitleProps }
                         headerDescriptionProps={{
                             text: <div>
-                                    {featureRolloutMetadata.Description + " "}
-                                    <Link href={`https://exp.microsoft.com/a/feature/${featureRolloutMetadata.RootExperimentId}`} target='_blank'>
-                                        (Control tower <Icon ariaLabel="Video icon" iconName="NavigateExternalInline" />)
+                                    {this.state.feature.Description + " "}
+                                    <Link href={`https://exp.microsoft.com/a/feature/${this.state.feature.Id}`} target='_blank'>
+                                        (Control tower <Icon iconName="NavigateExternalInline" />)
                                     </Link>
                                 </div>
                         }}
                     >
-                        <ProgressionComponent progression={this.state.progression} />
+                        {this._getFlightComponent(this.state.feature)}   
+                        <ProgressionComponent 
+                            progression={this.state.progression}
+                            scorecards={this.state.scorecards} />
                     </Card>
                 }
 			</div>
 		);
     }
 
-    public getErrorComponent(error: string): JSX.Element {
+    private _getErrorComponent(error: string): JSX.Element {
         return (
             <MessageCard
                 className='flex-self-stretch'
@@ -111,6 +127,81 @@ export class ExperimentOverview extends React.Component<{}, IExperimentOverviewS
                 {error}
             </MessageCard>
         );
+    }
+
+    private _getFlightComponent(feature: any) {
+        return (
+            <Card
+                titleProps={{
+                    text: `Feature Gates`,
+                    size: TitleSize.Medium
+                }}
+                className='flight-card'
+            >
+                <Table 
+                    columns={this._getFixedColumns()}
+                    itemProvider={this._getTableItemProvider(this.state.feature)}
+                    role='table'
+                    showLines={false}
+                />
+            </Card>
+        );
+    }
+
+    private _getTableItemProvider(feature: any) {
+        return new ArrayItemProvider(feature['Flights'].map((flight) => {
+            let featuregates = flight.TreatmentVariables.map((treatmentVariable) => `${treatmentVariable.Namespace}.${treatmentVariable.Key}:${treatmentVariable.Value}`);
+            return {
+                flightname: `${flight.FlightType} flight : ${flight.Name}`,
+                featuregatename: featuregates.join(',')
+            };
+        }))
+    }
+
+    private _getFixedColumns() {
+        return [
+            {
+                id: 'flightname',
+                name: 'Flight Name',
+                readonly: true,
+                renderCell: this._renderFlightNameCell,
+                width: new ObservableValue(400)
+            },
+            {
+                id: 'featuregatename',
+                name: 'Feature gate name: Value',
+                readonly: true,
+                renderCell: renderSimpleCell,
+                width: new ObservableValue(400)
+            },
+        ];
+    }
+
+    private _renderFlightNameCell = (rowIndex: number, columnIndex: number, tableColumn: ITableColumn<any>, tableItem: any) => {
+        return (
+            <SimpleTableCell
+                columnIndex={columnIndex}
+                tableColumn={tableColumn}
+                key={`col-${columnIndex}`}
+            >
+                <Icon className='airplane-solid-icon' iconName="AirplaneSolid" />
+                <div className="flex-row scroll-hidden">
+                    <span className="text-ellipsis">{tableItem.flightname}</span>
+                </div>
+            </SimpleTableCell>
+        );
+    }
+
+    private _getUIObjects(serviceConnectionId: string, featureId: string, progressionId: string): Promise<[any, any, any]> {
+        let getFeaturePromise = this._expClient.getFeature(serviceConnectionId, featureId);
+        let getProgressionPromise = this._expClient.getProgression(serviceConnectionId, featureId, progressionId);
+        let getScorecardsPromise = this._expClient.getScorecards(serviceConnectionId, featureId);
+
+        return Promise.all([getFeaturePromise, getProgressionPromise, getScorecardsPromise]).then(([feature, progression, scorecards]) => {
+            return [feature, progression, scorecards];
+        }, (error) => {
+            return Promise.reject(error);
+        });
     }
     
     private _expClient: ExpRestClient;

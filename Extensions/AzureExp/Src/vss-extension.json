@@ -2,7 +2,7 @@
     "manifestVersion": "1",
     "id": "azureexp",
     "name": "Azure Exp",
-    "version": "1.0.106",
+    "version": "1.1.47",
     "publisher": "ms-vscs-rm",
     "description": "Azure Exp feature rollout",
     "public": false,
@@ -37,7 +37,7 @@
             "properties": {
                 "name": "azureexpserviceconnection",
                 "displayName": "Azure Exp Service Connection",
-                "url": "https://exp.microsoft.com",
+                "url": "https://exp.microsoft.com/",
                 "authenticationSchemes": [
                     {
                         "type": "ms.vss-endpoint.endpoint-auth-scheme-service-principal"
@@ -45,9 +45,19 @@
                 ],
                 "dataSources": [
                     {
-                    	"name": "ExpGetProgression",
-                    	"endpointUrl": "{endpoint.url}/api/2.0/features/{{{FeatureId}}}/progressions/{{{ProgressionId}}}",
+                    	"name": "GetExpProgression",
+                    	"endpointUrl": "{{{endpoint.url}}}/api/2.0/features/{{{FeatureId}}}/progressions/{{{ProgressionId}}}",
                     	"resultSelector": "jsonpath:$"
+                    },
+                    {
+                        "name": "GetExpFeature",
+                        "endpointUrl": "{{{endpoint.url}}}/api/features/{{{FeatureId}}}",
+                        "resultSelector": "jsonpath:$"
+                    },
+                    {
+                        "name": "GetExpScorecards",
+                        "endpointUrl": "{{{endpoint.url}}}/api/experiments/scorecards/feature/{{{FeatureId}}}",
+                        "resultSelector": "jsonpath:$"
                     }
                 ]      
             }

@@ -17,25 +17,23 @@ export default class ExpUtility {
 
     public static getTasksByIdMap(context) {
 		let tasksByIdMap: {[key: string] : any[]} = {};
-
-		if (!!context && context.releaseEnvironment) {
-			let deployPhaseSnapshot = context.releaseEnvironment.deployPhasesSnapshot;
-
-			if (!!deployPhaseSnapshot) {
-				for (let deployPhase of deployPhaseSnapshot) {
+        if (!!context && context.releaseEnvironment) {
+            let deployPhaseSnapshot = context.releaseEnvironment.deployPhasesSnapshot;
+            if (!!deployPhaseSnapshot) {
+                for (let deployPhase of deployPhaseSnapshot) {
                     let workFlowTasks = deployPhase.workflowTasks;
-					if (!!workFlowTasks) {
-						for (let workflowTask of workFlowTasks) {
+                    if (!!workFlowTasks) {
+                        for (let workflowTask of workFlowTasks) {
                             if (!tasksByIdMap[workflowTask.taskId]) {
                                 tasksByIdMap[workflowTask.taskId] = [];
                             }
 
                             tasksByIdMap[workflowTask.taskId].push(workflowTask);
-						}
-					}
-				}
-			}
-		}
+                        }
+                    }
+                }
+            }
+        }
 
 		return tasksByIdMap;
     }
@@ -60,11 +58,5 @@ export default class ExpUtility {
             let serviceConnectionId = manageExperimentTasks[0].inputs[Constants.SERVICE_CONNECTION_ID_INPUT_NAME];
             return serviceConnectionId;
         }
-    }
-
-    public static getFeatureNameFromProgression(progression): string {
-        // extracting feature name from FeatureRolloutMetadata of first experiment
-        let featureName = progression['Studies'][0]['FeatureRolloutMetadata'].Name;
-        return featureName;
     }
 }
