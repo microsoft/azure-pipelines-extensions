@@ -1,8 +1,7 @@
 {
-  "name": "azureexpuicontribution",
+  "name": "expuicontribution",
   "version": "1.0.0",
-  "description": "Azure Exp UI Contribution",
-  "main": "index.js",
+  "description": "Exp UI Contribution",
   "scripts": {
     "buildWeb": "npm run clean && webpack",
     "clean": "rimraf ./dist"

@@ -100,8 +100,6 @@ export class ExperimentComponent extends React.Component<IExperimentComponentPro
     private _getTableItemProvider(experiment): IItemProvider<ITableItem> {
         return new ArrayItemProvider<ITableItem>(this.props.experiment['Stages'].map((stage) => {
             let tableItem = {} as any as ITableItem;
-
-            // when can parallel steps be greater than 1 ?
             stage['ParallelSteps'].forEach((step) => {
                 tableItem.treatment = step['FlightTrafficMap'][Object.keys(step['FlightTrafficMap'])[0]] || '--';
                 tableItem.control = step['FlightTrafficMap'][Object.keys(step['FlightTrafficMap'])[1]] || '--';

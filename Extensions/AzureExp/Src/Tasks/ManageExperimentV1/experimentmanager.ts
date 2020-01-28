@@ -30,7 +30,7 @@ export default class ExperimentManager {
 
         switch(action) {
             case ExperimentAction.Start: { 
-                if (ExperimentManager.IsExperimentStopped(experiment)) {
+                if (ExperimentManager.IsExperimentStopped(experiment, false)) {
                     tl.debug(`Experiment '${experimentName}' is stopped. Restarting the experiment.`);
                     experimentId = await this._cloneExperiment(this._featureId, this._progressionId, experimentId);
                     requestUrl = `https://exp.microsoft.com/api/experiments/${experimentId}/start`;
@@ -96,12 +96,16 @@ export default class ExperimentManager {
         throw new Error(tl.loc('NoExperimentsFound', this._progressionId, this._featureId));
     }
 
-    public static IsExperimentStopped(experiment: any): boolean {
+    public static IsExperimentStopped(experiment: any, treatNotStartedAsStopped?: boolean): boolean {
         // an experiment is considered stopped if it has started and any of its stages is stopped (StopTime has been set)
         let experimentStages = experiment['Stages'];
         if (!!experimentStages && experimentStages.length > 0) {
             // experiment has not started
             if (experimentStages[0]['StartTime'] === null) {
+                if (treatNotStartedAsStopped) {
+                    return true;
+                }
+
                 return false;
             }
 

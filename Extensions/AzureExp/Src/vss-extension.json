@@ -28,15 +28,15 @@
     ],
     "contributions": [
         {
-            "id": "azureexp-endpoint-type",
-            "description": "i18n: Service Connection for Azure Exp",
+            "id": "exp-endpoint-type",
+            "description": "i18n: Service Connection for Exp",
             "type": "ms.vss-endpoint.service-endpoint-type",
             "targets": [
 				"ms.vss-endpoint.endpoint-types"
             ],
             "properties": {
-                "name": "azureexpserviceconnection",
-                "displayName": "Azure Exp Service Connection",
+                "name": "expserviceconnection",
+                "displayName": "Exp Service Connection",
                 "url": "https://exp.microsoft.com/",
                 "authenticationSchemes": [
                     {
@@ -83,7 +83,7 @@
             }
         },
         {
-			"id": "azureexp-experimentationoverviewtab",
+			"id": "exp-experimentationoverviewtab",
 			"type": "ms.vss-web.tab",
 			"targets": [
 				"ms.vss-releaseManagement-web.release-environment-editor-tab"

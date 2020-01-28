@@ -11,31 +11,8 @@ export namespace Constants {
 export default class ExpUtility {
     public static isOverviewTabVisible(context): boolean {
         // Show UI tab only if ProvisionExperiment/ManageExperiment tasks are available
-        let tasksMap = this.getTasksByIdMap(context);
+        let tasksMap = this._getTasksByIdMap(context);
         return !!tasksMap[Constants.PROVISION_EXPERIMENT_TASK_ID] || !!tasksMap[Constants.MANAGE_EXPERIMENT_TASK_ID];
-    }
-
-    public static getTasksByIdMap(context) {
-		let tasksByIdMap: {[key: string] : any[]} = {};
-        if (!!context && context.releaseEnvironment) {
-            let deployPhaseSnapshot = context.releaseEnvironment.deployPhasesSnapshot;
-            if (!!deployPhaseSnapshot) {
-                for (let deployPhase of deployPhaseSnapshot) {
-                    let workFlowTasks = deployPhase.workflowTasks;
-                    if (!!workFlowTasks) {
-                        for (let workflowTask of workFlowTasks) {
-                            if (!tasksByIdMap[workflowTask.taskId]) {
-                                tasksByIdMap[workflowTask.taskId] = [];
-                            }
-
-                            tasksByIdMap[workflowTask.taskId].push(workflowTask);
-                        }
-                    }
-                }
-            }
-        }
-
-		return tasksByIdMap;
     }
     
     public static getFeatureAndProgressionIdFromRelease(release: Release.Release): [string, string] {
@@ -45,7 +22,7 @@ export default class ExpUtility {
     }
 
     public static getServiceConnectionId(context) {
-        let tasksMap = this.getTasksByIdMap(context);
+        let tasksMap = this._getTasksByIdMap(context);
         
         let provisionExperimentTasks = tasksMap[Constants.PROVISION_EXPERIMENT_TASK_ID];
         if (provisionExperimentTasks && provisionExperimentTasks.length > 0) {
@@ -97,5 +74,28 @@ export default class ExpUtility {
         }
 
         return activeExperiment;
+    }
+
+    private static _getTasksByIdMap(context) {
+		let tasksByIdMap: {[key: string] : any[]} = {};
+        if (!!context && context.releaseEnvironment) {
+            let deployPhaseSnapshot = context.releaseEnvironment.deployPhasesSnapshot;
+            if (!!deployPhaseSnapshot) {
+                for (let deployPhase of deployPhaseSnapshot) {
+                    let workFlowTasks = deployPhase.workflowTasks;
+                    if (!!workFlowTasks) {
+                        for (let workflowTask of workFlowTasks) {
+                            if (!tasksByIdMap[workflowTask.taskId]) {
+                                tasksByIdMap[workflowTask.taskId] = [];
+                            }
+
+                            tasksByIdMap[workflowTask.taskId].push(workflowTask);
+                        }
+                    }
+                }
+            }
+        }
+
+		return tasksByIdMap;
     }
 }

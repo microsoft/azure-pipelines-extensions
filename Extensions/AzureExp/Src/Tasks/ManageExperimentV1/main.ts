@@ -21,7 +21,7 @@ async function run() {
 
         if (ExperimentAction[action] === ExperimentAction.StopAllExperiments) {
             for (let experiment of experiments) {
-                if (!ExperimentManager.IsExperimentStopped(experiment)) {
+                if (!ExperimentManager.IsExperimentStopped(experiment, true)) {
                     await experimentmanager.executeAction(ExperimentAction.Stop, experiment);
                 }
                 else {

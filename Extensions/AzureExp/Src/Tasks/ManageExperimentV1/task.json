@@ -20,7 +20,7 @@
     "inputs": [
         {
             "name": "ServiceConnectionId",
-            "type": "connectedService:azureexpserviceconnection",
+            "type": "connectedService:expserviceconnection",
             "label": "Exp Service Connection",
             "required": true,
             "helpMarkDown": "Select the Azure Resource Manager subscription for the deployment."

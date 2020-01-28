@@ -15,8 +15,6 @@ export default class ExpRestClient {
         
         let releaseClient = getClient(ReleaseRestClient);
         let release: Release.Release = await releaseClient.getRelease(project.id, releaseId);
-        
-        console.log(release);
         return release;
     }
 
