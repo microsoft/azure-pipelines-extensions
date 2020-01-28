@@ -1,8 +1,8 @@
 import * as Release from 'azure-devops-extension-api/Release';
 
 export namespace Constants {
-    export const PROVISION_EXPERIMENT_TASK_ID = 'b89a647b-e45f-4a86-bb85-e7019474aa1d';
-    export const MANAGE_EXPERIMENT_TASK_ID = '58b25f39-9b53-44ce-b6d1-08ef854e905b';
+    export const PROVISION_EXPERIMENT_TASK_ID = '2e02b7a6-8222-4a82-9be3-faf7e3e757d3';
+    export const MANAGE_EXPERIMENT_TASK_ID = '36e2b610-65b3-4882-a173-572a943990d3';
     export const FEATURE_ID_VARIABLE_NAME = 'FeatureId';
     export const PROGRESSION_ID_VARIABLE_NAME = 'ProgressionId';
     export const SERVICE_CONNECTION_ID_INPUT_NAME = 'ServiceConnectionId';
@@ -58,5 +58,44 @@ export default class ExpUtility {
             let serviceConnectionId = manageExperimentTasks[0].inputs[Constants.SERVICE_CONNECTION_ID_INPUT_NAME];
             return serviceConnectionId;
         }
+    }
+
+    public static removeDuplicateExperiments(experiments: any[]) {
+        // group by experiment name
+        let experimentsByNameMap: {[key: string]: any} = {};
+        experiments.forEach((experiment: any) => {
+            if (!experimentsByNameMap[experiment.Name]) {
+                experimentsByNameMap[experiment.Name] = [];
+            }
+
+            experimentsByNameMap[experiment.Name].push(experiment);
+        });
+
+        // return a list of non-duplicate experiments
+        let uniqueExperiments = [];
+        for (let experimentName in experimentsByNameMap) {
+            uniqueExperiments.push(this._getActiveExperiment(experimentsByNameMap[experimentName]));
+        }
+
+        return uniqueExperiments;
+    }
+
+    private static _getActiveExperiment(experiments: any[]) {
+        // if there are multiple experiments due to multiple restarts, return the current active experiment  (last cloned)
+        let activeExperiment = experiments.find((experiment: any) => experiment.RestartedFromId === null);
+        let activeExperimentFound = false;
+        while (!activeExperimentFound) {
+            activeExperimentFound = true;
+            for (let experiment of experiments) {
+                if (experiment.RestartedFromId === activeExperiment.Id) {
+                    activeExperiment = experiment;
+                    activeExperimentFound = false;
+                    break;
+                }
+            }
+            
+        }
+
+        return activeExperiment;
     }
 }

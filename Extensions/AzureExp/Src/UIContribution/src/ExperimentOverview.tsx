@@ -52,7 +52,7 @@ export class ExperimentOverview extends React.Component<{}, IExperimentOverviewS
             if (!!context.releaseEnvironment) {
                 this._expClient.getRelease(context.releaseEnvironment.releaseId).then((release: Release.Release) => {
                     let [featureId, progressionId] = ExpUtility.getFeatureAndProgressionIdFromRelease(release);
-                    if (!featureId || !progressionId) {
+                    if (!featureId) {
                         this.setState({
                             loaded: true,
                             error: "Failed to load UI contribution. FeatureId or ProgressionId variable has not been set in the pipeline."
@@ -86,7 +86,7 @@ export class ExperimentOverview extends React.Component<{}, IExperimentOverviewS
 			<div>
                 {!this.state.loaded && <LoadingSpinner />}
                 {!!this.state.error && this._getErrorComponent(this.state.error)}
-                {!!this.state.progression && !!this.state.feature && !!this.state.scorecards &&
+                {!!this.state.feature && 
                     <Card
                         contentProps={{
                             className: 'feature-card-content'
@@ -106,9 +106,11 @@ export class ExperimentOverview extends React.Component<{}, IExperimentOverviewS
                         }}
                     >
                         {this._getFlightComponent(this.state.feature)}   
-                        <ProgressionComponent 
-                            progression={this.state.progression}
-                            scorecards={this.state.scorecards} />
+                        {!!this.state.progression && !!this.state.scorecards &&
+                            <ProgressionComponent 
+                                progression={this.state.progression}
+                                scorecards={this.state.scorecards} />
+                        }
                     </Card>
                 }
 			</div>
@@ -190,11 +192,23 @@ export class ExperimentOverview extends React.Component<{}, IExperimentOverviewS
     }
 
     private _getUIObjects(serviceConnectionId: string, featureId: string, progressionId: string): Promise<[any, any, any]> {
-        let getFeaturePromise = this._expClient.getFeature(serviceConnectionId, featureId);
-        let getProgressionPromise = this._expClient.getProgression(serviceConnectionId, featureId, progressionId);
-        let getScorecardsPromise = this._expClient.getScorecards(serviceConnectionId, featureId);
+        let promises = [];
 
-        return Promise.all([getFeaturePromise, getProgressionPromise, getScorecardsPromise]).then(([feature, progression, scorecards]) => {
+        let getFeaturePromise = this._expClient.getFeature(serviceConnectionId, featureId);
+
+        promises.push(getFeaturePromise);
+
+        if (!!progressionId) {
+            let getProgressionPromise = this._expClient.getProgression(serviceConnectionId, featureId, progressionId);
+            let getScorecardsPromise = this._expClient.getScorecards(serviceConnectionId, featureId);
+            promises.push(getProgressionPromise, getScorecardsPromise);
+        }
+        
+        return Promise.all(promises).then(([feature, progression, scorecards]) => {
+            if (!!progression && !!progression['Studies']) {
+                progression['Studies'] = ExpUtility.removeDuplicateExperiments(progression['Studies']);
+            }
+
             return [feature, progression, scorecards];
         }, (error) => {
             return Promise.reject(error);

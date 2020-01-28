@@ -40,9 +40,6 @@ module.exports = {
             }]
         }]
     },
-    optimization: {
-        minimize: false
-    },
     plugins: [
         new CopyWebpackPlugin([{ from: "src/*.html", flatten: true }])
     ]

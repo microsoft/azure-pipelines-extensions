@@ -18,6 +18,7 @@ export interface ITableItem extends ISimpleTableCell {
     control: string;
     starttime: string;
     status: string;
+    scorecard: string;
 }
 
 export interface IExperimentComponentProps {
@@ -28,7 +29,6 @@ export interface IExperimentComponentProps {
 const ExperimentState = {
     'running': 'Running',
     'startrequested': 'Starting',
-    'stopped': 'Stopped',
     'stoprequested': 'Stopping',
     'completed': 'Completed'
 };

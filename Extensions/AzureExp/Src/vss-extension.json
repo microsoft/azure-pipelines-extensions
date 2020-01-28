@@ -17,8 +17,8 @@
             "path": "Tasks/ManageExperimentV1"
         },
         {
-			      "path": "UIContribution/dist",
-			      "addressable": true
+			"path": "UIContribution/dist",
+			"addressable": true
         }
     ],
     "targets": [
@@ -32,7 +32,7 @@
             "description": "i18n: Service Connection for Azure Exp",
             "type": "ms.vss-endpoint.service-endpoint-type",
             "targets": [
-				        "ms.vss-endpoint.endpoint-types"
+				"ms.vss-endpoint.endpoint-types"
             ],
             "properties": {
                 "name": "azureexpserviceconnection",
