@@ -25,9 +25,10 @@ The task can run on the following build agent operating systems:
 
 * **Display name\*:** Provide a name to identify the task among others in your pipeline.
 
-* **Version\*:** Specify the exact version of Teraform to install.
-Example: 
-    To install Terraform version 0.11.4, use 0.11.4
+* **Version\*:** Specify the version of Teraform to install.
+Example:
+    To install Terraform version 0.11.4, use `0.11.4`
+    To install the latest released version, use `latest`
 For getting more details about exact version, refer [this link](https://releases.hashicorp.com/terraform/)
 
 

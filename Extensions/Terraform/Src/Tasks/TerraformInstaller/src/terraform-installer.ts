@@ -7,9 +7,23 @@ import fs = require('fs');
 const uuidV4 = require('uuid/v4');
 const terraformToolName = "terraform";
 const isWindows = os.type().match(/^Win/);
+const httpm = require("typed-rest-client/HttpClient");
+let pkg = require(path.join(__dirname, 'package.json'));
+let userAgent = 'vsts-task-installer/' + pkg.version;
+let requestOptions = {
+    // ignoreSslError: true,
+    proxy: tasks.getHttpProxyConfiguration(),
+    cert: tasks.getHttpCertConfiguration()
+};
+let http = new httpm.HttpClient(userAgent, null, requestOptions);
 
 export async function downloadTerraform(inputVersion: string): Promise<string> {
-    let version = tools.cleanVersion(inputVersion);
+    let version: string;
+    if (inputVersion == "latest") {
+        version = await getLatestTerraformVersion();
+    } else {
+        version = tools.cleanVersion(inputVersion);
+    }
     if (!version) {
         throw new Error(tasks.loc("InputVersionNotValidSemanticVersion", inputVersion));
     }
@@ -44,36 +58,59 @@ export async function downloadTerraform(inputVersion: string): Promise<string> {
     return terraformPath;
 }
 
+async function getLatestTerraformVersion(): Promise<string> {
+    async function fetchReleases<T>(): Promise<any> {
+        let terraformRelasesUrl = "https://releases.hashicorp.com/terraform/index.json"
+        let response = http.get(terraformRelasesUrl);
+        if (response.message.statusCode != 200) {
+            let err = new Error('Unexpected HTTP response: ' + response.message.statusCode);
+            err['httpStatusCode'] = response.message.statusCode;
+            tasks.debug(`Failed to download "${terraformRelasesUrl}". Code(${response.message.statusCode}) Message(${response.message.statusMessage})`);
+            throw err;
+        }
+        let releases = [];
+        let json = JSON.parse(response.readBody());
+        Object.keys(json.versions).forEach(key => releases.push(json.versions[key]));
+    }
+
+    let terraformReleases = await fetchReleases();
+    return terraformReleases.map(v => v.version).filter(v => v.indexOf("-") < 0).sort((a, b) => {
+        const ba = b.split('.');
+        const d = a.split('.').map((a1, i) => a1 - ba[i]);
+        return d[0] ? d[0] : d[1] ? d[1] : d[2]
+    }).reverse()[0];
+}
+
 function getTerraformDownloadUrl(version: string): string {
     let platform: string;
     let architecture: string;
 
-    switch(os.type()) {
+    switch (os.type()) {
         case "Darwin":
             platform = "darwin";
             break;
-        
+
         case "Linux":
             platform = "linux";
             break;
-        
+
         case "Windows_NT":
             platform = "windows";
             break;
-        
+
         default:
             throw new Error(tasks.loc("OperatingSystemNotSupported", os.type()));
     }
 
-    switch(os.arch()) {
+    switch (os.arch()) {
         case "x64":
             architecture = "amd64";
             break;
-        
+
         case "x32":
             architecture = "386";
             break;
-        
+
         default:
             throw new Error(tasks.loc("ArchitectureNotSupported", os.arch()));
     }
