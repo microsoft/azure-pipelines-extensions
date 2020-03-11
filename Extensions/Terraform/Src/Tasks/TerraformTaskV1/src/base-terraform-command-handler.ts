@@ -42,7 +42,12 @@ export abstract class BaseTerraformCommandHandler {
     public warnIfMultipleProviders(): void {
         let terraformPath;
         try {
-            terraformPath = tasks.which("terraform", true);
+            let userTerraformPath = tasks.getInput("terraformPath", true);
+            if (userTerraformPath && tasks.exist(userTerraformPath)) {
+                terraformPath = userTerraformPath    
+            } else {
+                terraformPath = tasks.which("terraform", true);
+            }
         } catch(err) {
             throw new Error(tasks.loc("TerraformToolNotFound"));
         }
@@ -90,7 +95,12 @@ export abstract class BaseTerraformCommandHandler {
     protected checkIfShowCommandSupportsJsonOutput(): number {
         let terraformPath;
         try {
-            terraformPath = tasks.which("terraform", true);
+            let userTerraformPath = tasks.getInput("terraformPath", true);
+            if (userTerraformPath && tasks.exist(userTerraformPath)) {
+                terraformPath = userTerraformPath    
+            } else {
+                terraformPath = tasks.which("terraform", true);
+            }
         } catch(err) {
             throw new Error(tasks.loc("TerraformToolNotFound"));
         }

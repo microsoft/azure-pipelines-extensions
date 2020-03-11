@@ -60,6 +60,13 @@
       }
     },
     {
+      "name": "terraformPath",
+      "type": "string",
+      "label": "ms-resource:loc.input.label.terraformPath",
+      "helpMarkDown": "ms-resource:loc.input.help.terraformPath",
+      "required": false
+    },
+    {
       "name": "command",
       "type": "pickList",
       "label": "ms-resource:loc.input.label.command",

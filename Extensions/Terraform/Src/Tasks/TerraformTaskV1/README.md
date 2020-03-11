@@ -36,6 +36,8 @@ The only pre-requisite for the task is that Terraform must be installed on the A
 	- aws
 	- gcp
 
+- **Terraform Path\*:** Path containing the Terraform executable.  If no path is provided the system will attempt to find the terraform executable.
+
 - **Command\*:** Select the terraform command to execute. Currently, the following commands are supported: 
 	- init
     - validate

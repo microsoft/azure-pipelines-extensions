@@ -59,6 +59,13 @@
             }
         },
         {
+            "name": "terraformPath",
+            "type": "string",
+            "label": "Terraform Path",
+            "helpMarkDown": "Path containing the Terraform executable.",
+            "required": false
+        },
+        {
             "name": "command",
             "type": "pickList",
             "label": "Command",

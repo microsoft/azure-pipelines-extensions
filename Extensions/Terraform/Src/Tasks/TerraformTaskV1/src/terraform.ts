@@ -15,7 +15,12 @@ export class TerraformToolHandler implements ITerraformToolHandler {
     public createToolRunner(command?: TerraformBaseCommandInitializer): ToolRunner {
         let terraformPath;
         try {
-            terraformPath = this.tasks.which("terraform", true);
+            let userTerraformPath = this.tasks.getInput("terraformPath", true);
+            if (userTerraformPath && this.tasks.exist(userTerraformPath)) {
+                terraformPath = userTerraformPath    
+            } else {
+                terraformPath = this.tasks.which("terraform", true);
+            }
         } catch(err) {
             throw new Error(this.tasks.loc("TerraformToolNotFound"));
         }
