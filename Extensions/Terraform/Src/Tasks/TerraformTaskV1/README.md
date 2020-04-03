@@ -23,9 +23,7 @@ Please report a problem at [Developer Community Forum](https://developercommunit
 
 ## Pre-requisites for the task
 
-
-The only pre-requisite for the task is that Terraform must be installed on the Azure Pipelines build agent. If you want an exact version of Terraform on the agent then you can use the [Terraform tool tnstaller task](https://aka.ms/AA5j5pi)
-
+The only pre-requisite for the task is that Terraform must be installed on the Azure Pipelines build agent. If you want an exact version of Terraform on the agent then you can use the [Terraform tool installer task](https://aka.ms/AA5j5pi)
 
 ## Parameters of the task
 
@@ -59,6 +57,27 @@ Options specific to **terraform init** command
 	- **Storage account\*:** Select the name of the storage account belonging to the selected resource group in which you want to store the terrafor remote state file
 	- **Container\*:** Select the name of the Azure Blob container belonging to the storage account in which you want to store the terrafor remote state file
 	- **Key\*:** Specify the relative path to the state file inside the selected container. For example, if you want to store the state file, named terraform.tfstate, inside a folder, named tf, then give the input "tf/terraform.tfstate"
+
+This YAML example shows how `TerraformTaskV1@0` can be used to run `terraform init` using a backend configuration (aka state file) stored in Azure. 
+
+```YAML
+variables:
+  azureServiceConnection: 'service-connection' # Service Connection in Azure DevOps
+  tfResourceGroup: 'terraform' # Resource Group in Azure
+  tfStorageAccount: 'tfstatestore' # Storage Account Name in Azure
+  tfContainerName: 'tfstate' # Container Name within the Storage Account
+  tfKey: 'terraform.tfstate' # Name of the Terraform state file
+
+steps:
+- task: TerraformTaskV1@0
+  displayName: 'Terraform Init'
+  inputs:
+    backendServiceArm: '$(azureServiceConnection)'
+    backendAzureRmResourceGroupName: '$(tfResourceGroup)'
+    backendAzureRmStorageAccountName: '$(tfStorageAccount)'
+    backendAzureRmContainerName: '$(tfContainerName)'
+    backendAzureRmKey: '$(tfKey)'
+```
 
 - Options specific to **Amazon Web Services(AWS) backend configuration**
 	- **Amazon Web Services connection\*:** Select the AWS connection to use for AWS backend configuration
