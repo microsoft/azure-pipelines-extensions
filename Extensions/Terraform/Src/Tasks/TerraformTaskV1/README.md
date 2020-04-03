@@ -95,6 +95,23 @@ Options specific to **terraform plan, apply and destroy** commands
 - **Amazon Web Services connection (only if "aws" provider is selected)\*:** Select the AWS connection to use for managing the resources used by the plan, apply and destroy commands
 - **Google Cloud Platform connection (only if "gcp" provider is selected)\*:** Select the GCP connection to use for managing the resources used by the plan, apply and destroy commands
 
+To specify input variables you can use environment variables to passthrough variables:
+
+```YAML
+variables:
+  location: 'westeurope'
+  
+steps:
+- task: TerraformTaskV1@0
+  displayName: 'Terraform Validate'
+  inputs:
+    command: validate
+  env:
+    TF_VAR_location: $(location)'
+```
+
+To learn more about the use of environment variables, goto the [Environment Variables](https://www.terraform.io/docs/commands/environment-variables.html) section in the Terrform documentation.
+
 ## Output Variables
 
 * **Terraform plan json file path:** This variable refers to the location of the terraform plan file in JSON format that was created. This file can be used by tasks which are written for tools such as [Open Policy Agent](https://www.openpolicyagent.org/docs/latest/terraform/)<br><br>Note: This variable will only be set if 'command' input is set to 'plan'.
