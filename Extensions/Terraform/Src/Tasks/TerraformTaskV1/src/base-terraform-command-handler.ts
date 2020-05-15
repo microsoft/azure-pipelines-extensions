@@ -308,4 +308,16 @@ export abstract class BaseTerraformCommandHandler {
             cwd: validateCommand.workingDirectory
         });
     }
+
+    public setBackendConfigParameterIfExists(backendServiceName: string, serviceKey: string, configKey: string) {
+        var value = tasks.getEndpointDataParameter(backendServiceName, serviceKey, true);
+        if (value != undefined)
+            this.backendConfig.set(configKey, value);
+    }
+    
+    public setBackendConfigAuthorizationParameterIfExists(backendServiceName: string, serviceKey: string, configKey: string) {
+        var value = tasks.getEndpointAuthorizationParameter(backendServiceName, serviceKey, true);
+        if (value != undefined)
+            this.backendConfig.set(configKey, value);
+    }
 }

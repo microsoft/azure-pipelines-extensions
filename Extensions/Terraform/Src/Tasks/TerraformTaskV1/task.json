@@ -14,7 +14,7 @@
     "version": {
         "Major": "0",
         "Minor": "0",
-        "Patch": "140"
+        "Patch": "141"
     },
     "instanceNameFormat": "Terraform : $(provider)",
     "execution": {
@@ -119,7 +119,7 @@
             "name": "backendServiceArm",
             "type": "connectedService:AzureRM",
             "label": "Azure subscription",
-            "required": true,
+            "required": false,
             "helpMarkDown": "Azure resource manager subscription for the terraform backend configuration",
             "groupName": "backendAzureRm"
         },

@@ -14,14 +14,16 @@ export class TerraformCommandHandlerAzureRM extends BaseTerraformCommandHandler 
         this.backendConfig.set('container_name', tasks.getInput("backendAzureRmContainerName", true));
         this.backendConfig.set('key', tasks.getInput("backendAzureRmKey", true));
         this.backendConfig.set('resource_group_name', tasks.getInput("backendAzureRmResourceGroupName", true));
-        this.backendConfig.set('arm_subscription_id', tasks.getEndpointDataParameter(backendServiceName, "subscriptionid", true));
-        this.backendConfig.set('arm_tenant_id', tasks.getEndpointAuthorizationParameter(backendServiceName, "tenantid", true));
-        this.backendConfig.set('arm_client_id', tasks.getEndpointAuthorizationParameter(backendServiceName, "serviceprincipalid", true));
-        this.backendConfig.set('arm_client_secret', tasks.getEndpointAuthorizationParameter(backendServiceName, "serviceprincipalkey", true));
+
+        //If not set as explicit command line params, the AzureRM provider will search for the backend config as environment vars
+        this.setBackendConfigParameterIfExists(backendServiceName, "subscriptionid", 'arm_subscription_id');
+        this.setBackendConfigAuthorizationParameterIfExists(backendServiceName, "tenantid", 'arm_tenant_id');
+        this.setBackendConfigAuthorizationParameterIfExists(backendServiceName, "serviceprincipalid", 'arm_client_id');
+        this.setBackendConfigAuthorizationParameterIfExists(backendServiceName, "serviceprincipalkey", 'arm_client_secret');
     }
 
     public handleBackend(terraformToolRunner: ToolRunner): void {
-        let backendServiceName = tasks.getInput("backendServiceArm", true);
+        let backendServiceName = tasks.getInput("backendServiceArm", false);
         this.setupBackend(backendServiceName);
 
         for (let [key, value] of this.backendConfig.entries()) {
