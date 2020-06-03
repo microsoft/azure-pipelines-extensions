@@ -97,10 +97,14 @@ export function runCommandOnRemoteMachine(command: string, sshClient: any, optio
             }).on('data', (data) => {
                 _writeLine(data);
             }).stderr.on('data', (data) => {
-                stdErrWritten = true;
                 tl.debug('stderr = ' + data);
                 if (data && data.toString().trim() !== '') {
-                    tl.error(data);
+                    if(data.toString().toLowerCase().startsWith("[warning]")) {
+                        tl.warning(data);   
+                    } else {
+                        stdErrWritten = true;
+                        tl.error(data);
+                    }
                 }
             });
         }
@@ -128,7 +132,17 @@ export function runCommandOnSameMachine(command: string, options: RemoteCommandO
         } else {
             tl.debug('code = 0');
             if (stderr != '' && options.failOnStdErr === true) {
-                defer.reject(tl.loc('RemoteCmdExecutionErr'));
+                let errors: string[] = stderr.split('\n');
+                stdErrWritten = errors.map((e) => {
+                    return e.toLowerCase().startsWith("[error]")
+                }).reduce((a, b) => {
+                    return a||b;
+                });
+                if(stdErrWritten) {
+                    defer.reject(tl.loc('RemoteCmdExecutionErr'));
+                } else {
+                    defer.resolve('0');
+                }
             } else {
                 defer.resolve('0');
             }
