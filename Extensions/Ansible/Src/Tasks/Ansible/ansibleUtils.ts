@@ -99,7 +99,7 @@ export function runCommandOnRemoteMachine(command: string, sshClient: any, optio
             }).stderr.on('data', (data) => {
                 tl.debug('stderr = ' + data);
                 if (data && data.toString().trim() !== '') {
-                    if(data.toString().toLowerCase().startsWith("[warning]")) {
+                    if(data.toString().trim().toLowerCase().startsWith("[warning]")) {
                         tl.warning(data);   
                     } else {
                         stdErrWritten = true;
@@ -134,7 +134,7 @@ export function runCommandOnSameMachine(command: string, options: RemoteCommandO
             if (stderr != '' && options.failOnStdErr === true) {
                 let errors: string[] = stderr.split('\n');
                 stdErrWritten = errors.map((e) => {
-                    return e.toLowerCase().startsWith("[error]")
+                    return !e.toLowerCase().startsWith("[warning]")
                 }).reduce((a, b) => {
                     return a||b;
                 });
