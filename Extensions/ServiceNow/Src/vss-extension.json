@@ -3,7 +3,7 @@
   "id": "vss-services-servicenowchangerequestmanagement",
   "name": "ServiceNow Change Management",
   "publisher": "ms-vscs-rm",
-  "version": "4.162.1",
+  "version": "4.176.0",
   "public": true,
   "description": "Integrate ServiceNow Change Management with Azure Pipelines",
   "categories": [
