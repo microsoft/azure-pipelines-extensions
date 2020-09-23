@@ -142,7 +142,7 @@
           },
           "ExecutionOptions": {
             "OutputVariables": "{\"CHANGE_REQUEST_NUMBER\" :  \"jsonpath('$.result[0].number')[0]\", \"CHANGE_CORRELATION_ID\" :  \"jsonpath('$.result[0].correlation_id')[0]\"}",
-            "SkipSectionExpression": "and(eq(isNullOrEmpty(taskInputs['ChangeRequestNumber']), false), eq(eq('$(system.hosttype)', 'build'), true))"
+            "SkipSectionExpression": "eq(isNullOrEmpty(taskInputs['ChangeRequestNumber']), false)"
           }
         },
         {
