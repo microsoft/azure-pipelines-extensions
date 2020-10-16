@@ -9,9 +9,13 @@ This extension enables integration of ServiceNow Change Management with Azure Pi
 
 > This extension works only with Azure DevOps Services and Azure DevOps Server 2019 Update 1 onwards..
 
-It includes 
+For designer release pipelines, it includes -  
 - A [release gate](https://docs.microsoft.com/en-us/azure/devops/pipelines/release/approvals/gates?view=vsts) to hold the pipeline till the change management process signals implementation for a change request. You can create a new change request for every deployment or use an existing change request.                     
 - An agentless task to update a change request during the deployment process. It is typically used as the last task in the stage.
+
+For YAML pipelines, it includes - 
+- A [check](https://docs.microsoft.com/en-us/azure/devops/pipelines/process/approvals?view=azure-devops&tabs=check-pass) to wait for the change management process in ServiceNow to complete, before starting a stage. You can create a new change request for every deployment or use an existing change request.                     
+- An server task to update a change request during the deployment process. This could be a change created by the check or an explicit change request. It is typically used as the last task in the stage.
 
 The deployment process in Azure Pipelines helps automate the deployment and complement the controls offered by ServiceNow.
 
@@ -58,7 +62,8 @@ In addition to granting role to a user in ServiceNow, Azure DevOps should be reg
  
  ![Add OAuth service connection](images/oauth_servicenow_connection.png)
 
-### **Configure a release gate for ServiceNow Change Management**
+### **Configure a designer release pipeline for ServiceNow Change Management**
+#### **Configure a release gate**
 
 ![Release definition](images/release_definition.png)
 ![Release gate](images/release_gate.png)
@@ -98,7 +103,7 @@ ServiceNow gate produces output variables.                                     
 - **CHANGE_REQUEST_NUMBER** : Number of the change request.
 - **CHANGE_SYSTEM_ID** : Sys Id of the change request.
 
-### **Add a task to update the change request**
+#### **Add a task to update the change request**
 
 ![Update task](images/agentless_task.png)
 
@@ -112,6 +117,28 @@ ServiceNow gate produces output variables.                                     
 - **Additional change request parameters**:  Additional properties of the change request to set.
 
 > The update task would fail if none of the fields in the change request are updated during the execution of the task. ServiceNow ignores invalid fields and values passed to the task. 
+
+### **Configure yaml pipelines for ServiceNow Change Management**
+
+#### **Configure a check on a resource for ServiceNow Change Management**
+YAML Pipelines rely on resources such as environments, service connections, agent pools, variable groups, and secure files. Checks enable the resource owner to control if and when a stage in any pipeline can consume a resource. As an owner of a resource, you can specify that ServiceNow change management must complete before a stage consuming that resource can start. 
+Example: We’re configuring the check on Environment named “Latest”.
+
+![Create check](images/check_create.png)
+
+The check configuration details remain the same as the gate in designer release pipelines. Refer to [this](#**Configure a release gate**).
+
+#### **Add the task to update change request in the YAML Pipeline**
+In a  server job, add the update change request task to send work notes etc. to ServiceNow.
+
+For example, in the YAML pipeline below, the environment “Latest” has a check configured on it which creates a Change Request, our server task identifies the same and updates it. Change request number is optional in the YAML Server task. If not specified, then the task tries to update the change created by a check on that stage.
+
+![YAML pipeline](images/yaml_pipeline.png)
+
+The resulting pipeline for the above pipeline shall be as follows.
+
+![resulting pipeline](images/resulting_pipeline.png)
+
 
 ## FAQs
 ### How to register Azure DevOps in ServiceNow as an OAuth App
