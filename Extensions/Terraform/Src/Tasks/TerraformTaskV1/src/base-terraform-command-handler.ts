@@ -130,6 +130,25 @@ export abstract class BaseTerraformCommandHandler {
         });
     }
 
+    public async refresh(): Promise<number> {
+        this.warnIfMultipleProviders();
+        let serviceName = `environmentServiceName${this.getServiceProviderNameFromProviderInput()}`;
+        let refreshCommand = new TerraformAuthorizationCommandInitializer(
+            "refresh",
+            tasks.getInput("workingDirectory"),
+            tasks.getInput(serviceName, true),
+            tasks.getInput("commandOptions")
+        );
+        
+        let terraformTool;
+        terraformTool = this.terraformToolHandler.createToolRunner(refreshCommand);
+        this.handleProvider(refreshCommand);
+    
+        return terraformTool.exec(<IExecOptions> {
+            cwd: refreshCommand.workingDirectory
+        });
+    }
+
     public setOutputVariableToPlanFilePath() {
         // Do terraform version to check if version is >= 0.12.0
         if (this.checkIfShowCommandSupportsJsonOutput() >= 0) {

@@ -6,6 +6,7 @@
 This task enables running Terraform commands as part of Azure Build and Release Pipelines. It supports the following Terraform commands
 - init
 - validate
+- refresh
 - plan
 - apply
 - destroy
@@ -39,6 +40,7 @@ The only pre-requisite for the task is that Terraform must be installed on the A
 - **Command\*:** Select the terraform command to execute. Currently, the following commands are supported: 
 	- init
     - validate
+	- refresh
     - plan
     - apply
     - destroy
@@ -70,7 +72,7 @@ Options specific to **terraform init** command
 	- **Bucket\*:** Select the name of the GCP storage bucket in which you want to store the terraform remote state file
 	- **Prefix of state file:** Specify the relative path to the state file inside the GCP bucket. For example, if you give the input as "terraform", then the state file, named default.tfstate, will be stored inside an object called terraform.
 
-Options specific to **terraform plan, apply and destroy** commands
+Options specific to **terraform refresh, plan, apply and destroy** commands
 
 - **Azure subscription (only if "azurerm" provider is selected)\*:** Select the AzureRM subscription to use for managing the resources used by the plan, apply and destroy commands
 - **Amazon Web Services connection (only if "aws" provider is selected)\*:** Select the AWS connection to use for managing the resources used by the plan, apply and destroy commands
