@@ -14,7 +14,7 @@
   ],
   "version": {
     "Major": 2,
-    "Minor": 176,
+    "Minor": 179,
     "Patch": 0
   },
   "instanceNameFormat": "ServiceNow change management",
@@ -38,6 +38,11 @@
     {
       "name": "completionOptions",
       "displayName": "Success criteria",
+      "isExpanded": true
+    },
+    {
+      "name": "rejectionOptions",
+      "displayName": "Failure criteria",
       "isExpanded": true
     }
   ],
@@ -290,6 +295,43 @@
       "groupName": "completionOptions",
       "helpMarkDown": "Type complex expression for success criteria.",
       "visibleRule": "successCriteria = advanced"
+    },
+    {
+      "name": "failureCriteria",
+      "type": "pickList",
+      "label": "Failure criteria",
+      "defaultValue": "desiredStatus",
+      "options": {
+        "advanced": "Advanced failure criteria",
+        "desiredStatus": "Desired status of change request"
+      },
+      "required": "false",
+      "helpMarkDown": "Choose failure criteria for change request.",
+      "properties": {
+         "EditableOptions": "false"
+      },
+      "groupName": "rejectionOptions"
+    },
+    {
+      "name": "DesiredFailureExitStatus",
+      "type": "pickList",
+      "label": "Desired status of change request",
+      "required": "true",
+      "groupName": "rejectionOptions",
+      "helpMarkDown": "Choose or type status of change request that indicates the change request can be rejected. Gate would fail immediately when the the change request status is same as the provided value.",
+      "properties": {
+        "EditableOptions": "True"
+      },
+      "visibleRule": "failureCriteria = desiredStatus"
+    },
+    {
+      "name": "AdvancedFailureCriteria",
+      "type": "string",
+      "label": "Advanced failure criteria.",
+      "required": "false",
+      "groupName": "rejectionOptions",
+      "helpMarkDown": "Type complex expression for failure criteria.",
+      "visibleRule": "failureCriteria = advanced"
     }
   ],
   "dataSourceBindings": [{
@@ -337,6 +379,12 @@
       "target": "assignmentgroup",
       "endpointId": "$(ServiceNowConnection)",
       "dataSourceName": "Assignment Group"
+    },
+    {
+      "target": "DesiredFailureExitStatus",
+      "endpointId": "$(ServiceNowConnection)",
+      "dataSourceName": "State",
+      "resultTemplate": "{ \"Value\" : \"{{value}}\", \"DisplayValue\" : \"{{label}}\" }"
     }
   ],
   "execution": {
@@ -454,6 +502,34 @@
           "ExecutionOptions": {
             "OutputVariables": "{\"CHANGE_REQUEST_NUMBER\" :  \"jsonpath('$.result.number')[0]\"}",
             "SkipSectionExpression": "or(eq('$(successCriteria)', 'advanced'),eq(isNullOrEmpty(variables['CHANGE_SYSTEM_ID']), true))"
+          }
+        },
+        {
+          "RequestInputs": {
+            "EndpointId": "$(ServiceNowConnection)",
+            "EndpointUrl": "$(endpoint.url)/api/now/table/change_request/$(CHANGE_SYSTEM_ID)?sysparm_display_value=true",
+            "Method": "GET",
+            "Headers": "{\"Content-Type\":\"application/json\", \"Accept\":\"application/json\"}",
+            "WaitForCompletion": "false",
+            "Expression": "$(AdvancedFailureCriteria)"
+          },
+          "ExecutionOptions": {
+            "OutputVariables": "{\"CHANGE_REQUEST_NUMBER\" :  \"jsonpath('$.result.number')[0]\"}",
+            "SkipSectionExpression": "or(eq('$(failureCriteria)', 'desiredStatus'),eq(isNullOrEmpty(variables['CHANGE_SYSTEM_ID']), true))"
+          }
+        },
+        {
+          "RequestInputs": {
+            "EndpointId": "$(ServiceNowConnection)",
+            "EndpointUrl": "$(endpoint.url)/api/now/table/change_request/$(CHANGE_SYSTEM_ID)?sysparm_fields=state,number",
+            "Method": "GET",
+            "Headers": "{\"Content-Type\":\"application/json\", \"Accept\":\"application/json\"}",
+            "WaitForCompletion": "false",
+            "Expression": "not(eq(jsonpath('$.result.state')[0],'$(DesiredFailureExitStatus)'))"
+          },
+          "ExecutionOptions": {
+            "OutputVariables": "{\"CHANGE_REQUEST_NUMBER\" :  \"jsonpath('$.result.number')[0]\"}",
+            "SkipSectionExpression": "or(eq('$(failureCriteria)', 'advanced'),eq(isNullOrEmpty(variables['CHANGE_SYSTEM_ID']), true))"
           }
         }
       ]
