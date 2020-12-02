@@ -300,8 +300,9 @@
       "name": "failureCriteria",
       "type": "pickList",
       "label": "Failure criteria",
-      "defaultValue": "desiredStatus",
+      "defaultValue": "none",
       "options": {
+        "none": "None",
         "advanced": "Advanced failure criteria",
         "desiredStatus": "Desired status of change request"
       },
