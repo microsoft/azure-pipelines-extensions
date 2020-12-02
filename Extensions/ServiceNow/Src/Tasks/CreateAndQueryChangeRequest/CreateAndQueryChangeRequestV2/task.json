@@ -307,7 +307,7 @@
         "desiredStatus": "Desired status of change request"
       },
       "required": "false",
-      "helpMarkDown": "Choose failure criteria for change request.",
+      "helpMarkDown": "Choose failure criteria for change request. Note: Failure criteria is supported only in YAML Pipelines.",
       "properties": {
          "EditableOptions": "false"
       },
@@ -516,7 +516,7 @@
           },
           "ExecutionOptions": {
             "OutputVariables": "{\"CHANGE_REQUEST_NUMBER\" :  \"jsonpath('$.result.number')[0]\"}",
-            "SkipSectionExpression": "or(eq('$(failureCriteria)', 'desiredStatus'),eq(isNullOrEmpty(variables['CHANGE_SYSTEM_ID']), true))"
+            "SkipSectionExpression": "or(eq(eq('$(system.hosttype)', 'checks'), false),eq('$(failureCriteria)', 'desiredStatus'),eq(isNullOrEmpty(variables['CHANGE_SYSTEM_ID']), true))"
           }
         },
         {
@@ -530,7 +530,7 @@
           },
           "ExecutionOptions": {
             "OutputVariables": "{\"CHANGE_REQUEST_NUMBER\" :  \"jsonpath('$.result.number')[0]\"}",
-            "SkipSectionExpression": "or(eq('$(failureCriteria)', 'advanced'),eq(isNullOrEmpty(variables['CHANGE_SYSTEM_ID']), true))"
+            "SkipSectionExpression": "or(eq(eq('$(system.hosttype)', 'checks'), false),eq('$(failureCriteria)', 'advanced'),eq(isNullOrEmpty(variables['CHANGE_SYSTEM_ID']), true))"
           }
         }
       ]
