@@ -14,7 +14,7 @@
   ],
   "version": {
     "Major": 2,
-    "Minor": 179,
+    "Minor": 182,
     "Patch": 0
   },
   "instanceNameFormat": "ServiceNow change management",
@@ -484,7 +484,7 @@
             "Method": "GET",
             "Headers": "{\"Content-Type\":\"application/json\", \"Accept\":\"application/json\"}",
             "WaitForCompletion": "false",
-            "Expression": "$(AdvancedSuccessCriteria)"
+            "Expression": "or($(AdvancedSuccessCriteria), and($(AdvancedSuccessCriteria), ne($(AdvancedFailureCriteria))))"
           },
           "ExecutionOptions": {
             "OutputVariables": "{\"CHANGE_REQUEST_NUMBER\" :  \"jsonpath('$.result.number')[0]\"}",
@@ -498,39 +498,11 @@
             "Method": "GET",
             "Headers": "{\"Content-Type\":\"application/json\", \"Accept\":\"application/json\"}",
             "WaitForCompletion": "false",
-            "Expression": "eq(jsonpath('$.result.state')[0],'$(DesiredExitStatus)')"
+            "Expression": "or(eq(jsonpath('$.result.state')[0],'$(DesiredExitStatus)'), and(eq(jsonpath('$.result.state')[0],'$(DesiredExitStatus)'), ne(jsonpath('$.result.state')[0],'$(DesiredFailureExitStatus)')))"
           },
           "ExecutionOptions": {
             "OutputVariables": "{\"CHANGE_REQUEST_NUMBER\" :  \"jsonpath('$.result.number')[0]\"}",
             "SkipSectionExpression": "or(eq('$(successCriteria)', 'advanced'),eq(isNullOrEmpty(variables['CHANGE_SYSTEM_ID']), true))"
-          }
-        },
-        {
-          "RequestInputs": {
-            "EndpointId": "$(ServiceNowConnection)",
-            "EndpointUrl": "$(endpoint.url)/api/now/table/change_request/$(CHANGE_SYSTEM_ID)?sysparm_display_value=true",
-            "Method": "GET",
-            "Headers": "{\"Content-Type\":\"application/json\", \"Accept\":\"application/json\"}",
-            "WaitForCompletion": "false",
-            "Expression": "$(AdvancedFailureCriteria)"
-          },
-          "ExecutionOptions": {
-            "OutputVariables": "{\"CHANGE_REQUEST_NUMBER\" :  \"jsonpath('$.result.number')[0]\"}",
-            "SkipSectionExpression": "or(eq(eq('$(system.hosttype)', 'checks'), false),eq('$(failureCriteria)', 'desiredStatus'),eq(isNullOrEmpty(variables['CHANGE_SYSTEM_ID']), true))"
-          }
-        },
-        {
-          "RequestInputs": {
-            "EndpointId": "$(ServiceNowConnection)",
-            "EndpointUrl": "$(endpoint.url)/api/now/table/change_request/$(CHANGE_SYSTEM_ID)?sysparm_fields=state,number",
-            "Method": "GET",
-            "Headers": "{\"Content-Type\":\"application/json\", \"Accept\":\"application/json\"}",
-            "WaitForCompletion": "false",
-            "Expression": "not(eq(jsonpath('$.result.state')[0],'$(DesiredFailureExitStatus)'))"
-          },
-          "ExecutionOptions": {
-            "OutputVariables": "{\"CHANGE_REQUEST_NUMBER\" :  \"jsonpath('$.result.number')[0]\"}",
-            "SkipSectionExpression": "or(eq(eq('$(system.hosttype)', 'checks'), false),eq('$(failureCriteria)', 'advanced'),eq(isNullOrEmpty(variables['CHANGE_SYSTEM_ID']), true))"
           }
         }
       ]
