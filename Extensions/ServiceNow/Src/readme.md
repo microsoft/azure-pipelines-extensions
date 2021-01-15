@@ -128,6 +128,8 @@ Example: We’re configuring the check on Environment named “Latest”.
 
 The check configuration details remain the same as the gate in designer release pipelines. Refer to [this](#configure-a-designer-release-pipeline-for-servicenow-change-management).
 
+We also support **Failure Criteria** in YAML pipelines, the parameters similar to **Success Criteria** except the check fails immediately without any further retries.
+
 #### **Add the task to update change request in the YAML Pipeline**
 In a  server job, add the update change request task to send work notes etc. to ServiceNow.
 
