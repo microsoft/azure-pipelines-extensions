@@ -47,7 +47,7 @@ describe('Perf Tests', () => {
             processor.processItems(webProvider, filesystemProvider, processorOptions)
                 .then((tickets) => {
                     let fileTickets = tickets.filter(x => x.artifactItem.itemType == ItemType.File && x.state === TicketState.Processed);
-                    assert.equal(fileTickets.length, 301);
+                    assert.strictEqual(fileTickets.length, 301);
                     assert(getDownloadSizeInMB(fileTickets) > 400);
                     done();
                 }, (error) => {
@@ -84,7 +84,7 @@ describe('Perf Tests', () => {
             processor.processItems(webProvider, filesystemProvider, processorOptions)
                 .then((tickets) => {
                     let fileTickets = tickets.filter(x => x.artifactItem.itemType == ItemType.File && x.state === TicketState.Processed);
-                    assert.equal(fileTickets.length, 20377);
+                    assert.strictEqual(fileTickets.length, 20377);
                     assert(getDownloadSizeInMB(fileTickets) > 20);
                     done();
                 }, (error) => {
@@ -113,8 +113,8 @@ describe('Perf Tests', () => {
             processor.processItems(zipProvider, filesystemProvider, processorOptions)
                 .then((tickets) => {
                     fs.existsSync(path.join(nconf.get('DROPLOCATION'), 'jenkinsDropWithMultipleFiles.zip'));
-                    assert.equal(tickets.find(x => x.artifactItem.path == "").retryCount, 0);
-                    assert.notEqual(tickets.find(x => x.artifactItem.path == "").fileSizeInBytes, 0);
+                    assert.strictEqual(tickets.find(x => x.artifactItem.path == "").retryCount, 0);
+                    assert.notStrictEqual(tickets.find(x => x.artifactItem.path == "").fileSizeInBytes, 0);
                     done();
                 }, (error) => {
                     throw error;

@@ -38,12 +38,12 @@ describe('E2E Tests', () => {
                         if (err) {
                             throw err;
                         }
-                        assert.equal(data, "dummyFolderContent");
+                        assert.strictEqual(data, "dummyFolderContent");
                         done();
                     });
 
-                    assert.equal(tickets.find(x => x.artifactItem.path == path.join("fileshareWithMultipleFiles", "file1.pdb")).retryCount, 0);
-                    assert.equal(tickets.find(x => x.artifactItem.path == path.join("fileshareWithMultipleFiles", "folder1", "file2.txt")).retryCount, 0);
+                    assert.strictEqual(tickets.find(x => x.artifactItem.path == path.join("fileshareWithMultipleFiles", "file1.pdb")).retryCount, 0);
+                    assert.strictEqual(tickets.find(x => x.artifactItem.path == path.join("fileshareWithMultipleFiles", "folder1", "file2.txt")).retryCount, 0);
                 }, (error) => {
                     throw error;
                 });

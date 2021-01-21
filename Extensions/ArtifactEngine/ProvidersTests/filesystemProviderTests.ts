@@ -71,7 +71,7 @@ describe('Unit Tests', () => {
             s.push(null);
 
             localFileProvider.putArtifactItem(artifactItem, s).then((processedItem) => {
-                assert.equal(processedItem.metadata[models.Constants.DestinationUrlKey], path.join("c:\\drop", "path1\\file1"));
+                assert.strictEqual(processedItem.metadata[models.Constants.DestinationUrlKey], path.join("c:\\drop", "path1\\file1"));
                 done();
             }, (err) => {
                 throw err;
