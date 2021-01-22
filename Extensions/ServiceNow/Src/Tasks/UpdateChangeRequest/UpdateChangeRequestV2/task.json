@@ -134,7 +134,7 @@
         {
           "RequestInputs": {
             "EndpointId": "$(ServiceNowConnection)",
-            "EndpointUrl": "$(endpoint.url)/api/now/table/change_request?sysparam_query=x_mioms_azpipeline_stage_id=$(system.stageId)&x_mioms_azpipeline_build_id=$(build.buildId)&x_mioms_azpipeline_stage_attempt=$(system.stageAttempt)&sysparm_fields=number,correlation_id",
+            "EndpointUrl": "$(endpoint.url)/api/now/table/change_request?sysparm_query=x_mioms_azpipeline_stage_id=$(system.stageId)^x_mioms_azpipeline_build_id=$(build.buildId)^x_mioms_azpipeline_stage_attempt=$(system.stageAttempt)&sysparm_fields=number,correlation_id",
             "Method": "GET",
             "Headers": "{\"Content-Type\":\"application/json\", \"Accept\":\"application/json\"}",
             "WaitForCompletion": "false",
