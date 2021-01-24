@@ -1,6 +1,6 @@
 {
   "name": "artifact-engine",
-  "version": "2.0.0-preview",
+  "version": "1.0.0-preview.0",
   "description": "Artifact Engine to download artifacts from jenkins, teamcity, vsts",
   "repository": {
     "type": "git",
@@ -22,12 +22,12 @@
     "tunnel": "0.0.4"
   },
   "devDependencies": {
-    "@types/handlebars": "^3.0.28",
+    "@types/handlebars": "^3.0.3",
     "@types/minimatch": "^2.0.29",
     "@types/mocha": "^5.2.7",
     "@types/mockery": "1.4.29",
     "@types/node": "^10.17.0",
-    "@types/xml2js": "^0.4.0",
+    "@types/xml2js": "^0.4.8",
     "assert": "1.4.1",
     "mocha": "2.3.3",
     "mocha-tap-reporter": "0.1.3",

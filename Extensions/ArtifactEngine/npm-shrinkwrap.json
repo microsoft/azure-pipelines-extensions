@@ -1,6 +1,6 @@
 {
   "name": "artifact-engine",
-  "version": "2.0.0-preview",
+  "version": "1.0.0-preview.0",
   "lockfileVersion": 1,
   "requires": true,
   "dependencies": {
@@ -20,12 +20,6 @@
       "requires": {
         "@types/node": "*"
       }
-    },
-    "@types/events": {
-      "version": "1.2.0",
-      "resolved": "https://registry.npmjs.org/@types/events/-/events-1.2.0.tgz",
-      "integrity": "sha512-KEIlhXnIutzKwRbQkGWb/I4HFqBuUykAdHgDED6xqwXJfONCjF5VoE0cXEiurh3XauygxzeDzgtXUqvLkxFzzA==",
-      "dev": true
     },
     "@types/form-data": {
       "version": "0.0.33",
@@ -70,12 +64,11 @@
       "integrity": "sha512-/JHkVHtx/REVG0VVToGRGH2+23hsYLHdyG+GrvoUGlGAd0ErauXDyvHtRI/7H7mzLm+tBCKA7pfcpkQ1lf58iQ=="
     },
     "@types/xml2js": {
-      "version": "0.4.3",
-      "resolved": "https://registry.npmjs.org/@types/xml2js/-/xml2js-0.4.3.tgz",
-      "integrity": "sha512-Pv2HGRE4gWLs31In7nsyXEH4uVVsd0HNV9i2dyASvtDIlOtSTr1eczPLDpdEuyv5LWH5LT20GIXwPjkshKWI1g==",
+      "version": "0.4.8",
+      "resolved": "https://registry.npmjs.org/@types/xml2js/-/xml2js-0.4.8.tgz",
+      "integrity": "sha512-EyvT83ezOdec7BhDaEcsklWy7RSIdi6CNe95tmOAK0yx/Lm30C9K75snT3fYayK59ApC2oyW+rcHErdG05FHJA==",
       "dev": true,
       "requires": {
-        "@types/events": "*",
         "@types/node": "*"
       }
     },
