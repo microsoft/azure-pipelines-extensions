@@ -29,12 +29,6 @@
         "@types/node": "*"
       }
     },
-    "@types/handlebars": {
-      "version": "3.0.28",
-      "resolved": "https://registry.npmjs.org/@types/handlebars/-/handlebars-3.0.28.tgz",
-      "integrity": "sha1-8AUmIOtkBA8jjTJaozYIYDiLHM8=",
-      "dev": true
-    },
     "@types/minimatch": {
       "version": "2.0.29",
       "resolved": "https://registry.npmjs.org/@types/minimatch/-/minimatch-2.0.29.tgz",
