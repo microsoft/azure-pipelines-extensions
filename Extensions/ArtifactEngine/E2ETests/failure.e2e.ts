@@ -37,7 +37,7 @@ describe('E2E Tests', () => {
                 .then((tickets) => {
                     assert.fail();
                 }, (error) => {
-                    assert.equal(error.statusCode, 404);
+                    assert.strictEqual(error.statusCode, 404);
                     done();
                 });
         })
@@ -61,7 +61,7 @@ describe('E2E Tests', () => {
                 .then((tickets) => {
                     assert.fail();
                 }, (error) => {
-                    assert.equal(error.statusCode, 401);
+                    assert.strictEqual(error.statusCode, 401);
                     done();
                 });
         })
@@ -87,7 +87,7 @@ describe('E2E Tests', () => {
                 .then((tickets) => {
                     assert.fail();
                 }, (error) => {
-                    assert.equal(error.statusCode, 500);
+                    assert.strictEqual(error.statusCode, 500);
                     done();
                 });
         })

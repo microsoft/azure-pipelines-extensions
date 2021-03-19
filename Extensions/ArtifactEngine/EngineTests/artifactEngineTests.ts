@@ -14,7 +14,7 @@ describe('Unit Tests', () => {
             new engine.ArtifactEngine()
                 .processItems(testProvider, testProvider, new engine.ArtifactEngineOptions())
                 .then(() => {
-                    assert.equal(testProvider.getRootItemsCalledCount, 1, `getRootItemsCalledCount: ${testProvider.getRootItemsCalledCount}`);
+                    assert.strictEqual(testProvider.getRootItemsCalledCount, 1, `getRootItemsCalledCount: ${testProvider.getRootItemsCalledCount}`);
                     done();
                 }, (err) => {
                     throw err;
@@ -27,7 +27,7 @@ describe('Unit Tests', () => {
             new engine.ArtifactEngine()
                 .processItems(testProvider, testProvider, new engine.ArtifactEngineOptions())
                 .then(() => {
-                    assert.equal(testProvider.getArtifactItemCalledCount, 6);
+                    assert.strictEqual(testProvider.getArtifactItemCalledCount, 6);
                     done();
                 }, (err) => {
                     throw err;
@@ -40,7 +40,7 @@ describe('Unit Tests', () => {
             new engine.ArtifactEngine()
                 .processItems(testProvider, testProvider, new engine.ArtifactEngineOptions())
                 .then(() => {
-                    assert.equal(testProvider.getArtifactItemsCalledCount, 2);
+                    assert.strictEqual(testProvider.getArtifactItemsCalledCount, 2);
                     done();
                 }, (err) => {
                     throw err;
@@ -55,7 +55,7 @@ describe('Unit Tests', () => {
             new engine.ArtifactEngine()
                 .processItems(testProvider, testProvider, downloadOptions)
                 .then(() => {
-                    assert.equal(testProvider.getArtifactItemCalledCount, 1);
+                    assert.strictEqual(testProvider.getArtifactItemCalledCount, 1);
                     done();
                 }, (err) => {
                     throw err;
@@ -71,7 +71,7 @@ describe('Unit Tests', () => {
             new engine.ArtifactEngine()
                 .processItems(testProvider, testProvider, downloadOptions)
                 .then(() => {
-                    assert.equal(testProvider.getArtifactItemCalledCount, 1);
+                    assert.strictEqual(testProvider.getArtifactItemCalledCount, 1);
                     done();
                 }, (err) => {
                     throw err;
@@ -84,7 +84,7 @@ describe('Unit Tests', () => {
             new engine.ArtifactEngine()
                 .processItems(testProvider, testProvider, new engine.ArtifactEngineOptions())
                 .then((items) => {
-                    assert.equal(items.length, 8);
+                    assert.strictEqual(items.length, 8);
                     done();
                 }, (err) => {
                     throw err;
@@ -99,7 +99,7 @@ describe('Unit Tests', () => {
             new engine.ArtifactEngine()
                 .processItems(testProvider, testProvider, downloadOptions)
                 .then(() => {
-                    assert.equal(testProvider.getArtifactItemCalledCount, 4);
+                    assert.strictEqual(testProvider.getArtifactItemCalledCount, 4);
                     done();
                 }, (err) => {
                     throw err;
@@ -114,7 +114,7 @@ describe('Unit Tests', () => {
             new engine.ArtifactEngine()
                 .processItems(testProvider, testProvider, downloadOptions)
                 .then(() => {
-                    assert.equal(testProvider.getArtifactItemCalledCount, 6);
+                    assert.strictEqual(testProvider.getArtifactItemCalledCount, 6);
                     done();
                 }, (err) => {
                     throw err;
@@ -127,7 +127,7 @@ describe('Unit Tests', () => {
             new engine.ArtifactEngine()
                 .processItems(testProvider, testProvider)
                 .then(() => {
-                    assert.equal(testProvider.getArtifactItemCalledCount, 6);
+                    assert.strictEqual(testProvider.getArtifactItemCalledCount, 6);
                     done();
                 }, (err) => {
                     throw err;
@@ -142,7 +142,7 @@ describe('Unit Tests', () => {
             new engine.ArtifactEngine()
                 .processItems(testProvider, testProvider, downloadOptions)
                 .then(() => {
-                    assert.equal(testProvider.getArtifactItemCalledCount, 2);
+                    assert.strictEqual(testProvider.getArtifactItemCalledCount, 2);
                     done();
                 }, (err) => {
                     throw err;
@@ -157,7 +157,7 @@ describe('Unit Tests', () => {
             new engine.ArtifactEngine()
                 .processItems(testProvider, testProvider, downloadOptions)
                 .then(() => {
-                    assert.equal(testProvider.getArtifactItemCalledCount, 1);
+                    assert.strictEqual(testProvider.getArtifactItemCalledCount, 1);
                     done();
                 }, (err) => {
                     throw err;

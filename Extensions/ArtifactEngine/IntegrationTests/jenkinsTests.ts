@@ -24,11 +24,11 @@ describe('Integration Tests', () => {
 
             var processItemsPromise = processor.processItems(webProvider, stubProvider, processorOptions);
             processItemsPromise.then((tickets) => {
-                assert.equal(stubProvider.itemsUploaded["Extensions/ArtifactEngine/TestData/Jenkins/file1.pdb"], "dummyFileContent");
-                assert.equal(stubProvider.itemsUploaded["Extensions/ArtifactEngine/TestData/Jenkins/folder1/file2.txt"], "dummyFolderContent");
-                assert.equal(tickets.find(x => x.artifactItem.path == "").retryCount, 0);
-                assert.equal(tickets.find(x => x.artifactItem.path == "Extensions/ArtifactEngine/TestData/Jenkins/file1.pdb").retryCount, 0);
-                assert.equal(tickets.find(x => x.artifactItem.path == "Extensions/ArtifactEngine/TestData/Jenkins/folder1/file2.txt").retryCount, 0);
+                assert.strictEqual(stubProvider.itemsUploaded["Extensions/ArtifactEngine/TestData/Jenkins/file1.pdb"], "dummyFileContent");
+                assert.strictEqual(stubProvider.itemsUploaded["Extensions/ArtifactEngine/TestData/Jenkins/folder1/file2.txt"], "dummyFolderContent");
+                assert.strictEqual(tickets.find(x => x.artifactItem.path == "").retryCount, 0);
+                assert.strictEqual(tickets.find(x => x.artifactItem.path == "Extensions/ArtifactEngine/TestData/Jenkins/file1.pdb").retryCount, 0);
+                assert.strictEqual(tickets.find(x => x.artifactItem.path == "Extensions/ArtifactEngine/TestData/Jenkins/folder1/file2.txt").retryCount, 0);
                 done();
             }, (err) => {
                 throw err;
@@ -50,11 +50,11 @@ describe('Integration Tests', () => {
 
             var processItemsPromise = processor.processItems(webProvider, stubProvider, processorOptions);
             processItemsPromise.then((tickets) => {
-                assert.equal(stubProvider.itemsUploaded["Extensions/ArtifactEngine/TestData/Jenkins/file1.pdb"], "dummyFileContent");
-                assert.equal(stubProvider.itemsUploaded["Extensions/ArtifactEngine/TestData/Jenkins/folder1/file2.txt"], "dummyFolderContent");
-                assert.equal(tickets.find(x => x.artifactItem.path == "").retryCount, 1);
-                assert.equal(tickets.find(x => x.artifactItem.path == "Extensions/ArtifactEngine/TestData/Jenkins/file1.pdb").retryCount, 0);
-                assert.equal(tickets.find(x => x.artifactItem.path == "Extensions/ArtifactEngine/TestData/Jenkins/folder1/file2.txt").retryCount, 0);
+                assert.strictEqual(stubProvider.itemsUploaded["Extensions/ArtifactEngine/TestData/Jenkins/file1.pdb"], "dummyFileContent");
+                assert.strictEqual(stubProvider.itemsUploaded["Extensions/ArtifactEngine/TestData/Jenkins/folder1/file2.txt"], "dummyFolderContent");
+                assert.strictEqual(tickets.find(x => x.artifactItem.path == "").retryCount, 1);
+                assert.strictEqual(tickets.find(x => x.artifactItem.path == "Extensions/ArtifactEngine/TestData/Jenkins/file1.pdb").retryCount, 0);
+                assert.strictEqual(tickets.find(x => x.artifactItem.path == "Extensions/ArtifactEngine/TestData/Jenkins/folder1/file2.txt").retryCount, 0);
                 done();
             }, (err) => {
                 throw err;
@@ -75,11 +75,11 @@ describe('Integration Tests', () => {
 
             var processItemsPromise = processor.processItems(webProvider, stubProvider, processorOptions);
             processItemsPromise.then((tickets) => {
-                assert.equal(stubProvider.itemsUploaded["Extensions/ArtifactEngine/TestData/Jenkins/file1.pdb"], "dummyFileContent");
-                assert.equal(stubProvider.itemsUploaded["Extensions/ArtifactEngine/TestData/Jenkins/folder1/file2.txt"], "dummyFolderContent");
-                assert.equal(tickets.find(x => x.artifactItem.path == "").retryCount, 0);
-                assert.equal(tickets.find(x => x.artifactItem.path == "Extensions/ArtifactEngine/TestData/Jenkins/file1.pdb").retryCount, 0);
-                assert.equal(tickets.find(x => x.artifactItem.path == "Extensions/ArtifactEngine/TestData/Jenkins/folder1/file2.txt").retryCount, 1);
+                assert.strictEqual(stubProvider.itemsUploaded["Extensions/ArtifactEngine/TestData/Jenkins/file1.pdb"], "dummyFileContent");
+                assert.strictEqual(stubProvider.itemsUploaded["Extensions/ArtifactEngine/TestData/Jenkins/folder1/file2.txt"], "dummyFolderContent");
+                assert.strictEqual(tickets.find(x => x.artifactItem.path == "").retryCount, 0);
+                assert.strictEqual(tickets.find(x => x.artifactItem.path == "Extensions/ArtifactEngine/TestData/Jenkins/file1.pdb").retryCount, 0);
+                assert.strictEqual(tickets.find(x => x.artifactItem.path == "Extensions/ArtifactEngine/TestData/Jenkins/folder1/file2.txt").retryCount, 1);
                 done();
             }, (err) => {
                 throw err;
@@ -113,11 +113,11 @@ describe('Integration Tests', () => {
 
             processor.processItems(webProvider, stubProvider, processorOptions)
                 .then((tickets) => {
-                    assert.equal(stubProvider.itemsUploaded["Extensions/ArtifactEngine/TestData/Jenkins/file1.pdb"], "dummyFileContent");
-                    assert.equal(stubProvider.itemsUploaded["Extensions/ArtifactEngine/TestData/Jenkins/folder1/file2.txt"], "dummyFolderContent");
-                    assert.equal(tickets.find(x => x.artifactItem.path == "").retryCount, 0);
-                    assert.equal(tickets.find(x => x.artifactItem.path == "Extensions/ArtifactEngine/TestData/Jenkins/file1.pdb").retryCount, 1);
-                    assert.equal(tickets.find(x => x.artifactItem.path == "Extensions/ArtifactEngine/TestData/Jenkins/folder1/file2.txt").retryCount, 0);
+                    assert.strictEqual(stubProvider.itemsUploaded["Extensions/ArtifactEngine/TestData/Jenkins/file1.pdb"], "dummyFileContent");
+                    assert.strictEqual(stubProvider.itemsUploaded["Extensions/ArtifactEngine/TestData/Jenkins/folder1/file2.txt"], "dummyFolderContent");
+                    assert.strictEqual(tickets.find(x => x.artifactItem.path == "").retryCount, 0);
+                    assert.strictEqual(tickets.find(x => x.artifactItem.path == "Extensions/ArtifactEngine/TestData/Jenkins/file1.pdb").retryCount, 1);
+                    assert.strictEqual(tickets.find(x => x.artifactItem.path == "Extensions/ArtifactEngine/TestData/Jenkins/folder1/file2.txt").retryCount, 0);
                     done();
                 }, (err) => {
                     throw err;
@@ -142,7 +142,7 @@ describe('Integration Tests', () => {
                 .then((tickets) => {
                     assert.fail();
                 }, (err) => {
-                    assert.equal(err.message, errorMessage);
+                    assert.strictEqual(err.message, errorMessage);
                     done();
                 });
         });
@@ -164,7 +164,7 @@ describe('Integration Tests', () => {
                 .then((tickets) => {
                     assert.fail();
                 }, (err) => {
-                    assert.equal(err.statusCode, 404);
+                    assert.strictEqual(err.statusCode, 404);
                     done();
                 });
         });
@@ -186,7 +186,7 @@ describe('Integration Tests', () => {
                 .then((tickets) => {
                     assert.fail();
                 }, (err) => {
-                    assert.equal(err.statusCode, 500);
+                    assert.strictEqual(err.statusCode, 500);
                     done();
                 });
         });
@@ -249,13 +249,13 @@ describe('Integration Tests', () => {
 
             var processItemsPromise = processor.processItems(webProvider, stubProvider, processorOptions);
             processItemsPromise.then((tickets) => {
-                assert.equal(stubProvider.itemsUploaded["Extensions/ArtifactEngine/TestData/Jenkins/folder2/file1.pdb"], "dummyFile1Content");
-                assert.equal(stubProvider.itemsUploaded["Extensions/ArtifactEngine/TestData/Jenkins/folder2/subFolder2/file3.txt"], "dummyFile3Content");
-                assert.equal(stubProvider.itemsUploaded["Extensions/ArtifactEngine/TestData/Jenkins/folder3/file4.txt"], "dummyFile4Content");
-                assert.equal(tickets.find(x => x.artifactItem.path == "Extensions/ArtifactEngine/TestData/Jenkins/folder2/file1.pdb").state, TicketState.Processed);
-                assert.equal(tickets.find(x => x.artifactItem.path == "Extensions/ArtifactEngine/TestData/Jenkins/folder2/subFolder1/file2.txt").state, TicketState.Skipped);
-                assert.equal(tickets.find(x => x.artifactItem.path == "Extensions/ArtifactEngine/TestData/Jenkins/folder2/subFolder2/file3.txt").state, TicketState.Processed);
-                assert.equal(tickets.find(x => x.artifactItem.path == "Extensions/ArtifactEngine/TestData/Jenkins/folder3/file4.txt").state, TicketState.Processed);
+                assert.strictEqual(stubProvider.itemsUploaded["Extensions/ArtifactEngine/TestData/Jenkins/folder2/file1.pdb"], "dummyFile1Content");
+                assert.strictEqual(stubProvider.itemsUploaded["Extensions/ArtifactEngine/TestData/Jenkins/folder2/subFolder2/file3.txt"], "dummyFile3Content");
+                assert.strictEqual(stubProvider.itemsUploaded["Extensions/ArtifactEngine/TestData/Jenkins/folder3/file4.txt"], "dummyFile4Content");
+                assert.strictEqual(tickets.find(x => x.artifactItem.path == "Extensions/ArtifactEngine/TestData/Jenkins/folder2/file1.pdb").state, TicketState.Processed);
+                assert.strictEqual(tickets.find(x => x.artifactItem.path == "Extensions/ArtifactEngine/TestData/Jenkins/folder2/subFolder1/file2.txt").state, TicketState.Skipped);
+                assert.strictEqual(tickets.find(x => x.artifactItem.path == "Extensions/ArtifactEngine/TestData/Jenkins/folder2/subFolder2/file3.txt").state, TicketState.Processed);
+                assert.strictEqual(tickets.find(x => x.artifactItem.path == "Extensions/ArtifactEngine/TestData/Jenkins/folder3/file4.txt").state, TicketState.Processed);
                 done();
             }, (err) => {
                 throw err;
