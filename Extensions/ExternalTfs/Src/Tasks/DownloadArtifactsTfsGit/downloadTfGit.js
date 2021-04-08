@@ -1,7 +1,6 @@
 var tl = require('vsts-task-lib/task');
 var path = require('path');
-var webApim = require('vso-node-api/WebApi');
-var gitInterfaces = require('vso-node-api/interfaces/GitInterfaces');
+var webApim = require('azure-devops-node-api/WebApi');
 var Q = require('q');
 var url = require('url');
 var shell = require("shelljs");
@@ -111,10 +110,12 @@ Q.resolve(gitRepositoryPromise).then( function (gitRepository) {
 
 function getRepositoryDetails(tfsEndpoint, repositoryId, projectId){
     var handler = webApim.getBasicHandler(tfsEndpoint.Username, tfsEndpoint.Password);
-    var gitClient = new webApim.WebApi(tfsEndpoint.Url, handler).getGitApi();
-    var promise = gitClient.getRepository(repositoryId, projectId);
-
-    return promise;
+    var webApi = new webApim.WebApi(tfsEndpoint.Url, handler);
+    var gitClient = webApi.getGitApi();
+    Q.resolve(gitClient).then( function () {
+        var promise = gitClient.getRepository(repositoryId, projectId);
+        return promise;
+    });
 }
 
 function getEndpointDetails(inputFieldName) {
