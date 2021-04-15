@@ -22,7 +22,7 @@ process.env['ENDPOINT_AUTH_PARAMETER_AzureRM_SERVICEPRINCIPALID'] = 'DummyServic
 process.env['ENDPOINT_AUTH_PARAMETER_AzureRM_SERVICEPRINCIPALKEY'] = 'DummyServicePrincipalKey';
 process.env['ENDPOINT_AUTH_PARAMETER_AzureRM_TENANTID'] = 'DummyTenantId';
 
-let a: ma.TaskLibAnswers = <ma.TaskLibAnswers> {
+let a: ma.TaskLibAnswers = <ma.TaskLibAnswers>{
     "which": {
         "terraform": "terraform"
     },
@@ -30,7 +30,7 @@ let a: ma.TaskLibAnswers = <ma.TaskLibAnswers> {
         "terraform": true
     },
     "exec": {
-        "terraform init -no-color -backend-config=storage_account_name=DummyStorageAccount -backend-config=container_name=DummyContainer -backend-config=key=DummyKey -backend-config=resource_group_name=DummyResourceGroup -backend-config=arm_subscription_id=DummmySubscriptionId -backend-config=arm_tenant_id=DummyTenantId -backend-config=arm_client_id=DummyServicePrincipalId -backend-config=arm_client_secret=DummyServicePrincipalKey": {
+        "terraform init -no-color -backend-config=storage_account_name=DummyStorageAccount -backend-config=container_name=DummyContainer -backend-config=key=DummyKey -backend-config=resource_group_name=DummyResourceGroup -backend-config=subscription_id=DummmySubscriptionId -backend-config=tenant_id=DummyTenantId -backend-config=client_id=DummyServicePrincipalId -backend-config=client_secret=DummyServicePrincipalKey": {
             "code": 0,
             "stdout": "Executed Successfully"
         }
