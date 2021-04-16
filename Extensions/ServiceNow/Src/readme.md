@@ -139,6 +139,10 @@ The resulting pipeline for the above pipeline shall be as follows.
 
 ![resulting pipeline](images/resulting_pipeline.png)
 
+## Note
+ServiceNow also offers an [advanced integration](https://marketplace.visualstudio.com/items?itemName=ServiceNow.vss-services-servicenow-devops) with Azure DevOps as a licensed product. The advanced integration includes connectivity goes beyond the pipeline integration to include Azure Boards, Azure Repos, Azure Test Plans and Azure Artifacts.
+The licensed product provides a DevOps data model connected to ServiceNow’s Service Graph and advanced reporting and auditing of key metrics. Find out more [here](https://www.servicenow.com/products/devops.html).
+For all support and feedbacks on the change management extension or the advanced integration, use contact us from https://your.servicenow.com/microsoft/devops-1cdf.
 
 ## FAQs
 ### How to register Azure DevOps in ServiceNow as an OAuth App
