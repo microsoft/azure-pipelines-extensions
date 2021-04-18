@@ -15,6 +15,7 @@ The Terraform tool installer task acquires a specified version of [Terraform](ht
 The Terraform task enables running Terraform commands as part of Azure Build and Release Pipelines providing support for the following Terraform commands
 - init
 - validate
+- refresh
 - plan
 - apply
 - destroy
@@ -86,10 +87,10 @@ Examples:
 
 ![Generic inputs](images/6_Terraform_all_inputs.PNG)
 
-- For **plan**, **apply** and **destroy** commands:
-	- **Azure subscription (only if "azurerm" provider is selected)\*:** Select the AzureRM subscription to use for managing the resources used by the plan, apply and destroy commands. 
-	- **Amazon Web Services connection (only if "aws" provider is selected)\*:** Select the AWS connection to use for managing the resources used by the plan, apply and destroy commands.
-	- **Google Cloud Platform connection (only if "gcp" provider is selected)\*:** Select the GCP connection to use for managing the resources used by the plan, apply and destroy commands.
+- For **refresh**, **plan**, **apply** and **destroy** commands:
+	- **Azure subscription (only if "azurerm" provider is selected)\*:** Select the AzureRM subscription to use for managing the resources used by the refresh, plan, apply and destroy commands. 
+	- **Amazon Web Services connection (only if "aws" provider is selected)\*:** Select the AWS connection to use for managing the resources used by the refresh, plan, apply and destroy commands.
+	- **Google Cloud Platform connection (only if "gcp" provider is selected)\*:** Select the GCP connection to use for managing the resources used by the refresh, plan, apply and destroy commands.
 
 ![Plan, apply, destroy](images/7_Terraform_plan_apply_destroy.png)
 

@@ -68,6 +68,7 @@
             "options": {
                 "init": "init",
                 "validate": "validate",
+                "refresh": "refresh",
                 "plan": "plan",
                 "apply": "validate and apply",
                 "destroy": "destroy"
