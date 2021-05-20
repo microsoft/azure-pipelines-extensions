@@ -1,5 +1,3 @@
-import * as zlib from 'zlib';
-
 import { ArtifactItemStore } from '../Store/artifactItemStore';
 
 import { ArtifactItem, IArtifactProvider, ItemType } from '../Models';
@@ -37,10 +35,9 @@ export class ZipProvider implements IArtifactProvider {
             }
 
             var downloadSize: number = 0;
-            var contentType: string = artifactItem.contentType;
             var itemUrl: string = artifactItem.metadata['downloadUrl'];
             itemUrl = itemUrl.replace(/([^:]\/)\/+/g, "$1");
-            this.webClient.get(itemUrl, contentType ? { 'Accept': contentType } : undefined).then((res: HttpClientResponse) => {
+            this.webClient.get(itemUrl).then((res: HttpClientResponse) => {
                 res.message.on('data', (chunk) => {
                     downloadSize += chunk.length;
                 });
@@ -51,17 +48,7 @@ export class ZipProvider implements IArtifactProvider {
                     reject(error);
                 });
 
-                if (res.message.headers['content-encoding'] === 'gzip') {
-                    try {
-                        resolve(res.message.pipe(zlib.createUnzip()));
-                    }
-                    catch (err) {
-                        reject(err);
-                    }
-                }
-                else {
-                    resolve(res.message);
-                }
+                resolve(res.message);
             }, (reason) => {
                 reject(reason);
             });
