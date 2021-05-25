@@ -39,7 +39,9 @@ export class ZipProvider implements IArtifactProvider {
             itemUrl = itemUrl.replace(/([^:]\/)\/+/g, "$1");
             this.webClient.get(itemUrl).then((res: HttpClientResponse) => {
                 res.message.on('data', (chunk) => {
-                    downloadSize += chunk.length;
+                    if (chunk) {
+                        downloadSize += chunk.length;
+                    }
                 });
                 res.message.on('end', () => {
                     this.artifactItemStore.updateDownloadSize(artifactItem, downloadSize);
