@@ -70,7 +70,7 @@ var GitWrapper = (function (_super) {
         git.on('debug', function (message) {
             if (options.debugOutput) {
                 var repl = message.replace(creds, '...');
-                repl = message.replace(escapedCreds, '...');
+                repl = repl.replace(escapedCreds, '...');
                 _this.emit('stdout', '[debug]' + repl);
             }
         });
