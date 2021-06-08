@@ -1,0 +1,15 @@
+{
+  "name": "manageexperiment",
+  "version": "1.0.0",
+  "description": "Manage experiments in control tower",
+  "main": "main.js",
+  "author": "Microsoft Corporation",
+  "license": "MIT",
+  "dependencies": {
+    "azure-pipelines-task-lib": "^2.9.3",
+    "typed-rest-client": "^1.5.0"
+  },
+  "devDependencies": {
+    "@types/node": "^12.12.14"
+  }
+}

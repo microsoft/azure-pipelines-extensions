@@ -1,9 +1,9 @@
 {
-    "id": "7af33c4e-1e54-454e-a49a-24611aadf137",
+    "id": "2d72713f-577c-4a89-b77c-d3c714f8268f",
     "name": "OptimizelyX",
-    "friendlyName": "Optimizely-X",
-    "description": "Manage Optimizely-X web and full stack projects.",
-    "helpMarkDown": "[More Information](https://github.com/Microsoft/azure-pipelines-extensions/blob/master/Extensions/Optimizely/Src/README.md)",
+    "friendlyName": "Optimizely experiments & featureRollouts",
+    "description": "Deploy code behind feature flags or experiment with A/B tests",
+    "helpMarkDown": "[More Information](https://marketplace.visualstudio.com/items?itemName=ms-devlabs.AzureDevOpsOptimizely)",
     "category": "Deploy",
     "visibility": [
         "Build",
@@ -17,26 +17,19 @@
     "version": {
         "Major": 0,
         "Minor": 0,
-        "Patch": 67
+        "Patch": 76
     },
-    "releaseNotes": "Manage Optimizely-X A/B tests.",
+    "preview": "true",
+    "releaseNotes": "Manage Optimizely experiements and feature rollouts.",
     "minimumAgentVersion": "2.138.0",
-    "groups": [
-        {
-            "name": "StartAbTestInputGroup",
-            "displayName": "Start A/B test options",
-            "isExpanded": true,
-            "visibleRule": "Action == StartAbTest"
-        }
-    ],
     "inputs": [
         {
             "name": "OptimizelyXEndpoint",
-            "type": "connectedService:optimizelyx",
-            "label": "Optimizely-X Service Connection",
+            "type": "connectedService:optimizely",
+            "label": "Optimizely Service Connection",
             "defaultValue": "",
             "required": true,
-            "helpMarkDown": "Select the Optimizely-X service endpoint to be used to be used to manage A/B test. [Optimizely-X endpoint](https://aka.ms/)"
+            "helpMarkDown": "Select the Optimizely service endpoint to be used to be used to manage A/B test."
         },
         {
             "name": "Project",
@@ -58,15 +51,40 @@
             "helpMarkDown": "Environment of the project. By default environment will be production."
         },
         {
+            "name": "Type",
+            "type": "pickList",
+            "label": "Type",
+            "defaultValue": "experiment",
+            "required": true,
+            "options": {
+                "experiment": "Experiments",
+                "feature": "Features"
+            },
+            "helpMarkDown": "Specify the experiment or Features as type."
+        },
+        {
+            "name": "Feature",
+            "type": "pickList",
+            "label": "Feature",
+            "defaultValue": "",
+            "required": true,
+            "properties": {
+                "EditableOptions": true
+            },
+            "visibleRule": "Type = feature",
+            "helpMarkDown": "Select the name of the feature"
+        },
+        {
             "name": "Action",
             "type": "pickList",
             "label": "Action",
-            "defaultValue": "StartAbTest",
+            "defaultValue": "StartExperiment",
             "required": true,
             "options": {
-                "StartAbTest": "Start A/B test",
-                "PauseAbTest": "Pause A/B test"
+                "StartExperiment": "Start Experiment",
+                "PauseExperiment": "Stop Experiment"
             },
+            "visibleRule": "Type = experiment",
             "helpMarkDown": "Specify the action to be performed."
         },
         {
@@ -78,7 +96,17 @@
             "properties": {
                 "EditableOptions": true
             },
-            "helpMarkDown": "Select the name of the A/B test."
+            "visibleRule": "Type = experiment",
+            "helpMarkDown": "Select the name of the experiment."
+        },
+        {
+            "name": "FeatureState",
+            "type": "boolean",
+            "label": "Feature State ON",
+            "defaultValue": "false",
+            "required": true,
+            "visibleRule": "Type = feature",
+            "helpMarkDown": "Specify the feature state."
         },
         {
             "name": "Traffic",
@@ -86,7 +114,6 @@
             "label": "Traffic",
             "defaultValue": "100",
             "required": true,
-            "groupName": "StartAbTestInputGroup",
             "helpMarkDown": "Specify what percentage of total traffic you would like to A/B test."
         },
         {
@@ -95,12 +122,25 @@
             "label": "Experiment variations",
             "defaultValue": "",
             "required": true,
-            "groupName": "StartAbTestInputGroup",
             "properties": {
               "resizable": "true",
               "rows": "10"
             },
+            "visibleRule": "Type = experiment && Action == StartExperiment",
             "helpMarkDown": "Specify variations for the experiment and their corresponding traffic percentages."
+        },
+        {
+            "name": "FeatureVariables",
+            "type": "multiLine",
+            "label": "Feature variables",
+            "defaultValue": "",
+            "required": false,
+            "properties": {
+              "resizable": "true",
+              "rows": "10"
+            },
+            "visibleRule": "Type = feature",
+            "helpMarkDown": "Defined variables will be added to existing variable set and if variable with same name exists it will be overridden. <br/> [<br/>{\"value\": \"true\",<br/>\"type\": \"boolean\",<br/>\"name\": \"dEF\"<br/>},<br/>{\"name\": \"name\",<br/>\"type\": \"string\",<br/>\"value\": \"test1\"<br/>}]"
         },
         {
             "name": "Audience",
@@ -108,13 +148,12 @@
             "label": "Audience",
             "defaultValue": "",
             "required": false,
-            "groupName": "StartAbTestInputGroup",
             "properties": {
                 "MultiSelect": "True",
                 "DisableManageLink": "True",
                 "EditableOptions": "True"
             },
-            "helpMarkDown": "Specify the Target Audience for this A/B test."
+            "helpMarkDown": "Specify the Target Audience for this Experiment or feature flag."
         }
     ],
     "dataSourceBindings": [
@@ -132,9 +171,18 @@
             "parameters": {
                 "ProjectId": "$(Project)"
             }
+        },
+        {
+            "endpointId": "$(OptimizelyXEndpoint)",
+            "target": "Feature",
+            "dataSourceName": "OptimizelyXFeatures",
+            "resultTemplate": "{ \"Value\" : \"{{{id}}}\", \"DisplayValue\" : \"{{{key}}}\" }",
+            "parameters": {
+                "ProjectId": "$(Project)"
+            }
         }
     ],
-    "instanceNameFormat": "Optimizely-X. Action: '$(Action)'",
+    "instanceNameFormat": "Optimizely : '$(Type)'",
     "execution": {
         "Node": {
             "target": "Main.js"
@@ -147,7 +195,10 @@
       "ProjectHasProjectId": "Project '%s' has projectid: '%s'",
       "EnvironmentNotFound": "Environment: '%s' not found.",
       "ExperimentWithIdUpdatedSuccessfully": "Experiment with Id: '%s' updated successfully",
+      "FeatureWithIdUpdatedSuccessfully": "Feature with Id: '%s' updated successfully.",
+      "FeatureUpdatedSuccessfully": "Feature : %s updated successfully",
       "FailedToUpdatedExperiment": "Failed to updated experiment with Id: %s.",
+      "FailedToUpdatedFeature": "Failed to updated feature with Id: %s.",
       "FailedToFetchExperiment": "Failed to fetch experiment with Id: %s",
       "FailedToFetchEnvironment": "Failed to fetch environment with name: %s",
       "FailedToFetchProjects": "Failed to fetch projects.",
@@ -159,6 +210,7 @@
       "ABTestStartedSuccessfully": "A/B Test: '%s' has been started successfully.",
       "VisitOptimizelyPage": "Visit Optimizely experiments page here:",
       "WaitingForExperimentToStart": "Waiting for experiment '%s' to start.",
+      "WaitingForFeatureToUpdate":"Waiting for feature '%s' to update.",
       "TrafficValueNotValid": "%s is not a valid traffic value.",
       "TrafficValueCantExceed": "Traffic (value = '%s') cannot be greater than 100.",
       "TrafficVariationKeyNotDefined": "Traffic Variations does not contain a value for the variation key: %s.",
@@ -168,6 +220,7 @@
       "TotalTrafficValueNotValid": "Traffic values, when converted to basis points, do not add up to 10000. Provide valid traffic values. current value: '%s'.",
       "AudienceInfo": "Audience is : %s",
       "InvalidAction": "Invalid Action: '%s'.",
-      "TaskSucceeded": "Task succeeded."
+      "TaskSucceeded": "Task succeeded.",
+      "VariablesInWrongFormat": "Variables are not in correct JSON format. Error : %s"
     }
 }

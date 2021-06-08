@@ -2,7 +2,7 @@
     "manifestVersion": 1,
     "id": "custom-terraform-tasks",
     "name": "Terraform",
-    "version": "0.1.1",
+    "version": "0.1.10",
     "publisher": "ms-devlabs",
     "targets": [
         {
@@ -60,7 +60,7 @@
     },
     "files": [
         {
-            "path": "Tasks/TerraformTaskV1"
+            "path": "Tasks/TerraformTask"
         },
         {
             "path": "Tasks/TerraformInstaller"
@@ -116,7 +116,7 @@
                 "ms.vss-distributed-task.tasks"
             ],
             "properties": {
-                "name": "Tasks/TerraformTaskV1"
+                "name": "Tasks/TerraformTask"
             }
         },
         {

@@ -1,0 +1,11 @@
+{
+  "name": "copyagentjobvariabletoreleasevariable",
+  "version": "1.0.0",
+  "main": "copyvartorelease.js",
+  "author": "Microsoft",
+  "license": "MIT",
+  "dependencies": {
+    "azure-devops-node-api": "8.1.1",
+    "azure-pipelines-task-lib": "2.8.0"
+  }
+}

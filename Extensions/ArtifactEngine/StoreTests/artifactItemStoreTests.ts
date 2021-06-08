@@ -10,7 +10,7 @@ describe('Unit Tests', () => {
 
             artifactItemStore.addItem(new models.ArtifactItem());
 
-            assert.equal(artifactItemStore.size(), 1);
+            assert.strictEqual(artifactItemStore.size(), 1);
         });
 
         it('addItem should not re-add same artifact item to the artifact store', () => {
@@ -21,7 +21,7 @@ describe('Unit Tests', () => {
             artifactItemStore.addItem(artifactItem);
             artifactItemStore.addItem(artifactItem);
 
-            assert.equal(artifactItemStore.size(), 1);
+            assert.strictEqual(artifactItemStore.size(), 1);
         });
 
         it('addItems should add artifact items to the artifact store', () => {
@@ -33,7 +33,7 @@ describe('Unit Tests', () => {
 
             artifactItemStore.addItems([artifactItem1, artifactItem2]);
 
-            assert.equal(artifactItemStore.size(), 2);
+            assert.strictEqual(artifactItemStore.size(), 2);
         });
 
         it('getNextItemToProcess should return artifact item to be processed', () => {
@@ -43,7 +43,7 @@ describe('Unit Tests', () => {
 
             artifactItemStore.addItem(artifactItem);
 
-            assert.equal(artifactItemStore.getNextItemToProcess().path, artifactItem.path);
+            assert.strictEqual(artifactItemStore.getNextItemToProcess().path, artifactItem.path);
         });
 
         it('getNextItemToProcess should not throw if no items have been added to store', () => {
@@ -51,7 +51,7 @@ describe('Unit Tests', () => {
 
             artifactItemStore.getNextItemToProcess();
 
-            assert.equal(artifactItemStore.getNextItemToProcess(), undefined);
+            assert.strictEqual(artifactItemStore.getNextItemToProcess(), undefined);
         });
 
         it('getNextItemToProcess should not return already processing item', () => {
@@ -65,7 +65,7 @@ describe('Unit Tests', () => {
 
             artifactItemStore.getNextItemToProcess();
 
-            assert.equal(artifactItemStore.getNextItemToProcess().path, artifactItem2.path);
+            assert.strictEqual(artifactItemStore.getNextItemToProcess().path, artifactItem2.path);
         });
 
         it('getNextItemToProcess should return undefined if there are no more items to process', () => {
@@ -76,7 +76,7 @@ describe('Unit Tests', () => {
 
             artifactItemStore.getNextItemToProcess();
 
-            assert.equal(artifactItemStore.getNextItemToProcess(), undefined);
+            assert.strictEqual(artifactItemStore.getNextItemToProcess(), undefined);
         });
 
         it('updateState should update state correctly', () => {
@@ -87,7 +87,7 @@ describe('Unit Tests', () => {
 
             artifactItemStore.updateState(artifactItem1, models.TicketState.Skipped);
 
-            assert.equal(artifactItemStore.getTickets().find(x => x.artifactItem.path == "path1").state, models.TicketState.Skipped);
+            assert.strictEqual(artifactItemStore.getTickets().find(x => x.artifactItem.path == "path1").state, models.TicketState.Skipped);
         });
 
         it('updateState should not throw if the artifactItem does not exisit in store', () => {
@@ -106,7 +106,7 @@ describe('Unit Tests', () => {
 
             artifactItemStore.updateState(artifactItem1, models.TicketState.InQueue);
 
-            assert.equal(artifactItemStore.getTickets().find(x => x.artifactItem.path == "path1").finishTime, undefined);
+            assert.strictEqual(artifactItemStore.getTickets().find(x => x.artifactItem.path == "path1").finishTime, undefined);
         });
 
         it('updateState should not update finish time for processing state', () => {
@@ -117,7 +117,7 @@ describe('Unit Tests', () => {
 
             artifactItemStore.updateState(artifactItem1, models.TicketState.Processing);
 
-            assert.equal(artifactItemStore.getTickets().find(x => x.artifactItem.path == "path1").finishTime, undefined);
+            assert.strictEqual(artifactItemStore.getTickets().find(x => x.artifactItem.path == "path1").finishTime, undefined);
         });
 
         it('updateState should update finish time for skipped state', () => {
@@ -128,7 +128,7 @@ describe('Unit Tests', () => {
 
             artifactItemStore.updateState(artifactItem1, models.TicketState.Skipped);
 
-            assert.notEqual(artifactItemStore.getTickets().find(x => x.artifactItem.path == "path1").finishTime, undefined);
+            assert.notStrictEqual(artifactItemStore.getTickets().find(x => x.artifactItem.path == "path1").finishTime, undefined);
         });
 
         it('updateState should update finish time for processed state', () => {
@@ -139,7 +139,7 @@ describe('Unit Tests', () => {
 
             artifactItemStore.updateState(artifactItem1, models.TicketState.Processed);
 
-            assert.notEqual(artifactItemStore.getTickets().find(x => x.artifactItem.path == "path1").finishTime, undefined);
+            assert.notStrictEqual(artifactItemStore.getTickets().find(x => x.artifactItem.path == "path1").finishTime, undefined);
         });
 
         it('updateState should update finish time for failed state', () => {
@@ -150,7 +150,7 @@ describe('Unit Tests', () => {
 
             artifactItemStore.updateState(artifactItem1, models.TicketState.Failed);
 
-            assert.notEqual(artifactItemStore.getTickets().find(x => x.artifactItem.path == "path1").finishTime, undefined);
+            assert.notStrictEqual(artifactItemStore.getTickets().find(x => x.artifactItem.path == "path1").finishTime, undefined);
         });
 
         it('updateState should set hasDownloadFailed to true for failed state', () => {
@@ -161,7 +161,7 @@ describe('Unit Tests', () => {
 
             artifactItemStore.updateState(artifactItem1, models.TicketState.Failed);
 
-            assert.equal(artifactItemStore.hasDownloadFailed(), true);
+            assert.strictEqual(artifactItemStore.hasDownloadFailed(), true);
         });
 
         it('updateState should not set hasDownloadFailed to true for skipped state', () => {
@@ -172,7 +172,7 @@ describe('Unit Tests', () => {
 
             artifactItemStore.updateState(artifactItem1, models.TicketState.Skipped);
 
-            assert.equal(artifactItemStore.hasDownloadFailed(), false);
+            assert.strictEqual(artifactItemStore.hasDownloadFailed(), false);
         });
 
         it('updateState should not set hasDownloadFailed to true for processed state', () => {
@@ -183,7 +183,7 @@ describe('Unit Tests', () => {
 
             artifactItemStore.updateState(artifactItem1, models.TicketState.Processed);
 
-            assert.equal(artifactItemStore.hasDownloadFailed(), false);
+            assert.strictEqual(artifactItemStore.hasDownloadFailed(), false);
         });
 
         it('updateState should not set hasDownloadFailed to true for processing state', () => {
@@ -194,7 +194,7 @@ describe('Unit Tests', () => {
 
             artifactItemStore.updateState(artifactItem1, models.TicketState.Processing);
 
-            assert.equal(artifactItemStore.hasDownloadFailed(), false);
+            assert.strictEqual(artifactItemStore.hasDownloadFailed(), false);
         });
 
         it('updateState should not set hasDownloadFailed to true for inqueue state', () => {
@@ -205,7 +205,7 @@ describe('Unit Tests', () => {
 
             artifactItemStore.updateState(artifactItem1, models.TicketState.InQueue);
 
-            assert.equal(artifactItemStore.hasDownloadFailed(), false);
+            assert.strictEqual(artifactItemStore.hasDownloadFailed(), false);
         });
 
         it('flush should flush all artifact items from artifact store', () => {
@@ -217,7 +217,7 @@ describe('Unit Tests', () => {
 
             artifactItemStore.flush();
 
-            assert.equal(artifactItemStore.size(), 0);
+            assert.strictEqual(artifactItemStore.size(), 0);
         });
 
         it('itemsPendingProcessing should return true if item is in queue', () => {
@@ -227,7 +227,7 @@ describe('Unit Tests', () => {
             artifactItemStore.addItem(artifactItem);
             artifactItemStore.updateState(artifactItem, models.TicketState.InQueue);
 
-            assert.equal(artifactItemStore.itemsPendingProcessing(), true);
+            assert.strictEqual(artifactItemStore.itemsPendingProcessing(), true);
         });
 
         it('itemsPendingProcessing should return true if item is processing', () => {
@@ -237,7 +237,7 @@ describe('Unit Tests', () => {
             artifactItemStore.addItem(artifactItem);
             artifactItemStore.updateState(artifactItem, models.TicketState.Processing);
 
-            assert.equal(artifactItemStore.itemsPendingProcessing(), true);
+            assert.strictEqual(artifactItemStore.itemsPendingProcessing(), true);
         });
 
         it('itemsPendingProcessing should return false if item is skipped', () => {
@@ -247,7 +247,7 @@ describe('Unit Tests', () => {
             artifactItemStore.addItem(artifactItem);
             artifactItemStore.updateState(artifactItem, models.TicketState.Skipped);
 
-            assert.equal(artifactItemStore.itemsPendingProcessing(), false);
+            assert.strictEqual(artifactItemStore.itemsPendingProcessing(), false);
         });
 
         it('itemsPendingProcessing should return false if item is failed', () => {
@@ -257,7 +257,7 @@ describe('Unit Tests', () => {
             artifactItemStore.addItem(artifactItem);
             artifactItemStore.updateState(artifactItem, models.TicketState.Failed);
 
-            assert.equal(artifactItemStore.itemsPendingProcessing(), false);
+            assert.strictEqual(artifactItemStore.itemsPendingProcessing(), false);
         });
 
         it('itemsPendingProcessing should return false if item is processed', () => {
@@ -267,13 +267,13 @@ describe('Unit Tests', () => {
             artifactItemStore.addItem(artifactItem);
             artifactItemStore.updateState(artifactItem, models.TicketState.Processed);
 
-            assert.equal(artifactItemStore.itemsPendingProcessing(), false);
+            assert.strictEqual(artifactItemStore.itemsPendingProcessing(), false);
         });
 
         it('itemsPendingProcessing should return false if no items in queue', () => {
             var artifactItemStore = new ArtifactItemStore();
 
-            assert.equal(artifactItemStore.itemsPendingProcessing(), false);
+            assert.strictEqual(artifactItemStore.itemsPendingProcessing(), false);
         });
 
         it('increaseRetryCount should increase retry count of item', () => {
@@ -285,7 +285,7 @@ describe('Unit Tests', () => {
             artifactItemStore.increaseRetryCount(artifactItem1);
             artifactItemStore.increaseRetryCount(artifactItem1);
 
-            assert.equal(artifactItemStore.getTickets().find(x => x.artifactItem.path == "path1").retryCount, 2);
+            assert.strictEqual(artifactItemStore.getTickets().find(x => x.artifactItem.path == "path1").retryCount, 2);
         });
 
         it('getRootLocation should return empty if root item is not present', () => {
@@ -295,7 +295,7 @@ describe('Unit Tests', () => {
 
             artifactItemStore.addItem(artifactItem1);
 
-            assert.equal(artifactItemStore.getRootLocation(), '');
+            assert.strictEqual(artifactItemStore.getRootLocation(), '');
         });
 
         it('getRootLocation should return empty if root item does not have metadata', () => {
@@ -305,7 +305,7 @@ describe('Unit Tests', () => {
 
             artifactItemStore.addItem(artifactItem1);
 
-            assert.equal(artifactItemStore.getRootLocation(), '');
+            assert.strictEqual(artifactItemStore.getRootLocation(), '');
         });
 
         it('getRootLocation should return location of root item', () => {
@@ -315,7 +315,7 @@ describe('Unit Tests', () => {
             artifactItem1.metadata = { downloadUrl: '//dummy/drop' };
             artifactItemStore.addItem(artifactItem1);
 
-            assert.equal(artifactItemStore.getRootLocation(), '//dummy/drop');
+            assert.strictEqual(artifactItemStore.getRootLocation(), '//dummy/drop');
         });
 
         it('updateDownloadSize should update download size of item', () => {
@@ -325,7 +325,7 @@ describe('Unit Tests', () => {
             artifactItemStore.addItem(artifactItem1);
             artifactItemStore.updateDownloadSize(artifactItem1, downloadSize);
 
-            assert.equal(artifactItemStore.getTickets().find(x => x.artifactItem == artifactItem1).downloadSizeInBytes, downloadSize);
+            assert.strictEqual(artifactItemStore.getTickets().find(x => x.artifactItem == artifactItem1).downloadSizeInBytes, downloadSize);
         });
 
         it('updateFileSize should update file size of item', () => {
@@ -335,7 +335,7 @@ describe('Unit Tests', () => {
             artifactItemStore.addItem(artifactItem1);
             artifactItemStore.updateFileSize(artifactItem1, fileSize);
 
-            assert.equal(artifactItemStore.getTickets().find(x => x.artifactItem == artifactItem1).fileSizeInBytes, fileSize);
+            assert.strictEqual(artifactItemStore.getTickets().find(x => x.artifactItem == artifactItem1).fileSizeInBytes, fileSize);
         });
     });
 });
