@@ -71,4 +71,4 @@ This extension is authored by [Microsoft DevLabs](https://marketplace.visualstud
 
 To report a problem with this extension, create an issue in this repository. The maintainers of this repository will review and respond to the issue.
 
-You can also report problems or share feedback about this this extension on [Developer Community Forum](https://developercommunity.visualstudio.com/spaces/21/index.html).
+You can also report problems or share feedback about this extension on [Developer Community Forum](https://developercommunity.visualstudio.com/spaces/21/index.html).
