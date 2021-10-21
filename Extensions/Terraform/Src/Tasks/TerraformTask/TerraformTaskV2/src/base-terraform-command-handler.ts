@@ -205,12 +205,7 @@ export abstract class BaseTerraformCommandHandler {
     public async onlyApply(): Promise<number> {
         let terraformTool;
         this.warnIfMultipleProviders();
-        let validateCommand = new TerraformBaseCommandInitializer("validate", tasks.getInput("workingDirectory"), '');
-        terraformTool = this.terraformToolHandler.createToolRunner(validateCommand);
-        await terraformTool.exec(<IExecOptions> {
-            cwd: validateCommand.workingDirectory
-        });
-        
+
         let serviceName = `environmentServiceName${this.getServiceProviderNameFromProviderInput()}`;
         let autoApprove: string = '-auto-approve';
         let additionalArgs: string = tasks.getInput("commandOptions") || autoApprove;
@@ -219,6 +214,20 @@ export abstract class BaseTerraformCommandHandler {
             additionalArgs = `${autoApprove} ${additionalArgs}`;
         }
 
+        let noColor: string = '-no-color';
+        let validateCommandArgs;
+        if (additionalArgs.includes(noColor) === true) {
+            validateCommandArgs = noColor;
+        } else {
+            validateCommandArgs = ''
+        }
+
+        let validateCommand = new TerraformBaseCommandInitializer("validate", tasks.getInput("workingDirectory"), validateCommandArgs);
+        terraformTool = this.terraformToolHandler.createToolRunner(validateCommand);
+        await terraformTool.exec(<IExecOptions> {
+            cwd: validateCommand.workingDirectory
+        });
+        
         let applyCommand = new TerraformAuthorizationCommandInitializer(
             "apply",
             tasks.getInput("workingDirectory"),
