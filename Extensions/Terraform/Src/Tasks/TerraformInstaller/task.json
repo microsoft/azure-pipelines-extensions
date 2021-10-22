@@ -13,8 +13,8 @@
     "demands": [],
     "version": {
         "Major": "0",
-        "Minor": "0",
-        "Patch": "19"
+        "Minor": "195",
+        "Patch": "5"
     },
     "instanceNameFormat": "Install Terraform $(terraformVersion)",
     "inputs": [
@@ -22,7 +22,7 @@
             "name": "terraformVersion",
             "type": "string",
             "label": "Version",
-            "defaultValue": "0.12.3",
+            "defaultValue": "latest",
             "required": true,
             "helpMarkDown": "The version of Terraform which should be installed on the agent if not already present"
         }
@@ -44,6 +44,8 @@
         "TerraformNotFoundInFolder": "Terraform executable not found in path %s",
         "OperatingSystemNotSupported": "Operating system %s is not supported",
         "ArchitectureNotSupported": "Architecture %s is not supported",
-        "TerraformDownloadFailed": "Failed to download Terraform from url %s. Error %s"
+        "TerraformDownloadFailed": "Failed to download Terraform from url %s. Error %s",
+        "TerraformVersionNotFound": "Unable to get latest version: %s defaulting to 1.0.8",
+        "GettingLatestTerraformVersion": "Getting latest Terraform version."
     }
 }

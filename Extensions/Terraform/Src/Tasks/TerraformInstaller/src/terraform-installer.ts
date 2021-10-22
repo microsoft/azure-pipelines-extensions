@@ -5,11 +5,27 @@ import os = require('os');
 import fs = require('fs');
 
 const uuidV4 = require('uuid/v4');
+const fetch = require('node-fetch');
 const terraformToolName = "terraform";
 const isWindows = os.type().match(/^Win/);
 
 export async function downloadTerraform(inputVersion: string): Promise<string> {
-    let version = tools.cleanVersion(inputVersion);
+
+    var latestVersion: string = "";
+    if(inputVersion.toLowerCase() === 'latest') {
+        console.log(tasks.loc("GettingLatestTerraformVersion"));
+        await fetch('https://checkpoint-api.hashicorp.com/v1/check/terraform')
+            .then((response: { json: () => any; }) => response.json())
+            .then((data: { [x: string]: any; }) => {
+                latestVersion = data.current_version;
+            })
+            .catch((exception: any) => {
+                throw new Error(tasks.loc("TerraformVersionNotFound",exception));
+                latestVersion = '1.0.8';
+            })
+    }
+    var version = latestVersion != "" ? tools.cleanVersion(latestVersion) : tools.cleanVersion(inputVersion);
+
     if (!version) {
         throw new Error(tasks.loc("InputVersionNotValidSemanticVersion", inputVersion));
     }

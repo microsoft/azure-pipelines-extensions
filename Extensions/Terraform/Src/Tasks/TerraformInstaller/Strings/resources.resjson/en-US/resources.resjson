@@ -10,5 +10,8 @@
   "loc.messages.TerraformNotFoundInFolder": "Terraform executable not found in path %s",
   "loc.messages.OperatingSystemNotSupported": "Operating system %s is not supported",
   "loc.messages.ArchitectureNotSupported": "Architecture %s is not supported",
-  "loc.messages.TerraformDownloadFailed": "Failed to download Terraform from url %s. Error %s"
+  "loc.messages.TerraformDownloadFailed": "Failed to download Terraform from url %s. Error %s",
+  "loc.messages.TerraformVersionNotFound": "Unable to get latest version: %s defaulting to 1.0.8",
+  "loc.messages.GettingLatestTerraformVersion": "Getting latest Terraform version."
+
 }
