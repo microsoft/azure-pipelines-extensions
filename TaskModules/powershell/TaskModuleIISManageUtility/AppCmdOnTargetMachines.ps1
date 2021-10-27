@@ -293,7 +293,7 @@ function Add-WebsiteBindings {
         }
 
         if($binding.protocol -eq "https") {
-            Invoke-VstsTool -ipAddress $binding.ipAddress -port $binding.port -certhash $binding.sslThumbPrint -hostname $binding.hostName -sni $binding.sniFlag -iisVersion $iisVersion
+            Add-SslCert -ipAddress $binding.ipAddress -port $binding.port -certhash $binding.sslThumbPrint -hostname $binding.hostName -sni $binding.sniFlag -iisVersion $iisVersion
             Enable-SNI -siteName $siteName -sni $binding.sniFlag -ipAddress $binding.ipAddress -port $binding.port -hostname $binding.hostName
         }
     }
