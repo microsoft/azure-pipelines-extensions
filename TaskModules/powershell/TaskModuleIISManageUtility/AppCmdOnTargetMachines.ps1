@@ -206,7 +206,7 @@ function Add-SslCert
     }
 
     if(-not $certCmd)
-    { #take no action... the existing binding with the expected thumbprint is already present.
+    {
         Write-Verbose "SSL cert binding with the specified certificate is already present. Returning"
         return
     }
