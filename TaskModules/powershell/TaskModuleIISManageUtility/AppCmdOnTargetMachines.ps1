@@ -169,9 +169,8 @@ function Get-Netsh-Command {
         } elseif (-not $certificateHash.ToLower().Contains($newCertHash.ToLower())) { # case 2: existing binding found, but thumbprint of incoming cert does not match. run netsh UPDATE command. note that we must use the existing application id in this case.
             $applicationId = $applicationId.Split(":")[1].Trim();
             return [string]::Format("http update sslcert {4}={0}:{1} certhash={2} appid='{3}' certstorename=MY", $hostOrIp, $port, $certhash, $applicationId, $keyName) #TODO: this won't work with older versions of netsh, add something here to check the netsh version.
-        } else { #Case 3: the certificate bound to this host/ip and port has the same thumbprint as the new certificate.  Do nothing.
-            return [string]::Empty
-        }
+        } 
+        return [string]::Empty #Case 3: the certificate bound to this host/ip and port has the same thumbprint as the new certificate.  Do nothing.
 }
 function Add-SslCert
 {
@@ -195,16 +194,13 @@ function Add-SslCert
         $ipAddress = "0.0.0.0"
     }
     $certCmd = [string]::Empty
+    $port  = "ipport"
     #SNI is supported IIS 8 and above. To enable SNI hostnameport option should be used
     if($sni -eq "true" -and $iisVersion -ge 8 -and -not [string]::IsNullOrWhiteSpace($hostname))
     {
-        $certCmd = Get-Netsh-Command -port $port -newCertHash $certhash -keyName "hostnameport" -hostOrIp $hostname
+        $port = "hostnameport"
     }
-    else
-    {
-        $certCmd = Get-Netsh-Command -port $port -newCertHash $certhash -keyName "ipport" -hostOrIp $hostname        
-    }
-
+    $certCmd = Get-Netsh-Command -port $port -newCertHash $certhash -keyName $port -hostOrIp $hostname
     if(-not $certCmd)
     {
         Write-Verbose "SSL cert binding with the specified certificate is already present. Returning"
