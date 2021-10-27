@@ -150,6 +150,29 @@ function Enable-SNI
     Invoke-VstsTool -Filename $appCmdPath -Arguments $appCmdArgs -RequireExitCodeZero
 }
 
+function Get-Netsh-Command {
+    param (
+        [string]$port,
+        [string]$newCertHash,
+        [string]$hostOrIp,
+        [string]$keyName
+    )
+        $showCertCmd = [string]::Format("http show sslcert {2}={0}:{1}", $hostname, $port,$keyName)
+        Write-Verbose "Checking if SslCert binding is already present. Running command : netsh $showCertCmd"
+
+        $result = Invoke-VstsTool -Filename "netsh" -Arguments $showCertCmd
+        $certificateHash = $result | Where { $_.Contains("Certificate Hash") } | Select -First 1
+        $hostnamePort = $result | Where { $_.Contains("Hostname:port") } | Select -First 1
+        $applicationId = $result | Where { $_.Contains("Application ID") } | Select -First 1
+        if ([string]::IsNullOrEmpty($hostnamePort)) { #case 1: Existing binding not found.  Run the netsh ADD command to bind the certificate.
+            return [string]::Format("http add sslcert {4}={0}:{1} certhash={2} appid='{{{3}}}' certstorename=MY", $hostOrIp, $port, $certhash, [System.Guid]::NewGuid().toString(), $keyName)
+        } elseif (-not $certificateHash.ToLower().Contains($newCertHash.ToLower())) { # case 2: existing binding found, but thumbprint of incoming cert does not match. run netsh UPDATE command. note that we must use the existing application id in this case.
+            $applicationId = $applicationId.Split(":")[1].Trim();
+            return [string]::Format("http update sslcert {4}={0}:{1} certhash={2} appid='{3}' certstorename=MY", $hostOrIp, $port, $certhash, $applicationId, $keyName) #TODO: this won't work with older versions of netsh, add something here to check the netsh version.
+        } else { #Case 3: the certificate bound to this host/ip and port has the same thumbprint as the new certificate.  Do nothing.
+            return [string]::Empty
+        }
+}
 function Add-SslCert
 {
     param(
@@ -171,43 +194,26 @@ function Add-SslCert
     {
         $ipAddress = "0.0.0.0"
     }
-
-    $result = $null
-    $isItSameBinding = $false
-    $addCertCmd = [string]::Empty
-
+    $certCmd = [string]::Empty
     #SNI is supported IIS 8 and above. To enable SNI hostnameport option should be used
     if($sni -eq "true" -and $iisVersion -ge 8 -and -not [string]::IsNullOrWhiteSpace($hostname))
     {
-        $showCertCmd = [string]::Format("http show sslcert hostnameport={0}:{1}", $hostname, $port)
-        Write-Verbose "Checking if SslCert binding is already present. Running command : netsh $showCertCmd"
-
-        $result = Invoke-VstsTool -Filename "netsh" -Arguments $showCertCmd
-        $isItSameBinding = $result.Get(4).Contains([string]::Format("{0}:{1}", $hostname, $port))
-
-        $addCertCmd = [string]::Format("http add sslcert hostnameport={0}:{1} certhash={2} appid={{{3}}} certstorename=MY", $hostname, $port, $certhash, [System.Guid]::NewGuid().toString())
+        $certCmd = Get-Netsh-Command -port $port -newCertHash $certhash -keyName "hostnameport" -hostOrIp $hostname
     }
     else
     {
-        $showCertCmd = [string]::Format("http show sslcert ipport={0}:{1}", $ipAddress, $port)
-        Write-Verbose "Checking if SslCert binding is already present. Running command : netsh $showCertCmd"
-
-        $result = Invoke-VstsTool -Filename "netsh" -Arguments $showCertCmd
-        $isItSameBinding = $result.Get(4).Contains([string]::Format("{0}:{1}", $ipAddress, $port))
-        
-        $addCertCmd = [string]::Format("http add sslcert ipport={0}:{1} certhash={2} appid={{{3}}} certstorename=MY", $ipAddress, $port, $certhash, [System.Guid]::NewGuid().toString())
+        $certCmd = Get-Netsh-Command -port $port -newCertHash $certhash -keyName "ipport" -hostOrIp $hostname        
     }
 
-    $isItSameCert = $result.Get(5).ToLower().Contains($certhash.ToLower())
-
-    if($isItSameBinding -and $isItSameCert)
-    {
-        Write-Verbose "SSL cert binding is already present. Returning"
+    if(-not $certCmd)
+    { #take no action... the existing binding with the expected thumbprint is already present.
+        Write-Verbose "SSL cert binding with the specified certificate is already present. Returning"
         return
     }
 
-    Write-Verbose "Setting SslCert for website."
-    Invoke-VstsTool -Filename "netsh" -Arguments $addCertCmd -RequireExitCodeZero
+    Write-Verbose "Setting SslCert for website: $certCmd"
+    $result = Invoke-VstsTool -Filename "netsh" -Arguments $certCmd #-RequireExitCodeZero
+    Write-Verbose "$certCmd executed with result: $result"
 }
 
 function Add-Website
@@ -287,7 +293,7 @@ function Add-WebsiteBindings {
         }
 
         if($binding.protocol -eq "https") {
-            Add-SslCert -ipAddress $binding.ipAddress -port $binding.port -certhash $binding.sslThumbPrint -hostname $binding.hostName -sni $binding.sniFlag -iisVersion $iisVersion
+            Invoke-VstsTool -ipAddress $binding.ipAddress -port $binding.port -certhash $binding.sslThumbPrint -hostname $binding.hostName -sni $binding.sniFlag -iisVersion $iisVersion
             Enable-SNI -siteName $siteName -sni $binding.sniFlag -ipAddress $binding.ipAddress -port $binding.port -hostname $binding.hostName
         }
     }
