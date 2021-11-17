@@ -28,7 +28,7 @@
     }
   ],
   "execution": {
-    "Node": {
+    "Node10": {
       "target": "src/index.js"
     }
   },
