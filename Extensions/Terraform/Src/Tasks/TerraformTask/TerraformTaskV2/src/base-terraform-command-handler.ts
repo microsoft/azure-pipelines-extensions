@@ -87,6 +87,43 @@ export abstract class BaseTerraformCommandHandler {
             cwd: initCommand.workingDirectory
         });
     }
+    public async show(): Promise<number> {
+        let serviceName = `environmentServiceName${this.getServiceProviderNameFromProviderInput()}`;
+        let cmd;
+        const outputType = tasks.getInput("outputType");
+        const outputFormat = tasks.getInput("outputFormat");
+        if (outputType == "console") { 
+            if (outputFormat == "json"){
+                cmd = `-json ${tasks.getInput("commandOptions")}`
+            }else{
+                cmd = tasks.getInput("commandOptions");
+            }
+        }else if (outputType == "file"){
+            cmd = `-json ${tasks.getInput("commandOptions")}`
+        }
+        let showCommand = new TerraformAuthorizationCommandInitializer(
+            "show",
+            tasks.getInput("workingDirectory"),
+            tasks.getInput(serviceName, true),
+            cmd
+        );
+        let terraformTool;
+        terraformTool = this.terraformToolHandler.createToolRunner(showCommand);
+        this.handleProvider(showCommand);
+        
+        if(outputType == "console"){
+            return terraformTool.exec(<IExecOptions> {
+            cwd: showCommand.workingDirectory});
+        }else if(outputType == "file"){
+            let planFilePath = path.resolve(tasks.getInput("filename"));
+            const commandOutput = await terraformTool.execSync(<IExecSyncOptions> {
+                cwd: showCommand.workingDirectory});
+            tasks.writeFile(planFilePath, commandOutput.stdout);
+            // Set the output variable to the json plan file path
+            tasks.setVariable('planFilePath', planFilePath);
+            return commandOutput;
+        }
+    }
 
     protected checkIfShowCommandSupportsJsonOutput(): number {
         let terraformPath;

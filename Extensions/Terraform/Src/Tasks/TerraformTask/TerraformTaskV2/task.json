@@ -13,8 +13,8 @@
     "demands": [],
     "version": {
         "Major": "2",
-        "Minor": "195",
-        "Patch": "0"
+        "Minor": "196",
+        "Patch": "5"
     },
     "instanceNameFormat": "Terraform : $(provider)",
     "execution": {
@@ -69,6 +69,7 @@
                 "init": "init",
                 "validate": "validate",
                 "plan": "plan",
+                "show": "show",
                 "apply": "validate and apply",
                 "destroy": "destroy"
             },
@@ -90,6 +91,41 @@
             "label": "Additional command arguments",
             "helpMarkDown": "Any additional arguments for the selected command such as '-option=value' or '-flag'. Multiple options can also be provided delimited by spaces.<br><br>Examples:<br>-out=tfplan (for terraform plan)<br>tfplan -auto-approve (for terraform apply)",
             "required": false
+        },
+        {
+            "name": "outputType",
+            "type": "pickList",
+            "label": "Output type",
+            "defaultValue": "console",
+            "visibleRule": "command = show",
+            "helpMarkDown": "choose output to file or console. ",
+            "options": {
+                "file": "file",
+                "console": "console"
+            },
+            "required": true
+        },{
+            "name": "outputFormat",
+            "type": "pickList",
+            "label": "Output format",
+            "defaultValue": "json",
+            "visibleRule": "command = show && outputType = console",
+            "helpMarkDown": "choose format of ouput for show cmd. ",
+            "options": {
+                "json": "json",
+                "standard": "standard"
+            },
+            "required": true
+        },
+        {
+            "name": "fileName",
+            "type": "string",
+            "label": "Output Filename",
+            "defaultValue": "tfplan.json",
+            "visibleRule": "command = show && outputType = file",
+            "required": true,
+            "helpMarkDown": "filename of output"
+
         },
         {
             "name": "environmentServiceNameAzureRM",

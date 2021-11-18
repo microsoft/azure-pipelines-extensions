@@ -13,8 +13,8 @@
   "demands": [],
   "version": {
     "Major": "2",
-    "Minor": "195",
-    "Patch": "0"
+    "Minor": "196",
+    "Patch": "5"
   },
   "instanceNameFormat": "ms-resource:loc.instanceNameFormat",
   "execution": {
@@ -70,6 +70,7 @@
         "init": "init",
         "validate": "validate",
         "plan": "plan",
+        "show": "show",
         "apply": "validate and apply",
         "destroy": "destroy"
       },
@@ -91,6 +92,42 @@
       "label": "ms-resource:loc.input.label.commandOptions",
       "helpMarkDown": "ms-resource:loc.input.help.commandOptions",
       "required": false
+    },
+    {
+        "name": "outputType",
+        "type": "pickList",
+        "label": "ms-resource:loc.input.label.outputType",
+        "defaultValue": "console",
+        "visibleRule": "command = show",
+        "helpMarkDown": "ms-resource:loc.input.help.outputType",
+        "options": {
+            "file": "file",
+            "console": "console"
+        },
+        "required": true
+    },
+    {
+      "name": "outputFormat",
+      "type": "pickList",
+      "label": "ms-resource:loc.input.label.outputFormat",
+      "defaultValue": "standard",
+      "visibleRule": "command = show && outputType = console",
+      "helpMarkDown": "ms-resource:loc.input.help.outputFormat",
+      "options": {
+          "json": "json",
+          "standard": "standard"
+      },
+      "required": true
+  },
+    {
+        "name": "fileName",
+        "type": "string",
+        "label": "ms-resource:loc.input.label.fileName",
+        "defaultValue": "tfplan.json",
+        "visibleRule": "command = show && outputType = file",
+        "required": true,
+        "helpMarkDown": "ms-resource:loc.input.help.fileName"
+
     },
     {
       "name": "environmentServiceNameAzureRM",
