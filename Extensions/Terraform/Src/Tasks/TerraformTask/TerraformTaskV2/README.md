@@ -40,6 +40,7 @@ The only pre-requisite for the task is that Terraform must be installed on the A
 	- init
     - validate
     - plan
+	- show
     - apply
     - destroy
 
@@ -75,6 +76,11 @@ Options specific to **terraform plan, apply and destroy** commands
 - **Azure subscription (only if "azurerm" provider is selected)\*:** Select the AzureRM subscription to use for managing the resources used by the plan, apply and destroy commands
 - **Amazon Web Services connection (only if "aws" provider is selected)\*:** Select the AWS connection to use for managing the resources used by the plan, apply and destroy commands
 - **Google Cloud Platform connection (only if "gcp" provider is selected)\*:** Select the GCP connection to use for managing the resources used by the plan, apply and destroy commands
+
+Options specific to **terraform show** command
+- **Output type\*:** Select if you only want output to console or if you want to save it as a file
+- **Output format (Only if "console" output type is selected)\*:** Select console output format, standard or json
+- **Filename (Only if "file" output type is selected)\*:** enter filename of json file 
 
 ## Output Variables
 
