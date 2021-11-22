@@ -27,7 +27,10 @@ Feed can be updated/republished by executing [this build definition](https://dev
 
 ## Contact Information
 
-Extensions authored by the **Microsoft** publisher are supported by Microsoft. The following extensions authored by the **Microsoft DevLabs** publisher are currently supported by Microsoft partner **Solidify**.
+Extensions authored by the **Microsoft** publisher are supported by Microsoft. 
+
+The following extensions authored by the [**Microsoft DevLabs** publisher](https://marketplace.visualstudio.com/publishers/Microsoft%20DevLabs) are currently supported by Microsoft partner [**Solidify**](https://devblogs.microsoft.com/devops/azure-boards-fall-update/#extension-support-with-solidify-ab):
+
 * **Terraform**. The Terraform extension has a new home at https://github.com/microsoft/azure-pipelines-terraform. To report a problem with the Terraform extension, create an issue in that repository. The maintainers of this repository will review and respond to the issue.
 * **Optimizely**. This extension has been deprecated and is no longer maintained or supported.
 * **Google Analytics**. This extension has been deprecated and is no longer maintained or supported.
