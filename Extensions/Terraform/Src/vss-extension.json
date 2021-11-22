@@ -2,7 +2,7 @@
     "manifestVersion": 1,
     "id": "custom-terraform-tasks",
     "name": "Terraform",
-    "version": "0.1.11",
+    "version": "0.1.12",
     "publisher": "ms-devlabs",
     "targets": [
         {

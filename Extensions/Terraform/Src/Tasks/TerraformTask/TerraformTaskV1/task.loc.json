@@ -14,11 +14,11 @@
   "version": {
     "Major": "0",
     "Minor": "195",
-    "Patch": "0"
+    "Patch": "1"
   },
   "instanceNameFormat": "ms-resource:loc.instanceNameFormat",
   "execution": {
-    "Node": {
+    "Node10": {
       "target": "src/index.js"
     }
   },
