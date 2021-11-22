@@ -27,12 +27,7 @@ Feed can be updated/republished by executing [this build definition](https://dev
 
 ## Contact Information
 
-Extensions authored by **Microsoft** publisher are supported by Microsoft. The following extensions authored by **Microsoft DevLabs** publisher are not supported by Microsoft.
-
-- Terraform
-- Optimizely
-- Google Analytics
-
-To report a problem with a DevLabs extension, create an issue in this repository. The maintainers of this repository will review and respond to the issue.
-
-You can also report problems or share feedback about DevLabs extensions on [Developer Community Forum](https://developercommunity.visualstudio.com/spaces/21/index.html).
+Extensions authored by the **Microsoft** publisher are supported by Microsoft. The following extensions authored by the **Microsoft DevLabs** publisher are currently supported by Microsoft partner **Solidify**.
+* **Terraform**. The Terraform extension has a new home at https://github.com/microsoft/azure-pipelines-terraform. To report a problem with the Terraform extension, create an issue in that repository. The maintainers of this repository will review and respond to the issue.
+* **Optimizely**. This extension has been deprecated and is no longer maintained or supported.
+* **Google Analytics**. This extension has been deprecated and is no longer maintained or supported.
