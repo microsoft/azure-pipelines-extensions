@@ -5,6 +5,7 @@ import tasks = require('azure-pipelines-task-lib/task');
 import path = require('path');
 import * as uuidV4 from 'uuid/v4';
 const fs = require('fs');
+const del = require('del');
 
 export abstract class BaseTerraformCommandHandler {
     providerName: string;
@@ -179,15 +180,21 @@ export abstract class BaseTerraformCommandHandler {
 
             // Delete all the files that are not needed any further
             if (tasks.exist(binaryPlanFilePath)) {
-                tasks.rmRF(binaryPlanFilePath);
+                (async () => {
+                    await del([binaryPlanFilePath]);
+                })();
             }
 
             if (tasks.exist(tempFileForPlanOutput)) {
-                tasks.rmRF(tempFileForPlanOutput);
+                (async () => {
+                    await del([tempFileForPlanOutput]);
+                })();
             }
 
             if (tasks.exist(tempFileForJsonPlanOutput)) {
-                tasks.rmRF(tempFileForJsonPlanOutput);
+                (async () => {
+                    await del([tempFileForJsonPlanOutput]);
+                })();
             }
 
         } else {
@@ -258,7 +265,9 @@ export abstract class BaseTerraformCommandHandler {
 
         // Delete the temp file as it is not needed further
         if (tasks.exist(tempFileForJsonOutputVariables)) {
-            tasks.rmRF(tempFileForJsonOutputVariables);
+            (async () => {
+                await del([tempFileForJsonOutputVariables]);
+            })();
         }
     }
 
