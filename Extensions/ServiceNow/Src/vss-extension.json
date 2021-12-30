@@ -3,7 +3,7 @@
   "id": "vss-services-servicenowchangerequestmanagement",
   "name": "ServiceNow Change Management",
   "publisher": "ms-vscs-rm",
-  "version": "4.162.1",
+  "version": "4.186.1",
   "public": true,
   "description": "Integrate ServiceNow Change Management with Azure Pipelines",
   "categories": [
@@ -89,7 +89,19 @@
     {
       "path": "images/oauth_servicenow_connection.png",
       "addressable": true
-    },  
+    },
+    {
+      "path": "images/check_create.png",
+      "addressable": true
+    },
+    {
+      "path": "images/yaml_pipeline.png",
+      "addressable": true
+    },
+    {
+      "path": "images/resulting_pipeline.png",
+      "addressable": true
+    },
     {
       "path": "Tasks/CreateAndQueryChangeRequest"
     },

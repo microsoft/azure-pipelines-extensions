@@ -1,0 +1,265 @@
+{
+    "id": "FE504ACC-6115-40CB-89FF-191386B5E7BF",
+    "name": "TerraformTaskV2",
+    "friendlyName": "Terraform",
+    "description": "Execute terraform commands to manage resources on AzureRM, Amazon Web Services(AWS) and Google Cloud Platform(GCP)",
+    "author": "Microsoft Corporation",
+    "helpMarkDown": "[Learn more about this task](https://aka.ms/AAese2w)",
+    "category": "Deploy",
+    "visibility": [
+        "Build",
+        "Release"
+    ],
+    "demands": [],
+    "version": {
+        "Major": "2",
+        "Minor": "195",
+        "Patch": "1"
+    },
+    "instanceNameFormat": "Terraform : $(provider)",
+    "execution": {
+        "Node10": {
+            "target": "src/index.js"
+        }
+    },
+    "groups": [
+        {
+            "name": "backendAzureRm",
+            "displayName": "AzureRM backend configuration",
+            "isExpanded": true,
+            "visibleRule": "provider = azurerm && command = init"
+        },
+        {
+            "name": "backendAWS",
+            "displayName": "Amazon Web Services(AWS) backend configuration",
+            "isExpanded": true,
+            "visibleRule": "provider = aws && command = init"
+        },
+        {
+            "name": "backendGCP",
+            "displayName": "Google Cloud Platform(GCP) backend configuration",
+            "isExpanded": true,
+            "visibleRule": "provider = gcp && command = init"
+        }
+    ],
+    "inputs": [{
+            "name": "provider",
+            "type": "picklist",
+            "label": "Provider",
+            "defaultValue": "azurerm",
+            "required": true,
+            "helpMarkDown": "The name of the provider used in the terraform configuration files.<br>Only one provider must be specified in the terraform configuration files in the below specified configuration directory.",
+            "options": {
+                "azurerm": "azurerm",
+                "aws": "aws",
+                "gcp": "gcp"
+            },
+            "properties": {
+                "EditableOptions": "False"
+            }
+        },
+        {
+            "name": "command",
+            "type": "pickList",
+            "label": "Command",
+            "defaultValue": "init",
+            "required": true,
+            "helpMarkDown": "The terraform command to execute.",
+            "options": {
+                "init": "init",
+                "validate": "validate",
+                "plan": "plan",
+                "apply": "validate and apply",
+                "destroy": "destroy"
+            },
+            "properties": {
+                "EditableOptions": "False"
+            }
+        },
+        {
+            "name": "workingDirectory",
+            "type": "filePath",
+            "label": "Configuration directory",
+            "defaultValue": "$(System.DefaultWorkingDirectory)",
+            "helpMarkDown": "Directory containing the Terraform configuration files. The default value is $(System.DefaultWorkingDirectory)",
+            "required": false
+        },
+        {
+            "name": "commandOptions",
+            "type": "string",
+            "label": "Additional command arguments",
+            "helpMarkDown": "Any additional arguments for the selected command such as '-option=value' or '-flag'. Multiple options can also be provided delimited by spaces.<br><br>Examples:<br>-out=tfplan (for terraform plan)<br>tfplan -auto-approve (for terraform apply)",
+            "required": false
+        },
+        {
+            "name": "environmentServiceNameAzureRM",
+            "type": "connectedService:AzureRM",
+            "label": "Azure subscription",
+            "required": true,
+            "visibleRule": "provider = azurerm && command != init && command != validate",
+            "helpMarkDown": "Select an Azure Resource Manager subscription for the deployment"
+        },
+        {
+            "name": "environmentServiceNameAWS",
+            "type": "connectedService:AWSServiceEndpoint",
+            "label": "Amazon Web Services connection",
+            "required": true,
+            "visibleRule": "provider = aws && command != init && command != validate",
+            "helpMarkDown": "Select an Amazon Web Services connection for the deployment.<br><br>Note: If your connection is not listed or if you want to use an existing connection, you can setup an Amazon Web Services service connection using the 'Add' or 'Manage' button."
+        },
+        {
+            "name": "environmentServiceNameGCP",
+            "type": "connectedService:GoogleCloudServiceEndpoint",
+            "label": "Google Cloud Platform connection",
+            "required": true,
+            "visibleRule": "provider = gcp && command != init && command != validate",
+            "helpMarkDown": "Select a Google Cloud Platform connection for the deployment.<br><br>Note: If your connection is not listed or if you want to use an existing connection, you can setup a Google Cloud Platform service connection using the 'Add' or 'Manage' button."
+        },
+        {
+            "name": "backendServiceArm",
+            "type": "connectedService:AzureRM",
+            "label": "Azure subscription",
+            "required": true,
+            "helpMarkDown": "Azure resource manager subscription for the terraform backend configuration",
+            "groupName": "backendAzureRm"
+        },
+        {
+            "name": "backendAzureRmResourceGroupName",
+            "type": "pickList",
+            "label": "Resource group",
+            "required": true,
+            "helpMarkDown": "The name of the resource group which contains the storage account selected below.",
+            "groupName": "backendAzureRm",
+            "properties": {
+                "EditableOptions": "True"
+            }
+        },
+        {
+            "name": "backendAzureRmStorageAccountName",
+            "type": "pickList",
+            "label": "Storage account",
+            "required": true,
+            "helpMarkDown": "The name of the storage account which contains the Azure Blob container selected below.",
+            "groupName": "backendAzureRm",
+            "properties": {
+                "EditableOptions": "True"
+            }
+        },
+        {
+            "name": "backendAzureRmContainerName",
+            "type": "pickList",
+            "label": "Container",
+            "required": true,
+            "helpMarkDown": "The name of the Azure Blob container in which to store the Terraform remote state file.",
+            "groupName": "backendAzureRm",
+            "properties": {
+                "EditableOptions": "True"
+            }
+        },
+        {
+            "name": "backendAzureRmKey",
+            "type": "string",
+            "label": "Key",
+            "required": true,
+            "helpMarkDown": "The path to the Terraform remote state file inside the container.<br>For example, if you want to store the state file, named terraform.tfstate, inside a folder, named tf, then give the input 'tf/terraform.tfstate'",
+            "groupName": "backendAzureRm"
+        },
+        {
+            "name": "backendServiceAWS",
+            "type": "connectedService:AWSServiceEndpoint",
+            "label": "Amazon Web Services connection",
+            "required": true,
+            "helpMarkDown": "Amazon Web Services connection for the terraform backend configuration.<br><br>Note: If your connection is not listed or if you want to use an existing connection, you can setup an Amazon Web Services service connection using the 'Add' or 'Manage' button.",
+            "groupName": "backendAWS"
+        },
+        {
+            "name": "backendAWSBucketName",
+            "type": "pickList",
+            "label": "Bucket",
+            "required": true,
+            "helpMarkDown": "The name of the Amazon Simple Storage Service(S3) bucket for storing the Terraform remote state file.<br><br>NOTE: The region of this bucket (e.g. us-east-1) must be specified in the AWS service connection that you must set up. To set up an AWS service connection, click on the 'Help(i)' button of the above input named 'Amazon Web Services connection'",
+            "groupName": "backendAWS",
+            "properties": {
+                "EditableOptions": "True"
+            }
+        },
+        {
+            "name": "backendAWSKey",
+            "type": "string",
+            "label": "Key",
+            "required": true,
+            "helpMarkDown": "The path to the state file inside the Amazon S3 bucket.<br>For example, if you want to store the state file, named terraform.tfstate, inside a folder, named tf, then give the input 'tf/terraform.tfstate'.",
+            "groupName": "backendAWS"
+        },
+        {
+            "name": "backendServiceGCP",
+            "type": "connectedService:GoogleCloudServiceEndpoint",
+            "label": "Google Cloud Platform connection",
+            "required": true,
+            "helpMarkDown": "Google Cloud Platform connection for the terraform backend configuration.<br><br>Note: If your connection is not listed or if you want to use an existing connection, you can setup a Google Cloud Platform service connection using the 'Add' or 'Manage' button.",
+            "groupName": "backendGCP"
+        },
+        {
+            "name": "backendGCPBucketName",
+            "type": "pickList",
+            "label": "Bucket",
+            "required": true,
+            "helpMarkDown": "The name of the GCP storage bucket for storing the Terraform remote state file.",
+            "groupName": "backendGCP",
+            "properties": {
+                "EditableOptions": "True"
+            }
+        },
+        {
+            "name": "backendGCPPrefix",
+            "type": "string",
+            "label": "Prefix of state file",
+            "required": false,
+            "helpMarkDown": "The relative path to the state file inside the GCP bucket. For example, if you give the input as 'terraform', then the state file, named default.tfstate, will be stored inside an object called terraform.",
+            "groupName": "backendGCP"
+        }
+    ],
+    "dataSourceBindings": [
+        {
+            "target": "backendAzureRmResourceGroupName",
+            "endpointId": "$(backendServiceArm)",
+            "endpointUrl": "{{{endpoint.url}}}subscriptions/{{{endpoint.subscriptionId}}}/resourcegroups?api-version=2019-05-01",
+            "resultSelector": "jsonpath:$.value[*].name"
+        },
+        {
+            "target": "backendAzureRmStorageAccountName",
+            "endpointId": "$(backendServiceArm)",
+            "endpointUrl": "{{{endpoint.url}}}subscriptions/{{{endpoint.subscriptionId}}}/resourceGroups/$(backendAzureRmResourceGroupName)/providers/Microsoft.Storage/storageAccounts?api-version=2019-04-01",
+            "resultSelector": "jsonpath:$.value[*].name"
+        },
+        {
+            "target": "backendAzureRmContainerName",
+            "endpointId": "$(backendServiceArm)",
+            "endpointUrl": "{{{endpoint.url}}}subscriptions/{{{endpoint.subscriptionId}}}/resourceGroups/$(backendAzureRmResourceGroupName)/providers/Microsoft.Storage/storageAccounts/$(backendAzureRmStorageAccountName)/blobServices/default/containers?api-version=2019-04-01",
+            "resultSelector": "jsonpath:$.value[*].name"
+        },
+        {
+            "target": "backendAWSBucketName",
+            "endpointId": "$(backendServiceAWS)",
+            "dataSourceName": "AWS"
+        },
+        {
+            "target": "backendGCPBucketName",
+            "endpointId": "$(backendServiceGCP)",
+            "dataSourceName": "GCP"
+        }
+    ],
+    "outputVariables": [
+        {
+            "name": "jsonPlanFilePath",
+            "description": "The location of the terraform plan file in JSON format that was created. This file can be used by tasks which are written for tools such as [Open Policy Agent](https://www.openpolicyagent.org/docs/latest/terraform/)<br><br>Note: This variable will only be set if 'command' input is set to 'plan'."
+        },
+        {
+            "name": "jsonOutputVariablesPath",
+            "description": "The location of the JSON file which contains the output variables set by the user in the terraform config files.<br><br>Note: This variable will only be set if 'command' input is set to 'apply'."
+        }
+    ],
+    "messages": {
+        "TerraformToolNotFound": "Failed to find terraform tool in paths"
+    }
+}

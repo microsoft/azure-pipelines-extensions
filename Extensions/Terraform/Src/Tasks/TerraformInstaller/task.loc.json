@@ -13,8 +13,8 @@
   "demands": [],
   "version": {
     "Major": "0",
-    "Minor": "0",
-    "Patch": "17"
+    "Minor": "195",
+    "Patch": "1"
   },
   "instanceNameFormat": "ms-resource:loc.instanceNameFormat",
   "inputs": [
@@ -22,13 +22,13 @@
       "name": "terraformVersion",
       "type": "string",
       "label": "ms-resource:loc.input.label.terraformVersion",
-      "defaultValue": "0.12.3",
+      "defaultValue": "latest",
       "required": true,
       "helpMarkDown": "ms-resource:loc.input.help.terraformVersion"
     }
   ],
   "execution": {
-    "Node": {
+    "Node10": {
       "target": "src/index.js"
     }
   },
@@ -44,6 +44,8 @@
     "TerraformNotFoundInFolder": "ms-resource:loc.messages.TerraformNotFoundInFolder",
     "OperatingSystemNotSupported": "ms-resource:loc.messages.OperatingSystemNotSupported",
     "ArchitectureNotSupported": "ms-resource:loc.messages.ArchitectureNotSupported",
-    "TerraformDownloadFailed": "ms-resource:loc.messages.TerraformDownloadFailed"
+    "TerraformDownloadFailed": "ms-resource:loc.messages.TerraformDownloadFailed",
+    "TerraformVersionNotFound": "ms-resource:loc.messages.TerraformVersionNotFound",
+    "GettingLatestTerraformVersion": "ms-resource:loc.messages.GettingLatestTerraformVersion"
   }
 }

@@ -54,8 +54,8 @@ describe('Unit Tests', () => {
             var getArtifactItemPromise = webProvider.getArtifactItems(artifactItem);
 
             getArtifactItemPromise.then(() => {
-                assert.equal(getStub.callCount, 1);
-                assert.equal(getStub.args[0][0], "http://stubUrl");
+                assert.strictEqual(getStub.callCount, 1);
+                assert.strictEqual(getStub.args[0][0], "http://stubUrl");
                 done();
             }, (err) => {
                 throw err;
@@ -68,8 +68,8 @@ describe('Unit Tests', () => {
             var getArtifactItemPromise = webProvider.getArtifactItems(artifactItem);
 
             getArtifactItemPromise.then(() => {
-                assert.equal(getStub.callCount, 1);
-                assert.equal(getStub.args[0][0], "http://stubUrl/link");
+                assert.strictEqual(getStub.callCount, 1);
+                assert.strictEqual(getStub.args[0][0], "http://stubUrl/link");
                 done();
             }, (err) => {
                 throw err;
@@ -83,8 +83,8 @@ describe('Unit Tests', () => {
             var getArtifactItemPromise = webProvider.getArtifactItem(artifactItem);
 
             getArtifactItemPromise.then(() => {
-                assert.equal(getStub.callCount, 1);
-                assert.equal(getStub.args[0][0], "http://stubUrl");
+                assert.strictEqual(getStub.callCount, 1);
+                assert.strictEqual(getStub.args[0][0], "http://stubUrl");
                 done();
             }, (err) => {
                 throw err;
@@ -97,8 +97,8 @@ describe('Unit Tests', () => {
             var getArtifactItemPromise = webProvider.getArtifactItem(artifactItem);
 
             getArtifactItemPromise.then(() => {
-                assert.equal(getStub.callCount, 1);
-                assert.equal(getStub.args[0][0], "http://stubUrl/link");
+                assert.strictEqual(getStub.callCount, 1);
+                assert.strictEqual(getStub.args[0][0], "http://stubUrl/link");
                 done();
             }, (err) => {
                 throw err;
@@ -112,8 +112,8 @@ describe('Unit Tests', () => {
             var getArtifactItemPromise = webProvider.getArtifactItem(artifactItem);
 
             getArtifactItemPromise.then(() => {
-                assert.equal(stubResponse.message.pipe.callCount, 1);
-                assert.equal(stubResponse.message.pipe.args[0][0].constructor.name, 'Unzip');
+                assert.strictEqual(stubResponse.message.pipe.callCount, 1);
+                assert.strictEqual(stubResponse.message.pipe.args[0][0].constructor.name, 'Unzip');
                 done();
             }, (err) => {
                 throw err;

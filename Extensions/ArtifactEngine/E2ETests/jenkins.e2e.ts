@@ -46,12 +46,12 @@ describe('E2E Tests', () => {
                         if (err) {
                             throw err;
                         }
-                        assert.equal(data, "dummyFolderContent");
+                        assert.strictEqual(data, "dummyFolderContent");
                         done();
                     });
 
-                    assert.equal(tickets.find(x => x.artifactItem.path == "Extensions/ArtifactEngine/TestData/Jenkins/file1.pdb").retryCount, 0);
-                    assert.equal(tickets.find(x => x.artifactItem.path == "Extensions/ArtifactEngine/TestData/Jenkins/folder1/file2.txt").retryCount, 0);
+                    assert.strictEqual(tickets.find(x => x.artifactItem.path == "Extensions/ArtifactEngine/TestData/Jenkins/file1.pdb").retryCount, 0);
+                    assert.strictEqual(tickets.find(x => x.artifactItem.path == "Extensions/ArtifactEngine/TestData/Jenkins/folder1/file2.txt").retryCount, 0);
                 }, (error) => {
                     throw error;
                 });
@@ -77,8 +77,8 @@ describe('E2E Tests', () => {
             processor.processItems(zipProvider, filesystemProvider, processorOptions)
                 .then((tickets) => {
                     fs.existsSync(path.join(nconf.get('DROPLOCATION'), 'jenkinsDropWithMultipleFiles.zip'));
-                    assert.equal(tickets.find(x => x.artifactItem.path == "").retryCount, 0);
-                    assert.notEqual(tickets.find(x => x.artifactItem.path == "").fileSizeInBytes, 0);
+                    assert.strictEqual(tickets.find(x => x.artifactItem.path == "").retryCount, 0);
+                    assert.notStrictEqual(tickets.find(x => x.artifactItem.path == "").fileSizeInBytes, 0);
                     done();
                 }, (error) => {
                     throw error;
@@ -107,7 +107,7 @@ describe('E2E Tests', () => {
                 .then((tickets) => {
                     assert.fail();
                 }, (error) => {
-                    assert.equal(error.statusCode, 404);
+                    assert.strictEqual(error.statusCode, 404);
                     done();
                 });
         });

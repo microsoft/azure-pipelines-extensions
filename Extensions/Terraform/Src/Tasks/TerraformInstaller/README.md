@@ -19,15 +19,15 @@ The task can run on the following build agent operating systems:
 - MacOS
 - Linux
 
-** Terraform is already installed on hosted Ubuntu build agents (currently version 0.11.13). So, this task may not be used for these agents unless a different vesrion of Terraform is needed.
+** Terraform is already installed on hosted Ubuntu build agents. So, this task may be omitted for these agents unless a different vesrion of Terraform is needed.
 
 ### Parameters of the task
 
 * **Display name\*:** Provide a name to identify the task among others in your pipeline.
 
-* **Version\*:** Specify the exact version of Teraform to install.
+* **Version\*:** Specify the keyword 'latest' to get the latest released version or specify exact version of Teraform to install.  
 Example: 
-    To install Terraform version 0.11.4, use 0.11.4
+    To install latest Terraform version use keyword: latest.  To install specific version Ex. 1.0.8, use 1.0.8.
 For getting more details about exact version, refer [this link](https://releases.hashicorp.com/terraform/)
 
 

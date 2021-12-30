@@ -18,9 +18,13 @@ The tasks are capable of running on the following build agent operating systems:
 For more detailed information about the tasks, see the README for each from the below links:
 
 - [Terraform tool installer](https://aka.ms/AA5jd97)
-- [Terraform](https://aka.ms/AA5j5pf)
+- [Terraform](https://aka.ms/AAese2w)
 
 
 ## Contact Information
 
-Please report a problem at [Developer Community Forum](https://developercommunity.visualstudio.com/spaces/21/index.html) if you are facing problems in making this extension work.  You can also share feedback about the extension like, what more functionality should be added to the extension, what other tasks you would like to have, at the same place.
+This extension is authored by [Microsoft DevLabs](https://marketplace.visualstudio.com/publishers/Microsoft%20DevLabs). It is not supported by Microsoft.
+
+To report a problem with this extension, create an issue in this repository. The maintainers of this repository will review and respond to the issue.
+
+You can also report problems or share feedback about this extension on [Developer Community Forum](https://developercommunity.visualstudio.com/spaces/21/index.html).

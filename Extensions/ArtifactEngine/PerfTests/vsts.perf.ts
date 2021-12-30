@@ -44,7 +44,7 @@ describe('Perf Tests', () => {
             processor.processItems(webProvider, filesystemProvider, processorOptions)
                 .then((tickets) => {
                     let fileTickets = tickets.filter(x => x.artifactItem.itemType == ItemType.File && x.state === TicketState.Processed);
-                    assert.equal(fileTickets.length, 301);
+                    assert.strictEqual(fileTickets.length, 301);
                     assert(getDownloadSizeInMB(fileTickets) > 400);
                     done();
                 }, (error) => {
@@ -75,7 +75,7 @@ describe('Perf Tests', () => {
             processor.processItems(webProvider, filesystemProvider, processorOptions)
                 .then((tickets) => {
                     let fileTickets = tickets.filter(x => x.artifactItem.itemType == ItemType.File && x.state === TicketState.Processed);
-                    assert.equal(fileTickets.length, 20391);
+                    assert.strictEqual(fileTickets.length, 20391);
                     assert(getDownloadSizeInMB(fileTickets) > 15);
                     done();
                 }, (error) => {

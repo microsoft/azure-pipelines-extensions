@@ -1,0 +1,266 @@
+{
+  "id": "FE504ACC-6115-40CB-89FF-191386B5E7BF",
+  "name": "TerraformTaskV2",
+  "friendlyName": "ms-resource:loc.friendlyName",
+  "description": "ms-resource:loc.description",
+  "author": "Microsoft Corporation",
+  "helpMarkDown": "ms-resource:loc.helpMarkDown",
+  "category": "Deploy",
+  "visibility": [
+    "Build",
+    "Release"
+  ],
+  "demands": [],
+  "version": {
+    "Major": "2",
+    "Minor": "195",
+    "Patch": "1"
+  },
+  "instanceNameFormat": "ms-resource:loc.instanceNameFormat",
+  "execution": {
+    "Node10": {
+      "target": "src/index.js"
+    }
+  },
+  "groups": [
+    {
+      "name": "backendAzureRm",
+      "displayName": "ms-resource:loc.group.displayName.backendAzureRm",
+      "isExpanded": true,
+      "visibleRule": "provider = azurerm && command = init"
+    },
+    {
+      "name": "backendAWS",
+      "displayName": "ms-resource:loc.group.displayName.backendAWS",
+      "isExpanded": true,
+      "visibleRule": "provider = aws && command = init"
+    },
+    {
+      "name": "backendGCP",
+      "displayName": "ms-resource:loc.group.displayName.backendGCP",
+      "isExpanded": true,
+      "visibleRule": "provider = gcp && command = init"
+    }
+  ],
+  "inputs": [
+    {
+      "name": "provider",
+      "type": "picklist",
+      "label": "ms-resource:loc.input.label.provider",
+      "defaultValue": "azurerm",
+      "required": true,
+      "helpMarkDown": "ms-resource:loc.input.help.provider",
+      "options": {
+        "azurerm": "azurerm",
+        "aws": "aws",
+        "gcp": "gcp"
+      },
+      "properties": {
+        "EditableOptions": "False"
+      }
+    },
+    {
+      "name": "command",
+      "type": "pickList",
+      "label": "ms-resource:loc.input.label.command",
+      "defaultValue": "init",
+      "required": true,
+      "helpMarkDown": "ms-resource:loc.input.help.command",
+      "options": {
+        "init": "init",
+        "validate": "validate",
+        "plan": "plan",
+        "apply": "validate and apply",
+        "destroy": "destroy"
+      },
+      "properties": {
+        "EditableOptions": "False"
+      }
+    },
+    {
+      "name": "workingDirectory",
+      "type": "filePath",
+      "label": "ms-resource:loc.input.label.workingDirectory",
+      "defaultValue": "$(System.DefaultWorkingDirectory)",
+      "helpMarkDown": "ms-resource:loc.input.help.workingDirectory",
+      "required": false
+    },
+    {
+      "name": "commandOptions",
+      "type": "string",
+      "label": "ms-resource:loc.input.label.commandOptions",
+      "helpMarkDown": "ms-resource:loc.input.help.commandOptions",
+      "required": false
+    },
+    {
+      "name": "environmentServiceNameAzureRM",
+      "type": "connectedService:AzureRM",
+      "label": "ms-resource:loc.input.label.environmentServiceNameAzureRM",
+      "required": true,
+      "visibleRule": "provider = azurerm && command != init && command != validate",
+      "helpMarkDown": "ms-resource:loc.input.help.environmentServiceNameAzureRM"
+    },
+    {
+      "name": "environmentServiceNameAWS",
+      "type": "connectedService:AWSServiceEndpoint",
+      "label": "ms-resource:loc.input.label.environmentServiceNameAWS",
+      "required": true,
+      "visibleRule": "provider = aws && command != init && command != validate",
+      "helpMarkDown": "ms-resource:loc.input.help.environmentServiceNameAWS"
+    },
+    {
+      "name": "environmentServiceNameGCP",
+      "type": "connectedService:GoogleCloudServiceEndpoint",
+      "label": "ms-resource:loc.input.label.environmentServiceNameGCP",
+      "required": true,
+      "visibleRule": "provider = gcp && command != init && command != validate",
+      "helpMarkDown": "ms-resource:loc.input.help.environmentServiceNameGCP"
+    },
+    {
+      "name": "backendServiceArm",
+      "type": "connectedService:AzureRM",
+      "label": "ms-resource:loc.input.label.backendServiceArm",
+      "required": true,
+      "helpMarkDown": "ms-resource:loc.input.help.backendServiceArm",
+      "groupName": "backendAzureRm"
+    },
+    {
+      "name": "backendAzureRmResourceGroupName",
+      "type": "pickList",
+      "label": "ms-resource:loc.input.label.backendAzureRmResourceGroupName",
+      "required": true,
+      "helpMarkDown": "ms-resource:loc.input.help.backendAzureRmResourceGroupName",
+      "groupName": "backendAzureRm",
+      "properties": {
+        "EditableOptions": "True"
+      }
+    },
+    {
+      "name": "backendAzureRmStorageAccountName",
+      "type": "pickList",
+      "label": "ms-resource:loc.input.label.backendAzureRmStorageAccountName",
+      "required": true,
+      "helpMarkDown": "ms-resource:loc.input.help.backendAzureRmStorageAccountName",
+      "groupName": "backendAzureRm",
+      "properties": {
+        "EditableOptions": "True"
+      }
+    },
+    {
+      "name": "backendAzureRmContainerName",
+      "type": "pickList",
+      "label": "ms-resource:loc.input.label.backendAzureRmContainerName",
+      "required": true,
+      "helpMarkDown": "ms-resource:loc.input.help.backendAzureRmContainerName",
+      "groupName": "backendAzureRm",
+      "properties": {
+        "EditableOptions": "True"
+      }
+    },
+    {
+      "name": "backendAzureRmKey",
+      "type": "string",
+      "label": "ms-resource:loc.input.label.backendAzureRmKey",
+      "required": true,
+      "helpMarkDown": "ms-resource:loc.input.help.backendAzureRmKey",
+      "groupName": "backendAzureRm"
+    },
+    {
+      "name": "backendServiceAWS",
+      "type": "connectedService:AWSServiceEndpoint",
+      "label": "ms-resource:loc.input.label.backendServiceAWS",
+      "required": true,
+      "helpMarkDown": "ms-resource:loc.input.help.backendServiceAWS",
+      "groupName": "backendAWS"
+    },
+    {
+      "name": "backendAWSBucketName",
+      "type": "pickList",
+      "label": "ms-resource:loc.input.label.backendAWSBucketName",
+      "required": true,
+      "helpMarkDown": "ms-resource:loc.input.help.backendAWSBucketName",
+      "groupName": "backendAWS",
+      "properties": {
+        "EditableOptions": "True"
+      }
+    },
+    {
+      "name": "backendAWSKey",
+      "type": "string",
+      "label": "ms-resource:loc.input.label.backendAWSKey",
+      "required": true,
+      "helpMarkDown": "ms-resource:loc.input.help.backendAWSKey",
+      "groupName": "backendAWS"
+    },
+    {
+      "name": "backendServiceGCP",
+      "type": "connectedService:GoogleCloudServiceEndpoint",
+      "label": "ms-resource:loc.input.label.backendServiceGCP",
+      "required": true,
+      "helpMarkDown": "ms-resource:loc.input.help.backendServiceGCP",
+      "groupName": "backendGCP"
+    },
+    {
+      "name": "backendGCPBucketName",
+      "type": "pickList",
+      "label": "ms-resource:loc.input.label.backendGCPBucketName",
+      "required": true,
+      "helpMarkDown": "ms-resource:loc.input.help.backendGCPBucketName",
+      "groupName": "backendGCP",
+      "properties": {
+        "EditableOptions": "True"
+      }
+    },
+    {
+      "name": "backendGCPPrefix",
+      "type": "string",
+      "label": "ms-resource:loc.input.label.backendGCPPrefix",
+      "required": false,
+      "helpMarkDown": "ms-resource:loc.input.help.backendGCPPrefix",
+      "groupName": "backendGCP"
+    }
+  ],
+  "dataSourceBindings": [
+    {
+      "target": "backendAzureRmResourceGroupName",
+      "endpointId": "$(backendServiceArm)",
+      "endpointUrl": "{{{endpoint.url}}}subscriptions/{{{endpoint.subscriptionId}}}/resourcegroups?api-version=2019-05-01",
+      "resultSelector": "jsonpath:$.value[*].name"
+    },
+    {
+      "target": "backendAzureRmStorageAccountName",
+      "endpointId": "$(backendServiceArm)",
+      "endpointUrl": "{{{endpoint.url}}}subscriptions/{{{endpoint.subscriptionId}}}/resourceGroups/$(backendAzureRmResourceGroupName)/providers/Microsoft.Storage/storageAccounts?api-version=2019-04-01",
+      "resultSelector": "jsonpath:$.value[*].name"
+    },
+    {
+      "target": "backendAzureRmContainerName",
+      "endpointId": "$(backendServiceArm)",
+      "endpointUrl": "{{{endpoint.url}}}subscriptions/{{{endpoint.subscriptionId}}}/resourceGroups/$(backendAzureRmResourceGroupName)/providers/Microsoft.Storage/storageAccounts/$(backendAzureRmStorageAccountName)/blobServices/default/containers?api-version=2019-04-01",
+      "resultSelector": "jsonpath:$.value[*].name"
+    },
+    {
+      "target": "backendAWSBucketName",
+      "endpointId": "$(backendServiceAWS)",
+      "dataSourceName": "AWS"
+    },
+    {
+      "target": "backendGCPBucketName",
+      "endpointId": "$(backendServiceGCP)",
+      "dataSourceName": "GCP"
+    }
+  ],
+  "outputVariables": [
+    {
+      "name": "jsonPlanFilePath",
+      "description": "The location of the terraform plan file in JSON format that was created. This file can be used by tasks which are written for tools such as [Open Policy Agent](https://www.openpolicyagent.org/docs/latest/terraform/)<br><br>Note: This variable will only be set if 'command' input is set to 'plan'."
+    },
+    {
+      "name": "jsonOutputVariablesPath",
+      "description": "The location of the JSON file which contains the output variables set by the user in the terraform config files.<br><br>Note: This variable will only be set if 'command' input is set to 'apply'."
+    }
+  ],
+  "messages": {
+    "TerraformToolNotFound": "ms-resource:loc.messages.TerraformToolNotFound"
+  }
+}
