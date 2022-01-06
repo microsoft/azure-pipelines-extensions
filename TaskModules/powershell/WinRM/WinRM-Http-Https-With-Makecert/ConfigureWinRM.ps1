@@ -93,7 +93,7 @@ function Configure-WinRMHttpsListener
 		
 		# Create Sliding Window for Expiration
 		$currentDate = get-date
-		$expirationDate = $currentDate.AddYears(1)
+		$expirationDate = $currentDate.AddYears(10)
 		
 		# Formatting
 		$startDateString = $currentDate.ToString("MM/dd/yyyy")
