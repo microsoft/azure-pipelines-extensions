@@ -147,7 +147,7 @@ export abstract class BaseTerraformCommandHandler {
                 "plan",
                 tasks.getInput("workingDirectory"),
                 tasks.getInput(serviceName, true),
-                `${tasks.getInput("commandOptions")} -out=${binaryPlanFilePath}`
+                `${tasks.getInput("commandOptions") || ''} -out=${binaryPlanFilePath}`
             );
             terraformTool = this.terraformToolHandler.createToolRunner(planCommand);
             this.handleProvider(planCommand);
