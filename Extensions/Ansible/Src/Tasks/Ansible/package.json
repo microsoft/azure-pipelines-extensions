@@ -6,12 +6,12 @@
   "author": "Microsoft",
   "license": "ISC",
   "dependencies": {
+    "azure-devops-node-api": "^11.1.1",
     "azure-pipelines-task-lib": "^3.2.0",
     "scp2": "^0.5.0",
     "shelljs": "^0.8.5",
     "ssh2": "^0.5.5",
-    "uuid": "^8.3.2",
-    "vso-node-api": "6.0.1-preview "
+    "uuid": "^8.3.2"
   },
   "devDependencies": {
     "@types/mocha": "^9.1.0",
