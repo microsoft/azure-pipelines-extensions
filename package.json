@@ -14,7 +14,7 @@
     "del": "^2.2.0",
     "fs-extra": "^0.28.0",
     "gulp": "^3.9.1",
-    "gulp-mocha": "^7.0.2",
+    "gulp-mocha": "^6.0.0",
     "gulp-typescript": "^6.0.0-alpha.1",
     "gulp-unzip": "^1.1.0",
     "gulp-util": "^1.0.0",
