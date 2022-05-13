@@ -14,7 +14,7 @@
   ],
   "version": {
     "Major": 2,
-    "Minor": 176,
+    "Minor": 202,
     "Patch": 0
   },
   "instanceNameFormat": "ServiceNow change management",
@@ -360,7 +360,7 @@
         {
           "RequestInputs": {
             "EndpointId": "$(ServiceNowConnection)",
-            "EndpointUrl": "$(endpoint.url)/api/now/table/change_request?x_mioms_azpipeline_stage_id=$(system.stageId)&x_mioms_azpipeline_build_id=$(build.buildId)&x_mioms_azpipeline_stage_attempt=$(checks.stageAttempt)&sysparm_fields=number,sys_id,correlation_id",
+            "EndpointUrl": "$(endpoint.url)/api/now/table/change_request?x_mioms_azpipeline_stage_id=$(checks.stageId)&x_mioms_azpipeline_build_id=$(build.buildId)&x_mioms_azpipeline_stage_attempt=$(checks.stageAttempt)&sysparm_fields=number,sys_id,correlation_id",
             "Method": "GET",
             "Headers": "{\"Content-Type\":\"application/json\", \"Accept\":\"application/json\"}",
             "WaitForCompletion": "true"
@@ -375,7 +375,7 @@
             "EndpointId": "$(ServiceNowConnection)",
             "EndpointUrl": "$(endpoint.url)/api/now/import/x_mioms_azpipeline_change_request_import",
             "Method": "POST",
-            "Body": "{  \"u_correlation_id\": \"{{#newGuid}}{{/newGuid}}\",\"u_type\": \"$(changeType)\",\"u_x_mioms_azpi_eline_metadata\": \"Collection URI: $(system.collectionUri) \\r\\n Project: $(system.teamProject) \\r\\n StageName: $(system.stageName) \\r\\n RequestedFor: $(build.requestedFor)\", \"u_short_description\": \"$(shortdescription)\"{{#equals changeType 'Normal' 1}}{{#if description}}, \"u_description\": \"$(description)\"{{/if}}{{#if category}}, \"u_category\": \"$(category)\"{{/if}}{{#if priority}}, \"u_priority\": \"$(priority)\"{{/if}}{{#if risk}}, \"u_risk\": \"$(risk)\"{{/if}}{{#if impact}}, \"u_impact\": \"$(impact)\"{{/if}}{{#if configurationitem}}, \"u_cmdb_ci\": \"$(configurationitem)\" {{/if}}{{#if assignmentgroup}}, \"u_assignment_group\": \"$(assignmentgroup)\"{{/if}}{{/equals}}, \"u_requested_by_date\": \"{{toDateTimeFormat '$(system.checksStartTime)' 'dd-MM-yyyy HH:mm:ss UTC'}}\", \"u_start_date\": \"{{#if schedulestarttime}}{{toDateTimeFormat '$(schedulestarttime)' 'dd-MM-yyyy HH:mm:ss UTC'}}{{/if}}\",  \"u_end_date\": \"{{#if scheduleendtime}}{{toDateTimeFormat '$(scheduleendtime)' 'dd-MM-yyyy HH:mm:ss UTC'}}{{/if}}\" {{#if otherParameters}}{{toCommaSeparatedKeyValueList otherParameters true}}{{/if}}{{#equals changeType 'Standard' 1}}{{#if standardChangeTemplate}} , \"template_id\": \"$(standardChangeTemplate)\" {{/if}}{{/equals}}, \"u_x_mioms_azpipeline_stage_id\": \"$(system.stageId)\", \"u_x_mioms_azpipeline_build_id\": \"$(build.buildId)\", \"u_x_mioms_azpi__stage_attempt\": \"$(checks.stageAttempt)\" }",
+            "Body": "{  \"u_correlation_id\": \"{{#newGuid}}{{/newGuid}}\",\"u_type\": \"$(changeType)\",\"u_x_mioms_azpi_eline_metadata\": \"Collection URI: $(system.collectionUri) \\r\\n Project: $(system.teamProject) \\r\\n StageName: $(system.stageName) \\r\\n RequestedFor: $(build.requestedFor)\", \"u_short_description\": \"$(shortdescription)\"{{#equals changeType 'Normal' 1}}{{#if description}}, \"u_description\": \"$(description)\"{{/if}}{{#if category}}, \"u_category\": \"$(category)\"{{/if}}{{#if priority}}, \"u_priority\": \"$(priority)\"{{/if}}{{#if risk}}, \"u_risk\": \"$(risk)\"{{/if}}{{#if impact}}, \"u_impact\": \"$(impact)\"{{/if}}{{#if configurationitem}}, \"u_cmdb_ci\": \"$(configurationitem)\" {{/if}}{{#if assignmentgroup}}, \"u_assignment_group\": \"$(assignmentgroup)\"{{/if}}{{/equals}}, \"u_requested_by_date\": \"{{toDateTimeFormat '$(system.checksStartTime)' 'dd-MM-yyyy HH:mm:ss UTC'}}\", \"u_start_date\": \"{{#if schedulestarttime}}{{toDateTimeFormat '$(schedulestarttime)' 'dd-MM-yyyy HH:mm:ss UTC'}}{{/if}}\",  \"u_end_date\": \"{{#if scheduleendtime}}{{toDateTimeFormat '$(scheduleendtime)' 'dd-MM-yyyy HH:mm:ss UTC'}}{{/if}}\" {{#if otherParameters}}{{toCommaSeparatedKeyValueList otherParameters true}}{{/if}}{{#equals changeType 'Standard' 1}}{{#if standardChangeTemplate}} , \"template_id\": \"$(standardChangeTemplate)\" {{/if}}{{/equals}}, \"u_x_mioms_azpipeline_stage_id\": \"$(checks.stageId)\", \"u_x_mioms_azpipeline_build_id\": \"$(build.buildId)\", \"u_x_mioms_azpi__stage_attempt\": \"$(checks.stageAttempt)\" }",
             "Headers": "{\"Content-Type\":\"application/json\", \"Accept\":\"application/json\"}",
             "WaitForCompletion": "false",
             "Expression": "eq(jsonpath('$.result[0].status')[0], 'inserted')"
