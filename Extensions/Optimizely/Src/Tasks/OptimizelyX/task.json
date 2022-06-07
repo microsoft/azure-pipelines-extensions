@@ -1,5 +1,5 @@
 {
-    "id": "2d72713f-577c-4a89-b77c-d3c714f8268f",
+    "id": "883c868f-8143-40a4-a08d-cdea4a447bbe",
     "name": "OptimizelyX",
     "friendlyName": "Optimizely experiments & featureRollouts",
     "description": "Deploy code behind feature flags or experiment with A/B tests",
@@ -17,7 +17,7 @@
     "version": {
         "Major": 0,
         "Minor": 0,
-        "Patch": 76
+        "Patch": 77
     },
     "preview": "true",
     "releaseNotes": "Manage Optimizely experiements and feature rollouts.",

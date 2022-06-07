@@ -19,14 +19,14 @@
 		"webpack": "webpack --progress --colors --config webpack.config.js --output-path ./dist"
 	},
 	"devDependencies": {
-		"babel-core": "6.4.5",
+		"babel-core": "^6.26.3",
 		"babel-loader": "^6.3.2",
 		"babel-plugin-transform-runtime": "6.23.0",
 		"babel-preset-es2015": "^6.22.0",
 		"babel-preset-react": "^6.23.0",
 		"cpx": "^1.5.0",
 		"rimraf": "^2.6.1",
-		"tfx-cli": "^0.5.3",
+		"tfx-cli": "^0.12.0",
 		"ts-loader": "^3.2.0",
 		"tslint": "^5.9.1",
 		"tslint-loader": "^3.5.3",
@@ -37,7 +37,7 @@
 	"dependencies": {
 		"@types/jquery": "^3.2.18",
 		"@types/react": "^16.0.25",
-		"grunt": "^1.0.3",
+		"grunt": "^1.5.3",
 		"react": "^16.7.0",
 		"react-dom": "^16.7.0",
 		"vss-web-extension-sdk": "^5.127.0"
