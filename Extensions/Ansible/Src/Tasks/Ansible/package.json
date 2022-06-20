@@ -9,8 +9,8 @@
     "scp2": "^0.5.0",
     "shelljs": "^0.8.5",
     "ssh2": "^1.10.0",
-    "uuid": "^8.3.2",
-    "vso-node-api": "6.3.1-preview",
+    "uuid": "^3.3.2",
+    "vso-node-api": "6.0.1-preview",
     "vsts-task-lib": "2.0.5"
   },
   "devDependencies": {},
