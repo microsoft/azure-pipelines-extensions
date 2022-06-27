@@ -2,7 +2,8 @@
   "name": "DownloadArtifactsTfsGit",
   "main": "download.js",
   "dependencies": {
-    "azure-devops-node-api": "10.2.1",
-    "vsts-task-lib": "2.0.5"
+    "azure-devops-node-api": "11.1.1",
+    "azure-pipelines-task-lib": "^3.3.1"
+   
   }
 }
