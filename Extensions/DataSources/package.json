@@ -30,17 +30,17 @@
     "@types/react": "~16.8.2",
     "@types/react-dom": "~16.8.0",
     "base64-inline-loader": "^1.1.1",
-    "copy-webpack-plugin": "^4.5.4",
+    "copy-webpack-plugin": "^11.0.0",
     "css-loader": "~1.0.0",
     "file-loader": "~2.0.0",
-    "node-sass": "~4.9.4",
+    "node-sass": "~4.14.1",
     "rimraf": "~2.6.2",
-    "sass-loader": "~7.1.0",
+    "sass-loader": "~13.0.0",
     "style-loader": "~0.23.1",
-    "tfx-cli": "^0.6.3",
-    "ts-loader": "~5.2.2",
+    "tfx-cli": "^0.12.0",
+    "ts-loader": "~9.3.0",
     "typescript": "^2.9.2",
-    "webpack": "^4.22.0",
+    "webpack": "^5.73.0",
     "webpack-cli": "^3.1.2"
   }
 }
