@@ -20,26 +20,25 @@
 	},
 	"devDependencies": {
 		"babel-core": "^6.26.3",
-		"babel-loader": "^6.3.2",
+		"babel-loader": "^8.2.5",
 		"babel-plugin-transform-runtime": "6.23.0",
 		"babel-preset-es2015": "^6.22.0",
-		"babel-preset-react": "^6.23.0",
-		"cpx": "^1.5.0",
-		"rimraf": "^2.6.1",
+		"babel-preset-react": "^6.24.1",
+		"rimraf": "^3.0.2",
 		"tfx-cli": "^0.12.0",
 		"ts-loader": "^3.2.0",
-		"tslint": "^5.9.1",
-		"tslint-loader": "^3.5.3",
-		"typescript": "^2.8.4",
-		"webpack": "^3.10.0",
-		"webpack-dev-server": "^2.11.1"
+		"tslint": "^5.20.1",
+		"tslint-loader": "^3.5.4",
+		"typescript": "^4.7.4",
+		"webpack": "^5.73.0",
+		"webpack-dev-server": "^4.9.3"
 	},
 	"dependencies": {
-		"@types/jquery": "^3.2.18",
-		"@types/react": "^16.0.25",
+		"@types/jquery": "^3.5.14",
+		"@types/react": "^18.0.15",
 		"grunt": "^1.5.3",
-		"react": "^16.7.0",
-		"react-dom": "^16.7.0",
-		"vss-web-extension-sdk": "^5.127.0"
+		"react": "^18.2.0",
+		"react-dom": "^18.2.0",
+		"vss-web-extension-sdk": "^5.141.0"
 	}
 }
