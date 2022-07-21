@@ -28,7 +28,7 @@ module.exports = {
                 test: /\.jsx?$/,
                 use: [
                     {
-                        loader: 'eslint-loader',
+                        loader: 'eslint-webpack-plugin',
                         options: {
                             emitWarning: true
                         }
