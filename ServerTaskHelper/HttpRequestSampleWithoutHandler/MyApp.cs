@@ -87,7 +87,7 @@ namespace HttpRequestSampleWithoutHandler
                     pageWriter.Dispose();
 
                     // Append task log data
-                    AppendToTaskLog(httpClient, authToken, planUri, projectId, hubName, planId, taskLogObject["id"].Value<string>(), logFileName);
+                    AppendToTaskLog(httpClient, authToken, planUri, projectId, hubName, planId, taskLogId: taskLogObject["id"].Value<string>(), logFileName);
 
                     // Attache task log to the timeline record
                     UpdateTaskTimelineRecord(httpClient, authToken, planUri, projectId, hubName, planId, timelineId, taskInstanceId, taskLogObjectString);

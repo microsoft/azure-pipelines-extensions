@@ -57,7 +57,7 @@ namespace AzureFunctionSample
             var env = new Dictionary<string, string>
                 {
                     { "VSTS_ACCOUNT", myAppParameters.PipelineAccountName },
-                    { "VSTS_TOKEN",  myAppParameters.PATToken },  // This PAT token used to configure the agent. This PAT token should have permission to configure the agent else container moves to running state without configuring the agent 
+                    { "VSTS_TOKEN",  myAppParameters.PATToken },  // This PAT token used to configure the agent. This PAT token should have permission to configure the agent else container moves to running state without configuring the agent
                     { "VSTS_AGENT", myAppParameters.AgentName },
                     { "VSTS_POOL", myAppParameters.AgentPoolName }
                 };

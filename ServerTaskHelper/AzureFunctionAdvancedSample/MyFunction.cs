@@ -1,27 +1,28 @@
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Threading;
 using System.Threading.Tasks;
-using DistributedTask.ServerTask.Remote.Common;
-using DistributedTask.ServerTask.Remote.Common.Request;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
-using Microsoft.VisualStudio.Services.Common;
+using System.ComponentModel;
+using System.Threading;
 using Microsoft.VisualStudio.Services.Identity;
+using Microsoft.VisualStudio.Services.Common;
+using System.Collections.Generic;
+using System.Net.Http.Headers;
+using DistributedTask.ServerTask.Remote.Common.Request;
+using System.Linq;
+using System.Net.Http;
+using DistributedTask.ServerTask.Remote.Common;
 
-namespace AzureFunctionHandler
+namespace AzureFunctionAdvancedSample
 {
     public static class MyFunction
     {
         [FunctionName("MyFunction")]
-        public static async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)]HttpRequestMessage req, ILogger log)
+        public static async Task<IActionResult> Run(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequestMessage req,
+            ILogger log)
         {
             TypeDescriptor.AddAttributes(typeof(IdentityDescriptor), new TypeConverterAttribute(typeof(IdentityDescriptorConverter).FullName));
             TypeDescriptor.AddAttributes(typeof(SubjectDescriptor), new TypeConverterAttribute(typeof(SubjectDescriptorConverter).FullName));
@@ -34,16 +35,13 @@ namespace AzureFunctionHandler
             var taskProperties = GetTaskProperties(req.Headers);
 
             // Created task execution handler
-            Task.Run(() =>
-            {
-                ITaskExecutionHandler myTaskExecutionHandler = new MyTaskExecutionHandler();
-                var executionHandler = new ExecutionHandler(myTaskExecutionHandler, messageBody, taskProperties);
-                executionHandler.Execute(CancellationToken.None);
-            })
-            // log errors in case there are some
-            .ContinueWith(task => log.LogInformation(task.Exception.Message), TaskContinuationOptions.OnlyOnFaulted)
-            // control is kept with the spawned off thread and not returned to the main one
-            .ConfigureAwait(false);
+            ITaskExecutionHandler myTaskExecutionHandler = new MyBasicTaskExecutionHandler();
+
+            var executionHandler = new ExecutionHandler(myTaskExecutionHandler, messageBody, taskProperties);
+#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+            var executionThread = new Thread(() => executionHandler.Execute(CancellationToken.None));
+#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+            executionThread.Start();
 
             return new OkObjectResult("Request accepted!");
         }

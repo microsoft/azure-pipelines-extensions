@@ -104,7 +104,7 @@ namespace DistributedTask.ServerTask.Remote.Common.Request
             return projectId;
         }
 
-        private readonly List<string> validHubNameList = new List<string> { "Build", "Release", "Gates" };
+        private readonly List<string> validHubNameList = new List<string> { "Build", "Release", "Gates", "Checks" };
         private const string ProjectIdKey = "ProjectId";
         private const string JobIdKey = "JobId";
         private const string PlanIdKey = "PlanId";
