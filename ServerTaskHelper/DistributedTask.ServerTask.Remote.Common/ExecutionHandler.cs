@@ -39,7 +39,7 @@ namespace DistributedTask.ServerTask.Remote.Common
                     taskLogger = new TaskLogger(taskProperties, taskClient);
 
                     // report task started
-                    await taskLogger.Log("Task started").ConfigureAwait(false);
+                    await taskLogger.LogImmediately("Task started");
                     await taskClient.ReportTaskStarted(taskProperties.TaskInstanceId, cancellationToken).ConfigureAwait(false);
 
                     await taskClient.ReportTaskProgress(taskProperties.TaskInstanceId, cancellationToken).ConfigureAwait(false);
@@ -49,7 +49,7 @@ namespace DistributedTask.ServerTask.Remote.Common
                     taskResult = await executeTask;
 
                     // report task completed with status
-                    await taskLogger.Log("Task completed").ConfigureAwait(false);
+                    await taskLogger.LogImmediately("Task completed");
                     await taskClient.ReportTaskCompleted(taskProperties.TaskInstanceId, taskResult, cancellationToken).ConfigureAwait(false);
                     return taskResult;
                 }

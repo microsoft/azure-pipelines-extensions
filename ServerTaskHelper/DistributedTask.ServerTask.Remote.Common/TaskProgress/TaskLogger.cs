@@ -46,6 +46,11 @@ namespace DistributedTask.ServerTask.Remote.Common.TaskProgress
             await LogPage(line).ConfigureAwait(false);
         }
 
+        public async Task LogImmediately(string message)
+        {
+            await Log(message);
+            await End();
+        }
         public async Task End()
         {
             await EndPage().ConfigureAwait(false);
@@ -105,5 +110,6 @@ namespace DistributedTask.ServerTask.Remote.Common.TaskProgress
                 await taskClient.UpdateTimelineRecordsAsync(attachmentUpdataRecord, default(CancellationToken)).ConfigureAwait(false);
             }
         }
+
     }
 }

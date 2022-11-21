@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading;
@@ -36,7 +35,7 @@ namespace AzureFunctionHandler
             // Created task execution handler
             Task.Run(() =>
             {
-                ITaskExecutionHandler myTaskExecutionHandler = new MyTaskExecutionHandler();
+                ITaskExecutionHandler myTaskExecutionHandler = new MyTaskExecutionHandler(taskProperties);
                 var executionHandler = new ExecutionHandler(myTaskExecutionHandler, messageBody, taskProperties);
                 executionHandler.Execute(CancellationToken.None);
             })
@@ -52,12 +51,9 @@ namespace AzureFunctionHandler
         {
             IDictionary<string, string> taskProperties = new Dictionary<string, string>();
 
-            foreach (var taskProperty in TaskProperties.PropertiesList)
+            foreach (var requestHeader in requestHeaders)
             {
-                if (requestHeaders.TryGetValues(taskProperty, out var propertyValues))
-                {
-                    taskProperties.Add(taskProperty, propertyValues.First());
-                }
+                taskProperties.Add(requestHeader.Key, requestHeader.Value.First());
             }
 
             return new TaskProperties(taskProperties);
