@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using AzureFunctionAdvancedSample.VstsHandlers;
 using DistributedTask.ServerTask.Remote.Common;
@@ -19,20 +20,28 @@ namespace AzureFunctionHandler
 
         public async Task<TaskResult> ExecuteAsync(TaskMessage taskMessage, TaskLogger taskLogger, CancellationToken cancellationToken)
         {
-            // Step #2: Send a status update to Azure Pipelines that the check started
-            await taskLogger.LogImmediately("Check has started.");
+            try
+            {
+                // Step #2: Send a status update to Azure Pipelines that the check started
+                await taskLogger.LogImmediately("Check has started.");
 
-            // Step #3: Retrieve pipeline run's Timeline entry
-            var buildClient = new BuildClient(taskProperties);
-            var timeline = buildClient.GetTimelineByBuildId();
+                // Step #3: Retrieve pipeline run's Timeline entry
+                var buildClient = new BuildClient(taskProperties);
+                var timeline = buildClient.GetTimelineByBuildId();
 
-            // Step #4: Check if the Timeline contains a CmdLine task
-            var isCmdLineTaskPresent = BuildClient.IsCmdLineTaskPresent(timeline);
+                // Step #4: Check if the Timeline contains a CmdLine task
+                var isCmdLineTaskPresent = BuildClient.IsCmdLineTaskPresent(timeline);
 
-            // Step #5: Send a status update with the result of the search
-            await taskLogger.LogImmediately($"CmdLine task is present: {isCmdLineTaskPresent}");
+                // Step #5: Send a status update with the result of the search
+                await taskLogger.LogImmediately($"CmdLine task is present: {isCmdLineTaskPresent}");
 
-            return await Task.FromResult(isCmdLineTaskPresent ? TaskResult.Succeeded : TaskResult.Failed);
+                return await Task.FromResult(isCmdLineTaskPresent ? TaskResult.Succeeded : TaskResult.Failed);
+            }
+            catch (Exception ex)
+            {
+                await taskLogger.LogImmediately(ex.Message);
+                return await Task.FromResult(TaskResult.Failed);
+            }
         }
 
         public void CancelAsync(TaskMessage taskMessage, TaskLogger taskLogger, CancellationToken cancellationToken)

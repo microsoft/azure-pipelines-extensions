@@ -1,5 +1,6 @@
 ﻿using System;
 using DistributedTask.ServerTask.Remote.Common.Request;
+using DistributedTask.ServerTask.Remote.Common.TaskProgress;
 using Microsoft.TeamFoundation.Build.WebApi;
 using Microsoft.VisualStudio.Services.Common;
 using Microsoft.VisualStudio.Services.WebApi;
@@ -8,9 +9,9 @@ namespace AzureFunctionAdvancedSample.VstsHandlers
 {
     public class BuildClient
     {
-        private BuildHttpClient buildClient;
-        private VssConnection vssConnection;
-        private TaskProperties taskProperties;
+        private readonly BuildHttpClient buildClient;
+        private readonly VssConnection vssConnection;
+        private readonly TaskProperties taskProperties;
 
         public BuildClient(TaskProperties taskProperties)
         {
@@ -45,10 +46,13 @@ namespace AzureFunctionAdvancedSample.VstsHandlers
                     .Result;
                 }
 
-                throw new FormatException();
+                throw new FormatException($"BuildId ({buildIdStr}) is not valid integer!");
             }
 
-            throw new ArgumentNullException();
+            var message = "BuildId is missing from the request headers!\n"
+                + "It should be added in the Headers section of Invoke Azure Function check as: \"BuildId\": \"$(Build.BuildId)\"";
+
+            throw new ArgumentNullException(message);
         }
 
         /// <summary>

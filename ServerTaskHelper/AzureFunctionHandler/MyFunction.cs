@@ -44,6 +44,7 @@ namespace AzureFunctionHandler
             // control is kept with the spawned off thread and not returned to the main one
             .ConfigureAwait(false);
 
+            // Step #1: Confirms the receipt of the check payload
             return new OkObjectResult("Request accepted!");
         }
 
