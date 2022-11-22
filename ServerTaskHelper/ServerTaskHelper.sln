@@ -9,7 +9,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DistributedTask.ServerTask.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceBusMessageHandler", "ServiceBusMessageHandler\ServiceBusMessageHandler.csproj", "{06D6287B-F6E6-4483-BFED-DAC11F65110E}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AzureFunctionHandler", "AzureFunctionHandler\AzureFunctionHandler.csproj", "{F0859A72-3E18-4E1B-9CBF-70B088627AEB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AzureFunctionBasicHandler", "AzureFunctionBasicHandler\AzureFunctionBasicHandler.csproj", "{F0859A72-3E18-4E1B-9CBF-70B088627AEB}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AzureFunctionSample", "AzureFunctionSample\AzureFunctionSample.csproj", "{69832419-26C2-4F3E-BB38-DE45CFE33BD9}"
 EndProject
@@ -17,7 +17,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HttpRequestSampleWithoutHan
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AzureFunctionBasicSample", "AzureFunctionBasicSample\AzureFunctionBasicSample.csproj", "{0E5344B3-A1B4-4EA9-B520-0983E099AB8F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AzureFunctionAdvancedSample", "AzureFunctionAdvancedSample\AzureFunctionAdvancedSample.csproj", "{A64F8CEE-3DB5-4319-A478-4856DF932EAF}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AzureFunctionAdvancedHandler", "AzureFunctionAdvancedHandler\AzureFunctionAdvancedHandler.csproj", "{A64F8CEE-3DB5-4319-A478-4856DF932EAF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
