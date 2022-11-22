@@ -1,11 +1,10 @@
 ﻿using System;
 using DistributedTask.ServerTask.Remote.Common.Request;
-using DistributedTask.ServerTask.Remote.Common.TaskProgress;
 using Microsoft.TeamFoundation.Build.WebApi;
 using Microsoft.VisualStudio.Services.Common;
 using Microsoft.VisualStudio.Services.WebApi;
 
-namespace AzureFunctionAdvancedSample.VstsHandlers
+namespace AzureFunctionBasicHandler.AdoClients
 {
     public class BuildClient
     {

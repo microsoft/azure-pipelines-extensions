@@ -17,7 +17,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HttpRequestSampleWithoutHan
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AzureFunctionBasicSample", "AzureFunctionBasicSample\AzureFunctionBasicSample.csproj", "{0E5344B3-A1B4-4EA9-B520-0983E099AB8F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AzureFunctionAdvancedHandler", "AzureFunctionAdvancedHandler\AzureFunctionAdvancedHandler.csproj", "{A64F8CEE-3DB5-4319-A478-4856DF932EAF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AzureFunctionAdvancedHandler", "AzureFunctionAdvancedHandler\AzureFunctionAdvancedHandler.csproj", "{A64F8CEE-3DB5-4319-A478-4856DF932EAF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using AzureFunctionAdvancedSample.VstsHandlers;
+using AzureFunctionBasicHandler.AdoClients;
 using DistributedTask.ServerTask.Remote.Common;
 using DistributedTask.ServerTask.Remote.Common.Request;
 using DistributedTask.ServerTask.Remote.Common.TaskProgress;
 using Microsoft.TeamFoundation.DistributedTask.WebApi;
 
-namespace AzureFunctionHandler
+namespace AzureFunctionBasicHandler
 {
     public class MyTaskExecutionHandler : ITaskExecutionHandler
     {

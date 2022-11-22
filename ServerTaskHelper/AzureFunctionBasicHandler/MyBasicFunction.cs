@@ -15,11 +15,11 @@ using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Services.Common;
 using Microsoft.VisualStudio.Services.Identity;
 
-namespace AzureFunctionHandler
+namespace AzureFunctionBasicHandler
 {
-    public static class MyFunction
+    public static class MyBasicFunction
     {
-        [FunctionName("MyFunction")]
+        [FunctionName("MyBasicFunction")]
         public static async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)]HttpRequestMessage req, ILogger log)
         {
             TypeDescriptor.AddAttributes(typeof(IdentityDescriptor), new TypeConverterAttribute(typeof(IdentityDescriptorConverter).FullName));

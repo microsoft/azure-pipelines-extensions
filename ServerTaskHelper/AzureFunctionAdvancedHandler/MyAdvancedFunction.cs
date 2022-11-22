@@ -15,14 +15,12 @@ using System.Linq;
 using System.Net.Http;
 using DistributedTask.ServerTask.Remote.Common;
 
-namespace AzureFunctionAdvancedSample
+namespace AzureFunctionAdvancedHandler
 {
-    public static class MyFunction
+    public static class MyAdvancedFunction
     {
-        [FunctionName("MyFunction")]
-        public static async Task<IActionResult> Run(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequestMessage req,
-            ILogger log)
+        [FunctionName("MyAdvancedFunction")]
+        public static async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequestMessage req, ILogger log)
         {
             TypeDescriptor.AddAttributes(typeof(IdentityDescriptor), new TypeConverterAttribute(typeof(IdentityDescriptorConverter).FullName));
             TypeDescriptor.AddAttributes(typeof(SubjectDescriptor), new TypeConverterAttribute(typeof(SubjectDescriptorConverter).FullName));
@@ -35,14 +33,18 @@ namespace AzureFunctionAdvancedSample
             var taskProperties = GetTaskProperties(req.Headers);
 
             // Created task execution handler
-            ITaskExecutionHandler myTaskExecutionHandler = new MyBasicTaskExecutionHandler();
+            Task.Run(() =>
+            {
+                ITaskExecutionHandler myTaskExecutionHandler = new MyTaskExecutionHandler(taskProperties);
+                var executionHandler = new ExecutionHandler(myTaskExecutionHandler, messageBody, taskProperties);
+                executionHandler.Execute(CancellationToken.None);
+            })
+            // log errors in case there are some
+            .ContinueWith(task => log.LogInformation(task.Exception.Message), TaskContinuationOptions.OnlyOnFaulted)
+            // control is kept with the spawned off thread and not returned to the main one
+            .ConfigureAwait(false);
 
-            var executionHandler = new ExecutionHandler(myTaskExecutionHandler, messageBody, taskProperties);
-#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-            var executionThread = new Thread(() => executionHandler.Execute(CancellationToken.None));
-#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-            executionThread.Start();
-
+            // Step #1: Confirms the receipt of the check payload
             return new OkObjectResult("Request accepted!");
         }
 
@@ -50,12 +52,9 @@ namespace AzureFunctionAdvancedSample
         {
             IDictionary<string, string> taskProperties = new Dictionary<string, string>();
 
-            foreach (var taskProperty in TaskProperties.PropertiesList)
+            foreach (var requestHeader in requestHeaders)
             {
-                if (requestHeaders.TryGetValues(taskProperty, out var propertyValues))
-                {
-                    taskProperties.Add(taskProperty, propertyValues.First());
-                }
+                taskProperties.Add(requestHeader.Key, requestHeader.Value.First());
             }
 
             return new TaskProperties(taskProperties);
