@@ -19,6 +19,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AzureFunctionBasicSample", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AzureFunctionAdvancedHandler", "AzureFunctionAdvancedHandler\AzureFunctionAdvancedHandler.csproj", "{A64F8CEE-3DB5-4319-A478-4856DF932EAF}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AzureFunctionAdvancedServiceBusTrigger", "AzureFunctionAdvancedServiceBusTrigger\AzureFunctionAdvancedServiceBusTrigger.csproj", "{BC116A01-D84D-4AA9-8FF4-3D7143CF6AEE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -57,6 +59,10 @@ Global
 		{A64F8CEE-3DB5-4319-A478-4856DF932EAF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A64F8CEE-3DB5-4319-A478-4856DF932EAF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A64F8CEE-3DB5-4319-A478-4856DF932EAF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BC116A01-D84D-4AA9-8FF4-3D7143CF6AEE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BC116A01-D84D-4AA9-8FF4-3D7143CF6AEE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BC116A01-D84D-4AA9-8FF4-3D7143CF6AEE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BC116A01-D84D-4AA9-8FF4-3D7143CF6AEE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

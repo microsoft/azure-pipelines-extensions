@@ -88,3 +88,14 @@ lock
 /version
 packages/
 StyleCop.Cache
+/ServerTaskHelper/AzureFunctionAdvancedHandler/Properties/PublishProfiles/AzureFunctionAdvancedHandler - Zip Deploy.pubxml
+/ServerTaskHelper/AzureFunctionAdvancedHandler/Properties/ServiceDependencies/AzureFunctionAdvancedHandler - Zip Deploy/appInsights1.arm.json
+/ServerTaskHelper/AzureFunctionAdvancedHandler/Properties/ServiceDependencies/AzureFunctionAdvancedHandler - Zip Deploy/profile.arm.json
+/ServerTaskHelper/AzureFunctionAdvancedHandler/Properties/ServiceDependencies/AzureFunctionAdvancedHandler - Zip Deploy/storage1.arm.json
+/ServerTaskHelper/AzureFunctionAdvancedHandler/Properties/serviceDependencies.AzureFunctionAdvancedHandler - Zip Deploy.json
+/ServerTaskHelper/AzureFunctionAdvancedServiceBusTrigger/Properties/PublishProfiles/AzServiceBusTrigger - Zip Deploy.pubxml
+/ServerTaskHelper/AzureFunctionAdvancedServiceBusTrigger/Properties/ServiceDependencies/AzServiceBusTrigger - Zip Deploy/appInsights1.arm.json
+/ServerTaskHelper/AzureFunctionAdvancedServiceBusTrigger/Properties/ServiceDependencies/AzServiceBusTrigger - Zip Deploy/storage1.arm.json
+/ServerTaskHelper/AzureFunctionAdvancedServiceBusTrigger/Properties/serviceDependencies.AzServiceBusTrigger - Zip Deploy.json
+/ServerTaskHelper/AzureFunctionAdvancedServiceBusTrigger/Properties/serviceDependencies.json
+/ServerTaskHelper/AzureFunctionAdvancedServiceBusTrigger/Properties/serviceDependencies.local.json

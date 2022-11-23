@@ -6,7 +6,7 @@ using Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
 using Microsoft.VisualStudio.Services.Common;
 using Microsoft.VisualStudio.Services.WebApi;
 
-namespace AzureFunctionAdvancedHandler.AdoClients
+namespace DistributedTask.ServerTask.Remote.Common.WorkItemProgress
 {
     public class WorkItemClient
     {

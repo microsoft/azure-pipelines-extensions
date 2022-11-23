@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Newtonsoft.Json;
 
 namespace DistributedTask.ServerTask.Remote.Common.Request
 {
@@ -36,6 +37,23 @@ namespace DistributedTask.ServerTask.Remote.Common.Request
             TaskInstanceNameKey,
             RequestTypeKey,
         };
+
+        [JsonConstructor]
+        public TaskProperties(Guid projectId, string hubName, Guid planId, Uri planUri, Guid jobId, Guid timelineId, Guid taskInstanceId, string taskInstanceName, string authToken, RequestType requestType, IDictionary<string, string> messageProperties, List<string> validHubNameList)
+        {
+            ProjectId = projectId;
+            HubName = hubName;
+            PlanId = planId;
+            PlanUri = planUri;
+            JobId = jobId;
+            TimelineId = timelineId;
+            TaskInstanceId = taskInstanceId;
+            TaskInstanceName = taskInstanceName;
+            AuthToken = authToken;
+            RequestType = requestType;
+            MessageProperties = messageProperties;
+            this.validHubNameList = validHubNameList;
+        }
 
         public TaskProperties(IDictionary<string, string> messageProperties)
         {
