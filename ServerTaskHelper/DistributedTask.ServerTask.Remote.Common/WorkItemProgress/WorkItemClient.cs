@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Text.RegularExpressions;
 using DistributedTask.ServerTask.Remote.Common.Request;
 using Microsoft.TeamFoundation.WorkItemTracking.WebApi;
 using Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
@@ -28,15 +29,27 @@ namespace DistributedTask.ServerTask.Remote.Common.WorkItemProgress
         public WorkItem GetWorkItemById()
         {
             WorkItem wit = null;
-            if (taskProperties.MessageProperties.TryGetValue("WitId", out var witIdStr))
+
+            if (taskProperties.MessageProperties.TryGetValue("CommitMessage", out var commitMessage))
             {
+                var regex = new Regex(CommitMessageFormat);
+                var witIdStr = regex.Match(commitMessage).Groups[1].Value;
+
                 if (Int32.TryParse(witIdStr, out var witId))
                 {
                     wit = witClient
                         .GetWorkItemAsync(project: taskProperties.ProjectId.ToString(), id: witId)
                         .Result;
                 }
-
+                else
+                {
+                    throw new Exception("Work item id referenced within the commit message is not a valid integer!\n"
+                        + $"Valid format of the commit message: \"{CommitMessageFormat}\"");
+                }
+            }
+            else
+            {
+                throw new Exception("CommitMessage header is missing from the checks request!");
             }
             return wit;
         }
@@ -61,5 +74,7 @@ namespace DistributedTask.ServerTask.Remote.Common.WorkItemProgress
 
             return false;
         }
+
+        private const string CommitMessageFormat = @"Work item #([0-9]+) has been linked.";
     }
 }

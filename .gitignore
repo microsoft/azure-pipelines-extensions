@@ -99,3 +99,4 @@ StyleCop.Cache
 /ServerTaskHelper/AzureFunctionAdvancedServiceBusTrigger/Properties/serviceDependencies.AzServiceBusTrigger - Zip Deploy.json
 /ServerTaskHelper/AzureFunctionAdvancedServiceBusTrigger/Properties/serviceDependencies.json
 /ServerTaskHelper/AzureFunctionAdvancedServiceBusTrigger/Properties/serviceDependencies.local.json
+/ServerTaskHelper/AzureFunctionAdvancedServiceBusTrigger/Properties/ServiceDependencies/AzServiceBusTrigger - Zip Deploy/profile.arm.json
