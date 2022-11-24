@@ -6,7 +6,6 @@ using DistributedTask.ServerTask.Remote.Common.Exceptions;
 using DistributedTask.ServerTask.Remote.Common.Request;
 using DistributedTask.ServerTask.Remote.Common.TaskProgress;
 using Microsoft.TeamFoundation.DistributedTask.WebApi;
-using Microsoft.VisualStudio.Services.Common;
 
 namespace DistributedTask.ServerTask.Remote.Common
 {
@@ -63,15 +62,7 @@ namespace DistributedTask.ServerTask.Remote.Common
                 {
                     if (taskLogger != null)
                     {
-                        if (e is VssServiceException && this.taskProperties.HubName.Equals("checks", StringComparison.OrdinalIgnoreCase))
-                        {
-                            await taskLogger.Log(e.Message + "\n Make sure task's Completion event is set to Callback!")
-                                .ConfigureAwait(false);
-                        }
-                        else
-                        {
-                            await taskLogger.Log(e.ToString()).ConfigureAwait(false);
-                        }
+                        await taskLogger.Log(e.ToString()).ConfigureAwait(false);
                     }
 
                     await taskClient.ReportTaskCompleted(taskProperties.TaskInstanceId, taskResult, cancellationToken).ConfigureAwait(false);

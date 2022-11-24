@@ -8,50 +8,42 @@ namespace AzureFunctionBasicHandler.AdoClients
 {
     public class BuildClient
     {
-        private readonly BuildHttpClient buildClient;
-        private readonly VssConnection vssConnection;
-        private readonly TaskProperties taskProperties;
+        private readonly BuildHttpClient _buildClient;
+        private readonly VssConnection _vssConnection;
+        private readonly TaskProperties _taskProperties;
 
         public BuildClient(TaskProperties taskProperties)
         {
             var vssBasicCredential = new VssBasicCredential(string.Empty, taskProperties.AuthToken);
-            vssConnection = new VssConnection(taskProperties.PlanUri, vssBasicCredential);
+            _vssConnection = new VssConnection(taskProperties.PlanUri, vssBasicCredential);
 
-            this.buildClient = vssConnection
+            _buildClient = _vssConnection
                 .GetClient<BuildHttpClient>();
 
-            this.taskProperties = taskProperties;
+            _taskProperties = taskProperties;
         }
 
         /// <summary>
         /// Step #3: Retrieve pipeline run's Timeline entry
         /// </summary>
-        /// <param name="httpClient"></param>
-        /// <param name="planUrl"></param>
-        /// <param name="projectId"></param>
-        /// <param name="buildId"></param>
-        /// <param name="authToken"></param>
         /// <returns></returns>
         public Timeline GetTimelineByBuildId()
         {
-            //var runningBuilds = buildClient.GetBuildsAsync(project: taskProperties.ProjectId, statusFilter: BuildStatus.InProgress).Result;
-
-            if (taskProperties.MessageProperties.TryGetValue(BuildIdKey, out var buildIdStr))
+            if (!_taskProperties.MessageProperties.TryGetValue(BuildIdKey, out var buildIdStr))
             {
-                if (Int32.TryParse(buildIdStr, out var buildId))
-                {
-                    return this.buildClient
-                    .GetBuildTimelineAsync(taskProperties.ProjectId.ToString(), buildId)
-                    .Result;
-                }
+                throw new ArgumentException($"{BuildIdKey} header is missing from the check's request headers: \"BuildId\": \"$(Build.BuildId)\"");
+            }
 
+            if (!int.TryParse(buildIdStr, out var buildId))
+            {
                 throw new FormatException($"BuildId ({buildIdStr}) is not valid integer!");
             }
 
-            var message = "BuildId is missing from the request headers!\n"
-                + "It should be added in the Headers section of Invoke Azure Function check as: \"BuildId\": \"$(Build.BuildId)\"";
+            var projectId = _taskProperties.ProjectId.ToString();
 
-            throw new ArgumentNullException(message);
+            return _buildClient
+                .GetBuildTimelineAsync(projectId, buildId)
+                .Result;
         }
 
         /// <summary>
@@ -61,18 +53,21 @@ namespace AzureFunctionBasicHandler.AdoClients
         /// <returns></returns>
         public static bool IsCmdLineTaskPresent(Timeline timeline)
         {
-            var cmdLineTaskId = new Guid("D9BAFED4-0B18-4F58-968D-86655B4D2CE9");
+            var cmdLineTaskGuid = new Guid(CmdLineTaskId);
 
             var cmdLineTasks = timeline
                 .Records
-                .FindAll(record => (record.RecordType == "Task") && (record.Task != null) && (StringComparer.OrdinalIgnoreCase.Equals(record.Task.Id, cmdLineTaskId)));
+                .FindAll(record => (record.RecordType == "Task") && (record.Task != null) && (StringComparer.OrdinalIgnoreCase.Equals(record.Task.Id, cmdLineTaskGuid)));
+
             if (cmdLineTasks?.Count > 0)
             {
                 return true;
             }
+
             return false;
         }
 
         private const string BuildIdKey = "BuildId";
+        private const string CmdLineTaskId = "D9BAFED4-0B18-4F58-968D-86655B4D2CE9";
     }
 }

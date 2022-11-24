@@ -6,7 +6,6 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
-using DistributedTask.ServerTask.Remote.Common;
 using DistributedTask.ServerTask.Remote.Common.Request;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
@@ -35,14 +34,9 @@ namespace AzureFunctionBasicHandler
             // Created task execution handler
             Task.Run(() =>
             {
-                ITaskExecutionHandler myTaskExecutionHandler = new MyTaskExecutionHandler(taskProperties);
-                var executionHandler = new ExecutionHandler(myTaskExecutionHandler, messageBody, taskProperties);
-                executionHandler.Execute(CancellationToken.None);
-            })
-            // log errors in case there are some
-            .ContinueWith(task => log.LogInformation(task.Exception.Message), TaskContinuationOptions.OnlyOnFaulted)
-            // control is kept with the spawned off thread and not returned to the main one
-            .ConfigureAwait(false);
+                var executionHandler = new MyTaskExecutionHandler(taskProperties);
+                _ = executionHandler.Execute(log, CancellationToken.None).Result;
+            }).ConfigureAwait(false);
 
             // Step #1: Confirms the receipt of the check payload
             return new OkObjectResult("Request accepted!");

@@ -2,55 +2,71 @@
 using System.Threading;
 using System.Threading.Tasks;
 using AzureFunctionBasicHandler.AdoClients;
-using DistributedTask.ServerTask.Remote.Common;
 using DistributedTask.ServerTask.Remote.Common.Request;
 using DistributedTask.ServerTask.Remote.Common.TaskProgress;
+using Microsoft.Extensions.Logging;
 using Microsoft.TeamFoundation.DistributedTask.WebApi;
+using Microsoft.VisualStudio.Services.Common;
 
 namespace AzureFunctionBasicHandler
 {
-    public class MyTaskExecutionHandler : ITaskExecutionHandler
+    public class MyTaskExecutionHandler
     {
-        private readonly TaskProperties taskProperties;
+
+        private readonly TaskProperties _taskProperties;
+        private TaskLogger _taskLogger;
 
         public MyTaskExecutionHandler(TaskProperties taskProperties)
         {
-            this.taskProperties = taskProperties;
+            _taskProperties = taskProperties;
         }
 
-        public async Task<TaskResult> ExecuteAsync(TaskMessage taskMessage, TaskLogger taskLogger, CancellationToken cancellationToken)
+        public async Task<TaskResult> Execute(ILogger log, CancellationToken cancellationToken)
         {
+            var taskClient = new TaskClient(_taskProperties);
+            var taskResult = TaskResult.Failed;
             try
             {
+                // create timeline record if not provided
+                _taskLogger = new TaskLogger(_taskProperties, taskClient);
+                await _taskLogger.CreateTaskTimelineRecordIfRequired(taskClient, cancellationToken).ConfigureAwait(false);
+
                 // Step #2: Send a status update to Azure Pipelines that the check started
-                await taskLogger.LogImmediately("Check has started.");
+                await _taskLogger.LogImmediately("Check started!");
 
                 // Step #3: Retrieve pipeline run's Timeline entry
-                var buildClient = new BuildClient(taskProperties);
+                var buildClient = new BuildClient(_taskProperties);
                 var timeline = buildClient.GetTimelineByBuildId();
 
                 // Step #4: Check if the Timeline contains a CmdLine task
                 var isCmdLineTaskPresent = BuildClient.IsCmdLineTaskPresent(timeline);
 
                 // Step #5: Send a status update with the result of the search
-                await taskLogger.LogImmediately($"CmdLine task is present: {isCmdLineTaskPresent}");
-
-                return await Task.FromResult(isCmdLineTaskPresent ? TaskResult.Succeeded : TaskResult.Failed);
+                await _taskLogger.LogImmediately($"CmdLine task is present: {isCmdLineTaskPresent}");
+                await _taskLogger.LogImmediately("Check succeeded!");
             }
-            catch (Exception ex)
+            catch (Exception e)
             {
-                await taskLogger.LogImmediately(ex.Message);
-                return await Task.FromResult(TaskResult.Failed);
+                if (_taskLogger != null)
+                {
+                    if (e is VssServiceException)
+                    {
+                        await _taskLogger.Log("\n Make sure task's Completion event is set to Callback!").ConfigureAwait(false);
+                    }
+                    await _taskLogger.Log(e.ToString()).ConfigureAwait(false);
+                }
+
+                await taskClient.ReportTaskCompleted(_taskProperties.TaskInstanceId, taskResult, cancellationToken).ConfigureAwait(false);
             }
-        }
+            finally
+            {
+                if (_taskLogger != null)
+                {
+                    await _taskLogger.End().ConfigureAwait(false);
+                }
 
-        public void CancelAsync(TaskMessage taskMessage, TaskLogger taskLogger, CancellationToken cancellationToken)
-        {
+            }
+            return taskResult;
         }
-    }
-
-    public class MyTaskObject
-    {
-        public string Name { get; set; }
     }
 }

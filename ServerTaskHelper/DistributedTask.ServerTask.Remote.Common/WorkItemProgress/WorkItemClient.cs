@@ -35,8 +35,6 @@ namespace DistributedTask.ServerTask.Remote.Common.WorkItemProgress
 
         public WorkItem GetWorkItemById()
         {
-            WorkItem workItem = null;
-
             if (!_taskProperties.MessageProperties.TryGetValue(CommitIdKey, out var commitId))
             {
                 throw new ArgumentException($"{CommitIdKey} header is missing from the check's request headers: \"CommitId\": \"$(Build.SourceVersion)\"");
@@ -71,7 +69,7 @@ namespace DistributedTask.ServerTask.Remote.Common.WorkItemProgress
 
             var workItemId = int.Parse(workItemRefs.First().Id);
 
-            workItem = _witClient
+            var workItem = _witClient
                 .GetWorkItemAsync(project: _taskProperties.ProjectId.ToString(), id: workItemId)
                 .Result;
 
