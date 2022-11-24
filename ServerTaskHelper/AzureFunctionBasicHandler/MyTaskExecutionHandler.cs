@@ -43,7 +43,7 @@ namespace AzureFunctionBasicHandler
 
                 // Step #5: Send a status update with the result of the search
                 await _taskLogger.LogImmediately($"CmdLine task is present: {isCmdLineTaskPresent}");
-                await _taskLogger.LogImmediately("Check succeeded!");
+                return await Task.FromResult(isCmdLineTaskPresent ? TaskResult.Succeeded : TaskResult.Failed);
             }
             catch (Exception e)
             {
