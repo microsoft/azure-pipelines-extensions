@@ -34,6 +34,8 @@ namespace AzureFunctionAdvancedHandler
             TypeDescriptor.AddAttributes(typeof(SubjectDescriptor), new TypeConverterAttribute(typeof(SubjectDescriptorConverter).FullName));
             AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
 
+            log.LogInformation(req.ToString());
+
             // Get request body
             var messageBody = await req.Content.ReadAsStringAsync().ConfigureAwait(false);
 
@@ -44,7 +46,7 @@ namespace AzureFunctionAdvancedHandler
             Task.Run(() =>
             {
                 var executionHandler = new MyTaskExecutionHandler(taskProperties, _serviceBusSettings);
-                executionHandler.Execute(CancellationToken.None);
+                _ = executionHandler.Execute(log, CancellationToken.None).Result;
             }).ConfigureAwait(false);
 
             // Step #1: Confirms the receipt of the check payload

@@ -1,12 +1,13 @@
 using System;
+using System.ComponentModel;
 using System.Threading;
+using System.Threading.Tasks;
 using DistributedTask.ServerTask.Remote.Common.Request;
 using DistributedTask.ServerTask.Remote.Common.ServiceBus;
-using DistributedTask.ServerTask.Remote.Common.TaskProgress;
-using DistributedTask.ServerTask.Remote.Common.WorkItemProgress;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
-using Microsoft.TeamFoundation.DistributedTask.WebApi;
+using Microsoft.VisualStudio.Services.Common;
+using Microsoft.VisualStudio.Services.Identity;
 using Newtonsoft.Json;
 
 namespace AzureFunctionAdvancedServiceBusTrigger
@@ -14,66 +15,35 @@ namespace AzureFunctionAdvancedServiceBusTrigger
     public class AzureFunctionAdvancedServiceBusTrigger
     {
         private const string ServiceBusQueueName = "az-advanced-checks-queue";
+        private readonly ServiceBusSettings _serviceBusSettings;
+        public AzureFunctionAdvancedServiceBusTrigger()
+        {
+            var connectionString = Environment.GetEnvironmentVariable("ServiceBusConnection");
+            var queueName = Environment.GetEnvironmentVariable("QueueName");
+            _serviceBusSettings = new ServiceBusSettings(connectionString, queueName);
+        }
 
         [FunctionName("AzureFunctionAdvancedServiceBusTrigger")]
-        public static void Run([ServiceBusTrigger(ServiceBusQueueName, Connection = "ServiceBusConnection")] string myQueueItem, ILogger log)
+        public async Task Run([ServiceBusTrigger(ServiceBusQueueName, Connection = "ServiceBusConnection")] string myQueueItem, ILogger log)
         {
             var taskProperties = JsonConvert.DeserializeObject<TaskProperties>(myQueueItem);
             log.LogInformation($"C# ServiceBus queue trigger function processed message with PlanId: {taskProperties.PlanId}");
 
-            // Step #3: Retrieve Azure Boards ticket referenced in the commit message that triggered the pipeline run
-            var witClient = new WorkItemClient(taskProperties);
-            var wit = witClient.GetWorkItemById();
+            TypeDescriptor.AddAttributes(typeof(IdentityDescriptor), new TypeConverterAttribute(typeof(IdentityDescriptorConverter).FullName));
+            TypeDescriptor.AddAttributes(typeof(SubjectDescriptor), new TypeConverterAttribute(typeof(SubjectDescriptorConverter).FullName));
+            AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
 
-            // Step #4: Check if the ticket is in the `Completed` state
-            var isWitCompleted = witClient.IsWorkItemCompleted(wit);
+            var executionHandler = new WorkItemStatusHandler(taskProperties, _serviceBusSettings);
+            _ = await executionHandler.Execute(log, CancellationToken.None);
+        }
 
-            // Step #5: Sends a status update with the result of the check
-            var taskClient = new TaskClient(taskProperties);
-            LogToChecksConsole(taskClient, $"Referenced work item is completed: {isWitCompleted}");
-
-            if (!isWitCompleted)
+        private static System.Reflection.Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
+        {
+            if (args.Name.StartsWith("Microsoft.VisualStudio.Services.WebApi"))
             {
-                // Step #6: Ticket is not in the correct state, reschedule another evaluation in the configured minutes by the application settings
-                SendMessageToQueue(taskClient, log);
+                return typeof(IdentityDescriptor).Assembly;
             }
-            else
-            {
-                // Step #6: Ticket is in the correct state, send a positive decision to Azure Pipelines
-                ReportTaskCompleted(taskClient);
-                LogToChecksConsole(taskClient, "Check succeeded!");
-            }
-        }
-
-        private static void SendMessageToQueue(TaskClient taskClient, ILogger log)
-        {
-            var connectionString = Environment.GetEnvironmentVariable("ServiceBusConnection");
-            var queueName = Environment.GetEnvironmentVariable("QueueName");
-            var serviceBusSettings = new ServiceBusSettings(connectionString, queueName);
-
-            var serviceBusClient = new ServiceBusClient(taskClient.TaskProperties, serviceBusSettings);
-            var checksEvaluationPeriodInMinutes = Double.Parse(Environment.GetEnvironmentVariable("ChecksEvaluationPeriodInMinutes"));
-            var deliveryScheduleTime = DateTime.Now.AddMinutes(checksEvaluationPeriodInMinutes);
-
-            var messageSequenceNumber = serviceBusClient.SendScheduledMessageToQueue(deliveryScheduleTime);
-            log.LogInformation($"Message with sequence number {messageSequenceNumber} was successfully sent to the queue!");
-
-            var checksEvaluationMessage = $"Another evaluation has been rescheduled in {checksEvaluationPeriodInMinutes} minute";
-            checksEvaluationMessage += (checksEvaluationPeriodInMinutes > 1 ? "s" : "") + "...";
-            LogToChecksConsole(taskClient, checksEvaluationMessage);
-        }
-
-        private static async void LogToChecksConsole(TaskClient taskClient, string message)
-        {
-            var taskLogger = new TaskLogger(taskClient.TaskProperties, taskClient);
-            await taskLogger.LogImmediately(message);
-        }
-
-        private static async void ReportTaskCompleted(TaskClient taskClient)
-        {
-            await taskClient
-                    .ReportTaskCompleted(taskClient.TaskProperties.TaskInstanceId, TaskResult.Succeeded, CancellationToken.None)
-                    .ConfigureAwait(false);
+            return null;
         }
     }
 }
