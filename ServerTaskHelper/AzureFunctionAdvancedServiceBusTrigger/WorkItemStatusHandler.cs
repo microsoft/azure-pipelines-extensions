@@ -31,7 +31,7 @@ namespace AzureFunctionAdvancedServiceBusTrigger
             var taskClient = new TaskClient(_taskProperties);
             try
             {
-                // execute check logic only if the build has not been completed yet
+                // Step #2: Do not continue scheduling other checks if build is not running anymore
                 var buildClient = new BuildClient(_taskProperties);
                 if (buildClient.IsBuildCompleted())
                 {

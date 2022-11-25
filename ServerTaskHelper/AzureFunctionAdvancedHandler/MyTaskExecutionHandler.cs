@@ -37,7 +37,7 @@ namespace AzureFunctionAdvancedHandler
                 // Step #2: Sends a status update to Azure Pipelines that the check started
                 await _taskLogger.LogImmediately("Check started!");
 
-                // Step #3: Retrieve Azure Boards ticket referenced in the commit message that triggered the pipeline run
+                // Step #3: Retrieve Azure Boards ticket referenced in the commit that triggered the pipeline run
                 var witClient = new WorkItemClient(_taskProperties);
                 var workItem = witClient.GetCommitRelatedWorkItem();
 
@@ -65,7 +65,7 @@ namespace AzureFunctionAdvancedHandler
                 }
                 else
                 {
-                    // Step #6: Ticket is in the correct state, send a positive decision to Azure Pipelines
+                    // Step #7: Ticket is in the correct state, send a positive decision to Azure Pipelines
                     taskResult = TaskResult.Succeeded;
                     await taskClient.ReportTaskCompleted(_taskProperties.TaskInstanceId, taskResult, cancellationToken).ConfigureAwait(false);
                     await _taskLogger.LogImmediately("Check succeeded!");

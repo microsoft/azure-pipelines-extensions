@@ -21,4 +21,7 @@
       <CopyToPublishDirectory>Never</CopyToPublishDirectory>
     </None>
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Pictures\" />
+  </ItemGroup>
 </Project>

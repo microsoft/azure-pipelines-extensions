@@ -26,6 +26,7 @@ namespace AzureFunctionAdvancedServiceBusTrigger
         [FunctionName("AzureFunctionAdvancedServiceBusTrigger")]
         public async Task Run([ServiceBusTrigger(ServiceBusQueueName, Connection = "ServiceBusConnection")] string myQueueItem, ILogger log)
         {
+            // Step #1: Consume the message, automatically done when the azure function was invoked
             var taskProperties = JsonConvert.DeserializeObject<TaskProperties>(myQueueItem);
             log.LogInformation($"C# ServiceBus queue trigger function processed message with PlanId: {taskProperties.PlanId}");
 
