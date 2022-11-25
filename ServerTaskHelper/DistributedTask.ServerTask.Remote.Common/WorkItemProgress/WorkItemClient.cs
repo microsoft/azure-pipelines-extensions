@@ -1,11 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
+using DistributedTask.ServerTask.Remote.Common.Build;
 using DistributedTask.ServerTask.Remote.Common.Request;
-using Microsoft.TeamFoundation.Build.WebApi;
 using Microsoft.TeamFoundation.Common;
-using Microsoft.TeamFoundation.Wiki.WebApi;
 using Microsoft.TeamFoundation.WorkItemTracking.WebApi;
 using Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
 using Microsoft.VisualStudio.Services.Common;
@@ -18,9 +15,9 @@ namespace DistributedTask.ServerTask.Remote.Common.WorkItemProgress
         private readonly VssConnection _vssConnection;
         private readonly TaskProperties _taskProperties;
         private readonly WorkItemTrackingHttpClient _witClient;
-        private readonly BuildHttpClient _buildclient;
+        private readonly BuildClient _buildclient;
 
-        public WorkItemClient(TaskProperties taskProperties)
+        public WorkItemClient(TaskProperties taskProperties, BuildClient buildClient = null)
         {
             var vssBasicCredential = new VssBasicCredential(string.Empty, taskProperties.AuthToken);
             _vssConnection = new VssConnection(taskProperties.PlanUri, vssBasicCredential);
@@ -29,11 +26,18 @@ namespace DistributedTask.ServerTask.Remote.Common.WorkItemProgress
                 .GetClient<WorkItemTrackingHttpClient>();
 
             _taskProperties = taskProperties;
-            _buildclient =_vssConnection
-                .GetClient<BuildHttpClient>();
+
+            if (buildClient is null)
+            {
+                _buildclient = new BuildClient(_taskProperties);
+            }
+            else
+            {
+                _buildclient = buildClient;
+            }
         }
 
-        public WorkItem GetWorkItemById()
+        public WorkItem GetCommitRelatedWorkItem()
         {
             if (!_taskProperties.MessageProperties.TryGetValue(CommitIdKey, out var commitId))
             {
@@ -45,22 +49,7 @@ namespace DistributedTask.ServerTask.Remote.Common.WorkItemProgress
                 throw new ArgumentException($"{CommitIdKey} header's value is missing. This information is available via continuous integration triggers!");
             }
 
-            if (!_taskProperties.MessageProperties.TryGetValue(BuildIdKey, out var buildIdStr))
-            {
-                throw new ArgumentException($"{BuildIdKey} header is missing from the check's request headers: \"BuildId\": \"$(Build.BuildId)\"");
-            }
-
-            if (!int.TryParse(buildIdStr, out var buildId))
-            {
-                throw new FormatException($"BuildId ({buildIdStr}) is not valid integer!");
-            }
-
-            var projectId = _taskProperties.ProjectId.ToString();
-
-            var commitIds = new List<string>() { commitId };
-            var workItemRefs = _buildclient
-                .GetBuildWorkItemsRefsFromCommitsAsync(commitIds, projectId, buildId, top: 1)
-                .Result;
+            var workItemRefs = _buildclient.GetWorkItemsFromCommit(commitId);
 
             if (workItemRefs?.Count == 0)
             {
@@ -97,7 +86,6 @@ namespace DistributedTask.ServerTask.Remote.Common.WorkItemProgress
             return false;
         }
 
-        private const string BuildIdKey = "BuildId";
         private const string CommitIdKey = "CommitId";
     }
 }

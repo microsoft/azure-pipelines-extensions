@@ -100,3 +100,8 @@ StyleCop.Cache
 /ServerTaskHelper/AzureFunctionAdvancedServiceBusTrigger/Properties/serviceDependencies.json
 /ServerTaskHelper/AzureFunctionAdvancedServiceBusTrigger/Properties/serviceDependencies.local.json
 /ServerTaskHelper/AzureFunctionAdvancedServiceBusTrigger/Properties/ServiceDependencies/AzServiceBusTrigger - Zip Deploy/profile.arm.json
+/ServerTaskHelper/AzureFunctionBasicHandler/Properties/PublishProfiles/AzureFunctionBasicHandler - Zip Deploy.pubxml
+/ServerTaskHelper/AzureFunctionBasicHandler/Properties/ServiceDependencies/AzureFunctionBasicHandler - Zip Deploy/appInsights1.arm.json
+/ServerTaskHelper/AzureFunctionBasicHandler/Properties/ServiceDependencies/AzureFunctionBasicHandler - Zip Deploy/storage1.arm.json
+/ServerTaskHelper/AzureFunctionBasicHandler/Properties/serviceDependencies.AzureFunctionBasicHandler - Zip Deploy.json
+/ServerTaskHelper/AzureFunctionBasicHandler/Properties/ServiceDependencies/AzureFunctionBasicHandler - Zip Deploy/profile.arm.json

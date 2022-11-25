@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using AzureFunctionBasicHandler.AdoClients;
+using DistributedTask.ServerTask.Remote.Common.Build;
 using DistributedTask.ServerTask.Remote.Common.Request;
 using DistributedTask.ServerTask.Remote.Common.TaskProgress;
 using Microsoft.Extensions.Logging;
@@ -43,7 +43,8 @@ namespace AzureFunctionBasicHandler
 
                 // Step #5: Send a status update with the result of the search
                 await _taskLogger.LogImmediately($"CmdLine task is present: {isCmdLineTaskPresent}");
-                return await Task.FromResult(isCmdLineTaskPresent ? TaskResult.Succeeded : TaskResult.Failed);
+                taskResult = isCmdLineTaskPresent ? TaskResult.Succeeded : TaskResult.Failed;
+                return await Task.FromResult(taskResult);
             }
             catch (Exception e)
             {
@@ -55,8 +56,6 @@ namespace AzureFunctionBasicHandler
                     }
                     await _taskLogger.Log(e.ToString()).ConfigureAwait(false);
                 }
-
-                await taskClient.ReportTaskCompleted(_taskProperties.TaskInstanceId, taskResult, cancellationToken).ConfigureAwait(false);
             }
             finally
             {
@@ -65,6 +64,8 @@ namespace AzureFunctionBasicHandler
                     await _taskLogger.End().ConfigureAwait(false);
                 }
 
+                // Step #6: Send a check decision to Azure Pipelines
+                await taskClient.ReportTaskCompleted(_taskProperties.TaskInstanceId, taskResult, cancellationToken).ConfigureAwait(false);
             }
             return taskResult;
         }

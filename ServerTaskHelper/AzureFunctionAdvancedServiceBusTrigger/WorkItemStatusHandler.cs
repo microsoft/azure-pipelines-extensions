@@ -9,6 +9,7 @@ using System.Threading;
 using System;
 using DistributedTask.ServerTask.Remote.Common.ServiceBus;
 using Microsoft.TeamFoundation.DistributedTask.WebApi;
+using DistributedTask.ServerTask.Remote.Common.Build;
 
 namespace AzureFunctionAdvancedServiceBusTrigger
 {
@@ -26,23 +27,31 @@ namespace AzureFunctionAdvancedServiceBusTrigger
 
         public async Task<TaskResult> Execute(ILogger log, CancellationToken cancellationToken)
         {
-            var taskClient = new TaskClient(_taskProperties);
             var taskResult = TaskResult.Failed;
+            var taskClient = new TaskClient(_taskProperties);
             try
             {
+                // execute check logic only if the build has not been completed yet
+                var buildClient = new BuildClient(_taskProperties);
+                if (buildClient.IsBuildCompleted())
+                {
+                    log.LogInformation($"Build #{buildClient.BuildId} already completed, no need to keep checking work item status!");
+                    return taskResult;
+                }
+
                 // create timeline record if not provided
                 _taskLogger = new TaskLogger(_taskProperties, taskClient);
                 await _taskLogger.CreateTaskTimelineRecordIfRequired(taskClient, cancellationToken).ConfigureAwait(false);
 
                 // Step #3: Retrieve Azure Boards ticket referenced in the commit message that triggered the pipeline run
-                var witClient = new WorkItemClient(_taskProperties);
-                var workItem = witClient.GetWorkItemById();
+                var witClient = new WorkItemClient(_taskProperties, buildClient);
+                var workItem = witClient.GetCommitRelatedWorkItem();
 
                 // Step #4: Check if the ticket is in the `Completed` state
                 var isWitCompleted = witClient.IsWorkItemCompleted(workItem);
 
                 // Step #5: Sends a status update with the result of the check
-                await _taskLogger.LogImmediately($"Referenced work item is completed: {isWitCompleted}");
+                await _taskLogger.LogImmediately($"Referenced work item #{workItem.Id} is completed: {isWitCompleted}");
 
                 if (!isWitCompleted)
                 {

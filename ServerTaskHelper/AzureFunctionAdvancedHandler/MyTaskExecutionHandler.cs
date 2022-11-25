@@ -39,13 +39,13 @@ namespace AzureFunctionAdvancedHandler
 
                 // Step #3: Retrieve Azure Boards ticket referenced in the commit message that triggered the pipeline run
                 var witClient = new WorkItemClient(_taskProperties);
-                var workItem = witClient.GetWorkItemById();
+                var workItem = witClient.GetCommitRelatedWorkItem();
 
                 // Step #4: Check if the ticket is in the `Completed` state
                 var isWitCompleted = witClient.IsWorkItemCompleted(workItem);
 
                 // Step #5: Sends a status update with the result of the check
-                await _taskLogger.LogImmediately($"Referenced work item is completed: {isWitCompleted}");
+                await _taskLogger.LogImmediately($"Referenced work item #{workItem.Id} is completed: {isWitCompleted}");
 
                 if (!isWitCompleted)
                 {

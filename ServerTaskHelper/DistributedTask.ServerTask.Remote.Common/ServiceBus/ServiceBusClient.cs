@@ -3,7 +3,6 @@ using System;
 using DistributedTask.ServerTask.Remote.Common.Request;
 using Microsoft.Azure.ServiceBus;
 using Newtonsoft.Json;
-using DistributedTask.ServerTask.Remote.Common.TaskProgress;
 
 namespace DistributedTask.ServerTask.Remote.Common.ServiceBus
 {
