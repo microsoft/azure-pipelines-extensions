@@ -1,4 +1,4 @@
-﻿### In this basic example, Azure Function checks that the that the invoking pipeline contains at least one CmdLine task in the previous stages prior to the check point.
+﻿### In basic example, Azure Function checks that the that the invoking pipeline contains at least one CmdLine task in the previous stages prior to the check point.
 
 This sample demonstrates the proper integration with Azure DevOps async checks, when the check condition takes a while to be evaluated due to an external dependency.
 Async check refers to a check which Completion event setting is configured to Callback.
@@ -16,9 +16,10 @@ Async check refers to a check which Completion event setting is configured to Ca
 1. Deploy azure function AzureFunctionBasicHandler to azure.
 
 2. Configure settings on the check of type Invoke Azure Function like so:
-   2.1. Azure function URL: URL of the previously deployed AzureFunctionBasicHandler
-        EXAMPLE: https://azurefunctionbasichandler.azurewebsites.net/api/MyBasicFunction
-   2.2. Headers:
+   1. Azure function URL: URL of the previously deployed AzureFunctionBasicHandler <br/>
+      EXAMPLE: https://azurefunctionbasichandler.azurewebsites.net/api/MyBasicFunction
+   2. Headers: <br/>
+        ```
         {
            "Content-Type":"application/json", 
            "PlanUrl": "$(system.CollectionUri)", 
@@ -31,9 +32,10 @@ Async check refers to a check which Completion event setting is configured to Ca
            "AuthToken": "$(system.AccessToken)",
            "BuildId": "$(Build.BuildId)" => NOTE: this header needs to be appended, will not be generated automatically
         }
-   2.3. Completion event: Callback
-        NOTE: this makes the check async
-   RECOMMENDATIONS:
-       * Time between evaluation (minutes) : 0, so that there are no retries
-       * Timeout (minutes) to a lower value, so that build times out quickly
+        ```
+   3. Completion event: Callback <br/>
+      NOTE: this makes the check async <br/>
+      RECOMMENDATIONS:
+         - Time between evaluation (minutes) : 0, so that there are no retries
+         - Timeout (minutes) to a lower value, so that build times out quickly
    ![Alt text](Pictures/BasicCheckAsyncConfiguration.png?raw=true "Configuration settings for basic async Invoke Azure Function check")

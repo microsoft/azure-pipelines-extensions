@@ -1,4 +1,4 @@
-﻿### In this advanced example, Azure Function checks that the Azure Boards ticket referenced by the commit that triggered the pipeline run is completed.
+﻿### In advanced example, Azure Function checks that the Azure Boards ticket referenced by the commit that triggered the pipeline run is completed.
 ### This azure function is dependant on AzureFunctionAdvancedHandler azure function and cannot work without it.
 ### In order for this example to work, instructions mentioned in the README.md file within AzureFunctionAdvancedHandler project should be followed.
 

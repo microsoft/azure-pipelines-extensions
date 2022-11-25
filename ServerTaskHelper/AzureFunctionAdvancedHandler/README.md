@@ -1,4 +1,4 @@
-﻿### In this advanced example, Azure Function checks that the Azure Boards ticket referenced by the commit that triggered the pipeline run is completed.
+﻿### In advanced example, Azure Function checks that the Azure Boards ticket referenced by the commit that triggered the pipeline run is completed.
 
 This sample demonstrates the proper integration with Azure DevOps async checks, when the check condition takes a while to be evaluated due to an external dependency.
 Async check refers to a check which Completion event setting is configured to Callback.
@@ -25,24 +25,25 @@ Async check refers to a check which Completion event setting is configured to Ca
    minutes of time initially set to 1. Once this message becomes active, it triggers AzureFunctionAdvancedServiceBusTrigger
    azure function which consumes it and removes it from the queue. This is how we reschedule another evaluation to happen
    in 1 minute mentioned in step #6.
-   => In order for this to work, ServiceBus queue az-advanced-checks-queue must be created!
-      OPTIONAL: Message time to live can be set to 10 seconds so that we don't have long overdue hanging messages.
+   - In order for this to work, ServiceBus queue az-advanced-checks-queue must be created!  <br/>
+      OPTIONAL: Message time to live can be set to 10 seconds so that we don't have long overdue hanging messages.  <br/>
       ![Alt text](Pictures/ServiceBusQueue.png?raw=true "ServiceBus Queue")
 
 3. Configure 3 additional azure function settings, necessary for ServiceBus interaction:
-   3.1. "ServiceBusConnection" : "Endpoint=sb://azchecks.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=...="
-        Description: ServiceBus Queue connection endpoint
-        ![Alt text](Pictures/ServiceBusSharedAccessPolicies.png?raw=true "ServiceBus Queue connection endpoint")
-   3.2. "QueueName" : "az-advanced-checks-queue"
-        Description: ServiceBus Queue name, should be set to "az-advanced-checks-queue"
-   3.3. "ChecksEvaluationPeriodInMinutes" : 1
-        Description: Parameter indicating how often check logic will be executed (time between AzureFunctionAdvancedServiceBusTrigger calls)
+   1. "ServiceBusConnection" : "Endpoint=sb://azchecks.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=...=" <br/>
+      Description: ServiceBus Queue connection endpoint <br/>
+      ![Alt text](Pictures/ServiceBusSharedAccessPolicies.png?raw=true "ServiceBus Queue connection endpoint")
+   2. "QueueName" : "az-advanced-checks-queue" <br/>
+      Description: ServiceBus Queue name, should be set to "az-advanced-checks-queue"
+   3. "ChecksEvaluationPeriodInMinutes" : 1 <br/>
+      Description: Parameter indicating how often check logic will be executed (time between AzureFunctionAdvancedServiceBusTrigger calls) <br/>
    ![Alt text](Pictures/AzureFunctionConfiguration.png?raw=true "Configuration settings of advanced azure function")
 
 4. Configure settings on the check of type Invoke Azure Function like so:
-   4.1. Azure function URL: URL of the previously deployed AzureFunctionAdvancedHandler
-        EXAMPLE: https://azurefunctionadvancedhandler.azurewebsites.net/api/MyAdvancedFunction
-   4.2. Headers:
+   1. Azure function URL: URL of the previously deployed AzureFunctionAdvancedHandler <br/>
+      EXAMPLE: https://azurefunctionadvancedhandler.azurewebsites.net/api/MyAdvancedFunction
+   2. Headers: <br/>
+        ```
         {
            "Content-Type":"application/json", 
            "PlanUrl": "$(system.CollectionUri)", 
@@ -55,9 +56,10 @@ Async check refers to a check which Completion event setting is configured to Ca
            "AuthToken": "$(system.AccessToken)",
            "BuildId": "$(Build.BuildId)" => NOTE: this header needs to be appended, will not be generated automatically
         }
-   4.3. Completion event: Callback
-        NOTE: this makes the check async
-   RECOMMENDATIONS:
-       * Time between evaluation (minutes) : 0, so that there are no retries
-       * Timeout (minutes) to a lower value, so that build times out quickly
+        ```
+   3. Completion event: Callback <br/>
+      NOTE: this makes the check async <br/>
+      RECOMMENDATIONS:
+         - Time between evaluation (minutes) : 0, so that there are no retries
+         - Timeout (minutes) to a lower value, so that build times out quickly
    ![Alt text](Pictures/AdvancedCheckAsyncConfig.png?raw=true "Configuration settings for advanced async Invoke Azure Function check")
