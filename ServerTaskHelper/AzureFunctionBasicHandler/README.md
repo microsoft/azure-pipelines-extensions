@@ -37,5 +37,5 @@ Async check refers to a check which Completion event setting is configured to Ca
       NOTE: this makes the check async <br/>
       RECOMMENDATIONS:
          - Time between evaluation (minutes) : 0, so that there are no retries
-         - Timeout (minutes) to a lower value, so that build times out quickly
+         - Timeout (minutes) to a lower value, so that build times out quickly <br/>
    ![Alt text](Pictures/BasicCheckAsyncConfiguration.png?raw=true "Configuration settings for basic async Invoke Azure Function check")
