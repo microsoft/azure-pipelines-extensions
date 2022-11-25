@@ -39,15 +39,7 @@ namespace DistributedTask.ServerTask.Remote.Common.WorkItemProgress
 
         public WorkItem GetCommitRelatedWorkItem()
         {
-            if (!_taskProperties.MessageProperties.TryGetValue(CommitIdKey, out var commitId))
-            {
-                throw new ArgumentException($"{CommitIdKey} header is missing from the check's request headers: \"CommitId\": \"$(Build.SourceVersion)\"");
-            }
-
-            if (commitId.IsNullOrEmpty())
-            {
-                throw new ArgumentException($"{CommitIdKey} header's value is missing. This information is available via continuous integration triggers!");
-            }
+            var commitId = _buildclient.Build.SourceVersion;
 
             var workItemRefs = _buildclient.GetWorkItemsFromCommit(commitId);
 

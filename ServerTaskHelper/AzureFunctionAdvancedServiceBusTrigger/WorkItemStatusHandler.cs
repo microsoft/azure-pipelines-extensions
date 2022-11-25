@@ -35,7 +35,7 @@ namespace AzureFunctionAdvancedServiceBusTrigger
                 var buildClient = new BuildClient(_taskProperties);
                 if (buildClient.IsBuildCompleted())
                 {
-                    log.LogInformation($"Build #{buildClient.BuildId} already completed, no need to keep checking work item status!");
+                    log.LogInformation($"Build #{buildClient.Build.Id} already completed, no need to keep checking work item status!");
                     return taskResult;
                 }
 
@@ -43,7 +43,7 @@ namespace AzureFunctionAdvancedServiceBusTrigger
                 _taskLogger = new TaskLogger(_taskProperties, taskClient);
                 await _taskLogger.CreateTaskTimelineRecordIfRequired(taskClient, cancellationToken).ConfigureAwait(false);
 
-                // Step #3: Retrieve Azure Boards ticket referenced in the commit message that triggered the pipeline run
+                // Step #3: Retrieve Azure Boards ticket referenced in the commit that triggered the pipeline run
                 var witClient = new WorkItemClient(_taskProperties, buildClient);
                 var workItem = witClient.GetCommitRelatedWorkItem();
 

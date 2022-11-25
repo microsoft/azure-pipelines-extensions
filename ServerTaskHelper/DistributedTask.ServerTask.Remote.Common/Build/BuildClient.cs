@@ -12,7 +12,7 @@ namespace DistributedTask.ServerTask.Remote.Common.Build
         private readonly BuildHttpClient _buildClient;
         private readonly VssConnection _vssConnection;
         private readonly TaskProperties _taskProperties;
-        private readonly int _buildId;
+        private readonly Microsoft.TeamFoundation.Build.WebApi.Build _build;
 
         public BuildClient(TaskProperties taskProperties)
         {
@@ -24,10 +24,10 @@ namespace DistributedTask.ServerTask.Remote.Common.Build
 
             _taskProperties = taskProperties;
 
-            _buildId = GetBuildId();
+            _build = GetBuildById();
         }
 
-        public int GetBuildId()
+        public Microsoft.TeamFoundation.Build.WebApi.Build GetBuildById()
         {
             if (!_taskProperties.MessageProperties.TryGetValue(BuildIdKey, out var buildIdStr))
             {
@@ -39,24 +39,23 @@ namespace DistributedTask.ServerTask.Remote.Common.Build
                 throw new FormatException($"BuildId ({buildIdStr}) is not valid integer!");
             }
 
-            return buildId;
-        }
-
-        public bool IsBuildCompleted()
-        {
             var projectId = _taskProperties.ProjectId.ToString();
 
             var build = _buildClient
-                .GetBuildAsync(projectId, BuildId)
+                .GetBuildAsync(projectId, buildId)
                 .Result;
 
+            return build;
+        }
+        public bool IsBuildCompleted()
+        {
             var completedBuildStatuses = new List<BuildStatus>() {
                 BuildStatus.Cancelling,
                 BuildStatus.Completed
             };
 
             return completedBuildStatuses
-                .Contains(build.Status.Value);
+                .Contains(Build.Status.Value);
         }
 
         /// <summary>
@@ -68,7 +67,7 @@ namespace DistributedTask.ServerTask.Remote.Common.Build
             var projectId = _taskProperties.ProjectId.ToString();
 
             return _buildClient
-                .GetBuildTimelineAsync(projectId, BuildId)
+                .GetBuildTimelineAsync(projectId, Build.Id)
                 .Result;
         }
 
@@ -100,7 +99,7 @@ namespace DistributedTask.ServerTask.Remote.Common.Build
             var commitIds = new List<string>() { commitId };
 
             var workItemReference = _buildClient
-                .GetBuildWorkItemsRefsFromCommitsAsync(commitIds, projectId, _buildId)
+                .GetBuildWorkItemsRefsFromCommitsAsync(commitIds, projectId, Build.Id)
                 .Result;
 
             return workItemReference;
@@ -109,6 +108,6 @@ namespace DistributedTask.ServerTask.Remote.Common.Build
         private const string BuildIdKey = "BuildId";
         private const string CmdLineTaskId = "D9BAFED4-0B18-4F58-968D-86655B4D2CE9";
 
-        public int BuildId => _buildId;
+        public Microsoft.TeamFoundation.Build.WebApi.Build Build => _build;
     }
 }
