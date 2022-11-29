@@ -62,7 +62,7 @@ stages:
 - stage: Deploy
   jobs:
   - deployment: 
-    environment: Dev
+    environment: Demo
     strategy:
       runOnce:
         deploy:
