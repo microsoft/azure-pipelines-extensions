@@ -2,7 +2,9 @@
  
 This basic example shows an Azure Function that checks if a pipeline run has executed at least one [`CmdLine` task](https://learn.microsoft.com/azure/devops/pipelines/tasks/reference/cmd-line-v2). 
 
-The intended use case is as an [Invoke Azure Function check](https://learn.microsoft.com/azure/devops/pipelines/process/approvals?#invoke-azure-function), used in **Callback (Asynchronous)** mode. This mode is ideal when evaluating a condition takes a while, for example, due to making a REST call.
+You should use this Azure Function in an [`Invoke Azure Function` check](https://learn.microsoft.com/azure/devops/pipelines/process/approvals?#invoke-azure-function) configured in **Callback (Asynchronous)** mode. This mode is ideal when evaluating a condition takes a while, for example, due to making a REST call.
+
+To successfully run this example, your pipeline needs to have at least two stages: a first stage that executes at least one [`CmdLine` task](https://learn.microsoft.com/azure/devops/pipelines/tasks/reference/cmd-line-v2), and a second stage that uses a resource on which you configured the `Invoke Azure Function` check.
 
 # Steps 
 
