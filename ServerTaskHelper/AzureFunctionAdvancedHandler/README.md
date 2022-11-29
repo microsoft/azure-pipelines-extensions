@@ -31,19 +31,14 @@ These two functions interact over a [ServiceBus queue](https://learn.microsoft.c
 Follow these instructions to use this example as an `Invoke Azure Function` check:
 1. Create and configure the ServiceBus queue `az-advanced-checks-queue`
    ![ServiceBus Queue](Pictures/ServiceBusQueue.png?raw=true)
-   1. 
 3. Deploy the `AzureFunctionAdvancedServiceBusTrigger` Azure Function
 4. Deploy the `AzureFunctionAdvancedHandler` Azure Function
 5. Configure the `AzureFunctionAdvancedHandler` Azure Function
-   1. Set _QueueName_ to "az-advanced-checks-queue"
-   2. Set _ChecksEvaluationPeriodInMinutes_ to 1. This parameter defines how often the check logic will be executed. Practically, the time between `AzureFunctionAdvancedServiceBusTrigger` calls
+   1. Set _ChecksEvaluationPeriodInMinutes_ to 1. This parameter defines how often the check logic will be executed. Practically, the time between `AzureFunctionAdvancedServiceBusTrigger` calls
+   2. Set _QueueName_ to _az-advanced-checks-queue_
    ![Configuration settings of advanced azure function](Pictures/AzureFunctionConfiguration.png?raw=true)
-
-3. Configure 3 additional azure function settings, necessary for ServiceBus interaction:
-   1. "ServiceBusConnection" : "Endpoint=sb://azchecks.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=...=" <br/>
-      Description: ServiceBus Queue connection endpoint <br/>
-      ![Alt text](Pictures/ServiceBusSharedAccessPolicies.png?raw=true "ServiceBus Queue connection endpoint")
-   2. 
+   3. Set _ServiceBusConnection_ to _Endpoint=sb://{ServiceBusURL}/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=...=_
+      ![ServiceBus Queue connection endpoint](Pictures/ServiceBusSharedAccessPolicies.png?raw=true)
 2. In your Azure Pipelines, create a new [`Environment`](https://learn.microsoft.com/azure/devops/pipelines/process/environments) called _Demo_ with no resources
 3. Add a Check of type `Invoke Azure Function` to _Demo_ with the following configuration:
    1. _Azure function URL_: the URL of the Azure Function deployed in Step 1, for example, https://azurefunctionbasichandler.azurewebsites.net/api/MyBasicFunction. You can get this URL when you do _Copy Function Url_ in Visual Studio Code
@@ -87,7 +82,7 @@ stages:
 - stage: Deploy
   jobs:
   - deployment: 
-    environment: Dev
+    environment: Demo
     strategy:
       runOnce:
         deploy:
