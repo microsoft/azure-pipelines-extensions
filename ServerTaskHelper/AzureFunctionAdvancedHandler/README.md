@@ -1,49 +1,55 @@
-﻿### In advanced example, Azure Function checks that the Azure Boards ticket referenced by the commit that triggered the pipeline run is completed.
+# Advanced Invoke Azure Function Check Example
 
-This sample demonstrates the proper integration with Azure DevOps async checks, when the check condition takes a while to be evaluated due to an external dependency.
-Async check refers to a check which Completion event setting is configured to Callback.
+This advanced example shows an Azure Function that checks that an [Azure Boards](https://azure.microsoft.com/products/devops/boards/) work item referenced by the commit that triggered a pipeline run is completed.
 
-### The Azure Function goes through the following steps:
+You should use this Azure Function in an [`Invoke Azure Function` check](https://learn.microsoft.com/azure/devops/pipelines/process/approvals?#invoke-azure-function) configured in **Callback (Asynchronous)** mode. This mode is ideal when evaluating a condition takes a while, for example, due to making a REST call.
+
+To successfully run this example, you need to have an Azure Boards work item, an Azure Repo, and a YAML pipeline.
+
+# Structure
+
+The Azure Function goes through the following steps:
 
 1. Confirms the receipt of the check payload
 2. Sends a status update to Azure Pipelines that the check started
-3. Retrieves Azure Boards ticket referenced in the commit that triggered the pipeline run
+3. Retrieves the Azure Boards ticket referenced in the commit that triggered the pipeline run
 4. Checks if the ticket is in the `Completed` state
 5. Sends a status update with the result of the check
-6. If the ticket isn't in the Completed state, it reschedules another evaluation in 1 minute
+6. If the ticket isn't in the `Completed` state, it reschedules another evaluation in 1 minute
 7. Once the ticket is in the correct state, it sends a positive decision to Azure Pipelines
 
-### In order for this example to work, following instructions should be followed for the setup:
+The example consists of two Azure Functions working together:
+1. `AzureFunctionAdvancedHandler` that is entry point for the check process
+2. `AzureFunctionAdvancedServiceBusTrigger` that performs the periodic check of the state of the work item
 
-1. Deploy and configure AzureFunctionAdvancedHandler and AzureFunctionAdvancedServiceBusTrigger on azure portal.
-   Both of these functions have to be deployed in order for this example to work because they are dependent of each other.
-   AzureFunctionAdvancedHandler is entry point for the check process, where as AzureFunctionAdvancedServiceBusTrigger function
-   keeps the check evaluation going in intervals.
+These two functions interact over a [ServiceBus queue](https://learn.microsoft.com/en-us/azure/azure-functions/functions-bindings-service-bus?tabs=in-process%2Cextensionv5%2Cextensionv3&pivots=programming-language-csharp) named `az-advanced-checks-queue`. If the work item isn't completed, 
+`AzureFunctionAdvancedHandler` queues a message to this queue. The message becomes active in `{ChecksEvaluationPeriodInMinutes}` minutes (by default, 1 minute), and it triggers `AzureFunctionAdvancedServiceBusTrigger`. The function consumes the message and removes it from the queue. This is how we reschedule another evaluation in 1 minute (Step 6).
 
-2. These functions interact over ServiceBus queue az-advanced-checks-queue. If the work item isn't completed,
-   AzureFunctionAdvancedHandler queues a message to this queue which becomes visible in {ChecksEvaluationPeriodInMinutes}
-   minutes of time initially set to 1. Once this message becomes active, it triggers AzureFunctionAdvancedServiceBusTrigger
-   azure function which consumes it and removes it from the queue. This is how we reschedule another evaluation to happen
-   in 1 minute mentioned in step #6.
-   - In order for this to work, ServiceBus queue az-advanced-checks-queue must be created!  <br/>
-      OPTIONAL: Message time to live can be set to 10 seconds so that we don't have long overdue hanging messages.  <br/>
-      ![Alt text](Pictures/ServiceBusQueue.png?raw=true "ServiceBus Queue")
+
+# Configuration
+
+Follow these instructions to use this example as an `Invoke Azure Function` check:
+1. Create and configure the ServiceBus queue `az-advanced-checks-queue`
+   ![ServiceBus Queue](Pictures/ServiceBusQueue.png?raw=true)
+   1. 
+3. Deploy the `AzureFunctionAdvancedServiceBusTrigger` Azure Function
+4. Deploy the `AzureFunctionAdvancedHandler` Azure Function
+5. Configure the `AzureFunctionAdvancedHandler` Azure Function
+   1. Set _QueueName_ to "az-advanced-checks-queue"
+   2. Set _ChecksEvaluationPeriodInMinutes_ to 1. This parameter defines how often the check logic will be executed. Practically, the time between `AzureFunctionAdvancedServiceBusTrigger` calls
+   ![Configuration settings of advanced azure function](Pictures/AzureFunctionConfiguration.png?raw=true)
 
 3. Configure 3 additional azure function settings, necessary for ServiceBus interaction:
    1. "ServiceBusConnection" : "Endpoint=sb://azchecks.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=...=" <br/>
       Description: ServiceBus Queue connection endpoint <br/>
       ![Alt text](Pictures/ServiceBusSharedAccessPolicies.png?raw=true "ServiceBus Queue connection endpoint")
-   2. "QueueName" : "az-advanced-checks-queue" <br/>
-      Description: ServiceBus Queue name, should be set to "az-advanced-checks-queue"
-   3. "ChecksEvaluationPeriodInMinutes" : 1 <br/>
-      Description: Parameter indicating how often check logic will be executed (time between AzureFunctionAdvancedServiceBusTrigger calls) <br/>
-   ![Alt text](Pictures/AzureFunctionConfiguration.png?raw=true "Configuration settings of advanced azure function")
-
-4. Configure settings on the check of type Invoke Azure Function like so:
-   1. Azure function URL: URL of the previously deployed AzureFunctionAdvancedHandler <br/>
-      EXAMPLE: https://azurefunctionadvancedhandler.azurewebsites.net/api/MyAdvancedFunction
-   2. Headers: <br/>
-        ```
+   2. 
+2. In your Azure Pipelines, create a new [`Environment`](https://learn.microsoft.com/azure/devops/pipelines/process/environments) called _Demo_ with no resources
+3. Add a Check of type `Invoke Azure Function` to _Demo_ with the following configuration:
+   1. _Azure function URL_: the URL of the Azure Function deployed in Step 1, for example, https://azurefunctionbasichandler.azurewebsites.net/api/MyBasicFunction. You can get this URL when you do _Copy Function Url_ in Visual Studio Code
+   2. _Function key_: a secret used to access the Azure Function, for example, the value of the _code_ query parameter after you do _Copy Function Url_ in Visual Studio Code
+   3. _Headers_:
+        ```json
         {
            "Content-Type":"application/json", 
            "PlanUrl": "$(system.CollectionUri)", 
@@ -54,12 +60,50 @@ Async check refers to a check which Completion event setting is configured to Ca
            "TimelineId": "$(system.TimelineId)", 
            "TaskInstanceId": "$(system.TaskInstanceId)", 
            "AuthToken": "$(system.AccessToken)",
-           "BuildId": "$(Build.BuildId)" => NOTE: this header needs to be appended, will not be generated automatically
+           "BuildId": "$(Build.BuildId)"
         }
         ```
-   3. Completion event: Callback <br/>
-      NOTE: this makes the check async <br/>
-      RECOMMENDATIONS:
-         - Time between evaluation (minutes) : 0, so that there are no retries
-         - Timeout (minutes) to a lower value, so that build times out quickly <br/>
-   ![Alt text](Pictures/AdvancedCheckAsyncConfig.png?raw=true "Configuration settings for advanced async Invoke Azure Function check")
+        Don't forget to add `"BuildId": "$(Build.BuildId)"`, otherwise your Azure Function check will not work
+   4. In the _Advanced_ section, choose _Callback_ as completion event. This makes the check run asychnronously
+   5. In the _Control options_ section: 
+      1. Set _Time between evaluations (minutes)_ to 0
+      2. Set _Timeout (minutes)_ to 5, so that build times out quickly
+   6. Your configuration should look like in the following screenshot<br/>
+      ![Configuration settings for advanced async Invoke Azure Function check](Pictures/AdvancedCheckAsyncConfig.png?raw=true)
+
+# Run the Check
+To see your Invoke Azure Function check in action, follow these steps:
+
+1. Create a work item ticket
+2. Create a new YAML pipeline with the following code:
+```yml
+stages:
+- stage: Build
+  jobs:
+  - job:
+    steps:
+    - script: echo "Building"
+
+- stage: Deploy
+  jobs:
+  - deployment: 
+    environment: Dev
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - script: echo "Deploying to Demo"
+```
+2. _Save and run_ your pipeline
+3. Go to your pipeline's run details page, authorize it to use the _Demo_ environment
+4. Your pipeline will fail, because there is no work item linked to the latest commit
+5. Create a work item ticket in Azure Boards
+6. Edit the `REAMDE.md` file in the pipeline's repository
+7. When you commit your change, link to it the work item ticket you created in Step 5
+8. Go to your pipeline's latest run details page
+9. Your pipeline is running, but the checks are not passing
+10. Click on _0 / 1 checks passed_ in the _Deploy_ stage, and explore the logs of your Invoke Azure Function check
+11. Go the work item ticket you created in Step 5 and set it to _Done_ / _Closed_ / _Completed_
+12. Go to your pipeline's latest run details page
+13. After at most one minute, the check will pass and your pipeline will run
+14. Click on _1 / 1 checks passed_ in the _Deploy_ stage, and explore the logs of your Invoke Azure Function check
