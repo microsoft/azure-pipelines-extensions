@@ -48,7 +48,7 @@ Follow these instructions to use this example as an `Invoke Azure Function` chec
    5. Your configuration should look like in the following screenshot<br/>
       ![Configuration settings for basic async Invoke Azure Function check](Pictures/BasicCheckAsyncConfiguration.png?raw=true)
 
-# Run the check
+# Run the Check
 To see your Invoke Azure Function check in action, follow these steps:
 1. Create a new YAML pipeline with the following code:
 ```yml
