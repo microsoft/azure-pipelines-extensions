@@ -47,7 +47,10 @@ Follow these instructions to use this example as an `Invoke Azure Function` chec
       2. Set _Timeout (minutes)_ to 5, so that build times out quickly
    5. Your configuration should look like in the following screenshot<br/>
       ![Configuration settings for basic async Invoke Azure Function check](Pictures/BasicCheckAsyncConfiguration.png?raw=true)
-4. Create a new YAML pipeline with the following code:
+
+# Run the check
+To see your Invoke Azure Function check in action, follow these steps:
+1. Create a new YAML pipeline with the following code:
 ```yml
 stages:
 - stage: Build
@@ -66,9 +69,7 @@ stages:
           steps:
           - script: echo "Deploying to Demo"
 ```
-5. _Save and run_ your pipeline
-6. Go to your pipeline's run details page, authorize it to use the _Demo_ environment
-7. Wait for your pipeline to run successfully
-8. Click on _1 check passed_ and explore the logs of your Invoke Azure Function check
-
-   
+2. _Save and run_ your pipeline
+3. Go to your pipeline's run details page, authorize it to use the _Demo_ environment
+4. Wait for your pipeline to run successfully
+5. Click on _1 check passed_ and explore the logs of your Invoke Azure Function check
