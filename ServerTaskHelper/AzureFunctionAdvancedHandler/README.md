@@ -29,15 +29,15 @@ These two functions interact over a [ServiceBus queue](https://learn.microsoft.c
 # Configuration
 
 Follow these instructions to use this example as an `Invoke Azure Function` check:
-1. Create and configure the ServiceBus queue `az-advanced-checks-queue`
+1. Create and configure a ServiceBus named `azchecks`
+2. Within the ServiceBus, create and configure the ServiceBus queue namede `az-advanced-checks-queue`
    ![ServiceBus Queue](Pictures/ServiceBusQueue.png?raw=true)
 3. Deploy the `AzureFunctionAdvancedServiceBusTrigger` Azure Function
 4. Deploy the `AzureFunctionAdvancedHandler` Azure Function
 5. Configure the `AzureFunctionAdvancedHandler` Azure Function
    1. Set _ChecksEvaluationPeriodInMinutes_ to 1. This parameter defines how often the check logic will be executed. Practically, the time between `AzureFunctionAdvancedServiceBusTrigger` calls
-   2. Set _QueueName_ to _az-advanced-checks-queue_
    ![Configuration settings of advanced azure function](Pictures/AzureFunctionConfiguration.png?raw=true)
-   3. Set _ServiceBusConnection_ to _Endpoint=sb://{ServiceBusURL}/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=...=_
+   2. Set _ServiceBusConnection_ to _Endpoint=sb://{ServiceBusURL}/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=...=_. You can find this information in the ServiceBus  created in Step 1, under _Settings_, _Shared access policies_. Select _RootManageSharedAccessKey_, and then copy _Primary Connection String_.
       ![ServiceBus Queue connection endpoint](Pictures/ServiceBusSharedAccessPolicies.png?raw=true)
 2. In your Azure Pipelines, create a new [`Environment`](https://learn.microsoft.com/azure/devops/pipelines/process/environments) called _Demo_ with no resources
 3. Add a Check of type `Invoke Azure Function` to _Demo_ with the following configuration:
@@ -59,7 +59,7 @@ Follow these instructions to use this example as an `Invoke Azure Function` chec
         }
         ```
         Don't forget to add `"BuildId": "$(Build.BuildId)"`, otherwise your Azure Function check will not work
-   4. In the _Advanced_ section, choose _Callback_ as completion event. This makes the check run asychnronously
+   4. In the _Advanced_ section, choose _Callback_ as completion event. This makes the check run asynchronously
    5. In the _Control options_ section: 
       1. Set _Time between evaluations (minutes)_ to 0
       2. Set _Timeout (minutes)_ to 5, so that build times out quickly
