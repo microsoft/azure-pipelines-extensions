@@ -41,7 +41,7 @@ Follow these instructions to use this example as an `Invoke Azure Function` chec
         }
         ```
         Don't forget to add `"BuildId": "$(Build.BuildId)"`, otherwise your Azure Function check will not work
-   3. In the _Advanced_ section, choose _Callback_ as completion event. This makes the check run asychnronously
+   3. In the _Advanced_ section, choose _Callback_ as completion event. This makes the check run asynchronously
    4. In the _Control options_ section: 
       1. Set _Time between evaluations (minutes)_ to 0
       2. Set _Timeout (minutes)_ to 5, so that build times out quickly
