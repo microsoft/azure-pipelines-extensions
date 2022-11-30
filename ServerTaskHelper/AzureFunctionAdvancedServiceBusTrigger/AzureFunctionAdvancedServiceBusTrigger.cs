@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using DistributedTask.ServerTask.Remote.Common.Request;
 using DistributedTask.ServerTask.Remote.Common.ServiceBus;
+using DistributedTask.ServerTask.Remote.Common.WorkItemProgress;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Services.Common;
@@ -14,19 +15,19 @@ namespace AzureFunctionAdvancedServiceBusTrigger
 {
     public class AzureFunctionAdvancedServiceBusTrigger
     {
-        private const string ServiceBusQueueName = "az-advanced-checks-queue";
         private readonly ServiceBusSettings _serviceBusSettings;
+        private const string ServiceBusQueueName = WorkItemClient.ServiceBusQueueName;
+
         public AzureFunctionAdvancedServiceBusTrigger()
         {
             var connectionString = Environment.GetEnvironmentVariable("ServiceBusConnection");
-            var queueName = Environment.GetEnvironmentVariable("QueueName");
-            _serviceBusSettings = new ServiceBusSettings(connectionString, queueName);
+            _serviceBusSettings = new ServiceBusSettings(connectionString, ServiceBusQueueName);
         }
 
         [FunctionName("AzureFunctionAdvancedServiceBusTrigger")]
         public async Task Run([ServiceBusTrigger(ServiceBusQueueName, Connection = "ServiceBusConnection")] string myQueueItem, ILogger log)
         {
-            // Step #1: Consume the message, automatically done when the azure function was invoked
+            // Step #1: Triggered by a message from ServiceBus queue `az-advanced-checks-queue`
             var taskProperties = JsonConvert.DeserializeObject<TaskProperties>(myQueueItem);
             log.LogInformation($"C# ServiceBus queue trigger function processed message with PlanId: {taskProperties.PlanId}");
 

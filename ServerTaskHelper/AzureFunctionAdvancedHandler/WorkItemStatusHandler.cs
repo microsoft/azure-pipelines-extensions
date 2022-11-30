@@ -7,18 +7,19 @@ using DistributedTask.ServerTask.Remote.Common.TaskProgress;
 using DistributedTask.ServerTask.Remote.Common.WorkItemProgress;
 using DistributedTask.ServerTask.Remote.Common.WorkItemProgress.Exceptions;
 using Microsoft.Extensions.Logging;
+using Microsoft.TeamFoundation.Common;
 using Microsoft.TeamFoundation.DistributedTask.WebApi;
 using Microsoft.VisualStudio.Services.Common;
 
 namespace AzureFunctionAdvancedHandler
 {
-    internal class MyTaskExecutionHandler
+    internal class WorkItemStatusHandler
     {
         private readonly ServiceBusSettings _serviceBusSettings;
         private readonly TaskProperties _taskProperties;
         private TaskLogger _taskLogger;
 
-        public MyTaskExecutionHandler(TaskProperties taskProperties, ServiceBusSettings serviceBusSettings)
+        public WorkItemStatusHandler(TaskProperties taskProperties, ServiceBusSettings serviceBusSettings)
         {
             _taskProperties = taskProperties;
             _serviceBusSettings = serviceBusSettings;
@@ -51,7 +52,17 @@ namespace AzureFunctionAdvancedHandler
                 {
                     // Step #6: Ticket is not in the correct state, reschedule another evaluation in the configured minutes by the application settings
                     var serviceBusClient = new ServiceBusClient(_taskProperties, _serviceBusSettings);
-                    var checksEvaluationPeriodInMinutes = Convert.ToInt32(double.Parse(Environment.GetEnvironmentVariable("ChecksEvaluationPeriodInMinutes")));
+
+                    var checksEvaluationPeriodInMinutes = 1;
+                    var checksEvaluationPeriodInMinutesString = Environment.GetEnvironmentVariable("ChecksEvaluationPeriodInMinutes");
+                    if (!checksEvaluationPeriodInMinutesString.IsNullOrEmpty())
+                    {
+                        var checksEvaluationPeriodInMinutesConverted = Convert.ToInt32(double.Parse(checksEvaluationPeriodInMinutesString));
+                        if (checksEvaluationPeriodInMinutesConverted > 0)
+                        {
+                            checksEvaluationPeriodInMinutes = checksEvaluationPeriodInMinutesConverted;
+                        }
+                    }
                     var messageSequenceNumber = serviceBusClient.SendScheduledMessageToQueue(checksEvaluationPeriodInMinutes);
 
                     // log to azure function's console

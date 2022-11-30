@@ -19,7 +19,7 @@ namespace AzureFunctionBasicHandler
     public static class MyBasicFunction
     {
         [FunctionName("MyBasicFunction")]
-        public static async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)]HttpRequestMessage req, ILogger log)
+        public static async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)]HttpRequestMessage req, ILogger log)
         {
             TypeDescriptor.AddAttributes(typeof(IdentityDescriptor), new TypeConverterAttribute(typeof(IdentityDescriptorConverter).FullName));
             TypeDescriptor.AddAttributes(typeof(SubjectDescriptor), new TypeConverterAttribute(typeof(SubjectDescriptorConverter).FullName));
@@ -34,9 +34,9 @@ namespace AzureFunctionBasicHandler
             // Created task execution handler
             Task.Run(() =>
             {
-                var executionHandler = new MyTaskExecutionHandler(taskProperties);
+                var executionHandler = new WorkItemStatusHandler(taskProperties);
                 _ = executionHandler.Execute(log, CancellationToken.None).Result;
-            }).ConfigureAwait(false);
+            });
 
             // Step #1: Confirms the receipt of the check payload
             return new OkObjectResult("Request accepted!");

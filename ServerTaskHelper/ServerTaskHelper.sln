@@ -15,11 +15,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AzureFunctionSample", "Azur
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HttpRequestSampleWithoutHandler", "HttpRequestSampleWithoutHandler\HttpRequestSampleWithoutHandler.csproj", "{FDD4AE8E-63DE-4C46-BBE1-C8599CC8F155}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AzureFunctionBasicSample", "AzureFunctionBasicSample\AzureFunctionBasicSample.csproj", "{0E5344B3-A1B4-4EA9-B520-0983E099AB8F}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AzureFunctionAdvancedHandler", "AzureFunctionAdvancedHandler\AzureFunctionAdvancedHandler.csproj", "{A64F8CEE-3DB5-4319-A478-4856DF932EAF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AzureFunctionAdvancedServiceBusTrigger", "AzureFunctionAdvancedServiceBusTrigger\AzureFunctionAdvancedServiceBusTrigger.csproj", "{BC116A01-D84D-4AA9-8FF4-3D7143CF6AEE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AzureFunctionAdvancedServiceBusTrigger", "AzureFunctionAdvancedServiceBusTrigger\AzureFunctionAdvancedServiceBusTrigger.csproj", "{BC116A01-D84D-4AA9-8FF4-3D7143CF6AEE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -51,10 +49,6 @@ Global
 		{FDD4AE8E-63DE-4C46-BBE1-C8599CC8F155}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FDD4AE8E-63DE-4C46-BBE1-C8599CC8F155}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FDD4AE8E-63DE-4C46-BBE1-C8599CC8F155}.Release|Any CPU.Build.0 = Release|Any CPU
-		{0E5344B3-A1B4-4EA9-B520-0983E099AB8F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0E5344B3-A1B4-4EA9-B520-0983E099AB8F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0E5344B3-A1B4-4EA9-B520-0983E099AB8F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0E5344B3-A1B4-4EA9-B520-0983E099AB8F}.Release|Any CPU.Build.0 = Release|Any CPU
 		{A64F8CEE-3DB5-4319-A478-4856DF932EAF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{A64F8CEE-3DB5-4319-A478-4856DF932EAF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A64F8CEE-3DB5-4319-A478-4856DF932EAF}.Release|Any CPU.ActiveCfg = Release|Any CPU

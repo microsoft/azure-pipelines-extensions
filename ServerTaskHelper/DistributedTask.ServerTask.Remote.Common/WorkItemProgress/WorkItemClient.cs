@@ -2,7 +2,6 @@
 using System.Linq;
 using DistributedTask.ServerTask.Remote.Common.Build;
 using DistributedTask.ServerTask.Remote.Common.Request;
-using Microsoft.TeamFoundation.Common;
 using Microsoft.TeamFoundation.WorkItemTracking.WebApi;
 using Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
 using Microsoft.VisualStudio.Services.Common;
@@ -78,6 +77,6 @@ namespace DistributedTask.ServerTask.Remote.Common.WorkItemProgress
             return false;
         }
 
-        private const string CommitIdKey = "CommitId";
+        public const string ServiceBusQueueName = "az-advanced-checks-queue";
     }
 }

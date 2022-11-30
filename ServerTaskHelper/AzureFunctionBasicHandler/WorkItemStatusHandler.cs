@@ -10,13 +10,13 @@ using Microsoft.VisualStudio.Services.Common;
 
 namespace AzureFunctionBasicHandler
 {
-    public class MyTaskExecutionHandler
+    public class WorkItemStatusHandler
     {
 
         private readonly TaskProperties _taskProperties;
         private TaskLogger _taskLogger;
 
-        public MyTaskExecutionHandler(TaskProperties taskProperties)
+        public WorkItemStatusHandler(TaskProperties taskProperties)
         {
             _taskProperties = taskProperties;
         }

@@ -10,6 +10,7 @@ using System;
 using DistributedTask.ServerTask.Remote.Common.ServiceBus;
 using Microsoft.TeamFoundation.DistributedTask.WebApi;
 using DistributedTask.ServerTask.Remote.Common.Build;
+using Microsoft.TeamFoundation.Common;
 
 namespace AzureFunctionAdvancedServiceBusTrigger
 {
@@ -31,7 +32,7 @@ namespace AzureFunctionAdvancedServiceBusTrigger
             var taskClient = new TaskClient(_taskProperties);
             try
             {
-                // Step #2: Do not continue scheduling other checks if build is not running anymore
+                // Step #2: Check if the build is completed, and terminate the logic in case it is
                 var buildClient = new BuildClient(_taskProperties);
                 if (buildClient.IsBuildCompleted())
                 {
@@ -43,21 +44,31 @@ namespace AzureFunctionAdvancedServiceBusTrigger
                 _taskLogger = new TaskLogger(_taskProperties, taskClient);
                 await _taskLogger.CreateTaskTimelineRecordIfRequired(taskClient, cancellationToken).ConfigureAwait(false);
 
-                // Step #3: Retrieve Azure Boards ticket referenced in the commit that triggered the pipeline run
+                // Step #3: Retrieve Azure Boards ticket referenced in the build's commit
                 var witClient = new WorkItemClient(_taskProperties, buildClient);
                 var workItem = witClient.GetCommitRelatedWorkItem();
 
                 // Step #4: Check if the ticket is in the `Completed` state
                 var isWitCompleted = witClient.IsWorkItemCompleted(workItem);
 
-                // Step #5: Sends a status update with the result of the check
+                // Step #5: Send a status update with the result of the check
                 await _taskLogger.LogImmediately($"Referenced work item #{workItem.Id} is completed: {isWitCompleted}");
 
                 if (!isWitCompleted)
                 {
-                    // Step #6: Ticket is not in the correct state, reschedule another evaluation in the configured minutes by the application settings
+                    // Step #6: If the ticket isn't in the `Completed` state, reschedule another evaluation in {ChecksEvaluationPeriodInMinutes} minutes (by default 1 minute)
                     var serviceBusClient = new ServiceBusClient(_taskProperties, _serviceBusSettings);
-                    var checksEvaluationPeriodInMinutes = Convert.ToInt32(double.Parse(Environment.GetEnvironmentVariable("ChecksEvaluationPeriodInMinutes")));
+
+                    var checksEvaluationPeriodInMinutes = 1;
+                    var checksEvaluationPeriodInMinutesString = Environment.GetEnvironmentVariable("ChecksEvaluationPeriodInMinutes");
+                    if (!checksEvaluationPeriodInMinutesString.IsNullOrEmpty())
+                    {
+                        var checksEvaluationPeriodInMinutesConverted = Convert.ToInt32(double.Parse(checksEvaluationPeriodInMinutesString));
+                        if (checksEvaluationPeriodInMinutesConverted > 0)
+                        {
+                            checksEvaluationPeriodInMinutes = checksEvaluationPeriodInMinutesConverted;
+                        }
+                    }
                     var messageSequenceNumber = serviceBusClient.SendScheduledMessageToQueue(checksEvaluationPeriodInMinutes);
 
                     // log to azure function's console
@@ -70,7 +81,7 @@ namespace AzureFunctionAdvancedServiceBusTrigger
                 }
                 else
                 {
-                    // Step #6: Ticket is in the correct state, send a positive decision to Azure Pipelines
+                    // Step #7: Once the ticket is in the correct state, send a positive decision to Azure Pipelines
                     taskResult = TaskResult.Succeeded;
                     await taskClient.ReportTaskCompleted(_taskProperties.TaskInstanceId, taskResult, cancellationToken).ConfigureAwait(false);
                     await _taskLogger.LogImmediately("Check succeeded!");

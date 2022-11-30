@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using DistributedTask.ServerTask.Remote.Common.Request;
 using DistributedTask.ServerTask.Remote.Common.ServiceBus;
+using DistributedTask.ServerTask.Remote.Common.WorkItemProgress;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
@@ -23,12 +24,12 @@ namespace AzureFunctionAdvancedHandler
         public MyAdvancedFunction()
         {
             var connectionString = Environment.GetEnvironmentVariable("ServiceBusConnection");
-            var queueName = Environment.GetEnvironmentVariable("QueueName");
+            var queueName = WorkItemClient.ServiceBusQueueName;
             _serviceBusSettings = new ServiceBusSettings(connectionString, queueName);
         }
 
         [FunctionName("MyAdvancedFunction")]
-        public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequestMessage req, ILogger log)
+        public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)] HttpRequestMessage req, ILogger log)
         {
             TypeDescriptor.AddAttributes(typeof(IdentityDescriptor), new TypeConverterAttribute(typeof(IdentityDescriptorConverter).FullName));
             TypeDescriptor.AddAttributes(typeof(SubjectDescriptor), new TypeConverterAttribute(typeof(SubjectDescriptorConverter).FullName));
@@ -45,9 +46,9 @@ namespace AzureFunctionAdvancedHandler
             // Created task execution handler
             Task.Run(() =>
             {
-                var executionHandler = new MyTaskExecutionHandler(taskProperties, _serviceBusSettings);
+                var executionHandler = new WorkItemStatusHandler(taskProperties, _serviceBusSettings);
                 _ = executionHandler.Execute(log, CancellationToken.None).Result;
-            }).ConfigureAwait(false);
+            });
 
             // Step #1: Confirms the receipt of the check payload
             return new OkObjectResult("Request accepted!");
