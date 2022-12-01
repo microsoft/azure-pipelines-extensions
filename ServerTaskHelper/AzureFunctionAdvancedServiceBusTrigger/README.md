@@ -2,9 +2,9 @@
 
 This advanced example shows an Azure Function that checks that an [Azure Boards](https://azure.microsoft.com/products/devops/boards/) work item referenced by the commit that triggered a pipeline run is completed.
 
-For more information about the work-flow and configuration of this Azure Function, refer to the [README.md file of AzureFunctionAdvancedHandler project](../AzureFunctionAdvancedHandler/README.md).
+For more information about the workflow and configuration of this Azure Function, refer to the [README.md file of AzureFunctionAdvancedHandler project](../AzureFunctionAdvancedHandler/README.md).
 
-# Structure
+# Steps
 
 The Azure Function goes through the following steps:
 
