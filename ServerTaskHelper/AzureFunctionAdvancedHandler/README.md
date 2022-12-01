@@ -1,6 +1,6 @@
 # Advanced Invoke Azure Function Check Example
 
-This advanced example shows an Azure Function that checks that a [Azure Boards](https://azure.microsoft.com/products/devops/boards/) work item referenced by the commit that triggered a pipeline run is completed.
+This advanced example shows an Azure Function that checks that an [Azure Boards](https://azure.microsoft.com/products/devops/boards/) work item referenced by the commit that triggered a pipeline run is completed.
 
 You should use this Azure Function in an [`Invoke Azure Function` check](https://learn.microsoft.com/azure/devops/pipelines/process/approvals?#invoke-azure-function) configured in **Callback (Asynchronous)** mode. This mode is ideal when evaluating a condition takes a while, for example, due to making a REST call.
 
