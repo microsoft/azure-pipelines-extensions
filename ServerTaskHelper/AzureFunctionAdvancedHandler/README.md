@@ -1,8 +1,8 @@
 # Advanced Invoke Azure Function Check Example
 
-This advanced example shows an Azure Function that checks that an [Azure Boards](https://azure.microsoft.com/products/devops/boards/) work item referenced by the commit that triggered a pipeline run is completed.
+This advanced example shows how to trigger an Azure Function to fire once a pipeline run ends that was kicked off by a commit with a related [Azure Boards](https://azure.microsoft.com/products/devops/boards/) work item.
 
-You should use this Azure Function in an [`Invoke Azure Function` check](https://learn.microsoft.com/azure/devops/pipelines/process/approvals?#invoke-azure-function) configured in **Callback (Asynchronous)** mode. This mode is ideal when evaluating a condition takes a while, for example, due to making a REST call.
+Use the [`Invoke Azure Function` check](https://learn.microsoft.com/azure/devops/pipelines/process/approvals?#invoke-azure-function) Azure Function in **Callback (Asynchronous)** mode. This mode is ideal for conditions that can have longer wait times (example: making a REST call).
 
 To successfully run this example, you need to have an Azure Boards work item, an Azure Repo, and a YAML pipeline.
 
@@ -12,23 +12,23 @@ The Azure Function goes through the following steps:
 
 1. Confirms the receipt of the check payload
 2. Sends a status update to Azure Pipelines that the check started
-3. Retrieves the Azure Boards ticket referenced in the commit that triggered the pipeline run
-4. Checks if the ticket is in the `Completed` state
+3. Retrieves the Azure Boards work item referenced in the commit that triggered the pipeline run
+4. Checks if the work item is in the `Completed` state
 5. Sends a status update with the result of the check
-6. If the ticket isn't in the `Completed` state, it reschedules another evaluation in 1 minute
-7. Once the ticket is in the correct state, it sends a positive decision to Azure Pipelines
+6. If the work item isn't in the `Completed` state, the function will run again in one minute
+7. Once the ticket is in the correct state, the function sends a positive decision to Azure Pipelines
 
 The example consists of two Azure Functions working together:
-1. `AzureFunctionAdvancedHandler` that is entry point for the check process
-2. `AzureFunctionAdvancedServiceBusTrigger` that performs the periodic check of the state of the work item
+1. `AzureFunctionAdvancedHandler` is the entry point for the check process
+2. `AzureFunctionAdvancedServiceBusTrigger` performs the periodic check of the state of the work item
 
 These two functions interact over a [ServiceBus queue](https://learn.microsoft.com/en-us/azure/azure-functions/functions-bindings-service-bus?tabs=in-process%2Cextensionv5%2Cextensionv3&pivots=programming-language-csharp) named `az-advanced-checks-queue`. If the work item isn't completed, 
-`AzureFunctionAdvancedHandler` queues a message to this queue. The message becomes active in `{ChecksEvaluationPeriodInMinutes}` minutes (by default, 1 minute), and it triggers `AzureFunctionAdvancedServiceBusTrigger`. The function consumes the message and removes it from the queue. This is how we reschedule another evaluation in 1 minute (Step 6).
+`AzureFunctionAdvancedHandler` queues a message to this queue. The message becomes active in `{ChecksEvaluationPeriodInMinutes}` minutes (by default, 1 minute), and it triggers `AzureFunctionAdvancedServiceBusTrigger`. The function then consumes the message and removes it from the queue. The function will then be scheduled for a second evaluation in one minute (Step 6).
 
 
 # Configuration
 
-Follow these instructions to use this example as an `Invoke Azure Function` check:
+To use this example as an `Invoke Azure Function` check:
 1. Create and configure a ServiceBus named `azchecks`
 2. Within the ServiceBus, create and configure the ServiceBus queue namede `az-advanced-checks-queue`
    ![ServiceBus Queue](Pictures/ServiceBusQueue.png?raw=true)
