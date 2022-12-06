@@ -23,7 +23,7 @@ Follow these instructions to use this example as an `Invoke Azure Function` chec
 1. Deploy the `AzureFunctionBasicHandler` Azure Function
 2. In your Azure Pipelines, create a new [`Environment`](https://learn.microsoft.com/azure/devops/pipelines/process/environments) called _Demo_ with no resources
 3. Add a Check of type `Invoke Azure Function` to _Demo_ with the following configuration:
-   1. _Azure function URL_: the URL of the Azure Function deployed in Step 1, for example, https://azurefunctionbasichandler.azurewebsites.net/api/MyBasicFunction. You can get this URL when you do _Copy Function Url_ in Visual Studio Code
+   1. _Azure function URL_: the URL of the Azure Function deployed in Step 1, for example, https://azurefunctionbasichandler.azurewebsites.net/api/MyBasicFunction. You can get this URL using _Copy Function Url_ in Visual Studio Code
    2. _Function key_: a secret used to access the Azure Function, for example, the value of the _code_ query parameter after you do _Copy Function Url_ in Visual Studio Code
    3. _Headers_:
         ```json
@@ -44,7 +44,7 @@ Follow these instructions to use this example as an `Invoke Azure Function` chec
    3. In the _Advanced_ section, choose _Callback_ as completion event. This makes the check run asynchronously
    4. In the _Control options_ section: 
       1. Set _Time between evaluations (minutes)_ to 0
-      2. Set _Timeout (minutes)_ to 5, so that build times out quickly
+      2. Set _Timeout (minutes)_ to 5, so that the build times out quickly
    5. Your configuration should look like in the following screenshot<br/>
       ![Configuration settings for basic async Invoke Azure Function check](Pictures/BasicCheckAsyncConfiguration.png?raw=true)
 
@@ -70,6 +70,6 @@ stages:
           - script: echo "Deploying to Demo"
 ```
 2. _Save and run_ your pipeline
-3. Go to your pipeline's run details page, authorize it to use the _Demo_ environment
+3. Go to your pipeline's run details page, and authorize it to use the _Demo_ environment
 4. Wait for your pipeline to run successfully
 5. Click on _1 check passed_ and explore the logs of your Invoke Azure Function check
