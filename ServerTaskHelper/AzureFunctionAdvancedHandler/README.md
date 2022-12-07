@@ -30,18 +30,18 @@ These two functions interact over a [ServiceBus queue](https://learn.microsoft.c
 
 To use this example as an `Invoke Azure Function` check:
 1. Create and configure a ServiceBus named `azchecks`
-2. Within the ServiceBus, create and configure the ServiceBus queue namede `az-advanced-checks-queue`
+2. Within the ServiceBus, create and configure the ServiceBus queue named `az-advanced-checks-queue`
    ![ServiceBus Queue](Pictures/ServiceBusQueue.png?raw=true)
 3. Deploy the `AzureFunctionAdvancedServiceBusTrigger` Azure Function
 4. Deploy the `AzureFunctionAdvancedHandler` Azure Function
 5. Configure the `AzureFunctionAdvancedHandler` Azure Function
-   1. Set _ChecksEvaluationPeriodInMinutes_ to 1. This parameter defines how often the check logic will be executed. Practically, the time between `AzureFunctionAdvancedServiceBusTrigger` calls
+   1. Set _ChecksEvaluationPeriodInMinutes_ to 1. This parameter defines how often the check logic will run. This is the time between when `AzureFunctionAdvancedServiceBusTrigger` calls
    ![Configuration settings of advanced azure function](Pictures/AzureFunctionConfiguration.png?raw=true)
-   2. Set _ServiceBusConnection_ to _Endpoint=sb://{ServiceBusURL}/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=...=_. You can find this information in the ServiceBus  created in Step 1, under _Settings_, _Shared access policies_. Select _RootManageSharedAccessKey_, and then copy _Primary Connection String_.
+   2. Set _ServiceBusConnection_ to _Endpoint=sb://{ServiceBusURL}/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=...=. You can find this information in the ServiceBus created in Step 1, under **Settings** > **Shared access policies**. Select **RootManageSharedAccessKey**, and then copy _Primary Connection String_.
       ![ServiceBus Queue connection endpoint](Pictures/ServiceBusSharedAccessPolicies.png?raw=true)
 2. In your Azure Pipelines, create a new [`Environment`](https://learn.microsoft.com/azure/devops/pipelines/process/environments) called _Demo_ with no resources
 3. Add a Check of type `Invoke Azure Function` to _Demo_ with the following configuration:
-   1. _Azure function URL_: the URL of the Azure Function deployed in Step 1, for example, https://azurefunctionbasichandler.azurewebsites.net/api/MyBasicFunction. You can get this URL when you do _Copy Function Url_ in Visual Studio Code
+   1. _Azure function URL_: the URL of the Azure Function deployed in Step 1, for example, https://azurefunctionbasichandler.azurewebsites.net/api/MyBasicFunction. You can get this URL from _Copy Function Url_ in Visual Studio Code
    2. _Function key_: a secret used to access the Azure Function, for example, the value of the _code_ query parameter after you do _Copy Function Url_ in Visual Studio Code
    3. _Headers_:
         ```json
@@ -58,18 +58,18 @@ To use this example as an `Invoke Azure Function` check:
            "BuildId": "$(Build.BuildId)"
         }
         ```
-        Don't forget to add `"BuildId": "$(Build.BuildId)"`, otherwise your Azure Function check will not work
-   4. In the _Advanced_ section, choose _Callback_ as completion event. This makes the check run asynchronously
-   5. In the _Control options_ section: 
-      1. Set _Time between evaluations (minutes)_ to 0
-      2. Set _Timeout (minutes)_ to 5, so that build times out quickly
-   6. Your configuration should look like in the following screenshot<br/>
+        Make sure to add `"BuildId": "$(Build.BuildId)"`, otherwise your Azure Function check will not work.
+   4. In the **Advanced** section, choose _Callback_ as completion event. This makes the check run asynchronously
+   5. In the **Control options** section:
+      1. Set **Time between evaluations (minutes)** to 0
+      2. Set **Timeout (minutes)** to 5, so that build times out quickly
+   6. Your configuration should look like this<br/>
       ![Configuration settings for advanced async Invoke Azure Function check](Pictures/AdvancedCheckAsyncConfig.png?raw=true)
 
 # Run the Check
 To see your Invoke Azure Function check in action, follow these steps:
 
-1. Create a work item ticket
+1. Create a work item.
 2. Create a new YAML pipeline with the following code:
 ```yml
 stages:
@@ -89,11 +89,11 @@ stages:
           steps:
           - script: echo "Deploying to Demo"
 ```
-2. _Save and run_ your pipeline
-3. Go to your pipeline's run details page, authorize it to use the _Demo_ environment
+2. **Save and run** your pipeline
+3. Go to your pipeline's run details page, authorize the pipeline to use the _Demo_ environment
 4. Your pipeline will fail, because there is no work item linked to the latest commit
-5. Create a work item ticket in Azure Boards
-6. Edit the `REAMDE.md` file in the pipeline's repository
+5. Create a work item in Azure Boards
+6. Edit the `README.md` file in the pipeline's repository
 7. When you commit your change, link to it the work item ticket you created in Step 5
 8. Go to your pipeline's latest run details page
 9. Your pipeline is running, but the checks are not passing
