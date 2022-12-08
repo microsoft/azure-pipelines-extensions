@@ -1,7 +1,6 @@
 ﻿# Advanced Invoke Azure Function Check Dependency Example
 
-This advanced example shows how to trigger an Azure Function to fire once a pipeline run ends that was kicked off by a commit that includes a referenced [Azure Boards](https://azure.microsoft.com/products/devops/boards/) work item.
-
+This advanced example shows how to trigger an Azure Function that checks if an [Azure Boards](https://azure.microsoft.com/products/devops/boards/) work item is in a **Completed** state.
 
 For more information about the workflow and configuration of this Azure Function, refer to the [README.md file of AzureFunctionAdvancedHandler project](../AzureFunctionAdvancedHandler/README.md).
 
@@ -10,7 +9,7 @@ For more information about the workflow and configuration of this Azure Function
 The Azure Function goes through the following steps:
 
 1. Runs when there is a new a message in the `az-advanced-checks-queue` ServiceBus queue 
-2. Checks if the build is completed, and stops if there is a new build in the queue
+2. Checks if the build is completed, and stops if there is the the build stops.
 3. Retrieves the Azure Boards work item referenced in the build's commit
 4. Checks if the work item is in the `Completed` state
 5. Sends a status update with the result of the check

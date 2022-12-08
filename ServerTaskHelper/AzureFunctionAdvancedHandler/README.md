@@ -1,6 +1,6 @@
 # Advanced Invoke Azure Function Check Example
 
-This advanced example shows how to trigger an Azure Function to fire once a pipeline run ends that was kicked off by a commit with a related [Azure Boards](https://azure.microsoft.com/products/devops/boards/) work item.
+This advanced example shows how to trigger an Azure Function that checks if an [Azure Boards](https://azure.microsoft.com/products/devops/boards/) work item is in a **Completed** state.
 
 Use the [`Invoke Azure Function` check](https://learn.microsoft.com/azure/devops/pipelines/process/approvals?#invoke-azure-function) Azure Function in **Callback (Asynchronous)** mode. This mode is ideal for conditions that can have longer wait times (example: making a REST call).
 
@@ -35,7 +35,7 @@ To use this example as an `Invoke Azure Function` check:
 3. Deploy the `AzureFunctionAdvancedServiceBusTrigger` Azure Function
 4. Deploy the `AzureFunctionAdvancedHandler` Azure Function
 5. Configure the `AzureFunctionAdvancedHandler` Azure Function
-   1. Set _ChecksEvaluationPeriodInMinutes_ to 1. This parameter defines how often the check logic will run. This is the time between when `AzureFunctionAdvancedServiceBusTrigger` calls
+   1. Set _ChecksEvaluationPeriodInMinutes_ to 1. This parameter defines how often the check logic will run. This is the time between `AzureFunctionAdvancedServiceBusTrigger` calls
    ![Configuration settings of advanced azure function](Pictures/AzureFunctionConfiguration.png?raw=true)
    2. Set _ServiceBusConnection_ to _Endpoint=sb://{ServiceBusURL}/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=...=. You can find this information in the ServiceBus created in Step 1, under **Settings** > **Shared access policies**. Select **RootManageSharedAccessKey**, and then copy _Primary Connection String_.
       ![ServiceBus Queue connection endpoint](Pictures/ServiceBusSharedAccessPolicies.png?raw=true)
