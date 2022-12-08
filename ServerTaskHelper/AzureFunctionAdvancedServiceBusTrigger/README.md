@@ -9,7 +9,7 @@ For more information about the workflow and configuration of this Azure Function
 The Azure Function goes through the following steps:
 
 1. Runs when there is a new a message in the `az-advanced-checks-queue` ServiceBus queue 
-2. Checks if the build is completed, and stops if there is the the build stops.
+2. Checks if the build is completed and stops if it is
 3. Retrieves the Azure Boards work item referenced in the build's commit
 4. Checks if the work item is in the `Completed` state
 5. Sends a status update with the result of the check
