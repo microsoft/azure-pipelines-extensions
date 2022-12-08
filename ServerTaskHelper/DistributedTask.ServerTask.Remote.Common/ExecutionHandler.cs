@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using DistributedTask.ServerTask.Remote.Common.Exceptions;
 using DistributedTask.ServerTask.Remote.Common.Request;
 using DistributedTask.ServerTask.Remote.Common.TaskProgress;
 using Microsoft.TeamFoundation.DistributedTask.WebApi;
@@ -35,11 +36,11 @@ namespace DistributedTask.ServerTask.Remote.Common
                 try
                 {
                     // create timelinerecord if not provided
-                    await CreateTaskTimelineRecordIfRequired(taskClient, cancellationToken).ConfigureAwait(false);
                     taskLogger = new TaskLogger(taskProperties, taskClient);
+                    await taskLogger.CreateTaskTimelineRecordIfRequired(taskClient, cancellationToken).ConfigureAwait(false);
 
                     // report task started
-                    await taskLogger.Log("Task started").ConfigureAwait(false);
+                    await taskLogger.LogImmediately("Task started");
                     await taskClient.ReportTaskStarted(taskProperties.TaskInstanceId, cancellationToken).ConfigureAwait(false);
 
                     await taskClient.ReportTaskProgress(taskProperties.TaskInstanceId, cancellationToken).ConfigureAwait(false);
@@ -49,9 +50,13 @@ namespace DistributedTask.ServerTask.Remote.Common
                     taskResult = await executeTask;
 
                     // report task completed with status
-                    await taskLogger.Log("Task completed").ConfigureAwait(false);
+                    await taskLogger.LogImmediately("Task completed");
                     await taskClient.ReportTaskCompleted(taskProperties.TaskInstanceId, taskResult, cancellationToken).ConfigureAwait(false);
                     return taskResult;
+                }
+                catch (AzureFunctionEvaluationException e)
+                {
+                    throw;
                 }
                 catch (Exception e)
                 {
@@ -82,30 +87,6 @@ namespace DistributedTask.ServerTask.Remote.Common
                 this.taskExecutionHandler.CancelAsync(taskMessage, taskLogger, cancellationToken);
                 await taskClient.ReportTaskCompleted(taskProperties.TaskInstanceId, TaskResult.Canceled, cancellationToken).ConfigureAwait(false);
             }
-        }
-
-        private async Task CreateTaskTimelineRecordIfRequired(TaskClient taskClient, CancellationToken cancellationToken)
-        {
-            if (taskProperties.TaskInstanceId.Equals(Guid.Empty))
-            {
-                taskProperties.TaskInstanceId = Guid.NewGuid();
-            }
-
-            var timelineRecord = new TimelineRecord
-            {
-                Id = taskProperties.TaskInstanceId,
-                RecordType = "task",
-                StartTime = DateTime.UtcNow,
-                ParentId = taskProperties.JobId,
-            };
-
-            if (!string.IsNullOrWhiteSpace(taskProperties.TaskInstanceName))
-            {
-                timelineRecord.Name = taskProperties.TaskInstanceName;
-            }
-
-            // this is an upsert call
-            await taskClient.UpdateTimelineRecordsAsync(timelineRecord, cancellationToken).ConfigureAwait(false);
         }
     }
 }

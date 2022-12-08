@@ -2,29 +2,40 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
-using DistributedTask.ServerTask.Remote.Common;
 using DistributedTask.ServerTask.Remote.Common.Request;
+using DistributedTask.ServerTask.Remote.Common.ServiceBus;
+using DistributedTask.ServerTask.Remote.Common.WorkItemProgress;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
-using Microsoft.Azure.WebJobs.Host;
+using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Services.Common;
 using Microsoft.VisualStudio.Services.Identity;
 
-namespace AzureFunctionHandler
+namespace AzureFunctionAdvancedHandler
 {
-    public static class MyFunction
+    public class MyAdvancedFunction
     {
-        [FunctionName("MyFunction")]
-        public static async Task<HttpResponseMessage> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)]HttpRequestMessage req, TraceWriter log)
+        private readonly ServiceBusSettings _serviceBusSettings;
+        public MyAdvancedFunction()
+        {
+            var connectionString = Environment.GetEnvironmentVariable("ServiceBusConnection");
+            var queueName = WorkItemClient.ServiceBusQueueName;
+            _serviceBusSettings = new ServiceBusSettings(connectionString, queueName);
+        }
+
+        [FunctionName("MyAdvancedFunction")]
+        public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)] HttpRequestMessage req, ILogger log)
         {
             TypeDescriptor.AddAttributes(typeof(IdentityDescriptor), new TypeConverterAttribute(typeof(IdentityDescriptorConverter).FullName));
             TypeDescriptor.AddAttributes(typeof(SubjectDescriptor), new TypeConverterAttribute(typeof(SubjectDescriptorConverter).FullName));
             AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
+
+            log.LogInformation(req.ToString());
 
             // Get request body
             var messageBody = await req.Content.ReadAsStringAsync().ConfigureAwait(false);
@@ -33,25 +44,23 @@ namespace AzureFunctionHandler
             var taskProperties = GetTaskProperties(req.Headers);
 
             // Created task execution handler
-            ITaskExecutionHandler myTaskExecutionHandler = new MyTaskExecutionHandler();
+            Task.Run(() =>
+            {
+                var executionHandler = new WorkItemStatusHandler(taskProperties, _serviceBusSettings);
+                _ = executionHandler.Execute(log, CancellationToken.None).Result;
+            });
 
-            var executionHandler = new ExecutionHandler(myTaskExecutionHandler, messageBody, taskProperties);
-            var executionThread = new Thread(() => executionHandler.Execute(CancellationToken.None));
-            executionThread.Start();
-
-            return req.CreateResponse(HttpStatusCode.OK, "Request accepted!");
+            // Step #1: Confirms the receipt of the check payload
+            return new OkObjectResult("Request accepted!");
         }
 
         private static TaskProperties GetTaskProperties(HttpRequestHeaders requestHeaders)
         {
             IDictionary<string, string> taskProperties = new Dictionary<string, string>();
 
-            foreach (var taskProperty in TaskProperties.PropertiesList)
+            foreach (var requestHeader in requestHeaders)
             {
-                if (requestHeaders.TryGetValues(taskProperty, out var propertyValues))
-                {
-                    taskProperties.Add(taskProperty, propertyValues.First());
-                }
+                taskProperties.Add(requestHeader.Key, requestHeader.Value.First());
             }
 
             return new TaskProperties(taskProperties);

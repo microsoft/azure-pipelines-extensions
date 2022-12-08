@@ -11,7 +11,7 @@ using DistributedTask.ServerTask.Remote.Common;
 using DistributedTask.ServerTask.Remote.Common.Request;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
-using Microsoft.Azure.WebJobs.Host;
+using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Services.Common;
 using Microsoft.VisualStudio.Services.Identity;
 using MyAzureFunctionSampleFunctionHandler;
@@ -21,7 +21,7 @@ namespace AzureFunctionSample
     public static class MyFunction
     {
         [FunctionName("MyFunction")]
-        public static async Task<HttpResponseMessage> Run([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)]HttpRequestMessage req, TraceWriter log)
+        public static async Task<HttpResponseMessage> Run([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)]HttpRequestMessage req, ILogger log)
         {
             TypeDescriptor.AddAttributes(typeof(IdentityDescriptor), new TypeConverterAttribute(typeof(IdentityDescriptorConverter).FullName));
             TypeDescriptor.AddAttributes(typeof(SubjectDescriptor), new TypeConverterAttribute(typeof(SubjectDescriptorConverter).FullName));
@@ -34,12 +34,12 @@ namespace AzureFunctionSample
             //
             var taskProperties = GetTaskProperties(req.Headers);
 
-            // Create my own task execution handler. You should replace it with your task execution handler. 
+            // Create my own task execution handler. You should replace it with your task execution handler.
             ITaskExecutionHandler myAzureFunctionSampleHandler = new MyTaskExecutionHandler();
 
             var executionHandler = new ExecutionHandler(myAzureFunctionSampleHandler, messageBody, taskProperties);
             Task.Run(() => executionHandler.Execute(CancellationToken.None));
-    
+
             return req.CreateResponse(HttpStatusCode.OK, "Request accepted!");
         }
 

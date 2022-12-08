@@ -33,7 +33,7 @@ Extensions/BitBucket/DownloadArtifactBitbucket/.vs/*
 Extensions/BitBucket/DownloadArtifactBitbucket/bin/*
 Extensions/BitBucket/DownloadArtifactBitbucket/obj/*
 
-## Nuget 
+## Nuget
 nuget.exe
 
 **/.DS_Store

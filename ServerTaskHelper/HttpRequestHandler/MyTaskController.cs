@@ -1,12 +1,7 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using System.Text;
 using DistributedTask.ServerTask.Remote.Common;
 using DistributedTask.ServerTask.Remote.Common.Request;
+using Microsoft.AspNetCore.Mvc;
 
 namespace HttpRequestHandler
 {
@@ -38,7 +33,7 @@ namespace HttpRequestHandler
             //
             var taskProperties = GetTaskProperties(this.Request.Headers);
 
-            // Create my own task execution handler. You should replace it with your task execution handler. 
+            // Create my own task execution handler. You should replace it with your task execution handler.
             ITaskExecutionHandler myTaskExecutionHandler = new MyTaskExecutionHandler();
 
             var executionHandler = new ExecutionHandler(myTaskExecutionHandler, taskMessageBody, taskProperties);
