@@ -6,6 +6,13 @@ Use the [`Invoke Azure Function` check](https://learn.microsoft.com/azure/devops
 
 To successfully run this example, you need to have an Azure Boards work item, an Azure Repo, and a YAML pipeline.
 
+# Requirements
+
+To run this example, you need the following:
+
+- .NET 6 SDK and .NET 6 Runtime
+- Visual Studio 2022 (previous versions don't support .NET 6)
+
 # Structure
 
 The Azure Function goes through the following steps:
