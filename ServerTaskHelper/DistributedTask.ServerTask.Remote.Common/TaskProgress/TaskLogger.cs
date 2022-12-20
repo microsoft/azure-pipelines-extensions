@@ -42,7 +42,6 @@ namespace DistributedTask.ServerTask.Remote.Common.TaskProgress
             }
 
             var line = $"{DateTime.UtcNow:O} {message}";
-            await taskClient.AppendTimelineRecordFeedAsync(new List<string> {line}).ConfigureAwait(false);
             await LogPage(line).ConfigureAwait(false);
         }
 
@@ -107,7 +106,7 @@ namespace DistributedTask.ServerTask.Remote.Common.TaskProgress
 
                 // Create a new record and only set the Log field
                 var attachmentUpdataRecord = new TimelineRecord { Id = taskProperties.TaskInstanceId, Log = taskLog };
-                await taskClient.UpdateTimelineRecordsAsync(attachmentUpdataRecord, default(CancellationToken)).ConfigureAwait(false);
+                await taskClient.UpdateTimelineRecordsAsync(attachmentUpdataRecord, default).ConfigureAwait(false);
             }
         }
         public async Task CreateTaskTimelineRecordIfRequired(TaskClient taskClient, CancellationToken cancellationToken)
