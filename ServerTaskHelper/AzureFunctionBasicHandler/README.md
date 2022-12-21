@@ -6,6 +6,13 @@ You should use this Azure Function in an [`Invoke Azure Function` check](https:/
 
 To successfully run this example, your pipeline needs to have at least two stages: a first stage that executes at least one [`CmdLine` task](https://learn.microsoft.com/azure/devops/pipelines/tasks/reference/cmd-line-v2), and a second stage that uses a resource on which you configured the `Invoke Azure Function` check.
 
+# Requirements
+
+To run this example, you need the following:
+
+- .NET 6 SDK and .NET 6 Runtime
+- Visual Studio 2022 (previous versions don't support .NET 6)
+
 # Steps 
 
 The Azure Function goes through the following steps:

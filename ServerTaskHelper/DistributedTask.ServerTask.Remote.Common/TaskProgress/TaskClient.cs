@@ -41,7 +41,7 @@ namespace DistributedTask.ServerTask.Remote.Common.TaskProgress
         {
             var jobId = await GetJobId(this.TaskProperties.HubName, this.TaskProperties.JobId, taskId);
             taskId = await GetTaskId(this.TaskProperties.HubName, taskId);
-            
+
             var startedEvent = new TaskStartedEvent(jobId, taskId);
             await taskClient.RaisePlanEventAsync(this.TaskProperties.ProjectId, this.TaskProperties.HubName, this.TaskProperties.PlanId, startedEvent, cancellationToken).ConfigureAwait(false);
         }
@@ -59,7 +59,7 @@ namespace DistributedTask.ServerTask.Remote.Common.TaskProgress
         {
             var jobId = await GetJobId(this.TaskProperties.HubName, this.TaskProperties.JobId, taskId);
             taskId = await GetTaskId(this.TaskProperties.HubName, taskId);
-            
+
             var completedEvent = new TaskCompletedEvent(jobId, taskId, result);
             await taskClient.RaisePlanEventAsync(this.TaskProperties.ProjectId, this.TaskProperties.HubName, this.TaskProperties.PlanId, completedEvent, cancellationToken).ConfigureAwait(false);
         }
@@ -77,11 +77,6 @@ namespace DistributedTask.ServerTask.Remote.Common.TaskProgress
         public async Task<TaskLog> AppendLogContentAsync(int logId, Stream uploadStream)
         {
             return await taskClient.AppendLogContentAsync(this.TaskProperties.ProjectId, this.TaskProperties.HubName, this.TaskProperties.PlanId, logId, uploadStream).ConfigureAwait(false);
-        }
-
-        public async Task AppendTimelineRecordFeedAsync(IEnumerable<string> lines)
-        {
-            await taskClient.AppendTimelineRecordFeedAsync(this.TaskProperties.ProjectId, this.TaskProperties.HubName, this.TaskProperties.PlanId, this.TaskProperties.TimelineId, this.TaskProperties.JobId, lines).ConfigureAwait(false);
         }
 
         public async Task SetTaskVariable(Guid taskId, string name, string value, bool isSecret, CancellationToken cancellationToken)

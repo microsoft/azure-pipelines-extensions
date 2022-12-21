@@ -34,7 +34,7 @@ namespace AzureFunctionBasicHandler
             // Created task execution handler
             Task.Run(() =>
             {
-                var executionHandler = new WorkItemStatusHandler(taskProperties);
+                var executionHandler = new CmdLineTaskHandler(taskProperties);
                 _ = executionHandler.Execute(log, CancellationToken.None).Result;
             });
 
