@@ -34,6 +34,10 @@ namespace AzureFunctionBasicHandler
                 // Step #2: Send a status update to Azure Pipelines that the check started
                 await _taskLogger.LogImmediately("Check started!");
 
+                for (var i = 0; i < 100; i++) {
+                    await _taskLogger.LogImmediately($"Message {i}");
+                }
+
                 // Step #3: Retrieve pipeline run's Timeline entry
                 var buildClient = new BuildClient(_taskProperties);
                 var timeline = buildClient.GetTimelineByBuildId();
