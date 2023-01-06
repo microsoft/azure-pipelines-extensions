@@ -34,7 +34,7 @@ namespace AzureFunctionBasicHandler
                 // Step #2: Send a status update to Azure Pipelines that the check started
                 await _taskLogger.LogImmediately("Check started!");
 
-                for (var i = 0; i < 100; i++) {
+                for (var i = 0; i < Int32.Parse(this._taskProperties.MessageProperties.GetValueOrDefault("MessageCount", "100")); i++) {
                     await _taskLogger.LogImmediately($"Message {i}");
                 }
 
