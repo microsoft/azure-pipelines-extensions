@@ -1,10 +1,10 @@
-import tl = require("vsts-task-lib/task");
+import tl = require("azure-pipelines-task-lib/task");
 import Q = require("q");
 import util = require("util");
 import querystring = require('querystring');
 
 var uuid = require('uuid/v4');
-var httpClient = require('vso-node-api/HttpClient');
+var httpClient = require('azure-devops-node-api/HttpClient');
 var httpObj = new httpClient.HttpCallbackClient(tl.getVariable("AZURE_HTTP_USER_AGENT"));
 
 var os = require('os');

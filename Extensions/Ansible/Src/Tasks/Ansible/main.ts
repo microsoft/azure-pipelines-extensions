@@ -1,5 +1,5 @@
 import path = require("path");
-import tl = require("vsts-task-lib/task");
+import tl = require("azure-pipelines-task-lib/task");
 import {ansibleInterface}  from './ansibleInterface';
 import {ansibleCommandLineInterface} from './ansibleCommandLineInterface';
 import {ansibleRemoteMachineInterface} from './ansibleRemoteMachineInterface';

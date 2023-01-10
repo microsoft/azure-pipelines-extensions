@@ -21,6 +21,7 @@
     },
     "demands": [],
     "instanceNameFormat": "Run playbook",
+    "minimumAgentVersion": "2.144.0",
     "groups": [
         {
             "name": "playbookRemoteMachine",
@@ -325,6 +326,14 @@
     ],
     "execution": {
         "Node": {
+            "target": "main.js",
+            "argumentFormat": ""
+        },
+        "Node10": {
+            "target": "main.js",
+            "argumentFormat": ""
+        },
+        "Node16": {
             "target": "main.js",
             "argumentFormat": ""
         }
