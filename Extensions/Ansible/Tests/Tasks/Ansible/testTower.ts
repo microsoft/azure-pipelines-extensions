@@ -1,5 +1,5 @@
-import mockanswer = require('vsts-task-lib/mock-answer');
-import mockrun = require('vsts-task-lib/mock-run');
+import mockanswer = require('azure-pipelines-task-lib/mock-answer');
+import mockrun = require('azure-pipelines-task-lib/mock-run');
 import path = require('path');
 
 
@@ -14,9 +14,9 @@ process.env["ENDPOINT_AUTH_PARAMETER_8b04f8a5-9a17-474d-836c-60c24edcfa50_USERNA
 process.env["ENDPOINT_AUTH_PARAMETER_8b04f8a5-9a17-474d-836c-60c24edcfa50_PASSWORD"] = "DummyPassword";
 process.env["ENDPOINT_URL_8b04f8a5-9a17-474d-836c-60c24edcfa50"] = "true dummy host";
 
-var tl = require('vsts-task-lib/mock-task');
-runner.registerMock('vsts-task-lib/toolrunner', require('vsts-task-lib/mock-toolrunner'));
-runner.registerMock('vsts-task-lib/task', "vsts-task-lib/mock-task");
+var tl = require('azure-pipelines-task-lib/mock-task');
+runner.registerMock('azure-pipelines-task-lib/toolrunner', require('azure-pipelines-task-lib/mock-toolrunner'));
+runner.registerMock('azure-pipelines-task-lib/task', "azure-pipelines-task-lib/mock-task");
 
 runner.registerMock('./ansibleUtils', require('./mockAnsibleUtils'));
 

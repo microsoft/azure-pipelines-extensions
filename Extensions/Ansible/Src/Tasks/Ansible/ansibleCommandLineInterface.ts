@@ -1,4 +1,4 @@
-import tl = require("vsts-task-lib/task");
+import tl = require("azure-pipelines-task-lib/task");
 import { ansibleInterface } from './ansibleInterface';
 import * as ansibleUtils from './ansibleUtils';
 import { RemoteCommandOptions } from './ansibleUtils'

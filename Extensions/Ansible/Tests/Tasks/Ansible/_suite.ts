@@ -2,7 +2,7 @@ import assert = require('assert');
 import path = require('path');
 import {TestGuid} from './mockAnsibleUtils';
 
-var mocktest = require('vsts-task-lib/mock-test');
+var mocktest = require('azure-pipelines-task-lib/mock-test');
 
 describe('Ansible Suite', function () {
     before(() => {

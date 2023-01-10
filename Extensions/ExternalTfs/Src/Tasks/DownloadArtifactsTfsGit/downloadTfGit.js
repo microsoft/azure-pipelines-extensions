@@ -1,4 +1,4 @@
-var tl = require('vsts-task-lib/task');
+var tl = require('azure-pipelines-task-lib/task');
 var path = require('path');
 var webApim = require('azure-devops-node-api/WebApi');
 var Q = require('q');

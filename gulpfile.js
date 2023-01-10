@@ -678,8 +678,8 @@ gulp.task('ps1tests', gulp.series('compileTests', function () {
 }));
 
 gulp.task('testLib_NodeModules', gulp.series('testLib', function () {
-    return gulp.src(path.join(__dirname, 'Extensions/Common/lib/vsts-task-lib/**/*'))
-        .pipe(gulp.dest(path.join(_testRoot, 'Extensions/Common/lib/node_modules/vsts-task-lib')));
+    return gulp.src(path.join(__dirname, 'Extensions/Common/lib/azure-pipelines-task-lib/**/*'))
+        .pipe(gulp.dest(path.join(_testRoot, 'Extensions/Common/lib/node_modules/azure-pipelines-task-lib')));
 }));
 
 gulp.task('testResources', gulp.parallel('testLib_NodeModules', 'ps1tests', 'tstests', 'copyTestData'));

@@ -112,15 +112,15 @@ function copyCommonModules(currentExtnRoot, commonDeps, commonSrc){
                         }
                      } else {
 
-                        // Determine the vsts-task-lib version.
-                        var libVer = externals.npm['vsts-task-lib'];
+                        // Determine the azure-pipelines-task-lib version.
+                        var libVer = externals.npm['azure-pipelines-task-lib'];
                         if (!libVer) {
-                            throw new Error('External vsts-task-lib not defined in externals.json.');
+                            throw new Error('External azure-pipelines-task-lib not defined in externals.json.');
                         }
 
                         // Copy the lib from the cache.
-                        gutil.log('Linking vsts-task-lib ' + libVer);
-                        var copySource = path.join(_tempPath, 'npm', 'vsts-task-lib', libVer, 'node_modules', '**');
+                        gutil.log('Linking azure-pipelines-task-lib ' + libVer);
+                        var copySource = path.join(_tempPath, 'npm', 'azure-pipelines-task-lib', libVer, 'node_modules', '**');
                         var copyTarget = path.join(targetPath, 'node_modules');
                         shell.mkdir('-p', copyTarget);
                         gulp.src([copySource]).pipe(gulp.dest(copyTarget));

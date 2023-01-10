@@ -1,4 +1,4 @@
-/// <reference path="./vsts-task-lib.d.ts" />
+/// <reference path="./azure-pipelines-task-lib.d.ts" />
 
 declare module 'ios-signing-common/ios-signing-common' {
 

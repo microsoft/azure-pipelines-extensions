@@ -131,11 +131,11 @@ function loc(key) {
         param[_i - 1] = arguments[_i];
     }
     if (!libResourceFileLoaded) {
-        // merge loc strings from vsts-task-lib.
+        // merge loc strings from azure-pipelines-task-lib.
         var libResourceFile = path.join(__dirname, 'lib.json');
         var libLocStrs = loadLocStrings(libResourceFile);
         for (var libKey in libLocStrs) {
-            debug('cache vsts-task-lib loc string: ' + libKey);
+            debug('cache azure-pipelines-task-lib loc string: ' + libKey);
             locStringCache[libKey] = libLocStrs[libKey];
         }
         libResourceFileLoaded = true;

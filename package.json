@@ -29,7 +29,7 @@
     "through2": "^2.0.1",
     "typescript": "2.3.4",
     "validator": "^5.2.0",
-    "vsts-task-lib": "^2.0.5",
+    "azure-pipelines-task-lib": "^4.2.0",
     "xml2js": "^0.4.17",
     "yargs": "^4.7.1"
   },

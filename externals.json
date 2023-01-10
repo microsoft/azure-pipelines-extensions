@@ -1,6 +1,6 @@
 {
     "npm": {
-        "vsts-task-lib": "2.2.1"
+        "azure-pipelines-task-lib": "4.2.0"
     },
     "nugetv2": {
         "VstsTaskSdk": {

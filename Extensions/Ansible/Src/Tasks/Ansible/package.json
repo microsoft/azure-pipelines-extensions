@@ -11,7 +11,7 @@
     "ssh2": "^1.10.0",
     "uuid": "^3.3.2",
     "vso-node-api": "6.0.1-preview",
-    "vsts-task-lib": "2.0.5"
+    "azure-pipelines-task-lib": "4.2.0"
   },
   "devDependencies": {},
   "scripts": {

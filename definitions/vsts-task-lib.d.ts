@@ -1,7 +1,7 @@
 /// <reference path="./Q.d.ts"/>
 /// <reference path="./node.d.ts"/>
 
-declare module 'vsts-task-lib/taskcommand' {
+declare module 'azure-pipelines-task-lib/taskcommand' {
 	export class TaskCommand {
 	    constructor(command: any, properties: any, message: any);
 	    command: string;
@@ -14,7 +14,7 @@ declare module 'vsts-task-lib/taskcommand' {
 	export function commandFromString(commandLine: any): TaskCommand;
 
 }
-declare module 'vsts-task-lib/toolrunner' {
+declare module 'azure-pipelines-task-lib/toolrunner' {
 	import Q = require('q');
 	import events = require('events');
 	import stream = require('stream');
@@ -118,7 +118,7 @@ declare module 'vsts-task-lib/toolrunner' {
 	}
 
 }
-declare module 'vsts-task-lib/vault' {
+declare module 'azure-pipelines-task-lib/vault' {
 	export class Vault {
 	    constructor();
 	    private _keyFile;
@@ -131,11 +131,11 @@ declare module 'vsts-task-lib/vault' {
 	}
 
 }
-declare module 'vsts-task-lib/task' {
+declare module 'azure-pipelines-task-lib/task' {
 	/// <reference path="../typings/main.d.ts" />
 	import Q = require('q');
 	import fs = require('fs');
-	import trm = require('vsts-task-lib/toolrunner');
+	import trm = require('azure-pipelines-task-lib/toolrunner');
 	export enum TaskResult {
 	    Succeeded = 0,
 	    Failed = 1,

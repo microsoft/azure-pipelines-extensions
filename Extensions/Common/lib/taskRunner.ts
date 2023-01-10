@@ -3,7 +3,7 @@ import events = require('events');
 import fs = require('fs');
 import path = require('path');
 import child_process = require('child_process');
-import tcm = require('vsts-task-lib/taskcommand');
+import tcm = require('azure-pipelines-task-lib/taskcommand');
 
 var shell = require('shelljs');
 
@@ -87,15 +87,15 @@ export class TaskRunner extends events.EventEmitter {
 			throw (new Error('Did you build with "gulp"? Task does not exist: ' + this._taskSrcPath));
 		}
 		
-		// copy mocked vsts-task-lib if it doesn't exist
+		// copy mocked azure-pipelines-task-lib if it doesn't exist
 		var modPath = path.join(this._tempPath, 'node_modules');
 		if (!shell.test('-d', modPath)) {
 			shell.mkdir('-p', modPath);
-			shell.cp('-R', path.join(__dirname, 'node_modules/vsts-task-lib'), path.join(modPath));			
+			shell.cp('-R', path.join(__dirname, 'node_modules/azure-pipelines-task-lib'), path.join(modPath));			
 		}
 
 		// copy the task over so we can execute from Temp 
-		// this forces it to use the mocked vsts-task-lib and provides isolation
+		// this forces it to use the mocked azure-pipelines-task-lib and provides isolation
 		var taskDumpPath = path.join(this._tempPath, "Extensions",this._extensionName, "Src\\Tasks");
 		this._taskPath = path.join(taskDumpPath, this._name);
 		if (!shell.test('-d', this._taskPath)) {
@@ -103,8 +103,8 @@ export class TaskRunner extends events.EventEmitter {
 			shell.cp('-R', this._taskSrcPath, taskDumpPath);
 		}
 
-		// delete it's linked copy of vsts-task-lib so it uses the mocked task-lib above
-		var taskLibPath = path.join(this._taskPath, 'node_modules', 'vsts-task-lib');
+		// delete it's linked copy of azure-pipelines-task-lib so it uses the mocked task-lib above
+		var taskLibPath = path.join(this._taskPath, 'node_modules', 'azure-pipelines-task-lib');
 		if (shell.test('-d', taskLibPath)) {
 			shell.rm('-rf', taskLibPath);
 		}
