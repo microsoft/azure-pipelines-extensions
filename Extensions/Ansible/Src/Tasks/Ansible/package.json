@@ -1,19 +1,18 @@
 {
   "name": "ansible",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Ansible task for playbook execution",
   "main": "main.js",
   "author": "Microsoft",
   "license": "ISC",
   "dependencies": {
-    "scp2": "^0.5.0",
+    "azure-devops-node-api": "^12.0.0",
+    "azure-pipelines-task-lib": "^4.2.0",
+    "scp2-2022": "^0.9.0",
     "shelljs": "^0.8.5",
     "ssh2": "^0.5.5",
-    "uuid": "^3.3.2",
-    "vso-node-api": "6.0.1-preview ",
-    "vsts-task-lib": "2.0.5"
+    "uuid": "^3.3.2"
   },
-  "devDependencies": {},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   }
