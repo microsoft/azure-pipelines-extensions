@@ -2571,9 +2571,9 @@
       "dev": true
     },
     "uglify-js": {
-      "version": "3.13.3",
-      "resolved": "https://registry.npmjs.org/uglify-js/-/uglify-js-3.13.3.tgz",
-      "integrity": "sha512-otIc7O9LyxpUcQoXzj2hL4LPWKklO6LJWoJUzNa8A17Xgi4fOeDC8FBDOLHnC/Slo1CQgsZMcM6as0M76BZaig==",
+      "version": "3.17.4",
+      "resolved": "https://registry.npmjs.org/uglify-js/-/uglify-js-3.17.4.tgz",
+      "integrity": "sha512-T9q82TJI9e/C1TAxYvfb16xO120tMVFZrGA3f9/P4424DNu6ypK103y0GPFVa17yotwSyZW5iYXgjYHkGrJW/g==",
       "optional": true
     },
     "util": {
@@ -2613,7 +2613,7 @@
     "wordwrap": {
       "version": "1.0.0",
       "resolved": "https://registry.npmjs.org/wordwrap/-/wordwrap-1.0.0.tgz",
-      "integrity": "sha1-J1hIEIkUVqQXHI0CJkQa3pDLyus="
+      "integrity": "sha512-gvVzJFlPycKc5dZN4yPkP8w7Dc37BtP1yczEneOb4uq34pXZcvrtRTmWV8W+Ume+XCxKgbjM+nevkyFPMybd4Q=="
     },
     "workerpool": {
       "version": "6.2.1",
