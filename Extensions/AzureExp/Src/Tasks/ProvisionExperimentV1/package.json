@@ -6,7 +6,7 @@
   "author": "Microsoft Corporation",
   "license": "MIT",
   "dependencies": {
-    "azure-pipelines-task-lib": "^3.2.1",
+    "azure-pipelines-task-lib": "^3.4.0",
     "typed-rest-client": "^1.8.6"
   },
   "devDependencies": {
