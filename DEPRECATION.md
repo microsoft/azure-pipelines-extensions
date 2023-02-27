@@ -1,4 +1,4 @@
-Introduction
+# Introduction
 
 Creation: 2023-02-24
 
@@ -9,12 +9,11 @@ In addition to that, as a part of consistency and security improvements, we've s
 
 # Deprecated Extensions (latest update: 27-02-2023)
 
-  Extension Name        |   Deprecation Date    |   Source code removal date  |   Removal PR
-
-* Google Analytics             21-06-2021             27-02-2023                    [PR](https://github.com/microsoft/azure-pipelines-extensions/pull/1128)
-
-* Optimizely                   21-06-2021             27-02-2023                    [PR](https://github.com/microsoft/azure-pipelines-extensions/pull/1128)
-
+| Extension Name                    | Removal PR                                              | Deprecated Date                                            |
+| -------------------------- | ------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| Google Analytics           | [PR](https://github.com/microsoft/azure-pipelines-extensions/pull/1128) |                                                                     |
+| Optimizely        | [PR](https://github.com/microsoft/azure-pipelines-extensions/pull/1128) |                                                                     |
+                              
 
 [refer https://github.com/microsoft/azure-pipelines-extensions/blob/master/README.md]
 
