@@ -51,9 +51,9 @@ steps:
   displayName: 'Code Checks'
 
 - task: NodeTool@0
-  displayName: 'Use Node 6.10.3'
+  displayName: 'Use Node 10.24.1'
   inputs:
-    versionSpec: 6.10.3
+    versionSpec: 10.24.1
 
 - powershell: 'node getUpdatedPaths.js'
   displayName: 'PowerShell Script'
