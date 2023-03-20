@@ -2,9 +2,8 @@
   "name": "DownloadExternalBuildArtifacts",
   "main": "download.js",
   "dependencies": {
-    "artifact-engine": "1.1.0",
+    "artifact-engine": "^1.2.0",
     "azure-devops-node-api": "11.1.1",
     "azure-pipelines-task-lib": "^3.3.1"
-  
   }
 }
