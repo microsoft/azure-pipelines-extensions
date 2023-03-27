@@ -22,6 +22,15 @@ function TrimInputs([ref]$adminUserName, [ref]$sqlUsername, [ref]$dacpacFile, [r
     $sqlFile = $sqlFile.Value.Trim('"', ' ')
 }
 
+function Validate-AdditionalArguments([string]$additionalArguments)
+{
+    if($additionalArguments -match "[&;]")
+    {
+        $additionalArgumentsValidationErrorMessage = "Additional arguments can't include separator characters '&' and ';'. Please verify input. To learn more about argument validation, please check https://aka.ms/azdo-task-argument-validation"
+        throw $additionalArgumentsValidationErrorMessage
+    }
+}
+
 function RunRemoteDeployment
 {
     param(
@@ -209,6 +218,7 @@ function Main
     Write-Verbose "inlineSql = $inlineSql"
 
     TrimInputs -adminUserName([ref]$adminUserName) -sqlUsername ([ref]$sqlUsername) -dacpacFile ([ref]$dacpacFile) -publishProfile ([ref]$publishProfile) -sqlFile ([ref]$sqlFile)
+    Validate-AdditionalArguments $additionalArguments
 
     $scriptBuilderArgs = @{
         dacpacFile=$dacpacFile 

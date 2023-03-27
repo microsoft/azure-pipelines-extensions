@@ -32,6 +32,15 @@
             "outDir": null,
             "localRoot": "${workspaceRoot}",
             "remoteRoot": null
-        }
+        },
+        {
+            "type": "PowerShell",
+            "request": "launch",
+            "name": "PowerShell Launch (current file)",
+            "script": "${file}",
+            "args": [],
+            "cwd": "${file}",
+            "createTemporaryIntegratedConsole": true,
+        },
     ]
 }

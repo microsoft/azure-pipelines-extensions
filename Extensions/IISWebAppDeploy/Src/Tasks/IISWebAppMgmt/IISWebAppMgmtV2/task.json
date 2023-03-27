@@ -1,5 +1,5 @@
 {
-  "id": "0F5CD14F-3C01-4D5C-8F7A-EB96C5738DCC",
+  "id": "37506ba2-fb91-4417-9e9b-44c355c60135",
   "name": "IISWebAppMgmt",
   "friendlyName": "WinRM - IIS Web App Management",
   "description": "Connect via WinRM, to create or update a Website, Web App, Virtual Directories, and Application Pool locally on IIS",

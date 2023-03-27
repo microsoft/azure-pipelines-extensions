@@ -38,6 +38,8 @@ function Get-AppCmdLocation
     $appCmdNotFoundError = "Cannot find appcmd.exe location. Verify IIS is configured on $env:ComputerName and try operation again."
     $appCmdMinVersionError = "Version of IIS is less than 7.0 on machine $env:ComputerName. Minimum version of IIS required is 7.0"
     
+    Validate-AdditionalArguments $additionalCommands
+
     if(-not (Test-Path -Path $regKeyPath))
     {
         throw $appCmdNotFoundError
@@ -305,7 +307,7 @@ function Invoke-AdditionalCommand
 
     $appCmdCommands = $additionalCommands.Trim('"').Split([System.Environment]::NewLine, [System.StringSplitOptions]::RemoveEmptyEntries)
     $appCmdPath, $iisVersion = Get-AppCmdLocation -regKeyPath $AppCmdRegKey
-
+    
     foreach($appCmdCommand in $appCmdCommands)
     {
         if(-not [string]::IsNullOrWhiteSpace($appCmdCommand.Trim(' ')))
