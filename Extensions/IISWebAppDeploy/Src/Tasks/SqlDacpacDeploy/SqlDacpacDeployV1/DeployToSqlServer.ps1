@@ -24,11 +24,11 @@ function TrimInputs([ref]$adminUserName, [ref]$sqlUsername, [ref]$dacpacFile, [r
 
 function Validate-AdditionalArguments([string]$additionalArguments)
 {
-    if($additionalArguments -match "[&;]")
+    if($additionalArguments -match "[&;|]")
     {
-        $additionalArgumentsValidationErrorMessage = "Additional arguments can't include separator characters '&' and ';'. Please verify input. To learn more about argument validation, please check https://aka.ms/azdo-task-argument-validation"
+        $additionalArgumentsValidationErrorMessage = "Additional arguments can't include separator characters '&', ';' and '|'. Please verify input. To learn more about argument validation, please check https://aka.ms/azdo-task-argument-validation"
         throw $additionalArgumentsValidationErrorMessage
-    }
+    }    
 }
 
 function RunRemoteDeployment
