@@ -111,7 +111,7 @@ describe('IISWebAppMgmtV1 Suite', function () {
             psr.run(path.join(__dirname, 'L0ExecuteMainFunction.ps1'), done);
         })
         
-        it('should test Execute-Main functionality', (done:MochaDone) => {
+        it('test Validate-AdditionalArguments function', (done:MochaDone) => {
             psr.run(path.join(__dirname, 'L0ValidateAdditionalArguments.ps1'), done);
         })
     }    
