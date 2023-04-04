@@ -1,5 +1,5 @@
 {
-  "id": "6da3e555-04c4-480f-91cd-d93c5e56bbf1",
+  "id": "50ACC50F-7D15-470B-83C1-578B3F3EEBA2",
   "name": "IISWebAppDeploy",
   "friendlyName": "WinRM - IIS Web App Deployment",
   "description": "Connect via WinRM, to deploy Web project locally on IIS, using Web Deploy",
@@ -15,7 +15,7 @@
   "author": "Microsoft Corporation",
   "version": {
     "Major": 2,
-    "Minor": 3,
+    "Minor": 2,
     "Patch": 0
   },
   "demands": [

@@ -1,16 +1,18 @@
 ﻿{
   "manifestVersion": 1,
   "extensionId": "iiswebapp",
-  "name": "Custom IIS Web App Deployment Using WinRM",
-  "version": "0.0.8",
-  "publisher": "vhorbachov",
-  "description": "Custom using WinRM connect to the host Computer, to deploy a Web project using Web Deploy or a SQL DB using sqlpackage.exe.",
+  "name": "IIS Web App Deployment Using WinRM",
+  "version": "1.6.0",
+  "publisher": "ms-vscs-rm",
+  "description": "Using WinRM connect to the host Computer, to deploy a Web project using Web Deploy or a SQL DB using sqlpackage.exe.",
   "public": true,
   "icons": {
     "default": "images/IIS_Web_App.png",
     "large": "images/IIS_Web_App_Large.png"
   },
-  "categories": [ "Azure Pipelines" ],
+  "categories": [
+    "Build and release"
+  ],
   "tags": [ ],
   "links": {
     "Learn": {
