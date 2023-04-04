@@ -59,6 +59,22 @@ function Get-MsDeployLocation
     return (Join-Path $path msDeploy.exe)
 }
 
+function Get-ValidatedAdditionalArguments([string]$msDeployCmdArgs, [string]$additionalArguments)
+{
+    if($additionalArguments -match "[&;|]")
+    {
+        $additionalArgumentsValidationErrorMessage = "Additional arguments can't include separator characters '&', ';' and '|'. Please verify input. To learn more about argument validation, please check https://aka.ms/azdo-task-argument-validation"
+        throw $additionalArgumentsValidationErrorMessage
+    }
+    
+    if(-not [string]::IsNullOrWhiteSpace($additionalArguments))
+    {
+        return [string]::Format('{0} {1}', $msDeployCmdArgs, $additionalArguments)
+    }
+
+    return $msDeployCmdArgs
+}
+
 function Get-MsDeployCmdArgs
 {
     param(
@@ -140,10 +156,7 @@ function Get-MsDeployCmdArgs
         $msDeployCmdArgs = [string]::Format('{0} -skip:Directory="\\App_Data"', $msDeployCmdArgs)
     }
 
-    if(-not [string]::IsNullOrWhiteSpace($additionalArguments))
-    {
-        $msDeployCmdArgs = [string]::Format('{0} {1}', $msDeployCmdArgs, $additionalArguments)
-    }
+    $msDeployCmdArgs = Get-ValidatedAdditionalArguments $msDeployCmdArgs $additionalArguments
 
     $msDeployCmdArgs = [string]::Format('{0} -retryAttempts:3 -retryInterval:3000', $msDeployCmdArgs)
     Write-Verbose "MsDeploy command line arguments: $msDeployCmdArgs"
@@ -270,4 +283,3 @@ function Execute-Main
     Deploy-Website -websiteName $websiteName -webDeployPkg $WebDeployPackage -webDeployParamFile $WebDeployParamFile -overRideParams $OverRideParams -excludeFilesFromAppData $excludeFilesFromAppData -removeAdditionalFiles $removeAdditionalFiles -takeAppOffline $takeAppOffline -isInputFolder $isInputFolder -isInputWebDeployPkg $isInputWebDeployPkg -additionalArguments $AdditionalArguments
     Write-Verbose "Exiting Execute-Main function"
 }
-

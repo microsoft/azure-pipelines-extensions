@@ -87,5 +87,9 @@ describe('SqlDacpacDeployV1 Suite', function () {
         it('should test Invoke-SqlQueryDeployment functionality', (done:MochaDone) => {
             psr.run(path.join(__dirname, 'L0InvokeSqlQueryDeploymentFunction.ps1'), done);
         });
+        
+        it('should test Validate-AdditionalArguments functionality', (done:MochaDone) => {
+            psr.run(path.join(__dirname, 'L0ValidateAdditionalArguments.ps1'), done);
+        });
     }
 });

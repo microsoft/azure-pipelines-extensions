@@ -79,7 +79,8 @@ try {
     $appPoolPassword = Escape-SpecialChars -str $appPoolPassword
     $websiteAuthUserPassword = Escape-SpecialChars -str $websiteAuthUserPassword
     $appCmdCommands = Escape-SpecialChars -str $appCmdCommands
-
+    Validate-AdditionalArguments $appCmdCommands
+    
     $invokeMain = ""
     $invokeMainLog = ""
     $action = ""

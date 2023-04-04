@@ -83,6 +83,15 @@ function Escape-SpecialChars
     return $str.Replace('`', '``').Replace('"', '`"').Replace('$', '`$')
 }
 
+function Validate-AdditionalArguments([string]$additionalArguments)
+{
+    if($additionalArguments -match "[&;|]")
+    {
+        $additionalArgumentsValidationErrorMessage = "Additional arguments can't include separator characters '&', ';' and '|'. Please verify input. To learn more about argument validation, please check https://aka.ms/azdo-task-argument-validation"
+        throw $additionalArgumentsValidationErrorMessage
+    }    
+}
+
 function Get-ScriptToRun
 {
     param (
@@ -215,6 +224,7 @@ function Main
     Trim-Inputs -siteName ([ref]$websiteName) -physicalPath ([ref]$websitePhysicalPath)  -poolName ([ref]$appPoolName) -websitePathAuthuser ([ref]$websiteAuthUserName) -appPoolUser ([ref]$appPoolUsername) -adminUser ([ref]$adminUserName) -sslCertThumbPrint ([ref]$sslCertThumbPrint)
 
     Validate-Inputs -createWebsite $createWebsite -websiteName $websiteName -createAppPool $createAppPool -appPoolName $appPoolName -addBinding $addBinding -protocol $protocol -sslCertThumbPrint $sslCertThumbPrint
+    Validate-AdditionalArguments $appCmdCommands
 
     $script = Get-ScriptToRun -createWebsite $createWebsite -websiteName $websiteName -websitePhysicalPath $websitePhysicalPath -websitePhysicalPathAuth $websitePhysicalPathAuth -websiteAuthUserName $websiteAuthUserName -websiteAuthUserPassword $websiteAuthUserPassword -addBinding $addBinding -protocol $protocol -ipAddress $ipAddress -port $port -hostName $hostName -serverNameIndication $serverNameIndication -sslCertThumbPrint $sslCertThumbPrint -createAppPool $createAppPool -appPoolName $appPoolName -pipeLineMode $pipeLineMode -dotNetVersion $dotNetVersion -appPoolIdentity $appPoolIdentity -appPoolUsername $appPoolUsername -appPoolPassword $appPoolPassword -appCmdCommands $appCmdCommands
     Run-RemoteDeployment -machinesList $machinesList -scriptToRun $script -adminUserName $adminUserName -adminPassword $adminPassword -winrmProtocol $winrmProtocol -testCertificate $testCertificate -deployInParallel $deployInParallel -websiteName $websiteName
