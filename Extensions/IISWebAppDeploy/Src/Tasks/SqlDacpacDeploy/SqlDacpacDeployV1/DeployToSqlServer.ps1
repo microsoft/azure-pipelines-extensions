@@ -218,7 +218,7 @@ function Main
     Write-Verbose "inlineSql = $inlineSql"
 
     TrimInputs -adminUserName([ref]$adminUserName) -sqlUsername ([ref]$sqlUsername) -dacpacFile ([ref]$dacpacFile) -publishProfile ([ref]$publishProfile) -sqlFile ([ref]$sqlFile)
-    Validate-AdditionalArguments $additionalArguments
+    # Validate-AdditionalArguments $additionalArguments
 
     $scriptBuilderArgs = @{
         dacpacFile=$dacpacFile 
