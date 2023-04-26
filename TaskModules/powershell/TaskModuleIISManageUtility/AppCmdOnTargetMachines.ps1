@@ -183,8 +183,12 @@ function Add-SslCert
         Write-Verbose "Checking if SslCert binding is already present. Running command : netsh $showCertCmd"
 
         $result = Invoke-VstsTool -Filename "netsh" -Arguments $showCertCmd
-        $isItSameBinding = $result.Get(4).Contains([string]::Format("{0}:{1}", $hostname, $port))
-
+        $result = $result | where {$_.TrimStart().StartsWith("IP:port") -and $_.Contains([string]::Format("{0}:{1}", $ipAddress, $port))}
+        if($result)
+        {
+            $isItSameBinding = $true
+        }
+        
         $addCertCmd = [string]::Format("http add sslcert hostnameport={0}:{1} certhash={2} appid={{{3}}} certstorename=MY", $hostname, $port, $certhash, [System.Guid]::NewGuid().toString())
     }
     else
@@ -193,8 +197,12 @@ function Add-SslCert
         Write-Verbose "Checking if SslCert binding is already present. Running command : netsh $showCertCmd"
 
         $result = Invoke-VstsTool -Filename "netsh" -Arguments $showCertCmd
-        $isItSameBinding = $result.Get(4).Contains([string]::Format("{0}:{1}", $ipAddress, $port))
-        
+        $result = $result | where {$_.TrimStart().StartsWith("IP:port") -and $_.Contains([string]::Format("{0}:{1}", $ipAddress, $port))}
+        if($result)
+        {
+            $isItSameBinding = $true
+        }
+                
         $addCertCmd = [string]::Format("http add sslcert ipport={0}:{1} certhash={2} appid={{{3}}} certstorename=MY", $ipAddress, $port, $certhash, [System.Guid]::NewGuid().toString())
     }
 
