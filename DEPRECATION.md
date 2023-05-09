@@ -7,13 +7,13 @@ This page is prepared for listing the extensions which are no longer supported o
 Extensions listed below has been marked deprecated since June 2021.
 In addition to that, as a part of consistency and security improvements, we've started to remove these extensions from this repository.
 
-# Deprecated Extensions (latest update: 27-02-2023)
+# Deprecated Extensions (latest update: 09-05-2023)
 
 | Extension Name                    | Removal PR                                              | Deprecated Date                                            |
 | -------------------------- | ------------------------------------------------------------------- | ------------------------------------------------------------------- |
 | Google Analytics           | [PR](https://github.com/microsoft/azure-pipelines-extensions/pull/1128) |     06-2021                                                                |
 | Optimizely        | [PR](https://github.com/microsoft/azure-pipelines-extensions/pull/1128) |        06-2021                                                             |
-                              
+| DataSources           | [PR](https://github.com/microsoft/azure-pipelines-extensions/pull/1128) |     05-2023                              
 
 [refer https://github.com/microsoft/azure-pipelines-extensions/blob/master/README.md]
 
