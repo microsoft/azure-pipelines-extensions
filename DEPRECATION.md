@@ -13,7 +13,7 @@ In addition to that, as a part of consistency and security improvements, we've s
 | -------------------------- | ------------------------------------------------------------------- | ------------------------------------------------------------------- |
 | Google Analytics           | [PR](https://github.com/microsoft/azure-pipelines-extensions/pull/1128) |     06-2021                                                                |
 | Optimizely        | [PR](https://github.com/microsoft/azure-pipelines-extensions/pull/1128) |        06-2021                                                             |
-| DataSources           | [PR](https://github.com/microsoft/azure-pipelines-extensions/pull/1128) |     05-2023                              
+| DataSources           | [PR](https://github.com/microsoft/azure-pipelines-extensions/pull/1155) |     05-2023                              
 
 [refer https://github.com/microsoft/azure-pipelines-extensions/blob/master/README.md]
 
