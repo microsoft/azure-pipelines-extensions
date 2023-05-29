@@ -323,11 +323,14 @@ function Validate-Bindings {
 
 function Validate-AdditionalArguments([string]$additionalArguments)
 {
-    if($additionalArguments -match "[&;|]")
-    {
+    # Remove content within double quotes
+    $noQuotesContent = $additionalArguments -replace '"[^"]*"', ''
+
+    # Check if forbidden characters exist in the remaining content
+    if ($noQuotesContent -match "[&;|]") {
         $additionalArgumentsValidationErrorMessage = "Additional arguments can't include separator characters '&', ';' and '|'. Please verify input. To learn more about argument validation, please check https://aka.ms/azdo-task-argument-validation"
         throw $additionalArgumentsValidationErrorMessage
-    }    
+    }
 }
 
 function Escape-SpecialChars
