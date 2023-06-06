@@ -76,7 +76,7 @@ steps:
   condition: or(contains(variables['UPDATEDAREAPATHS'], 'ArtifactEngine'),contains(variables['UPDATEDAREAPATHS'], 'package.json'))
 
 # sign all task with esrp
-- template: sign-all-task.yml
+- template: sign-all-tasks.yml
   parameters:
     layoutRoot: $(Build.SourcesDirectory)\_build\Extensions\ExternalTfs\Src\Tasks
 
