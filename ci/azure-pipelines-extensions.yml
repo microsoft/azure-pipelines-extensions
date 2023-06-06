@@ -3,6 +3,8 @@ pool:
   vmImage: windows-latest
 
 
+trigger: none
+
 steps:
 - powershell: |
    function IsExempted
