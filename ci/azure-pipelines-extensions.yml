@@ -75,3 +75,19 @@ steps:
     arguments: '--suite=ArtifactEngine'
   condition: or(contains(variables['UPDATEDAREAPATHS'], 'ArtifactEngine'),contains(variables['UPDATEDAREAPATHS'], 'package.json'))
 
+# sign single task with esrp
+- template: sign-single-task.yml
+  parameters:
+    layoutRoot: $(Build.SourcesDirectory)\_build\Extensions\ExternalTfs\Src\Tasks
+
+- task: gulp@0
+  displayName: 'gulp package'
+  inputs:
+    targets: package
+
+- task: PublishBuildArtifacts@1
+  displayName: Publish artifacts
+  inputs:
+    pathToPublish: _package
+    artifactName: publish
+
