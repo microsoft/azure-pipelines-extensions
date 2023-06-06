@@ -96,18 +96,18 @@ steps:
     rootFolderOrFile: '$(Build.SourcesDirectory)\_build\Extensions\ExternalTfs\Src\Tasks\DownloadExternalBuildArtifacts'
     archiveFile: '$(Build.SourcesDirectory)/_build/Extensions/ExternalTfs/Src/Tasks/DownloadExternalBuildArtifacts.zip'
 
-- template: sign-all-tasks.yml
-  parameters:
-    layoutRoot: $(Build.SourcesDirectory)\_build\Extensions\ExternalTfs\Src\Tasks
+# - template: sign-all-tasks.yml
+#   parameters:
+#     layoutRoot: $(Build.SourcesDirectory)\_build\Extensions\ExternalTfs\Src\Tasks
 
-- task: gulp@0
-  displayName: 'gulp package'
-  inputs:
-    targets: package
+# - task: gulp@0
+#   displayName: 'gulp package'
+#   inputs:
+#     targets: package
 
 - task: PublishBuildArtifacts@1
   displayName: Publish artifacts
   inputs:
-    pathToPublish: _package
-    artifactName: publish
+    pathToPublish: _build
+    artifactName: build
 
