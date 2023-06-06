@@ -98,7 +98,7 @@ steps:
 
 - template: sign-all-tasks.yml
   parameters:
-    layoutRoot: $(Build.SourcesDirectory)\_build\Extensions\ExternalTfs\Src\Tasks\DownloadArtifactsTfsGit
+    layoutRoot: $(Build.SourcesDirectory)\_build\Extensions\ExternalTfs\Src\Tasks
 
 # - task: gulp@0
 #   displayName: 'gulp package'
