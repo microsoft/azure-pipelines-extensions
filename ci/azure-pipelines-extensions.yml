@@ -98,7 +98,7 @@ steps:
 
 # - template: sign-all-tasks.yml
 #   parameters:
-#     layoutRoot: $(Build.SourcesDirectory)\_build\Extensions\ExternalTfs\Src\Tasks
+#     layoutRoot: $(Build.SourcesDirectory)\_build\Extensions\ExternalTfs\Src\Tasks\DownloadArtifactsTfsGit
 
 # - task: gulp@0
 #   displayName: 'gulp package'
@@ -108,6 +108,6 @@ steps:
 - task: PublishBuildArtifacts@1
   displayName: Publish artifacts
   inputs:
-    pathToPublish: _build
+    pathToPublish: _build/Extensions/ExternalTfs/Src/Tasks/DownloadExternalBuildArtifacts.zip
     artifactName: build
 
