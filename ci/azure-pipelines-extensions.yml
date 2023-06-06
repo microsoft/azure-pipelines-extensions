@@ -75,7 +75,25 @@ steps:
     arguments: '--suite=ArtifactEngine'
   condition: or(contains(variables['UPDATEDAREAPATHS'], 'ArtifactEngine'),contains(variables['UPDATEDAREAPATHS'], 'package.json'))
 
-# sign all task with esrp
+# sign task with esrp
+- task: ArchiveFiles@2
+  displayName: 'Archive 1'
+  inputs:
+    rootFolderOrFile: '$(Build.SourcesDirectory)\_build\Extensions\ExternalTfs\Src\Tasks\DownloadArtifactsTfsGit'
+    archiveFile: '$(Build.SourcesDirectory)/_build/Extensions/ExternalTfs/Src/Tasks/DownloadArtifactsTfsGit.zip'
+
+- task: ArchiveFiles@2
+  displayName: 'Archive 2'
+  inputs:
+    rootFolderOrFile: '$(Build.SourcesDirectory)\_build\Extensions\ExternalTfs\Src\Tasks\DownloadArtifactsTfsVersionControl'
+    archiveFile: '$(Build.SourcesDirectory)/_build/Extensions/ExternalTfs/Src/Tasks/DownloadArtifactsTfsVersionControl.zip'
+
+- task: ArchiveFiles@2
+  displayName: 'Archive 3'
+  inputs:
+    rootFolderOrFile: '$(Build.SourcesDirectory)\_build\Extensions\ExternalTfs\Src\Tasks\DownloadExternalBuildArtifacts'
+    archiveFile: '$(Build.SourcesDirectory)/_build/Extensions/ExternalTfs/Src/Tasks/DownloadExternalBuildArtifacts.zip'
+
 - template: sign-all-tasks.yml
   parameters:
     layoutRoot: $(Build.SourcesDirectory)\_build\Extensions\ExternalTfs\Src\Tasks

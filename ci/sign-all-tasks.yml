@@ -8,7 +8,7 @@ steps:
   inputs:
     ConnectedServiceName: AzurePipelinesTasksESRP
     FolderPath: '${{ parameters.layoutRoot }}'
-    Pattern: ''
+    Pattern: '*.zip'
     signConfigType: inlineSignParams
     inlineOperation: |
       [{
