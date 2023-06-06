@@ -27,6 +27,3 @@ steps:
       }
       ]
   displayName: Sign Task Nuget Packages
-
-- script: del ${{ parameters.layoutRoot }}\CodeSignSummary*.md
-  displayName: Remove CodeSignSummary file from package folder

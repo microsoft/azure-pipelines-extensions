@@ -96,9 +96,9 @@ steps:
     rootFolderOrFile: '$(Build.SourcesDirectory)\_build\Extensions\ExternalTfs\Src\Tasks\DownloadExternalBuildArtifacts'
     archiveFile: '$(Build.SourcesDirectory)/_build/Extensions/ExternalTfs/Src/Tasks/DownloadExternalBuildArtifacts.zip'
 
-# - template: sign-all-tasks.yml
-#   parameters:
-#     layoutRoot: $(Build.SourcesDirectory)\_build\Extensions\ExternalTfs\Src\Tasks\DownloadArtifactsTfsGit
+- template: sign-all-tasks.yml
+  parameters:
+    layoutRoot: $(Build.SourcesDirectory)\_build\Extensions\ExternalTfs\Src\Tasks\DownloadArtifactsTfsGit
 
 # - task: gulp@0
 #   displayName: 'gulp package'
