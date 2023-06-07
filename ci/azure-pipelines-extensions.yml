@@ -82,45 +82,35 @@ steps:
   displayName: 'Archive 1'
   inputs:
     rootFolderOrFile: '$(Build.SourcesDirectory)\_build\Extensions\ExternalTfs\Src\Tasks\DownloadArtifactsTfsGit'
-    archiveFile: '$(Build.SourcesDirectory)/_build/Extensions/ExternalTfs/Src/Tasks/DownloadArtifactsTfsGit.zip'
+    archiveFile: '$(Build.SourcesDirectory)/_signing/DownloadArtifactsTfsGit.zip'
     includeRootFolder: false
 
-# - task: ArchiveFiles@2
-#   displayName: 'Archive 2'
-#   inputs:
-#     rootFolderOrFile: '$(Build.SourcesDirectory)\_build\Extensions\ExternalTfs\Src\Tasks\DownloadArtifactsTfsVersionControl'
-#     archiveFile: '$(Build.SourcesDirectory)/_build/Extensions/ExternalTfs/Src/Tasks/DownloadArtifactsTfsVersionControl.zip'
+- task: ArchiveFiles@2
+  displayName: 'Archive '
+  inputs:
+    rootFolderOrFile: '$(Build.SourcesDirectory)\_build\Extensions\ExternalTfs\Src\Tasks\DownloadArtifactsTfsVersionControl'
+    archiveFile: '$(Build.SourcesDirectory)/_signing/DownloadArtifactsTfsVersionControl.zip'
+    includeRootFolder: false
 
-# - task: ArchiveFiles@2
-#   displayName: 'Archive 3'
-#   inputs:
-#     rootFolderOrFile: '$(Build.SourcesDirectory)\_build\Extensions\ExternalTfs\Src\Tasks\DownloadExternalBuildArtifacts'
-#     archiveFile: '$(Build.SourcesDirectory)/_build/Extensions/ExternalTfs/Src/Tasks/DownloadExternalBuildArtifacts.zip'
+- task: ArchiveFiles@2
+  displayName: 'Archive 3'
+  inputs:
+    rootFolderOrFile: '$(Build.SourcesDirectory)\_build\Extensions\ExternalTfs\Src\Tasks\DownloadExternalBuildArtifacts'
+    archiveFile: '$(Build.SourcesDirectory)/_signing/DownloadExternalBuildArtifacts.zip'
+    includeRootFolder: false
 
 - task: PublishBuildArtifacts@1
   displayName: Publish artifacts
   inputs:
-    pathToPublish: _build/Extensions/ExternalTfs/Src/Tasks/DownloadArtifactsTfsGit.zip
+    pathToPublish: _signing
     artifactName: before
 
 - template: sign-all-tasks.yml
   parameters:
-    layoutRoot: $(Build.SourcesDirectory)\_build\Extensions\ExternalTfs\Src\Tasks
+    layoutRoot: $(Build.SourcesDirectory)\_signing
 
 - task: PublishBuildArtifacts@1
   displayName: Publish artifacts
   inputs:
-    pathToPublish: _build/Extensions/ExternalTfs/Src/Tasks/DownloadArtifactsTfsGit.zip
+    pathToPublish: _signing
     artifactName: after
-
-# - task: gulp@0
-#   displayName: 'gulp package'
-#   inputs:
-#     targets: package
-
-- task: PublishBuildArtifacts@1
-  displayName: Publish artifacts
-  inputs:
-    pathToPublish: _build/Extensions/ExternalTfs/Src/Tasks/DownloadExternalBuildArtifacts.zip
-    artifactName: build
-
