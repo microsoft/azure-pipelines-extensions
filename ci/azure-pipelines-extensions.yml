@@ -83,6 +83,7 @@ steps:
   inputs:
     rootFolderOrFile: '$(Build.SourcesDirectory)\_build\Extensions\ExternalTfs\Src\Tasks\DownloadArtifactsTfsGit'
     archiveFile: '$(Build.SourcesDirectory)/_build/Extensions/ExternalTfs/Src/Tasks/DownloadArtifactsTfsGit.zip'
+    includeRootFolder: false
 
 # - task: ArchiveFiles@2
 #   displayName: 'Archive 2'
