@@ -80,7 +80,7 @@ steps:
 - powershell: |
    Write-Host "List all task path under: $(Build.SourcesDirectory)\_build"
    
-   $folders = Get-ChildItem -Path "$(Build.SourcesDirectory)\_build" -Recurse -Directory -Filter "*Tasks*" | Select-Object FullName
+   $folders = Get-ChildItem -Path "$(Build.SourcesDirectory)\_build" -Recurse -Directory -Filter "Tasks" | Select-Object FullName
    
    Write-Host $folders
   displayName: 'PowerShell Script - zip all tasks for signing'
