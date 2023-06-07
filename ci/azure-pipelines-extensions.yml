@@ -84,21 +84,33 @@ steps:
     rootFolderOrFile: '$(Build.SourcesDirectory)\_build\Extensions\ExternalTfs\Src\Tasks\DownloadArtifactsTfsGit'
     archiveFile: '$(Build.SourcesDirectory)/_build/Extensions/ExternalTfs/Src/Tasks/DownloadArtifactsTfsGit.zip'
 
-- task: ArchiveFiles@2
-  displayName: 'Archive 2'
-  inputs:
-    rootFolderOrFile: '$(Build.SourcesDirectory)\_build\Extensions\ExternalTfs\Src\Tasks\DownloadArtifactsTfsVersionControl'
-    archiveFile: '$(Build.SourcesDirectory)/_build/Extensions/ExternalTfs/Src/Tasks/DownloadArtifactsTfsVersionControl.zip'
+# - task: ArchiveFiles@2
+#   displayName: 'Archive 2'
+#   inputs:
+#     rootFolderOrFile: '$(Build.SourcesDirectory)\_build\Extensions\ExternalTfs\Src\Tasks\DownloadArtifactsTfsVersionControl'
+#     archiveFile: '$(Build.SourcesDirectory)/_build/Extensions/ExternalTfs/Src/Tasks/DownloadArtifactsTfsVersionControl.zip'
 
-- task: ArchiveFiles@2
-  displayName: 'Archive 3'
+# - task: ArchiveFiles@2
+#   displayName: 'Archive 3'
+#   inputs:
+#     rootFolderOrFile: '$(Build.SourcesDirectory)\_build\Extensions\ExternalTfs\Src\Tasks\DownloadExternalBuildArtifacts'
+#     archiveFile: '$(Build.SourcesDirectory)/_build/Extensions/ExternalTfs/Src/Tasks/DownloadExternalBuildArtifacts.zip'
+
+- task: PublishBuildArtifacts@1
+  displayName: Publish artifacts
   inputs:
-    rootFolderOrFile: '$(Build.SourcesDirectory)\_build\Extensions\ExternalTfs\Src\Tasks\DownloadExternalBuildArtifacts'
-    archiveFile: '$(Build.SourcesDirectory)/_build/Extensions/ExternalTfs/Src/Tasks/DownloadExternalBuildArtifacts.zip'
+    pathToPublish: _build/Extensions/ExternalTfs/Src/Tasks/DownloadArtifactsTfsGit.zip
+    artifactName: before
 
 - template: sign-all-tasks.yml
   parameters:
     layoutRoot: $(Build.SourcesDirectory)\_build\Extensions\ExternalTfs\Src\Tasks
+
+- task: PublishBuildArtifacts@1
+  displayName: Publish artifacts
+  inputs:
+    pathToPublish: _build/Extensions/ExternalTfs/Src/Tasks/DownloadArtifactsTfsGit.zip
+    artifactName: after
 
 # - task: gulp@0
 #   displayName: 'gulp package'
