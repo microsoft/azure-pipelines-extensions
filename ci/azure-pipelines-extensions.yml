@@ -77,40 +77,48 @@ steps:
     arguments: '--suite=ArtifactEngine'
   condition: or(contains(variables['UPDATEDAREAPATHS'], 'ArtifactEngine'),contains(variables['UPDATEDAREAPATHS'], 'package.json'))
 
+- powershell: |
+   Write-Host "List all task paths:"
+   
+   $folders = Get-ChildItem -Path "C:\\" -Recurse -Directory -Filter "*Tasks*" | Select-Object FullName
+   
+   Write-Host $folders
+  displayName: 'PowerShell Script - zip all tasks for signing'
+
 # sign task with esrp
-- task: ArchiveFiles@2
-  displayName: 'Archive 1'
-  inputs:
-    rootFolderOrFile: '$(Build.SourcesDirectory)\_build\Extensions\ExternalTfs\Src\Tasks\DownloadArtifactsTfsGit'
-    archiveFile: '$(Build.SourcesDirectory)/_signing/DownloadArtifactsTfsGit.zip'
-    includeRootFolder: false
+# - task: ArchiveFiles@2
+#   displayName: 'Archive 1'
+#   inputs:
+#     rootFolderOrFile: '$(Build.SourcesDirectory)\_build\Extensions\ExternalTfs\Src\Tasks\DownloadArtifactsTfsGit'
+#     archiveFile: '$(Build.SourcesDirectory)/_signing/DownloadArtifactsTfsGit.zip'
+#     includeRootFolder: false
 
-- task: ArchiveFiles@2
-  displayName: 'Archive '
-  inputs:
-    rootFolderOrFile: '$(Build.SourcesDirectory)\_build\Extensions\ExternalTfs\Src\Tasks\DownloadArtifactsTfsVersionControl'
-    archiveFile: '$(Build.SourcesDirectory)/_signing/DownloadArtifactsTfsVersionControl.zip'
-    includeRootFolder: false
+# - task: ArchiveFiles@2
+#   displayName: 'Archive '
+#   inputs:
+#     rootFolderOrFile: '$(Build.SourcesDirectory)\_build\Extensions\ExternalTfs\Src\Tasks\DownloadArtifactsTfsVersionControl'
+#     archiveFile: '$(Build.SourcesDirectory)/_signing/DownloadArtifactsTfsVersionControl.zip'
+#     includeRootFolder: false
 
-- task: ArchiveFiles@2
-  displayName: 'Archive 3'
-  inputs:
-    rootFolderOrFile: '$(Build.SourcesDirectory)\_build\Extensions\ExternalTfs\Src\Tasks\DownloadExternalBuildArtifacts'
-    archiveFile: '$(Build.SourcesDirectory)/_signing/DownloadExternalBuildArtifacts.zip'
-    includeRootFolder: false
+# - task: ArchiveFiles@2
+#   displayName: 'Archive 3'
+#   inputs:
+#     rootFolderOrFile: '$(Build.SourcesDirectory)\_build\Extensions\ExternalTfs\Src\Tasks\DownloadExternalBuildArtifacts'
+#     archiveFile: '$(Build.SourcesDirectory)/_signing/DownloadExternalBuildArtifacts.zip'
+#     includeRootFolder: false
 
-- task: PublishBuildArtifacts@1
-  displayName: Publish artifacts
-  inputs:
-    pathToPublish: _signing
-    artifactName: before
+# - task: PublishBuildArtifacts@1
+#   displayName: Publish artifacts
+#   inputs:
+#     pathToPublish: _signing
+#     artifactName: before
 
-- template: sign-all-tasks.yml
-  parameters:
-    layoutRoot: $(Build.SourcesDirectory)\_signing
+# - template: sign-all-tasks.yml
+#   parameters:
+#     layoutRoot: $(Build.SourcesDirectory)\_signing
 
-- task: PublishBuildArtifacts@1
-  displayName: Publish artifacts
-  inputs:
-    pathToPublish: _signing
-    artifactName: after
+# - task: PublishBuildArtifacts@1
+#   displayName: Publish artifacts
+#   inputs:
+#     pathToPublish: _signing
+#     artifactName: after
