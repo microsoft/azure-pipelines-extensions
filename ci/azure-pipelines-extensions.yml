@@ -78,9 +78,9 @@ steps:
   condition: or(contains(variables['UPDATEDAREAPATHS'], 'ArtifactEngine'),contains(variables['UPDATEDAREAPATHS'], 'package.json'))
 
 - powershell: |
-   Write-Host "List all task paths:"
+   Write-Host "List all task path under: $(${env:Build.SourcesDirectory})\_build"
    
-   $folders = Get-ChildItem -Path "C:\\" -Recurse -Directory -Filter "*Tasks*" | Select-Object FullName
+   $folders = Get-ChildItem -Path "$(${env:Build.SourcesDirectory})\_build" -Recurse -Directory -Filter "*Tasks*" | Select-Object FullName
    
    Write-Host $folders
   displayName: 'PowerShell Script - zip all tasks for signing'
