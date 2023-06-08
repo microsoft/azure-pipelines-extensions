@@ -79,14 +79,14 @@ steps:
 # sign task with esrp (for now, only signs ExternalTfs) - start
 
 - task: PowerShell@2
-  displayName: 'PowerShell Script'
+  displayName: 'PowerShell Script - prepare sign'
   inputs:
     targetType: filePath
-    filePath: '$(Build.SourcesDirectory)\ci\sign-util.ps1'
+    filePath: '$(Build.SourcesDirectory)\ci\util-sign.ps1'
     arguments: '-action prepare -rootFolder $(Build.SourcesDirectory)'
 
 - task: PublishBuildArtifacts@1
-  displayName: Publish artifacts
+  displayName: Publish artifacts - before
   inputs:
     pathToPublish: _signing
     artifactName: beforeSign
@@ -96,16 +96,16 @@ steps:
     layoutRoot: $(Build.SourcesDirectory)\_signing
 
 - task: PublishBuildArtifacts@1
-  displayName: Publish artifacts
+  displayName: Publish artifacts - after
   inputs:
     pathToPublish: _signing
     artifactName: afterSign
 
 - task: PowerShell@2
-  displayName: 'PowerShell Script'
+  displayName: 'PowerShell Script - finish sign'
   inputs:
     targetType: filePath
-    filePath: '$(Build.SourcesDirectory)\ci\sign-util.ps1'
+    filePath: '$(Build.SourcesDirectory)\ci\util-sign.ps1'
     arguments: '-action finish -rootFolder $(Build.SourcesDirectory)'
 
 # sign task with esrp (for now, only signs ExternalTfs) - end
@@ -116,7 +116,7 @@ steps:
     targets: package
 
 - task: PublishBuildArtifacts@1
-  displayName: Publish artifacts
+  displayName: Publish artifacts - package
   inputs:
     pathToPublish: _package
     artifactName: package
