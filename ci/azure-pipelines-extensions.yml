@@ -2,7 +2,6 @@ pool:
   name: Azure Pipelines
   vmImage: windows-latest
 
-
 trigger: none
 
 steps:
@@ -77,48 +76,47 @@ steps:
     arguments: '--suite=ArtifactEngine'
   condition: or(contains(variables['UPDATEDAREAPATHS'], 'ArtifactEngine'),contains(variables['UPDATEDAREAPATHS'], 'package.json'))
 
-- powershell: |
-   Write-Host "List all task path under: $(Build.SourcesDirectory)\_build"
-   
-   $folders = Get-ChildItem -Path "$(Build.SourcesDirectory)\_build" -Recurse -Directory -Filter "Tasks" | Select-Object FullName | ForEach-Object { Get-ChildItem $_.FullName -Directory | Select-Object FullName }
+# sign task with esrp (for now, only signs ExternalTfs) - start
 
-   Write-Host $folders
-  displayName: 'PowerShell Script - zip all tasks for signing'
+- task: PowerShell@2
+  displayName: 'PowerShell Script'
+  inputs:
+    targetType: filePath
+    filePath: '$(Build.SourcesDirectory)\ci\sign-util.ps1'
+    arguments: '-action prepare -rootFolder $(Build.SourcesDirectory)'
 
-# sign task with esrp
-# - task: ArchiveFiles@2
-#   displayName: 'Archive 1'
-#   inputs:
-#     rootFolderOrFile: '$(Build.SourcesDirectory)\_build\Extensions\ExternalTfs\Src\Tasks\DownloadArtifactsTfsGit'
-#     archiveFile: '$(Build.SourcesDirectory)/_signing/DownloadArtifactsTfsGit.zip'
-#     includeRootFolder: false
+- task: PublishBuildArtifacts@1
+  displayName: Publish artifacts
+  inputs:
+    pathToPublish: _signing
+    artifactName: beforeSign
 
-# - task: ArchiveFiles@2
-#   displayName: 'Archive '
-#   inputs:
-#     rootFolderOrFile: '$(Build.SourcesDirectory)\_build\Extensions\ExternalTfs\Src\Tasks\DownloadArtifactsTfsVersionControl'
-#     archiveFile: '$(Build.SourcesDirectory)/_signing/DownloadArtifactsTfsVersionControl.zip'
-#     includeRootFolder: false
+- template: sign-all-tasks.yml
+  parameters:
+    layoutRoot: $(Build.SourcesDirectory)\_signing
 
-# - task: ArchiveFiles@2
-#   displayName: 'Archive 3'
-#   inputs:
-#     rootFolderOrFile: '$(Build.SourcesDirectory)\_build\Extensions\ExternalTfs\Src\Tasks\DownloadExternalBuildArtifacts'
-#     archiveFile: '$(Build.SourcesDirectory)/_signing/DownloadExternalBuildArtifacts.zip'
-#     includeRootFolder: false
+- task: PublishBuildArtifacts@1
+  displayName: Publish artifacts
+  inputs:
+    pathToPublish: _signing
+    artifactName: afterSign
 
-# - task: PublishBuildArtifacts@1
-#   displayName: Publish artifacts
-#   inputs:
-#     pathToPublish: _signing
-#     artifactName: before
+- task: PowerShell@2
+  displayName: 'PowerShell Script'
+  inputs:
+    targetType: filePath
+    filePath: '$(Build.SourcesDirectory)\ci\sign-util.ps1'
+    arguments: '-action finish -rootFolder $(Build.SourcesDirectory)'
 
-# - template: sign-all-tasks.yml
-#   parameters:
-#     layoutRoot: $(Build.SourcesDirectory)\_signing
+# sign task with esrp (for now, only signs ExternalTfs) - end
 
-# - task: PublishBuildArtifacts@1
-#   displayName: Publish artifacts
-#   inputs:
-#     pathToPublish: _signing
-#     artifactName: after
+- task: gulp@0
+  displayName: 'gulp package'
+  inputs:
+    targets: package
+
+- task: PublishBuildArtifacts@1
+  displayName: Publish artifacts
+  inputs:
+    pathToPublish: _package
+    artifactName: package
