@@ -25,8 +25,7 @@ if ($action -eq "prepare") {
     # create zip for all folders
     $folders | ForEach-Object { Compress-Archive "$($_.FullName)\*" "$rootFolder\_signing\$(Split-Path $_.FullName -Leaf).zip" -Force }
 }
-
-else if ($action -eq "finish") {
+elseif ($action -eq "finish") {
     # expand signed zips
     Get-ChildItem -Path "$rootFolder\_signing" -Filter "*.zip" | ForEach-Object { Expand-Archive $_.FullName "$rootFolder\_signing\$($_.BaseName)" }
 
