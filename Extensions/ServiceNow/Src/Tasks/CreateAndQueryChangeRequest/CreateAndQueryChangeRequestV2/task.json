@@ -14,7 +14,7 @@
   ],
   "version": {
     "Major": 2,
-    "Minor": 202,
+    "Minor": 224,
     "Patch": 0
   },
   "instanceNameFormat": "ServiceNow change management",
@@ -360,7 +360,7 @@
         {
           "RequestInputs": {
             "EndpointId": "$(ServiceNowConnection)",
-            "EndpointUrl": "$(endpoint.url)/api/now/table/change_request?x_mioms_azpipeline_stage_id=$(checks.stageId)&x_mioms_azpipeline_build_id=$(build.buildId)&x_mioms_azpipeline_stage_attempt=$(checks.stageAttempt)&sysparm_fields=number,sys_id,correlation_id",
+            "EndpointUrl": "$(endpoint.url)/api/now/table/change_request?sysparm_query=x_mioms_azpipeline_stage_id=$(checks.stageId)^x_mioms_azpipeline_build_id=$(build.buildId)^x_mioms_azpipeline_stage_attempt=$(checks.stageAttempt)&sysparm_fields=number,sys_id,correlation_id",
             "Method": "GET",
             "Headers": "{\"Content-Type\":\"application/json\", \"Accept\":\"application/json\"}",
             "WaitForCompletion": "true"
