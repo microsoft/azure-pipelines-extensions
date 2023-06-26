@@ -1,6 +1,8 @@
 var shell = require('shelljs');
 var path = require('path');
 var tl = require('vsts-task-lib/task');
+var webApim = require('vso-node-api/WebApi');
+var tfvcInterfaces = require('vso-node-api/interfaces/TfvcInterfaces');
 var Q = require('q');
 var url = require('url');
 var tfvcwm = require('./tfvcwrapper');
@@ -15,7 +17,7 @@ console.log("project: " + projectId.toString());
 console.log("definition: " + repositoryId.toString());
 console.log("version: " + (!!changesetId ? changesetId.toString() : "Latest"));
 console.log("downloadPath: " + downloadPath.toString());
-console.log("tfsEndpoint:" + JSON.stringify(tfsEndpoint.Url));
+console.log("tfsEndpoint:" + JSON.stringify(tfsEndpoint));
 
 var tfvcw = new tfvcwm.TfvcWrapper();
 tfvcw.on('stdout', function (data) {
