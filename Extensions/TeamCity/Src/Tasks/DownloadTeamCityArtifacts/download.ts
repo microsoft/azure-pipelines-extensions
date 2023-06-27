@@ -1,8 +1,8 @@
-import { resolve } from 'vsts-task-lib/mock-task';
+import { resolve } from 'azure-pipelines-task-lib/mock-task';
 var path = require('path')
 var url = require('url')
 
-import * as tl from 'vsts-task-lib/task';
+import * as tl from 'azure-pipelines-task-lib/task';
 import * as models from 'artifact-engine/Models';
 import * as engine from 'artifact-engine/Engine';
 import * as providers from 'artifact-engine/Providers';
