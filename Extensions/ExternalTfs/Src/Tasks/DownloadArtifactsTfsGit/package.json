@@ -2,7 +2,7 @@
   "name": "DownloadArtifactsTfsGit",
   "main": "download.js",
   "dependencies": {
-    "vso-node-api": "6.0.1-preview",
+    "azure-devops-node-api": "10.2.1",
     "vsts-task-lib": "2.0.5"
   }
 }
