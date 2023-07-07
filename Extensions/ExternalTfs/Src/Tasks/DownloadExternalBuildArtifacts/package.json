@@ -4,6 +4,6 @@
   "dependencies": {
     "azure-devops-node-api": "10.2.1",
     "vsts-task-lib": "2.2.1",
-    "artifact-engine": "0.1.29"
+    "artifact-engine": "1.2.0"
   }
 }
