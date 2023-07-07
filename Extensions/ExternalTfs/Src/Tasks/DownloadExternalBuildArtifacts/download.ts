@@ -3,7 +3,7 @@ var url = require('url')
 var fs = require('fs')
 
 import * as tl from 'vsts-task-lib/task';
-import { WebApi, getBasicHandler } from 'vso-node-api/WebApi';
+import { WebApi, getBasicHandler } from 'azure-devops-node-api/WebApi';
 
 import * as models from "artifact-engine/Models"
 import * as engine from "artifact-engine/Engine"
@@ -73,9 +73,9 @@ async function main(): Promise<void> {
         var parallelLimit: number = +tl.getVariable("release.artifact.download.parallellimit");
 
         var templatePath = path.join(__dirname, 'vsts.handlebars');
-        var buildApi = vssConnection.getBuildApi();
+        var buildApi = await vssConnection.getBuildApi();
 
-        var artifacts = await executeWithRetries("getArtifacts", () => buildApi.getArtifacts(parseInt(buildId), projectId), 3).catch((reason) => {
+        var artifacts = await executeWithRetries("getArtifacts", () => buildApi.getArtifacts(projectId, parseInt(buildId)), 3).catch((reason) => {
             reject(reason);
         });
 
