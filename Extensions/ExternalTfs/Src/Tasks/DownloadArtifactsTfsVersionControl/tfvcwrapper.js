@@ -6,7 +6,7 @@ var __extends = (this && this.__extends) || function (d, b) {
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
 
-var tl = require('vsts-task-lib');
+var tl = require('azure-pipelines-task-lib');
 var shell = require('shelljs');
 var path = require('path');
 var fs = require('fs');
