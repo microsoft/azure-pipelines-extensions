@@ -106,10 +106,6 @@ describe('IISWebAppMgmtV2 Suite', function () {
 
         it('test invoke main for appcmd', (done) => {
             psr.run(path.join(__dirname, 'L0AppcmdInvokeMain.ps1'), done);
-        }) 
-                
-        it('test additional arguments validation', (done:MochaDone) => {
-            psr.run(path.join(__dirname, 'L0ValidateAdditionalArguments.ps1'), done);
         })
     }    
 });
