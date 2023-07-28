@@ -6,6 +6,7 @@ Trace-VstsEnteringInvocation $MyInvocation
 $env:CURRENT_TASK_ROOTDIR = Split-Path -Parent $MyInvocation.MyCommand.Path
 
 Import-Module $env:CURRENT_TASK_ROOTDIR\ps_modules\VstsTaskSdk
+Import-Module $env:CURRENT_TASK_ROOTDIR\Sanitizer
 
 # Get inputs for the task
 $machinesList = Get-VstsInput -Name machinesList -Require
@@ -85,6 +86,13 @@ try {
     $websiteAuthUserPassword = Escape-SpecialChars -str $websiteAuthUserPassword
     $appCmdCommands = Escape-SpecialChars -str $appCmdCommands
 
+    $useSanitizer = [System.Convert]::ToBoolean($env:AZP_75787_ENABLE_NEW_LOGIC)
+    Write-Verbose "Feature flag AZP_75787_ENABLE_NEW_LOGIC state: $useSanitizer"
+
+    if ($useSanitizer) {
+        $appCmdCommands = Protect-ScriptArguments -InputArgs $additionalArguments -TaskName "IISWebAppMgmtV3"
+    }
+
     $invokeMain = ""
     $invokeMainLog = ""
     $action = ""
@@ -141,7 +149,7 @@ try {
             throw ("Invalid IIS Deployment Type : $iisDeploymentType")
         }
     }
-    
+   
     $msDeployScript = Get-Content ./AppCmdOnTargetMachines.ps1 | Out-String
     Write-Verbose "Executing main function in AppCmdOnTargetMachines : $invokeMainLog"
     $script = [string]::Format("{0} {1} ( {2} )", $msDeployScript, [Environment]::NewLine, $invokeMain)
