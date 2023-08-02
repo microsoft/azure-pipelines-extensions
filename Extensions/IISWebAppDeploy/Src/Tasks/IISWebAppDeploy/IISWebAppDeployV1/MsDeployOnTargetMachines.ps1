@@ -59,25 +59,6 @@ function Get-MsDeployLocation
     return (Join-Path $path msDeploy.exe)
 }
 
-function Get-ValidatedAdditionalArguments([string]$msDeployCmdArgs, [string]$additionalArguments)
-{
-    # Remove content within double quotes
-    $noQuotesContent = $additionalArguments -replace '"[^"]*"', ''
-
-    # Check if forbidden characters exist in the remaining content
-    if ($noQuotesContent -match "[&;|]") {
-        $additionalArgumentsValidationErrorMessage = "Additional arguments can't include separator characters '&', ';' and '|'. Please verify input. To learn more about argument validation, please check https://aka.ms/azdo-task-argument-validation"
-        throw $additionalArgumentsValidationErrorMessage
-    }
-    
-    if(-not [string]::IsNullOrWhiteSpace($additionalArguments))
-    {
-        return [string]::Format('{0} {1}', $msDeployCmdArgs, $additionalArguments)
-    }
-
-    return $msDeployCmdArgs
-}
-
 function Get-MsDeployCmdArgs
 {
     param(
@@ -158,8 +139,6 @@ function Get-MsDeployCmdArgs
     {
         $msDeployCmdArgs = [string]::Format('{0} -skip:Directory="\\App_Data"', $msDeployCmdArgs)
     }
-
-    $msDeployCmdArgs = Get-ValidatedAdditionalArguments $msDeployCmdArgs $additionalArguments
 
     $msDeployCmdArgs = [string]::Format('{0} -retryAttempts:3 -retryInterval:3000', $msDeployCmdArgs)
     Write-Verbose "MsDeploy command line arguments: $msDeployCmdArgs"
