@@ -46,7 +46,7 @@ function Get-ScriptToRun
 
     if ($useSanitizerCall) 
     {
-        $sanitizedArguments = Protect-ScriptArguments -InputArgs $appCmdCommand -TaskName "IISWebAppDeployV2"
+        $sanitizedArguments = Protect-ScriptArguments -InputArgs $AdditionalArguments -TaskName "IISWebAppDeployV2"
     }
 
     if ($useSanitizerActivate) 

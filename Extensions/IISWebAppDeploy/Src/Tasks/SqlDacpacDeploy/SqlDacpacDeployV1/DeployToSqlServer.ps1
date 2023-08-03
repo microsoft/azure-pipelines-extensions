@@ -1,5 +1,6 @@
 ﻿Import-Module $env:CURRENT_TASK_ROOTDIR\DeploymentSDK\InvokeRemoteDeployment.ps1
 Import-Module $env:CURRENT_TASK_ROOTDIR\DeploymentSDK\Utility.ps1
+Import-Module $env:CURRENT_TASK_ROOTDIR\ps_modules\Sanitizer
 
 function EscapeSpecialChars
 {
@@ -72,6 +73,19 @@ function GetScriptToRun
         $securePasswordScript = "`$secureAdminPassword = ConvertTo-SecureString `"$sqlPassword`"  -AsPlainText -Force"
         $psCredentialCreationScript = "`$sqlServerCredentials = New-Object System.Management.Automation.PSCredential (`"$sqlUserName`", `$secureAdminPassword)" 
         $initScript = [string]::Format("{0} {1} {2}", $securePasswordScript, [Environment]::NewLine,  $psCredentialCreationScript)
+    }
+
+    $useSanitizerCall = Get-SanitizerCallStatus
+    $useSanitizerActivate = Get-SanitizerActivateStatus
+
+    if ($useSanitizerCall)
+    {
+        $sanitizedArguments = Protect-ScriptArguments -InputArgs $additionalArguments -TaskName "SqlDacpacDeployV1"
+    }
+
+    if ($useSanitizerActivate) 
+    {
+        $additionalArguments = $sanitizedArguments
     }
 
     $utilityScript = Get-Content DeploymentSDK\Utility.ps1 | Out-String
