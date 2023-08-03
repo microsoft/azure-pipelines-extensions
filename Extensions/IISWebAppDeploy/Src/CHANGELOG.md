@@ -2,6 +2,10 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.6.4] TODO August 2023
+### Added
+- Several improvements for argument validations.
+
 ## [1.5.9] 6th December 2019
 ### Added
 - Moved the tasks IISWebAppDeploy, IISWebAppMgmt and SqlDacpacDeploy to PS3 Handler.

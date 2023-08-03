@@ -6,7 +6,6 @@ Trace-VstsEnteringInvocation $MyInvocation
 $env:CURRENT_TASK_ROOTDIR = Split-Path -Parent $MyInvocation.MyCommand.Path
 
 Import-Module $env:CURRENT_TASK_ROOTDIR\ps_modules\VstsTaskSdk
-Import-Module $env:CURRENT_TASK_ROOTDIR\Sanitizer
 
 # Get inputs for the task
 $machinesList = Get-VstsInput -Name machinesList -Require
@@ -85,13 +84,6 @@ try {
     $appPoolPassword = Escape-SpecialChars -str $appPoolPassword
     $websiteAuthUserPassword = Escape-SpecialChars -str $websiteAuthUserPassword
     $appCmdCommands = Escape-SpecialChars -str $appCmdCommands
-
-    $useSanitizer = [System.Convert]::ToBoolean($env:AZP_75787_ENABLE_NEW_LOGIC)
-    Write-Verbose "Feature flag AZP_75787_ENABLE_NEW_LOGIC state: $useSanitizer"
-
-    if ($useSanitizer) {
-        $appCmdCommands = Protect-ScriptArguments -InputArgs $additionalArguments -TaskName "IISWebAppMgmtV3"
-    }
 
     $invokeMain = ""
     $invokeMainLog = ""

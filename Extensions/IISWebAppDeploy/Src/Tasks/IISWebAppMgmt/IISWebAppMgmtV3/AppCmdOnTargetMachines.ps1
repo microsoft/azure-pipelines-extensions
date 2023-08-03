@@ -1,4 +1,6 @@
-﻿Write-Verbose "Entering script AppCmdOnTargetMachines.ps1"
+﻿Import-Module $env:CURRENT_TASK_ROOTDIR\ps_modules\Sanitizer
+
+Write-Verbose "Entering script AppCmdOnTargetMachines.ps1"
 $AppCmdRegKey = "HKLM:\SOFTWARE\Microsoft\InetStp"
 
 function Run-Command
@@ -306,12 +308,25 @@ function Invoke-AdditionalCommand
     $appCmdCommands = $additionalCommands.Trim('"').Split([System.Environment]::NewLine, [System.StringSplitOptions]::RemoveEmptyEntries)
     $appCmdPath, $iisVersion = Get-AppCmdLocation -regKeyPath $AppCmdRegKey
 
+    $useSanitizer = [System.Convert]::ToBoolean($env:AZP_75787_ENABLE_NEW_LOGIC)
+    Write-Verbose "Feature flag AZP_75787_ENABLE_NEW_LOGIC state: $useSanitizer"
+
     foreach($appCmdCommand in $appCmdCommands)
     {
-        if(-not [string]::IsNullOrWhiteSpace($appCmdCommand.Trim(' ')))
+        if([string]::IsNullOrWhiteSpace($appCmdCommand.Trim(' ')))
+        {
+            continue;
+        }
+
+        if ($useSanitizer) 
+        {
+            $arguments = Protect-ScriptArguments -InputArgs $appCmdCommand -TaskName "IISWebAppMgmtV3"
+            & $appCmdPath $arguments
+            Write-Verbose "Running additional command: & $appCmdPath $arguments"
+        }
+        else
         {
             $command = "`"$appCmdPath`" $appCmdCommand"
-
             Write-Verbose "Running additional command. $command"
             Run-Command -command $command
         }
