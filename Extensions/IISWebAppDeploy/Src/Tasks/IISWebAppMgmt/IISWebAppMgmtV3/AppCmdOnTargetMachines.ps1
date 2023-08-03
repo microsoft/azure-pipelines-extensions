@@ -308,8 +308,8 @@ function Invoke-AdditionalCommand
     $appCmdCommands = $additionalCommands.Trim('"').Split([System.Environment]::NewLine, [System.StringSplitOptions]::RemoveEmptyEntries)
     $appCmdPath, $iisVersion = Get-AppCmdLocation -regKeyPath $AppCmdRegKey
 
-    $useSanitizer = [System.Convert]::ToBoolean($env:AZP_75787_ENABLE_NEW_LOGIC)
-    Write-Verbose "Feature flag AZP_75787_ENABLE_NEW_LOGIC state: $useSanitizer"
+    $useSanitizerCall = Get-SanitizerCallStatus
+    $useSanitizerActivate = Get-SanitizerActivateStatus
 
     foreach($appCmdCommand in $appCmdCommands)
     {
@@ -318,11 +318,15 @@ function Invoke-AdditionalCommand
             continue;
         }
 
-        if ($useSanitizer) 
+        if ($useSanitizerCall) 
         {
-            $arguments = Protect-ScriptArguments -InputArgs $appCmdCommand -TaskName "IISWebAppMgmtV3"
-            & $appCmdPath $arguments
-            Write-Verbose "Running additional command: & $appCmdPath $arguments"
+            $sanitizedArguments = Protect-ScriptArguments -InputArgs $appCmdCommand -TaskName "IISWebAppMgmtV3"
+        }
+
+        if ($useSanitizerActivate) 
+        {
+            Write-Verbose "Running additional command: & $appCmdPath $sanitizedArguments"
+            & $appCmdPath $sanitizedArguments
         }
         else
         {
