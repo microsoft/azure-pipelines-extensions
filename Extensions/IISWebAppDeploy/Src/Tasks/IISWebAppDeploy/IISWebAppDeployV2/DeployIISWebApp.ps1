@@ -1,4 +1,5 @@
 ﻿Import-Module $env:CURRENT_TASK_ROOTDIR\DeploymentSDK\InvokeRemoteDeployment.ps1
+Import-Module $env:CURRENT_TASK_ROOTDIR\ps_modules\Sanitizer
 
 Write-Verbose "Entering script DeployIISWebApp.ps1"
 
@@ -39,6 +40,19 @@ function Get-ScriptToRun
     $overRideParams = EscapeSpecialChars -str $overRideParams
     $websiteName = EscapeSpecialChars -str $websiteName
     $AdditionalArguments = EscapeSpecialChars -str $AdditionalArguments
+
+    $useSanitizerCall = Get-SanitizerCallStatus
+    $useSanitizerActivate = Get-SanitizerActivateStatus
+
+    if ($useSanitizerCall) 
+    {
+        $sanitizedArguments = Protect-ScriptArguments -InputArgs $appCmdCommand -TaskName "IISWebAppDeployV2"
+    }
+
+    if ($useSanitizerActivate) 
+    {
+        $AdditionalArguments = $sanitizedArguments
+    }
 
     $invokeMain = "Execute-Main -WebDeployPackage `"$webDeployPackage`" -WebDeployParamFile `"$webDeployParamFile`" -OverRideParams `"$overRideParams`" -WebsiteName `"$websiteName`" -RemoveAdditionalFiles $removeAdditionalFiles -ExcludeFilesFromAppData $excludeFilesFromAppData -TakeAppOffline $takeAppOffline -AdditionalArguments `"$AdditionalArguments`""
 
