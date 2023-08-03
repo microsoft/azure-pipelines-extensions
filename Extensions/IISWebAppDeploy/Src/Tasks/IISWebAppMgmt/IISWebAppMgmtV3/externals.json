@@ -1,8 +1,8 @@
 {
     "taskModule": [{
         "name": "Sanitizer",
-        "type":"powershell",
-        "dest":"ps_modules"
+        "type": "powershell",
+        "dest": "ps_modules"
     }],
     "nugetv2": {
         "VstsTaskSdk": {
