@@ -110,9 +110,5 @@ describe('IISWebAppMgmtV1 Suite', function () {
         it('test AppCmdOnTargetMachines - Execute-Main function', (done) => {
             psr.run(path.join(__dirname, 'L0ExecuteMainFunction.ps1'), done);
         })
-        
-        it('test Validate-AdditionalArguments function', (done:MochaDone) => {
-            psr.run(path.join(__dirname, 'L0ValidateAdditionalArguments.ps1'), done);
-        })
     }    
 });
