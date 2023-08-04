@@ -8,7 +8,7 @@
   "dependencies": {
     "@types/node": "^16.11.0",
     "azure-pipelines-task-lib": "^4.2.0",
-    "scp2-2022": "^0.9.0",
+    "scp2-2022": "^0.9.1",
     "shelljs": "^0.8.5",
     "ssh2": "^1.11.0",
     "uuid": "^3.3.2",
