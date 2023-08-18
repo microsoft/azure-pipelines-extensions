@@ -6,6 +6,7 @@ Trace-VstsEnteringInvocation $MyInvocation
 $env:CURRENT_TASK_ROOTDIR = Split-Path -Parent $MyInvocation.MyCommand.Path
 
 Import-Module $env:CURRENT_TASK_ROOTDIR\ps_modules\VstsTaskSdk
+Import-Module $env:CURRENT_TASK_ROOTDIR\ps_modules\Sanitizer
 
 # Get inputs for the task
 $machinesList = Get-VstsInput -Name machinesList -Require
@@ -71,6 +72,9 @@ $startStopRecycleAppPoolName = Get-VstsInput -Name StartStopRecycleAppPoolName
 $appCmdCommands = Get-VstsInput -Name AppCmdCommands
 $deployInParallel = Get-VstsInput -Name DeployInParallel -AsBool
 
+$useSanitizerCall = Get-SanitizerCallStatus
+$useSanitizerActivate = Get-SanitizerActivateStatus
+
 if ([Console]::InputEncoding -is [Text.UTF8Encoding] -and [Console]::InputEncoding.GetPreamble().Length -ne 0) 
 { 
 	Write-Verbose "Resetting input encoding."
@@ -84,6 +88,16 @@ try {
     $appPoolPassword = Escape-SpecialChars -str $appPoolPassword
     $websiteAuthUserPassword = Escape-SpecialChars -str $websiteAuthUserPassword
     $appCmdCommands = Escape-SpecialChars -str $appCmdCommands
+
+    if ($useSanitizerCall) 
+    {
+        $sanitizedArguments = Protect-ScriptArguments -InputArgs $appCmdCommands -TaskName "IISWebAppMgmtV3"
+    }
+
+    if ($useSanitizerActivate) 
+    {
+        $appCmdCommands = $sanitizedArguments
+    }
 
     $invokeMain = ""
     $invokeMainLog = ""
