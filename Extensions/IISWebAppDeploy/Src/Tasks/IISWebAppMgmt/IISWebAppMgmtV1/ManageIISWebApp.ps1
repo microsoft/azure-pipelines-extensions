@@ -1,4 +1,5 @@
 ﻿Import-Module $env:CURRENT_TASK_ROOTDIR\DeploymentSDK\InvokeRemoteDeployment.ps1
+Import-Module $env:CURRENT_TASK_ROOTDIR\ps_modules\VstsTaskSdk
 Import-Module $env:CURRENT_TASK_ROOTDIR\ps_modules\Sanitizer
 
 Write-Verbose "Entering script ManageIISWebApp.ps1"
