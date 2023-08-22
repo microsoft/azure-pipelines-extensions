@@ -72,6 +72,8 @@ if ([Console]::InputEncoding -is [Text.UTF8Encoding] -and [Console]::InputEncodi
 $currentTaskVersionRootDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $env:CURRENT_TASK_ROOTDIR = $currentTaskVersionRootDir
 
+Import-Module $env:CURRENT_TASK_ROOTDIR\VstsTaskSdk
+Import-Module $env:CURRENT_TASK_ROOTDIR\ps_modules\Sanitizer
 . $env:CURRENT_TASK_ROOTDIR\TelemetryHelper\TelemetryHelper.ps1
 . $currentTaskVersionRootDir\Utility.ps1
 
@@ -80,6 +82,19 @@ try {
     $websiteAuthUserPassword = Escape-SpecialChars -str $websiteAuthUserPassword
     $appCmdCommands = Escape-SpecialChars -str $appCmdCommands
     
+    $useSanitizerCall = Get-SanitizerCallStatus
+    $useSanitizerActivate = Get-SanitizerActivateStatus
+    
+    if ($useSanitizerCall) 
+    {
+        $sanitizedArguments = Protect-ScriptArguments -InputArgs $appCmdCommands -TaskName "IISWebAppMgmtV2"
+    }
+
+    if ($useSanitizerActivate) 
+    {
+        $appCmdCommands = $sanitizedArguments
+    }
+
     $invokeMain = ""
     $invokeMainLog = ""
     $action = ""

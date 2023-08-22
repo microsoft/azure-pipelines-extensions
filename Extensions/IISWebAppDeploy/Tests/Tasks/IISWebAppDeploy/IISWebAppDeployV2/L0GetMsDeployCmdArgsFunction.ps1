@@ -35,7 +35,7 @@ $result = Get-MsDeployCmdArgs -websiteName $websiteName -webDeployPackage $webDe
 Assert-AreEqual ( $result.Contains([string]::Format('-source:package="{0}"', $webDeployPackage) ) ) $true
 Assert-AreEqual ( $result.Contains([string]::Format('-setParamFile="{0}"', $webDeployParamFile) ) ) $true
 Assert-AreEqual ( $result.Contains("-setParam:$overRideParams") ) $true
-Assert-AreEqual ( $result.Contains(" args") ) $true
+Assert-AreEqual ( $result.Contains(" args") ) $false
 
 Unregister-Mock Test-Path
 

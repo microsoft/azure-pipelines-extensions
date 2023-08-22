@@ -1,8 +1,13 @@
 {
     "taskModule": [{
         "name": "TaskModuleSqlUtility",
-        "type":"powershell",
-        "dest":"."
+        "type": "powershell",
+        "dest": "."
+    },
+    {
+        "name": "Sanitizer",
+        "type": "powershell",
+        "dest": "ps_modules"
     }],
     "nugetv2": {
         "VstsTaskSdk": {

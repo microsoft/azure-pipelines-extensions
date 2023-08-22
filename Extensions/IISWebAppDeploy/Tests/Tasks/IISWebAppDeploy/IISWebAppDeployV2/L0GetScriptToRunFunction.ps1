@@ -5,6 +5,7 @@ param()
 
 . $PSScriptRoot\..\..\..\..\Src\Tasks\IISWebAppDeploy\IISWebAppDeployV2\DeployIISWebApp.ps1
 . $PSScriptRoot\..\..\..\..\..\Common\DeploymentSDK\Src\InvokeRemoteDeployment.ps1
+. $PSScriptRoot\..\..\..\..\Src\Tasks\IISWebAppDeploy\IISWebAppDeployV2\ps_modules\Sanitizer\ArgumentsSanitizer.ps1
 
 Register-Mock Import-Module { Write-Verbose "Dummy Import-Module" -Verbose }
 Register-Mock Get-Content { return "Dummy Script" }
