@@ -1,6 +1,4 @@
-﻿Import-Module $env:CURRENT_TASK_ROOTDIR\ps_modules\Sanitizer
-
-Write-Verbose "Entering script AppCmdOnTargetMachines.ps1"
+﻿Write-Verbose "Entering script AppCmdOnTargetMachines.ps1"
 $AppCmdRegKey = "HKLM:\SOFTWARE\Microsoft\InetStp"
 
 function Run-Command
@@ -276,29 +274,12 @@ function Run-AdditionalCommands
     $appCmdCommands = $additionalCommands.Trim('"').Split([System.Environment]::NewLine, [System.StringSplitOptions]::RemoveEmptyEntries)
     $appCmdPath, $iisVersion = Get-AppCmdLocation -regKeyPath $AppCmdRegKey
 
-    $useSanitizerCall = Get-SanitizerCallStatus
-    $useSanitizerActivate = Get-SanitizerActivateStatus
-
     foreach($appCmdCommand in $appCmdCommands)
     {
-        if ([string]::IsNullOrWhiteSpace($appCmdCommand.Trim(' ')))
-        {
-            continue;
-        }
-
-        if ($useSanitizerCall)
-        {
-            $sanitizedArguments = Protect-ScriptArguments -InputArgs $appCmdCommand -TaskName "IISWebAppMgmtV1"
-        }
-
-        if ($useSanitizerActivate)
-        {
-            Write-Verbose "Running additional command: & $appCmdPath $sanitizedArguments"
-            & $appCmdPath $sanitizedArguments
-        }
-        else
+        if(-not [string]::IsNullOrWhiteSpace($appCmdCommand.Trim(' ')))
         {
             $command = "`"$appCmdPath`" $appCmdCommand"
+
             Write-Verbose "Running additional command. $command"
             Run-Command -command $command
         }

@@ -29,7 +29,6 @@ if ([Console]::InputEncoding -is [Text.UTF8Encoding] -and [Console]::InputEncodi
 
 $env:CURRENT_TASK_ROOTDIR = Split-Path -Parent $MyInvocation.MyCommand.Path
 
-Import-Module $env:CURRENT_TASK_ROOTDIR\ps_modules\Sanitizer
 . $env:CURRENT_TASK_ROOTDIR\TelemetryHelper\TelemetryHelper.ps1
 . $env:CURRENT_TASK_ROOTDIR\DeployToSqlServer.ps1
 
@@ -37,19 +36,6 @@ if ($taskType -ne "dacpac")
 {
     $additionalArguments = $additionalArgumentsSql
     $targetMethod = "server"
-}
-
-$useSanitizerCall = Get-SanitizerCallStatus
-$useSanitizerActivate = Get-SanitizerActivateStatus
-
-if ($useSanitizerCall) 
-{
-    $sanitizedArguments = Protect-ScriptArguments -InputArgs $additionalArguments -TaskName "SqlDacpacDeployV1"
-}
-
-if ($useSanitizerActivate) 
-{
-    $additionalArguments = $sanitizedArguments
 }
 
 # Telemetry for SQL Dacpac deployment
