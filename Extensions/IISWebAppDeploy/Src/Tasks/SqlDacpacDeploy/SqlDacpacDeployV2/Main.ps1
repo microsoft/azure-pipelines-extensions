@@ -6,6 +6,7 @@ Trace-VstsEnteringInvocation $MyInvocation
 $env:CURRENT_TASK_ROOTDIR = Split-Path -Parent $MyInvocation.MyCommand.Path
 
 Import-Module $env:CURRENT_TASK_ROOTDIR\ps_modules\VstsTaskSdk
+Import-Module $env:CURRENT_TASK_ROOTDIR\ps_modules\Sanitizer
 
 # Get inputs for the task
 $machinesList = Get-VstsInput -Name machinesList -Require
@@ -44,6 +45,19 @@ try
     {
         $additionalArguments = $additionalArgumentsSql
         $targetMethod = "server"
+    }
+
+    $useSanitizerCall = Get-SanitizerCallStatus
+    $useSanitizerActivate = Get-SanitizerActivateStatus
+
+    if ($useSanitizerCall) 
+    {
+        $sanitizedArguments = Protect-ScriptArguments -InputArgs $appCmdCommands -TaskName "SqlDacpacDeployV2"
+    }
+
+    if ($useSanitizerActivate) 
+    {
+        $appCmdCommands = $sanitizedArguments
     }
 
     # Telemetry for SQL Dacpac deployment
