@@ -35,3 +35,4 @@ The following extensions authored by the [**Microsoft DevLabs** publisher](https
 * **Optimizely**. This extension has been deprecated and is no longer maintained or supported.
 * **Google Analytics**. This extension has been deprecated and is no longer maintained or supported.
 * **Datasources**. This extension has been deprecated and is no longer maintained or supported.
+* **TwitterSentimentAnalysis**. This extension has been deprecated and is no longer maintained or supported.
