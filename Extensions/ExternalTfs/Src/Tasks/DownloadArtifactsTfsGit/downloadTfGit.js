@@ -43,79 +43,83 @@ function executeWithRetries (operationName, operation, currentRetryCount) {
     return deferred.promise
 }
 
-var gitRepositoryPromise = getRepositoryDetails(tfsEndpoint, repositoryId, projectId);
-Q.resolve(gitRepositoryPromise).then( function (gitRepository) {
-    var gitw = new gitwm.GitWrapper();
-    gitw.on('stdout', function (data) {
-        console.log(data.toString());
-    });
-    gitw.on('stderr', function (data) {
-        console.log(data.toString());
-    });
-    var remoteUrl = gitRepository.remoteUrl;
-    tl.debug("Remote Url:" + remoteUrl);
-
-    // encodes projects and repo names with spaces
-    var gu = url.parse(remoteUrl);
-    if (tfsEndpoint.Username && tfsEndpoint.Password) {
-        gu.auth = tfsEndpoint.Username + ':' + tfsEndpoint.Password;
-    }
-
-    var giturl = gu.format(gu);
-    var isPullRequest = !!branch && (branch.toLowerCase().startsWith(PullRefsPrefix) || branch.toLowerCase().startsWith(PullRefsOriginPrefix));
-    tl.debug("IsPullRequest:" + isPullRequest);
-    // if branch, we want to clone remote branch name to avoid tracking etc.. ('/refs/remotes/...')
-    var ref;
-    var brPre = 'refs/heads/';
-    if (branch.startsWith(brPre)) {
-        ref = 'refs/remotes/origin/' + branch.substr(brPre.length, branch.length - brPre.length);
-    }
-    else{
-        ref = branch;
-    }
-
-    var gopt = {
-        creds: true,
-        debugOutput: this.debugOutput
-    };
-    gitw.username = this.username;
-    gitw.password = this.password;
-    Q(0).then(() => executeWithRetries('gitClone', function (code) {
-        return gitw.clone(giturl, true, downloadPath, gopt).then(function (result) {
-            if (isPullRequest) {
-                // clone doesn't pull the refs/pull namespace, so fetch it
-                shell.cd(downloadPath);
-                return gitw.fetch(['origin', branch], gopt);
-            }
-            else {
-                return Q(result);
-            }
+var gitClientPromise = getGitClientPromise(tfsEndpoint);
+Q.resolve(gitClientPromise).then(function (gitClient) {
+    var gitRepositoryPromise =  getRepositoryDetails(gitClient, repositoryId, projectId);
+    Q.resolve(gitRepositoryPromise).then( function (gitRepository) {
+        var gitw = new gitwm.GitWrapper();
+        gitw.on('stdout', function (data) {
+            console.log(data.toString());
         });
-    }, VSTS_HTTP_RETRY)).then(function (code) {
-        shell.cd(downloadPath);
-        if (isPullRequest) {
-            ref = commitId;
+        gitw.on('stderr', function (data) {
+            console.log(data.toString());
+        });
+        var remoteUrl = gitRepository.remoteUrl;
+        tl.debug("Remote Url:" + remoteUrl);
+
+        // encodes projects and repo names with spaces
+        var gu = url.parse(remoteUrl);
+        if (tfsEndpoint.Username && tfsEndpoint.Password) {
+            gu.auth = tfsEndpoint.Username + ':' + tfsEndpoint.Password;
         }
-        return gitw.checkout(ref, gopt);
-    }).then(function (code) {
-        if(!isPullRequest){
-            return gitw.checkout(commitId);
+
+        var giturl = gu.format(gu);
+        var isPullRequest = !!branch && (branch.toLowerCase().startsWith(PullRefsPrefix) || branch.toLowerCase().startsWith(PullRefsOriginPrefix));
+        tl.debug("IsPullRequest:" + isPullRequest);
+        // if branch, we want to clone remote branch name to avoid tracking etc.. ('/refs/remotes/...')
+        var ref;
+        var brPre = 'refs/heads/';
+        if (branch.startsWith(brPre)) {
+            ref = 'refs/remotes/origin/' + branch.substr(brPre.length, branch.length - brPre.length);
         }
-    }).fail(function (error) {
-        tl.error(error);
-        tl.setResult(tl.TaskResult.Failed, error);
-        tl.exit(1);
+        else{
+            ref = branch;
+        }
+
+        var gopt = {
+            creds: true,
+            debugOutput: this.debugOutput
+        };
+        gitw.username = this.username;
+        gitw.password = this.password;
+        Q(0).then(() => executeWithRetries('gitClone', function (code) {
+            return gitw.clone(giturl, true, downloadPath, gopt).then(function (result) {
+                if (isPullRequest) {
+                    // clone doesn't pull the refs/pull namespace, so fetch it
+                    shell.cd(downloadPath);
+                    return gitw.fetch(['origin', branch], gopt);
+                }
+                else {
+                    return Q(result);
+                }
+            });
+        }, VSTS_HTTP_RETRY)).then(function (code) {
+            shell.cd(downloadPath);
+            if (isPullRequest) {
+                ref = commitId;
+            }
+            return gitw.checkout(ref, gopt);
+        }).then(function (code) {
+            if(!isPullRequest){
+                return gitw.checkout(commitId);
+            }
+        }).fail(function (error) {
+            tl.error(error);
+            tl.setResult(tl.TaskResult.Failed, error);
+            tl.exit(1);
+        });
     });
 });
 
-function getRepositoryDetails(tfsEndpoint, repositoryId, projectId){
+function getGitClientPromise(tfsEndpoint) {
     var handler = webApim.getBasicHandler(tfsEndpoint.Username, tfsEndpoint.Password);
     var webApi = new webApim.WebApi(tfsEndpoint.Url, handler);
-    var gitClientPromise = webApi.getGitApi();
-    Q.resolve(gitClientPromise).then( function (gitClient) {
-        var promise = gitClient.getRepository(repositoryId, projectId);
-        return promise;
-    });
+    return webApi.getGitApi();
+}
+
+function getRepositoryDetails(gitClient, repositoryId, projectId){
+    var promise = gitClient.getRepository(repositoryId, projectId);
+     return promise;
 }
 
 function getEndpointDetails(inputFieldName) {
