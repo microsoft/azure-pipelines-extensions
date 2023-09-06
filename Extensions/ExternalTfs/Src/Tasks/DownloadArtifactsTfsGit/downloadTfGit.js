@@ -19,34 +19,34 @@ var VSTS_HTTP_RETRY = 4;
 
 shell.rm('-rf', downloadPath);
 var error = shell.error();
-if(error){
+if (error) {
     tl.error(error);
     tl.exit(1);
 }
 
-function executeWithRetries (operationName, operation, currentRetryCount) {
-    var deferred = Q.defer()   
+function executeWithRetries(operationName, operation, currentRetryCount) {
+    var deferred = Q.defer()
     operation().then((result) => {
-      deferred.resolve(result)
+        deferred.resolve(result)
     }).fail((error) => {
-      if (currentRetryCount <= 0) {
-        tl.error('OperationFailed: ' + operationName)
-        tl.setResult(tl.TaskResult.Failed, error);
-        deferred.reject(error)
-      }else {
-        console.log('RetryingOperation', operationName, currentRetryCount)
-        currentRetryCount = currentRetryCount - 1
-        setTimeout(() => executeWithRetries(operationName, operation, currentRetryCount), 4 * 1000)
-      }
+        if (currentRetryCount <= 0) {
+            tl.error('OperationFailed: ' + operationName)
+            tl.setResult(tl.TaskResult.Failed, error);
+            deferred.reject(error)
+        } else {
+            console.log('RetryingOperation', operationName, currentRetryCount)
+            currentRetryCount = currentRetryCount - 1
+            setTimeout(() => executeWithRetries(operationName, operation, currentRetryCount), 4 * 1000)
+        }
     })
-  
+
     return deferred.promise
 }
 
 var gitClientPromise = getGitClientPromise(tfsEndpoint);
 Q.resolve(gitClientPromise).then(function (gitClient) {
-    var gitRepositoryPromise =  getRepositoryDetails(gitClient, repositoryId, projectId);
-    Q.resolve(gitRepositoryPromise).then( function (gitRepository) {
+    var gitRepositoryPromise = getRepositoryDetails(gitClient, repositoryId, projectId);
+    Q.resolve(gitRepositoryPromise).then(function (gitRepository) {
         var gitw = new gitwm.GitWrapper();
         gitw.on('stdout', function (data) {
             console.log(data.toString());
@@ -72,7 +72,7 @@ Q.resolve(gitClientPromise).then(function (gitClient) {
         if (branch.startsWith(brPre)) {
             ref = 'refs/remotes/origin/' + branch.substr(brPre.length, branch.length - brPre.length);
         }
-        else{
+        else {
             ref = branch;
         }
 
@@ -100,7 +100,7 @@ Q.resolve(gitClientPromise).then(function (gitClient) {
             }
             return gitw.checkout(ref, gopt);
         }).then(function (code) {
-            if(!isPullRequest){
+            if (!isPullRequest) {
                 return gitw.checkout(commitId);
             }
         }).fail(function (error) {
@@ -117,9 +117,9 @@ function getGitClientPromise(tfsEndpoint) {
     return webApi.getGitApi();
 }
 
-function getRepositoryDetails(gitClient, repositoryId, projectId){
+function getRepositoryDetails(gitClient, repositoryId, projectId) {
     var promise = gitClient.getRepository(repositoryId, projectId);
-     return promise;
+    return promise;
 }
 
 function getEndpointDetails(inputFieldName) {
@@ -143,7 +143,7 @@ function getEndpointDetails(inputFieldName) {
 
     var hostUsername = ".";
     var hostPassword = "";
-    if(auth.scheme == "Token") {
+    if (auth.scheme == "Token") {
         hostPassword = getAuthParameter(auth, 'apitoken');
     }
     else {
