@@ -2,6 +2,7 @@ import tl = require("azure-pipelines-task-lib/task");
 import Q = require("q");
 import util = require("util");
 import querystring = require('querystring');
+import * as SftpClient from 'ssh2-sftp-client';
 
 var uuid = require('uuid/v4');
 var httpClient = require('vso-node-api/HttpClient');
@@ -9,7 +10,6 @@ var httpObj = new httpClient.HttpCallbackClient(tl.getVariable("AZURE_HTTP_USER_
 
 var os = require('os');
 var Ssh2Client = require('ssh2').Client;
-var Scp2Client = require('scp2');
 var shell = require('shelljs');
 
 var _outStream = process.stdout;
@@ -22,22 +22,34 @@ export class RemoteCommandOptions {
 }
 
 /**
-    * Uses scp2 to copy a file to remote machine
-    * @param scriptFile
-    * @param scpConfig
+    * Uses sftp to copy a file to remote machine
+    * @param src
+    * @param dest
+    * @param sftpConfig
     * @returns {Promise<string>|Promise<T>}
     */
-export function copyFileToRemoteMachine(scriptFile: string, scpConfig: any): Q.Promise<string> {
+export async function copyFileToRemoteMachine(src: string, dest: string, sftpConfig: SftpClient.ConnectOptions): Promise<string> {
     var defer = Q.defer<string>();
 
-    Scp2Client.scp(scriptFile, scpConfig, (err) => {
-        if (err) {
-            defer.reject(tl.loc('RemoteCopyFailed', err));
-        } else {
-            tl.debug('Copied file to remote machine at: ' + scpConfig.path);
-            defer.resolve(scpConfig.path);
-        }
-    });
+    const sftpClient = new SftpClient();
+
+    try {
+        await sftpClient.connect(sftpConfig);
+        await sftpClient.put(src, dest);
+        tl.debug('Copied script file to remote machine at: ${dest}');
+        defer.resolve('0');
+    } catch (err) {
+        defer.reject(tl.loc('RemoteCopyFailed', err));
+    }
+
+    try {
+        sftpClient.on('error', (err) => {
+            tl.debug(`sftpClient: Ignoring error diconnecting: ${err}`);
+        }); // ignore logout errors - since there could be spontaneous ECONNRESET errors after logout; see: https://github.com/mscdex/node-imap/issues/695
+        await sftpClient.end();
+    } catch(err) {
+        tl.debug('Failed to close SFTP client: ${err}');
+    }
 
     return defer.promise;
 }
