@@ -6,11 +6,11 @@
   "author": "Microsoft",
   "license": "ISC",
   "dependencies": {
-    "@types/node": "^16.11.0",
+    "@types/ssh2-sftp-client": "5.2.0",
     "azure-pipelines-task-lib": "^4.2.0",
-    "scp2-2022": "^0.9.1",
+    "ssh2-sftp-client": "^8.1.0",
     "shelljs": "^0.8.5",
-    "ssh2": "^1.11.0",
+    "ssh2": "1.4.0",
     "uuid": "^3.3.2",
     "vso-node-api": "6.0.1-preview"
   },
