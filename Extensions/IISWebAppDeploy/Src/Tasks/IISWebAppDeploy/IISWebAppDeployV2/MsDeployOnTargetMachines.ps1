@@ -140,6 +140,11 @@ function Get-MsDeployCmdArgs
         $msDeployCmdArgs = [string]::Format('{0} -skip:Directory="\\App_Data"', $msDeployCmdArgs)
     }
 
+    if(-not [string]::IsNullOrWhiteSpace($additionalArguments))
+    {
+        $msDeployCmdArgs = [string]::Format('{0} {1}', $msDeployCmdArgs, $additionalArguments)
+    }
+
     $msDeployCmdArgs = [string]::Format('{0} -retryAttempts:3 -retryInterval:3000', $msDeployCmdArgs)
     Write-Verbose "MsDeploy command line arguments: $msDeployCmdArgs"
     return $msDeployCmdArgs
