@@ -1,9 +1,9 @@
 name: Publish IIS Web App Deployment Using WinRM
 
 on:
-  release:
-    types:
-      - published
+  push:
+    tags:
+      - 'iiswebapp-*'
 
 env:
   node-version: 10
