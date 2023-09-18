@@ -81,4 +81,4 @@ jobs:
         --service-url https://marketplace.visualstudio.com \
         --no-prompt \
         --auth-type pat \
-        --token ${{ secrets.AZURE_DEVOPS_EXTENSIONS_PAT }}
+        --token ${{ secrets.AZURE_DEVOPS_MARKETPLACE_PAT }}
