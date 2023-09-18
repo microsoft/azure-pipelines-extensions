@@ -7,7 +7,7 @@ on:
 
 env:
   node-version: 10
-  extension-name: ms-vscs-rm.iiswebapp-${{ github.event.release.tag_name }}.vsix # Tag name is the extension version.
+  extension-name: ms-vscs-rm.iiswebapp-${{ github.ref_name }}.vsix # Tag name is the extension version.
 
 jobs:
 
@@ -39,11 +39,17 @@ jobs:
 
     - name: Package with Gulp
       run: gulp package
+    
+    - name: Get asset upload URL
+      id: get_release
+      uses: bruceadams/get-release@v1.3.2
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
 
     - name: Upload Extension as Release Asset
       uses: shogo82148/actions-upload-release-asset@v1
       with:
-        upload_url: ${{ github.event.release.upload_url }}
+        upload_url: ${{ steps.get_release.outputs.upload_url }}
         asset_path: _package/IISWebAppDeploy/${{ env.extension-name }}
         asset_name: ${{ env.extension-name }}
         asset_content_type: application/octet-stream
@@ -82,3 +88,5 @@ jobs:
         --no-prompt \
         --auth-type pat \
         --token ${{ secrets.AZURE_DEVOPS_MARKETPLACE_PAT }}
+
+
