@@ -2,7 +2,7 @@
   "manifestVersion": 1,
   "extensionId": "iiswebapptest",
   "name": "IIS Web App Deployment Using WinRM test",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "publisher": "v-schhabra",
   "description": "Using WinRM connect to the host Computer, to deploy a Web project using Web Deploy or a SQL DB using sqlpackage.exe.",
   "public": true,
@@ -11,7 +11,7 @@
     "large": "images/IIS_Web_App_Large.png"
   },
   "categories": [
-    "Build and release"
+    "Azure Pipelines"
   ],
   "tags": [ ],
   "links": {
