@@ -3,7 +3,7 @@ name: Publish IIS Web App Deployment Using WinRM
 on:
   push:
     tags:
-      - 'iiswebapp-*'
+      - 'iiswebapptest-*'
 
 env:
   node-version: 10
