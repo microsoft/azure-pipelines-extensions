@@ -150,6 +150,35 @@ function Enable-SNI
     Invoke-VstsTool -Filename $appCmdPath -Arguments $appCmdArgs -RequireExitCodeZero
 }
 
+function ShowCertBinding
+{
+    param(
+        [string]$bindingType,
+        [string]$bindingValue,
+        [string]$port
+    )
+
+    $showCertCmd = "http show sslcert {0}={1}:{2}" -f $bindingType, $bindingValue, $port
+    Write-Verbose "Checking if SslCert binding is already present. Running command : netsh $showCertCmd"
+
+    $netshResult = Invoke-VstsTool -Filename "netsh" -Arguments $showCertCmd
+    $matchingBinding = $netshResult | Where-Object { $_.TrimStart().StartsWith("{0} :" -f $bindingType) -and $_.EndsWith(": {0}:{1}" -f $bindingValue, $port)}
+    return $matchingBinding, $netshResult
+}
+
+function AddCertBinding
+{
+    param(
+        [string]$bindingType,
+        [string]$bindingValue,
+        [string]$port,
+        [string]$certhash
+    )
+
+    $addCertCmd = "http add sslcert {0}={1}:{2} certhash={3} appid={{{4}}} certstorename=MY" -f $bindingType, $bindingValue, $port, $certhash, [System.Guid]::NewGuid().toString()
+    Invoke-VstsTool -Filename "netsh" -Arguments $addCertCmd -RequireExitCodeZero
+}
+
 function Add-SslCert
 {
     param(
@@ -172,42 +201,26 @@ function Add-SslCert
         $ipAddress = "0.0.0.0"
     }
 
-    $result = $null
-    $isItSameBinding = $false
-    $addCertCmd = [string]::Empty
+    $isSniEnabled = $sni -eq "true" -and $iisVersion -ge 8 -and -not [string]::IsNullOrWhiteSpace($hostname)
+    $bindingType = if ($isSniEnabled) { "hostnameport" } else { "ipport" }
+    $bindingValue = if ($isSniEnabled) { $hostname } else { $ipAddress }
 
-    #SNI is supported IIS 8 and above. To enable SNI hostnameport option should be used
-    if($sni -eq "true" -and $iisVersion -ge 8 -and -not [string]::IsNullOrWhiteSpace($hostname))
+    $matchingBinding, $netshResult = ShowCertBinding -bindingType $bindingType -bindingValue $bindingValue -port $port
+
+    if($matchingBinding) # A certificate with the same binding is found
     {
-        $showCertCmd = [string]::Format("http show sslcert hostnameport={0}:{1}", $hostname, $port)
-        Write-Verbose "Checking if SslCert binding is already present. Running command : netsh $showCertCmd"
+        $matchingBindingIndex = $netshResult.IndexOf($matchingBinding)
+        $isItSameCert = $netshResult[$matchingBindingIndex + 1].ToLower().Contains($certhash.ToLower()) # The certificate hash is on the next line
 
-        $result = Invoke-VstsTool -Filename "netsh" -Arguments $showCertCmd
-        $isItSameBinding = $result.Get(4).Contains([string]::Format("{0}:{1}", $hostname, $port))
-
-        $addCertCmd = [string]::Format("http add sslcert hostnameport={0}:{1} certhash={2} appid={{{3}}} certstorename=MY", $hostname, $port, $certhash, [System.Guid]::NewGuid().toString())
-    }
-    else
-    {
-        $showCertCmd = [string]::Format("http show sslcert ipport={0}:{1}", $ipAddress, $port)
-        Write-Verbose "Checking if SslCert binding is already present. Running command : netsh $showCertCmd"
-
-        $result = Invoke-VstsTool -Filename "netsh" -Arguments $showCertCmd
-        $isItSameBinding = $result.Get(4).Contains([string]::Format("{0}:{1}", $ipAddress, $port))
-        
-        $addCertCmd = [string]::Format("http add sslcert ipport={0}:{1} certhash={2} appid={{{3}}} certstorename=MY", $ipAddress, $port, $certhash, [System.Guid]::NewGuid().toString())
-    }
-
-    $isItSameCert = $result.Get(5).ToLower().Contains($certhash.ToLower())
-
-    if($isItSameBinding -and $isItSameCert)
-    {
-        Write-Verbose "SSL cert binding is already present. Returning"
-        return
+        if($isItSameCert)
+        {
+            Write-Verbose "SSL cert binding is already present. Returning"
+            return
+        }
     }
 
     Write-Verbose "Setting SslCert for website."
-    Invoke-VstsTool -Filename "netsh" -Arguments $addCertCmd -RequireExitCodeZero
+    AddCertBinding -bindingType $bindingType -bindingValue $bindingValue -port $port -certhash $certhash
 }
 
 function Add-Website
