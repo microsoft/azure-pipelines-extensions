@@ -24,7 +24,8 @@ export interface IRequestOptions {
     allowRedirects?: boolean, 
     maxRedirects?: number,
     maxSockets?: number,
-    keepAlive?: boolean
+    keepAlive?: boolean,
+    requestCompressionForDownloads?: boolean
 }
 
 export interface IProxyConfiguration {
