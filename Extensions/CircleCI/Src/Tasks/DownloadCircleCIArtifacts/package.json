@@ -3,9 +3,9 @@
   "main": "download.js",
   "license": "MIT",
   "dependencies": {
-    "azure-pipelines-task-lib": "^4.4.0",
-    "artifact-engine": "^1.2.0",
     "@types/node": "^6.0.101",
+    "artifact-engine": "^1.4.0",
+    "azure-pipelines-task-lib": "^4.4.0",
     "underscore": "1.13.4"
   }
 }
