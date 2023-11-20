@@ -73,7 +73,7 @@ export class WebProvider implements IArtifactProvider {
                 res.message.on('error', (error) => {
                     if (zipStream) {
                         zipStream.destroy(error);
-                        Logger.logMessage(error);
+                        Logger.logMessage(error.toString());
                     }
                     reject(error);
                 });
