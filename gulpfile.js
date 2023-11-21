@@ -53,9 +53,10 @@ var options = minimist(process.argv.slice(2), mopts);
 // Paths
 //
 
-var _buildRoot = "_build";
+var _buildRoot = path.join(__dirname, "_build");
 var _packageRoot = "_package";
-var _extnBuildRoot = "_build/Extensions/";
+var _extnBuildRoot = path.join(_buildRoot, "Extensions");
+var artifactEnginePath = path.join(_extnBuildRoot, "ArtifactEngine");
 var _taskModuleBuildRoot = "_build/TaskModules/";
 var sourcePaths = "@(definitions|Extensions)/**/*";
 var ExtensionFolder = "Extensions";
@@ -73,7 +74,7 @@ var cultures = ['en-US', 'de-DE', 'es-ES', 'fr-FR', 'it-IT', 'ja-JP', 'ko-KR', '
 // Build Tasks
 //-----------------------------------------------------------------------------------------------------------------
 
-function errorHandler(err) {
+function errorHandler(error) {
     process.exit(1);
 }
 
@@ -265,23 +266,42 @@ gulp.task("compileNode", gulp.series("compilePS", function(cb){
         return fs.statSync(path.join(_extnBuildRoot, file)).isDirectory() && file != "Common";
     }).forEach(copyCommonModules);
 
-
-    var artifactEnginePath = path.join(__dirname, '_build/Extensions/ArtifactEngine');
     runNpmInstall(artifactEnginePath);
 
     // Compile tasks
     var proj = gts.createProject(rootTsconfigPath, { typescript: typescript, declaration: true });
-    var taskFiles = path.join(__dirname, '_build/Extensions/**/Tasks/**/*.ts');
-    var artifactEngineFiles = path.join(__dirname, '_build/Extensions/**/ArtifactEngine/**/*.ts');
-    gulp.src(['definitions/*.d.ts', taskFiles, artifactEngineFiles, '!**/node_modules/**', '!**/Extensions/ArtifactEngine/definitions/**'])
+    var taskFiles = path.join(_extnBuildRoot, "**", "Tasks", "**", "*.ts");
+    var artifactEngineFiles = path.join(_extnBuildRoot, "**", "ArtifactEngine", "**", "*.ts");
+
+    gulp.src(["definitions/*.d.ts", taskFiles, artifactEngineFiles, "!**/node_modules/**", "!**/Extensions/ArtifactEngine/definitions/**"])
         .pipe(proj())
-        .pipe(gulp.dest(path.join(_buildRoot, 'Extensions')))
-        .on('error', errorHandler);
+        .pipe(gulp.dest(path.join(_buildRoot, "Extensions")))
+        .on("error", errorHandler);
+
+    validateArtifactEngineTranspileErrors();
 
     // Generate loc files
     createResjson(cb);
     cb();
 }));
+
+var validateArtifactEngineTranspileErrors = () => {
+    const tsProject = gts.createProject(path.join(artifactEnginePath, "tsconfig.json"), {
+        typescript: require(path.join(artifactEnginePath, "node_modules", "typescript")),
+        types: ["mocha", "node"],
+        noEmit: true
+    });
+
+    gulp.src([
+        path.join(artifactEnginePath, "**", "*.ts"),
+        `!${path.join(artifactEnginePath, "node_modules", "**")}`
+    ])
+        .pipe(tsProject())
+        .on("error", (error) => {
+            console.error(`Error "${error.message}" occurs in a file ${error.fullFilename}`);
+            errorHandler();
+        });
+}
 
 var copyGroup = function (group, sourceRoot, destRoot) {
     // example structure to copy a single file:
