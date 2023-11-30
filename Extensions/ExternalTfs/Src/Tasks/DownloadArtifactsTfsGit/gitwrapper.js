@@ -63,7 +63,7 @@ var GitWrapper = (function (_super) {
         if (!gitPath) {
             throw (new Error('git not found.  ensure installed and in the path'));
         }
-        var git = new tl.ToolRunner(gitPath);
+        var git = new tl.ToolRunner(gitPath.toString());
         git.silent = true;
         var creds = this.username + ':' + this.password;
         var escapedCreds = encodeURIComponent(this.username) + ':' + encodeURIComponent(this.password);
