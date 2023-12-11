@@ -9,6 +9,3 @@
 **Checklist**:
 - [ ] Version was bumped - please check that version of the extension, task or library has been bumped.
 - [ ] Checked that applied changes work as expected.
-
-> [!NOTE]
-> For reviewers: please add apropriate labels to this pull request.
