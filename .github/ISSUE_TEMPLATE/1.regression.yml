@@ -1,5 +1,5 @@
 name: 😱 Regression
-description: This used to work, but a change in the service/tasks broke it. (Please make sure you know the last known working version)
+description: This used to work, but a change in the service/task/Extension broke it. (Please make sure you know the last known working version)
 title: "[REGRESSION]: "
 labels: ["regression", "bug"]
 body:
@@ -11,7 +11,7 @@ body:
       description: |
         Please make sure you've completed the following tasks before submitting your issue. Thanks!
       options:
-        - label: I searched for [existing GitHub issues](https://github.com/microsoft/azure-pipelines-tasks/issues)
+        - label: I searched for [existing GitHub issues](https://github.com/microsoft/azure-pipelines-extensions/issues)
         - label: I read [pipeline troubleshooting guide](https://docs.microsoft.com/vsts/build-release/actions/troubleshooting)
         - label: I checked [how to collect logs](https://learn.microsoft.com/azure/devops/pipelines/troubleshooting/review-logs?view=azure-devops)
 
@@ -25,13 +25,13 @@ body:
     id: breaking-task-version
     attributes:
       label: Breaking Extension version
-      placeholder: E.g. 15.230.0
+      placeholder: E.g. 15.231.0
 
   - type: input
     id: working-task-version
     attributes:
       label: Last working version
-      placeholder: E.g. 15.231.0
+      placeholder: E.g. 15.230.0
 
   - type: textarea
     id: what-happened
