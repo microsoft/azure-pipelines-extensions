@@ -1,5 +1,5 @@
 name: 😱 Regression
-description: This used to work, but a change in the service/task/Extension broke it. (Please make sure you know the last known working version)
+description: This used to work, but a change in the service/task/extension broke it. (Please make sure you know the last known working version)
 title: "[REGRESSION]: "
 labels: ["regression", "bug"]
 body:
