@@ -3,11 +3,11 @@ name: Publish IIS Web App Deployment Using WinRM
 on:
   push:
     tags:
-      - 'iiswebapp-*'
+      - 'iiswebapptest-*'
 
 env:
   node-version: 10
-  extension-name: ms-vscs-rm.${{ github.ref_name }}.vsix # ref_name is the tag, specified in the release.
+  extension-name: v-schhabra.${{ github.ref_name }}.vsix # ref_name is the tag, specified in the release.
 
 jobs:
 

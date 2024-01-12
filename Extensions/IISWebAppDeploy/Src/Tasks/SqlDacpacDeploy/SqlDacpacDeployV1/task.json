@@ -1,5 +1,5 @@
 {
-  "id": "063c7649-4934-49e8-9eac-37121fe7e350",
+  "id": "2daee74e-8f20-42c1-b63f-940d75a6587e",
   "name": "SqlDacpacDeploy",
   "friendlyName": "WinRM - SQL Server DB Deployment",
   "description": "Using WinRM connect to host, and deploy database using sqlpackage.exe or Invoke-Sqlcmd",
