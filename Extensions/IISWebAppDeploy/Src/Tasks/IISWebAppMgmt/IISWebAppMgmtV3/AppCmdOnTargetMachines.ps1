@@ -219,7 +219,7 @@ function ShowCertBinding
     $showCertCmd = "netsh http show sslcert {0}={1}:{2}" -f $bindingType, $bindingValue, $port
     Write-Verbose "Checking if SslCert binding is already present. Running command : netsh $showCertCmd"
 
-    $netshResult = Run-Command -command $showCertCmd
+    $netshResult = Run-Command -command $showCertCmd -failOnErr $false
     return $netshResult
 }
 
@@ -233,7 +233,7 @@ function AddCertBinding
     )
 
     $addCertCmd = "netsh http add sslcert {0}={1}:{2} certhash={3} appid={{{4}}} certstorename=MY" -f $bindingType, $bindingValue, $port, $certhash, [System.Guid]::NewGuid().toString()
-    Run-Command -command $addCertCmd
+    Run-Command -command $addCertCmd 
 }
 
 function Add-SslCert
