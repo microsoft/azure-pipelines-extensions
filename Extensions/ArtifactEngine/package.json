@@ -55,6 +55,7 @@
     "Strings/**"
   ],
   "scripts": {
-    "test": "nyc ./node_modules/mocha/bin/_mocha --reporter mocha-tap-reporter **/*Tests.js"
+    "test": "nyc ./node_modules/mocha/bin/_mocha --reporter mocha-tap-reporter **/*Tests.js",
+    "build": "tsc"
   }
 }
