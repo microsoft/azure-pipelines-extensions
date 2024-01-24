@@ -16,7 +16,7 @@
     "email": "omeshp@microsoft.com"
   },
   "dependencies": {
-    "azure-pipelines-task-lib": "^3.4.0",
+    "azure-pipelines-task-lib": "^4.8.2",
     "handlebars": "4.7.7",
     "minimatch": "^3.0.5",
     "tunnel": "0.0.4"
