@@ -1,6 +1,6 @@
 {
   "name": "artifact-engine",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "description": "Artifact Engine to download artifacts from jenkins, teamcity, vsts",
   "repository": {
     "type": "git",
@@ -16,7 +16,7 @@
     "email": "omeshp@microsoft.com"
   },
   "dependencies": {
-    "azure-pipelines-task-lib": "^3.4.0",
+    "azure-pipelines-task-lib": "^4.8.2",
     "handlebars": "4.7.7",
     "minimatch": "^3.0.5",
     "tunnel": "0.0.4"
@@ -55,6 +55,7 @@
     "Strings/**"
   ],
   "scripts": {
-    "test": "nyc ./node_modules/mocha/bin/_mocha --reporter mocha-tap-reporter **/*Tests.js"
+    "test": "nyc ./node_modules/mocha/bin/_mocha --reporter mocha-tap-reporter **/*Tests.js",
+    "build": "tsc"
   }
 }
