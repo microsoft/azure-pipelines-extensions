@@ -1,77 +1,84 @@
-pool:
-  name: Azure Pipelines
-  vmImage: windows-latest
-
-
-steps:
-- powershell: |
-   function IsExempted
-   {
-       param(
-           [string] $fileName
-       )
-   
-       $exceptions = @("*.gif", "*.svg", "*.png", "*.dll", 
-   "*\extensions\artifactengine\providers\typed-rest-client\httpclient.ts", "*\extensions\artifactengine\providers\typed-rest-client\util.ts",
-   "*\extensions\bitbucket\src\tasks\downloadartifactsbitbucket\downloadbitbucket.js",
-   "*\extensions\externaltfs\src\tasks\downloadartifactstfsgit\downloadtfgit.js")
-       @($exceptions | ? { $fileName -ilike $_ }).Count -gt 0
-   }
-   
-   Write-Host "Ensure there are no dev.azure.com and url.parse strings in the code."
-   @("$(Build.Repository.LocalPath)\Extensions", "$(Build.Repository.LocalPath)\ServerTaskHelper", "$(Build.Repository.LocalPath)\TaskModules") | % { 
-       dir $_ -rec | % {
-           if ($_.Attributes -eq "Directory") {
-               return
-           }
-   
-           $lowerCaseFullPath = $_.FullName.ToLower()
-           if(IsExempted $lowerCaseFullPath)
-           {
-               return
-           }
-           Write-Host $lowerCaseFullPath
-   
-           $text = Get-Content $lowerCaseFullPath | Out-String
-           $match = ($text | Select-String -Pattern "\s*dev\.azure\.com*").Matches
-           if($match.Count -gt 0)
-           {
-               Write-Error "Found dev.azure.com in $lowerCaseFullPath. You should not be hard coding dev.azure.com in the code."
-           }
-   
-           $match = ($text | Select-String -Pattern "\s*url\.parse*").Matches
-           if($match.Count -gt 0)
-           {
-               Write-Error "Found url.parse in $lowerCaseFullPath. You should not be using url.parse in the code."
-           }
-       }
-   }
-  errorActionPreference: continue
-  failOnStderr: true
-  displayName: 'Code Checks'
-
-- task: NodeTool@0
-  displayName: 'Use Node 10.24.1'
-  inputs:
-    versionSpec: 10.24.1
-
-- powershell: 'node getUpdatedPaths.js'
-  displayName: 'PowerShell Script'
-
-- task: Npm@1
-  displayName: 'npm install'
-  inputs:
-    verbose: false
-
-- task: gulp@0
-  displayName: 'gulp build'
-  inputs:
-    targets: build
-
-- task: gulp@0
-  displayName: 'gulp test'
-  inputs:
-    targets: test
-    arguments: '--suite=ArtifactEngine'
-  condition: or(contains(variables['UPDATEDAREAPATHS'], 'ArtifactEngine'),contains(variables['UPDATEDAREAPATHS'], 'package.json'))
-
+# This Yaml Document has been converted by ESAI Yaml Pipeline Conversion Tool.
+# Please make sure to check all the converted content, it is your team's responsibility to make sure that the pipeline is still valid and functions as expected.
+# This pipeline will be extended to the OneESPT template
+# If you are not using the E+D shared hosted pool with windows-2022, replace the pool section with your hosted pool, os, and image name. If you are using a Linux image, you must specify an additional windows image for SDL: https://eng.ms/docs/cloud-ai-platform/devdiv/one-engineering-system-1es/1es-docs/1es-pipeline-templates/features/sdlanalysis/overview#how-to-specify-a-windows-pool-for-the-sdl-source-analysis-stage
+resources:
+  repositories:
+  - repository: 1ESPipelineTemplates
+    type: git
+    name: 1ESPipelineTemplates/1ESPipelineTemplates
+    ref: refs/tags/release
+extends:
+  template: v1/1ES.Official.PipelineTemplate.yml@1ESPipelineTemplates
+  parameters:
+    pool:
+      name: Azure-Pipelines-1ESPT-ExDShared
+      image: windows-2022
+      os: windows
+    customBuildTags:
+    - ES365AIMigrationTooling
+    stages:
+    - stage: stage
+      jobs:
+      - job: job
+        steps:
+        - powershell: |
+            function IsExempted
+            {
+                param(
+                    [string] $fileName
+                )
+                $exceptions = @("*.gif", "*.svg", "*.png", "*.dll", 
+            "*\extensions\artifactengine\providers\typed-rest-client\httpclient.ts", "*\extensions\artifactengine\providers\typed-rest-client\util.ts",
+            "*\extensions\bitbucket\src\tasks\downloadartifactsbitbucket\downloadbitbucket.js",
+            "*\extensions\externaltfs\src\tasks\downloadartifactstfsgit\downloadtfgit.js")
+                @($exceptions | ? { $fileName -ilike $_ }).Count -gt 0
+            }
+            Write-Host "Ensure there are no dev.azure.com and url.parse strings in the code."
+            @("$(Build.Repository.LocalPath)\Extensions", "$(Build.Repository.LocalPath)\ServerTaskHelper", "$(Build.Repository.LocalPath)\TaskModules") | % { 
+                dir $_ -rec | % {
+                    if ($_.Attributes -eq "Directory") {
+                        return
+                    }
+                    $lowerCaseFullPath = $_.FullName.ToLower()
+                    if(IsExempted $lowerCaseFullPath)
+                    {
+                        return
+                    }
+                    Write-Host $lowerCaseFullPath
+                    $text = Get-Content $lowerCaseFullPath | Out-String
+                    $match = ($text | Select-String -Pattern "\s*dev\.azure\.com*").Matches
+                    if($match.Count -gt 0)
+                    {
+                        Write-Error "Found dev.azure.com in $lowerCaseFullPath. You should not be hard coding dev.azure.com in the code."
+                    }
+                    $match = ($text | Select-String -Pattern "\s*url\.parse*").Matches
+                    if($match.Count -gt 0)
+                    {
+                        Write-Error "Found url.parse in $lowerCaseFullPath. You should not be using url.parse in the code."
+                    }
+                }
+            }
+          errorActionPreference: continue
+          failOnStderr: true
+          displayName: 'Code Checks'
+        - task: NodeTool@0
+          displayName: 'Use Node 10.24.1'
+          inputs:
+            versionSpec: 10.24.1
+        - powershell: 'node getUpdatedPaths.js'
+          displayName: 'PowerShell Script'
+        - task: Npm@1
+          displayName: 'npm install'
+          inputs:
+            verbose: false
+        - task: gulp@0
+          displayName: 'gulp build'
+          inputs:
+            targets: build
+        - task: gulp@0
+          displayName: 'gulp test'
+          inputs:
+            targets: test
+            arguments: '--suite=ArtifactEngine'
+          condition: or(contains(variables['UPDATEDAREAPATHS'], 'ArtifactEngine'),contains(variables['UPDATEDAREAPATHS'], 'package.json'))
