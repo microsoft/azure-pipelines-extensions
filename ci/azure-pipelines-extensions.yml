@@ -13,7 +13,7 @@ extends:
   parameters:
     pool:
       name: 1ES-Shared-Hosted-Pool_Windows-Server-2022
-      image: windows-2022
+      image: windows-latest
       os: windows
     customBuildTags:
     - ES365AIMigrationTooling
