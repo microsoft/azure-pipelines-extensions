@@ -1,9 +1,5 @@
 # This Yaml Document has been converted by ESAI Yaml Pipeline Conversion Tool.
 # This pipeline will be extended to the OneESPT template
-# Variable to skip Guardian since it fails due security checks in the test and some ps script. Will be fixed in next WIs
-variables:
-  - name: OneES_SkipSDLSourcesAnalysis
-    value: true
 
 resources:
   repositories:
@@ -14,6 +10,12 @@ resources:
 extends:
   template: v1/1ES.Official.PipelineTemplate.yml@1ESPipelineTemplates
   parameters:
+    featureFlags:
+        autoBaseline: false
+    sdl:
+      baseline:
+        baselineSet: default
+        baselineFile: $(Build.SourcesDirectory)/.gdn/.gdnbaselines
     pool:
       name: 1ES-Shared-Hosted-Pool_Windows-Server-2022
       os: windows
