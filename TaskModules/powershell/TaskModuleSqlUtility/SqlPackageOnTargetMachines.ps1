@@ -319,6 +319,15 @@ function LocateSqlPackageFromVSInstallationRoot {
     $sqlDacRoot = [System.IO.Path]::Combine($VSInstallRoot, "Extensions", "Microsoft", "SQLDB", "DAC")
 
     if (Test-Path $sqlDacRoot) {
+        $dacVersion = GetDacFxMajorVersion $sqlDacRoot
+        $dacFullPath = [System.IO.Path]::Combine($sqlDacRoot, "SqlPackage.exe")
+
+        if(Test-Path $dacFullPath -pathtype leaf)
+        {
+            Write-Verbose "Dac Framework installed with Visual Studio found at $dacFullPath on machine $env:COMPUTERNAME"
+            return $dacFullPath, $dacVersion
+        }
+
         $sqlDacLocations = Get-ChildItem $sqlDacRoot | Sort-Object @{e={$_.Name -as [int]}} -Descending
 
         foreach ($sqlDacLocation in $sqlDacLocations)
@@ -338,6 +347,37 @@ function LocateSqlPackageFromVSInstallationRoot {
         }
     }
     return $null, 0
+}
+
+function GetDacFxMajorVersion {
+    [CmdletBinding()]
+    Param (
+        [string] $path
+    )
+    try {
+        $file = [System.IO.Path]::Combine($sqlDacRoot, "Microsoft.SqlServer.Dac.dll")
+
+        Write-Verbose "Getting version info for file $file."
+
+        if (Test-Path -LiteralPath $file -PathType 'Leaf') {
+
+            $fileVersionInfo = (Get-Command -Name $file -ErrorAction 'Stop').FileVersionInfo
+            $fileVersion = $fileVersionInfo.FileVersion
+
+            if ($fileVersion) {
+                $version = [version]$fileVersion
+                Write-Verbose "Major product version is $($version.Major)."
+                return $version.Major
+            }
+
+            return 0
+        }
+    }
+    catch {
+        Write-Verbose "Failed to get version info for $file"
+
+        return 0
+    }
 }
 
 function LocateSqlPackageInVS([string] $version)
