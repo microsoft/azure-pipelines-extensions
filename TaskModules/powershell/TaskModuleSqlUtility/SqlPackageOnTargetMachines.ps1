@@ -551,7 +551,7 @@ function ExecuteCommand
     {
         $ErrorActionPreference = 'SilentlyContinue'
         $result = ""
-        Invoke-Expression "& '$FileName' --% $Arguments"  -ErrorVariable errors | ForEach-Object {
+        Invoke-Expression "& '$FileName' $Arguments"  -ErrorVariable errors | ForEach-Object {
             $result +=  ("$_ " + [Environment]::NewLine)
         }
 
