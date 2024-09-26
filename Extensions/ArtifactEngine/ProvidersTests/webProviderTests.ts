@@ -1,11 +1,11 @@
-var mockery = require("mockery");
+var libMocker = require("azure-pipelines-task-lib/lib-mocker");
 var stream = require("stream");
 
 import * as assert from 'assert';
 
 import * as httpm from '../Providers/typed-rest-client/HttpClient';
 import * as models from '../Models';
-mockery.registerMock('fs', {
+libMocker.registerMock('fs', {
     createWriteStream: (a) => {
         var mockedStream = stream.Writable();
         mockedStream._write = () => { };
@@ -16,7 +16,7 @@ mockery.registerMock('fs', {
         callback(undefined, "{}");
     }
 });
-mockery.enable({
+libMocker.enable({
     warnOnReplace: false,
     warnOnUnregistered: false,
     useCleanCache: true
@@ -121,8 +121,8 @@ describe('Unit Tests', () => {
         });
     });
 });
-// some bug in mockery, need to see how to disable
+// some bug in libMocker, need to see how to disable
 after(() => {
-    mockery.deregisterAll();
-    //mockery.disable();
+    libMocker.deregisterAll();
+    //libMocker.disable();
 });
