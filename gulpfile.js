@@ -760,7 +760,7 @@ gulp.task('nuget-download', function(done) {
         return done();
     }
     console.log("> Downloading nuget.exe");
-    return request.get('http://nuget.org/nuget.exe')
+    return request.get('https://nuget.org/nuget.exe')
         .pipe(fs.createWriteStream('nuget.exe'));
 });
 
