@@ -3,6 +3,7 @@ import { ansibleInterface } from './ansibleInterface';
 import * as ansibleUtils from './ansibleUtils';
 import { RemoteCommandOptions } from './ansibleUtils'
 import { ansibleTaskParameters } from './ansibleTaskParameters';
+import quote from 'shell-quote/quote';
 
 var os = require('os');
 var shell = require('shelljs');
@@ -124,7 +125,7 @@ export class ansibleCommandLineInterface extends ansibleInterface {
     }
 
     protected async createAndGetInventoryPathForInline(): Promise<string> {
-        let content = this._taskParameters.inventoryInline.trim();
+        let content = quote([this._taskParameters.inventoryInline.trim()]);
         let dynamicInventory: boolean = this._taskParameters.inventoryDynamic;
         var __this = this;
 
