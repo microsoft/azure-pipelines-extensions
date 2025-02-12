@@ -1,19 +1,19 @@
 
 {
-  "id": "B099689B-039E-4450-8658-C72E3895DD3F",
+  "id": "efe5d95f-03f0-44f7-8278-90e2f8920b8f",
   "name": "DownloadExternalBuildArtifacts",
   "friendlyName": "ms-resource:loc.friendlyName",
   "description": "ms-resource:loc.description",
   "helpMarkDown": "ms-resource:loc.helpMarkDown",
   "category": "Utility",
-  "author": "ms-vscs-rm",
+  "author": "PravalSinghal",
   "version": {
     "Major": 15,
-    "Minor": 232,
-    "Patch": 0
+    "Minor": 251,
+    "Patch": 52
   },
   "demands": [],
-  "minimumAgentVersion": "2.0.0",
+  "minimumAgentVersion": "2.144.0",
   "inputs": [
     {
       "name": "connection",
@@ -22,6 +22,13 @@
       "defaultValue": "",
       "required": true,
       "helpMarkDown": "ms-resource:loc.input.help.connection"
+    },
+    {
+      "name": "azureDevOpsServiceConnection",
+      "type": "connectedService:workloadidentityuser",
+      "label": "Azure DevOps Service Connection",
+      "defaultValue": "",
+      "helpMarkDown": "Select an Azure DevOps Service Connection service connection"
     },
     {
       "name": "project",
@@ -102,7 +109,7 @@
   ],
   "instanceNameFormat": "ms-resource:loc.instanceNameFormat",
   "execution": {
-    "Node": {
+    "Node16": {
       "target": "download.js",
       "argumentFormat": ""
     }

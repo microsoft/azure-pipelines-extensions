@@ -1,13 +1,13 @@
 ﻿{
   "manifestVersion": 1.0,
   "id": "vss-services-externaltfs",
-  "version": "15.232.0",
+  "version": "15.251.52",
   "name": "TFS artifacts for Release Management",
-  "publisher": "ms-vscs-rm",
+  "publisher": "PravalSinghal",
   "description": "Deploy external TFS/ Azure DevOps artifacts using Release Management",
   "_description.comment": "The below format to define artifact extensions is currently in preview and may change in future.",
   "public": true,
-  "categories": [ "Build and release" ],
+  "categories": [ "Azure Pipelines" ],
   "tags": [ "Artifacts", "DevOps", "Release" ],
   "targets": [
     {
@@ -81,7 +81,7 @@
         "_displayName.comment": "Don't Localize the word 'TFS'",
         "endpointTypeId": "ExternalTFS",
         "uniqueSourceIdentifier": "{{connection}}:{{project}}:{{definition}}",
-        "downloadTaskId": "B099689B-039E-4450-8658-C72E3895DD3F",
+        "downloadTaskId": "efe5d95f-03f0-44f7-8278-90e2f8920b8f",
         "artifactType": "Build",
         "inputDescriptors": [
           {

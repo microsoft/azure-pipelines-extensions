@@ -1,26 +1,32 @@
 {
-  "id": "B099689B-039E-4450-8658-C72E3895DD3F",
+  "id": "efe5d95f-03f0-44f7-8278-90e2f8920b8f",
   "name": "DownloadExternalBuildArtifacts",
   "friendlyName": "Download Artifacts - External Build",
   "description": "Download artifacts from VSTS\\TFS build",
   "helpMarkDown": "",
   "category": "Utility",
-  "author": "ms-vscs-rm",
+  "author": "PravalSinghal",
   "version": {
     "Major": 15,
-    "Minor": 232,
-    "Patch": 0
+    "Minor": 251,
+    "Patch": 52
   },
   "demands": [],
-  "minimumAgentVersion": "2.0.0",
+  "minimumAgentVersion": "2.144.0",
   "inputs": [
     {
       "name": "connection",
       "type": "connectedService:externaltfs",
       "label": "Team Foundation Server/Azure DevOps connection",
       "defaultValue": "",
-      "required": true,
       "helpMarkDown": "Team Foundation Server/Azure DevOps connection"
+    },
+    {
+      "name": "azureDevOpsServiceConnection",
+      "type": "connectedService:workloadidentityuser",
+      "label": "Azure DevOps Service Connection",
+      "defaultValue": "",
+      "helpMarkDown": "Select an Azure DevOps Service Connection service connection"
     },
     {
       "name": "project",
@@ -101,7 +107,7 @@
   ],
   "instanceNameFormat": "Download Artifacts - External Build",
   "execution": {
-    "Node": {
+    "Node16": {
       "target": "download.js",
       "argumentFormat": ""
     }

@@ -5,6 +5,7 @@ var Q = require('q');
 var url = require('url');
 var shell = require("shelljs");
 var gitwm = require('./gitwrapper');
+var auth = require('./tempAuth1')
 
 var PullRefsPrefix = "refs/pull/";
 var PullRefsOriginPrefix = "refs/remotes/origin/pull/";
@@ -14,7 +15,7 @@ var projectId = tl.getInput("project");
 var branch = tl.getInput("branch");
 var commitId = tl.getInput("version");
 var downloadPath = tl.getInput("downloadPath");
-var tfsEndpoint = getEndpointDetails("connection");
+var tfsEndpoint = await getServiceConnection();
 var VSTS_HTTP_RETRY = 4;
 
 shell.rm('-rf', downloadPath);
@@ -22,6 +23,14 @@ var error = shell.error();
 if (error) {
     tl.error(error);
     tl.exit(1);
+}
+
+async function getServiceConnection() {
+    if(isAdoServiceConnectionSet()) {
+        return getADOServiceConnectionDetails();
+    }
+    console.log("going to tfs endpoint");
+    return getEndpointDetails("connection");
 }
 
 function executeWithRetries(operationName, operation, currentRetryCount) {
@@ -156,6 +165,31 @@ function getEndpointDetails(inputFieldName) {
         "Username": hostUsername,
         "Password": hostPassword
     };
+}
+
+function isAdoServiceConnectionSet() {
+    const connectedServiceName = tl.getInput("azureDevOpsServiceConnection", false);
+    tl.log("isAdoServiceConnectionSet adoconnectedServiceName: " + connectedServiceName);
+    return connectedServiceName && connectedServiceName.trim().length > 0;
+}
+
+async function getADOServiceConnectionDetails() {
+    const connectedServiceName = tl.getInput("azureDevOpsServiceConnection", false);
+    if (connectedServiceName && connectedServiceName.trim().length > 0) {
+        tl.log("getADOServiceConnectionDetails adoconnectedServiceName: " + connectedServiceName);
+        personalAccessToken = await auth.getAccessTokenViaWorkloadIdentityFederation(connectedServiceName);
+        tl.log("PAT : " + personalAccessToken);
+        hostUrl = tl.getVariable('System.TeamFoundationCollectionUri');
+        tl.log("hostURL : " + hostUrl);
+        return {
+            "Url": hostUrl,
+            "Username": ".",
+            "Password": personalAccessToken
+        }; 
+    } else {
+        var errorMessage = "Could not decode the AzureDevOpsServiceConnection. Please ensure you are running the latest agent";
+        throw new Error(errorMessage);
+    }
 }
 
 function getAuthParameter(auth, paramName) {
