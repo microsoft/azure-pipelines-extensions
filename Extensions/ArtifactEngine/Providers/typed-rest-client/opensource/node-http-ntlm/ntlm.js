@@ -339,7 +339,7 @@ function binaryArray2bytes(array){
 function create_NT_hashed_password_v1(password){
 	var buf = new Buffer(password, 'utf16le');
 	var md4 = crypto.createHash('md4');   // CodeQL [SM04514] Suppress - NTLM only supports md4 and md5 hashing algorithms which are weak but cannot be changed to sha256 as the protocol does not support it 
-	md4.update(buf);
+	md4.update(buf);   // CodeQL [SM01511] Suppress - NTLM only supports md4 and md5 hashing algorithms which are weak but cannot be changed to sha256 as the protocol does not support it
 	return new Buffer(md4.digest());
 }
 
