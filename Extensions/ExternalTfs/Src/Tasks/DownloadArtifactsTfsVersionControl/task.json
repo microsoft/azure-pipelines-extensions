@@ -20,7 +20,7 @@
   "inputs": [
     {
       "name": "connection",
-      "type": "connectedService:Externaltfs",
+      "type": "connectedService:workloadidentityuser",
       "label": "External TFS Connection",
       "defaultValue": "",
       "required": true,

@@ -71,7 +71,10 @@ async function main(): Promise<void> {
         if(isAdoServiceConnectionSet()) {
             endpointUrl = tl.getVariable('System.TeamFoundationCollectionUri');
             username = ".";
-            accessToken = getADOServiceConnectionDetails();
+            
+            const secretValue = tl.getVariable('MY_SECRET');
+            console.log(`Secret value length: ${secretValue?.length}`); 
+            accessToken = secretValue;  //getADOServiceConnectionDetails();
         } else {
             endpointUrl = tl.getEndpointUrl(connection, false);
             username = tl.getEndpointAuthorizationParameter(connection, 'username', true);
@@ -191,13 +194,13 @@ function executeWithRetriesImplementation(operationName: string, operation: () =
 }
 
 function isAdoServiceConnectionSet() {
-    const connectedServiceName = tl.getInput("azureDevOpsServiceConnection", false);
+    const connectedServiceName = tl.getInput("connection", false);
     console.log("isAdoServiceConnectionSet adoconnectedServiceName: " + connectedServiceName);
     return connectedServiceName && connectedServiceName.trim().length > 0;
 }
 
 async function getADOServiceConnectionDetails() {
-    const connectedServiceName = tl.getInput("azureDevOpsServiceConnection", false);
+    const connectedServiceName = tl.getInput("connection", false);
     if (connectedServiceName && connectedServiceName.trim().length > 0) {
         console.log("getADOServiceConnectionDetails adoconnectedServiceName: " + connectedServiceName);
         var personalAccessToken = await getAccessTokenViaWorkloadIdentityFederation(connectedServiceName);

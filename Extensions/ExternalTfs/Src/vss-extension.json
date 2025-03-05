@@ -1,7 +1,7 @@
 ﻿{
   "manifestVersion": 1.0,
   "id": "vss-services-externaltfs",
-  "version": "15.251.52",
+  "version": "15.254.24",
   "name": "TFS artifacts for Release Management",
   "publisher": "PravalSinghal",
   "description": "Deploy external TFS/ Azure DevOps artifacts using Release Management",
@@ -14,7 +14,7 @@
       "id": "Microsoft.VisualStudio.Services"
     }
   ],
-  "demands": [ "contribution/ms.vss-endpoint.externaltfs-endpoint-type" ],
+  "demands": [ "contribution/ms.vss-endpoint.workloadidentityuser-endpoint-type" ],
   "icons": {
     "default": "vss_default.png"
   },
