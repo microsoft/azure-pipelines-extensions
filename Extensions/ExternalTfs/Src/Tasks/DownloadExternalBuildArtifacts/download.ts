@@ -57,7 +57,7 @@ function publishEvent(feature, properties: any): void {
 
 async function main(): Promise<void> {
     var promise = new Promise<void>(async (resolve, reject) => {
-        var connection = tl.getInput("connection", true);
+        var connection = tl.getInput("connection", false);
         var projectId = tl.getInput("project", true);
         var definitionId = tl.getInput("definition", true);
         var buildId = tl.getInput("version", true);
@@ -70,11 +70,8 @@ async function main(): Promise<void> {
 
         if(isAdoServiceConnectionSet()) {
             endpointUrl = tl.getVariable('System.TeamFoundationCollectionUri');
-            username = ".";
-            
-            const secretValue = tl.getVariable('MY_SECRET');
-            console.log(`Secret value length: ${secretValue?.length}`); 
-            accessToken = secretValue;  //getADOServiceConnectionDetails();
+            username = "."; 
+            accessToken =  getADOServiceConnectionDetails();
         } else {
             endpointUrl = tl.getEndpointUrl(connection, false);
             username = tl.getEndpointAuthorizationParameter(connection, 'username', true);
@@ -194,25 +191,20 @@ function executeWithRetriesImplementation(operationName: string, operation: () =
 }
 
 function isAdoServiceConnectionSet() {
-    const connectedServiceName = tl.getInput("connection", false);
-    console.log("isAdoServiceConnectionSet adoconnectedServiceName: " + connectedServiceName);
+    const connectedServiceName = tl.getInput("azureDevOpsServiceConnection", false);
     return connectedServiceName && connectedServiceName.trim().length > 0;
 }
 
 async function getADOServiceConnectionDetails() {
-    const connectedServiceName = tl.getInput("connection", false);
+    const connectedServiceName = tl.getInput("azureDevOpsServiceConnection", false);
     if (connectedServiceName && connectedServiceName.trim().length > 0) {
-        console.log("getADOServiceConnectionDetails adoconnectedServiceName: " + connectedServiceName);
-        var personalAccessToken = await getAccessTokenViaWorkloadIdentityFederation(connectedServiceName);
-        console.log("PAT : " + personalAccessToken);
-        return personalAccessToken;
+        var accessToken = await auth.getAccessTokenViaWorkloadIdentityFederation(connectedServiceName);
+        return accessToken;
     } else {
         var errorMessage = "Could not decode the AzureDevOpsServiceConnection. Please ensure you are running the latest agent";
         throw new Error(errorMessage);
     }
 }
-
-
 
 main()
     .then((result) => tl.setResult(tl.TaskResult.Succeeded, ""))

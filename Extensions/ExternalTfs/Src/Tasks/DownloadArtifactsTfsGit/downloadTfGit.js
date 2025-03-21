@@ -101,10 +101,8 @@ getServiceConnection().then(endpoint => {
 
 async function getServiceConnection() {
     if(isAdoServiceConnectionSet()) {
-        console.log("going to azuredevops endpoint");
         return getADOServiceConnectionDetails();
     }
-    console.log("going to tfs endpoint");
     return getEndpointDetails("connection");
 }
 
@@ -157,22 +155,18 @@ function getEndpointDetails(inputFieldName) {
 
 function isAdoServiceConnectionSet() {
     const connectedServiceName = tl.getInput("azureDevOpsServiceConnection", false);
-    console.log("isAdoServiceConnectionSet adoconnectedServiceName: " + connectedServiceName);
     return connectedServiceName && connectedServiceName.trim().length > 0;
 }
 
 async function getADOServiceConnectionDetails() {
     const connectedServiceName = tl.getInput("azureDevOpsServiceConnection", false);
     if (connectedServiceName && connectedServiceName.trim().length > 0) {
-        console.log("getADOServiceConnectionDetails adoconnectedServiceName: " + connectedServiceName);
-        personalAccessToken = await auth.getAccessTokenViaWorkloadIdentityFederation(connectedServiceName);
-        console.log("PAT : " + personalAccessToken);
+        accessToken = await auth.getAccessTokenViaWorkloadIdentityFederation(connectedServiceName);
         hostUrl = tl.getVariable('System.TeamFoundationCollectionUri');
-        console.log("hostURL : " + hostUrl);
         return {
             "Url": hostUrl,
             "Username": ".",
-            "Password": personalAccessToken
+            "Password": accessToken
         }; 
     } else {
         var errorMessage = "Could not decode the AzureDevOpsServiceConnection. Please ensure you are running the latest agent";

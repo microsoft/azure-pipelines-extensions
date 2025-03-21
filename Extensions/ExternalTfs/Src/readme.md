@@ -18,7 +18,7 @@ For DownloadArtifactsTfsGit and DownloadExternalBuildArtifacts task, we have
 1. Added support for Azure DevOps Service Connection. Now users can either provide Azure DevOps Service Connection or External TFS Service connection
    ![DownloadArtifactsTfsGit](images/screen5.png)
    ![DownloadExternalBuildArtifacts](images/screen4.png)
-2. Migrated to Node16
+2. Migrated to Node16 and Node20
 
 ### Connecting to an External TFS/Azure Devops account & collection
 When using Basic Authentication scheme, enable [Basic Auth on TFS](https://github.com/Microsoft/tfs-cli/blob/master/docs/configureBasicAuth.md)

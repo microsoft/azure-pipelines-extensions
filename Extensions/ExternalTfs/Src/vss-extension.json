@@ -1,7 +1,7 @@
 ﻿{
   "manifestVersion": 1.0,
   "id": "vss-services-externaltfs",
-  "version": "15.254.42",
+  "version": "15.254.58",
   "name": "TFS artifacts for Release Management",
   "publisher": "PravalSinghal",
   "description": "Deploy external TFS/ Azure DevOps artifacts using Release Management",
