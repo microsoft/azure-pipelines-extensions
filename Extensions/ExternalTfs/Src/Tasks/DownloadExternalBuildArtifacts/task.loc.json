@@ -1,34 +1,34 @@
 
 {
-  "id": "efe5d95f-03f0-44f7-8278-90e2f8920b8f",
+  "id": "B099689B-039E-4450-8658-C72E3895DD3F",
   "name": "DownloadExternalBuildArtifacts",
   "friendlyName": "ms-resource:loc.friendlyName",
   "description": "ms-resource:loc.description",
   "helpMarkDown": "ms-resource:loc.helpMarkDown",
   "category": "Utility",
-  "author": "PravalSinghal",
+  "author": "ms-vscs-rm",
   "version": {
     "Major": 15,
     "Minor": 254,
-    "Patch": 58
+    "Patch": 0
   },
   "demands": [],
-  "minimumAgentVersion": "2.0.0",
+  "minimumAgentVersion": "2.144.0",
   "inputs": [
     {
       "name": "connection",
-      "type": "connectedService:ExternalTFS",
-      "label": "Team Foundation Server/Azure DevOps connection",
+      "type": "connectedService:externaltfs",
+      "label": "ms-resource:loc.input.label.connection",
       "defaultValue": "",
       "required": false,
-      "helpMarkDown": "Team Foundation Server/Azure DevOps connection"
+      "helpMarkDown": "ms-resource:loc.input.help.connection"
     },
     {
       "name": "azureDevOpsServiceConnection",
       "type": "connectedService:workloadidentityuser",
-      "label": "Azure DevOps Service Connection",
+      "label": "ms-resource:loc.input.label.azureDevOpsServiceConnection",
       "defaultValue": "",
-      "helpMarkDown": "Select an Azure DevOps Service Connection service connection"
+      "helpMarkDown": "ms-resource:loc.input.help.azureDevOpsServiceConnection"
     },
     {
       "name": "project",

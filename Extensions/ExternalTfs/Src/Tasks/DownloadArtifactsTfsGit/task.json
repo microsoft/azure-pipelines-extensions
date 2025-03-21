@@ -1,9 +1,9 @@
 {
-  "id": "09111711-85a2-49b4-aa1b-957083eb5411",
+  "id": "bf7b17db-eb58-4014-ab2b-e4bf9d3b28f1",
   "name": "DownloadArtifactsTfsGit",
   "friendlyName": "Download Artifacts - External TFS Git",
   "description": "Download TFS Git code repository using Git Clone",
-  "author": "PravalSinghal",
+  "author": "ms-vscs-rm",
   "helpMarkDown": "[More Information](https://marketplace.visualstudio.com/items?itemName=ms-vscs-rm.vss-services-externaltfs)",
   "category": "Utility",
   "visibility": [
@@ -14,9 +14,9 @@
   "version": {
     "Major": 15,
     "Minor": 254,
-    "Patch": 58
+    "Patch": 0
   },
-  "minimumAgentVersion": "2.0.0",
+  "minimumAgentVersion": "2.144.0",
   "instanceNameFormat": "Download Artifacts - External TFS Git",
   "inputs": [
     {

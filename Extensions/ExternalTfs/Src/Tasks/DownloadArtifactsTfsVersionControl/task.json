@@ -1,5 +1,5 @@
 {
-  "id": "d01baead-1ba1-4832-aaa1-5524584f34b6",
+  "id": "F77A5E28-640E-4250-AA3A-174FA697A658",
   "name": "DownloadArtifactsTfsVersionControl",
   "friendlyName": "Download Artifacts - External TFVC",
   "description": "Download External TFS Version Control repository",
@@ -9,18 +9,18 @@
     "Build",
     "Release"
   ],
-  "author": "PravalSinghal",  
+  "author": "ms-vscs-rm",  
   "version": {
     "Major": 15,
-    "Minor": 251,
-    "Patch": 4
+    "Minor": 232,
+    "Patch": 0
   },
   "demands": [],
   "minimumAgentVersion": "1.99.0",  
   "inputs": [
     {
       "name": "connection",
-      "type": "connectedService:workloadidentityuser",
+      "type": "connectedService:Externaltfs",
       "label": "External TFS Connection",
       "defaultValue": "",
       "required": true,
