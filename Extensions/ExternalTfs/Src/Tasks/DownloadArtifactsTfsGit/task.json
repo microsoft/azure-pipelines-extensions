@@ -14,7 +14,7 @@
   "version": {
     "Major": 15,
     "Minor": 254,
-    "Patch": 24
+    "Patch": 32
   },
   "minimumAgentVersion": "2.0.0",
   "instanceNameFormat": "Download Artifacts - External TFS Git",
@@ -89,13 +89,13 @@
     "dataSourceBindings": [
     {
       "target": "project",
-      "endpointId": "$(connection)",
+      "endpointId": "$(azureDevOpsServiceConnection)",
       "dataSourceName": "Projects",
       "resultTemplate": "{ \"Value\" : \"{{{id}}}\", \"DisplayValue\" : \"{{{name}}}\" }"
     },
     {
       "target": "definition",
-      "endpointId": "$(connection)",
+      "endpointId": "$(azureDevOpsServiceConnection)",
       "dataSourceName": "Repositories",
       "parameters":{
         "project": "$(project)"
@@ -104,7 +104,7 @@
     },
     {
       "target": "branch",
-      "endpointId": "$(connection)",
+      "endpointId": "$(azureDevOpsServiceConnection)",
       "dataSourceName": "Branches",
       "parameters":{
         "project": "$(project)",
@@ -114,7 +114,7 @@
     },
     {
       "target": "version",
-      "endpointId": "$(connection)",
+      "endpointId": "$(azureDevOpsServiceConnection)",
       "dataSourceName": "GitCommits",
       "parameters":{
         "project": "$(project)",
