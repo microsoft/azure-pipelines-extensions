@@ -196,8 +196,8 @@ function isAdoServiceConnectionSet() {
 }
 
 async function getADOServiceConnectionDetails() {
-    const connectedServiceName = tl.getInput("azureDevOpsServiceConnection", false);
-    if (connectedServiceName && connectedServiceName.trim().length > 0) {
+    if (isAdoServiceConnectionSet()) {
+        const connectedServiceName = tl.getInput("azureDevOpsServiceConnection", false);
         var accessToken = await auth.getAccessTokenViaWorkloadIdentityFederation(connectedServiceName);
         return accessToken;
     } else {

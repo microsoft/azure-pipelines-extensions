@@ -2,12 +2,14 @@ import tl = require('azure-pipelines-task-lib/task');
 import * as msal from "@azure/msal-node";
 import { getFederatedToken } from "azure-pipelines-tasks-artifacts-common/webapi";
 
+const workloadIdentityFederation = "workloadidentityfederation";
+
 export async function getAccessTokenViaWorkloadIdentityFederation(connectedService: string): Promise<string> {
   const authorizationScheme = tl
     .getEndpointAuthorizationSchemeRequired(connectedService)
     .toLowerCase();
 
-  if (authorizationScheme !== "workloadidentityfederation") {
+  if (authorizationScheme !== workloadIdentityFederation) {
     throw new Error(`Authorization scheme ${authorizationScheme} is not supported.`);
   }
 

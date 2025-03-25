@@ -2,12 +2,14 @@ const tl = require('azure-pipelines-task-lib/task');
 const msal = require('@azure/msal-node');
 const { getFederatedToken } = require('azure-pipelines-tasks-artifacts-common/webapi');
 
+const workloadIdentityFederation = "workloadidentityfederation";
+
 async function getAccessTokenViaWorkloadIdentityFederation(connectedService) {
     const authorizationScheme = tl
         .getEndpointAuthorizationSchemeRequired(connectedService)
         .toLowerCase();
 
-    if (authorizationScheme !== "workloadidentityfederation") {
+    if (authorizationScheme !== workloadIdentityFederation) {
         throw new Error(`Authorization scheme ${authorizationScheme} is not supported.`);
     }
 
@@ -18,7 +20,19 @@ async function getAccessTokenViaWorkloadIdentityFederation(connectedService) {
         tl.getEndpointDataParameter(connectedService, "activeDirectoryAuthority", true) || "https://login.microsoftonline.com/";
 
     tl.debug(`Getting federated token for service connection ${connectedService}`);
-    const federatedToken = await getFederatedToken(connectedService);
+
+    let federatedToken = null;
+
+    try {
+        federatedToken = await getFederatedToken(connectedService);
+    } catch (error) {
+        tl.error(error);
+    }
+    
+    if (!federatedToken || federatedToken.length == 0) {
+        throw new Error(`Failed to get the federatedToken for service connection ${connectedService}`);
+    }
+    
     tl.debug(`Got federated token for service connection ${connectedService}`);
 
     // Exchange federated token for service principal token

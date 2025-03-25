@@ -60,7 +60,7 @@ Yes, the dropdowns are not populated if you are using Azure DevOps Service Conne
 
 **3. I do not see Azure DevOps Service Connection type when trying to create a new service connection of type Azure Devops?**
 
-Azure Devops service connection is still in development and testing phase and no rolled out publicly.
+Azure Devops service connection is still in development and testing phase and not rolled out publicly.
 
 **4. Can I use an external TFS build artifact that is not accessible from my Azure Devops account?**
 
