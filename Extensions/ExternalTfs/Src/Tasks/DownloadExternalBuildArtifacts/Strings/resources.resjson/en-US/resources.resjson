@@ -17,5 +17,7 @@
   "loc.input.help.downloadPath": "Path on the agent machine where the artifact will be downloaded",
   "loc.messages.DownloadArtifacts": "Downloading artifacts from : %s",
   "loc.messages.ArtifactsSuccessfullyDownloaded": "Successfully downloaded artifacts to %s",
-  "loc.messages.UnsupportedArtifactType": "Unsupported artifact type: %s"
+  "loc.messages.UnsupportedArtifactType": "Unsupported artifact type: %s",
+  "loc.input.label.azureDevOpsServiceConnection": "Azure DevOps Service Connection",
+  "loc.input.help.azureDevOpsServiceConnection": "Azure DevOps Service Connection"
 }

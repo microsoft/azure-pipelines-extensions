@@ -9,10 +9,12 @@ import * as models from "artifact-engine/Models"
 import * as engine from "artifact-engine/Engine"
 import * as providers from "artifact-engine/Providers"
 import * as webHandlers from "artifact-engine/Providers/typed-rest-client/Handlers"
+import { getAccessTokenViaWorkloadIdentityFederation } from './auth';
 
 tl.setResourcePath(path.join(__dirname, 'task.json'));
 
 var taskJson = require('./task.json');
+var auth = require('./auth')
 const area: string = 'DownloadExternalBuildArtifacts';
 
 function getDefaultProps() {
@@ -55,17 +57,28 @@ function publishEvent(feature, properties: any): void {
 
 async function main(): Promise<void> {
     var promise = new Promise<void>(async (resolve, reject) => {
-        var connection = tl.getInput("connection", true);
+        var connection = tl.getInput("connection", false);
         var projectId = tl.getInput("project", true);
         var definitionId = tl.getInput("definition", true);
         var buildId = tl.getInput("version", true);
         var itemPattern = tl.getInput("itemPattern", true);
         var downloadPath = tl.getInput("downloadPath", true);
 
-        var endpointUrl = tl.getEndpointUrl(connection, false);
-        var username = tl.getEndpointAuthorizationParameter(connection, 'username', true);
-        var accessToken = tl.getEndpointAuthorizationParameter(connection, 'apitoken', true)
+        var endpointUrl : any;
+        var username : any;
+        var accessToken : any;
+
+        if(isAdoServiceConnectionSet()) {
+            endpointUrl = tl.getVariable('System.TeamFoundationCollectionUri');
+            username = "."; 
+            accessToken =  getADOServiceConnectionDetails();
+        } else {
+            endpointUrl = tl.getEndpointUrl(connection, false);
+            username = tl.getEndpointAuthorizationParameter(connection, 'username', true);
+            accessToken = tl.getEndpointAuthorizationParameter(connection, 'apitoken', true)
             || tl.getEndpointAuthorizationParameter(connection, 'password', true);
+        }
+
         var credentialHandler = getBasicHandler(username, accessToken);
         var vssConnection = new WebApi(endpointUrl, credentialHandler);
         var debugMode = tl.getVariable('System.Debug');
@@ -175,6 +188,22 @@ function executeWithRetriesImplementation(operationName: string, operation: () =
             setTimeout(() => executeWithRetriesImplementation(operationName, operation, currentRetryCount, resolve, reject), 4 * 1000);
         }
     });
+}
+
+function isAdoServiceConnectionSet() {
+    const connectedServiceName = tl.getInput("azureDevOpsServiceConnection", false);
+    return connectedServiceName && connectedServiceName.trim().length > 0;
+}
+
+async function getADOServiceConnectionDetails() {
+    if (isAdoServiceConnectionSet()) {
+        const connectedServiceName = tl.getInput("azureDevOpsServiceConnection", false);
+        var accessToken = await auth.getAccessTokenViaWorkloadIdentityFederation(connectedServiceName);
+        return accessToken;
+    } else {
+        var errorMessage = "Could not decode the AzureDevOpsServiceConnection. Please ensure you are running the latest agent";
+        throw new Error(errorMessage);
+    }
 }
 
 main()

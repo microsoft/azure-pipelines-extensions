@@ -9,19 +9,26 @@
   "author": "ms-vscs-rm",
   "version": {
     "Major": 15,
-    "Minor": 232,
+    "Minor": 254,
     "Patch": 0
   },
   "demands": [],
-  "minimumAgentVersion": "2.0.0",
+  "minimumAgentVersion": "2.144.0",
   "inputs": [
     {
       "name": "connection",
       "type": "connectedService:externaltfs",
       "label": "ms-resource:loc.input.label.connection",
       "defaultValue": "",
-      "required": true,
+      "required": false,
       "helpMarkDown": "ms-resource:loc.input.help.connection"
+    },
+    {
+      "name": "azureDevOpsServiceConnection",
+      "type": "connectedService:workloadidentityuser",
+      "label": "ms-resource:loc.input.label.azureDevOpsServiceConnection",
+      "defaultValue": "",
+      "helpMarkDown": "ms-resource:loc.input.help.azureDevOpsServiceConnection"
     },
     {
       "name": "project",
@@ -102,7 +109,11 @@
   ],
   "instanceNameFormat": "ms-resource:loc.instanceNameFormat",
   "execution": {
-    "Node": {
+    "Node16": {
+      "target": "download.js",
+      "argumentFormat": ""
+    },
+    "Node20": {
       "target": "download.js",
       "argumentFormat": ""
     }
