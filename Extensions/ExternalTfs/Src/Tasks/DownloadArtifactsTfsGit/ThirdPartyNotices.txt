@@ -17,7 +17,7 @@ This Azure DevOps Extension is based on or incorporates material from the projec
 11.	Q (https://github.com/kriskowal/q)
 12.	semver (https://github.com/npm/node-semver/)
 13.	ShellJS (https://github.com/shelljs/shelljs)
-14.	VSTS-Task-Lib (https://github.com/Microsoft/vsts-task-lib)
+14.	azure-pipelines-task-lib (https://github.com/Microsoft/azure-pipelines-task-lib)
 15.	wrappy (https://github.com/npm/wrappy)
 
 
@@ -353,7 +353,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 =========================================
 END OF ShellJS NOTICES, INFORMATION, AND LICENSE
 
-%% VSTS-Task-Lib NOTICES, INFORMATION, AND LICENSE BEGIN HERE
+%% azure-pipelines-task-lib NOTICES, INFORMATION, AND LICENSE BEGIN HERE
 =========================================
 The MIT License (MIT)
 
@@ -378,7 +378,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 =========================================
-END OF VSTS-Task-Lib NOTICES, INFORMATION, AND LICENSE
+END OF azure-pipelines-task-lib NOTICES, INFORMATION, AND LICENSE
 
 %% wrappy NOTICES, INFORMATION, AND LICENSE BEGIN HERE
 =========================================

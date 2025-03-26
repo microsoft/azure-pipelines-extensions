@@ -1,4 +1,4 @@
-﻿Write-Verbose "Entering script AppCmdOnTargetMachines.ps1"
+﻿﻿Write-Verbose "Entering script AppCmdOnTargetMachines.ps1"
 $AppCmdRegKey = "HKLM:\SOFTWARE\Microsoft\InetStp"
 
 function Run-Command
@@ -305,7 +305,7 @@ function Invoke-AdditionalCommand
 
     $appCmdCommands = $additionalCommands.Trim('"').Split([System.Environment]::NewLine, [System.StringSplitOptions]::RemoveEmptyEntries)
     $appCmdPath, $iisVersion = Get-AppCmdLocation -regKeyPath $AppCmdRegKey
-
+    
     foreach($appCmdCommand in $appCmdCommands)
     {
         if(-not [string]::IsNullOrWhiteSpace($appCmdCommand.Trim(' ')))

@@ -1,6 +1,6 @@
 import * as path from 'path'
 
-var mockery = require("mockery");
+var libMocker = require("azure-pipelines-task-lib/lib-mocker");
 var stream = require("stream");
 var sinon = require("sinon");
 
@@ -8,7 +8,7 @@ import * as assert from 'assert';
 
 import * as models from '../Models';
 
-mockery.registerMock('fs', {
+libMocker.registerMock('fs', {
     statSync: () => {
         return {
             isDirectory: () => true
@@ -24,7 +24,7 @@ mockery.registerMock('fs', {
         callback(undefined, "{}");
     }
 });
-mockery.enable({
+libMocker.enable({
     warnOnReplace: false,
     warnOnUnregistered: false,
     useCleanCache: true
@@ -91,8 +91,8 @@ describe('Unit Tests', () => {
 
         after(() => {
             tl.mkdirP.restore();
-            mockery.deregisterAll();
-            mockery.disable();
+            libMocker.deregisterAll();
+            libMocker.disable();
         });
     });
 });

@@ -1,5 +1,6 @@
 ﻿Import-Module $env:CURRENT_TASK_ROOTDIR\DeploymentSDK\InvokeRemoteDeployment.ps1
 Import-Module $env:CURRENT_TASK_ROOTDIR\DeploymentSDK\Utility.ps1
+Import-Module $env:CURRENT_TASK_ROOTDIR\ps_modules\Sanitizer
 
 function EscapeSpecialChars
 {
@@ -66,6 +67,19 @@ function GetScriptToRun
         [string]$publishProfile,
         [string]$additionalArguments
     )
+
+    $useSanitizerCall = Get-SanitizerCallStatus
+    $useSanitizerActivate = Get-SanitizerActivateStatus
+
+    if ($useSanitizerCall)
+    {
+        $sanitizedArguments = Protect-ScriptArguments -InputArgs $additionalArguments -TaskName "SqlDacpacDeployV2"
+    }
+
+    if ($useSanitizerActivate) 
+    {
+        $additionalArguments = $sanitizedArguments
+    }
 
     if($sqlUserName -and $sqlPassword)
     {

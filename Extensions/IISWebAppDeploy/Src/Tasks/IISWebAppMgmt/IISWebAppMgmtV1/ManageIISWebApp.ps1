@@ -1,4 +1,6 @@
 ﻿Import-Module $env:CURRENT_TASK_ROOTDIR\DeploymentSDK\InvokeRemoteDeployment.ps1
+Import-Module $env:CURRENT_TASK_ROOTDIR\ps_modules\VstsTaskSdk
+Import-Module $env:CURRENT_TASK_ROOTDIR\ps_modules\Sanitizer
 
 Write-Verbose "Entering script ManageIISWebApp.ps1"
 
@@ -215,6 +217,19 @@ function Main
     Trim-Inputs -siteName ([ref]$websiteName) -physicalPath ([ref]$websitePhysicalPath)  -poolName ([ref]$appPoolName) -websitePathAuthuser ([ref]$websiteAuthUserName) -appPoolUser ([ref]$appPoolUsername) -adminUser ([ref]$adminUserName) -sslCertThumbPrint ([ref]$sslCertThumbPrint)
 
     Validate-Inputs -createWebsite $createWebsite -websiteName $websiteName -createAppPool $createAppPool -appPoolName $appPoolName -addBinding $addBinding -protocol $protocol -sslCertThumbPrint $sslCertThumbPrint
+
+    $useSanitizerCall = Get-SanitizerCallStatus
+    $useSanitizerActivate = Get-SanitizerActivateStatus
+
+    if ($useSanitizerCall) 
+    {
+        $sanitizedArguments = Protect-ScriptArguments -InputArgs $appCmdCommands -TaskName "IISWebAppMgmtV1"
+    }
+
+    if ($useSanitizerActivate) 
+    {
+        $appCmdCommands = $sanitizedArguments
+    }
 
     $script = Get-ScriptToRun -createWebsite $createWebsite -websiteName $websiteName -websitePhysicalPath $websitePhysicalPath -websitePhysicalPathAuth $websitePhysicalPathAuth -websiteAuthUserName $websiteAuthUserName -websiteAuthUserPassword $websiteAuthUserPassword -addBinding $addBinding -protocol $protocol -ipAddress $ipAddress -port $port -hostName $hostName -serverNameIndication $serverNameIndication -sslCertThumbPrint $sslCertThumbPrint -createAppPool $createAppPool -appPoolName $appPoolName -pipeLineMode $pipeLineMode -dotNetVersion $dotNetVersion -appPoolIdentity $appPoolIdentity -appPoolUsername $appPoolUsername -appPoolPassword $appPoolPassword -appCmdCommands $appCmdCommands
     Run-RemoteDeployment -machinesList $machinesList -scriptToRun $script -adminUserName $adminUserName -adminPassword $adminPassword -winrmProtocol $winrmProtocol -testCertificate $testCertificate -deployInParallel $deployInParallel -websiteName $websiteName

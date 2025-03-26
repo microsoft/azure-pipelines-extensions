@@ -42,10 +42,14 @@ namespace DistributedTask.ServerTask.Remote.Common.TaskProgress
             }
 
             var line = $"{DateTime.UtcNow:O} {message}";
-            await taskClient.AppendTimelineRecordFeedAsync(new List<string> {line}).ConfigureAwait(false);
             await LogPage(line).ConfigureAwait(false);
         }
 
+        public async Task LogImmediately(string message)
+        {
+            await Log(message);
+            await End();
+        }
         public async Task End()
         {
             await EndPage().ConfigureAwait(false);
@@ -102,8 +106,31 @@ namespace DistributedTask.ServerTask.Remote.Common.TaskProgress
 
                 // Create a new record and only set the Log field
                 var attachmentUpdataRecord = new TimelineRecord { Id = taskProperties.TaskInstanceId, Log = taskLog };
-                await taskClient.UpdateTimelineRecordsAsync(attachmentUpdataRecord, default(CancellationToken)).ConfigureAwait(false);
+                await taskClient.UpdateTimelineRecordsAsync(attachmentUpdataRecord, default).ConfigureAwait(false);
             }
+        }
+        public async Task CreateTaskTimelineRecordIfRequired(TaskClient taskClient, CancellationToken cancellationToken)
+        {
+            if (taskProperties.TaskInstanceId.Equals(Guid.Empty))
+            {
+                taskProperties.TaskInstanceId = Guid.NewGuid();
+            }
+
+            var timelineRecord = new TimelineRecord
+            {
+                Id = taskProperties.TaskInstanceId,
+                RecordType = "task",
+                StartTime = DateTime.UtcNow,
+                ParentId = taskProperties.JobId,
+            };
+
+            if (!string.IsNullOrWhiteSpace(taskProperties.TaskInstanceName))
+            {
+                timelineRecord.Name = taskProperties.TaskInstanceName;
+            }
+
+            // this is an upsert call
+            await taskClient.UpdateTimelineRecordsAsync(timelineRecord, cancellationToken).ConfigureAwait(false);
         }
     }
 }

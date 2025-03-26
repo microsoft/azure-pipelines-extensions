@@ -4,7 +4,7 @@ var __extends = (this && this.__extends) || function (d, b) {
     function __() { this.constructor = d; }
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
-var tl = require('vsts-task-lib');
+var tl = require('azure-pipelines-task-lib');
 var events = require('events');
 var Q = require('q');
 var fs = require('fs');
@@ -63,7 +63,7 @@ var GitWrapper = (function (_super) {
         if (!gitPath) {
             throw (new Error('git not found.  ensure installed and in the path'));
         }
-        var git = new tl.ToolRunner(gitPath);
+        var git = new tl.ToolRunner(gitPath.toString());
         git.silent = true;
         var creds = this.username + ':' + this.password;
         var escapedCreds = encodeURIComponent(this.username) + ':' + encodeURIComponent(this.password);

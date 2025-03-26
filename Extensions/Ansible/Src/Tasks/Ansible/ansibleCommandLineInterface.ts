@@ -1,8 +1,9 @@
-import tl = require("vsts-task-lib/task");
+import tl = require("azure-pipelines-task-lib/task");
 import { ansibleInterface } from './ansibleInterface';
 import * as ansibleUtils from './ansibleUtils';
 import { RemoteCommandOptions } from './ansibleUtils'
 import { ansibleTaskParameters } from './ansibleTaskParameters';
+import { quote } from 'shell-quote';
 
 var os = require('os');
 var shell = require('shelljs');
@@ -134,7 +135,7 @@ export class ansibleCommandLineInterface extends ansibleInterface {
                 let remoteInventoryPath = '"' + remoteInventory + '"';
                 tl.debug('RemoteInventoryPath = ' + remoteInventoryPath);
 
-                let inventoryCmd: string = 'echo ' + '"' + content + '"' + ' > ' + remoteInventory;
+                let inventoryCmd: string = 'echo ' + quote([content]) + ' > ' + remoteInventory;
                 await __this.executeCommand(inventoryCmd);
                 if (dynamicInventory == true) {
                     await __this.executeCommand('chmod +x ' + remoteInventory);

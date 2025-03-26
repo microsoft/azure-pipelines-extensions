@@ -25,6 +25,7 @@ export class WebProvider implements IArtifactProvider {
         this.templateFile = templateFile;
         this.webClient = WebClientFactory.getClient([handler], requestOptions);
         this.variables = variables;
+        this.requestCompressionForDownloads = requestOptions ? requestOptions.requestCompressionForDownloads : false;
     }
 
     getRootItems(): Promise<ArtifactItem[]> {
@@ -50,8 +51,19 @@ export class WebProvider implements IArtifactProvider {
             var downloadSize: number = 0;
             var contentType: string = artifactItem.contentType;
             var itemUrl: string = artifactItem.metadata['downloadUrl'];
+            var zipStream = null;
             itemUrl = itemUrl.replace(/([^:]\/)\/+/g, "$1");
-            this.webClient.get(itemUrl, contentType ? { 'Accept': contentType } : undefined).then((res: HttpClientResponse) => {
+
+            const additionalHeaders = {};
+            if (contentType) {
+                additionalHeaders['Accept'] = contentType
+            }
+
+            if (this.requestCompressionForDownloads) {
+                additionalHeaders['Accept-Encoding'] = "gzip"
+            }
+
+            this.webClient.get(itemUrl, additionalHeaders).then((res: HttpClientResponse) => {
                 res.message.on('data', (chunk) => {
                     downloadSize += chunk.length;
                 });
@@ -59,12 +71,17 @@ export class WebProvider implements IArtifactProvider {
                     this.artifactItemStore.updateDownloadSize(artifactItem, downloadSize);
                 });
                 res.message.on('error', (error) => {
+                    if (zipStream) {
+                        zipStream.destroy(error);
+                        Logger.logMessage(error.toString());
+                    }
                     reject(error);
                 });
 
                 if (res.message.headers['content-encoding'] === 'gzip') {
                     try {
-                        resolve(res.message.pipe(zlib.createUnzip()));
+                        zipStream = zlib.createUnzip();
+                        resolve(res.message.pipe(zipStream));
                     }
                     catch (err) {
                         reject(err);
@@ -139,5 +156,6 @@ export class WebProvider implements IArtifactProvider {
     private rootItemsLocation: string;
     private templateFile: string;
     private variables: string;
+    private requestCompressionForDownloads: boolean;
     public webClient: WebClient;
 }

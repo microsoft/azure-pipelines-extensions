@@ -1,11 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Text;
 using Microsoft.Azure.ServiceBus;
 
 namespace ServiceBusMessageHandler.ServiceBus
 {
-    public class ServiceBusMessage 
+    public class ServiceBusMessage
     {
         private readonly Message message;
 
@@ -26,7 +24,7 @@ namespace ServiceBusMessageHandler.ServiceBus
             var messageBody = Encoding.UTF8.GetString(message.Body);
 
             // The payload is serialized using DataContractSerializer with a binary XmlDictionaryWriter
-            // which inserts @\u0006string\....\u0009 to the body of the message. 
+            // which inserts @\u0006string\....\u0009 to the body of the message.
             // TODO: Use this work around until the server code is fixed.
             var start = messageBody.IndexOf('{');
             var end = messageBody.LastIndexOf('}');

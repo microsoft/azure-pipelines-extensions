@@ -22,7 +22,7 @@ function Run-Command
     $ErrorActionPreference = 'Stop'
 
     if($failOnErr -and $LASTEXITCODE -ne 0)
-    {
+    {  
         throw $result
     }
 
@@ -208,6 +208,34 @@ function Enable-SNI
     Run-Command -command $command
 }
 
+function ShowCertBinding
+{
+    param(
+        [string]$bindingType,
+        [string]$bindingValue,
+        [string]$port
+    )
+
+    $showCertCmd = "netsh http show sslcert {0}={1}:{2}" -f $bindingType, $bindingValue, $port
+    Write-Verbose "Checking if SslCert binding is already present. Running command : netsh $showCertCmd"
+
+    $netshResult = Run-Command -command $showCertCmd -failOnErr $false
+    return $netshResult
+}
+
+function AddCertBinding
+{
+    param(
+        [string]$bindingType,
+        [string]$bindingValue,
+        [string]$port,
+        [string]$certhash
+    )
+
+    $addCertCmd = "netsh http add sslcert {0}={1}:{2} certhash={3} appid={{{4}}} certstorename=MY" -f $bindingType, $bindingValue, $port, $certhash, [System.Guid]::NewGuid().toString()
+    Run-Command -command $addCertCmd
+}
+
 function Add-SslCert
 {
     param(
@@ -230,42 +258,33 @@ function Add-SslCert
         $ipAddress = "0.0.0.0"
     }
 
-    $result = $null
-    $isItSameBinding = $false
-    $addCertCmd = [string]::Empty
+    $isSniEnabled = $sni -eq "true" -and $iisVersion -ge 8 -and -not [string]::IsNullOrWhiteSpace($hostname)
+    $bindingType = if ($isSniEnabled) { "hostnameport" } else { "ipport" }
+    $bindingParsedType = if ($bindingType -eq "ipport") {"IP:port"} Else {"Hostname:port"}
+    Write-Verbose ("Binding type" + $bindingType)
+    $bindingValue = if ($isSniEnabled) { $hostname } else { $ipAddress }
+    Write-Verbose ("BindingValue" + $bindingValue)
+    $netshResult= ShowCertBinding -bindingType $bindingType -bindingValue $bindingValue -port $port
+    $matchingBinding = $netshResult | Where-Object { $_.Trim().StartsWith("{0}" -f $bindingParsedType ) -and $_.Trim().EndsWith("{0}:{1}") -f $bindingValue, $port }
+    
 
-    #SNI is supported IIS 8 and above. To enable SNI hostnameport option should be used
-    if($sni -eq "true" -and $iisVersion -ge 8 -and -not [string]::IsNullOrWhiteSpace($hostname))
+    if($matchingBinding) # A certificate with the same binding is found
     {
-        $showCertCmd = [string]::Format("netsh http show sslcert hostnameport={0}:{1}", $hostname, $port)
-        Write-Verbose "Checking if SslCert binding is already present. Running command : $showCertCmd"
+       
+        $matchingBindingIndex = $netshResult.IndexOf($matchingBinding)
+       
+        $isItSameCert = $netshResult[$matchingBindingIndex + 1].ToLower().Contains($certhash.ToLower()) # The certificate hash is on the next line
 
-        $result = Run-Command -command $showCertCmd -failOnErr $false
-        $isItSameBinding = $result.Get(4).Contains([string]::Format("{0}:{1}", $hostname, $port))
-
-        $addCertCmd = [string]::Format("netsh http add sslcert hostnameport={0}:{1} certhash={2} appid={{{3}}} certstorename=MY", $hostname, $port, $certhash, [System.Guid]::NewGuid().toString())
-    }
-    else
-    {
-        $showCertCmd = [string]::Format("netsh http show sslcert ipport={0}:{1}", $ipAddress, $port)
-        Write-Verbose "Checking if SslCert binding is already present. Running command : $showCertCmd"
-
-        $result = Run-Command -command $showCertCmd -failOnErr $false
-        $isItSameBinding = $result.Get(4).Contains([string]::Format("{0}:{1}", $ipAddress, $port))
-        
-        $addCertCmd = [string]::Format("netsh http add sslcert ipport={0}:{1} certhash={2} appid={{{3}}} certstorename=MY", $ipAddress, $port, $certhash, [System.Guid]::NewGuid().toString())
-    }
-
-    $isItSameCert = $result.Get(5).ToLower().Contains($certhash.ToLower())
-
-    if($isItSameBinding -and $isItSameCert)
-    {
-        Write-Verbose "SSL cert binding is already present. Returning"
-        return
+        if($isItSameCert)
+        {
+           
+            Write-Verbose "SSL cert binding is already present. Returning"
+            return
+        }
     }
 
     Write-Verbose "Setting SslCert for website."
-    Run-Command -command $addCertCmd
+    AddCertBinding -bindingType $bindingType -bindingValue $bindingValue -port $port -certhash $certhash
 }
 
 function Add-Website

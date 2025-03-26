@@ -338,8 +338,8 @@ function binaryArray2bytes(array){
 
 function create_NT_hashed_password_v1(password){
 	var buf = new Buffer(password, 'utf16le');
-	var md4 = crypto.createHash('md4');
-	md4.update(buf);
+	var md4 = crypto.createHash('md4');   // CodeQL [SM04514] Suppress - NTLM only supports md4 and md5 hashing algorithms which are weak but cannot be changed to sha256 as the protocol does not support it 
+	md4.update(buf);   // CodeQL [SM01511] Suppress - NTLM only supports md4 and md5 hashing algorithms which are weak but cannot be changed to sha256 as the protocol does not support it
 	return new Buffer(md4.digest());
 }
 
@@ -370,7 +370,7 @@ function ntlm2sr_calc_resp(responseKeyNT, serverChallenge, clientChallenge){
     clientChallenge.copy(lmChallengeResponse, 0, 0, clientChallenge.length);
 
     var buf = Buffer.concat([serverChallenge, clientChallenge]);
-    var md5 = crypto.createHash('md5');
+    var md5 = crypto.createHash('md5');   // CodeQL [SM04514] Suppress - NTLM only supports md4 and md5 hashing algorithms which are weak but cannot be changed to sha256 as the protocol does not support it 
     md5.update(buf);
     var sess = md5.digest();
     var ntChallengeResponse = calc_resp(responseKeyNT, sess.slice(0,8));

@@ -1,9 +1,10 @@
-import tl = require("vsts-task-lib/task");
+import tl = require("azure-pipelines-task-lib/task");
 import path = require("path");
 import * as ansibleUtils from './ansibleUtils';
 import { RemoteCommandOptions } from './ansibleUtils'
 import { ansibleTaskParameters } from './ansibleTaskParameters';
 import { ansibleCommandLineInterface } from './ansibleCommandLineInterface';
+import * as SftpClient from 'ssh2-sftp-client';
 
 var os = require('os');
 var shell = require('shelljs');
@@ -39,16 +40,16 @@ export class ansibleRemoteMachineInterface extends ansibleCommandLineInterface {
         if (!ansibleUtils.testIfFileExist(path.join(playbookRoot,playbookFile))) {
             throw tl.loc('PlaybookNotPresent', playbookFile, playbookRoot);
         }
-
-        var remotePlaybookRoot = '/tmp/' + path.basename(playbookRoot);
+        var playbookFullPath = playbookRoot + '/' + playbookFile;
+        var remotePlaybookRoot = '/tmp/' + path.basename(playbookFile);
         tl.debug('ansiblePlaybookRootPath = ' + '"' + remotePlaybookRoot + '"');
 
         let scpConfig = this._sshConfig || {};
         scpConfig.path = remotePlaybookRoot;
         tl.debug('Copying playbook to ansible machine.');
-        this._playbookPath = remotePlaybookRoot + "/" + playbookFile;
+        this._playbookPath = remotePlaybookRoot;
         this._cleanupCmd.push('rm -rf ' + remotePlaybookRoot);
-        await ansibleUtils.copyFileToRemoteMachine(playbookRoot, scpConfig);
+        await ansibleUtils.copyFileToRemoteMachine(playbookFullPath,remotePlaybookRoot, scpConfig);
     }
 
     private async copyInventoryAndSetPathForAgentAsSource() {
@@ -64,7 +65,7 @@ export class ansibleRemoteMachineInterface extends ansibleCommandLineInterface {
         tl.debug('Copying Inventory file to ansible machine.');
         this._inventoryPath = remoteInventory;
         this._cleanupCmd.push('rm -f ' + remoteInventory);
-        await ansibleUtils.copyFileToRemoteMachine(inventoryFile, scpConfig);
+        await ansibleUtils.copyFileToRemoteMachine(inventoryFile, remoteInventory, scpConfig);
     }
 
     protected async executeCommand(cmd: string): Promise<string> {

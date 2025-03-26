@@ -18,6 +18,8 @@ namespace DistributedTask.ServerTask.Remote.Common.TaskProgress
         private VssConnection vssConnection;
         private int? PlanVersion;
 
+        public TaskProperties TaskProperties => taskProperties;
+
         public TaskClient(TaskProperties taskProperties)
         {
             this.taskProperties = taskProperties;
@@ -28,72 +30,67 @@ namespace DistributedTask.ServerTask.Remote.Common.TaskProgress
 
         public async Task ReportTaskAssigned(Guid taskId, CancellationToken cancellationToken)
         {
-            var jobId = await GetJobId(this.taskProperties.HubName, this.taskProperties.JobId, taskId);
-            taskId = await GetTaskId(this.taskProperties.HubName, taskId);
+            var jobId = await GetJobId(this.TaskProperties.HubName, this.TaskProperties.JobId, taskId);
+            taskId = await GetTaskId(this.TaskProperties.HubName, taskId);
 
             var startedEvent = new TaskAssignedEvent(jobId, taskId);
-            await taskClient.RaisePlanEventAsync(taskProperties.ProjectId, this.taskProperties.HubName, this.taskProperties.PlanId, startedEvent, cancellationToken).ConfigureAwait(false);
+            await taskClient.RaisePlanEventAsync(TaskProperties.ProjectId, this.TaskProperties.HubName, this.TaskProperties.PlanId, startedEvent, cancellationToken).ConfigureAwait(false);
         }
 
         public async Task ReportTaskStarted(Guid taskId, CancellationToken cancellationToken)
         {
-            var jobId = await GetJobId(this.taskProperties.HubName, this.taskProperties.JobId, taskId);
-            taskId = await GetTaskId(this.taskProperties.HubName, taskId);
-            
+            var jobId = await GetJobId(this.TaskProperties.HubName, this.TaskProperties.JobId, taskId);
+            taskId = await GetTaskId(this.TaskProperties.HubName, taskId);
+
             var startedEvent = new TaskStartedEvent(jobId, taskId);
-            await taskClient.RaisePlanEventAsync(this.taskProperties.ProjectId, this.taskProperties.HubName, this.taskProperties.PlanId, startedEvent, cancellationToken).ConfigureAwait(false);
+            await taskClient.RaisePlanEventAsync(this.TaskProperties.ProjectId, this.TaskProperties.HubName, this.TaskProperties.PlanId, startedEvent, cancellationToken).ConfigureAwait(false);
         }
 
         public async Task ReportTaskProgress(Guid taskId, CancellationToken cancellationToken)
         {
-            var records = await taskClient.GetRecordsAsync(this.taskProperties.ProjectId, this.taskProperties.HubName, this.taskProperties.PlanId, this.taskProperties.TimelineId, userState: null, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var records = await taskClient.GetRecordsAsync(this.TaskProperties.ProjectId, this.TaskProperties.HubName, this.TaskProperties.PlanId, this.TaskProperties.TimelineId, userState: null, cancellationToken: cancellationToken).ConfigureAwait(false);
             var taskRecord = records.FirstOrDefault(r => r.Id == taskId);
             taskRecord.State = TimelineRecordState.InProgress;
 
-            await taskClient.UpdateTimelineRecordsAsync(this.taskProperties.ProjectId, this.taskProperties.HubName, this.taskProperties.PlanId, this.taskProperties.TimelineId, new List<TimelineRecord> {taskRecord}, cancellationToken).ConfigureAwait(false);
+            await taskClient.UpdateTimelineRecordsAsync(this.TaskProperties.ProjectId, this.TaskProperties.HubName, this.TaskProperties.PlanId, this.TaskProperties.TimelineId, new List<TimelineRecord> {taskRecord}, cancellationToken).ConfigureAwait(false);
         }
 
         public async Task ReportTaskCompleted(Guid taskId, TaskResult result, CancellationToken cancellationToken)
         {
-            var jobId = await GetJobId(this.taskProperties.HubName, this.taskProperties.JobId, taskId);
-            taskId = await GetTaskId(this.taskProperties.HubName, taskId);
-            
+            var jobId = await GetJobId(this.TaskProperties.HubName, this.TaskProperties.JobId, taskId);
+            taskId = await GetTaskId(this.TaskProperties.HubName, taskId);
+
             var completedEvent = new TaskCompletedEvent(jobId, taskId, result);
-            await taskClient.RaisePlanEventAsync(this.taskProperties.ProjectId, this.taskProperties.HubName, this.taskProperties.PlanId, completedEvent, cancellationToken).ConfigureAwait(false);
+            await taskClient.RaisePlanEventAsync(this.TaskProperties.ProjectId, this.TaskProperties.HubName, this.TaskProperties.PlanId, completedEvent, cancellationToken).ConfigureAwait(false);
         }
 
         public async Task UpdateTimelineRecordsAsync(TimelineRecord timelineRecord, CancellationToken cancellationToken)
         {
-            await taskClient.UpdateTimelineRecordsAsync(this.taskProperties.ProjectId, this.taskProperties.HubName, this.taskProperties.PlanId, this.taskProperties.TimelineId, new List<TimelineRecord> { timelineRecord }, cancellationToken).ConfigureAwait(false);
+            await taskClient.UpdateTimelineRecordsAsync(this.TaskProperties.ProjectId, this.TaskProperties.HubName, this.TaskProperties.PlanId, this.TaskProperties.TimelineId, new List<TimelineRecord> { timelineRecord }, cancellationToken).ConfigureAwait(false);
         }
 
         public async Task<TaskLog> CreateLogAsync(TaskLog log)
         {
-            return await taskClient.CreateLogAsync(this.taskProperties.ProjectId, this.taskProperties.HubName, this.taskProperties.PlanId, log).ConfigureAwait(false);
+            return await taskClient.CreateLogAsync(this.TaskProperties.ProjectId, this.TaskProperties.HubName, this.TaskProperties.PlanId, log).ConfigureAwait(false);
         }
 
         public async Task<TaskLog> AppendLogContentAsync(int logId, Stream uploadStream)
         {
-            return await taskClient.AppendLogContentAsync(this.taskProperties.ProjectId, this.taskProperties.HubName, this.taskProperties.PlanId, logId, uploadStream).ConfigureAwait(false);
-        }
-
-        public async Task AppendTimelineRecordFeedAsync(IEnumerable<string> lines)
-        {
-            await taskClient.AppendTimelineRecordFeedAsync(this.taskProperties.ProjectId, this.taskProperties.HubName, this.taskProperties.PlanId, this.taskProperties.TimelineId, this.taskProperties.JobId, lines).ConfigureAwait(false);
+            return await taskClient.AppendLogContentAsync(this.TaskProperties.ProjectId, this.TaskProperties.HubName, this.TaskProperties.PlanId, logId, uploadStream).ConfigureAwait(false);
         }
 
         public async Task SetTaskVariable(Guid taskId, string name, string value, bool isSecret, CancellationToken cancellationToken)
         {
-            var records = await taskClient.GetRecordsAsync(this.taskProperties.ProjectId, this.taskProperties.HubName, this.taskProperties.PlanId, this.taskProperties.TimelineId, userState: null, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var records = await taskClient.GetRecordsAsync(this.TaskProperties.ProjectId, this.TaskProperties.HubName, this.TaskProperties.PlanId, this.TaskProperties.TimelineId, userState: null, cancellationToken: cancellationToken).ConfigureAwait(false);
             var taskRecord = records.FirstOrDefault(r => r.Id == taskId);
             taskRecord.Variables[name] = new VariableValue { Value = value, IsSecret = isSecret };
 
-            await taskClient.UpdateTimelineRecordsAsync(this.taskProperties.ProjectId, this.taskProperties.HubName, this.taskProperties.PlanId, this.taskProperties.TimelineId, new List<TimelineRecord> { taskRecord }, cancellationToken).ConfigureAwait(false);
+            await taskClient.UpdateTimelineRecordsAsync(this.TaskProperties.ProjectId, this.TaskProperties.HubName, this.TaskProperties.PlanId, this.TaskProperties.TimelineId, new List<TimelineRecord> { taskRecord }, cancellationToken).ConfigureAwait(false);
         }
 
         public string GetTaskVariable(Guid taskId, string name, CancellationToken cancellationToken)
         {
-            var records = taskClient.GetRecordsAsync(this.taskProperties.ProjectId, this.taskProperties.HubName, this.taskProperties.PlanId, this.taskProperties.TimelineId, userState: null, cancellationToken: cancellationToken).Result;
+            var records = taskClient.GetRecordsAsync(this.TaskProperties.ProjectId, this.TaskProperties.HubName, this.TaskProperties.PlanId, this.TaskProperties.TimelineId, userState: null, cancellationToken: cancellationToken).Result;
             var taskRecord = records.FirstOrDefault(r => r.Id == taskId);
             foreach(var varaible in taskRecord.Variables)
             {
@@ -146,7 +143,7 @@ namespace DistributedTask.ServerTask.Remote.Common.TaskProgress
         {
             if (this.PlanVersion == null)
             {
-                var plan = await taskClient.GetPlanAsync(taskProperties.ProjectId, taskProperties.HubName, taskProperties.PlanId);
+                var plan = await taskClient.GetPlanAsync(TaskProperties.ProjectId, TaskProperties.HubName, TaskProperties.PlanId);
                 PlanVersion = plan.Version;
             }
 

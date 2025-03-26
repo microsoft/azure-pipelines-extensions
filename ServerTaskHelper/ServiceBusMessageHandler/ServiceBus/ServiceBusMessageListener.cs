@@ -1,7 +1,4 @@
-﻿using System;
-using System.Diagnostics;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using System.Diagnostics;
 using DistributedTask.ServerTask.Remote.Common;
 using Microsoft.Azure.ServiceBus;
 
