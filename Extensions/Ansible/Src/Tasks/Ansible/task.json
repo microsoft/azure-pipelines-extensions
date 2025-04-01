@@ -1,13 +1,12 @@
 {
-    "id": "6f650d20-9c5d-4cce-ad66-e68742ceadf5",
+    "id": "98df72ba-eedb-4c13-95b1-bfa614e52128",
     "name": "Ansible",
     "friendlyName": "Ansible",
     "description": "This task executes an Ansible playbook using a specified inventory via command line interface",
     "helpMarkDown": "[More Information](https://go.microsoft.com/fwlink/?linkid=853835)",
     "category": "Deploy",
     "visibility": [
-        "Build",
-        "Release"
+        "Azure Pipelines"
     ],
 	"runsOn": [
         "Agent",
@@ -16,8 +15,8 @@
     "author": "Microsoft Corporation",
     "version": {
         "Major": 0,
-        "Minor": 0,
-        "Patch": 5
+        "Minor": 245,
+        "Patch": 7
     },
     "demands": [],
     "instanceNameFormat": "Run playbook",
@@ -326,6 +325,10 @@
     "execution": {
         "Node": {
             "target": "main.js",
+            "argumentFormat": ""
+        },
+        "Node16": {
+            "target": "bash.js",
             "argumentFormat": ""
         }
     },
