@@ -7,8 +7,10 @@ import {ansibleTowerInterface} from './ansibleTowerInterface';
 import {ansibleTaskParameters} from './ansibleTaskParameters';
 
 try {
+tl.debug("Starting Ansible task");
 tl.setResourcePath(path.join(__dirname, "task.json"));
 } catch (error) {
+    tl.debug("error in Ansible task");
     tl.setResult(tl.TaskResult.Failed, error);
 }
 

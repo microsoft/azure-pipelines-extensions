@@ -149,7 +149,7 @@ export class ansibleCommandLineInterface extends ansibleInterface {
     }
 
     private _buildPlaybookExecutionCommand() {
-        let cmd = 'ansible-playbook ';
+        let cmd = '/home/v-bkasu/.local/bin/ansible-playbook ';
         if (this._inventoryPath && this._inventoryPath.trim()) {
             cmd = cmd.concat('-i ' + this._inventoryPath + ' ');
         }

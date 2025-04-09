@@ -1,5 +1,5 @@
 {
-    "id": "6f650d20-9c5d-4cce-ad66-e68742ceadf5",
+    "id": "fa459edc-791c-4dea-a563-1314624ab972",
     "name": "Ansible",
     "friendlyName": "Ansible",
     "description": "This task executes an Ansible playbook using a specified inventory via command line interface",
@@ -16,8 +16,8 @@
     "author": "Microsoft Corporation",
     "version": {
         "Major": 0,
-        "Minor": 251,
-        "Patch": 0
+        "Minor": 255,
+        "Patch": 29
     },
     "demands": [],
     "instanceNameFormat": "Run playbook",
@@ -324,9 +324,9 @@
         }
     ],
     "execution": {
-        "Node10": {
+        "Node20_1": {
             "target": "main.js",
-            "argumentFormat": ""
+            "argumentFormat": "" 
         }
     },
     "messages": {

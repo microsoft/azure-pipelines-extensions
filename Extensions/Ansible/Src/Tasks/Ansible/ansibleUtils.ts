@@ -2,6 +2,7 @@ import tl = require("azure-pipelines-task-lib/task");
 import Q = require("q");
 import util = require("util");
 import querystring = require('querystring');
+import * as fs from 'fs';
 import * as SftpClient from 'ssh2-sftp-client';
 
 var uuid = require('uuid/v4');
@@ -34,8 +35,16 @@ export async function copyFileToRemoteMachine(src: string, dest: string, sftpCon
     const sftpClient = new SftpClient();
 
     try {
-        await sftpClient.connect(sftpConfig);
+        await sftpClient.connect(sftpConfig);        
         await sftpClient.put(src, dest);
+        
+        tl.debug('src and dest files at src ' + src + ' dest: ' +dest);
+        const fileContent = await sftpClient.get(dest);
+        
+        // The content will be a buffer, so convert it to string
+        const fileText = fileContent.toString('utf8');
+        console.log('File content:', fileText);
+
         tl.debug('Copied script file to remote machine at: ${dest}');
         defer.resolve('0');
     } catch (err) {
@@ -92,14 +101,17 @@ export function runCommandOnRemoteMachine(command: string, sshClient: any, optio
 
     sshClient.exec(cmdToRun, (err, stream) => {
         if (err) {
-            defer.reject(tl.loc('RemoteCmdExecutionErr', err))
+            tl.debug('code line 95 ' + err);
+            defer.reject("test1")
+            tl.debug('code line 97 ');
         } else {
             stream.on('close', (code, signal) => {
                 tl.debug('code = ' + code + ', signal = ' + signal);
 
                 //based on the options decide whether to fail the build or not if data was written to STDERR
                 if (stdErrWritten === true && options.failOnStdErr === true) {
-                    defer.reject(tl.loc('RemoteCmdExecutionErr'));
+                    tl.debug('code line 104 ' + code);
+                    defer.reject("test2");
                 } else if (code && code != 0) {
                     defer.reject(tl.loc('RemoteCmdNonZeroExitCode', cmdToRun, code));
                 } else {
@@ -138,9 +150,10 @@ export function runCommandOnSameMachine(command: string, options: RemoteCommandO
             tl.debug('code = ' + err);
             defer.reject(tl.loc('RemoteCmdNonZeroExitCode', cmdToRun, err))
         } else {
+            tl.debug('code line 144 err = ' + err + ' stderr = ' + stderr);
             tl.debug('code = 0');
             if (stderr != '' && options.failOnStdErr === true) {
-                defer.reject(tl.loc('RemoteCmdExecutionErr'));
+                defer.reject("test");
             } else {
                 defer.resolve('0');
             }
