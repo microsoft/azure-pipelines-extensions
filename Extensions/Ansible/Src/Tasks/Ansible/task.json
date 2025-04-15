@@ -324,6 +324,10 @@
         }
     ],
     "execution": {
+        "Node10": {
+            "target": "main.js",
+            "argumentFormat": ""
+        },
         "Node20_1": {
             "target": "main.js",
             "argumentFormat": ""
