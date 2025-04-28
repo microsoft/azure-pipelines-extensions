@@ -40,16 +40,15 @@ export class ansibleRemoteMachineInterface extends ansibleCommandLineInterface {
         if (!ansibleUtils.testIfFileExist(path.join(playbookRoot,playbookFile))) {
             throw tl.loc('PlaybookNotPresent', playbookFile, playbookRoot);
         }
-        var playbookFullPath = playbookRoot + '/' + playbookFile;
-        var remotePlaybookRoot = '/tmp/' + path.basename(playbookFile);
+        var remotePlaybookRoot = '/tmp/' + path.basename(playbookRoot);
         tl.debug('ansiblePlaybookRootPath = ' + '"' + remotePlaybookRoot + '"');
 
         let scpConfig = this._sshConfig || {};
         scpConfig.path = remotePlaybookRoot;
         tl.debug('Copying playbook to ansible machine.');
-        this._playbookPath = remotePlaybookRoot;
+        this._playbookPath = remotePlaybookRoot + "/" + playbookFile;
         this._cleanupCmd.push('rm -rf ' + remotePlaybookRoot);
-        await ansibleUtils.copyFileToRemoteMachine(playbookFullPath,remotePlaybookRoot, scpConfig);
+        await ansibleUtils.copyFileToRemoteMachine(playbookRoot, remotePlaybookRoot, scpConfig);
     }
 
     private async copyInventoryAndSetPathForAgentAsSource() {
