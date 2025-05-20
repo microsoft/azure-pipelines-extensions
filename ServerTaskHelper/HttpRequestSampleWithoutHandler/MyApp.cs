@@ -8,6 +8,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Internal.AntiSSRF;
 
 namespace HttpRequestSampleWithoutHandler
 {
@@ -179,15 +180,23 @@ namespace HttpRequestSampleWithoutHandler
 
             var appendTaskLogUrl = string.Format(AppendLogContentUrl, planUri, projectId, hubName, planId, taskLogId);
 
-            using (var fs = File.Open(logFilePath, FileMode.Open, FileAccess.Read, FileShare.Read))
+            // AntiSSRFPolicy is used to validate the URL to prevent SSRF attacks.
+            var policy = new AntiSSRFPolicy();
+            policy.SetDefaults();
+            if (URIValidate.InDomain(appendTaskLogUrl, new string[] { "trusted-domain.com" }))
             {
-                HttpContent content = new StreamContent(fs);
+                using (var fs = File.Open(logFilePath, FileMode.Open, FileAccess.Read, FileShare.Read))
+                {
+                    HttpContent content = new StreamContent(fs);
+                    httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(
+                        System.Text.ASCIIEncoding.ASCII.GetBytes(string.Format("{0}:{1}", "", authToken))));
 
-                httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(
-                System.Text.ASCIIEncoding.ASCII.GetBytes(
-                    string.Format("{0}:{1}", "", authToken))));
-
-                var returnData = httpClient.PostAsync(new Uri(appendTaskLogUrl), content).Result;
+                    var returnData = httpClient.PostAsync(new Uri(appendTaskLogUrl), content).Result;
+                }
+            }
+            else
+            {
+                throw new InvalidOperationException("The URL is not within the trusted domain.");
             }
         }
 
