@@ -9,6 +9,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+	<PackageReference Include="Microsoft.Internal.AntiSSRF" Version="1.2.3" />
   </ItemGroup>
 
 </Project>
