@@ -11,4 +11,8 @@ steps:
     scriptType: pscore
     scriptLocation: inlineScript
     inlineScript: |
-      az rest -u https://app.vssps.visualstudio.com/_apis/profile/profiles/me --resource 499b84ac-1321-427f-aa17-267ca6975798
+      az rest -u https://app.vssps.visualstudio.com/_apis/profile/profiles/me --resource 6e219f2c-0bef-429f-9108-40f360499831
+
+
+
+# az rest -u https://app.vssps.visualstudio.com/_apis/profile/profiles/me --resource 499b84ac-1321-427f-aa17-267ca6975798
