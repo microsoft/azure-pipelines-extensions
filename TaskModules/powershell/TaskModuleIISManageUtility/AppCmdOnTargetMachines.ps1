@@ -150,6 +150,19 @@ function Enable-SNI
     Invoke-VstsTool -Filename $appCmdPath -Arguments $appCmdArgs -RequireExitCodeZero
 }
 
+function Get-NetshFieldValue {
+    param(
+        [array]$netshResult,
+        [string]$fieldName
+    )
+    foreach ($line in $netshResult) {
+        if ($line -match "^\s*${fieldName}\s*:\s*(.+)$") {
+            return $matches[1].Trim()
+        }
+    }
+    return $null
+}
+
 function Add-SslCert
 {
     param(
@@ -161,47 +174,50 @@ function Add-SslCert
         [string]$ipAddress
     )
 
-    if([string]::IsNullOrWhiteSpace($certhash))
-    {
+    if([string]::IsNullOrWhiteSpace($certhash)) {
         Write-Verbose "CertHash is empty. Returning"
         return
     }
 
-    if($ipAddress -eq "All Unassigned" -or $ipAddress -eq "*")
-    {
+    if($ipAddress -eq "All Unassigned" -or $ipAddress -eq "*") {
         $ipAddress = "0.0.0.0"
     }
 
     $result = $null
     $isItSameBinding = $false
+    $isItSameCert = $false
     $addCertCmd = [string]::Empty
 
-    #SNI is supported IIS 8 and above. To enable SNI hostnameport option should be used
-    if($sni -eq "true" -and $iisVersion -ge 8 -and -not [string]::IsNullOrWhiteSpace($hostname))
-    {
+    if($sni -eq "true" -and $iisVersion -ge 8 -and -not [string]::IsNullOrWhiteSpace($hostname)) {
         $showCertCmd = [string]::Format("http show sslcert hostnameport={0}:{1}", $hostname, $port)
         Write-Verbose "Checking if SslCert binding is already present. Running command : netsh $showCertCmd"
 
         $result = Invoke-VstsTool -Filename "netsh" -Arguments $showCertCmd
-        $isItSameBinding = $result.Get(4).Contains([string]::Format("{0}:{1}", $hostname, $port))
+
+        $actualBinding = Get-NetshFieldValue $result "Hostname:port"
+        $actualCertHash = Get-NetshFieldValue $result "Certificate Hash"
+
+        $isItSameBinding = $actualBinding -and $actualBinding.ToLower() -eq ("{0}:{1}" -f $hostname, $port).ToLower()
+        $isItSameCert = $actualCertHash -and $actualCertHash.ToLower().Contains($certhash.ToLower())
 
         $addCertCmd = [string]::Format("http add sslcert hostnameport={0}:{1} certhash={2} appid={{{3}}} certstorename=MY", $hostname, $port, $certhash, [System.Guid]::NewGuid().toString())
     }
-    else
-    {
+    else {
         $showCertCmd = [string]::Format("http show sslcert ipport={0}:{1}", $ipAddress, $port)
         Write-Verbose "Checking if SslCert binding is already present. Running command : netsh $showCertCmd"
 
         $result = Invoke-VstsTool -Filename "netsh" -Arguments $showCertCmd
-        $isItSameBinding = $result.Get(4).Contains([string]::Format("{0}:{1}", $ipAddress, $port))
-        
+
+        $actualBinding = Get-NetshFieldValue $result "IP:port"
+        $actualCertHash = Get-NetshFieldValue $result "Certificate Hash"
+
+        $isItSameBinding = $actualBinding -and $actualBinding.ToLower() -eq ("{0}:{1}" -f $ipAddress, $port).ToLower()
+        $isItSameCert = $actualCertHash -and $actualCertHash.ToLower().Contains($certhash.ToLower())
+
         $addCertCmd = [string]::Format("http add sslcert ipport={0}:{1} certhash={2} appid={{{3}}} certstorename=MY", $ipAddress, $port, $certhash, [System.Guid]::NewGuid().toString())
     }
 
-    $isItSameCert = $result.Get(5).ToLower().Contains($certhash.ToLower())
-
-    if($isItSameBinding -and $isItSameCert)
-    {
+    if($isItSameBinding -and $isItSameCert) {
         Write-Verbose "SSL cert binding is already present. Returning"
         return
     }
