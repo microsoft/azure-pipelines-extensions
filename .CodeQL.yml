@@ -1,14 +1,227 @@
-trigger: none
+trigger:
+  branches:
+    include:
+      - master
+  paths:
+    include:
+      - Extensions/Ansible/*
 
-pool: 
-  vmImage: ubuntu-latest
+parameters:
+  - name: forceCodeSign
+    type: boolean
+    default: false
+  - name: forcePublish
+    type: boolean
+    default: false
 
-steps:
-- task: AzureCLI@2
-  displayName: 'Get AzDO User ID'
-  inputs:
-    azureSubscription: '1es-extensions-publication-secure-service-connection'
-    scriptType: pscore
-    scriptLocation: inlineScript
-    inlineScript: |
-      az rest -u https://app.vssps.visualstudio.com/_apis/profile/profiles/me --resource 499b84ac-1321-427f-aa17-267ca6975798
+variables:
+- name: CodeQL.Enabled
+  value: true
+- name: SignType # Set to 'real' for production builds, 'test' for dev/PR builds
+  value: ${{ eq(variables['Build.SourceBranchName'], 'master') and 'real' or 'test' }}
+- name: TeamName # For MicroBuild tracking purposes
+  value: 'YourTeamName' # Replace with your actual team name
+- name: node-version
+  value: '10'
+- name: extension-name
+  value: 'vss-services-ansible'
+- name: IsMainBranchBuild
+  value: ${{ eq(variables['Build.SourceBranchName'], 'master') }}
+
+resources:
+  repositories:
+  - repository: 1ESPipelineTemplates
+    type: git
+    name: 1ESPipelineTemplates/1ESPipelineTemplates
+    ref: refs/tags/release
+
+extends:
+  template: v1/1ES.Official.PipelineTemplate.yml@1ESPipelineTemplates
+  parameters:
+    sdl:
+      sourceAnalysisPool:
+        name: 1ESPtTfsAgentBuildPoolSDL
+    pool:
+      name: 1ESPtTfsAgentBuildPool1
+    customBuildTags:
+    - ES365AIMigrationTooling
+
+    stages:
+    - stage: BuildAndTest
+      jobs:
+        - job: BuildJob        
+          displayName: Build and Test Ansible Extension
+          templateContext:
+            outputs:
+            - output: pipelineArtifact
+              displayName: 'Publish Artifact: vsix-unsigned'
+              targetPath: '$(System.ArtifactsDirectory)'
+              artifactName: vsix-unsigned
+          steps:
+          - checkout: self
+            clean: true
+            fetchTags: false
+
+          - task: UseNode@1
+            displayName: 'Install Node.js $(node-version)'
+            inputs:
+              version: '$(node-version)'
+
+          - task: Npm@1
+            displayName: 'npm install - Task Dependencies'
+            inputs:
+              command: 'install'
+              workingDir: 'Extensions/Ansible/Src/Tasks/Ansible'
+              verbose: false
+
+          - task: Npm@1
+            displayName: 'npm install - Test Dependencies'
+            inputs:
+              command: 'install'
+              workingDir: 'Extensions/Ansible/Tests'
+              verbose: false
+
+          - task: Npm@1
+            displayName: 'Install TFX CLI'
+            inputs:
+              command: 'custom'
+              customCommand: 'install -g tfx-cli'
+
+          - task: CmdLine@2
+            displayName: 'Compile TypeScript - Task'
+            inputs:
+              script: 'tsc'
+              workingDirectory: 'Extensions/Ansible/Src/Tasks/Ansible'
+
+          - task: CmdLine@2
+            displayName: 'Compile TypeScript - Tests'
+            inputs:
+              script: 'tsc'
+              workingDirectory: 'Extensions/Ansible/Tests'
+
+          - task: CmdLine@2
+            displayName: 'Run Tests'
+            inputs:
+              script: 'mocha Tests/Tasks/Ansible/_suite.js --timeout 5000'
+              workingDirectory: 'Extensions/Ansible'
+
+          - task: CopyFiles@2
+            displayName: 'Copy Compiled Files to Staging'
+            inputs:
+              SourceFolder: 'Extensions/Ansible/Src/Tasks/Ansible'
+              Contents: |
+                **/*.js
+                **/*.json
+                !**/*.ts
+                !node_modules/**
+              TargetFolder: '$(Build.StagingDirectory)/Tasks/Ansible'
+
+          - task: CopyFiles@2
+            displayName: 'Copy Extension Manifest'
+            inputs:
+              SourceFolder: 'Extensions/Ansible/Src'
+              Contents: |
+                vss-extension.json
+                readme.md
+                images/**
+              TargetFolder: '$(Build.StagingDirectory)'
+
+          - task: CmdLine@2
+            displayName: 'Create Extension Package'
+            inputs:
+              script: |
+                tfx extension create --manifest-globs vss-extension.json --output-path $(System.ArtifactsDirectory)
+              workingDirectory: '$(Build.StagingDirectory)'
+
+    - stage: CodeSigning
+      condition: or(eq(variables['IsMainBranchBuild'], 'true'), ${{ eq(parameters.forceCodeSign, 'true') }})
+      dependsOn: BuildAndTest
+      jobs:
+      - job: CodeSigningJob
+        displayName: ESRP CodeSigning
+        templateContext:
+          outputs:
+          - output: pipelineArtifact
+            displayName: 'Publish Artifact: vsix-signed'
+            targetPath: '$(System.ArtifactsDirectory)'
+            artifactName: vsix-signed
+        steps:
+        - download: current
+          artifact: vsix-unsigned
+          displayName: Download Unsigned VSIX
+
+        - task: CopyFiles@2
+          displayName: 'Copy VSIX to Working Directory'
+          inputs:
+            SourceFolder: '$(Pipeline.Workspace)/vsix-unsigned'
+            Contents: '*.vsix'
+            TargetFolder: '$(System.DefaultWorkingDirectory)'
+
+        # MicroBuild Signing Plugin - must be added at the beginning of the CodeSigning job
+        - task: MicroBuildSigningPlugin@4
+          displayName: 'Enable MicroBuild Signing'
+          inputs:
+            signType: '$(SignType)'
+            feedSource: 'https://devdiv.pkgs.visualstudio.com/DefaultCollection/_packaging/MicroBuildToolset/nuget/v3/index.json'
+          env:
+            TeamName: '$(TeamName)'
+
+        # Note: MicroBuild signing happens automatically during MSBuild if FilesToSign is configured in project files
+
+        - task: CopyFiles@2
+          displayName: 'Copy Signed VSIX to Artifacts Directory'
+          inputs:
+            SourceFolder: '$(System.DefaultWorkingDirectory)'
+            Contents: '*.vsix'
+            TargetFolder: '$(System.ArtifactsDirectory)'
+
+    - stage: PublishToMarketplace
+      condition: or(and(eq(variables['IsMainBranchBuild'], 'true'), succeeded('CodeSigning')), ${{ eq(parameters.forcePublish, 'true') }})
+      dependsOn: CodeSigning
+      jobs:
+      - job: PublishJob
+        displayName: Publish to Azure DevOps Marketplace
+        templateContext:
+          outputs:
+          - output: adoExtension
+            displayName: 'Publish Extension to Marketplace'
+            targetPath: '$(Pipeline.Workspace)/vsix-signed'
+            connectedServiceNameAzureRM: 'YourWorkloadIdentityServiceConnection' # Replace with your service connection name
+            fileType: vsix
+            vsixFile: '$(Pipeline.Workspace)/vsix-signed/ms-vscs-rm.$(extension-name).*.vsix'
+            useV5: true
+            validateExtension: true
+            publisherId: 'ms-vscs-rm'
+            extensionId: '$(extension-name)'
+        steps:
+        - download: current
+          artifact: vsix-signed
+          displayName: Download Signed VSIX
+
+        # The actual publishing is handled by the adoExtension output above
+        - task: CmdLine@2
+          displayName: 'List downloaded artifacts'
+          inputs:
+            script: |
+              echo "Downloaded artifacts:"
+              dir "$(Pipeline.Workspace)/vsix-signed"
+
+    # Optional: Test Publishing Stage for validation
+    - stage: TestPublish
+      condition: and(ne(variables['Build.SourceBranchName'], 'master'), succeeded('CodeSigning'))
+      dependsOn: CodeSigning
+      jobs:
+      - job: TestPublishJob
+        displayName: Test Publish (Validation Only)
+        steps:
+        - download: current
+          artifact: vsix-signed
+          displayName: Download Signed VSIX
+
+        - task: CmdLine@2
+          displayName: 'Validate Extension Package'
+          inputs:
+            script: |
+              echo "Extension validation for non-master branch"
+              echo "VSIX file ready for publishing:"
+              dir "$(Pipeline.Workspace)/vsix-signed"
