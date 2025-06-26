@@ -36,10 +36,10 @@ variables:
 
 resources:
   repositories:
-  - repository: 1ESPipelineTemplates
-    type: git
-    name: 1ESPipelineTemplates/1ESPipelineTemplates
-    ref: refs/tags/release
+  # - repository: 1ESPipelineTemplates
+  #   type: git
+  #   name: 1ESPipelineTemplates/1ESPipelineTemplates
+  #   ref: refs/tags/release
   - repository: MicroBuildTemplate # Add MicroBuild template
     type: git
     name: 1ESPipelineTemplates/MicroBuildTemplate
@@ -48,7 +48,7 @@ extends:
   template: azure-pipelines/MicroBuild.1ES.Official.yml@MicroBuildTemplate
   parameters:
     pool:
-      name: VSEngSS-MicroBuild2022-1ES
+      name: 1ESPtTfsAgentBuildPool1
       demands:
       - msbuild
       - visualstudio
@@ -77,17 +77,6 @@ extends:
             clean: true
             fetchTags: false
 
-          # Set SignType based on branch
-          - powershell: |
-              if ($env:BUILD_SOURCEBRANCH -eq "refs/heads/master") {
-                Write-Host "##vso[task.setvariable variable=SignType]real"
-                Write-Host "Setting SignType to 'real' for master branch"
-              } else {
-                Write-Host "##vso[task.setvariable variable=SignType]test"
-                Write-Host "Setting SignType to 'test' for non-master branch"
-              }
-            displayName: 'Set SignType based on branch'
-
           - task: NodeTool@0
             displayName: 'Install Node.js $(node-version)'
             inputs:
@@ -97,56 +86,9 @@ extends:
             displayName: 'Install Node Modules'
             inputs:
               command: 'install'
-              workingDir: 'Extensions/Ansible'
 
           - script: gulp build
             displayName: 'Build with Gulp'
-            workingDirectory: 'Extensions/Ansible'
-            
+
           - script: gulp test
             displayName: 'Run tests with Gulp'
-            workingDirectory: 'Extensions/Ansible'
-            
-          # Create the extension package
-          - script: |
-              npm install -g tfx-cli
-              tfx extension create --manifest-globs vss-extension.json --output-path $(Build.ArtifactStagingDirectory)
-            displayName: 'Create Extension Package'
-            workingDirectory: 'Extensions/Ansible'
-
-          # MicroBuild signing happens automatically via MSBuild project
-          - task: MSBuild@1
-            displayName: 'Sign Extension with MicroBuild'
-            inputs:
-              solution: 'Extensions/Ansible/SigningProject.proj'
-              msbuildArguments: '/p:SignType=$(SignType) /p:TeamName=$(TeamName)'
-              configuration: 'Release'
-
-    # - stage: PublishToMarketplace
-    #   condition: or(and(eq(variables['IsMainBranchBuild'], 'true'), succeeded('BuildAndTest')), ${{ eq(parameters.forcePublish, 'true') }})
-    #   dependsOn: BuildAndTest
-    #   jobs:
-    #   - job: PublishJob
-    #     displayName: Publish to Azure DevOps Marketplace
-    #     steps:
-    #     - download: current
-    #       artifact: vsix-signed
-    #       displayName: Download Signed VSIX
-
-    #     # Secure publishing using Managed Identity
-    #     - task: AzureCLI@2
-    #       displayName: 'Publish Extension with Managed Identity'
-    #       inputs:
-    #         azureSubscription: 'YourManagedIdentityServiceConnection'  # Replace with your WIF service connection name
-    #         scriptType: 'pscore'
-    #         scriptLocation: 'inlineScript'
-    #         inlineScript: |
-    #           # Get AAD token using Managed Identity
-    #           $aadToken = az account get-access-token --query accessToken --resource 499b84ac-1321-427f-aa17-267ca6975798 -o tsv
-              
-    #           # Install tfx-cli if not already installed
-    #           npm install -g tfx-cli
-              
-    #           # Publish to marketplace using the token
-    #           $vsixFile = Get-ChildItem "$(Pipeline.Workspace)/vsix-signed/*.vsix" | Select-Object -First 1
-    #           tfx extension publish --vsix $vsixFile.FullName --auth-type pat --token $aadToken
