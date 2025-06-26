@@ -1,11 +1,16 @@
 trigger: none
-# trigger:
 #   branches:
 #     include:
 #       - master
 #   paths:
 #     include:
 #       - Extensions/Ansible/*
+
+# # For all other branches (PR builds, feature branches, etc.)
+# pr:
+#   branches:
+#     include:
+#       - '*'
 
 parameters:
   - name: forceCodeSign
@@ -14,23 +19,20 @@ parameters:
   - name: forcePublish
     type: boolean
     default: false
-  - name: simulateCodeSigningError # Simulate a code signing error to ensure PublishArtifacts is skipped when CodeSigning fails
-    type: boolean
-    default: false
 
 variables:
 - name: CodeQL.Enabled
   value: true
-- name: SignType # Set to 'real' for production builds, 'test' for dev/PR builds
-  value: ${{ eq(variables['Build.SourceBranchName'], 'master') and 'real' or 'test' }}
+- name: SignType # Will be set at runtime based on branch
+  value: test  # Default to test, will be overridden if master branch
 - name: TeamName # For MicroBuild tracking purposes
-  value: 'YourTeamName' # Replace with your actual team name
+  value: 'YourActualTeamName' # Replace with your actual team name
 - name: node-version
-  value: '10'
+  value: '10'  # TODO:Updated to supported LTS version
 - name: extension-name
   value: 'vss-services-ansible'
 - name: IsMainBranchBuild
-  value: ${{ eq(variables['Build.SourceBranchName'], 'master') }}
+  value: $[eq(variables['Build.SourceBranch'], 'refs/heads/master')]
 
 resources:
   repositories:
@@ -38,147 +40,113 @@ resources:
     type: git
     name: 1ESPipelineTemplates/1ESPipelineTemplates
     ref: refs/tags/release
+  - repository: MicroBuildTemplate # Add MicroBuild template
+    type: git
+    name: 1ESPipelineTemplates/MicroBuildTemplate
 
 extends:
-  template: v1/1ES.Official.PipelineTemplate.yml@1ESPipelineTemplates
+  template: azure-pipelines/MicroBuild.1ES.Official.yml@MicroBuildTemplate
   parameters:
-    sdl:
-      sourceAnalysisPool:
-        name: 1ESPtTfsAgentBuildPoolSDL
     pool:
-      name: 1ESPtTfsAgentBuildPool1
+      name: VSEngSS-MicroBuild2022-1ES
+      demands:
+      - msbuild
+      - visualstudio
+      os: windows
     customBuildTags:
     - ES365AIMigrationTooling
-
+    
     stages:
     - stage: BuildAndTest
       jobs:
         - job: BuildJob        
           displayName: Build and Test Ansible Extension
           templateContext:
+            mb: # Enable MicroBuild Signing toolset
+              signing:
+                enabled: true
+                signType: $(SignType) # 'real' or 'test'
+                zipSources: false
             outputs:
             - output: pipelineArtifact
-              displayName: 'Publish Artifact: vsix-unsigned'
-              targetPath: '$(System.ArtifactsDirectory)'
-              artifactName: vsix-unsigned
+              displayName: 'Publish Artifact: vsix-signed'
+              targetPath: '$(Build.ArtifactStagingDirectory)'
+              artifactName: vsix-signed
           steps:
           - checkout: self
             clean: true
             fetchTags: false
 
-          - task: UseNode@1
+          # Set SignType based on branch
+          - powershell: |
+              if ($env:BUILD_SOURCEBRANCH -eq "refs/heads/master") {
+                Write-Host "##vso[task.setvariable variable=SignType]real"
+                Write-Host "Setting SignType to 'real' for master branch"
+              } else {
+                Write-Host "##vso[task.setvariable variable=SignType]test"
+                Write-Host "Setting SignType to 'test' for non-master branch"
+              }
+            displayName: 'Set SignType based on branch'
+
+          - task: NodeTool@0
             displayName: 'Install Node.js $(node-version)'
             inputs:
-              version: '$(node-version)'
+              versionSpec: '$(node-version)'
 
-          - name: Install Node Modules
-            run: npm install
+          - task: Npm@1
+            displayName: 'Install Node Modules'
+            inputs:
+              command: 'install'
+              workingDir: 'Extensions/Ansible'
 
-          - name: Build with Gulp
-            run: gulp build
+          - script: gulp build
+            displayName: 'Build with Gulp'
+            workingDirectory: 'Extensions/Ansible'
             
-          - name: Run tests with Gulp
-            run: gulp test
+          - script: gulp test
+            displayName: 'Run tests with Gulp'
+            workingDirectory: 'Extensions/Ansible'
             
-          - name: Package with Gulp
-            run: gulp package
+          # Create the extension package
+          - script: |
+              npm install -g tfx-cli
+              tfx extension create --manifest-globs vss-extension.json --output-path $(Build.ArtifactStagingDirectory)
+            displayName: 'Create Extension Package'
+            workingDirectory: 'Extensions/Ansible'
 
-          # - task: CmdLine@2
-          #   displayName: 'Create Extension Package'
-          #   inputs:
-          #     script: |
-          #       tfx extension create --manifest-globs vss-extension.json --output-path $(System.ArtifactsDirectory)
-          #     workingDirectory: '$(Build.StagingDirectory)'
-
-    # - stage: CodeSigning
-    #   condition: or(eq(variables['IsMainBranchBuild'], 'true'), ${{ eq(parameters.forceCodeSign, 'true') }})
-    #   dependsOn: BuildAndTest
-    #   jobs:
-    #   - job: CodeSigningJob
-    #     displayName: ESRP CodeSigning
-    #     templateContext:
-    #       outputs:
-    #       - output: pipelineArtifact
-    #         displayName: 'Publish Artifact: vsix-signed'
-    #         targetPath: '$(System.ArtifactsDirectory)'
-    #         artifactName: vsix-signed
-    #     steps:
-    #     - download: current
-    #       artifact: vsix-unsigned
-    #       displayName: Download Unsigned VSIX
-
-    #     - task: CopyFiles@2
-    #       displayName: 'Copy VSIX to Working Directory'
-    #       inputs:
-    #         SourceFolder: '$(Pipeline.Workspace)/vsix-unsigned'
-    #         Contents: '*.vsix'
-    #         TargetFolder: '$(System.DefaultWorkingDirectory)'
-
-    #     # MicroBuild Signing Plugin - must be added at the beginning of the CodeSigning job
-    #     - task: MicroBuildSigningPlugin@4
-    #       displayName: 'Enable MicroBuild Signing'
-    #       inputs:
-    #         signType: '$(SignType)'
-    #         feedSource: 'https://devdiv.pkgs.visualstudio.com/DefaultCollection/_packaging/MicroBuildToolset/nuget/v3/index.json'
-    #       env:
-    #         TeamName: '$(TeamName)'
-
-    #     # Note: MicroBuild signing happens automatically during MSBuild if FilesToSign is configured in project files
-
-    #     - task: CopyFiles@2
-    #       displayName: 'Copy Signed VSIX to Artifacts Directory'
-    #       inputs:
-    #         SourceFolder: '$(System.DefaultWorkingDirectory)'
-    #         Contents: '*.vsix'
-    #         TargetFolder: '$(System.ArtifactsDirectory)'
+          # MicroBuild signing happens automatically via MSBuild project
+          - task: MSBuild@1
+            displayName: 'Sign Extension with MicroBuild'
+            inputs:
+              solution: 'Extensions/Ansible/SigningProject.proj'
+              msbuildArguments: '/p:SignType=$(SignType) /p:TeamName=$(TeamName)'
+              configuration: 'Release'
 
     # - stage: PublishToMarketplace
-    #   condition: or(and(eq(variables['IsMainBranchBuild'], 'true'), succeeded('CodeSigning')), ${{ eq(parameters.forcePublish, 'true') }})
-    #   dependsOn: CodeSigning
+    #   condition: or(and(eq(variables['IsMainBranchBuild'], 'true'), succeeded('BuildAndTest')), ${{ eq(parameters.forcePublish, 'true') }})
+    #   dependsOn: BuildAndTest
     #   jobs:
     #   - job: PublishJob
     #     displayName: Publish to Azure DevOps Marketplace
-    #     templateContext:
-    #       outputs:
-    #       - output: adoExtension
-    #         displayName: 'Publish Extension to Marketplace'
-    #         targetPath: '$(Pipeline.Workspace)/vsix-signed'
-    #         connectedServiceNameAzureRM: '1es-extensions-publication-secure-service-connection' # Replace with your service connection name
-    #         fileType: vsix
-    #         vsixFile: '$(Pipeline.Workspace)/vsix-signed/ms-vscs-rm.$(extension-name).*.vsix'
-    #         useV5: true
-    #         validateExtension: true
-    #         publisherId: 'ms-vscs-rm'
-    #         extensionId: '$(extension-name)'
     #     steps:
     #     - download: current
     #       artifact: vsix-signed
     #       displayName: Download Signed VSIX
 
-    #     # The actual publishing is handled by the adoExtension output above
-    #     - task: CmdLine@2
-    #       displayName: 'List downloaded artifacts'
+    #     # Secure publishing using Managed Identity
+    #     - task: AzureCLI@2
+    #       displayName: 'Publish Extension with Managed Identity'
     #       inputs:
-    #         script: |
-    #           echo "Downloaded artifacts:"
-    #           dir "$(Pipeline.Workspace)/vsix-signed"
-
-    # # Optional: Test Publishing Stage for validation
-    # - stage: TestPublish
-      # condition: and(ne(variables['Build.SourceBranchName'], 'master'), succeeded('CodeSigning'))
-      # dependsOn: CodeSigning
-      # jobs:
-      # - job: TestPublishJob
-      #   displayName: Test Publish (Validation Only)
-      #   steps:
-      #   - download: current
-      #     artifact: vsix-signed
-      #     displayName: Download Signed VSIX
-
-      #   - task: CmdLine@2
-      #     displayName: 'Validate Extension Package'
-      #     inputs:
-      #       script: |
-      #         echo "Extension validation for non-master branch"
-      #         echo "VSIX file ready for publishing:"
-      #         dir "$(Pipeline.Workspace)/vsix-signed"
+    #         azureSubscription: 'YourManagedIdentityServiceConnection'  # Replace with your WIF service connection name
+    #         scriptType: 'pscore'
+    #         scriptLocation: 'inlineScript'
+    #         inlineScript: |
+    #           # Get AAD token using Managed Identity
+    #           $aadToken = az account get-access-token --query accessToken --resource 499b84ac-1321-427f-aa17-267ca6975798 -o tsv
+              
+    #           # Install tfx-cli if not already installed
+    #           npm install -g tfx-cli
+              
+    #           # Publish to marketplace using the token
+    #           $vsixFile = Get-ChildItem "$(Pipeline.Workspace)/vsix-signed/*.vsix" | Select-Object -First 1
+    #           tfx extension publish --vsix $vsixFile.FullName --auth-type pat --token $aadToken
