@@ -67,71 +67,24 @@ extends:
             inputs:
               version: '$(node-version)'
 
-          - task: Npm@1
-            displayName: 'npm install - Task Dependencies'
-            inputs:
-              command: 'install'
-              workingDir: 'Extensions/Ansible/Src/Tasks/Ansible'
-              verbose: false
+          - name: Install Node Modules
+            run: npm install
 
-          - task: Npm@1
-            displayName: 'npm install - Test Dependencies'
-            inputs:
-              command: 'install'
-              workingDir: 'Extensions/Ansible/Tests'
-              verbose: false
+          - name: Build with Gulp
+            run: gulp build
+            
+          - name: Run tests with Gulp
+            run: gulp test
+            
+          - name: Package with Gulp
+            run: gulp package
 
-          - task: Npm@1
-            displayName: 'Install TFX CLI'
-            inputs:
-              command: 'custom'
-              customCommand: 'install -g tfx-cli'
-
-          - task: CmdLine@2
-            displayName: 'Compile TypeScript - Task'
-            inputs:
-              script: 'tsc'
-              workingDirectory: 'Extensions/Ansible/Src/Tasks/Ansible'
-
-          - task: CmdLine@2
-            displayName: 'Compile TypeScript - Tests'
-            inputs:
-              script: 'tsc'
-              workingDirectory: 'Extensions/Ansible/Tests'
-
-          - task: CmdLine@2
-            displayName: 'Run Tests'
-            inputs:
-              script: 'mocha Tests/Tasks/Ansible/_suite.js --timeout 5000'
-              workingDirectory: 'Extensions/Ansible'
-
-          - task: CopyFiles@2
-            displayName: 'Copy Compiled Files to Staging'
-            inputs:
-              SourceFolder: 'Extensions/Ansible/Src/Tasks/Ansible'
-              Contents: |
-                **/*.js
-                **/*.json
-                !**/*.ts
-                !node_modules/**
-              TargetFolder: '$(Build.StagingDirectory)/Tasks/Ansible'
-
-          - task: CopyFiles@2
-            displayName: 'Copy Extension Manifest'
-            inputs:
-              SourceFolder: 'Extensions/Ansible/Src'
-              Contents: |
-                vss-extension.json
-                readme.md
-                images/**
-              TargetFolder: '$(Build.StagingDirectory)'
-
-          - task: CmdLine@2
-            displayName: 'Create Extension Package'
-            inputs:
-              script: |
-                tfx extension create --manifest-globs vss-extension.json --output-path $(System.ArtifactsDirectory)
-              workingDirectory: '$(Build.StagingDirectory)'
+          # - task: CmdLine@2
+          #   displayName: 'Create Extension Package'
+          #   inputs:
+          #     script: |
+          #       tfx extension create --manifest-globs vss-extension.json --output-path $(System.ArtifactsDirectory)
+          #     workingDirectory: '$(Build.StagingDirectory)'
 
     - stage: CodeSigning
       condition: or(eq(variables['IsMainBranchBuild'], 'true'), ${{ eq(parameters.forceCodeSign, 'true') }})
@@ -186,7 +139,7 @@ extends:
           - output: adoExtension
             displayName: 'Publish Extension to Marketplace'
             targetPath: '$(Pipeline.Workspace)/vsix-signed'
-            connectedServiceNameAzureRM: 'YourWorkloadIdentityServiceConnection' # Replace with your service connection name
+            connectedServiceNameAzureRM: '1es-extensions-publication-secure-service-connection' # Replace with your service connection name
             fileType: vsix
             vsixFile: '$(Pipeline.Workspace)/vsix-signed/ms-vscs-rm.$(extension-name).*.vsix'
             useV5: true
