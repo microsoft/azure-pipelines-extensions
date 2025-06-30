@@ -5,19 +5,6 @@ name: Running for ${{ parameters.extensionName }}
 appendCommitMessageToRunName: false
 trigger: none
 
-# # Triggers
-# trigger:
-#   branches:
-#     include:
-#     - main
-#     - master
-#   paths:
-#     exclude:
-#     - docs/*
-#     - README.md
-
-# pr: none
-
 parameters:
 - name: extensionName
   displayName: 'Extension to Build'
@@ -110,27 +97,46 @@ extends:
       - PublishEnabled
     - Extension-${{ parameters.extensionName }}
 
-    # Pipeline Stages
     stages:
-      # Build Stage
-    - stage: Build
-      displayName: 'Build Extensions'
-      dependsOn: Initialize
-      jobs:
-      - job: BuildExtensions
-        displayName: 'Build'
-        strategy:
-          matrix: $[ stageDependencies.Initialize.DetermineExtensions.outputs['ExtensionList.ExtensionMatrix'] ]
-        templateContext:
-          outputs:
-          - output: pipelineArtifact
-            displayName: 'Publish Build Artifacts'
-            targetPath: '$(Build.ArtifactStagingDirectory)/build'
-            artifactName: 'build-$(ExtensionName)'
-        steps:
-        - template: .pipelines/1es-migration/templates/build-extension.yml
-          parameters:
-            extensionName: $(ExtensionName)
+    - ${{ if eq(parameters.extensionName, 'Retrospectives') }}:
+      - template: Sign-Retro.yml
+        parameters:
+          PublishExtension: ${{ parameters.PublishExtension }}
+          ExtensionVersion: ${{ trim(parameters.ExtensionVersion) }}
+
+    - ${{ if eq(parameters.extensionName, 'estimate') }}:
+      - template: Sign-Template.yml
+        parameters:
+          ExtensionName: ${{ parameters.extensionName }}
+          PublishExtension: ${{ parameters.PublishExtension }}
+          ExtensionVersion: ${{ trim(parameters.ExtensionVersion) }}
+          MarketplaceConnectedServiceName: 'PublishSignedExtensions'
+          PublisherId: "ms-devlabs"
+          PublicExtensionName: ${{ parameters.extensionName }}
+          RepositoryName: "microsoft/azure-pipelines-extensions"
+          updateTaskVersion: true
+          usePython3: true # This extension uses Python 3 for its build process.
+          specificNodeVersion: '10.x'
+
+    # # Pipeline Stages
+    # stages:
+    # # Build Stage
+    # - stage: Build
+    #   displayName: 'Build Extension'
+    #   jobs:
+    #   - job: BuildExtensions
+    #     displayName: 'Build ${{ parameters.extensionName }}'
+    #     templateContext:
+    #       outputs:
+    #       - output: pipelineArtifact
+    #         displayName: 'Publish Build Artifacts'
+    #         targetPath: '$(Build.ArtifactStagingDirectory)/build'
+    #         artifactName: 'build-$(ExtensionName)'
+    #     steps:
+    #     - checkout: AzurePipelinesExtensions
+    #     - template: .pipelines/1es-migration/templates/build-extension.yml@AzurePipelinesExtensions
+    #       parameters:
+    #         extensionName: $(ExtensionName)
 
     # # Sign and Package Stage
     # - stage: SignPackage
@@ -139,9 +145,7 @@ extends:
     #   condition: and(succeeded(), eq(variables['IsDevBuild'], 'false'))
     #   jobs:
     #   - job: SignExtensions
-    #     displayName: 'Sign Extensions'
-    #     strategy:
-    #       matrix: $[ stageDependencies.Initialize.DetermineExtensions.outputs['ExtensionList.ExtensionMatrix'] ]
+    #     displayName: 'Sign ${{ parameters.extensionName }}'
     #     templateContext:
     #       outputs:
     #       - output: pipelineArtifact
@@ -149,7 +153,10 @@ extends:
     #         targetPath: '$(Build.ArtifactStagingDirectory)/signed'
     #         artifactName: 'signed-$(ExtensionName)'
     #     steps:
-    #     - template: .pipelines/1es-migration/templates/sign-extension.yml
+    #     - checkout: AzurePipelinesExtensions
+    #     - download: current
+    #       artifact: 'build-$(ExtensionName)'
+    #     - template: .pipelines/1es-migration/templates/sign-extension.yml@AzurePipelinesExtensions
     #       parameters:
     #         extensionName: $(ExtensionName)
             
@@ -166,25 +173,29 @@ extends:
     #     )
     #   jobs:
     #   - deployment: PublishExtensions
-    #     displayName: 'Publish to Marketplace'
+    #     displayName: 'Publish ${{ parameters.extensionName }} to Marketplace'
     #     environment: 'AzureDevOpsMarketplace-Production'
     #     strategy:
     #       runOnce:
     #         deploy:
     #           steps:
-    #           - template: .pipelines/1es-migration/templates/publish-extension.yml
+    #           - checkout: AzurePipelinesExtensions
+    #           - download: current
+    #             artifact: 'signed-$(ExtensionName)'
+    #           - template: .pipelines/1es-migration/templates/publish-extension.yml@AzurePipelinesExtensions
     #             parameters:
-    #               extensionsList: $[ stageDependencies.Initialize.DetermineExtensions.outputs['ExtensionList.ExtensionsList'] ]
+    #               extensionName: $(ExtensionName)
                   
     # # Validation Stage
     # - stage: Validate
-      # displayName: 'Post-Deployment Validation'
-      # dependsOn: Publish
-      # condition: succeeded()
-      # jobs:
-      # - job: ValidateDeployment
-      #   displayName: 'Validate Deployment'
-      #   steps:
-      #   - template: .pipelines/1es-migration/templates/validate-deployment.yml
-      #     parameters:
-      #       extensionsList: $[ stageDependencies.Initialize.DetermineExtensions.outputs['ExtensionList.ExtensionsList'] ]
+    #   displayName: 'Post-Deployment Validation'
+    #   dependsOn: Publish
+    #   condition: succeeded()
+    #   jobs:
+    #   - job: ValidateDeployment
+    #     displayName: 'Validate ${{ parameters.extensionName }} Deployment'
+    #     steps:
+    #     - checkout: AzurePipelinesExtensions
+    #     - template: .pipelines/1es-migration/templates/validate-deployment.yml@AzurePipelinesExtensions
+    #       parameters:
+    #         extensionName: $(ExtensionName)
