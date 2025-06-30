@@ -1,0 +1,201 @@
+# Publish Extension Template
+# Publishes signed extensions to Azure DevOps Marketplace
+
+parameters:
+- name: extensionsList
+  type: string
+
+steps:
+# Parse extensions list
+- task: PowerShell@2
+  displayName: 'Parse Extensions List'
+  inputs:
+    targetType: 'inline'
+    script: |
+      $extensionsList = "${{ parameters.extensionsList }}"
+      $extensions = $extensionsList -split ","
+      
+      Write-Host "Extensions to publish: $($extensions.Count)"
+      foreach ($ext in $extensions) {
+          Write-Host "  - $ext"
+      }
+      
+      # Create JSON array for loop
+      $extensionsJson = $extensions | ConvertTo-Json -Compress
+      Write-Host "##vso[task.setvariable variable=ExtensionsArray]$extensionsJson"
+
+# Download all signed artifacts
+- task: PowerShell@2
+  displayName: 'Download Signed Extensions'
+  inputs:
+    targetType: 'inline'
+    script: |
+      $extensionsList = "${{ parameters.extensionsList }}"
+      $extensions = $extensionsList -split ","
+      
+      foreach ($ext in $extensions) {
+          Write-Host "Downloading artifact: signed-$ext"
+          & "$(Agent.WorkFolder)/_tasks/DownloadPipelineArtifact_*/*/ps_modules/VstsTaskSdk/DownloadPipelineArtifact.ps1" `
+              -buildType 'current' `
+              -artifactName "signed-$ext" `
+              -targetPath "$(Pipeline.Workspace)/signed-extensions/$ext"
+      }
+
+# Query and update versions
+- task: PowerShell@2
+  displayName: 'Manage Extension Versions'
+  inputs:
+    targetType: 'inline'
+    script: |
+      $extensionsList = "${{ parameters.extensionsList }}"
+      $extensions = $extensionsList -split ","
+      $versionOverride = "${{ parameters.extensionVersion }}"
+      
+      $publishData = @()
+      
+      foreach ($ext in $extensions) {
+          $signedDir = "$(Pipeline.Workspace)/signed-extensions/$ext"
+          $vsixFile = Get-ChildItem -Path $signedDir -Filter "*.vsix" | Select-Object -First 1
+          
+          if (!$vsixFile) {
+              Write-Error "No VSIX file found for $ext"
+              continue
+          }
+          
+          # Extract manifest from VSIX
+          $tempDir = Join-Path $env:TEMP "vsix_$ext"
+          New-Item -ItemType Directory -Force -Path $tempDir | Out-Null
+          
+          Add-Type -AssemblyName System.IO.Compression.FileSystem
+          [System.IO.Compression.ZipFile]::ExtractToDirectory($vsixFile.FullName, $tempDir)
+          
+          $manifest = Get-Content "$tempDir/extension.vsixmanifest" -Raw
+          $xml = [xml]$manifest
+          
+          # Get current extension info
+          $identity = $xml.PackageManifest.Metadata.Identity
+          $currentVersion = $identity.Version
+          $publisherId = $identity.Publisher
+          
+          Write-Host "Extension: $ext"
+          Write-Host "Current Version: $currentVersion"
+          Write-Host "Publisher: $publisherId"
+          
+          # Determine new version
+          if ($versionOverride) {
+              $newVersion = $versionOverride
+          } else {
+              # Auto-increment patch version
+              $versionParts = $currentVersion -split '\.'
+              $versionParts[2] = [int]$versionParts[2] + 1
+              $newVersion = $versionParts -join '.'
+          }
+          
+          Write-Host "New Version: $newVersion"
+          
+          $publishData += @{
+              Extension = $ext
+              VsixPath = $vsixFile.FullName
+              Version = $newVersion
+              Publisher = $publisherId
+          }
+          
+          # Cleanup
+          Remove-Item -Path $tempDir -Recurse -Force
+      }
+      
+      # Save publish data
+      $publishData | ConvertTo-Json | Out-File "$(Pipeline.Workspace)/publish-data.json"
+
+# Install TFX CLI
+- task: TfxInstaller@5
+  displayName: 'Install TFX CLI'
+  inputs:
+    version: '0.x'
+    checkLatest: true
+
+# Publish extensions to marketplace
+- task: PowerShell@2
+  displayName: 'Publish Extensions to Marketplace'
+  inputs:
+    targetType: 'inline'
+    script: |
+      $publishData = Get-Content "$(Pipeline.Workspace)/publish-data.json" | ConvertFrom-Json
+      $marketplaceToken = $env:MARKETPLACE_PAT
+      
+      foreach ($item in $publishData) {
+          Write-Host "Publishing $($item.Extension) v$($item.Version)..."
+          
+          try {
+              # Publish to marketplace
+              tfx extension publish `
+                  --vsix $($item.VsixPath) `
+                  --token $marketplaceToken `
+                  --override "{ `"version`": `"$($item.Version)`" }"
+              
+              if ($LASTEXITCODE -eq 0) {
+                  Write-Host "Successfully published $($item.Extension)"
+                  
+                  # Tag the repository
+                  git tag "$($item.Extension)-v$($item.Version)" -m "Published $($item.Extension) version $($item.Version)"
+              } else {
+                  Write-Error "Failed to publish $($item.Extension)"
+              }
+          }
+          catch {
+              Write-Error "Error publishing $($item.Extension): $_"
+          }
+      }
+  env:
+    MARKETPLACE_PAT: $(MarketplaceServiceConnection.AccessToken)
+
+# Create GitHub release (if repository trigger)
+- task: GitHubRelease@1
+  displayName: 'Create GitHub Release'
+  condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/'))
+  inputs:
+    gitHubConnection: 'ADOExtensionAPIGHToken2'
+    repositoryName: 'microsoft/azure-pipelines-extensions'
+    action: 'create'
+    target: '$(Build.SourceVersion)'
+    tagSource: 'gitTag'
+    releaseNotesSource: 'inline'
+    releaseNotesInline: |
+      ## Azure DevOps Extensions Release
+      
+      This release includes the following extensions:
+      ${{ parameters.extensionsList }}
+      
+      ### What's Changed
+      - Signed and published extensions using 1ES pipeline
+      - Security scanning completed
+      - All extensions verified
+      
+      ### Downloads
+      The signed VSIX files are attached to this release.
+    assets: '$(Pipeline.Workspace)/signed-extensions/**/*.vsix'
+    assetUploadMode: 'replace'
+    isDraft: false
+    isPreRelease: false
+
+# Update deployment records
+- task: PowerShell@2
+  displayName: 'Update Deployment Records'
+  inputs:
+    targetType: 'inline'
+    script: |
+      $deploymentRecord = @{
+          Timestamp = (Get-Date).ToString("yyyy-MM-dd HH:mm:ss")
+          BuildId = $env:BUILD_BUILDID
+          BuildNumber = $env:BUILD_BUILDNUMBER
+          SourceBranch = $env:BUILD_SOURCEBRANCH
+          SourceVersion = $env:BUILD_SOURCEVERSION
+          Extensions = Get-Content "$(Pipeline.Workspace)/publish-data.json" | ConvertFrom-Json
+          TriggeredBy = $env:BUILD_REQUESTEDFOR
+          Reason = $env:BUILD_REASON
+      }
+      
+      $recordPath = "$(Build.ArtifactStagingDirectory)/deployment-record.json"
+      $deploymentRecord | ConvertTo-Json -Depth 10 | Out-File $recordPath
+      
+      Write-Host "Deployment record created at: $recordPath"

@@ -1,0 +1,181 @@
+# Build Extension Template
+# Builds a single Azure DevOps extension using the gal CLI
+
+parameters:
+- name: extensionName
+  type: string
+- name: nodeVersion
+  type: string
+  default: '20.x'
+
+steps:
+# Checkout the extensions repository
+- checkout: AzurePipelinesExtensions
+  path: s/extensions
+  fetchDepth: 0
+  clean: true
+
+# Setup Node.js
+- task: NodeTool@0
+  displayName: 'Install Node.js'
+  inputs:
+    versionSpec: ${{ parameters.nodeVersion }}
+
+# Install global tools
+- task: Npm@1
+  displayName: 'Install Global Tools'
+  inputs:
+    command: 'custom'
+    customCommand: 'install -g tfx-cli @microsoft/gal-cli'
+    verbose: true
+
+# Cache node_modules for performance
+- task: Cache@2
+  displayName: 'Cache node_modules'
+  inputs:
+    key: 'npm | "$(Agent.OS)" | $(Build.SourcesDirectory)/extensions/Extensions/${{ parameters.extensionName }}/package-lock.json'
+    restoreKeys: |
+      npm | "$(Agent.OS)"
+    path: $(Build.SourcesDirectory)/extensions/Extensions/${{ parameters.extensionName }}/node_modules
+
+# Navigate to extension directory
+- task: PowerShell@2
+  displayName: 'Verify Extension Structure'
+  inputs:
+    targetType: 'inline'
+    workingDirectory: '$(Build.SourcesDirectory)/extensions'
+    script: |
+      $extensionPath = "Extensions/${{ parameters.extensionName }}"
+      
+      # Check if extension exists
+      if (!(Test-Path $extensionPath)) {
+          Write-Error "Extension path not found: $extensionPath"
+          exit 1
+      }
+      
+      # Check for required files
+      $requiredFiles = @("vss-extension.json", "package.json")
+      foreach ($file in $requiredFiles) {
+          if (!(Test-Path "$extensionPath/$file")) {
+              Write-Error "Required file missing: $extensionPath/$file"
+              exit 1
+          }
+      }
+      
+      Write-Host "Extension structure verified successfully"
+      
+      # Read extension metadata
+      $manifest = Get-Content "$extensionPath/vss-extension.json" | ConvertFrom-Json
+      Write-Host "Extension ID: $($manifest.id)"
+      Write-Host "Extension Version: $($manifest.version)"
+      Write-Host "Publisher: $($manifest.publisher)"
+      
+      # Set variables for later use
+      Write-Host "##vso[task.setvariable variable=ExtensionId]$($manifest.id)"
+      Write-Host "##vso[task.setvariable variable=ExtensionPublisher]$($manifest.publisher)"
+      Write-Host "##vso[task.setvariable variable=ExtensionVersion]$($manifest.version)"
+
+# Install dependencies
+- task: Npm@1
+  displayName: 'Install Dependencies'
+  inputs:
+    command: 'ci'
+    workingDir: '$(Build.SourcesDirectory)/extensions/Extensions/${{ parameters.extensionName }}'
+    verbose: true
+
+# Build extension using gal CLI
+- task: PowerShell@2
+  displayName: 'Build Extension with gal'
+  inputs:
+    targetType: 'inline'
+    workingDirectory: '$(Build.SourcesDirectory)/extensions/Extensions/${{ parameters.extensionName }}'
+    script: |
+      Write-Host "Building extension with gal CLI..."
+      
+      # Check if galp-build command exists in package.json
+      $packageJson = Get-Content "package.json" | ConvertFrom-Json
+      
+      if ($packageJson.scripts -and $packageJson.scripts."galp-build") {
+          Write-Host "Running galp-build script..."
+          npm run galp-build
+      } else {
+          Write-Host "Running gal build directly..."
+          gal build
+      }
+      
+      if ($LASTEXITCODE -ne 0) {
+          Write-Error "Build failed"
+          exit 1
+      }
+      
+      Write-Host "Build completed successfully"
+
+# Package extension with gal
+- task: PowerShell@2
+  displayName: 'Package Extension with gal'
+  inputs:
+    targetType: 'inline'
+    workingDirectory: '$(Build.SourcesDirectory)/extensions/Extensions/${{ parameters.extensionName }}'
+    script: |
+      Write-Host "Packaging extension with gal CLI..."
+      
+      # Create output directory
+      $outputDir = "$(Build.ArtifactStagingDirectory)/build"
+      New-Item -ItemType Directory -Force -Path $outputDir
+      
+      # Check if galp-package command exists
+      $packageJson = Get-Content "package.json" | ConvertFrom-Json
+      
+      if ($packageJson.scripts -and $packageJson.scripts."galp-package") {
+          Write-Host "Running galp-package script..."
+          npm run galp-package
+      } else {
+          Write-Host "Running gal package directly..."
+          gal package --output-path $outputDir
+      }
+      
+      if ($LASTEXITCODE -ne 0) {
+          Write-Error "Packaging failed"
+          exit 1
+      }
+      
+      # Find the generated VSIX file
+      $vsixFiles = Get-ChildItem -Path . -Filter "*.vsix" -Recurse
+      if ($vsixFiles.Count -eq 0) {
+          Write-Error "No VSIX file generated"
+          exit 1
+      }
+      
+      # Copy VSIX to staging directory
+      foreach ($vsix in $vsixFiles) {
+          Write-Host "Found VSIX: $($vsix.FullName)"
+          Copy-Item $vsix.FullName -Destination $outputDir
+      }
+      
+      Write-Host "Packaging completed successfully"
+
+# Run tests if they exist
+- task: Npm@1
+  displayName: 'Run Tests'
+  condition: and(succeeded(), ne(variables['IsDevBuild'], 'true'))
+  continueOnError: true
+  inputs:
+    command: 'custom'
+    customCommand: 'test'
+    workingDir: '$(Build.SourcesDirectory)/extensions/Extensions/${{ parameters.extensionName }}'
+
+# Security scan with ESLint
+- task: Npm@1
+  displayName: 'Run ESLint Security Scan'
+  condition: succeeded()
+  continueOnError: true
+  inputs:
+    command: 'custom'
+    customCommand: 'run lint'
+    workingDir: '$(Build.SourcesDirectory)/extensions/Extensions/${{ parameters.extensionName }}'
+
+# Generate SBOM (Software Bill of Materials)
+- task: AzureArtifacts.manifest-generator-task.manifest-generator-task.ManifestGeneratorTask@0
+  displayName: 'Generate SBOM'
+  inputs:
+    BuildDropPath: '$(Build.ArtifactStagingDirectory)/build'

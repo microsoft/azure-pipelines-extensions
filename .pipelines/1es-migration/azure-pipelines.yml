@@ -1,0 +1,265 @@
+# Azure Pipelines Extensions 1ES Build Pipeline
+# This pipeline builds, signs, and publishes Azure DevOps extensions using 1ES standards
+
+name: $(Build.DefinitionName)-$(Date:yyyyMMdd)$(Rev:.r)
+appendCommitMessageToRunName: false
+
+# Triggers
+trigger:
+  branches:
+    include:
+    - main
+    - master
+  paths:
+    exclude:
+    - docs/*
+    - README.md
+
+pr: none
+
+parameters:
+- name: extensionName
+  displayName: 'Extension(s) to Build'
+  type: string
+  default: 'all'
+  values:
+  - all
+  - Ansible
+  - IIS Web App Deployment
+  - custom
+- name: customExtensionName
+  displayName: 'Custom Extension Name (if custom selected)'
+  type: string
+  default: ''
+- name: isDevBuild
+  displayName: 'Development Build (Skip signing/publishing)'
+  type: boolean
+  default: false
+- name: publishExtension
+  displayName: 'Publish Extension to Marketplace'
+  type: boolean
+  default: false
+- name: extensionVersion
+  displayName: 'Extension Version Override (leave empty for auto-increment)'
+  type: string
+  default: ''
+- name: runOnTrigger
+  displayName: 'Run on External Trigger (GitHub Release)'
+  type: boolean
+  default: false
+
+variables:
+# 1ES Security Scanning
+- name: CodeQL.Enabled
+  value: true
+- name: BuildConfiguration
+  value: 'Release'
+# Extension registry settings
+- name: PublisherId
+  value: 'ms-devops-extensions'
+# Signing variables from secure group
+- group: EPS.ESRPSigningProdAME
+# Dynamic variables
+- name: ExtensionToProcess
+  value: ${{ parameters.extensionName }}
+- name: IsDevBuild
+  value: ${{ parameters.isDevBuild }}
+
+resources:
+  repositories:
+  # 1ES Pipeline Templates
+  - repository: 1ESPipelineTemplates
+    type: git
+    name: 1ESPipelineTemplates/1ESPipelineTemplates
+    ref: refs/tags/release
+  # The main extensions repository
+  - repository: AzurePipelinesExtensions
+    type: github
+    name: microsoft/azure-pipelines-extensions
+    endpoint: ADOExtensionAPIGHToken2
+    ref: refs/heads/main
+    trigger:
+      branches:
+        include:
+        - main
+      tags:
+        include:
+        - 'v*'
+
+extends:
+  template: v1/1ES.Official.PipelineTemplate.yml@1ESPipelineTemplates
+  parameters:
+    # SDL Configuration
+    sdl:
+      sourceAnalysisPool:
+        name: 1ESPtTfsAgentBuildPoolSDL
+      sourceRepositoriesToScan:
+        include:
+        - repository: AzurePipelinesExtensions
+      spotBugs:
+        enabled: false # Not applicable for TypeScript/JavaScript
+      credscan:
+        enabled: true
+      binskim:
+        enabled: true
+      eslint:
+        enabled: true
+    
+    # Build Pool
+    pool:
+      name: 1ESPtTfsAgentBuildPool1
+      
+    # Custom Build Tags
+    customBuildTags:
+    - ES365AIMigrationTooling
+    - 1ES-AzureExtensions
+    - ${{ if eq(parameters.isDevBuild, true) }}:
+      - DevBuild
+    - ${{ if eq(parameters.isDevBuild, false) }}:
+      - ProductionBuild
+    - ${{ if eq(parameters.publishExtension, true) }}:
+      - PublishEnabled
+    - Extension-${{ parameters.extensionName }}
+    
+    # Pipeline Stages
+    stages:
+    # Determine which extensions to build
+    - stage: Initialize
+      displayName: 'Initialize Pipeline'
+      jobs:
+      - job: DetermineExtensions
+        displayName: 'Determine Extensions to Build'
+        steps:
+        - checkout: self
+        - checkout: AzurePipelinesExtensions
+          path: s/extensions
+          fetchDepth: 0
+          fetchTags: true
+          
+        - task: PowerShell@2
+          displayName: 'Determine Extensions List'
+          name: ExtensionList
+          inputs:
+            targetType: 'inline'
+            script: |
+              $extensionName = "${{ parameters.extensionName }}"
+              $customExtension = "${{ parameters.customExtensionName }}"
+              $runOnTrigger = "${{ parameters.runOnTrigger }}"
+              $extensionsToProcess = @()
+              
+              Write-Host "Processing extension selection..."
+              
+              # Check if triggered by GitHub release
+              if ($runOnTrigger -eq "true" -and $env:BUILD_REASON -eq "IndividualCI") {
+                  Write-Host "Detected GitHub trigger, examining commit message..."
+                  $commitMessage = $env:BUILD_SOURCEVERSIONMESSAGE
+                  if ($commitMessage -match "Release: (.+) v[\d\.]+") {
+                      $extensionName = $matches[1]
+                      Write-Host "Found extension from release: $extensionName"
+                  }
+              }
+              
+              # Determine extensions to build
+              if ($extensionName -eq "all") {
+                  # Get all extension folders
+                  $extensionsPath = "$(Build.SourcesDirectory)/extensions/Extensions"
+                  $extensions = Get-ChildItem -Path $extensionsPath -Directory | 
+                  Where-Object { Test-Path "$($_.FullName)/vss-extension.json" }
+                  $extensionsToProcess = $extensions.Name
+              }
+              elseif ($extensionName -eq "custom" -and $customExtension) {
+                  $extensionsToProcess = @($customExtension)
+              }
+              else {
+                  $extensionsToProcess = @($extensionName)
+              }
+              
+              # Output for pipeline
+              $extensionsList = $extensionsToProcess -join ","
+              Write-Host "Extensions to process: $extensionsList"
+              Write-Host "##vso[task.setvariable variable=ExtensionsList;isOutput=true]$extensionsList"
+              
+              # Create JSON for matrix
+              $matrixObject = @{}
+              foreach ($ext in $extensionsToProcess) {
+                  $matrixObject[$ext] = @{ ExtensionName = $ext }
+              }
+              $matrixJson = $matrixObject | ConvertTo-Json -Compress
+              Write-Host "##vso[task.setvariable variable=ExtensionMatrix;isOutput=true]$matrixJson"
+
+    # Build Stage
+    - stage: Build
+      displayName: 'Build Extensions'
+      dependsOn: Initialize
+      jobs:
+      - job: BuildExtensions
+        displayName: 'Build'
+        strategy:
+          matrix: $[ stageDependencies.Initialize.DetermineExtensions.outputs['ExtensionList.ExtensionMatrix'] ]
+        templateContext:
+          outputs:
+          - output: pipelineArtifact
+            displayName: 'Publish Build Artifacts'
+            targetPath: '$(Build.ArtifactStagingDirectory)/build'
+            artifactName: 'build-$(ExtensionName)'
+        steps:
+        - template: .pipelines/1es-migration/templates/build-extension.yml
+          parameters:
+            extensionName: $(ExtensionName)
+            
+    # Sign and Package Stage
+    - stage: SignPackage
+      displayName: 'Sign and Package'
+      dependsOn: Build
+      condition: and(succeeded(), eq(variables['IsDevBuild'], 'false'))
+      jobs:
+      - job: SignExtensions
+        displayName: 'Sign Extensions'
+        strategy:
+          matrix: $[ stageDependencies.Initialize.DetermineExtensions.outputs['ExtensionList.ExtensionMatrix'] ]
+        templateContext:
+          outputs:
+          - output: pipelineArtifact
+            displayName: 'Publish Signed Extensions'
+            targetPath: '$(Build.ArtifactStagingDirectory)/signed'
+            artifactName: 'signed-$(ExtensionName)'
+        steps:
+        - template: .pipelines/1es-migration/templates/sign-extension.yml
+          parameters:
+            extensionName: $(ExtensionName)
+            
+    # Publish Stage
+    - stage: Publish
+      displayName: 'Publish to Marketplace'
+      dependsOn: SignPackage
+      condition: |
+        and(
+          succeeded(),
+          eq(variables['IsDevBuild'], 'false'),
+          eq(variables['Build.SourceBranch'], 'refs/heads/main'),
+          eq('${{ parameters.publishExtension }}', 'true')
+        )
+      jobs:
+      - deployment: PublishExtensions
+        displayName: 'Publish to Marketplace'
+        environment: 'AzureDevOpsMarketplace-Production'
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+              - template: .pipelines/1es-migration/templates/publish-extension.yml
+                parameters:
+                  extensionsList: $[ stageDependencies.Initialize.DetermineExtensions.outputs['ExtensionList.ExtensionsList'] ]
+                  
+    # Validation Stage
+    - stage: Validate
+      displayName: 'Post-Deployment Validation'
+      dependsOn: Publish
+      condition: succeeded()
+      jobs:
+      - job: ValidateDeployment
+        displayName: 'Validate Deployment'
+        steps:
+        - template: .pipelines/1es-migration/templates/validate-deployment.yml
+          parameters:
+            extensionsList: $[ stageDependencies.Initialize.DetermineExtensions.outputs['ExtensionList.ExtensionsList'] ]
