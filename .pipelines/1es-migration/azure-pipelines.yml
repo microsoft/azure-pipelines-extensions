@@ -1,62 +1,51 @@
 # Azure Pipelines Extensions 1ES Build Pipeline
 # This pipeline builds, signs, and publishes Azure DevOps extensions using 1ES standards
 
-name: $(Build.DefinitionName)-$(Date:yyyyMMdd)$(Rev:.r)
+name: Running for ${{ parameters.extensionName }}
 appendCommitMessageToRunName: false
+trigger: none
 
-# Triggers
-trigger:
-  branches:
-    include:
-    - main
-    - master
-  paths:
-    exclude:
-    - docs/*
-    - README.md
+# # Triggers
+# trigger:
+#   branches:
+#     include:
+#     - main
+#     - master
+#   paths:
+#     exclude:
+#     - docs/*
+#     - README.md
 
-pr: none
+# pr: none
 
 parameters:
 - name: extensionName
-  displayName: 'Extension(s) to Build'
+  displayName: 'Extension to Build'
   type: string
-  default: 'all'
+  default: 'Ansible'
   values:
-  - all
   - Ansible
   - IIS Web App Deployment
-  - custom
-- name: customExtensionName
-  displayName: 'Custom Extension Name (if custom selected)'
-  type: string
-  default: ''
 - name: isDevBuild
   displayName: 'Development Build (Skip signing/publishing)'
-  type: boolean
-  default: false
-- name: publishExtension
-  displayName: 'Publish Extension to Marketplace'
   type: boolean
   default: false
 - name: extensionVersion
   displayName: 'Extension Version Override (leave empty for auto-increment)'
   type: string
   default: ''
-- name: runOnTrigger
-  displayName: 'Run on External Trigger (GitHub Release)'
-  type: boolean
-  default: false
+# - name: runOnTrigger
+#   displayName: 'Run on External Trigger (GitHub Release)'
+#   type: boolean
+#   default: false
 
 variables:
 # 1ES Security Scanning
 - name: CodeQL.Enabled
   value: true
-- name: BuildConfiguration
-  value: 'Release'
 # Extension registry settings
 - name: PublisherId
-  value: 'ms-devops-extensions'
+  value: 'ms-vscs-rm'
 # Signing variables from secure group
 - group: EPS.ESRPSigningProdAME
 # Dynamic variables
