@@ -115,6 +115,6 @@ extends:
         - checkout: AzurePipelinesExtensions
           displayName: 'Checkout Extensions Repository'
           
-        - template: scripts/build.yml
+        - template: templates/build.yml
           parameters:
             extensionName: $(ExtensionName)

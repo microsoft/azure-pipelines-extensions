@@ -1,0 +1,28 @@
+# Build Extension Template
+# Builds a single Azure DevOps extension using the gal CLI
+
+parameters:
+- name: extensionName
+  type: string
+- name: nodeVersion
+  type: string
+  default: '10.x'
+
+steps:
+# Setup Node.js
+- task: NodeTool@0
+  displayName: 'Install Node.js'
+  inputs:
+    versionSpec: ${{ parameters.nodeVersion }}
+
+# Install dependencies
+- task: Npm@1
+  displayName: 'Install Dependencies'
+
+- run: gulp build
+  displayName: 'Build Extensions with Gulp'
+
+# Build all extensions using gulp CLI
+- task: PowerShell@2
+  displayName: 'Build Extensions'
+  run: gulp build
