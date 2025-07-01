@@ -183,7 +183,23 @@ function Add-SslCert
         Write-Verbose "Checking if SslCert binding is already present. Running command : netsh $showCertCmd"
 
         $result = Invoke-VstsTool -Filename "netsh" -Arguments $showCertCmd
-        $isItSameBinding = $result.Get(4).Contains([string]::Format("{0}:{1}", $hostname, $port))
+        $bindingPattern = "Hostname:port\s*:\s*([^:\s]+):(\d+)"
+        $certHashPattern = "Certificate Hash\s*:\s*([a-fA-F0-9]+)"
+        
+        $resultText = $result -join "`n"
+        
+        if($resultText -match $bindingPattern)
+        {
+            $extractedHostname = $matches[1]
+            $extractedPort = $matches[2]
+            $isItSameBinding = ($extractedHostname -eq $hostname -and $extractedPort -eq $port)
+        }
+        
+        if($resultText -match $certHashPattern)
+        {
+            $extractedCertHash = $matches[1]
+            $isItSameCert = ($extractedCertHash.ToLower() -eq $certhash.ToLower())
+        }
 
         $addCertCmd = [string]::Format("http add sslcert hostnameport={0}:{1} certhash={2} appid={{{3}}} certstorename=MY", $hostname, $port, $certhash, [System.Guid]::NewGuid().toString())
     }
@@ -193,12 +209,26 @@ function Add-SslCert
         Write-Verbose "Checking if SslCert binding is already present. Running command : netsh $showCertCmd"
 
         $result = Invoke-VstsTool -Filename "netsh" -Arguments $showCertCmd
-        $isItSameBinding = $result.Get(4).Contains([string]::Format("{0}:{1}", $ipAddress, $port))
+        $bindingPattern = "IP:port\s*:\s*([^:\s]+):(\d+)"
+        $certHashPattern = "Certificate Hash\s*:\s*([a-fA-F0-9]+)"
+        
+        $resultText = $result -join "`n"
+        
+        if($resultText -match $bindingPattern)
+        {
+            $extractedIP = $matches[1]
+            $extractedPort = $matches[2]
+            $isItSameBinding = ($extractedIP -eq $ipAddress -and $extractedPort -eq $port)
+        }
+        
+        if($resultText -match $certHashPattern)
+        {
+            $extractedCertHash = $matches[1]
+            $isItSameCert = ($extractedCertHash.ToLower() -eq $certhash.ToLower())
+        }
         
         $addCertCmd = [string]::Format("http add sslcert ipport={0}:{1} certhash={2} appid={{{3}}} certstorename=MY", $ipAddress, $port, $certhash, [System.Guid]::NewGuid().toString())
     }
-
-    $isItSameCert = $result.Get(5).ToLower().Contains($certhash.ToLower())
 
     if($isItSameBinding -and $isItSameCert)
     {
