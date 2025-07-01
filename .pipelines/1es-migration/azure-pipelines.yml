@@ -1,7 +1,7 @@
 # Azure Pipelines Extensions 1ES Build Pipeline
 # This pipeline builds, signs, and publishes Azure DevOps extensions using 1ES standards
 
-name: Running for ${{ parameters.extensionName }}
+name: Extension $(ExtensionName) - $(Date:yyyyMMdd)$(Rev:.r)
 appendCommitMessageToRunName: false
 trigger: none
 
@@ -13,6 +13,7 @@ parameters:
   values:
   - Ansible
   - IIS Web App Deployment
+  - Terraform
 - name: isDevBuild
   displayName: 'Development Build (Skip signing/publishing)'
   type: boolean
@@ -80,11 +81,11 @@ extends:
         enabled: true
       eslint:
         enabled: true
-    
+
     # Build Pool
     pool:
       name: 1ESPtTfsAgentBuildPool1
-      
+
     # Custom Build Tags
     customBuildTags:
     - ES365AIMigrationTooling
@@ -98,104 +99,22 @@ extends:
     - Extension-${{ parameters.extensionName }}
 
     stages:
-    - ${{ if eq(parameters.extensionName, 'Retrospectives') }}:
-      - template: Sign-Retro.yml
-        parameters:
-          PublishExtension: ${{ parameters.PublishExtension }}
-          ExtensionVersion: ${{ trim(parameters.ExtensionVersion) }}
-
-    - ${{ if eq(parameters.extensionName, 'estimate') }}:
-      - template: Sign-Template.yml
-        parameters:
-          ExtensionName: ${{ parameters.extensionName }}
-          PublishExtension: ${{ parameters.PublishExtension }}
-          ExtensionVersion: ${{ trim(parameters.ExtensionVersion) }}
-          MarketplaceConnectedServiceName: 'PublishSignedExtensions'
-          PublisherId: "ms-devlabs"
-          PublicExtensionName: ${{ parameters.extensionName }}
-          RepositoryName: "microsoft/azure-pipelines-extensions"
-          updateTaskVersion: true
-          usePython3: true # This extension uses Python 3 for its build process.
-          specificNodeVersion: '10.x'
-
-    # # Pipeline Stages
-    # stages:
-    # # Build Stage
-    # - stage: Build
-    #   displayName: 'Build Extension'
-    #   jobs:
-    #   - job: BuildExtensions
-    #     displayName: 'Build ${{ parameters.extensionName }}'
-    #     templateContext:
-    #       outputs:
-    #       - output: pipelineArtifact
-    #         displayName: 'Publish Build Artifacts'
-    #         targetPath: '$(Build.ArtifactStagingDirectory)/build'
-    #         artifactName: 'build-$(ExtensionName)'
-    #     steps:
-    #     - checkout: AzurePipelinesExtensions
-    #     - template: .pipelines/1es-migration/templates/build-extension.yml@AzurePipelinesExtensions
-    #       parameters:
-    #         extensionName: $(ExtensionName)
-
-    # # Sign and Package Stage
-    # - stage: SignPackage
-    #   displayName: 'Sign and Package'
-    #   dependsOn: Build
-    #   condition: and(succeeded(), eq(variables['IsDevBuild'], 'false'))
-    #   jobs:
-    #   - job: SignExtensions
-    #     displayName: 'Sign ${{ parameters.extensionName }}'
-    #     templateContext:
-    #       outputs:
-    #       - output: pipelineArtifact
-    #         displayName: 'Publish Signed Extensions'
-    #         targetPath: '$(Build.ArtifactStagingDirectory)/signed'
-    #         artifactName: 'signed-$(ExtensionName)'
-    #     steps:
-    #     - checkout: AzurePipelinesExtensions
-    #     - download: current
-    #       artifact: 'build-$(ExtensionName)'
-    #     - template: .pipelines/1es-migration/templates/sign-extension.yml@AzurePipelinesExtensions
-    #       parameters:
-    #         extensionName: $(ExtensionName)
-            
-    # # Publish Stage
-    # - stage: Publish
-    #   displayName: 'Publish to Marketplace'
-    #   dependsOn: SignPackage
-    #   condition: |
-    #     and(
-    #       succeeded(),
-    #       eq(variables['IsDevBuild'], 'false'),
-    #       eq(variables['Build.SourceBranch'], 'refs/heads/main'),
-    #       eq('${{ parameters.publishExtension }}', 'true')
-    #     )
-    #   jobs:
-    #   - deployment: PublishExtensions
-    #     displayName: 'Publish ${{ parameters.extensionName }} to Marketplace'
-    #     environment: 'AzureDevOpsMarketplace-Production'
-    #     strategy:
-    #       runOnce:
-    #         deploy:
-    #           steps:
-    #           - checkout: AzurePipelinesExtensions
-    #           - download: current
-    #             artifact: 'signed-$(ExtensionName)'
-    #           - template: .pipelines/1es-migration/templates/publish-extension.yml@AzurePipelinesExtensions
-    #             parameters:
-    #               extensionName: $(ExtensionName)
-                  
-    # # Validation Stage
-    # - stage: Validate
-    #   displayName: 'Post-Deployment Validation'
-    #   dependsOn: Publish
-    #   condition: succeeded()
-    #   jobs:
-    #   - job: ValidateDeployment
-    #     displayName: 'Validate ${{ parameters.extensionName }} Deployment'
-    #     steps:
-    #     - checkout: AzurePipelinesExtensions
-    #     - template: .pipelines/1es-migration/templates/validate-deployment.yml@AzurePipelinesExtensions
-    #       parameters:
-    #         extensionName: $(ExtensionName)
+    # Build Stage
+    - stage: Build
+      displayName: 'Build ${{ parameters.extensionName }}'
+      jobs:
+      - job: BuildExtension
+        displayName: 'Build Extension'
+        templateContext:
+          outputs:
+          - output: pipelineArtifact
+            displayName: 'Publish Build Output'
+            targetPath: '$(Build.ArtifactStagingDirectory)/build'
+            artifactName: 'build-$(ExtensionName)'
+        steps:
+        - checkout: AzurePipelinesExtensions
+          displayName: 'Checkout Extensions Repository'
+          
+        - template: scripts/build.yml
+          parameters:
+            extensionName: $(ExtensionName)
