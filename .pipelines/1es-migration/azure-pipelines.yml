@@ -100,4 +100,4 @@ extends:
           displayName: 'Checkout Extensions Repository'
         - template: templates/build.yml
           parameters:
-            extensionName: $(ExtensionName)
+            extensionName: ${{ parameters.extensionName }}
