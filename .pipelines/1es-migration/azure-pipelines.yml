@@ -35,7 +35,7 @@ variables:
 - name: PublisherId
   value: 'ms-vscs-rm'
 # Signing variables from secure group
-- group: EPS.ESRPSigningProdAME
+# - group: EPS.ESRPSigningProdAME
 # Dynamic variables
 - name: ExtensionName
   value: ${{ parameters.extensionName }}
@@ -55,13 +55,6 @@ resources:
     name: microsoft/azure-pipelines-extensions
     endpoint: github.com_vhorbachov
     ref: refs/heads/main
-    trigger:
-      branches:
-        include:
-        - master
-      tags:
-        include:
-        - 'v*'
 
 extends:
   template: v1/1ES.Official.PipelineTemplate.yml@1ESPipelineTemplates
@@ -115,6 +108,6 @@ extends:
         - checkout: AzurePipelinesExtensions
           displayName: 'Checkout Extensions Repository'
           
-        - template: templates/build.yml
-          parameters:
-            extensionName: $(ExtensionName)
+        # - template: templates/build.yml
+        #   parameters:
+        #     extensionName: $(ExtensionName)
