@@ -114,6 +114,12 @@ extends:
             command: 'install'
             verbose: false
 
+        - task: Npm@1
+          displayName: 'Install Gulp CLI'
+          inputs:
+            command: 'custom'
+            customCommand: 'install -g gulp-cli'
+
         - task: PowerShell@2
           displayName: 'Build Extensions with Gulp'
           inputs:
