@@ -5,8 +5,7 @@ function Import-SqlPs {
     pop-location
 }
 
-function Get-SqlFilepathOnTargetMachine
-{
+function Get-SqlFilepathOnTargetMachine {
     param([string] $inlineSql)
 
     $tempFilePath = [System.IO.Path]::GetTempFileName()
@@ -15,8 +14,7 @@ function Get-SqlFilepathOnTargetMachine
     return $tempFilePath
 }
 
-function Invoke-SqlQueryDeployment
-{
+function Invoke-SqlQueryDeployment {
     param (
         [string]$taskType,
         [string]$sqlFile,
@@ -37,18 +35,14 @@ function Invoke-SqlQueryDeployment
     Write-Verbose "authscheme = $authscheme"
     Write-Verbose "additionalArguments = $additionalArguments"
 
-    try 
-    {
-        if($taskType -eq "sqlInline")
-        {
+    try {
+        if ($taskType -eq "sqlInline") {
             # Convert this inline Sql to a temporary file on Server
             $sqlFile = Get-SqlFilepathOnTargetMachine $inlineSql
         }
-        else
-        {
+        else {
             # Validate Sql File
-            if([System.IO.Path]::GetExtension($sqlFile) -ne ".sql")
-            {
+            if ([System.IO.Path]::GetExtension($sqlFile) -ne ".sql") {
                 throw "Invalid Sql file [ $sqlFile ] provided"
             }
         }        
@@ -57,15 +51,13 @@ function Invoke-SqlQueryDeployment
         Import-SqlPs
 
         $spaltArguments = @{
-            ServerInstance=$serverName
-            Database=$databaseName
-            InputFile=$sqlFile
+            ServerInstance = $serverName
+            Database       = $databaseName
+            InputFile      = $sqlFile
         }
 
-        if($authscheme -eq "sqlServerAuthentication")
-        {
-            if($sqlServerCredentials)
-            {
+        if ($authscheme -eq "sqlServerAuthentication") {
+            if ($sqlServerCredentials) {
                 $sqlUsername = $sqlServerCredentials.Username
                 $sqlPassword = $sqlServerCredentials.GetNetworkCredential().password
                 $spaltArguments.Add("Username", $sqlUsername)
@@ -75,12 +67,10 @@ function Invoke-SqlQueryDeployment
 
         $commandToLog = "Invoke-SqlCmd"
         foreach ($arg in $spaltArguments.Keys) {
-            if($arg -ne "Password")
-            {
+            if ($arg -ne "Password") {
                 $commandToLog += " -${arg} $($spaltArguments.Item($arg))"
             }
-            else
-            {
+            else {
                 $commandToLog += " -${arg} *******"
             }
         }
@@ -88,22 +78,30 @@ function Invoke-SqlQueryDeployment
         $additionalArguments = EscapeSpecialChars $additionalArguments
 
         Write-Verbose "Invoke-SqlCmd arguments : $commandToLog  $additionalArguments"
-        Invoke-Expression "Invoke-SqlCmd @spaltArguments $additionalArguments"
+        if ($additionalArguments.ToLower().Contains("-verbose")) {
+        
+            $rawOutput = (Invoke-Expression "Invoke-SqlCmd @spaltArguments $additionalArguments" 4>&1) | Out-String
+            $trimmedOutput = $rawOutput.TrimEnd()
+            $trimmedOutput -split "`r?`n" | ForEach-Object { Write-Output $_ }
+        
+        }
+        else {
+
+            Invoke-Expression "Invoke-SqlCmd @spaltArguments $additionalArguments"
+        }
+
 
     } # End of Try
-    Finally
-    {
+    Finally {
         # Cleanup the temp file & dont error out in case Deletion fails
-        if ($taskType -eq "sqlInline" -and $sqlFile -and ((Test-Path $sqlFile) -eq $true))
-        {
+        if ($taskType -eq "sqlInline" -and $sqlFile -and ((Test-Path $sqlFile) -eq $true)) {
             Write-Verbose "Removing File $sqlFile"
             Remove-Item $sqlFile -ErrorAction 'SilentlyContinue'
         }
     }
 }
 
-function EscapeSpecialChars
-{
+function EscapeSpecialChars {
     param(
         [string]$str
     )
