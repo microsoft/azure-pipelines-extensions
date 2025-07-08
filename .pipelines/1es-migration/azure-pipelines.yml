@@ -98,7 +98,6 @@ extends:
         steps:
         - checkout: self
           displayName: 'Checkout Extensions Repository'
-          
-        # - template: templates/build.yml
-        #   parameters:
-        #     extensionName: $(ExtensionName)
+        - template: templates/build.yml
+          parameters:
+            extensionName: $(ExtensionName)
