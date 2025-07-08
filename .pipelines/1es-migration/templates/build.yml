@@ -18,11 +18,14 @@ steps:
 # Install dependencies
 - task: Npm@1
   displayName: 'Install Dependencies'
-
-- run: gulp build
-  displayName: 'Build Extensions with Gulp'
+  inputs:
+    command: 'install'
+    workingDir: '$(Build.SourcesDirectory)'
 
 # Build all extensions using gulp CLI
 - task: PowerShell@2
-  displayName: 'Build Extensions'
-  run: gulp build
+  displayName: 'Build Extensions with Gulp'
+  inputs:
+    targetType: 'inline'
+    script: 'gulp build'
+    workingDirectory: '$(Build.SourcesDirectory)'

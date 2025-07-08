@@ -98,6 +98,6 @@ extends:
         steps:
         - checkout: self
           displayName: 'Checkout Extensions Repository'
-        - template: templates/build.yml
+        - template: .pipelines/1es-migration/templates/build.yml
           parameters:
             extensionName: $(ExtensionName)
