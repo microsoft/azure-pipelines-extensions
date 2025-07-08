@@ -138,7 +138,7 @@ extends:
         - task: CopyFiles@2
           displayName: 'Copy VSIX Files to Artifacts'
           inputs:
-            SourceFolder: '_package'
-            # Contents: '**/*.vsix'
+            SourceFolder: '$(Build.SourcesDirectory)/_package'
+            Contents: '**/*.vsix'
             TargetFolder: '$(System.ArtifactsDirectory)'
-            # flattenFolders: true
+            flattenFolders: true
