@@ -54,7 +54,6 @@ resources:
     type: github
     name: microsoft/azure-pipelines-extensions
     endpoint: github.com_vhorbachov
-    ref: refs/heads/main
 
 extends:
   template: v1/1ES.Official.PipelineTemplate.yml@1ESPipelineTemplates
