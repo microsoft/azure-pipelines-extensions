@@ -78,6 +78,7 @@ function Invoke-SqlQueryDeployment {
         $additionalArguments = EscapeSpecialChars $additionalArguments
 
         Write-Verbose "Invoke-SqlCmd arguments : $commandToLog  $additionalArguments"
+        
         if ($additionalArguments.ToLower().Contains("-verbose")) {
         
             $rawOutput = (Invoke-Expression "Invoke-SqlCmd @spaltArguments $additionalArguments" 4>&1) | Out-String
