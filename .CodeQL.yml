@@ -1,13 +1,94 @@
-path_classifiers:
-  test:
-    # Note: use only forward slash / as a path separator.
-    # *  Matches any sequence of characters except a forward slash.
-    # ** Matches any sequence of characters, including a forward slash. 
-    # This wildcard must either be surrounded by forward slash symbols, or used as the first segment of a path. 
-    # It matches zero or more whole directory segments. There is no need to use a wildcard at the end of a directory path because all sub-directories are automatically matched. 
-    # That is, /anything/ matches the anything directory and all its subdirectories.
-    # Always enclose the expression in double quotes if it includes *.
-    # Exclude the sample folders
-    - ServerTaskHelper/AzureFunctionSample
-    - ServerTaskHelper/HttpRequestSampleWithoutHandler
-    - ServerTaskHelper/VstsServerTaskHelper.SampleClient
+trigger: none
+#   branches:
+#     include:
+#       - master
+#   paths:
+#     include:
+#       - Extensions/Ansible/*
+
+# # For all other branches (PR builds, feature branches, etc.)
+# pr:
+#   branches:
+#     include:
+#       - '*'
+
+parameters:
+  - name: forceCodeSign
+    type: boolean
+    default: false
+  - name: forcePublish
+    type: boolean
+    default: false
+
+variables:
+- name: CodeQL.Enabled
+  value: true
+- name: SignType # Will be set at runtime based on branch
+  value: test  # Default to test, will be overridden if master branch
+- name: TeamName # For MicroBuild tracking purposes
+  value: 'YourActualTeamName' # Replace with your actual team name
+- name: node-version
+  value: '10'  # TODO:Updated to supported LTS version
+- name: extension-name
+  value: 'vss-services-ansible'
+- name: IsMainBranchBuild
+  value: $[eq(variables['Build.SourceBranch'], 'refs/heads/master')]
+
+resources:
+  repositories:
+  # - repository: 1ESPipelineTemplates
+  #   type: git
+  #   name: 1ESPipelineTemplates/1ESPipelineTemplates
+  #   ref: refs/tags/release
+  - repository: MicroBuildTemplate # Add MicroBuild template
+    type: git
+    name: 1ESPipelineTemplates/MicroBuildTemplate
+
+extends:
+  template: azure-pipelines/MicroBuild.1ES.Official.yml@MicroBuildTemplate
+  parameters:
+    pool:
+      name: 1ESPtTfsAgentBuildPool1
+      demands:
+      - msbuild
+      - visualstudio
+      os: windows
+    customBuildTags:
+    - ES365AIMigrationTooling
+    
+    stages:
+    - stage: BuildAndTest
+      jobs:
+        - job: BuildJob        
+          displayName: Build and Test Ansible Extension
+          templateContext:
+            mb: # Enable MicroBuild Signing toolset
+              signing:
+                enabled: true
+                signType: $(SignType) # 'real' or 'test'
+                zipSources: false
+            outputs:
+            - output: pipelineArtifact
+              displayName: 'Publish Artifact: vsix-signed'
+              targetPath: '$(Build.ArtifactStagingDirectory)'
+              artifactName: vsix-signed
+          steps:
+          - checkout: self
+            clean: true
+            fetchTags: false
+
+          - task: NodeTool@0
+            displayName: 'Install Node.js $(node-version)'
+            inputs:
+              versionSpec: '$(node-version)'
+
+          - task: Npm@1
+            displayName: 'Install Node Modules'
+            inputs:
+              command: 'install'
+
+          - script: gulp build
+            displayName: 'Build with Gulp'
+
+          - script: gulp test
+            displayName: 'Run tests with Gulp'
