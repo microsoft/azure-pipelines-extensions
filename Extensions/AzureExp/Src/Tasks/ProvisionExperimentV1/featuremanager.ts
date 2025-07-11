@@ -1,5 +1,6 @@
 import * as tl from 'azure-pipelines-task-lib';
 import { RestClient, IRequestOptions } from 'typed-rest-client/RestClient';
+
 import { ExpAuthorizer } from './expauthorizer';
 
 export default class FeatureManager {
@@ -23,9 +24,9 @@ export default class FeatureManager {
         tl.debug(JSON.stringify(response));
 
         let featureId = response.result as string;
-        
+
         requestUrl = `https://exp.microsoft.com/api/experiments/${featureId}/initialize`;
-        
+
         tl.debug('Initialize feature rollout');
         tl.debug(`[POST] ${requestUrl}`);
         response = await this._restClient.create(requestUrl, null, options);
@@ -35,7 +36,7 @@ export default class FeatureManager {
         tl.setVariable('FeatureId', featureId);
     }
 
-    public async createProgression(featureId: string, progression): Promise<void> {
+    public async createProgression(featureId: string, progression: unknown): Promise<void> {
         let requestUrl = `https://exp.microsoft.com/api/features/${featureId}/progressions`;
         let accessToken = await this._expAuthorizer.getAccessToken();
         let options: IRequestOptions = {
