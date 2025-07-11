@@ -1,0 +1,221 @@
+# Azure Pipelines Extensions 1ES Build Pipeline
+# This pipeline builds, signs, and publishes Azure DevOps extensions using 1ES standards
+# Compliant with Secure Extension Onboarding initiative
+
+name: Extension $(ExtensionName) - $(Date:yyyyMMdd)$(Rev:.r)
+appendCommitMessageToRunName: false
+
+trigger: none
+#  branches:
+#    include:
+#    - main
+
+parameters:
+- name: extensionName
+  displayName: 'Extension to Build'
+  type: string
+  default: 'IISWebAppDeploy'
+  values:
+  - Ansible
+  - BitBucket
+  - CircleCI
+  - CopyStageVariableToReleaseVariable
+  - ExternalTfs
+  - GenevaMonitor
+  - IISWebAppDeploy
+  - KangarooL2
+  - SampleTask
+  - ServiceNow
+  - TeamCity
+- name: forceCodeSign
+  displayName: 'Force Code Signing (even for non-main branch)'
+  type: boolean
+  default: false
+- name: publishExtension
+  displayName: 'Publish Extension to Marketplace'
+  type: boolean
+  default: false
+- name: simulateCodeSigningError
+  displayName: 'Simulate code signing error (for testing)'
+  type: boolean
+  default: false
+
+variables:
+# 1ES Security Scanning
+- name: CodeQL.Enabled
+  value: true
+# Extension registry settings
+- name: PublisherId
+  value: 'ms-vscs-rm'
+# Signing variables from secure group
+# - group: EPS.ESRPSigningProdAME
+# Dynamic variables
+- name: ExtensionName
+  value: ${{ parameters.extensionName }}
+- name: IsMainBranchBuild
+  value: $[eq(variables['Build.SourceBranchName'], 'main')]
+
+resources:
+  repositories:
+  # 1ES Pipeline Templates
+  - repository: 1ESPipelineTemplates
+    type: git
+    name: 1ESPipelineTemplates/1ESPipelineTemplates
+    ref: refs/tags/release
+
+extends:
+  template: v1/1ES.Official.PipelineTemplate.yml@1ESPipelineTemplates
+  parameters:
+    # SDL Configuration
+    sdl:
+      sourceAnalysisPool:
+        name: 1ESPtTfsAgentBuildPoolSDL
+      spotBugs:
+        enabled: false # Not applicable for TypeScript/JavaScript
+      credscan:
+        enabled: true
+      binskim:
+        enabled: true
+      eslint:
+        enabled: true
+
+    # Build Pool
+    pool:
+      name: 1ESPtTfsAgentBuildPool1
+
+    # Custom Build Tags
+    customBuildTags:
+    - ES365AIMigrationTooling
+    - 1ES-AzureExtensions
+    - SecureExtensionOnboarding
+    - Extension-${{ parameters.extensionName }}
+
+    stages:
+
+    - stage: BuildAndTest
+      displayName: 'Build and Test ${{ parameters.extensionName }}'
+      jobs:
+      - job: BuildAndTestJob
+        displayName: 'Build Extension'
+        templateContext:
+          outputs:
+          - output: pipelineArtifact
+            displayName: 'Publish Build Artifacts (Unsigned)'
+            targetPath: '$(System.ArtifactsDirectory)'
+            artifactName: 'vsix-unsigned'
+        steps:
+        - checkout: self
+          displayName: 'Checkout Extensions Repository'
+          clean: true
+          fetchTags: false
+
+        # Setup Node.js
+        - task: NodeTool@0
+          displayName: 'Install Node.js'
+          inputs:
+            versionSpec: '10.x'
+
+        - task: Npm@1
+          displayName: 'Install Dependencies'
+          inputs:
+            command: 'install'
+            verbose: false
+
+        - task: Npm@1
+          displayName: 'Install TFX CLI'
+          inputs:
+            command: 'custom'
+            customCommand: 'install -g tfx-cli' 
+
+        - task: Npm@1
+          displayName: 'Install Gulp CLI'
+          inputs:
+            command: 'custom'
+            customCommand: 'install -g gulp-cli'
+
+        - task: PowerShell@2
+          displayName: 'Build Extensions with Gulp'
+          inputs:
+            targetType: 'inline'
+            script: 'gulp build'
+            workingDirectory: '$(Build.SourcesDirectory)'
+
+        - task: PowerShell@2
+          displayName: 'Package Extensions with Gulp'
+          inputs:
+            targetType: 'inline'
+            script: 'gulp package'
+            workingDirectory: '$(Build.SourcesDirectory)'
+
+        # Copy VSIX files to artifacts directory
+        - task: CopyFiles@2
+          displayName: 'Copy VSIX Files to Artifacts'
+          inputs:
+            SourceFolder: '$(Build.SourcesDirectory)/_package'
+            Contents: '${{ parameters.extensionName }}/*.vsix'
+            TargetFolder: '$(System.ArtifactsDirectory)'
+            flattenFolders: true
+
+    # - stage: CodeSigning
+    #   condition: or(eq(variables['IsMainBranchBuild'], 'true'), ${{ eq(parameters.forceCodeSign, 'true') }}, ${{ eq(parameters.simulateCodeSigningError, 'true') }})
+    #   dependsOn: BuildAndTest
+    #   jobs:
+    #   - job: CodeSigningJob
+    #     displayName: CodeSigning
+    #     templateContext:
+    #       outputs:
+    #       - output: pipelineArtifact
+    #         displayName: 'Signed vsix artifact'
+    #         targetPath: '$(System.ArtifactsDirectory)'
+    #         artifactName: vsix
+    #     steps:
+    #     - download: current
+    #       artifact: vsix-unsigned
+    #       displayName: Download Artifact
+    #     - script: |
+    #         echo "Simulated error in CodeSigning step."
+    #         exit 1
+    #       displayName: Simulate CodeSigning Error
+    #       condition: ${{ eq(parameters.simulateCodeSigningError, 'true') }}
+    #     - task: CopyFiles@2
+    #       displayName: 'Copy Files to: $(System.DefaultWorkingDirectory)'
+    #       inputs:
+    #         SourceFolder: '$(Pipeline.Workspace)\vsix-unsigned'
+    #         Contents: '*.vsix'
+    #         TargetFolder: $(System.DefaultWorkingDirectory)
+    #     - task: EsrpCodeSigning@5
+    #       displayName: ESRP CodeSigning
+    #       inputs:
+    #         ConnectedServiceName: '$(Control.EsrpServiceConnectionName)'
+    #         AppRegistrationClientId: '$(Control.AppRegistrationClientId)'
+    #         AppRegistrationTenantId: '$(Control.AppRegistrationTenantId)'
+    #         AuthAKVName: '$(Control.AuthAKVName)'
+    #         AuthCertName: '$(Control.AuthCertName)'
+    #         AuthSignCertName: '$(Control.AuthSignCertName)'
+    #         FolderPath: $(System.DefaultWorkingDirectory)
+    #         Pattern: '*.vsix'
+    #         signConfigType: inlineSignParams
+    #         inlineOperation: |-
+    #           [ 
+    #             {
+    #               "KeyCode": "CP-500813",
+    #               "OperationCode": "AdoExtensionSign",
+    #               "ToolName": "sign",
+    #               "ToolVersion": "1.0",
+    #               "Parameters": {}
+    #             },
+    #             {
+    #               "KeyCode": "CP-500813",
+    #               "OperationCode": "AdoExtensionVerify",
+    #               "ToolName": "sign",
+    #               "ToolVersion": "1.0",
+    #               "Parameters": {}
+    #             }
+    #           ]
+    #         SessionTimeout: 30
+    #     - task: CopyFiles@2
+    #       name: CopyFiles_5
+    #       displayName: 'Copy Files to: $(System.ArtifactsDirectory)'
+    #       inputs:
+    #         Contents: '*.vsix'
+    #         TargetFolder: $(System.ArtifactsDirectory)
