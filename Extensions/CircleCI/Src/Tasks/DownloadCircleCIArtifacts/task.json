@@ -9,7 +9,7 @@
     "preview": true,
     "version": {
       "Major": 0,
-      "Minor": 231,
+      "Minor": 260,
       "Patch": 0
     },
     "demands": [],
@@ -107,4 +107,3 @@
       "BranchNotFound": "Branch not found"
     }
   }
-  
