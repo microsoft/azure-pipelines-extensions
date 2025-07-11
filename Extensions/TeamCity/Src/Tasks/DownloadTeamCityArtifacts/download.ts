@@ -1,9 +1,6 @@
-import { resolve } from 'azure-pipelines-task-lib/mock-task';
-var path = require('path')
-var url = require('url')
+var path = require('path');
 
 import * as tl from 'azure-pipelines-task-lib/task';
-import * as models from 'artifact-engine/Models';
 import * as engine from 'artifact-engine/Engine';
 import * as providers from 'artifact-engine/Providers';
 import * as webHandlers from 'artifact-engine/Providers/typed-rest-client/Handlers';
@@ -19,7 +16,7 @@ function getDefaultProps() {
         hostType: hostType,
         definitionName: '[NonEmail:' + (hostType === 'release' ? tl.getVariable('RELEASE.DEFINITIONNAME') : tl.getVariable('BUILD.DEFINITIONNAME')) + ']',
         processId: hostType === 'release' ? tl.getVariable('RELEASE.RELEASEID') : tl.getVariable('BUILD.BUILDID'),
-        processUrl: hostType === 'release' ? tl.getVariable('RELEASE.RELEASEWEBURL') : (tl.getVariable('SYSTEM.TEAMFOUNDATIONSERVERURI') + tl.getVariable('SYSTEM.TEAMPROJECT') + '/_build?buildId=' + tl.getVariable('BUILD.BUILDID')),
+        processUrl: hostType === 'release' ? tl.getVariable('RELEASE.RELEASEWEBURL') : (tl.getVariable('SYSTEM.TEAMFOUNDATIONSERVERURI')! + tl.getVariable('SYSTEM.TEAMPROJECT') + '/_build?buildId=' + tl.getVariable('BUILD.BUILDID')),
         taskDisplayName: tl.getVariable('TASK.DISPLAYNAME'),
         jobid: tl.getVariable('SYSTEM.JOBID'),
         agentVersion: tl.getVariable('AGENT.VERSION'),
@@ -29,7 +26,7 @@ function getDefaultProps() {
     };
 }
 
-function publishEvent(feature, properties: any): void {
+function publishEvent(feature: string, properties: any): void {
     try {
         var splitVersion = (process.env.AGENT_VERSION || '').split('.');
         var major = parseInt(splitVersion[0] || '0');
@@ -53,12 +50,10 @@ function publishEvent(feature, properties: any): void {
 
 async function main(): Promise<void> {
     var promise = new Promise<void>(async (resolve, reject) => {
-        let connection = tl.getInput("connection", true);
-        let projectId = tl.getInput("project", true);
-        let definitionId = tl.getInput("definition", true);
+        let connection = tl.getInput("connection", true)!;
         let buildId = tl.getInput("version", true);
         let itemPattern = tl.getInput("itemPattern", false);
-        let downloadPath = tl.getInput("downloadPath", true);
+        let downloadPath = tl.getInput("downloadPath", true)!;
 
         var endpointUrl = tl.getEndpointUrl(connection, false);
         var itemsUrl = endpointUrl + "/httpAuth/app/rest/builds/id:" + buildId + "/artifacts/children/";
@@ -66,8 +61,8 @@ async function main(): Promise<void> {
         console.log(tl.loc("DownloadArtifacts", itemsUrl));
 
         var templatePath = path.join(__dirname, 'teamcity.handlebars');
-        var username = tl.getEndpointAuthorizationParameter(connection, 'username', false);
-        var password = tl.getEndpointAuthorizationParameter(connection, 'password', false);
+        var username = tl.getEndpointAuthorizationParameter(connection, 'username', false)!;
+        var password = tl.getEndpointAuthorizationParameter(connection, 'password', false)!;
         var teamcityVariables = {
             "endpoint": {
                 "url": endpointUrl
@@ -76,20 +71,20 @@ async function main(): Promise<void> {
         var handler = new webHandlers.BasicCredentialHandler(username, password);
         var webProvider = new providers.WebProvider(itemsUrl, templatePath, teamcityVariables, handler);
         var fileSystemProvider = new providers.FilesystemProvider(downloadPath);
-        var parallelLimit : number = +tl.getVariable("release.artifact.download.parallellimit");
+        var parallelLimit : number = +tl.getVariable("release.artifact.download.parallellimit")!;
 
         var downloader = new engine.ArtifactEngine();
         var downloaderOptions = new engine.ArtifactEngineOptions();
         downloaderOptions.itemPattern = itemPattern ? itemPattern : '**';
         var debugMode = tl.getVariable('System.Debug');
         downloaderOptions.verbose = debugMode ? debugMode.toLowerCase() != 'false' : false;
-        var parallelLimit : number = +tl.getVariable("release.artifact.download.parallellimit");
-        
-        if(parallelLimit){
+        var parallelLimit : number = +tl.getVariable("release.artifact.download.parallellimit")!;
+
+        if (parallelLimit) {
             downloaderOptions.parallelProcessingLimit = parallelLimit;
         }
 
-        await downloader.processItems(webProvider, fileSystemProvider, downloaderOptions).then((result) => {
+        await downloader.processItems(webProvider, fileSystemProvider, downloaderOptions).then(() => {
             console.log(tl.loc('ArtifactsSuccessfullyDownloaded', downloadPath));
             resolve();
         }).catch((error) => {
@@ -101,7 +96,7 @@ async function main(): Promise<void> {
 }
 
 main()
-    .then((result) => {
+    .then(() => {
         tl.setResult(tl.TaskResult.Succeeded, "");
     })
     .catch((err) => {
