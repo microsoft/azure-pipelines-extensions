@@ -156,66 +156,66 @@ extends:
             TargetFolder: '$(System.ArtifactsDirectory)'
             flattenFolders: true
 
-    - stage: CodeSigning
-      condition: or(eq(variables['IsMainBranchBuild'], 'true'), ${{ eq(parameters.forceCodeSign, 'true') }}, ${{ eq(parameters.simulateCodeSigningError, 'true') }})
-      dependsOn: BuildAndTest
-      jobs:
-      - job: CodeSigningJob
-        displayName: CodeSigning
-        templateContext:
-          outputs:
-          - output: pipelineArtifact
-            displayName: 'Signed vsix artifact'
-            targetPath: '$(System.ArtifactsDirectory)'
-            artifactName: vsix
-        steps:
-        - download: current
-          artifact: vsix-unsigned
-          displayName: Download Artifact
-        - script: |
-            echo "Simulated error in CodeSigning step."
-            exit 1
-          displayName: Simulate CodeSigning Error
-          condition: ${{ eq(parameters.simulateCodeSigningError, 'true') }}
-        - task: CopyFiles@2
-          displayName: 'Copy Files to: $(System.DefaultWorkingDirectory)'
-          inputs:
-            SourceFolder: '$(Pipeline.Workspace)\vsix-unsigned'
-            Contents: '*.vsix'
-            TargetFolder: $(System.DefaultWorkingDirectory)
-        - task: EsrpCodeSigning@5
-          displayName: ESRP CodeSigning
-          inputs:
-            ConnectedServiceName: '$(Control.EsrpServiceConnectionName)'
-            AppRegistrationClientId: '$(Control.AppRegistrationClientId)'
-            AppRegistrationTenantId: '$(Control.AppRegistrationTenantId)'
-            AuthAKVName: '$(Control.AuthAKVName)'
-            AuthCertName: '$(Control.AuthCertName)'
-            AuthSignCertName: '$(Control.AuthSignCertName)'
-            FolderPath: $(System.DefaultWorkingDirectory)
-            Pattern: '*.vsix'
-            signConfigType: inlineSignParams
-            inlineOperation: |-
-              [ 
-                {
-                  "KeyCode": "CP-500813",
-                  "OperationCode": "AdoExtensionSign",
-                  "ToolName": "sign",
-                  "ToolVersion": "1.0",
-                  "Parameters": {}
-                },
-                {
-                  "KeyCode": "CP-500813",
-                  "OperationCode": "AdoExtensionVerify",
-                  "ToolName": "sign",
-                  "ToolVersion": "1.0",
-                  "Parameters": {}
-                }
-              ]
-            SessionTimeout: 30
-        - task: CopyFiles@2
-          name: CopyFiles_5
-          displayName: 'Copy Files to: $(System.ArtifactsDirectory)'
-          inputs:
-            Contents: '*.vsix'
-            TargetFolder: $(System.ArtifactsDirectory)
+    # - stage: CodeSigning
+    #   condition: or(eq(variables['IsMainBranchBuild'], 'true'), ${{ eq(parameters.forceCodeSign, 'true') }}, ${{ eq(parameters.simulateCodeSigningError, 'true') }})
+    #   dependsOn: BuildAndTest
+    #   jobs:
+    #   - job: CodeSigningJob
+    #     displayName: CodeSigning
+    #     templateContext:
+    #       outputs:
+    #       - output: pipelineArtifact
+    #         displayName: 'Signed vsix artifact'
+    #         targetPath: '$(System.ArtifactsDirectory)'
+    #         artifactName: vsix
+    #     steps:
+    #     - download: current
+    #       artifact: vsix-unsigned
+    #       displayName: Download Artifact
+    #     - script: |
+    #         echo "Simulated error in CodeSigning step."
+    #         exit 1
+    #       displayName: Simulate CodeSigning Error
+    #       condition: ${{ eq(parameters.simulateCodeSigningError, 'true') }}
+    #     - task: CopyFiles@2
+    #       displayName: 'Copy Files to: $(System.DefaultWorkingDirectory)'
+    #       inputs:
+    #         SourceFolder: '$(Pipeline.Workspace)\vsix-unsigned'
+    #         Contents: '*.vsix'
+    #         TargetFolder: $(System.DefaultWorkingDirectory)
+    #     - task: EsrpCodeSigning@5
+    #       displayName: ESRP CodeSigning
+    #       inputs:
+    #         ConnectedServiceName: '$(Control.EsrpServiceConnectionName)'
+    #         AppRegistrationClientId: '$(Control.AppRegistrationClientId)'
+    #         AppRegistrationTenantId: '$(Control.AppRegistrationTenantId)'
+    #         AuthAKVName: '$(Control.AuthAKVName)'
+    #         AuthCertName: '$(Control.AuthCertName)'
+    #         AuthSignCertName: '$(Control.AuthSignCertName)'
+    #         FolderPath: $(System.DefaultWorkingDirectory)
+    #         Pattern: '*.vsix'
+    #         signConfigType: inlineSignParams
+    #         inlineOperation: |-
+    #           [ 
+    #             {
+    #               "KeyCode": "CP-500813",
+    #               "OperationCode": "AdoExtensionSign",
+    #               "ToolName": "sign",
+    #               "ToolVersion": "1.0",
+    #               "Parameters": {}
+    #             },
+    #             {
+    #               "KeyCode": "CP-500813",
+    #               "OperationCode": "AdoExtensionVerify",
+    #               "ToolName": "sign",
+    #               "ToolVersion": "1.0",
+    #               "Parameters": {}
+    #             }
+    #           ]
+    #         SessionTimeout: 30
+    #     - task: CopyFiles@2
+    #       name: CopyFiles_5
+    #       displayName: 'Copy Files to: $(System.ArtifactsDirectory)'
+    #       inputs:
+    #         Contents: '*.vsix'
+    #         TargetFolder: $(System.ArtifactsDirectory)
