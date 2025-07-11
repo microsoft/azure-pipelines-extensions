@@ -1,5 +1,6 @@
 import * as tl from 'azure-pipelines-task-lib';
 import { RestClient, IRequestOptions } from 'typed-rest-client/RestClient';
+
 import { ExpAuthorizer } from './expauthorizer';
 
 export enum ExperimentAction {
@@ -7,6 +8,19 @@ export enum ExperimentAction {
     Advance = "Advance",
     Stop = "Stop"
 }
+
+type ProgressionResult = {
+    Id: string;
+    Name: string;
+    Studies: Array<{
+        Id: string;
+        Name: string;
+        Description: string;
+        Status: string;
+        StartDate: Date;
+        EndDate: Date;
+    }>;
+};
 
 export default class ExperimentManager {
     constructor(featureId: string, progressionId: string, serviceConnectionId: string, userAgent: string) {
@@ -26,17 +40,17 @@ export default class ExperimentManager {
         };
 
         switch(action) {
-            case ExperimentAction.Start: { 
-                requestUrl = `${requestUrl}/start`; 
-                break; 
+            case ExperimentAction.Start: {
+                requestUrl = `${requestUrl}/start`;
+                break;
             }
-            case ExperimentAction.Advance: { 
-                requestUrl = `${requestUrl}/advance`; 
-                break; 
+            case ExperimentAction.Advance: {
+                requestUrl = `${requestUrl}/advance`;
+                break;
             }
-            case ExperimentAction.Stop: { 
-                requestUrl = `${requestUrl}/stop`; 
-                break; 
+            case ExperimentAction.Stop: {
+                requestUrl = `${requestUrl}/stop`;
+                break;
             }
             default: {
                 throw new Error(tl.loc('InvalidAction', action));
@@ -63,8 +77,8 @@ export default class ExperimentManager {
         let response = await this._restClient.get(requestUrl, options);
         tl.debug(JSON.stringify(response));
 
-        let progression = response.result as any;
-        let experiment = progression.Studies.find(e => e.Name == experimentName);
+        let progression = response.result as ProgressionResult;
+        let experiment = progression.Studies.find((e) => e.Name == experimentName);
 
         if (!experiment) {
             throw new Error(tl.loc('ExperimentNotFound', experimentName, this._progressionId));
