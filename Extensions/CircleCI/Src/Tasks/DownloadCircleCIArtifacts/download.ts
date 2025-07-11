@@ -18,7 +18,7 @@ function getDefaultProps() {
         hostType: hostType,
         definitionName: '[NonEmail:' + (hostType === 'release' ? tl.getVariable('RELEASE.DEFINITIONNAME') : tl.getVariable('BUILD.DEFINITIONNAME')) + ']',
         processId: hostType === 'release' ? tl.getVariable('RELEASE.RELEASEID') : tl.getVariable('BUILD.BUILDID'),
-        processUrl: hostType === 'release' ? tl.getVariable('RELEASE.RELEASEWEBURL') : (tl.getVariable('SYSTEM.TEAMFOUNDATIONSERVERURI') + tl.getVariable('SYSTEM.TEAMPROJECT') + '/_build?buildId=' + tl.getVariable('BUILD.BUILDID')),
+        processUrl: hostType === 'release' ? tl.getVariable('RELEASE.RELEASEWEBURL') : (tl.getVariable('SYSTEM.TEAMFOUNDATIONSERVERURI')! + tl.getVariable('SYSTEM.TEAMPROJECT') + '/_build?buildId=' + tl.getVariable('BUILD.BUILDID')),
         taskDisplayName: tl.getVariable('TASK.DISPLAYNAME'),
         jobid: tl.getVariable('SYSTEM.JOBID'),
         agentVersion: tl.getVariable('AGENT.VERSION'),
@@ -28,7 +28,7 @@ function getDefaultProps() {
     };
 }
 
-function publishEvent(feature, properties: any): void {
+function publishEvent(feature: string, properties: any): void {
     try {
         var splitVersion = (process.env.AGENT_VERSION || '').split('.');
         var major = parseInt(splitVersion[0] || '0');
@@ -43,7 +43,7 @@ function publishEvent(feature, properties: any): void {
                 telemetry = "##vso[task.logissue type=error;code=" + reliabilityData.issueType + ";agentVersion=" + tl.getVariable('Agent.Version') + ";taskId=" + area + "-" + JSON.stringify(taskJson.version) + ";]" + reliabilityData.errorMessage
             }
         }
-        console.log(telemetry);;
+        console.log(telemetry);
     }
     catch (err) {
         tl.warning("Failed to log telemetry, error: " + err);
@@ -52,11 +52,11 @@ function publishEvent(feature, properties: any): void {
 
 async function main(): Promise<void> {
     var promise = new Promise<void>(async (resolve, reject) => {
-        let connection = tl.getInput("connection", true);
+        let connection = tl.getInput("connection", true)!;
         let definitionId = tl.getInput("definition", true);
         let buildId = tl.getInput("version", true);
         let itemPattern = tl.getInput("itemPattern", false);
-        let downloadPath = tl.getInput("downloadPath", true);
+        let downloadPath = tl.getInput("downloadPath", true)!;
 
         var endpointUrl = tl.getEndpointUrl(connection, false);
         var itemsUrl = `${endpointUrl}/api/v1.1/project/${definitionId}/${buildId}/artifacts`;
@@ -64,7 +64,7 @@ async function main(): Promise<void> {
         console.log(tl.loc("DownloadArtifacts", itemsUrl));
 
         var templatePath = path.join(__dirname, 'circleCI.handlebars.txt');
-        var username = tl.getEndpointAuthorizationParameter(connection, 'username', false);
+        var username = tl.getEndpointAuthorizationParameter(connection, 'username', false)!;
         var circleciVariables = {
             "endpoint": {
                 "url": endpointUrl
@@ -79,19 +79,19 @@ async function main(): Promise<void> {
         downloaderOptions.itemPattern = itemPattern ? itemPattern : '**';
         var debugMode = tl.getVariable('System.Debug');
         downloaderOptions.verbose = debugMode ? debugMode.toLowerCase() != 'false' : false;
-        var parallelLimit : number = +tl.getVariable("release.artifact.download.parallellimit");
-        
+        var parallelLimit : number = +tl.getVariable("release.artifact.download.parallellimit")!;
+
         if(parallelLimit){
             downloaderOptions.parallelProcessingLimit = parallelLimit;
         }
 
-        await downloader.processItems(webProvider, fileSystemProvider, downloaderOptions).then((result) => {
+        await downloader.processItems(webProvider, fileSystemProvider, downloaderOptions).then(() => {
             console.log(tl.loc('ArtifactsSuccessfullyDownloaded', downloadPath));
             resolve();
         }).catch((error) => {
             reject(error);
         });
-        
+
         let downloadCommitsFlag: boolean = tl.getBoolInput("downloadCommitsAndWorkItems", true);
         if (downloadCommitsFlag) {
             var webProviderForDownloaingCommits = new providers.WebProvider(itemsUrl, templatePath, circleciVariables, handler);
@@ -103,7 +103,7 @@ async function main(): Promise<void> {
 }
 
 function downloadCommits(webProvider: providers.WebProvider): void {
-    let currentCircleCIBuild = tl.getInput("version", true);
+    let currentCircleCIBuild = tl.getInput("version", true)!;
     let startBuildIdStr = tl.getInput("previousVersion", false) || "";
 
     if (startBuildIdStr && parseInt(currentCircleCIBuild) > parseInt(startBuildIdStr)) {
@@ -114,7 +114,7 @@ function downloadCommits(webProvider: providers.WebProvider): void {
 }
 
 main()
-    .then((result) => {
+    .then(() => {
         tl.setResult(tl.TaskResult.Succeeded, "");
     })
     .catch((err) => {
