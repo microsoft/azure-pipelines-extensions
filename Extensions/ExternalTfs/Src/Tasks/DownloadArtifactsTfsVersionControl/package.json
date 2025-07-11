@@ -2,11 +2,9 @@
   "name": "DownloadArtifactsTfsVersionControl",
   "main": "download.js",
   "dependencies": {
+    "@types/shelljs": "^0.8.17",
     "azure-devops-node-api": "11.2.0",
     "azure-pipelines-task-lib": "^4.17.3",
     "shelljs": "^0.10.0"
-  },
-  "devDependencies": {
-    "@types/shelljs": "^0.8.17"
   }
 }
