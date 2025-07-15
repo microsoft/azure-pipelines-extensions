@@ -2,7 +2,7 @@
   "name": "DownloadArtifactsBitbucket",
   "main": "download.js",
   "dependencies": {
-    "vso-node-api": "6.0.1-preview",
-    "azure-pipelines-task-lib": "3.3.1"
+    "azure-pipelines-task-lib": "^4.17.3",
+    "vso-node-api": "6.0.1-preview"
   }
 }

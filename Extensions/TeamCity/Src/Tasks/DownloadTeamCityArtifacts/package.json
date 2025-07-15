@@ -2,8 +2,8 @@
   "name": "DownloadTeamCityArtifacts",
   "main": "download.js",
   "dependencies": {
-    "artifact-engine": "^1.4.0",
-    "azure-pipelines-task-lib": "^3.3.1",
+    "artifact-engine": "^1.5.5",
+    "azure-pipelines-task-lib": "^4.17.3",
     "underscore": "^1.13.4"
   }
 }

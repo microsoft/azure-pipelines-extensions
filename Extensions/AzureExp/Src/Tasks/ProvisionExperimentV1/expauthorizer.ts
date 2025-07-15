@@ -1,6 +1,7 @@
-import * as tl from 'azure-pipelines-task-lib';
 import * as querystring from 'querystring';
-import { HttpClient } from "typed-rest-client/HttpClient";
+
+import * as tl from 'azure-pipelines-task-lib';
+import { HttpClient } from 'typed-rest-client/HttpClient';
 import { IHeaders } from 'typed-rest-client/Interfaces';
 
 export class ExpAuthorizer {
@@ -46,7 +47,7 @@ export class ExpAuthorizer {
             throw new Error(tl.loc('UnableToFetchAccessToken', JSON.stringify(response.message), responseBody));
         }
     }
-    
+
     private _httpClient: HttpClient;
     private _serviceConnectionId: string;
 }
