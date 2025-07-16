@@ -30,7 +30,7 @@ parameters:
 - name: forceCodeSign
   displayName: 'Force Code Signing (even for non-main branch)'
   type: boolean
-  default: false
+  default: true
 - name: publishExtension
   displayName: 'Publish Extension to Marketplace'
   type: boolean
