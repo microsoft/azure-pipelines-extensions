@@ -230,6 +230,9 @@ extends:
           artifact: vsix
           displayName: Download Artifact
 
+        - task: NodeTool@0
+          displayName: 'Install Node.js'
+
         - task: Npm@1
           displayName: 'Install TFX CLI'
           inputs:
