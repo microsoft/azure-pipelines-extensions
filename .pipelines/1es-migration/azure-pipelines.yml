@@ -219,3 +219,24 @@ extends:
           inputs:
             Contents: '*.vsix'
             TargetFolder: $(System.ArtifactsDirectory)
+
+    - stage: PublishToMarketplace
+      dependsOn: CodeSigning
+      jobs:
+      - job: PublishVSIX
+        displayName: Publish vsix to marketplace
+        steps:
+        - download: current
+          artifact: vsix
+          displayName: Download Artifact
+
+        - task: 1ES.PublishAzureDevOpsExtension@1
+          displayName: 'Publish the public extension to ms-devlabs'
+          inputs:
+            connectTo: 'AzureRM'
+            connectedServiceNameAzureRM: '1es-extensions-publication-secure-service-connection'
+            fileType: 'vsix'
+            vsixFile: '$(System.ArtifactsDirectory)/*.vsix'
+            targetPath: '$(System.ArtifactsDirectory)'
+            validateExtension: false
+            useV5: true
