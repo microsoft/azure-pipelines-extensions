@@ -230,8 +230,14 @@ extends:
           artifact: vsix
           displayName: Download Artifact
 
+        - task: Npm@1
+          displayName: 'Install TFX CLI'
+          inputs:
+            command: 'custom'
+            customCommand: 'install -g tfx-cli' 
+
         - task: 1ES.PublishAzureDevOpsExtension@1
-          displayName: 'Publish the public extension to ms-devlabs'
+          displayName: 'Publish the public extension to ms-vscs-rm'
           inputs:
             connectTo: 'AzureRM'
             connectedServiceNameAzureRM: '1es-extensions-publication-secure-service-connection'
