@@ -239,6 +239,10 @@ extends:
             command: 'custom'
             customCommand: 'install -g tfx-cli' 
 
+        - task: TfxInstaller@5
+          inputs:
+            version: 'v0.x'
+
         - task: 1ES.PublishAzureDevOpsExtension@1
           displayName: 'Publish the public extension to ms-vscs-rm'
           inputs:
