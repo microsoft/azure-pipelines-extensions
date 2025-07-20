@@ -233,11 +233,11 @@ extends:
         - task: NodeTool@0
           displayName: 'Install Node.js'
 
-        - task: Npm@1
-          displayName: 'Install TFX CLI'
-          inputs:
-            command: 'custom'
-            customCommand: 'install -g tfx-cli' 
+        # - task: Npm@1
+        #   displayName: 'Install TFX CLI'
+        #   inputs:
+        #     command: 'custom'
+        #     customCommand: 'install -g tfx-cli' 
 
         - task: TfxInstaller@5
           inputs:
