@@ -103,6 +103,15 @@ extends:
           clean: true
           fetchTags: false
 
+        - task: NodeTool@0
+          displayName: 'Install Node.js'
+          inputs:
+            versionSpec: '10.x'
+
+        - task: TfxInstaller@5
+          inputs:
+            version: 'v0.21.1'
+
         - task: 1ES.PublishAzureDevOpsExtension@1
           displayName: 'Publish extension'
           inputs:
