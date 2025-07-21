@@ -2,7 +2,7 @@
     "manifestVersion": 1,
     "id": "geneva-monitor-extension",
     "publisher": "ms-vscs-rm",
-    "version": "1.0.0",
+    "version": "1.256.0",
     "name": "Geneva Monitor Extension",
     "public": false,
     "description": "Query data from Geneva server",
