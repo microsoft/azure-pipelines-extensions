@@ -166,7 +166,7 @@ extends:
           - output: pipelineArtifact
             displayName: 'Signed vsix artifact'
             targetPath: '$(System.ArtifactsDirectory)'
-            artifactName: vsix
+            artifactName: vsix-signed
         steps:
         - download: current
           artifact: vsix-unsigned
@@ -226,8 +226,8 @@ extends:
         displayName: Publish vsix to marketplace
         steps:
         - download: current
-          artifact: vsix
-          displayName: Download Artifact
+          artifact: vsix-signed
+          displayName: Download Signed Artifact
 
         - task: NodeTool@0
           displayName: 'Install Node.js'
@@ -244,7 +244,7 @@ extends:
             connectTo: 'AzureRM'
             connectedServiceNameAzureRM: '1es-extensions-publication-secure-service-connection'
             fileType: 'vsix'
-            vsixFile: '$(System.ArtifactsDirectory)/*.vsix'
-            targetPath: '$(System.ArtifactsDirectory)'
+            vsixFile: '$(System.ArtifactsDirectory)/vsix-signed/*.vsix'
+            targetPath: '$(System.ArtifactsDirectory)/vsix-signed'
             validateExtension: false
             useV5: true
