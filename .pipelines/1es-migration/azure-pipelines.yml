@@ -110,15 +110,15 @@ extends:
           fetchTags: false
 
         # Setup Node.js
-        
-        - task: TfxInstaller@5
-          inputs:
-            version: 'v0.21.1'
 
         - task: NodeTool@0
           displayName: 'Install Node.js'
           inputs:
             versionSpec: '10.x'
+
+        - task: TfxInstaller@5
+          inputs:
+            version: 'v0.21.1'
 
         - task: Npm@1
           displayName: 'Install Dependencies'
