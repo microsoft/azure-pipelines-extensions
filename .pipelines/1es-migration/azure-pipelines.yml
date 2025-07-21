@@ -97,154 +97,19 @@ extends:
       jobs:
       - job: BuildAndTestJob
         displayName: 'Build Extension'
-        templateContext:
-          outputs:
-          - output: pipelineArtifact
-            displayName: 'Publish Build Artifacts (Unsigned)'
-            targetPath: '$(System.ArtifactsDirectory)'
-            artifactName: 'vsix-unsigned'
         steps:
         - checkout: self
           displayName: 'Checkout Extensions Repository'
           clean: true
           fetchTags: false
 
-        - task: NodeTool@0
-          displayName: 'Install Node.js'
-          inputs:
-            versionSpec: '10.x'
-
-        - task: Npm@1
-          displayName: 'Install Dependencies'
-          inputs:
-            command: 'install'
-            verbose: false
-
-        - task: Npm@1
-          displayName: 'Install TFX CLI'
-          inputs:
-            command: 'custom'
-            customCommand: 'install -g tfx-cli' 
-
-        - task: Npm@1
-          displayName: 'Install Gulp CLI'
-          inputs:
-            command: 'custom'
-            customCommand: 'install -g gulp-cli'
-
-        - task: PowerShell@2
-          displayName: 'Build Extensions with Gulp'
-          inputs:
-            targetType: 'inline'
-            script: 'gulp build'
-            workingDirectory: '$(Build.SourcesDirectory)'
-
-        - task: PowerShell@2
-          displayName: 'Package Extensions with Gulp'
-          inputs:
-            targetType: 'inline'
-            script: 'gulp package'
-            workingDirectory: '$(Build.SourcesDirectory)'
-
-        # Copy VSIX files to artifacts directory
-        - task: CopyFiles@2
-          displayName: 'Copy VSIX Files to Artifacts'
-          inputs:
-            SourceFolder: '$(Build.SourcesDirectory)/_package'
-            Contents: '${{ parameters.extensionName }}/*.vsix'
-            TargetFolder: '$(System.ArtifactsDirectory)'
-            flattenFolders: true
-
-    - stage: CodeSigning
-      condition: or(eq(variables['IsMainBranchBuild'], 'true'), ${{ eq(parameters.forceCodeSign, 'true') }}, ${{ eq(parameters.simulateCodeSigningError, 'true') }})
-      dependsOn: BuildAndTest
-      jobs:
-      - job: CodeSigningJob
-        displayName: CodeSigning
-        templateContext:
-          outputs:
-          - output: pipelineArtifact
-            displayName: 'Signed vsix artifact'
-            targetPath: '$(System.ArtifactsDirectory)'
-            artifactName: vsix-signed
-        steps:
-        - download: current
-          artifact: vsix-unsigned
-          displayName: Download Artifact
-        - script: |
-            echo "Simulated error in CodeSigning step."
-            exit 1
-          displayName: Simulate CodeSigning Error
-          condition: ${{ eq(parameters.simulateCodeSigningError, 'true') }}
-        - task: CopyFiles@2
-          displayName: 'Copy Files to: $(System.DefaultWorkingDirectory)'
-          inputs:
-            SourceFolder: '$(Pipeline.Workspace)\vsix-unsigned'
-            Contents: '*.vsix'
-            TargetFolder: $(System.DefaultWorkingDirectory)
-        - task: EsrpCodeSigning@5
-          displayName: ESRP CodeSigning
-          inputs:
-            ConnectedServiceName: '$(Control.EsrpServiceConnectionName)'
-            AppRegistrationClientId: '$(Control.AppRegistrationClientId)'
-            AppRegistrationTenantId: '$(Control.AppRegistrationTenantId)'
-            AuthAKVName: '$(Control.AuthAKVName)'
-            AuthCertName: '$(Control.AuthCertName)'
-            AuthSignCertName: '$(Control.AuthSignCertName)'
-            FolderPath: $(System.DefaultWorkingDirectory)
-            Pattern: '*.vsix'
-            signConfigType: inlineSignParams
-            inlineOperation: |-
-              [ 
-                {
-                  "KeyCode": "CP-500813",
-                  "OperationCode": "AdoExtensionSign",
-                  "ToolName": "sign",
-                  "ToolVersion": "1.0",
-                  "Parameters": {}
-                },
-                {
-                  "KeyCode": "CP-500813",
-                  "OperationCode": "AdoExtensionVerify",
-                  "ToolName": "sign",
-                  "ToolVersion": "1.0",
-                  "Parameters": {}
-                }
-              ]
-            SessionTimeout: 30
-        - task: CopyFiles@2
-          name: CopyFiles_5
-          displayName: 'Copy Files to: $(System.ArtifactsDirectory)'
-          inputs:
-            Contents: '*.vsix'
-            TargetFolder: $(System.ArtifactsDirectory)
-
-    - stage: PublishToMarketplace
-      dependsOn: CodeSigning
-      jobs:
-      - job: PublishVSIX
-        displayName: Publish vsix to marketplace
-        steps:
-        - download: current
-          artifact: vsix-signed
-          displayName: Download Signed Artifact
-
-        - task: NodeTool@0
-          displayName: 'Install Node.js'
-          inputs:
-            versionSpec: '10.x'
-
-        - task: TfxInstaller@5
-          inputs:
-            version: 'v0.21.1'
-
         - task: 1ES.PublishAzureDevOpsExtension@1
-          displayName: 'Publish the public extension to ms-vscs-rm'
+          displayName: 'Publish extension'
           inputs:
             connectTo: 'AzureRM'
             connectedServiceNameAzureRM: '1es-extensions-publication-secure-service-connection'
             fileType: 'vsix'
-            vsixFile: '$(Pipeline.Workspace)/vsix-signed/*.vsix'
-            targetPath: '$(Pipeline.Workspace)/vsix-signed'
+            vsixFile: '$(Build.SourcesDirectory)/*.vsix'
+            targetPath: '$(Build.SourcesDirectory)'
             validateExtension: false
             useV5: true
