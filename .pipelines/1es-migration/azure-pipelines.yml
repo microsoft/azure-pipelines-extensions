@@ -110,6 +110,11 @@ extends:
           fetchTags: false
 
         # Setup Node.js
+        
+        - task: TfxInstaller@5
+          inputs:
+            version: 'v0.21.1'
+
         - task: NodeTool@0
           displayName: 'Install Node.js'
           inputs:
@@ -230,18 +235,18 @@ extends:
           artifact: vsix
           displayName: Download Artifact
 
-        - task: NodeTool@0
-          displayName: 'Install Node.js'
+        # - task: NodeTool@0
+        #   displayName: 'Install Node.js'
 
-        - task: Npm@1
-          displayName: 'Install TFX CLI'
-          inputs:
-            command: 'custom'
-            customCommand: 'install -g tfx-cli' 
-
-        # - task: TfxInstaller@5
+        # - task: Npm@1
+        #   displayName: 'Install TFX CLI'
         #   inputs:
-        #     version: 'v0.x'
+        #     command: 'custom'
+        #     customCommand: 'install -g tfx-cli' 
+
+        - task: TfxInstaller@5
+          inputs:
+            version: 'v0.21.1'
 
         - task: 1ES.PublishAzureDevOpsExtension@1
           displayName: 'Publish the public extension to ms-vscs-rm'
