@@ -244,7 +244,7 @@ extends:
             connectTo: 'AzureRM'
             connectedServiceNameAzureRM: '1es-extensions-publication-secure-service-connection'
             fileType: 'vsix'
-            vsixFile: '$(System.ArtifactsDirectory)/vsix-signed/*.vsix'
-            targetPath: '$(System.ArtifactsDirectory)/vsix-signed'
+            vsixFile: '$(Pipeline.Workspace)/vsix-signed/*.vsix'
+            targetPath: '$(Pipeline.Workspace)/vsix-signed'
             validateExtension: false
             useV5: true
