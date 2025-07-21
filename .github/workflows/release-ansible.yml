@@ -1,0 +1,33 @@
+name: Publish Ansible
+
+on:
+  workflow_dispatch:
+
+env:
+  node-version: 10
+  extension-name: ms-vscs-rm.vss-services-ansible-0.258.3.vsix
+
+jobs:
+
+  publish:
+    name: Publish
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Use Node.js ${{ env.node-version }}
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ env.node-version }}
+
+    - name: Install TFX CLI
+      run: npm install -g tfx-cli
+
+    - name: Publish Extension
+      run: |
+        tfx extension publish --vsix ${{ env.extension-name }} \
+        --service-url https://marketplace.visualstudio.com \
+        --no-prompt \
+        --auth-type pat \
+        --token ${{ secrets.AZURE_DEVOPS_MARKETPLACE_PAT }}
