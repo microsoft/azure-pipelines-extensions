@@ -2,7 +2,7 @@
     "manifestVersion": "1",
     "id": "azureexp",
     "name": "Azure Exp",
-    "version": "1.0.0",
+    "version": "1.256.0",
     "publisher": "ms-vscs-rm",
     "description": "Azure Exp feature rollout",
     "public": false,
