@@ -1,33 +1,30 @@
 // node built-ins
-var cp = require('child_process');
-var exec = require('child_process').exec;
-var spawn = require('child_process').spawn;
-var fs = require('fs-extra');
-var path = require('path');
-var os = require('os');
-var tsc = require('gulp-typescript');
+const path = require('path');
+const os = require('os');
+const cp = require('child_process');
 
 // build/test script
-var admZip = require('adm-zip');
-var minimist = require('minimist');
-var mocha = require('gulp-mocha');
-var Q = require('q');
-var semver = require('semver');
-var shell = require('shelljs');
-var syncRequest = require('sync-request');
-var request = require('request');
-var xml2js = require('xml2js');
+const admZip = require('adm-zip');
+const del = require('del');
+const fs = require('fs-extra');
+const mocha = require('gulp-mocha');
+const minimist = require('minimist');
+const request = require('request');
+const semver = require('semver');
+const shell = require('shelljs');
+// @ts-ignore
+const syncRequest = require('sync-request');
+const typescript = require('typescript');
+const xml2js = require('xml2js');
+const args = require('yargs').argv;
 
 // gulp modules
-var del = require('del');
-var gts = require('gulp-typescript');
-var gulp = require('gulp');
-var gutil = require('gulp-util');
-var nuget = null;//require('gulp-nuget');
-var pkgm = require('./package');
-var util = require('./package-utils');
-var typescript = require('typescript');
-var args   = require('yargs').argv;
+const gts = require('gulp-typescript');
+const gulp = require('gulp');
+const gutil = require('gulp-util');
+
+const pkgm = require('./package');
+const util = require('./package-utils');
 
 // validation
 var NPM_MIN_VER = '3.0.0';

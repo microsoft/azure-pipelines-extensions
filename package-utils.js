@@ -1,9 +1,9 @@
 // this code is partitially copied from vsts-task repo
 
-var fs = require('fs');
-var path = require('path');
-var shell = require('shelljs');
-var ncp = require('child_process');
+const fs = require('fs');
+const path = require('path');
+const shell = require('shelljs');
+const ncp = require('child_process');
 
 //------------------------------------------------------------------------------
 // shell functions
@@ -64,23 +64,6 @@ var run = function (cl, inheritStreams, noHeader) {
     return (output || '').toString().trim();
 }
 exports.run = run;
-
-var buildNodeTask = function (taskPath, outDir) {
-    var originalDir = shell.pwd();
-    cd(taskPath);
-    var packageJsonPath = rp('package.json');
-    console.log("");
-    if (test('-f', packageJsonPath)) {
-        var packageJson = JSON.parse(fs.readFileSync(packageJsonPath).toString());
-        if (packageJson.devDependencies && Object.keys(packageJson.devDependencies).length != 0) {
-            fail('The package.json should not contain dev dependencies. Move the dev dependencies into a package.json file under the Tests sub-folder. Offending package.json: ' + packageJsonPath);
-        }
-
-        run('npm install');
-    }
-    cd(originalDir);
-}
-exports.buildNodeTask = buildNodeTask;
 
 var buildUIContribution = function (source, destination) {
     var originalDir = shell.pwd();
