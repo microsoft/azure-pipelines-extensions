@@ -117,8 +117,8 @@ function copyCommonModules(currentExtnRoot, commonDeps, commonSrc) {
 
                 const externals = require('./externals.json');
 
-                if (Object.keys(task.execution).filter(x => x.indexOf('Node') !== -1).length !== 0) {
-                    if (externals['no-cache'].find(x => x === task.name) !== undefined) {
+                if (Object.keys(task.execution).some(x => x.includes('Node'))) {
+                    if (externals['no-cache'].includes(task.name)) {
                         console.log(`⚒️  Building Node task: ${task.name}`);
 
                         try {
