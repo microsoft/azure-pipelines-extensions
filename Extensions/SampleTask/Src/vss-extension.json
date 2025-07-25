@@ -3,7 +3,7 @@
   "id": "xyz-services-querydata",
   "name": "Query XYZ server",
   "publisher": "TestUser",
-  "version": "0.0.1",
+  "version": "0.256.0",
   "public": true,
   "description": "Query data from XYZ server",
   "categories": [

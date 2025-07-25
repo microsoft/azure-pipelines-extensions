@@ -109,7 +109,6 @@ extends:
           clean: true
           fetchTags: false
 
-        # Setup Node.js
         - task: NodeTool@0
           displayName: 'Install Node.js'
           inputs:
@@ -167,7 +166,7 @@ extends:
           - output: pipelineArtifact
             displayName: 'Signed vsix artifact'
             targetPath: '$(System.ArtifactsDirectory)'
-            artifactName: vsix
+            artifactName: vsix-signed
         steps:
         - download: current
           artifact: vsix-unsigned
@@ -219,3 +218,33 @@ extends:
           inputs:
             Contents: '*.vsix'
             TargetFolder: $(System.ArtifactsDirectory)
+
+    - stage: PublishToMarketplace
+      dependsOn: CodeSigning
+      jobs:
+      - job: PublishVSIX
+        displayName: Publish vsix to marketplace
+        steps:
+        - download: current
+          artifact: vsix-signed
+          displayName: Download Signed Artifact
+
+        - task: NodeTool@0
+          displayName: 'Install Node.js'
+          inputs:
+            versionSpec: '10.x'
+
+        - task: TfxInstaller@5
+          inputs:
+            version: 'v0.21.1'
+
+        - task: 1ES.PublishAzureDevOpsExtension@1
+          displayName: 'Publish the public extension to ms-vscs-rm'
+          inputs:
+            connectTo: 'AzureRM'
+            connectedServiceNameAzureRM: '1es-extensions-publication-secure-service-connection'
+            fileType: 'vsix'
+            vsixFile: '$(Pipeline.Workspace)/vsix-signed/*.vsix'
+            targetPath: '$(Pipeline.Workspace)/vsix-signed'
+            validateExtension: false
+            useV5: true

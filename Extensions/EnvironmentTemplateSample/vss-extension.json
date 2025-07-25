@@ -1,7 +1,7 @@
 {
   "manifestVersion": 1,
   "id": "rm-templates-extensions",
-  "version": "0.1.0",
+  "version": "0.256.0",
   "name": "RM Templates Package - 1",
   "description": "Adds more environment templates to RM",
   "publisher": "ms-devlabs",
