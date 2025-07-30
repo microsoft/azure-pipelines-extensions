@@ -219,8 +219,22 @@ extends:
             Contents: '*.vsix'
             TargetFolder: $(System.ArtifactsDirectory)
 
-    - stage: PublishToMarketplace
+    - stage: WaitForValidation
+      displayName: 'Wait for manual approval to publish'
       dependsOn: CodeSigning
+      jobs:
+      - job: ManualApproval
+        displayName: 'Manual Approval'
+        pool: server
+        steps:
+        - task: ManualValidation@0
+          timeoutInMinutes: 1440
+          inputs:
+            notifyUsers: 'vhorbachov@microsoft.com'
+            instructions: 'Approve this step to publish the extension.'
+
+    - stage: PublishToMarketplace
+      dependsOn: WaitForValidation
       jobs:
       - job: PublishVSIX
         displayName: Publish vsix to marketplace
