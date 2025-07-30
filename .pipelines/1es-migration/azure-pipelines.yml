@@ -219,6 +219,35 @@ extends:
             Contents: '*.vsix'
             TargetFolder: $(System.ArtifactsDirectory)
 
+    # - stage: TestPublishToMarketplace
+    #   trigger: manual
+    #   jobs:
+    #   - job: PublishMarketplateJob
+    #     displayName: Test - Publish to private Marketplace
+    #     steps:
+    #       - download: current
+    #         artifact: vsix
+    #         displayName: Download Signed Artifact
+
+    #       - task: UseNode@1
+    #         displayName: 'Install Node.js'
+    #         inputs:
+    #           version: '20.19.4'
+
+    #       - task: TfxInstaller@5
+    #         inputs:
+    #           version: 'v0.21.1'
+
+    #       - task: 1ES.PublishAzureDevOpsExtension@1
+    #         displayName: 'Publish the dev private extension to ms-vsclient'
+    #         inputs:
+    #           connectTo: 'AzureRM'
+    #           connectedServiceNameAzureRM: '1es-extensions-publication-secure-service-connection'
+    #           fileType: 'vsix'
+    #           vsixFile: '$(Pipeline.Workspace)/vsix/ms-vsclient.google-play-dev-*.vsix'
+    #           targetPath: '$(Pipeline.Workspace)/vsix'
+    #           validateExtension: false
+
     - stage: WaitForValidation
       displayName: 'Wait for manual approval to publish'
       dependsOn: CodeSigning
