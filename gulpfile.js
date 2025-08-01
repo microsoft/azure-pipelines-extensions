@@ -178,26 +178,6 @@ gulp.task('TaskModulePublish', gulp.series('prepublish:TaskModulePublish', funct
 
 gulp.task("compileNode", gulp.series("compilePS", function(cb){
      try {
-        // If --test argument is present, update vss-extension.json id to append -test
-        if (args.test) {
-            var buildExtensionsRoot = path.join(_buildRoot, 'Extensions');
-            if (fs.existsSync(buildExtensionsRoot)) {
-                var extensionDirs = fs.readdirSync(buildExtensionsRoot).filter(function (file) {
-                    return fs.statSync(path.join(buildExtensionsRoot, file)).isDirectory();
-                });
-                extensionDirs.forEach(function (extName) {
-                    var manifestPath = path.join(buildExtensionsRoot, extName, 'Src', 'vss-extension.json');
-                    if (fs.existsSync(manifestPath)) {
-                        var manifest = JSON.parse(fs.readFileSync(manifestPath));
-                        if (manifest.id && !manifest.id.endsWith('-test')) {
-                            manifest.id = manifest.id + '-test';
-                            fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
-                            console.log('Updated id for test build in: ' + manifestPath);
-                        }
-                    }
-                });
-            }
-        }
         // Cache all externals in the download directory.
         var allExternalsJson = shell.find(path.join(__dirname, 'Extensions'))
             .filter(function (file) {
@@ -674,7 +654,37 @@ function compileUIExtensions(extensionRoot) {
     };
 }
 
-gulp.task("build", gulp.series("compileNode"));
+gulp.task("updateTestIds", function(cb) {
+    if (args.test) {
+        var buildExtensionsRoot = path.join(_buildRoot, 'Extensions');
+        if (fs.existsSync(buildExtensionsRoot)) {
+            var extensionDirs = fs.readdirSync(buildExtensionsRoot).filter(function (file) {
+                return fs.statSync(path.join(buildExtensionsRoot, file)).isDirectory();
+            });
+            extensionDirs.forEach(function (extName) {
+                var manifestPath = path.join(buildExtensionsRoot, extName, 'Src', 'vss-extension.json');
+                if (fs.existsSync(manifestPath)) {
+                    try {
+                        var manifest = JSON.parse(fs.readFileSync(manifestPath));
+                        if (manifest.id && !manifest.id.endsWith('-test')) {
+                            manifest.id = manifest.id + '-test';
+                            manifest.public = false;
+                            fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+                            console.log('Updated manifest for test build: ' + manifestPath);
+                            console.log('  - ID: ' + manifest.id);
+                            console.log('  - Public: ' + manifest.public);
+                        }
+                    } catch (e) {
+                        console.error('Failed to update manifest: ' + manifestPath + ' - ' + e.message);
+                    }
+                }
+            });
+        }
+    }
+    cb();
+});
+
+gulp.task("build", gulp.series("compileNode", "updateTestIds"));
 
 gulp.task("handoff", function(cb) {
     handoff(cb);
