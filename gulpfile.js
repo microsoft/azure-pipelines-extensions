@@ -75,7 +75,7 @@ function errorHandler(error) {
     process.exit(1);
 }
 
-var rootTsconfigPath = './tsconfig.json';
+var rootTsconfigPath = './base.tsconfig.json';
 
 gulp.task("clean", function() {
     return del([_buildRoot, _packageRoot, nugetPath, _taskModuleBuildRoot]);
