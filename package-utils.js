@@ -64,15 +64,3 @@ var run = function (cl, inheritStreams, noHeader) {
     return (output || '').toString().trim();
 }
 exports.run = run;
-
-var buildUIContribution = function (source, destination) {
-    var originalDir = shell.pwd();
-    shell.cd(destination);
-    var packageJsonPath = rp('package.json');
-    if (test('-f', packageJsonPath)) {
-        run('npm install');
-    }
-    run('npm run buildWeb');
-    cd(originalDir);
-}
-exports.buildUIContribution = buildUIContribution;
