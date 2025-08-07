@@ -121,12 +121,17 @@ function copyCommonModules(currentExtnRoot, commonDeps, commonSrc) {
                     if (externals['no-cache'].includes(task.name)) {
                         console.log(`⚒️  Building Node task: ${task.name}`);
 
+                        const originalDir = shell.pwd();
+
                         try {
-                            cp.execSync(`npm install --prefix ${taskDirPath}`, { stdio: 'ignore' });
+                            util.cd(taskDirPath);
+                            cp.execSync('npm install', { stdio: 'ignore' });
                             console.log(`\x1b[A\x1b[K✅ npm install at ${taskDirPath} completed successfully.`);
                         } catch (err) {
                             console.log(`\x1b[A\x1b[K❌ npm install at ${taskDirPath} failed. Error: ${err.message}`);
                             process.exit(1);
+                        } finally {
+                            util.cd(originalDir);
                         }
 
                         // For building UI contribution using webpack
