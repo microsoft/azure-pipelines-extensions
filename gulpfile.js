@@ -433,7 +433,7 @@ function createResjson(callback) {
                 var resjsonPath = path.join(path.dirname(libJson), 'Strings', 'resources.resjson', culture, 'resources.resjson');
                 var resjsonContents = JSON.stringify(cultureStrings, null, 2);
                 shell.mkdir('-p', path.dirname(resjsonPath));
-                fs.writeFileSync(resjsonPath, resjsonContents);
+                fs.writeFileSync(resjsonPath, resjsonContents.replace(/\n/g, os.EOL));
             }
         });
     }
