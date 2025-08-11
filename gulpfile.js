@@ -694,6 +694,11 @@ gulp.task("updateTestIds", function(cb) {
                             updated = true;
                         }
                         
+                        // Update name property
+                        if (manifest.hasOwnProperty('name')) {
+                            manifest.name = `${manifest.name} (Test)`;
+                        }
+
                         // Always set public to false if it exists
                         if (manifest.hasOwnProperty('public') && manifest.public !== false) {
                             manifest.public = false;
