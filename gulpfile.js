@@ -75,7 +75,7 @@ function errorHandler(error) {
     process.exit(1);
 }
 
-var rootTsconfigPath = './tsconfig.json';
+var rootTsconfigPath = './base.tsconfig.json';
 
 gulp.task("clean", function() {
     return del([_buildRoot, _packageRoot, nugetPath, _taskModuleBuildRoot]);
@@ -433,7 +433,7 @@ function createResjson(callback) {
                 var resjsonPath = path.join(path.dirname(libJson), 'Strings', 'resources.resjson', culture, 'resources.resjson');
                 var resjsonContents = JSON.stringify(cultureStrings, null, 2);
                 shell.mkdir('-p', path.dirname(resjsonPath));
-                fs.writeFileSync(resjsonPath, resjsonContents);
+                fs.writeFileSync(resjsonPath, resjsonContents.replace(/\n/g, os.EOL));
             }
         });
     }
@@ -810,15 +810,16 @@ gulp.task("test", gulp.series("testResources", function(){
 // Package//-----------------------------------------------------------------------------------------------------------------
 
 var publisherName = null;
-gulp.task("package",  function(cb) {
-    if(args.publisher){
+gulp.task("package", function(cb) {
+    if (args.publisher) {
         publisherName = args.publisher;
     }
 
     // use gulp package --extension=<Extension_Name> to package an individual package
-    if(args.extension){
+    if (args.extension) {
         createVsixPackage(args.extension);        return;
     }
+
     fs.readdirSync(_extnBuildRoot).filter(function (file) {
         return fs.statSync(path.join(_extnBuildRoot, file)).isDirectory() && file != "Common";
     }).forEach(createVsixPackage);
@@ -945,12 +946,11 @@ var createVsixPackage = function(extensionName) {
 
 var executeCommand = function(cmd, callback) {
     shell.exec(cmd, {silent: true}, function(code, output) {
-       if(code != 0) {
-           console.error("command failed: " + cmd + "\nManually execute to debug");
-       }
-       else {
+        if (code != 0) {
+            console.error("command failed: " + cmd + "\nManually execute to debug");
+        } else {
            callback();
-       }
+        }
     });
 }
 

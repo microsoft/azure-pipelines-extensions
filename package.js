@@ -111,32 +111,41 @@ function copyCommonModules(currentExtnRoot, commonDeps, commonSrc) {
                         shell.mkdir('-p', dest);
                         fs.copy(src, dest, "*", function (err) {
                             if (err) return console.error(err)
-                        })
+                        });
                     })
                 }
 
                 const externals = require('./externals.json');
 
+                // For building UI contribution using webpack
+                if (fs.existsSync(uiPath) && fs.statSync(uiPath).isDirectory()) {
+                    console.log(`⚒️  Building UI contribution for task: ${task.name}`);
+                    var originalDir = shell.pwd();
+                    util.cd(uiPath);
+                    util.run('npm install');
+                    util.cd(originalDir);
+                }
+
                 if (Object.keys(task.execution).some(x => x.includes('Node'))) {
                     if (externals['no-cache'].includes(task.name)) {
                         console.log(`⚒️  Building Node task: ${task.name}`);
 
+                        const originalDir = shell.pwd();
+
                         try {
-                            cp.execSync(`npm install --prefix ${taskDirPath}`, { stdio: 'ignore' });
+                            util.cd(taskDirPath);
+                            cp.execSync('npm install', { stdio: 'ignore' });
                             console.log(`\x1b[A\x1b[K✅ npm install at ${taskDirPath} completed successfully.`);
                         } catch (err) {
                             console.log(`\x1b[A\x1b[K❌ npm install at ${taskDirPath} failed. Error: ${err.message}`);
                             process.exit(1);
-                        }
-
-                        // For building UI contribution using webpack
-                        if (fs.existsSync(uiPath) && fs.statSync(uiPath).isDirectory()) {
-                            util.buildUIContribution(uiPath, uiPath);
+                        } finally {
+                            util.cd(originalDir);
                         }
                     } else {
-
                         // Determine the vsts-task-lib version.
                         var libVer = externals.npm['vsts-task-lib'];
+
                         if (!libVer) {
                             throw new Error('External vsts-task-lib not defined in externals.json.');
                         }
