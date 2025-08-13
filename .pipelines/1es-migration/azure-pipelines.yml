@@ -1,6 +1,5 @@
 # Azure Pipelines Extensions 1ES Build Pipeline
-# Builds, signs, and publishes Azure DevOps extensions
-# Main and TEST variants are built in separate stages to avoid packaging overwrites
+# Single build stage: MAIN -> copy, TEST -> copy; then sign, approve, publish (TEST then PUBLIC)
 
 name: Extension $(ExtensionName) - $(Date:yyyyMMdd)$(Rev:.r)
 appendCommitMessageToRunName: false
@@ -38,11 +37,15 @@ parameters:
   default: false
 
 variables:
+# 1ES Security Scanning
 - name: CodeQL.Enabled
   value: true
+# Publisher
 - name: PublisherId
   value: 'ms-vscs-rm'
+# ESRP Signing secrets
 - group: EPS.ESRPSigningProdAME
+# Dynamic
 - name: ExtensionName
   value: ${{ parameters.extensionName }}
 - name: IsMainBranchBuild
@@ -61,16 +64,14 @@ extends:
     sdl:
       sourceAnalysisPool:
         name: 1ESPtTfsAgentBuildPoolSDL
-      spotBugs:
-        enabled: false
-      credscan:
-        enabled: true
-      binskim:
-        enabled: true
-      eslint:
-        enabled: true
+      spotBugs: { enabled: false }
+      credscan: { enabled: true }
+      binskim: { enabled: true }
+      eslint:  { enabled: true }
+
     pool:
       name: 1ESPtTfsAgentBuildPool1
+
     customBuildTags:
     - ES365AIMigrationTooling
     - 1ES-AzureExtensions
@@ -79,155 +80,90 @@ extends:
 
     stages:
 
-    # =============================== Build MAIN ===============================
-    - stage: BuildMain
-      displayName: 'Build MAIN ${{ parameters.extensionName }}'
+    # ============================== Build (MAIN+TEST) ==============================
+    - stage: Build
+      displayName: 'Build ${{ parameters.extensionName }} (MAIN + TEST)'
       jobs:
-      - job: BuildMainJob
-        displayName: 'Build MAIN'
+      - job: BuildJob
+        displayName: 'Build and Package MAIN, then TEST'
         templateContext:
           outputs:
           - output: pipelineArtifact
             displayName: 'Publish MAIN Build Artifacts (Unsigned)'
             targetPath: '$(System.ArtifactsDirectory)/unsigned'
             artifactName: 'vsix-unsigned'
-        steps:
-        - checkout: self
-          clean: true
-          fetchTags: false
-
-        - task: NodeTool@0
-          displayName: 'Install Node.js'
-          inputs:
-            versionSpec: '10.x'
-
-        - task: Npm@1
-          displayName: 'Install Dependencies'
-          inputs:
-            command: 'install'
-            verbose: false
-
-        - task: Npm@1
-          displayName: 'Install TFX CLI'
-          inputs:
-            command: 'custom'
-            customCommand: 'install -g tfx-cli'
-
-        - task: Npm@1
-          displayName: 'Install Gulp CLI'
-          inputs:
-            command: 'custom'
-            customCommand: 'install -g gulp-cli'
-
-        - task: PowerShell@2
-          displayName: 'Clean (gulp clean)'
-          inputs:
-            targetType: inline
-            script: 'gulp clean'
-            workingDirectory: '$(Build.SourcesDirectory)'
-
-        - task: PowerShell@2
-          displayName: 'Build MAIN (gulp build)'
-          inputs:
-            targetType: inline
-            script: 'gulp build'
-            workingDirectory: '$(Build.SourcesDirectory)'
-
-        - task: PowerShell@2
-          displayName: 'Package MAIN (gulp package)'
-          inputs:
-            targetType: inline
-            script: 'gulp package'
-            workingDirectory: '$(Build.SourcesDirectory)'
-
-        - task: CopyFiles@2
-          displayName: 'Copy MAIN VSIX to Artifacts'
-          inputs:
-            SourceFolder: '$(Build.SourcesDirectory)/_package'
-            Contents: '${{ parameters.extensionName }}/*.vsix'
-            TargetFolder: '$(System.ArtifactsDirectory)/unsigned'
-            flattenFolders: true
-
-    # =============================== Build TEST ===============================
-    - stage: BuildTest
-      displayName: 'Build TEST ${{ parameters.extensionName }}'
-      dependsOn: BuildMain
-      jobs:
-      - job: BuildTestJob
-        displayName: 'Build TEST'
-        templateContext:
-          outputs:
           - output: pipelineArtifact
             displayName: 'Publish TEST Build Artifacts (Unsigned)'
             targetPath: '$(System.ArtifactsDirectory)/test-unsigned'
             artifactName: 'vsix-test-unsigned'
         steps:
         - checkout: self
+          displayName: 'Checkout'
           clean: true
           fetchTags: false
 
         - task: NodeTool@0
           displayName: 'Install Node.js'
-          inputs:
-            versionSpec: '10.x'
+          inputs: { versionSpec: '10.x' }
 
         - task: Npm@1
           displayName: 'Install Dependencies'
-          inputs:
-            command: 'install'
-            verbose: false
+          inputs: { command: 'install', verbose: false }
 
         - task: Npm@1
           displayName: 'Install TFX CLI'
-          inputs:
-            command: 'custom'
-            customCommand: 'install -g tfx-cli'
+          inputs: { command: 'custom', customCommand: 'install -g tfx-cli' }
 
         - task: Npm@1
           displayName: 'Install Gulp CLI'
-          inputs:
-            command: 'custom'
-            customCommand: 'install -g gulp-cli'
+          inputs: { command: 'custom', customCommand: 'install -g gulp-cli' }
+
+        # ---- MAIN build/package -> copy to unsigned ----
+        - task: PowerShell@2
+          displayName: 'Clean (MAIN) - gulp clean'
+          inputs: { targetType: inline, script: 'gulp clean', workingDirectory: '$(Build.SourcesDirectory)' }
 
         - task: PowerShell@2
-          displayName: 'Clean (gulp clean)'
-          inputs:
-            targetType: inline
-            script: 'gulp clean'
-            workingDirectory: '$(Build.SourcesDirectory)'
+          displayName: 'Build MAIN - gulp build'
+          inputs: { targetType: inline, script: 'gulp build', workingDirectory: '$(Build.SourcesDirectory)' }
 
         - task: PowerShell@2
-          displayName: 'Build TEST (gulp build --test)'
-          inputs:
-            targetType: inline
-            script: 'gulp build --test'
-            workingDirectory: '$(Build.SourcesDirectory)'
-
-        - task: PowerShell@2
-          displayName: 'Package TEST (gulp package)'
-          inputs:
-            targetType: inline
-            script: 'gulp package'
-            workingDirectory: '$(Build.SourcesDirectory)'
+          displayName: 'Package MAIN - gulp package'
+          inputs: { targetType: inline, script: 'gulp package', workingDirectory: '$(Build.SourcesDirectory)' }
 
         - task: CopyFiles@2
-          displayName: 'Copy TEST VSIX to Artifacts'
+          displayName: 'Copy MAIN VSIX to $(System.ArtifactsDirectory)/unsigned'
+          inputs:
+            SourceFolder: '$(Build.SourcesDirectory)/_package'
+            Contents: '${{ parameters.extensionName }}/*.vsix'
+            TargetFolder: '$(System.ArtifactsDirectory)/unsigned'
+            flattenFolders: true
+
+        # ---- TEST build/package -> copy to test-unsigned ----
+        - task: PowerShell@2
+          displayName: 'Build TEST - gulp build --test'
+          inputs: { targetType: inline, script: 'gulp build --test', workingDirectory: '$(Build.SourcesDirectory)' }
+
+        - task: PowerShell@2
+          displayName: 'Package TEST - gulp package'
+          inputs: { targetType: inline, script: 'gulp package', workingDirectory: '$(Build.SourcesDirectory)' }
+
+        - task: CopyFiles@2
+          displayName: 'Copy TEST VSIX to $(System.ArtifactsDirectory)/test-unsigned'
           inputs:
             SourceFolder: '$(Build.SourcesDirectory)/_package'
             Contents: '${{ parameters.extensionName }}/*.vsix'
             TargetFolder: '$(System.ArtifactsDirectory)/test-unsigned'
             flattenFolders: true
 
-    # =============================== Code Signing =============================
+    # ================================ Code Signing ================================
     - stage: CodeSigning
       displayName: 'Code Signing'
       condition: or(eq(variables['IsMainBranchBuild'], 'true'), ${{ eq(parameters.forceCodeSign, 'true') }}, ${{ eq(parameters.simulateCodeSigningError, 'true') }})
-      dependsOn:
-      - BuildMain
-      - BuildTest
+      dependsOn: Build
       jobs:
       - job: CodeSigningJob
-        displayName: 'ESRP CodeSigning'
+        displayName: 'ESRP CodeSigning (MAIN + TEST)'
         templateContext:
           outputs:
           - output: pipelineArtifact
@@ -242,6 +178,7 @@ extends:
         - download: current
           artifact: vsix-unsigned
           displayName: 'Download unsigned (MAIN)'
+
         - download: current
           artifact: vsix-test-unsigned
           displayName: 'Download unsigned (TEST)'
@@ -252,6 +189,7 @@ extends:
           displayName: 'Simulate CodeSigning Error'
           condition: ${{ eq(parameters.simulateCodeSigningError, 'true') }}
 
+        # Sign MAIN
         - task: EsrpCodeSigning@5
           displayName: 'ESRP CodeSigning (MAIN)'
           inputs:
@@ -278,6 +216,7 @@ extends:
             Contents: '*.vsix'
             TargetFolder: '$(System.ArtifactsDirectory)/signed'
 
+        # Sign TEST
         - task: EsrpCodeSigning@5
           displayName: 'ESRP CodeSigning (TEST)'
           inputs:
@@ -304,7 +243,7 @@ extends:
             Contents: '*.vsix'
             TargetFolder: '$(System.ArtifactsDirectory)/test-signed'
 
-    # ===================== Manual Approval BEFORE TEST publish =================
+    # ======================== Manual Approval BEFORE TEST publish ========================
     - stage: WaitForTestApproval
       displayName: 'Approve TEST publish'
       dependsOn: CodeSigning
@@ -319,7 +258,7 @@ extends:
             notifyUsers: 'vhorbachov@microsoft.com'
             instructions: 'Approve this step to publish the TEST extension (private).'
 
-    # ============================ Publish TEST (private) =======================
+    # ================================= Publish TEST (private) ==============================
     - stage: PublishTestToMarketplace
       displayName: 'Publish TEST extension (private)'
       dependsOn: WaitForTestApproval
@@ -333,12 +272,10 @@ extends:
 
         - task: NodeTool@0
           displayName: 'Install Node.js'
-          inputs:
-            versionSpec: '10.x'
+          inputs: { versionSpec: '10.x' }
 
         - task: TfxInstaller@5
-          inputs:
-            version: 'v0.21.1'
+          inputs: { version: 'v0.21.1' }
 
         - task: 1ES.PublishAzureDevOpsExtension@1
           displayName: 'Publish TEST extension (private)'
@@ -352,7 +289,7 @@ extends:
             useV5: true
             extensionVisibility: 'private'
 
-    # ===================== Manual Approval BEFORE PUBLIC publish ===============
+    # ======================== Manual Approval BEFORE PUBLIC publish ========================
     - stage: WaitForValidation
       displayName: 'Approve PUBLIC publish'
       dependsOn: PublishTestToMarketplace
@@ -367,7 +304,7 @@ extends:
             notifyUsers: 'vhorbachov@microsoft.com'
             instructions: 'Approve this step to publish the PUBLIC extension.'
 
-    # ================================ Publish PUBLIC ===========================
+    # ===================================== Publish PUBLIC ==================================
     - stage: PublishToMarketplace
       displayName: 'Publish PUBLIC extension'
       dependsOn: WaitForValidation
@@ -381,12 +318,10 @@ extends:
 
         - task: NodeTool@0
           displayName: 'Install Node.js'
-          inputs:
-            versionSpec: '10.x'
+          inputs: { versionSpec: '10.x' }
 
         - task: TfxInstaller@5
-          inputs:
-            version: 'v0.21.1'
+          inputs: { version: 'v0.21.1' }
 
         - task: 1ES.PublishAzureDevOpsExtension@1
           displayName: 'Publish the public extension to ms-vscs-rm'
