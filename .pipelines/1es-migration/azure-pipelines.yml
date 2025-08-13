@@ -243,51 +243,50 @@ extends:
             Contents: '*.vsix'
             TargetFolder: '$(System.ArtifactsDirectory)/test-signed'
 
-    # ======================== Manual Approval BEFORE TEST publish ========================
-    - stage: WaitForTestApproval
-      displayName: 'Approve TEST publish'
-      dependsOn: CodeSigning
-      jobs:
-      - job: ManualApprovalForTest
-        displayName: 'Manual Approval (TEST)'
-        pool: server
-        steps:
-        - task: ManualValidation@0
-          timeoutInMinutes: 1440
-          inputs:
-            notifyUsers: 'vhorbachov@microsoft.com'
-            instructions: 'Approve this step to publish the TEST extension (private).'
+    # # ======================== Manual Approval BEFORE TEST publish ========================
+    # - stage: WaitForTestApproval
+    #   displayName: 'Approve TEST publish'
+    #   dependsOn: CodeSigning
+    #   jobs:
+    #   - job: ManualApprovalForTest
+    #     displayName: 'Manual Approval (TEST)'
+    #     pool: server
+    #     steps:
+    #     - task: ManualValidation@0
+    #       timeoutInMinutes: 1440
+    #       inputs:
+    #         notifyUsers: 'vhorbachov@microsoft.com'
+    #         instructions: 'Approve this step to publish the TEST extension (private).'
 
-    # ================================= Publish TEST (private) ==============================
-    - stage: PublishTestToMarketplace
-      displayName: 'Publish TEST extension (private)'
-      dependsOn: WaitForTestApproval
-      jobs:
-      - job: PublishTestVSIX
-        displayName: 'Publish TEST vsix to marketplace (private)'
-        steps:
-        - download: current
-          artifact: vsix-test-signed
-          displayName: 'Download Signed TEST Artifact'
+    # # ================================= Publish TEST (private) ==============================
+    # - stage: PublishTestToMarketplace
+    #   displayName: 'Publish TEST extension (private)'
+    #   dependsOn: WaitForTestApproval
+    #   jobs:
+    #   - job: PublishTestVSIX
+    #     displayName: 'Publish TEST vsix to marketplace (private)'
+    #     steps:
+    #     - download: current
+    #       artifact: vsix-test-signed
+    #       displayName: 'Download Signed TEST Artifact'
 
-        - task: NodeTool@0
-          displayName: 'Install Node.js'
-          inputs: { versionSpec: '10.x' }
+    #     - task: NodeTool@0
+    #       displayName: 'Install Node.js'
+    #       inputs: { versionSpec: '10.x' }
 
-        - task: TfxInstaller@5
-          inputs: { version: 'v0.21.1' }
+    #     - task: TfxInstaller@5
+    #       inputs: { version: 'v0.21.1' }
 
-        - task: 1ES.PublishAzureDevOpsExtension@1
-          displayName: 'Publish TEST extension (private)'
-          inputs:
-            connectTo: 'AzureRM'
-            connectedServiceNameAzureRM: '1es-extensions-publication-secure-service-connection'
-            fileType: 'vsix'
-            vsixFile: '$(Pipeline.Workspace)/vsix-test-signed/*.vsix'
-            targetPath: '$(Pipeline.Workspace)/vsix-test-signed'
-            validateExtension: false
-            useV5: true
-            extensionVisibility: 'private'
+    #     - task: 1ES.PublishAzureDevOpsExtension@1
+    #       displayName: 'Publish TEST extension (private)'
+    #       inputs:
+    #         connectTo: 'AzureRM'
+    #         connectedServiceNameAzureRM: '1es-extensions-publication-secure-service-connection'
+    #         fileType: 'vsix'
+    #         vsixFile: '$(Pipeline.Workspace)/vsix-test-signed/*.vsix'
+    #         targetPath: '$(Pipeline.Workspace)/vsix-test-signed'
+    #         validateExtension: false
+    #         useV5: true
 
     # ======================== Manual Approval BEFORE PUBLIC publish ========================
     - stage: WaitForValidation
