@@ -118,11 +118,6 @@ extends:
           displayName: 'Install Gulp CLI'
           inputs: { command: 'custom', customCommand: 'install -g gulp-cli' }
 
-        # ---- MAIN build/package -> copy to unsigned ----
-        - task: PowerShell@2
-          displayName: 'Clean (MAIN) - gulp clean'
-          inputs: { targetType: inline, script: 'gulp clean', workingDirectory: '$(Build.SourcesDirectory)' }
-
         - task: PowerShell@2
           displayName: 'Build MAIN - gulp build'
           inputs: { targetType: inline, script: 'gulp build', workingDirectory: '$(Build.SourcesDirectory)' }
