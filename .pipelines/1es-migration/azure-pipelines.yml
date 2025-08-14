@@ -250,7 +250,7 @@ extends:
         - task: ManualValidation@0
           timeoutInMinutes: 1440
           inputs:
-            notifyUsers: 'vhorbachov@microsoft.com'
+            notifyUsers: 'razvanmanole@microsoft.com'
             instructions: 'Approve this step to publish the TEST extension (private).'
 
     # ================================= Publish TEST (private) ==============================
@@ -295,7 +295,7 @@ extends:
         - task: ManualValidation@0
           timeoutInMinutes: 1440
           inputs:
-            notifyUsers: 'vhorbachov@microsoft.com'
+            notifyUsers: 'razvanmanole@microsoft.com'
             instructions: 'Approve this step to publish the PUBLIC extension.'
 
     # ===================================== Publish PUBLIC ==================================
