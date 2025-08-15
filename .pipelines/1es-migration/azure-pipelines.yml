@@ -64,10 +64,14 @@ extends:
     sdl:
       sourceAnalysisPool:
         name: 1ESPtTfsAgentBuildPoolSDL
-      spotBugs: { enabled: false }
-      credscan: { enabled: true }
-      binskim: { enabled: true }
-      eslint:  { enabled: true }
+      spotBugs:
+        enabled: false
+      credscan:
+        enabled: true
+      binskim:
+        enabled: true
+      eslint:
+        enabled: true
 
     pool:
       name: 1ESPtTfsAgentBuildPool1
@@ -80,12 +84,12 @@ extends:
 
     stages:
 
-    # ============================== Build (MAIN+TEST) ==============================
-    - stage: Build
-      displayName: 'Build ${{ parameters.extensionName }} (MAIN + TEST)'
+    # ============================== Build & Package ==============================
+    - stage: Build_And_Package_Main_And_Test
+      displayName: 'Build & Package Extensions (Main + Test)'
       jobs:
-      - job: BuildJob
-        displayName: 'Build and Package MAIN, then TEST'
+      - job: BuildAndPackage
+        displayName: 'Build and Package: MAIN then TEST'
         templateContext:
           outputs:
           - output: pipelineArtifact
@@ -98,77 +102,95 @@ extends:
             artifactName: 'vsix-test-unsigned'
         steps:
         - checkout: self
-          displayName: 'Checkout'
+          displayName: 'Checkout repository'
           clean: true
           fetchTags: false
 
         - task: NodeTool@0
-          displayName: 'Install Node.js'
-          inputs: { versionSpec: '10.x' }
+          displayName: 'Use Node.js 20.x'
+          inputs:
+            versionSpec: '20.x'
 
         - task: Npm@1
-          displayName: 'Install Dependencies'
-          inputs: { command: 'install', verbose: false }
+          displayName: 'Install dependencies'
+          inputs:
+            command: install
+            verbose: false
 
         - task: Npm@1
           displayName: 'Install TFX CLI'
-          inputs: { command: 'custom', customCommand: 'install -g tfx-cli' }
+          inputs:
+            command: custom
+            customCommand: 'install -g tfx-cli'
 
         - task: Npm@1
           displayName: 'Install Gulp CLI'
-          inputs: { command: 'custom', customCommand: 'install -g gulp-cli' }
+          inputs:
+            command: custom
+            customCommand: 'install -g gulp-cli'
 
         - task: PowerShell@2
-          displayName: 'Build MAIN - gulp build'
-          inputs: { targetType: inline, script: 'gulp build', workingDirectory: '$(Build.SourcesDirectory)' }
+          displayName: 'Build (MAIN)'
+          inputs:
+            targetType: inline
+            script: 'gulp build'
+            workingDirectory: '$(Build.SourcesDirectory)'
 
         - task: PowerShell@2
-          displayName: 'Package MAIN - gulp package'
-          inputs: { targetType: inline, script: 'gulp package', workingDirectory: '$(Build.SourcesDirectory)' }
+          displayName: 'Package (MAIN)'
+          inputs:
+            targetType: inline
+            script: 'gulp package'
+            workingDirectory: '$(Build.SourcesDirectory)'
 
         - task: CopyFiles@2
-          displayName: 'Copy MAIN VSIX to $(System.ArtifactsDirectory)/unsigned'
+          displayName: 'Copy MAIN VSIX to unsigned artifacts'
           inputs:
             SourceFolder: '$(Build.SourcesDirectory)/_package'
             Contents: '${{ parameters.extensionName }}/*.vsix'
             TargetFolder: '$(System.ArtifactsDirectory)/unsigned'
             flattenFolders: true
 
-        # ---- TEST build/package -> copy to test-unsigned ----
         - task: PowerShell@2
-          displayName: 'Build TEST - gulp build --test'
-          inputs: { targetType: inline, script: 'gulp build --test', workingDirectory: '$(Build.SourcesDirectory)' }
+          displayName: 'Build (TEST)'
+          inputs:
+            targetType: inline
+            script: 'gulp build --test'
+            workingDirectory: '$(Build.SourcesDirectory)'
 
         - task: PowerShell@2
-          displayName: 'Package TEST - gulp package'
-          inputs: { targetType: inline, script: 'gulp package', workingDirectory: '$(Build.SourcesDirectory)' }
+          displayName: 'Package (TEST)'
+          inputs:
+            targetType: inline
+            script: 'gulp package'
+            workingDirectory: '$(Build.SourcesDirectory)'
 
         - task: CopyFiles@2
-          displayName: 'Copy TEST VSIX to $(System.ArtifactsDirectory)/test-unsigned'
+          displayName: 'Copy TEST VSIX to test-unsigned artifacts'
           inputs:
             SourceFolder: '$(Build.SourcesDirectory)/_package'
             Contents: '${{ parameters.extensionName }}/*.vsix'
             TargetFolder: '$(System.ArtifactsDirectory)/test-unsigned'
             flattenFolders: true
 
-    # ================================ Code Signing ================================
-    - stage: CodeSigning
-      displayName: 'Code Signing'
+    # ================================ ESRP Code Signing ================================
+    - stage: ESRP_Code_Signing_Main_And_Test
+      displayName: 'ESRP Code Signing (Main + Test)'
+      dependsOn: Build_And_Package_Main_And_Test
       condition: or(eq(variables['IsMainBranchBuild'], 'true'), ${{ eq(parameters.forceCodeSign, 'true') }}, ${{ eq(parameters.simulateCodeSigningError, 'true') }})
-      dependsOn: Build
       jobs:
-      - job: CodeSigningJob
-        displayName: 'ESRP CodeSigning (MAIN + TEST)'
+      - job: SignVsix
+        displayName: 'Sign VSIX: MAIN and TEST'
         templateContext:
           outputs:
           - output: pipelineArtifact
-            displayName: 'Signed MAIN vsix artifact'
+            displayName: 'Publish Signed MAIN Artifact'
             targetPath: '$(System.ArtifactsDirectory)/signed'
-            artifactName: vsix-signed
+            artifactName: 'vsix-signed'
           - output: pipelineArtifact
-            displayName: 'Signed TEST vsix artifact'
+            displayName: 'Publish Signed TEST Artifact'
             targetPath: '$(System.ArtifactsDirectory)/test-signed'
-            artifactName: vsix-test-signed
+            artifactName: 'vsix-test-signed'
         steps:
         - download: current
           artifact: vsix-unsigned
@@ -181,12 +203,11 @@ extends:
         - script: |
             echo "Simulated error in CodeSigning step."
             exit 1
-          displayName: 'Simulate CodeSigning Error'
+          displayName: 'Simulate CodeSigning error'
           condition: ${{ eq(parameters.simulateCodeSigningError, 'true') }}
 
-        # Sign MAIN
         - task: EsrpCodeSigning@5
-          displayName: 'ESRP CodeSigning (MAIN)'
+          displayName: 'ESRP Sign (MAIN)'
           inputs:
             ConnectedServiceName: '$(Control.EsrpServiceConnectionName)'
             AppRegistrationClientId: '$(Control.AppRegistrationClientId)'
@@ -211,9 +232,8 @@ extends:
             Contents: '*.vsix'
             TargetFolder: '$(System.ArtifactsDirectory)/signed'
 
-        # Sign TEST
         - task: EsrpCodeSigning@5
-          displayName: 'ESRP CodeSigning (TEST)'
+          displayName: 'ESRP Sign (TEST)'
           inputs:
             ConnectedServiceName: '$(Control.EsrpServiceConnectionName)'
             AppRegistrationClientId: '$(Control.AppRegistrationClientId)'
@@ -238,13 +258,14 @@ extends:
             Contents: '*.vsix'
             TargetFolder: '$(System.ArtifactsDirectory)/test-signed'
 
-    # ======================== Manual Approval BEFORE TEST publish ========================
-    - stage: WaitForTestApproval
-      displayName: 'Approve TEST publish'
-      dependsOn: CodeSigning
+    # ======================== Approval: Publish TEST (private) ========================
+    - stage: Approval_For_Test_Publish
+      displayName: 'Approval: Publish TEST (Private)'
+      dependsOn: ESRP_Code_Signing_Main_And_Test
+      condition: and(succeeded(), ${{ eq(parameters.publishExtension, 'true') }})
       jobs:
-      - job: ManualApprovalForTest
-        displayName: 'Manual Approval (TEST)'
+      - job: ApproveTest
+        displayName: 'Manual Approval for TEST publish'
         pool: server
         steps:
         - task: ManualValidation@0
@@ -253,43 +274,48 @@ extends:
             notifyUsers: 'razvanmanole@microsoft.com'
             instructions: 'Approve this step to publish the TEST extension (private).'
 
-    # ================================= Publish TEST (private) ==============================
-    - stage: PublishTestToMarketplace
-      displayName: 'Publish TEST extension (private)'
-      dependsOn: WaitForTestApproval
+    # ================================= Publish TEST (private) ============================
+    - stage: Publish_Test_Extension_Private
+      displayName: 'Publish TEST Extension (Private Marketplace)'
+      dependsOn: Approval_For_Test_Publish
+      condition: and(succeeded(), ${{ eq(parameters.publishExtension, 'true') }})
       jobs:
-      - job: PublishTestVSIX
-        displayName: 'Publish TEST vsix to marketplace (private)'
+      - job: PublishTest
+        displayName: 'Publish TEST VSIX to Marketplace (Private)'
         steps:
         - download: current
           artifact: vsix-test-signed
-          displayName: 'Download Signed TEST Artifact'
+          displayName: 'Download signed TEST artifact'
 
         - task: NodeTool@0
-          displayName: 'Install Node.js'
-          inputs: { versionSpec: '10.x' }
+          displayName: 'Use Node.js 20.x'
+          inputs:
+            versionSpec: '20.x'
 
         - task: TfxInstaller@5
-          inputs: { version: 'v0.21.1' }
+          displayName: 'Install TFX'
+          inputs:
+            version: 'v0.21.1'
 
         - task: 1ES.PublishAzureDevOpsExtension@1
           displayName: 'Publish TEST extension (private)'
           inputs:
-            connectTo: 'AzureRM'
+            connectTo: AzureRM
             connectedServiceNameAzureRM: '1es-extensions-publication-secure-service-connection'
-            fileType: 'vsix'
+            fileType: vsix
             vsixFile: '$(Pipeline.Workspace)/vsix-test-signed/*.vsix'
             targetPath: '$(Pipeline.Workspace)/vsix-test-signed'
             validateExtension: false
             useV5: true
 
-    # ======================== Manual Approval BEFORE PUBLIC publish ========================
-    - stage: WaitForValidation
-      displayName: 'Approve PUBLIC publish'
-      dependsOn: PublishTestToMarketplace
+    # ======================== Approval: Publish PUBLIC ==============================
+    - stage: Approval_For_Public_Publish
+      displayName: 'Approval: Publish PUBLIC'
+      dependsOn: Publish_Test_Extension_Private
+      condition: and(succeeded(), ${{ eq(parameters.publishExtension, 'true') }})
       jobs:
-      - job: ManualApproval
-        displayName: 'Manual Approval (PUBLIC)'
+      - job: ApprovePublic
+        displayName: 'Manual Approval for PUBLIC publish'
         pool: server
         steps:
         - task: ManualValidation@0
@@ -298,31 +324,35 @@ extends:
             notifyUsers: 'razvanmanole@microsoft.com'
             instructions: 'Approve this step to publish the PUBLIC extension.'
 
-    # ===================================== Publish PUBLIC ==================================
-    - stage: PublishToMarketplace
-      displayName: 'Publish PUBLIC extension'
-      dependsOn: WaitForValidation
+    # ===================================== Publish PUBLIC ================================
+    - stage: Publish_Public_Extension
+      displayName: 'Publish PUBLIC Extension (Marketplace)'
+      dependsOn: Approval_For_Public_Publish
+      condition: and(succeeded(), ${{ eq(parameters.publishExtension, 'true') }})
       jobs:
-      - job: PublishVSIX
-        displayName: 'Publish vsix to marketplace'
+      - job: PublishPublic
+        displayName: 'Publish PUBLIC VSIX to Marketplace'
         steps:
         - download: current
           artifact: vsix-signed
-          displayName: 'Download Signed Artifact'
+          displayName: 'Download signed MAIN artifact'
 
         - task: NodeTool@0
-          displayName: 'Install Node.js'
-          inputs: { versionSpec: '10.x' }
+          displayName: 'Use Node.js 20.x'
+          inputs:
+            versionSpec: '20.x'
 
         - task: TfxInstaller@5
-          inputs: { version: 'v0.21.1' }
+          displayName: 'Install TFX'
+          inputs:
+            version: 'v0.21.1'
 
         - task: 1ES.PublishAzureDevOpsExtension@1
-          displayName: 'Publish the public extension to ms-vscs-rm'
+          displayName: 'Publish PUBLIC extension (publisher: ms-vscs-rm)'
           inputs:
-            connectTo: 'AzureRM'
+            connectTo: AzureRM
             connectedServiceNameAzureRM: '1es-extensions-publication-secure-service-connection'
-            fileType: 'vsix'
+            fileType: vsix
             vsixFile: '$(Pipeline.Workspace)/vsix-signed/*.vsix'
             targetPath: '$(Pipeline.Workspace)/vsix-signed'
             validateExtension: false
