@@ -7,7 +7,7 @@
   "public": true,
   "description": "Tools related to connecting with Bitbucket",
   "_description.comment": "The below format to define artifact extensions is currently in preview and may change in future.",
-  "categories": [ "Integrate" ],
+  "categories": [ "Azure Pipelines" ],
   "Tags": [ "Bitbucket", "Release", "DevOps", "Artifacts" ],
   "targets": [
     {
