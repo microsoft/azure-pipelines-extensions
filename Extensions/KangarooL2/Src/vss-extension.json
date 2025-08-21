@@ -1,7 +1,7 @@
 {
   "manifestVersion": 1.0,
   "id": "vss-services-kangarool2",
-  "version": "1.256.0",
+  "version": "1.262.1",
   "name": "Kangaroo L2 endpoint type for OAuth2 L2 tests",
   "publisher": "ms-vscs-tfs-l2",
   "description": "Deploy Kangaroo endpoint type for OAuth2 related L2 tests",
