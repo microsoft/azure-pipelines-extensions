@@ -132,14 +132,14 @@ extends:
         - task: CopyFiles@2
           inputs:
             SourceFolder: '$(Build.SourcesDirectory)/custom-artifacts'  
-            Contents: '${{ parameters.extensionName }}/*.vsix'
+            Contents: '**'
             TargetFolder: '$(Build.ArtifactsDirectory)/unsigned' # PROD unsigned artifact
             flattenFolders: true
 
         - task: CopyFiles@2
           inputs:
             SourceFolder: '$(Build.SourcesDirectory)/custom-artifacts'
-            Contents: '${{ parameters.extensionName }}/*.vsix'
+            Contents: '**'
             TargetFolder: '$(Build.ArtifactsDirectory)/test-unsigned' # TEST unsigned artifact
             flattenFolders: true
 
