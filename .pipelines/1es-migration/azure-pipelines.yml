@@ -133,14 +133,14 @@ extends:
           inputs:
             SourceFolder: '$(Build.SourcesDirectory)/custom-artifacts'  
             Contents: '${{ parameters.extensionName }}/*.vsix'
-            TargetFolder: '$(Build.ArtifactStagingDirectory)/unsigned'          # PROD unsigned artifact
+            TargetFolder: '$(Build.ArtifactsDirectory)/unsigned' # PROD unsigned artifact
             flattenFolders: true
 
         - task: CopyFiles@2
           inputs:
             SourceFolder: '$(Build.SourcesDirectory)/custom-artifacts'
             Contents: '${{ parameters.extensionName }}/*.vsix'
-            TargetFolder: '$(Build.ArtifactStagingDirectory)/test-unsigned'  # TEST unsigned artifact
+            TargetFolder: '$(Build.ArtifactsDirectory)/test-unsigned' # TEST unsigned artifact
             flattenFolders: true
 
     # ================================ ESRP Code Signing ================================
