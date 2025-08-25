@@ -2,7 +2,7 @@
 
 This repository is a common place for some extensions that Azure DevOps team publishes as **Microsoft** or **Microsoft DevLabs** publisher.
 
-## How to Build 
+## How to Build
 
 Ensure you have installed Node.js. Clone the repository, and go to the root folder of the repository and run the following commands. 
 
@@ -25,14 +25,27 @@ Feed with various nugets to consume resides at [this location](https://1esshared
 
 Feed can be updated/republished by executing [this build definition](https://dev.azure.com/mseng/AzureDevOps/_build?definitionId=6226&_a=summary)
 
+## Contribution guideline
+
+While updating an extension or its tasks it is important to ensure that:
+
+1. The appropriate version number is updated
+
+    - For any changed task, we need to update the version number for both, the changed task (in `task.json` file) and extension itself (in `vss-extension.json` file).
+    - If only logic around the extension is changed, update the version number for extension only (in `vss-extension.json` file).
+    - The version number consist of three parts (major, minor, patch). Be aware that minor number should reflect [the current sprint](https://whatsprintis.it/) of Azure DevOps team in which change is being made.
+
+2. The affected extension is published to [Marketplace](https://marketplace.visualstudio.com/azuredevops/).
+   It is not enough to only merge change to `master` branch, without properly testing the current version and publishing it to all customers.
+
 ## Contact Information
 
-Extensions authored by the **Microsoft** publisher are supported by Microsoft. 
+Extensions authored by the **Microsoft** publisher are supported by Microsoft.
 
 The following extensions authored by the [**Microsoft DevLabs** publisher](https://marketplace.visualstudio.com/publishers/Microsoft%20DevLabs) are currently supported by Microsoft partner [**Solidify**](https://devblogs.microsoft.com/devops/azure-boards-fall-update/#extension-support-with-solidify-ab):
 
-* **Terraform**. The Terraform extension has a new home at https://github.com/microsoft/azure-pipelines-terraform. To report a problem with the Terraform extension, create an issue in that repository. The maintainers of this repository will review and respond to the issue.
-* **Optimizely**. This extension has been deprecated and is no longer maintained or supported.
-* **Google Analytics**. This extension has been deprecated and is no longer maintained or supported.
-* **Datasources**. This extension has been deprecated and is no longer maintained or supported.
-* **TwitterSentimentAnalysis**. This extension has been deprecated and is no longer maintained or supported.
+- **Terraform**. The Terraform extension has a new home at https://github.com/microsoft/azure-pipelines-terraform. To report a problem with the Terraform extension, create an issue in that repository. The maintainers of this repository will review and respond to the issue.
+- **Optimizely**. This extension has been deprecated and is no longer maintained or supported.
+- **Google Analytics**. This extension has been deprecated and is no longer maintained or supported.
+- **Datasources**. This extension has been deprecated and is no longer maintained or supported.
+- **TwitterSentimentAnalysis**. This extension has been deprecated and is no longer maintained or supported.
