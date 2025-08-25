@@ -3,7 +3,7 @@
   "id": "vss-services-copystagevariabletoreleasevariable",
   "name": "Copy Stage variable to Release variable",
   "publisher": "ms-vscs-rm",
-  "version": "1.262.1",
+  "version": "1.262.3",
   "public": true,
   "description": "Assigns the value of a Agent/Agentless job variable to a new release variable",
   "categories": [
