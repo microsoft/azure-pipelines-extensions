@@ -33,10 +33,12 @@ While updating an extension or its tasks it is important to ensure that:
 
     - For any changed task, we need to update the version number for both, the changed task (in `task.json` file) and extension itself (in `vss-extension.json` file).
     - If only logic around the extension is changed, update the version number for extension only (in `vss-extension.json` file).
-    - The version number consist of three parts (major, minor, patch). Be aware that minor number should reflect [the current sprint](https://whatsprintis.it/) of Azure DevOps team in which change is being made.
+    - The version number consist of three parts (major, minor, patch). Be aware that minor number should reflect [the current sprint](https://whatsprintis.it/) of Azure DevOps team in which change is being made. Patch number starts from 0 for the initial version, and increments for every change.
 
 2. The affected extension is published to [Marketplace](https://marketplace.visualstudio.com/azuredevops/).
    It is not enough to only merge change to `master` branch, without properly testing the current version and publishing it to all customers.
+
+3. Delete your branch after pull request is merged.
 
 ## Contact Information
 
