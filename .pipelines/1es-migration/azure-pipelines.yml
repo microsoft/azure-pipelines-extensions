@@ -133,14 +133,14 @@ extends:
           inputs:
             SourceFolder: '$(Build.SourcesDirectory)/custom-artifacts'  
             Contents: '**'
-            TargetFolder: '$(Build.ArtifactsDirectory)/unsigned' # PROD unsigned artifact
+            TargetFolder: '$(System.ArtifactsDirectory)/unsigned' # PROD unsigned artifact
             flattenFolders: true
 
         - task: CopyFiles@2
           inputs:
             SourceFolder: '$(Build.SourcesDirectory)/custom-artifacts'
             Contents: '**'
-            TargetFolder: '$(Build.ArtifactsDirectory)/test-unsigned' # TEST unsigned artifact
+            TargetFolder: '$(System.ArtifactsDirectory)/test-unsigned' # TEST unsigned artifact
             flattenFolders: true
 
     # ================================ ESRP Code Signing ================================
