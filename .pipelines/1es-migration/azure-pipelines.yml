@@ -129,18 +129,48 @@ extends:
             command: custom
             customCommand: 'install -g gulp-cli'
 
-        - task: CopyFiles@2
+        - task: PowerShell@2
+          displayName: 'Build (MAIN)'
           inputs:
-            SourceFolder: '$(Build.SourcesDirectory)/custom-artifacts'  
-            Contents: '**'
-            TargetFolder: '$(System.ArtifactsDirectory)/unsigned' # PROD unsigned artifact
-            flattenFolders: true
+            targetType: inline
+            script: 'gulp build'
+            workingDirectory: '$(Build.SourcesDirectory)'
+
+        - task: PowerShell@2
+          displayName: 'Package (MAIN)'
+          inputs:
+            targetType: inline
+            script: 'gulp package'
+            workingDirectory: '$(Build.SourcesDirectory)'
 
         - task: CopyFiles@2
+          displayName: 'Copy MAIN VSIX to unsigned artifacts'
           inputs:
-            SourceFolder: '$(Build.SourcesDirectory)/custom-artifacts'
-            Contents: '**'
-            TargetFolder: '$(System.ArtifactsDirectory)/test-unsigned' # TEST unsigned artifact
+            SourceFolder: '$(Build.SourcesDirectory)/_package'
+            Contents: '${{ parameters.extensionName }}/*.vsix'
+            TargetFolder: '$(System.ArtifactsDirectory)/unsigned'
+            flattenFolders: true
+
+        - task: PowerShell@2
+          displayName: 'Build (TEST)'
+          inputs:
+            targetType: inline
+            script: 'gulp build --test'
+            workingDirectory: '$(Build.SourcesDirectory)'
+
+        - task: PowerShell@2
+          displayName: 'Package (TEST)'
+          inputs:
+            targetType: inline
+            script: 'gulp package'
+            workingDirectory: '$(Build.SourcesDirectory)'
+
+        - task: CopyFiles@2
+          displayName: 'Copy TEST VSIX to test-unsigned artifacts'
+          inputs:
+            SourceFolder: '$(Build.SourcesDirectory)/_package'
+            Contents: '${{ parameters.extensionName }}/*.vsix'
+            TargetFolder: '$(System.ArtifactsDirectory)/test-unsigned'
             flattenFolders: true
 
     # ================================ ESRP Code Signing ================================
