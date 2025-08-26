@@ -30,7 +30,7 @@
     "fs-extra": "^0.28.0",
     "gulp": "^4.0.2",
     "gulp-mocha": "^6.0.0",
-    "gulp-typescript": "^6.0.0-alpha.1",
+    "gulp-typescript": "3.0.0",
     "gulp-unzip": "^1.1.0",
     "gulp-util": "^3.0.7",
     "minimatch": "3.0.2",
