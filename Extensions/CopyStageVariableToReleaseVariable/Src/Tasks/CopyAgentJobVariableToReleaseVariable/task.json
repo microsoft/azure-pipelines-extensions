@@ -1,5 +1,5 @@
 {
-    "id": "493A03D9-7E56-4DB8-87F3-68C94C075038",
+    "id": "ea576333-29e1-4161-9ee7-9e1e937824c9",
     "name": "CopyAgentJobVariableToReleaseVariable",
     "friendlyName": "Copy agent job variable to release",
     "description": "Assigns the value of a agent job variable to a new release variable",
@@ -14,7 +14,7 @@
     ],
     "version": {
         "Major": 0,
-        "Minor": 260,
+        "Minor": 262,
         "Patch": 0
     },
     "instanceNameFormat": "Create a release variable ",
