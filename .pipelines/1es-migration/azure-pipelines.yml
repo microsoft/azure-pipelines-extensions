@@ -42,7 +42,7 @@ variables:
   value: true
 # Publisher
 - name: PublisherId
-  value: 'ms-vscs-rm'
+  value: ${{ if eq(parameters.extensionName, 'TeamCity') }} 'ms-devlabs' ${{ else }} 'ms-vscs-rm'
 # ESRP Signing secrets
 - group: EPS.ESRPSigningProdAME
 # Dynamic
