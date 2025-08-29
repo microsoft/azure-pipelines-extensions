@@ -7,7 +7,7 @@
     "description": "Azure Exp feature rollout",
     "public": false,
     "categories": [
-        "Build and release"
+        "Azure Pipelines"
     ],
     "files": [
         {

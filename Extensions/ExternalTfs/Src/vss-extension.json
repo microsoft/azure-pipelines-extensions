@@ -1,13 +1,13 @@
 ﻿﻿{
   "manifestVersion": 1.0,
   "id": "vss-services-externaltfs",
-  "version": "15.254.0",
+  "version": "15.262.3",
   "name": "TFS artifacts for Release Management",
   "publisher": "ms-vscs-rm",
   "description": "Deploy external TFS/ Azure DevOps artifacts using Release Management",
   "_description.comment": "The below format to define artifact extensions is currently in preview and may change in future.",
   "public": true,
-  "categories": [ "Build and release" ],
+  "categories": [ "Azure Pipelines" ],
   "tags": [ "Artifacts", "DevOps", "Release" ],
   "targets": [
     {
@@ -29,9 +29,9 @@
       "path": "images/screen3.png"
     }
   ],
-  "content": { 
-      "details": { 
-        "path": "readme.md" 
+  "content": {
+      "details": {
+        "path": "readme.md"
       },
       "license": {
         "path": "mp_terms.md"
@@ -67,7 +67,7 @@
   "branding": {
       "color": "#5C2D91",
       "theme": "dark"
-  },  
+  },
   "contributions": [
     {
       "id": "externalTFSBuild-release-artifact-type",
@@ -242,7 +242,7 @@
       "properties": {
         "name": "Tasks/DownloadExternalBuildArtifacts"
         }
-    }, 
+    },
     {
         "id": "externalTFVC-release-artifact-type",
         "description": "External TFS Version Control",
@@ -386,7 +386,7 @@
                 "source": "artifactItems"
             }
         }
-    },      
+    },
     {
       "id": "externalTfvc-task",
       "type": "ms.vss-distributed-task.task",
@@ -396,7 +396,7 @@
       "properties": {
         "name": "Tasks/DownloadArtifactsTfsVersionControl"
         }
-    },      
+    },
     {
       "id": "externalTfGit-release-artifact-type",
       "description": "External TFS Git",
@@ -574,7 +574,7 @@
       "properties": {
         "name": "Tasks/DownloadArtifactsTfsGit"
       }
-    },    
+    },
     {
       "id": "externalTFSXamlBuild-release-artifact-type",
       "description": "External TFS XAML Build Artifact",

@@ -75,7 +75,7 @@ function errorHandler(error) {
     process.exit(1);
 }
 
-var rootTsconfigPath = './tsconfig.json';
+var rootTsconfigPath = './base.tsconfig.json';
 
 gulp.task("clean", function() {
     return del([_buildRoot, _packageRoot, nugetPath, _taskModuleBuildRoot]);
@@ -160,7 +160,7 @@ gulp.task("TaskModuleTest", gulp.series('copy:TaskModuleTest', function() {
 }));
 
 gulp.task('prepublish:TaskModulePublish', function (done) {
-	return del([TaskModulesTestRoot], done);
+    return del([TaskModulesTestRoot], done);
 });
 
 gulp.task('TaskModulePublish', gulp.series('prepublish:TaskModulePublish', function (done) {
@@ -433,7 +433,7 @@ function createResjson(callback) {
                 var resjsonPath = path.join(path.dirname(libJson), 'Strings', 'resources.resjson', culture, 'resources.resjson');
                 var resjsonContents = JSON.stringify(cultureStrings, null, 2);
                 shell.mkdir('-p', path.dirname(resjsonPath));
-                fs.writeFileSync(resjsonPath, resjsonContents);
+                fs.writeFileSync(resjsonPath, resjsonContents.replace(/\n/g, os.EOL));
             }
         });
     }
@@ -651,7 +651,86 @@ function compileUIExtensions(extensionRoot) {
     };
 }
 
-gulp.task("build", gulp.series("compileNode"));
+gulp.task("updateTestIds", function(cb) {
+    if (args.test) {
+        var buildExtensionsRoot = path.join(_buildRoot, 'Extensions');
+        if (fs.existsSync(buildExtensionsRoot)) {
+            var extensionDirs = fs.readdirSync(buildExtensionsRoot).filter(function (file) {
+                return fs.statSync(path.join(buildExtensionsRoot, file)).isDirectory();
+            });
+            extensionDirs.forEach(function (extName) {
+                // Check multiple possible locations for vss-extension.json
+                var possiblePaths = [
+                    path.join(buildExtensionsRoot, extName, 'Src', 'vss-extension.json'),
+                    path.join(buildExtensionsRoot, extName, 'src', 'vss-extension.json'),
+                    path.join(buildExtensionsRoot, extName, 'vss-extension.json')
+                ];
+                
+                var manifestPath = null;
+                for (var i = 0; i < possiblePaths.length; i++) {
+                    if (fs.existsSync(possiblePaths[i])) {
+                        manifestPath = possiblePaths[i];
+                        break;
+                    }
+                }
+                
+                if (manifestPath) {
+                    try {
+                        // Read file and handle potential BOM
+                        var fileContent = fs.readFileSync(manifestPath, 'utf8');
+                        // Remove BOM if present
+                        if (fileContent.charCodeAt(0) === 0xFEFF) {
+                            fileContent = fileContent.slice(1);
+                        }
+                        
+                        var manifest = JSON.parse(fileContent);
+                        var updated = false;
+                        
+                        // Check for both 'id' and 'extensionId' properties
+                        var idProperty = manifest.id ? 'id' : (manifest.extensionId ? 'extensionId' : null);
+                        
+                        if (idProperty && manifest[idProperty] && !manifest[idProperty].endsWith('-test')) {
+                            manifest[idProperty] = manifest[idProperty] + '-test';
+                            updated = true;
+                        }
+                        
+                        // Update name property
+                        if (manifest.hasOwnProperty('name')) {
+                            manifest.name = `${manifest.name} (Test)`;
+                        }
+
+                        // Always set public to false if it exists
+                        if (manifest.hasOwnProperty('public') && manifest.public !== false) {
+                            manifest.public = false;
+                            updated = true;
+                        } else if (!manifest.hasOwnProperty('public')) {
+                            // Add public: false if it doesn't exist
+                            manifest.public = false;
+                            updated = true;
+                        }
+                        
+                        if (updated) {
+                            // Write back without BOM
+                            fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+                            console.log('Updated manifest for test build: ' + manifestPath);
+                            console.log('  - ' + idProperty + ': ' + manifest[idProperty]);
+                            console.log('  - Public: ' + manifest.public);
+                        } else if (idProperty && manifest[idProperty].endsWith('-test')) {
+                            console.log('Extension already has -test suffix: ' + manifestPath);
+                        }
+                    } catch (e) {
+                        console.error('Failed to update manifest: ' + manifestPath + ' - ' + e.message);
+                    }
+                } else {
+                    console.log('No vss-extension.json found for extension: ' + extName);
+                }
+            });
+        }
+    }
+    cb();
+});
+
+gulp.task("build", gulp.series("compileNode", "updateTestIds"));
 
 gulp.task("handoff", function(cb) {
     handoff(cb);
@@ -736,15 +815,16 @@ gulp.task("test", gulp.series("testResources", function(){
 // Package//-----------------------------------------------------------------------------------------------------------------
 
 var publisherName = null;
-gulp.task("package",  function(cb) {
-    if(args.publisher){
+gulp.task("package", function(cb) {
+    if (args.publisher) {
         publisherName = args.publisher;
     }
 
     // use gulp package --extension=<Extension_Name> to package an individual package
-    if(args.extension){
+    if (args.extension) {
         createVsixPackage(args.extension);        return;
     }
+
     fs.readdirSync(_extnBuildRoot).filter(function (file) {
         return fs.statSync(path.join(_extnBuildRoot, file)).isDirectory() && file != "Common";
     }).forEach(createVsixPackage);
@@ -871,12 +951,11 @@ var createVsixPackage = function(extensionName) {
 
 var executeCommand = function(cmd, callback) {
     shell.exec(cmd, {silent: true}, function(code, output) {
-       if(code != 0) {
-           console.error("command failed: " + cmd + "\nManually execute to debug");
-       }
-       else {
+        if (code != 0) {
+            console.error("command failed: " + cmd + "\nManually execute to debug");
+        } else {
            callback();
-       }
+        }
     });
 }
 

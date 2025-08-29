@@ -34,14 +34,24 @@ extends:
                 param(
                     [string] $fileName
                 )
-                $exceptions = @("*.gif", "*.svg", "*.png", "*.dll", 
-            "*\extensions\artifactengine\providers\typed-rest-client\httpclient.ts", "*\extensions\artifactengine\providers\typed-rest-client\util.ts",
-            "*\extensions\bitbucket\src\tasks\downloadartifactsbitbucket\downloadbitbucket.js",
-            "*\extensions\externaltfs\src\tasks\downloadartifactstfsgit\downloadtfgit.js")
+
+                $exceptions = @(
+                  "*.gif",
+                  "*.svg",
+                  "*.png",
+                  "*.dll",
+                  "*.npmrc",
+                  "*package-lock.json",
+                  "*\extensions\artifactengine\providers\typed-rest-client\httpclient.ts",
+                  "*\extensions\artifactengine\providers\typed-rest-client\util.ts",
+                  "*\extensions\bitbucket\src\tasks\downloadartifactsbitbucket\downloadbitbucket.js",
+                  "*\extensions\externaltfs\src\tasks\downloadartifactstfsgit\downloadtfgit.js"
+                )
+
                 @($exceptions | ? { $fileName -ilike $_ }).Count -gt 0
             }
             Write-Host "Ensure there are no dev.azure.com and url.parse strings in the code."
-            @("$(Build.Repository.LocalPath)\Extensions", "$(Build.Repository.LocalPath)\ServerTaskHelper", "$(Build.Repository.LocalPath)\TaskModules") | % { 
+            @("$(Build.Repository.LocalPath)\Extensions", "$(Build.Repository.LocalPath)\ServerTaskHelper", "$(Build.Repository.LocalPath)\TaskModules") | % {
                 dir $_ -rec | % {
                     if ($_.Attributes -eq "Directory") {
                         return
