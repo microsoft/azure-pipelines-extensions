@@ -347,7 +347,7 @@ extends:
               throw "TARGET_PIPELINE_NAME is empty. Check the DetermineCiTestPipelineName step."
             }
 
-            $token = $env:SYSTEM_ACCESSTOKEN
+            $token = $env:SYSTEM_ACCESS_TOKEN
             if ([string]::IsNullOrWhiteSpace($token)) {
               throw "System.AccessToken is empty. Enable 'Allow scripts to access the OAuth token' and retry."
             }
@@ -402,7 +402,7 @@ extends:
           displayName: 'Trigger selected CI pipeline and wait for the result'
           env:
             # Expose the job access token to the script
-            SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+            SYSTEM_ACCESS_TOKEN: $(System.AccessToken)
 
     # ======================== Approval: Publish PUBLIC ==============================
     - stage: Approval_For_Public_Publish
