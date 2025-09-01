@@ -308,6 +308,102 @@ extends:
             validateExtension: false
             useV5: true
 
+    - stage: Execute_CI_Tests
+      displayName: 'Execute CI tests'
+      dependsOn: Publish_Test_Extension_Private
+      condition: succeeded()
+      variables:
+        CI_TESTS_ORG_URL: 'https://dev.azure.com/canarytest'
+        CI_TESTS_PROJECT:  'PipelineTasks'
+
+      jobs:
+      - job: TriggerAndWait
+        displayName: 'Trigger extension-specific CI tests and wait for result'
+        timeoutInMinutes: 120
+
+        steps:
+        - pwsh: |
+            $ErrorActionPreference = 'Stop'
+            $selectedExtensionName = '${{ parameters.extensionName }}'
+
+            switch ($selectedExtensionName) {
+              'Ansible' { $pipelineName = 'AzDev-ReleaseManagement-Ansible-CI-Test' }
+              default   { throw "Pipeline name can't be determined for '$selectedExtensionName' extension. Update the mapping between the selected extension and pipeline name." }
+            }
+
+            Write-Host "Mapping: $selectedExtensionName -> $pipelineName"
+            Write-Host "##vso[task.setvariable variable=TARGET_PIPELINE_NAME;]$pipelineName"
+          name: DetermineCiTestPipelineName
+          displayName: 'Determine the pipeline that will be triggered to verify the selected extension'
+
+        - pwsh: |
+            $ErrorActionPreference = 'Stop'
+
+            # Verify that all inputs for triggering the target pipeline are valid
+            $orgUrl   = "$(CI_TESTS_ORG_URL)".TrimEnd('/')
+            $project  = "$(CI_TESTS_PROJECT)"
+            $targetPipelineName = "$(TARGET_PIPELINE_NAME)"
+            if ([string]::IsNullOrWhiteSpace($targetPipelineName)) {
+              throw "TARGET_PIPELINE_NAME is empty. Check the DetermineCiTestPipelineName step."
+            }
+
+            $token = $env:SYSTEM_ACCESSTOKEN
+            if ([string]::IsNullOrWhiteSpace($token)) {
+              throw "System.AccessToken is empty. Enable 'Allow scripts to access the OAuth token' and retry."
+            }
+
+            # Configure Auth header
+            $Headers = @{ Authorization = "Bearer $token"; "Content-Type" = "application/json" }
+
+            # Use pipeline name to get the pipeline ID
+            $listUrl   = "$orgUrl/$project/_apis/pipelines?api-version=7.1"
+            $pipelines = Invoke-RestMethod -Method GET -Uri $listUrl -Headers $Headers
+            $pipeline  = $pipelines.value | Where-Object { $_.name -eq $targetPipelineName } | Select-Object -First 1
+            if (-not $pipeline) { 
+              throw "Pipeline '$targetPipelineName' not found in project '$project'."
+            }
+            $pipelineId = [int]$pipeline.id
+            Write-Host "Resolved pipelineId: $pipelineId"
+
+            # Queue pipeline run (with option to pass optional context)
+            $runBody = @{
+              variables = @{
+                ExtensionName = @{ value = '${{ parameters.extensionName }}' }
+              }
+            } | ConvertTo-Json -Depth 5
+
+            $runUrl = "$orgUrl/$project/_apis/pipelines/$pipelineId/runs?api-version=7.1"
+            $runResp = Invoke-RestMethod -Method POST -Uri $runUrl -Headers $Headers -Body $runBody
+            $runId = [int]$runResp.id
+            Write-Host "Queued external runId: $runId"
+
+            # Check pipeline status until run is completed or timed out
+            $scheduledPipelineUrl = "$orgUrl/$project/_apis/pipelines/$pipelineId/runs/$runId?api-version=7.1"
+            $deadline = [DateTimeOffset]::UtcNow.AddHours(2)
+
+            do {
+              Start-Sleep -Seconds 30
+              $status = Invoke-RestMethod -Method GET -Uri $scheduledPipelineUrl -Headers $Headers
+              $state  = $status.state
+              $result = $status.result
+              Write-Host "State=$state Result=$result Timestamp=$(Get-Date -AsUTC)"
+              if ([DateTimeOffset]::UtcNow -gt $deadline) { 
+                throw "Timed out waiting for external run $runId."
+              }
+            } while ($state -ne 'completed')
+
+            if ($result -ne 'succeeded') {
+              Write-Error "External pipeline run $runId completed with result: $result"
+              exit 1
+            }
+
+            Write-Host "External pipeline run $runId succeeded."
+        
+          displayName: 'Trigger selected CI pipeline and wait for the result'
+          env:
+            # Expose the job access token to the script
+            SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+
     # ======================== Approval: Publish PUBLIC ==============================
     - stage: Approval_For_Public_Publish
       displayName: 'Approval: Publish PUBLIC'
