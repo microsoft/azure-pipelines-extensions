@@ -1,5 +1,4 @@
-# Azure Pipelines Extensions 1ES Build Pipeline
-# Single build stage: MAIN -> copy, TEST -> copy; then sign, approve, publish (TEST then PUBLIC)
+# This pipeline is based on 1ES build pipeline and it is used to release a new version of an extension on Marketplace.
 
 name: Extension $(ExtensionName) - $(Date:yyyyMMdd)$(Rev:.r)
 appendCommitMessageToRunName: false
