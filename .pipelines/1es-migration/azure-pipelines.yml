@@ -407,7 +407,7 @@ extends:
     # ======================== Approval: Publish PUBLIC ==============================
     - stage: Approval_For_Public_Publish
       displayName: 'Approval: Publish PUBLIC'
-      dependsOn: Publish_Test_Extension_Private
+      dependsOn: Execute_CI_Tests
       condition: and(succeeded(), ${{ eq(parameters.publishExtension, 'true') }})
       jobs:
       - job: ApprovePublic
