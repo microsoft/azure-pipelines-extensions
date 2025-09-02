@@ -357,6 +357,8 @@ extends:
 
             # Use pipeline name to get the pipeline ID
             $listUrl   = "$orgUrl/$project/_apis/pipelines?api-version=7.1"
+            Write-Host "Trying to get pipeline ID by sending GET request to: $listUrl"
+
             $pipelines = Invoke-RestMethod -Method GET -Uri $listUrl -Headers $Headers
             $pipeline  = $pipelines.value | Where-Object { $_.name -eq $targetPipelineName } | Select-Object -First 1
             if (-not $pipeline) { 
@@ -373,9 +375,11 @@ extends:
             } | ConvertTo-Json -Depth 5
 
             $runUrl = "$orgUrl/$project/_apis/pipelines/$pipelineId/runs?api-version=7.1"
-            $runResp = Invoke-RestMethod -Method POST -Uri $runUrl -Headers $Headers -Body $runBody
-            $runId = [int]$runResp.id
-            Write-Host "Queued external runId: $runId"
+            Write-Host "Trying to queue pipeline run by issuing POST request to: $runUrl"
+
+            $runResponse = Invoke-RestMethod -Method POST -Uri $runUrl -Headers $Headers -Body $runBody
+            $runId = [int]$runResponse.id
+            Write-Host "Queued external pipeline execution with run ID: $runId"
 
             # Check pipeline status until run is completed or timed out
             $scheduledPipelineUrl = "$orgUrl/$project/_apis/pipelines/$pipelineId/runs/$runId?api-version=7.1"
@@ -388,17 +392,17 @@ extends:
               $result = $status.result
               Write-Host "State=$state Result=$result Timestamp=$(Get-Date -AsUTC)"
               if ([DateTimeOffset]::UtcNow -gt $deadline) { 
-                throw "Timed out waiting for external run $runId."
+                throw "Timed out waiting for external pipeline execution with run ID: $runId."
               }
             } while ($state -ne 'completed')
 
             if ($result -ne 'succeeded') {
-              Write-Error "External pipeline run $runId completed with result: $result"
+              Write-Error "External pipeline execution with run ID: $runId is completed with the result: $result"
               exit 1
             }
 
-            Write-Host "External pipeline run $runId succeeded."
-        
+            Write-Host "External pipeline execution with run ID: $runId succeeded."
+
           displayName: 'Trigger selected CI pipeline and wait for the result'
           env:
             # Expose the job access token to the script
