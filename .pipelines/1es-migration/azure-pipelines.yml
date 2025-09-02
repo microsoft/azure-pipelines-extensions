@@ -20,6 +20,7 @@ parameters:
   - GenevaMonitor
   - IISWebAppDeploy
   - KangarooL2
+  - ManageAzureVMExtensions
   - SampleTask
   - ServiceNow
   - TeamCity

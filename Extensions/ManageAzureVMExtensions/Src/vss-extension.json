@@ -1,0 +1,69 @@
+{
+	"manifestVersion": 1.0,
+	"id": "vss-services-manageazurevmextension",
+	"name": "Manage VM extensions in Azure PIR ",
+	"publisher": "ms-vscs-rm",
+	"version": "0.262.0",
+	"public": false,
+	"description": "Manage VM extensions in Azure Platform Image Repository.",
+	"categories": [
+		"Azure Pipelines"
+	],
+	"Tags": [
+		"VM Extensions",
+		"PIR",
+		"Platform"
+	],
+	"targets": [
+		{
+			"id": "Microsoft.VisualStudio.Services.Cloud"
+		}
+	],
+	"demands": [],
+	"icons": {
+		"default": "images/azure.png"
+	},
+	"branding": {
+		"color": "#3B3E43",
+		"theme": "dark"
+	},
+	"screenshots": [
+		{
+			"path": "images/CreateOrUpdate_UX.png"
+		}
+	],
+	"files": [
+		{
+			"path": "images/CreateOrUpdate_UX.png",
+			"addressable": true
+		},
+		{
+			"path": "images/Delete_UX.png",
+			"addressable": true
+		},
+		{
+			"path": "images/azure.png",
+			"addressable": true
+		},
+		{
+			"path": "Tasks/ManageAzureVMExtension"
+		}
+	],
+	"content": {
+		"details": {
+			"path": "readme.md"
+		}
+	},
+	"contributions": [
+		{
+			"id": "manageazurevmextension-task",
+			"type": "ms.vss-distributed-task.task",
+			"targets": [
+				"ms.vss-distributed-task.tasks"
+			],
+			"properties": {
+				"name": "Tasks/ManageAzureVMExtension"
+			}
+		}
+	]
+}
