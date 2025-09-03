@@ -352,15 +352,16 @@ extends:
             $Headers = @{ Authorization = "Bearer $token"; "Content-Type" = "application/json" }
 
             # Use pipeline name to get the pipeline ID
-            $listUrl   = "$orgUrl/$project/_apis/pipelines?api-version=7.1"
-            Write-Host "Trying to get pipeline ID by sending GET request to: $listUrl"
+            $allPipelinesUrl   = "$orgUrl/$project/_apis/pipelines?api-version=7.1"
+            Write-Host "Trying to get pipeline ID by sending GET request to: $allPipelinesUrl"
 
-            $pipelines = Invoke-RestMethod -Method GET -Uri $listUrl -Headers $Headers
-            $pipeline  = $pipelines.value | Where-Object { $_.name -eq $targetPipelineName } | Select-Object -First 1
+            $allPipelines = Invoke-RestMethod -Method GET -Uri $allPipelinesUrl -Headers $Headers
+            $pipeline  = $allPipelines.value | Where-Object { $_.name -eq $targetPipelineName } | Select-Object -First 1
             if (-not $pipeline) { 
               throw "Pipeline '$targetPipelineName' not found in project '$project'."
             }
             $pipelineId = [int]$pipeline.id
+            Write-Host "Target pipeline: " + ($pipeline | ConvertTo-Json -Depth 10)
             Write-Host "Resolved pipelineId: $pipelineId"
 
             # Queue pipeline run (with option to pass optional context)
@@ -372,11 +373,18 @@ extends:
               }
             } | ConvertTo-Json -Depth 3
 
-            $runUrl = "$orgUrl/$project/_apis/pipelines/$pipelineId/runs?api-version=7.1"
-            Write-Host "Trying to queue pipeline run by issuing POST request to: $runUrl"
+            $runPipelineUrl = "$orgUrl/$project/_apis/pipelines/$pipelineId/runs?api-version=7.1"
+            Write-Host "Trying to queue pipeline run by issuing POST request to: $runPipelineUrl"
 
-            $runResponse = Invoke-RestMethod -Method POST -Uri $runUrl -Headers $Headers -Body $runBody
-            $runId = [int]$runResponse.id
+            $runPipelineResponse = Invoke-RestMethod -Method POST -Uri $runPipelineUrl -Headers $Headers -Body $runBody
+            if (-not $runPipelineResponse -or -not $runPipelineResponse.id) {
+              Write-Host "Logging POST response as JSON if possible..."
+              try { Write-Host ($runPipelineResponse | ConvertTo-Json -Depth 10) } catch { Write-Host $runPipelineResponse }
+              throw "POST request to $runPipelineUrl did not return a run id (likely authentication/permission issue)."
+            }
+
+            $runId = [int]$runPipelineResponse.id
+            if ($runId -le 0) { throw "POST request to $runPipelineUrl returned run ID: $runId, which is not the expected value for a successful request." }
             Write-Host "Queued external pipeline execution with run ID: $runId"
 
             # Check pipeline status until run is completed or timed out
