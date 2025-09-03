@@ -365,10 +365,12 @@ extends:
 
             # Queue pipeline run (with option to pass optional context)
             $runBody = @{
-              variables = @{
-                ExtensionName = @{ value = '${{ parameters.extensionName }}' }
+              resources = @{
+                repositories = @{
+                  self = @{ refName = "refs/heads/main" }
+                }
               }
-            } | ConvertTo-Json -Depth 5
+            } | ConvertTo-Json -Depth 3
 
             $runUrl = "$orgUrl/$project/_apis/pipelines/$pipelineId/runs?api-version=7.1"
             Write-Host "Trying to queue pipeline run by issuing POST request to: $runUrl"
@@ -386,7 +388,7 @@ extends:
               $status = Invoke-RestMethod -Method GET -Uri $scheduledPipelineUrl -Headers $Headers
               $state  = $status.state
               $result = $status.result
-              Write-Host "State=$state Result=$result Timestamp=$(Get-Date -AsUTC)"
+              Write-Host "Timestamp=$(Get-Date -AsUTC) State=$state Result=$result"
               if ([DateTimeOffset]::UtcNow -gt $deadline) { 
                 throw "Timed out waiting for external pipeline execution with run ID: $runId."
               }
