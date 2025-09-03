@@ -332,87 +332,86 @@ extends:
           name: DetermineCiTestPipelineName
           displayName: 'Determine the pipeline that will be triggered to verify the selected extension'
 
-        - pwsh: |
-            $ErrorActionPreference = 'Stop'
-
-            # Verify that all inputs for triggering the target pipeline are valid
-            $orgUrl   = "$(CI_TESTS_ORG_URL)".TrimEnd('/')
-            $project  = "$(CI_TESTS_PROJECT)"
-            $targetPipelineName = "$(TARGET_PIPELINE_NAME)"
-            if ([string]::IsNullOrWhiteSpace($targetPipelineName)) {
-              throw "TARGET_PIPELINE_NAME is empty. Check the DetermineCiTestPipelineName step."
-            }
-
-            $token = $env:SYSTEM_ACCESS_TOKEN
-            if ([string]::IsNullOrWhiteSpace($token)) {
-              throw "System.AccessToken is empty. Enable 'Allow scripts to access the OAuth token' and retry."
-            }
-
-            # Configure Auth header
-            $Headers = @{ Authorization = "Bearer $token"; "Content-Type" = "application/json" }
-
-            # Use pipeline name to get the pipeline ID
-            $allPipelinesUrl   = "$orgUrl/$project/_apis/pipelines?api-version=7.1"
-            Write-Host "Trying to get pipeline ID by sending GET request to: $allPipelinesUrl"
-
-            $allPipelines = Invoke-RestMethod -Method GET -Uri $allPipelinesUrl -Headers $Headers
-            $pipeline  = $allPipelines.value | Where-Object { $_.name -eq $targetPipelineName } | Select-Object -First 1
-            if (-not $pipeline) { 
-              throw "Pipeline '$targetPipelineName' not found in project '$project'."
-            }
-            $pipelineId = [int]$pipeline.id
-            Write-Host "Target pipeline: " + ($pipeline | ConvertTo-Json -Depth 10)
-            Write-Host "Resolved pipelineId: $pipelineId"
-
-            # Queue pipeline run (with option to pass optional context)
-            $runBody = @{
-              resources = @{
-                repositories = @{
-                  self = @{ refName = "refs/heads/main" }
-                }
-              }
-            } | ConvertTo-Json -Depth 3
-
-            $runPipelineUrl = "$orgUrl/$project/_apis/pipelines/$pipelineId/runs?api-version=7.1"
-            Write-Host "Trying to queue pipeline run by issuing POST request to: $runPipelineUrl"
-
-            $runPipelineResponse = Invoke-RestMethod -Method POST -Uri $runPipelineUrl -Headers $Headers -Body $runBody
-            if (-not $runPipelineResponse -or -not $runPipelineResponse.id) {
-              Write-Host "Logging POST response as JSON if possible..."
-              try { Write-Host ($runPipelineResponse | ConvertTo-Json -Depth 10) } catch { Write-Host $runPipelineResponse }
-              throw "POST request to $runPipelineUrl did not return a run id (likely authentication/permission issue)."
-            }
-
-            $runId = [int]$runPipelineResponse.id
-            if ($runId -le 0) { throw "POST request to $runPipelineUrl returned run ID: $runId, which is not the expected value for a successful request." }
-            Write-Host "Queued external pipeline execution with run ID: $runId"
-
-            # Check pipeline status until run is completed or timed out
-            $scheduledPipelineUrl = "$orgUrl/$project/_apis/pipelines/$pipelineId/runs/$runId?api-version=7.1"
-            $deadline = [DateTimeOffset]::UtcNow.AddHours(2)
-
-            do {
-              Start-Sleep -Seconds 30
-              $status = Invoke-RestMethod -Method GET -Uri $scheduledPipelineUrl -Headers $Headers
-              $state  = $status.state
-              $result = $status.result
-              Write-Host "Timestamp=$(Get-Date -AsUTC) State=$state Result=$result"
-              if ([DateTimeOffset]::UtcNow -gt $deadline) { 
-                throw "Timed out waiting for external pipeline execution with run ID: $runId."
-              }
-            } while ($state -ne 'completed')
-
-            if ($result -ne 'succeeded') {
-              Write-Error "External pipeline execution with run ID: $runId is completed with the result: $result"
-              exit 1
-            }
-
-            Write-Host "External pipeline execution with run ID: $runId succeeded."
-
+        - task: AzureCLI@2
           displayName: 'Trigger selected CI pipeline and wait for the result'
-          env:
-            # Expose the job access token to the script
-            SYSTEM_ACCESS_TOKEN: $(System.AccessToken)
+          inputs:
+            azureSubscription: 'canarytest-extensions-ci-tests-pipeline-connector'
+            scriptType: pscore
+            scriptLocation: inlineScript
+            inlineScript: |
+              $ErrorActionPreference = 'Stop'
+
+              # Acquire Entra ID token for Azure DevOps resource (499b84ac-1321-427f-aa17-267ca6975798)
+              $token = az account get-access-token `
+                --resource 499b84ac-1321-427f-aa17-267ca6975798 `
+                --query accessToken -o tsv
+
+              if ([string]::IsNullOrWhiteSpace($token)) { 
+                throw "Failed to acquire AAD token for Azure DevOps."
+              }
+
+              $orgUrl   = "$(CI_TESTS_ORG_URL)".TrimEnd('/')
+              $project  = "$(CI_TESTS_PROJECT)"
+              $targetPipelineName = "$(TARGET_PIPELINE_NAME)"
+              if ([string]::IsNullOrWhiteSpace($targetPipelineName)) {
+                throw "TARGET_PIPELINE_NAME is empty. Check the DetermineCiTestPipelineName step."
+              }
+
+              $headers = @{
+                Authorization = "Bearer $token"
+                "Content-Type" = "application/json"
+                "Accept" = "application/json"
+              }
+
+              # Use pipeline name to get the pipeline ID
+              $allPipelinesUrl   = "$orgUrl/$project/_apis/pipelines?api-version=7.1"
+              Write-Host "Trying to get pipeline ID by sending GET request to: $allPipelinesUrl"
+              $allPipelines = Invoke-RestMethod -Method GET -Uri $allPipelinesUrl -Headers $headers
+              $pipelineId = ($allPipelines.value | Where-Object { $_.name -eq $targetPipelineName } | Select-Object -First 1).id
+              if (-not $pipelineId) { 
+                throw "Pipeline '$targetPipelineName' not found in project '$project'."
+              }
+              Write-Host "Resolved pipelineId: $pipelineId"
+
+              # Queue the pipeline run
+              $runPipelineBody = @{
+                resources = @{
+                  repositories = @{
+                    self = @{ refName = "refs/heads/main" }
+                  }
+                }
+              } | ConvertTo-Json -Depth 4
+
+              $runPipelineUrl = "$orgUrl/$project/_apis/pipelines/$pipelineId/runs?api-version=7.1"
+              Write-Host "Trying to queue pipeline run by issuing POST request to: $runPipelineUrl"
+              $runPipelineResponse = Invoke-RestMethod -Method POST -Uri $runPipelineUrl -Headers $headers -Body $runPipelineBody
+
+              $runPipelineId = $runPipelineResponse.id
+              if (-not $runPipelineId) {
+                throw "Queue failed or returned unexpected payload: $($runPipelineResponse | ConvertTo-Json -Depth 10)"
+              }
+              Write-Host "Queued external pipeline execution with run ID: $runPipelineId"
+
+              # Poll for completion
+              $statusUrl = "$orgUrl/$project/_apis/pipelines/$pipelineId/runs/$runPipelineId?api-version=7.1"
+              $deadline  = [DateTimeOffset]::UtcNow.AddHours(2)
+
+              do {
+                Start-Sleep -Seconds 30
+                $status  = Invoke-RestMethod -Method GET -Uri $statusUrl -Headers $headers
+                $state   = $status.state
+                $result  = $status.result
+                Write-Host "Timestamp=$(Get-Date -AsUTC) State=$state Result=$result"
+                if ([DateTimeOffset]::UtcNow -gt $deadline) { 
+                  throw "Timed out waiting for external pipeline execution with run ID: $runPipelineId."
+                }
+              } while ($state -ne 'completed')
+
+              if ($result -ne 'succeeded') {
+                throw "External pipeline execution with run ID: $runPipelineId is completed with the result: $result"
+              }
+
+              Write-Host "External pipeline execution with run ID: $runPipelineId succeeded."
 
     # ======= Approve PROD extension publishing on Marketplace =======
     - stage: Approve_Prod_Extension_Publishing
