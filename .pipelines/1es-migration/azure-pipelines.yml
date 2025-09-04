@@ -398,7 +398,10 @@ extends:
               # Poll for completion
               $moreDetailsUrl = "$orgUrl/$project/_build/results?buildId=$runPipelineId&view=results"
               Write-Host "For more detailed tracking of pipeline execution (including tasks, logs, etc.) you can visit: $moreDetailsUrl"
-              $statusUrl = "$orgUrl/$project/_apis/pipelines/$pipelineId/runs/$runPipelineId?api-version=7.1"
+
+              $ub = [System.UriBuilder]::new("$orgUrl/$project/_apis/pipelines/$pipelineId/runs/$runPipelineId")
+              $ub.Query = "api-version=7.1"
+              $statusUrl = $ub.Uri.AbsoluteUri
               Write-Host "Status of the pipeline execution will be checked by issuing GET requests to: $statusUrl"
               $deadline  = [DateTimeOffset]::UtcNow.AddHours(2)
 
