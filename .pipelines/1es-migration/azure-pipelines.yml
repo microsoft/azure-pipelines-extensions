@@ -1,4 +1,4 @@
-# This pipeline is based on 1ES build pipeline and it is used to release a new version of an extension on Marketplace.
+# This pipeline is based on 1ES build pipeline, and it is used to publish a new version of an extension to Marketplace.
 
 name: Extension $(ExtensionName) - $(Date:yyyyMMdd)$(Rev:.r)
 appendCommitMessageToRunName: false
