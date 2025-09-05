@@ -1,5 +1,4 @@
-# Azure Pipelines Extensions 1ES Build Pipeline
-# Single build stage: MAIN -> copy, TEST -> copy; then sign, approve, publish (TEST then PUBLIC)
+# This pipeline is based on 1ES build pipeline, and it is used to publish a new version of an extension to Marketplace.
 
 name: Extension $(ExtensionName) - $(Date:yyyyMMdd)$(Rev:.r)
 appendCommitMessageToRunName: false
@@ -25,6 +24,10 @@ parameters:
   default: false
 - name: publishExtension
   displayName: 'Publish Extension to Marketplace'
+  type: boolean
+  default: false
+- name: skipCiTesting
+  displayName: 'Skip CI testing (use only if CI tests for the selected extension are not yet available)'
   type: boolean
   default: false
 - name: simulateCodeSigningError
@@ -83,20 +86,20 @@ extends:
 
     stages:
 
-    # ============================== Build & Package ==============================
-    - stage: Build_And_Package_Main_And_Test
-      displayName: 'Build & Package Extensions (Main + Test)'
+    # ======= Build & Package (prepare production and test version of the extension) =======
+    - stage: Build_And_Package_For_Production_And_Test
+      displayName: 'Build & Package (prepare PROD and test version of the extension)'
       jobs:
       - job: BuildAndPackage
-        displayName: 'Build and Package: MAIN then TEST'
+        displayName: 'Build & Package job for preparing PROD and test version of the extension'
         templateContext:
           outputs:
           - output: pipelineArtifact
-            displayName: 'Publish MAIN Build Artifacts (Unsigned)'
+            displayName: 'Make unsigned PROD build artifacts available'
             targetPath: '$(System.ArtifactsDirectory)/unsigned'
             artifactName: 'vsix-unsigned'
           - output: pipelineArtifact
-            displayName: 'Publish TEST Build Artifacts (Unsigned)'
+            displayName: 'Make unsigned test build artifacts available'
             targetPath: '$(System.ArtifactsDirectory)/test-unsigned'
             artifactName: 'vsix-test-unsigned'
         steps:
@@ -117,7 +120,7 @@ extends:
             verbose: false
 
         - task: Npm@1
-          displayName: 'Install TFX CLI'
+          displayName: 'Install TFX CLI (needed for publishing on Marketplace)'
           inputs:
             command: custom
             customCommand: 'install -g tfx-cli'
@@ -129,21 +132,21 @@ extends:
             customCommand: 'install -g gulp-cli'
 
         - task: PowerShell@2
-          displayName: 'Build (MAIN)'
+          displayName: 'Build PROD resources'
           inputs:
             targetType: inline
             script: 'gulp build'
             workingDirectory: '$(Build.SourcesDirectory)'
 
         - task: PowerShell@2
-          displayName: 'Package (MAIN)'
+          displayName: 'Package PROD resources'
           inputs:
             targetType: inline
             script: 'gulp package'
             workingDirectory: '$(Build.SourcesDirectory)'
 
         - task: CopyFiles@2
-          displayName: 'Copy MAIN VSIX to unsigned artifacts'
+          displayName: 'Copy PROD .vsix file to directory for unsigned production artifacts'
           inputs:
             SourceFolder: '$(Build.SourcesDirectory)/_package'
             Contents: '${{ parameters.extensionName }}/*.vsix'
@@ -151,62 +154,62 @@ extends:
             flattenFolders: true
 
         - task: PowerShell@2
-          displayName: 'Build (TEST)'
+          displayName: 'Build test resources'
           inputs:
             targetType: inline
             script: 'gulp build --test'
             workingDirectory: '$(Build.SourcesDirectory)'
 
         - task: PowerShell@2
-          displayName: 'Package (TEST)'
+          displayName: 'Package test resources'
           inputs:
             targetType: inline
             script: 'gulp package'
             workingDirectory: '$(Build.SourcesDirectory)'
 
         - task: CopyFiles@2
-          displayName: 'Copy TEST VSIX to test-unsigned artifacts'
+          displayName: 'Copy test .vsix file to directory for unsigned test artifacts'
           inputs:
             SourceFolder: '$(Build.SourcesDirectory)/_package'
             Contents: '${{ parameters.extensionName }}/*.vsix'
             TargetFolder: '$(System.ArtifactsDirectory)/test-unsigned'
             flattenFolders: true
 
-    # ================================ ESRP Code Signing ================================
-    - stage: ESRP_Code_Signing_Main_And_Test
-      displayName: 'ESRP Code Signing (Main + Test)'
-      dependsOn: Build_And_Package_Main_And_Test
+    # ======= Sign .vsix artifacts (for PROD and test version of the extension) =======
+    - stage: Sign_Vsix_Artifacts
+      displayName: 'Sign .vsix artifacts (for PROD and test version of the extension)'
+      dependsOn: Build_And_Package_For_Production_And_Test
       condition: or(eq(variables['IsMainBranchBuild'], 'true'), ${{ eq(parameters.forceCodeSign, 'true') }}, ${{ eq(parameters.simulateCodeSigningError, 'true') }})
       jobs:
       - job: SignVsix
-        displayName: 'Sign VSIX: MAIN and TEST'
+        displayName: 'Sign .vsix artifacts job (for PROD and test version of the extension)'
         templateContext:
           outputs:
           - output: pipelineArtifact
-            displayName: 'Publish Signed MAIN Artifact'
+            displayName: 'Make signed PROD artifact available'
             targetPath: '$(System.ArtifactsDirectory)/signed'
             artifactName: 'vsix-signed'
           - output: pipelineArtifact
-            displayName: 'Publish Signed TEST Artifact'
+            displayName: 'Make signed test artifact available'
             targetPath: '$(System.ArtifactsDirectory)/test-signed'
             artifactName: 'vsix-test-signed'
         steps:
         - download: current
           artifact: vsix-unsigned
-          displayName: 'Download unsigned (MAIN)'
+          displayName: 'Download unsigned PROD .vsix'
 
         - download: current
           artifact: vsix-test-unsigned
-          displayName: 'Download unsigned (TEST)'
+          displayName: 'Download unsigned test .vsix'
 
         - script: |
-            echo "Simulated error in CodeSigning step."
+            echo "Simulated error in signing artifact stage."
             exit 1
           displayName: 'Simulate CodeSigning error'
           condition: ${{ eq(parameters.simulateCodeSigningError, 'true') }}
 
         - task: EsrpCodeSigning@5
-          displayName: 'ESRP Sign (MAIN)'
+          displayName: 'Sign PROD artifact using ESRP task'
           inputs:
             ConnectedServiceName: '$(Control.EsrpServiceConnectionName)'
             AppRegistrationClientId: '$(Control.AppRegistrationClientId)'
@@ -225,14 +228,14 @@ extends:
             SessionTimeout: 30
 
         - task: CopyFiles@2
-          displayName: 'Collect signed (MAIN)'
+          displayName: 'Copy signed PROD .vsix file to directory for publishing PROD extension'
           inputs:
             SourceFolder: '$(Pipeline.Workspace)\vsix-unsigned'
             Contents: '*.vsix'
             TargetFolder: '$(System.ArtifactsDirectory)/signed'
 
         - task: EsrpCodeSigning@5
-          displayName: 'ESRP Sign (TEST)'
+          displayName: 'Sign test artifact using ESRP task'
           inputs:
             ConnectedServiceName: '$(Control.EsrpServiceConnectionName)'
             AppRegistrationClientId: '$(Control.AppRegistrationClientId)'
@@ -251,40 +254,40 @@ extends:
             SessionTimeout: 30
 
         - task: CopyFiles@2
-          displayName: 'Collect signed (TEST)'
+          displayName: 'Copy signed test .vsix file to directory for publishing test extension'
           inputs:
             SourceFolder: '$(Pipeline.Workspace)\vsix-test-unsigned'
             Contents: '*.vsix'
             TargetFolder: '$(System.ArtifactsDirectory)/test-signed'
 
-    # ======================== Approval: Publish TEST (private) ========================
-    - stage: Approval_For_Test_Publish
-      displayName: 'Approval: Publish TEST (Private)'
-      dependsOn: ESRP_Code_Signing_Main_And_Test
+    # ======= Approve test extension publishing on Marketplace =======
+    - stage: Approve_Test_Extension_Publishing
+      displayName: 'Approve test extension publishing on Marketplace (visibility set to private)'
+      dependsOn: Sign_Vsix_Artifacts
       condition: and(succeeded(), ${{ eq(parameters.publishExtension, 'true') }})
       jobs:
       - job: ApproveTest
-        displayName: 'Manual Approval for TEST publish'
+        displayName: 'Manual approval for publishing of the test extension (visibility set to private)'
         pool: server
         steps:
         - task: ManualValidation@0
           timeoutInMinutes: 1440
           inputs:
             notifyUsers: 'razvanmanole@microsoft.com'
-            instructions: 'Approve this step to publish the TEST extension (private).'
+            instructions: 'Approve this step to publish the test version of the extension on Marketplace. The visibility of the extension is by default configured to be private.'
 
-    # ================================= Publish TEST (private) ============================
-    - stage: Publish_Test_Extension_Private
-      displayName: 'Publish TEST Extension (Private Marketplace)'
-      dependsOn: Approval_For_Test_Publish
+    # ======= Publish test extension on Marketplace (visibility set to private) =======
+    - stage: Publish_Test_Extension
+      displayName: 'Publish test extension on Marketplace (visibility set to private)'
+      dependsOn: Approve_Test_Extension_Publishing
       condition: and(succeeded(), ${{ eq(parameters.publishExtension, 'true') }})
       jobs:
-      - job: PublishTest
-        displayName: 'Publish TEST VSIX to Marketplace (Private)'
+      - job: PublishTestExtension
+        displayName: 'Publish test extension on Marketplace'
         steps:
         - download: current
           artifact: vsix-test-signed
-          displayName: 'Download signed TEST artifact'
+          displayName: 'Download the signed version of test .vsix'
 
         - task: NodeTool@0
           displayName: 'Use Node.js 20.x'
@@ -297,7 +300,7 @@ extends:
             version: 'v0.21.1'
 
         - task: 1ES.PublishAzureDevOpsExtension@1
-          displayName: 'Publish TEST extension (private)'
+          displayName: 'Publish test extension'
           inputs:
             connectTo: AzureRM
             connectedServiceNameAzureRM: '1es-extensions-publication-secure-service-connection'
@@ -307,34 +310,157 @@ extends:
             validateExtension: false
             useV5: true
 
-    # ======================== Approval: Publish PUBLIC ==============================
-    - stage: Approval_For_Public_Publish
-      displayName: 'Approval: Publish PUBLIC'
-      dependsOn: Publish_Test_Extension_Private
+    # ======= Execute CI tests and verify newly published test extension =======
+    - ${{ if ne(parameters.skipCiTesting, true) }}:
+      - stage: Execute_CI_Tests
+        displayName: 'Execute CI tests and verify newly published test extension'
+        dependsOn: Publish_Test_Extension
+        condition: succeeded()
+        variables:
+          CI_TESTS_ORG_URL: 'https://dev.azure.com/canarytest'
+          CI_TESTS_PROJECT:  'PipelineTasks'
+
+        jobs:
+        - job: QueuePipelineRunAndWaitForResult
+          displayName: 'Trigger pipeline with CI tests for extension and wait for the result'
+          timeoutInMinutes: 120
+
+          steps:
+          - pwsh: |
+              $ErrorActionPreference = 'Stop'
+              $selectedExtensionName = '${{ parameters.extensionName }}'
+
+              switch ($selectedExtensionName) {
+                'Ansible' { $pipelineName = 'AzDev-ReleaseManagement-Ansible-CI-Test' }
+                'BitBucket' { $pipelineName = 'AzDev-ReleaseManagement-BitBucket-CI-Test' }
+                'ExternalTfs' { $pipelineName = 'AzDev-ReleaseManagement-ExternalTFS-CI-Test' }
+                'IISWebAppDeploy' { $pipelineName = 'AzDev-ReleaseManagement-IIS-Test' }
+                default   { throw "Pipeline name can't be determined for '$selectedExtensionName' extension. Update the mapping between the selected extension and pipeline name." }
+              }
+
+              Write-Host "Mapping: $selectedExtensionName -> $pipelineName"
+              Write-Host "##vso[task.setvariable variable=TARGET_PIPELINE_NAME;]$pipelineName"
+            name: DetermineCiTestPipelineName
+            displayName: 'Determine the pipeline that will be triggered to verify the selected extension'
+
+          - task: AzureCLI@2
+            displayName: 'Trigger selected CI pipeline and wait for the result'
+            inputs:
+              azureSubscription: 'canarytest-extensions-ci-tests-pipeline-connector'
+              scriptType: pscore
+              scriptLocation: inlineScript
+              inlineScript: |
+                $ErrorActionPreference = 'Stop'
+
+                # Acquire Entra ID token for Azure DevOps resource (499b84ac-1321-427f-aa17-267ca6975798)
+                $token = az account get-access-token `
+                  --resource 499b84ac-1321-427f-aa17-267ca6975798 `
+                  --query accessToken -o tsv
+
+                if ([string]::IsNullOrWhiteSpace($token)) { 
+                  throw "Failed to acquire AAD token for Azure DevOps."
+                }
+
+                $orgUrl   = "$(CI_TESTS_ORG_URL)".TrimEnd('/')
+                $project  = "$(CI_TESTS_PROJECT)"
+                $targetPipelineName = "$(TARGET_PIPELINE_NAME)"
+                if ([string]::IsNullOrWhiteSpace($targetPipelineName)) {
+                  throw "TARGET_PIPELINE_NAME is empty. Check the DetermineCiTestPipelineName step."
+                }
+
+                $headers = @{
+                  Authorization = "Bearer $token"
+                  "Content-Type" = "application/json"
+                  "Accept" = "application/json"
+                }
+
+                # Use pipeline name to get the pipeline ID
+                $allPipelinesUrl   = "$orgUrl/$project/_apis/pipelines?api-version=7.1"
+                Write-Host "Trying to get pipeline ID by sending GET request to: $allPipelinesUrl"
+                $allPipelines = Invoke-RestMethod -Method GET -Uri $allPipelinesUrl -Headers $headers
+                $pipelineId = ($allPipelines.value | Where-Object { $_.name -eq $targetPipelineName } | Select-Object -First 1).id
+                if (-not $pipelineId) { 
+                  throw "Pipeline '$targetPipelineName' not found in project '$project'."
+                }
+                Write-Host "Resolved pipelineId: $pipelineId"
+
+                # Queue the pipeline run
+                $runPipelineBody = @{
+                  resources = @{
+                    repositories = @{
+                      self = @{ refName = "refs/heads/main" }
+                    }
+                  }
+                } | ConvertTo-Json -Depth 4
+
+                $runPipelineUrl = "$orgUrl/$project/_apis/pipelines/$pipelineId/runs?api-version=7.1"
+                Write-Host "Trying to queue pipeline run by issuing POST request to: $runPipelineUrl"
+                $runPipelineResponse = Invoke-RestMethod -Method POST -Uri $runPipelineUrl -Headers $headers -Body $runPipelineBody
+
+                $runPipelineId = $runPipelineResponse.id
+                if (-not $runPipelineId) {
+                  throw "Queue failed or returned unexpected payload: $($runPipelineResponse | ConvertTo-Json -Depth 10)"
+                }
+                Write-Host "Queued external pipeline execution with run ID: $runPipelineId"
+
+                # Poll for completion
+                $moreDetailsUrl = "$orgUrl/$project/_build/results?buildId=$runPipelineId&view=results"
+                Write-Host "For more detailed tracking of pipeline execution (including tasks, logs, etc.) you can visit: $moreDetailsUrl"
+
+                $ub = [System.UriBuilder]::new("$orgUrl/$project/_apis/pipelines/$pipelineId/runs/$runPipelineId")
+                $ub.Query = "api-version=7.1"
+                $statusUrl = $ub.Uri.AbsoluteUri
+                Write-Host "Status of the pipeline execution will be checked by issuing GET requests to: $statusUrl"
+                $deadline  = [DateTimeOffset]::UtcNow.AddHours(2)
+
+                do {
+                  Start-Sleep -Seconds 30
+                  $status  = Invoke-RestMethod -Method GET -Uri $statusUrl -Headers $headers
+                  $state   = $status.state
+                  $result  = $status.result
+                  Write-Host "Timestamp=$(Get-Date -AsUTC) State=$state Result=$result"
+                  if ([DateTimeOffset]::UtcNow -gt $deadline) { 
+                    throw "Timed out waiting for external pipeline execution with run ID: $runPipelineId."
+                  }
+                } while ($state -ne 'completed')
+
+                if ($result -ne 'succeeded') {
+                  throw "External pipeline execution with run ID: $runPipelineId is completed with the result: $result"
+                }
+
+                Write-Host "External pipeline execution with run ID: $runPipelineId succeeded."
+
+    # ======= Approve PROD extension publishing on Marketplace =======
+    - stage: Approve_Prod_Extension_Publishing
+      displayName: 'Approve PROD extension publishing on Marketplace'
+      ${{ if eq(parameters.skipCiTesting, true) }}:
+        dependsOn: Publish_Test_Extension
+      ${{ if ne(parameters.skipCiTesting, true) }}:
+        dependsOn: Execute_CI_Tests
       condition: and(succeeded(), ${{ eq(parameters.publishExtension, 'true') }})
       jobs:
-      - job: ApprovePublic
-        displayName: 'Manual Approval for PUBLIC publish'
+      - job: ApproveProd
+        displayName: 'Manual approval for publishing of the PROD extension'
         pool: server
         steps:
         - task: ManualValidation@0
           timeoutInMinutes: 1440
           inputs:
             notifyUsers: 'razvanmanole@microsoft.com'
-            instructions: 'Approve this step to publish the PUBLIC extension.'
+            instructions: 'Approve this step to publish the PROD version of the extension on Marketplace. Be careful and ensure that new version is properly tested because after approval changes will be available to all users of the extension.'
 
-    # ===================================== Publish PUBLIC ================================
-    - stage: Publish_Public_Extension
-      displayName: 'Publish PUBLIC Extension (Marketplace)'
-      dependsOn: Approval_For_Public_Publish
+    # ======= Publish PROD extension on Marketplace =======
+    - stage: Publish_Prod_Extension
+      displayName: 'Publish PROD extension on Marketplace'
+      dependsOn: Approve_Prod_Extension_Publishing
       condition: and(succeeded(), ${{ eq(parameters.publishExtension, 'true') }})
       jobs:
-      - job: PublishPublic
-        displayName: 'Publish PUBLIC VSIX to Marketplace'
+      - job: PublishProdExtension
+        displayName: 'Publish PROD extension on Marketplace'
         steps:
         - download: current
           artifact: vsix-signed
-          displayName: 'Download signed MAIN artifact'
+          displayName: 'Download the signed version of PROD .vsix'
 
         - task: NodeTool@0
           displayName: 'Use Node.js 20.x'
@@ -347,7 +473,7 @@ extends:
             version: 'v0.21.1'
 
         - task: 1ES.PublishAzureDevOpsExtension@1
-          displayName: 'Publish PUBLIC extension (publisher: ms-vscs-rm)'
+          displayName: 'Publish PROD extension'
           inputs:
             connectTo: AzureRM
             connectedServiceNameAzureRM: '1es-extensions-publication-secure-service-connection'
