@@ -18,20 +18,8 @@ parameters:
   - IISWebAppDeploy
   - ServiceNow
   - TeamCity
-- name: forceCodeSign
-  displayName: 'Force Code Signing (even for non-main branch)'
-  type: boolean
-  default: false
-- name: publishExtension
-  displayName: 'Publish Extension to Marketplace'
-  type: boolean
-  default: false
 - name: skipCiTesting
   displayName: 'Skip CI testing (use only if CI tests for the selected extension are not yet available)'
-  type: boolean
-  default: false
-- name: simulateCodeSigningError
-  displayName: 'Simulate code signing error (for testing)'
   type: boolean
   default: false
 
@@ -50,8 +38,6 @@ variables:
 # Dynamic
 - name: ExtensionName
   value: ${{ parameters.extensionName }}
-- name: IsMainBranchBuild
-  value: $[eq(variables['Build.SourceBranchName'], 'main')]
 
 resources:
   repositories:
@@ -179,7 +165,7 @@ extends:
     - stage: Sign_Vsix_Artifacts
       displayName: 'Sign .vsix artifacts (for PROD and test version of the extension)'
       dependsOn: Build_And_Package_For_Production_And_Test
-      condition: or(eq(variables['IsMainBranchBuild'], 'true'), ${{ eq(parameters.forceCodeSign, 'true') }}, ${{ eq(parameters.simulateCodeSigningError, 'true') }})
+      condition: succeeded()
       jobs:
       - job: SignVsix
         displayName: 'Sign .vsix artifacts job (for PROD and test version of the extension)'
@@ -201,12 +187,6 @@ extends:
         - download: current
           artifact: vsix-test-unsigned
           displayName: 'Download unsigned test .vsix'
-
-        - script: |
-            echo "Simulated error in signing artifact stage."
-            exit 1
-          displayName: 'Simulate CodeSigning error'
-          condition: ${{ eq(parameters.simulateCodeSigningError, 'true') }}
 
         - task: EsrpCodeSigning@5
           displayName: 'Sign PROD artifact using ESRP task'
@@ -264,7 +244,7 @@ extends:
     - stage: Approve_Test_Extension_Publishing
       displayName: 'Approve test extension publishing on Marketplace (visibility set to private)'
       dependsOn: Sign_Vsix_Artifacts
-      condition: and(succeeded(), ${{ eq(parameters.publishExtension, 'true') }})
+      condition: succeeded()
       jobs:
       - job: ApproveTest
         displayName: 'Manual approval for publishing of the test extension (visibility set to private)'
@@ -280,7 +260,7 @@ extends:
     - stage: Publish_Test_Extension
       displayName: 'Publish test extension on Marketplace (visibility set to private)'
       dependsOn: Approve_Test_Extension_Publishing
-      condition: and(succeeded(), ${{ eq(parameters.publishExtension, 'true') }})
+      condition: succeeded()
       jobs:
       - job: PublishTestExtension
         displayName: 'Publish test extension on Marketplace'
@@ -352,7 +332,7 @@ extends:
         dependsOn: Publish_Test_Extension
       ${{ if ne(parameters.skipCiTesting, true) }}:
         dependsOn: Execute_CI_Tests
-      condition: and(succeeded(), ${{ eq(parameters.publishExtension, 'true') }})
+      condition: succeeded()
       jobs:
       - job: ApproveProd
         displayName: 'Manual approval for publishing of the PROD extension'
@@ -368,7 +348,7 @@ extends:
     - stage: Publish_Prod_Extension
       displayName: 'Publish PROD extension on Marketplace'
       dependsOn: Approve_Prod_Extension_Publishing
-      condition: and(succeeded(), ${{ eq(parameters.publishExtension, 'true') }})
+      condition: succeeded()
       jobs:
       - job: PublishProdExtension
         displayName: 'Publish PROD extension on Marketplace'
