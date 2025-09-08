@@ -292,38 +292,38 @@ extends:
 
     # ======= Execute CI tests and verify newly published test extension =======
     - ${{ if ne(parameters.skipCiTesting, true) }}:
-    - stage: Execute_CI_Tests
-      displayName: 'Execute CI tests and verify the newly published test extension'
-      dependsOn: Publish_Test_Extension
-      condition: succeeded()
-      variables:
-        CI_TESTS_ORG_URL: 'https://dev.azure.com/canarytest'
-        CI_TESTS_PROJECT: 'PipelineTasks'
-      jobs:
-      - job: QueuePipelineRunAndWaitForResult
-        displayName: 'Trigger pipeline with CI tests for extension and wait for the result'
-        timeoutInMinutes: 120
-        steps:
-        - task: PowerShell@2
-          name: DetermineCiTestPipelineName
-          displayName: 'Determine the pipeline that will be triggered to verify the selected extension'
-          inputs:
-            filePath: '$(Build.SourcesDirectory)/scripts/DetermineCiTestPipelineName.ps1'
-            arguments: -ExtensionName "${{ parameters.extensionName }}"
-            pwsh: true
-            failOnStderr: true
-        - task: AzureCLI@2
-          displayName: 'Trigger selected CI pipeline and wait for the result'
-          inputs:
-            azureSubscription: 'canarytest-extensions-ci-tests-pipeline-connector'
-            scriptType: pscore
-            scriptLocation: scriptPath
-            scriptPath: '$(Build.SourcesDirectory)/scripts/TriggerAdoPipelineAndWaitResult.ps1'
-            arguments: >
-              -OrgUrl "$(CI_TESTS_ORG_URL)"
-              -Project "$(CI_TESTS_PROJECT)"
-              -PipelineName "$(TARGET_PIPELINE_NAME)"
-              -TimeoutMinutes 120
+      - stage: Execute_CI_Tests
+        displayName: 'Execute CI tests and verify the newly published test extension'
+        dependsOn: Publish_Test_Extension
+        condition: succeeded()
+        variables:
+          CI_TESTS_ORG_URL: 'https://dev.azure.com/canarytest'
+          CI_TESTS_PROJECT: 'PipelineTasks'
+        jobs:
+        - job: QueuePipelineRunAndWaitForResult
+          displayName: 'Trigger pipeline with CI tests for extension and wait for the result'
+          timeoutInMinutes: 120
+          steps:
+          - task: PowerShell@2
+            name: DetermineCiTestPipelineName
+            displayName: 'Determine the pipeline that will be triggered to verify the selected extension'
+            inputs:
+              filePath: '$(Build.SourcesDirectory)/scripts/DetermineCiTestPipelineName.ps1'
+              arguments: -ExtensionName "${{ parameters.extensionName }}"
+              pwsh: true
+              failOnStderr: true
+          - task: AzureCLI@2
+            displayName: 'Trigger selected CI pipeline and wait for the result'
+            inputs:
+              azureSubscription: 'canarytest-extensions-ci-tests-pipeline-connector'
+              scriptType: pscore
+              scriptLocation: scriptPath
+              scriptPath: '$(Build.SourcesDirectory)/scripts/TriggerAdoPipelineAndWaitResult.ps1'
+              arguments: >
+                -OrgUrl "$(CI_TESTS_ORG_URL)"
+                -Project "$(CI_TESTS_PROJECT)"
+                -PipelineName "$(TARGET_PIPELINE_NAME)"
+                -TimeoutMinutes 120
 
     # ======= Approve PROD extension publishing on Marketplace =======
     - stage: Approve_Prod_Extension_Publishing
