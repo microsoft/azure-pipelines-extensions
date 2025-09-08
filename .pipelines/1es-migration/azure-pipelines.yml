@@ -312,123 +312,38 @@ extends:
 
     # ======= Execute CI tests and verify newly published test extension =======
     - ${{ if ne(parameters.skipCiTesting, true) }}:
-      - stage: Execute_CI_Tests
-        displayName: 'Execute CI tests and verify newly published test extension'
-        dependsOn: Publish_Test_Extension
-        condition: succeeded()
-        variables:
-          CI_TESTS_ORG_URL: 'https://dev.azure.com/canarytest'
-          CI_TESTS_PROJECT:  'PipelineTasks'
-
-        jobs:
-        - job: QueuePipelineRunAndWaitForResult
-          displayName: 'Trigger pipeline with CI tests for extension and wait for the result'
-          timeoutInMinutes: 120
-
-          steps:
-          - pwsh: |
-              $ErrorActionPreference = 'Stop'
-              $selectedExtensionName = '${{ parameters.extensionName }}'
-
-              switch ($selectedExtensionName) {
-                'Ansible' { $pipelineName = 'AzDev-ReleaseManagement-Ansible-CI-Test' }
-                'BitBucket' { $pipelineName = 'AzDev-ReleaseManagement-BitBucket-CI-Test' }
-                'ExternalTfs' { $pipelineName = 'AzDev-ReleaseManagement-ExternalTFS-CI-Test' }
-                'IISWebAppDeploy' { $pipelineName = 'AzDev-ReleaseManagement-IIS-Test' }
-                default   { throw "Pipeline name can't be determined for '$selectedExtensionName' extension. Update the mapping between the selected extension and pipeline name." }
-              }
-
-              Write-Host "Mapping: $selectedExtensionName -> $pipelineName"
-              Write-Host "##vso[task.setvariable variable=TARGET_PIPELINE_NAME;]$pipelineName"
-            name: DetermineCiTestPipelineName
-            displayName: 'Determine the pipeline that will be triggered to verify the selected extension'
-
-          - task: AzureCLI@2
-            displayName: 'Trigger selected CI pipeline and wait for the result'
-            inputs:
-              azureSubscription: 'canarytest-extensions-ci-tests-pipeline-connector'
-              scriptType: pscore
-              scriptLocation: inlineScript
-              inlineScript: |
-                $ErrorActionPreference = 'Stop'
-
-                # Acquire Entra ID token for Azure DevOps resource (499b84ac-1321-427f-aa17-267ca6975798)
-                $token = az account get-access-token `
-                  --resource 499b84ac-1321-427f-aa17-267ca6975798 `
-                  --query accessToken -o tsv
-
-                if ([string]::IsNullOrWhiteSpace($token)) { 
-                  throw "Failed to acquire AAD token for Azure DevOps."
-                }
-
-                $orgUrl   = "$(CI_TESTS_ORG_URL)".TrimEnd('/')
-                $project  = "$(CI_TESTS_PROJECT)"
-                $targetPipelineName = "$(TARGET_PIPELINE_NAME)"
-                if ([string]::IsNullOrWhiteSpace($targetPipelineName)) {
-                  throw "TARGET_PIPELINE_NAME is empty. Check the DetermineCiTestPipelineName step."
-                }
-
-                $headers = @{
-                  Authorization = "Bearer $token"
-                  "Content-Type" = "application/json"
-                  "Accept" = "application/json"
-                }
-
-                # Use pipeline name to get the pipeline ID
-                $allPipelinesUrl   = "$orgUrl/$project/_apis/pipelines?api-version=7.1"
-                Write-Host "Trying to get pipeline ID by sending GET request to: $allPipelinesUrl"
-                $allPipelines = Invoke-RestMethod -Method GET -Uri $allPipelinesUrl -Headers $headers
-                $pipelineId = ($allPipelines.value | Where-Object { $_.name -eq $targetPipelineName } | Select-Object -First 1).id
-                if (-not $pipelineId) { 
-                  throw "Pipeline '$targetPipelineName' not found in project '$project'."
-                }
-                Write-Host "Resolved pipelineId: $pipelineId"
-
-                # Queue the pipeline run
-                $runPipelineBody = @{
-                  resources = @{
-                    repositories = @{
-                      self = @{ refName = "refs/heads/main" }
-                    }
-                  }
-                } | ConvertTo-Json -Depth 4
-
-                $runPipelineUrl = "$orgUrl/$project/_apis/pipelines/$pipelineId/runs?api-version=7.1"
-                Write-Host "Trying to queue pipeline run by issuing POST request to: $runPipelineUrl"
-                $runPipelineResponse = Invoke-RestMethod -Method POST -Uri $runPipelineUrl -Headers $headers -Body $runPipelineBody
-
-                $runPipelineId = $runPipelineResponse.id
-                if (-not $runPipelineId) {
-                  throw "Queue failed or returned unexpected payload: $($runPipelineResponse | ConvertTo-Json -Depth 10)"
-                }
-                Write-Host "Queued external pipeline execution with run ID: $runPipelineId"
-
-                # Poll for completion
-                $moreDetailsUrl = "$orgUrl/$project/_build/results?buildId=$runPipelineId&view=results"
-                Write-Host "For more detailed tracking of pipeline execution (including tasks, logs, etc.) you can visit: $moreDetailsUrl"
-
-                $ub = [System.UriBuilder]::new("$orgUrl/$project/_apis/pipelines/$pipelineId/runs/$runPipelineId")
-                $ub.Query = "api-version=7.1"
-                $statusUrl = $ub.Uri.AbsoluteUri
-                Write-Host "Status of the pipeline execution will be checked by issuing GET requests to: $statusUrl"
-                $deadline  = [DateTimeOffset]::UtcNow.AddHours(2)
-
-                do {
-                  Start-Sleep -Seconds 30
-                  $status  = Invoke-RestMethod -Method GET -Uri $statusUrl -Headers $headers
-                  $state   = $status.state
-                  $result  = $status.result
-                  Write-Host "Timestamp=$(Get-Date -AsUTC) State=$state Result=$result"
-                  if ([DateTimeOffset]::UtcNow -gt $deadline) { 
-                    throw "Timed out waiting for external pipeline execution with run ID: $runPipelineId."
-                  }
-                } while ($state -ne 'completed')
-
-                if ($result -ne 'succeeded') {
-                  throw "External pipeline execution with run ID: $runPipelineId is completed with the result: $result"
-                }
-
-                Write-Host "External pipeline execution with run ID: $runPipelineId succeeded."
+    - stage: Execute_CI_Tests
+      displayName: 'Execute CI tests and verify the newly published test extension'
+      dependsOn: Publish_Test_Extension
+      condition: succeeded()
+      variables:
+        CI_TESTS_ORG_URL: 'https://dev.azure.com/canarytest'
+        CI_TESTS_PROJECT: 'PipelineTasks'
+      jobs:
+      - job: QueuePipelineRunAndWaitForResult
+        displayName: 'Trigger pipeline with CI tests for extension and wait for the result'
+        timeoutInMinutes: 120
+        steps:
+        - task: PowerShell@2
+          name: DetermineCiTestPipelineName
+          displayName: 'Determine the pipeline that will be triggered to verify the selected extension'
+          inputs:
+            filePath: '$(Build.SourcesDirectory)/scripts/DetermineCiTestPipelineName.ps1'
+            arguments: -ExtensionName "${{ parameters.extensionName }}"
+            pwsh: true
+            failOnStderr: true
+        - task: AzureCLI@2
+          displayName: 'Trigger selected CI pipeline and wait for the result'
+          inputs:
+            azureSubscription: 'canarytest-extensions-ci-tests-pipeline-connector'
+            scriptType: pscore
+            scriptLocation: scriptPath
+            scriptPath: '$(Build.SourcesDirectory)/scripts/TriggerAdoPipelineAndWaitResult.ps1'
+            arguments: >
+              -OrgUrl "$(CI_TESTS_ORG_URL)"
+              -Project "$(CI_TESTS_PROJECT)"
+              -PipelineName "$(TARGET_PIPELINE_NAME)"
+              -TimeoutMinutes 120
 
     # ======= Approve PROD extension publishing on Marketplace =======
     - stage: Approve_Prod_Extension_Publishing
