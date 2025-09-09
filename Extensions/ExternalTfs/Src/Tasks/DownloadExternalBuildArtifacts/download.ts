@@ -71,7 +71,7 @@ async function main(): Promise<void> {
         if(isAdoServiceConnectionSet()) {
             endpointUrl = tl.getVariable('System.TeamFoundationCollectionUri');
             username = "."; 
-            accessToken =  getADOServiceConnectionDetails();
+            accessToken = await getADOServiceConnectionDetails();
         } else {
             endpointUrl = tl.getEndpointUrl(connection, false);
             username = tl.getEndpointAuthorizationParameter(connection, 'username', true);
@@ -198,7 +198,7 @@ function isAdoServiceConnectionSet() {
 async function getADOServiceConnectionDetails() {
     if (isAdoServiceConnectionSet()) {
         const connectedServiceName = tl.getInput("azureDevOpsServiceConnection", false);
-        var accessToken = await auth.getAccessTokenViaWorkloadIdentityFederation(connectedServiceName);
+        var accessToken = await getAccessTokenViaWorkloadIdentityFederation(connectedServiceName);
         return accessToken;
     } else {
         var errorMessage = "Could not decode the AzureDevOpsServiceConnection. Please ensure you are running the latest agent";
