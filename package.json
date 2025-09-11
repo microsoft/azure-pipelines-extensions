@@ -51,5 +51,10 @@
   "dependencies": {
     "natives": "^1.1.6",
     "shell-quote": "^1.8.2"
+  },
+  "overrides": {
+    "gulp-typescript": {
+      "braces": "3.0.3"
+    }
   }
 }
