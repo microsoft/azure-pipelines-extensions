@@ -2,7 +2,8 @@
     "compilerOptions": {
         "target": "ES6",
         "module": "commonjs",
-        "skipLibCheck": true
+        "moduleResolution": "nodenext",
+        "esModuleInterop": true,
     },
     "exclude": [
         "node_modules"
