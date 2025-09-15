@@ -1,20 +1,18 @@
-var path = require('path')
-var url = require('url')
-var fs = require('fs')
+const fs = require('fs')
+const path = require('path')
 
 import * as tl from 'azure-pipelines-task-lib/task';
 import { WebApi, getBasicHandler } from 'azure-devops-node-api/WebApi';
 
-import * as models from "artifact-engine/Models"
 import * as engine from "artifact-engine/Engine"
 import * as providers from "artifact-engine/Providers"
 import * as webHandlers from "artifact-engine/Providers/typed-rest-client/Handlers"
-import { getAccessTokenViaWorkloadIdentityFederation } from './auth';
 
 tl.setResourcePath(path.join(__dirname, 'task.json'));
 
-var taskJson = require('./task.json');
-var auth = require('./auth')
+const taskJson = require('./task.json');
+const auth = require('./auth');
+
 const area: string = 'DownloadExternalBuildArtifacts';
 
 function getDefaultProps() {
@@ -70,7 +68,7 @@ async function main(): Promise<void> {
 
         if(isAdoServiceConnectionSet()) {
             endpointUrl = tl.getVariable('System.TeamFoundationCollectionUri');
-            username = "."; 
+            username = ".";
             accessToken =  getADOServiceConnectionDetails();
         } else {
             endpointUrl = tl.getEndpointUrl(connection, false);
