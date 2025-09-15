@@ -30,7 +30,7 @@
     "fs-extra": "^0.28.0",
     "gulp": "^4.0.2",
     "gulp-mocha": "^6.0.0",
-    "gulp-typescript": "3.0.0",
+    "gulp-typescript": "^5.0.1",
     "gulp-unzip": "^1.1.0",
     "gulp-util": "^3.0.7",
     "minimatch": "3.0.2",
@@ -51,10 +51,5 @@
   "dependencies": {
     "natives": "^1.1.6",
     "shell-quote": "^1.8.2"
-  },
-  "overrides": {
-    "gulp-typescript": {
-      "braces": "3.0.3"
-    }
   }
 }
