@@ -266,12 +266,22 @@ gulp.task("compileNode", gulp.series("compilePS", function(cb){
     runNpmInstall(artifactEnginePath);
 
     // Compile tasks
-    var proj = gts.createProject(rootTsconfigPath, { typescript: typescript, declaration: true });
-    var taskFiles = path.join(_extnBuildRoot, "**", "Tasks", "**", "*.ts");
-    var artifactEngineFiles = path.join(_extnBuildRoot, "**", "ArtifactEngine", "**", "*.ts");
+    const tasksProject = gts.createProject(rootTsconfigPath, { typescript: typescript, declaration: true });
+    const taskFiles = path.join(_extnBuildRoot, "**", "Tasks", "**", "*.ts");
+    const artifactEngineFiles = path.join(_extnBuildRoot, "**", "ArtifactEngine", "**", "*.ts");
 
-    gulp.src(["definitions/*.d.ts", taskFiles, artifactEngineFiles, "!**/node_modules/**", "!**/Extensions/ArtifactEngine/definitions/**"])
-        .pipe(proj())
+    const testFiles = path.join(_extnBuildRoot, "**/Tests/**/*.ts");
+
+    gulp.src([taskFiles, `!${testFiles}`, artifactEngineFiles, '!**/node_modules/**'])
+        .pipe(tasksProject())
+        .pipe(gulp.dest(path.join(_buildRoot, "Extensions")))
+        .on("error", errorHandler);
+
+    const testProject = gts.createProject(rootTsconfigPath, { typescript: typescript, declaration: true });
+    const sanitizerTestFiles = path.join(_extnBuildRoot, "**/ps_modules/Sanitizer/Tests/*.ts");
+
+    gulp.src([testFiles, `!${sanitizerTestFiles}`])
+        .pipe(testProject())
         .pipe(gulp.dest(path.join(_buildRoot, "Extensions")))
         .on("error", errorHandler);
 
@@ -665,7 +675,7 @@ gulp.task("updateTestIds", function(cb) {
                     path.join(buildExtensionsRoot, extName, 'src', 'vss-extension.json'),
                     path.join(buildExtensionsRoot, extName, 'vss-extension.json')
                 ];
-                
+
                 var manifestPath = null;
                 for (var i = 0; i < possiblePaths.length; i++) {
                     if (fs.existsSync(possiblePaths[i])) {
@@ -673,7 +683,7 @@ gulp.task("updateTestIds", function(cb) {
                         break;
                     }
                 }
-                
+
                 if (manifestPath) {
                     try {
                         // Read file and handle potential BOM
@@ -682,18 +692,18 @@ gulp.task("updateTestIds", function(cb) {
                         if (fileContent.charCodeAt(0) === 0xFEFF) {
                             fileContent = fileContent.slice(1);
                         }
-                        
+
                         var manifest = JSON.parse(fileContent);
                         var updated = false;
-                        
+
                         // Check for both 'id' and 'extensionId' properties
                         var idProperty = manifest.id ? 'id' : (manifest.extensionId ? 'extensionId' : null);
-                        
+
                         if (idProperty && manifest[idProperty] && !manifest[idProperty].endsWith('-test')) {
                             manifest[idProperty] = manifest[idProperty] + '-test';
                             updated = true;
                         }
-                        
+
                         // Update name property
                         if (manifest.hasOwnProperty('name')) {
                             manifest.name = `${manifest.name} (Test)`;
@@ -708,7 +718,7 @@ gulp.task("updateTestIds", function(cb) {
                             manifest.public = false;
                             updated = true;
                         }
-                        
+
                         if (updated) {
                             // Write back without BOM
                             fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));

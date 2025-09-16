@@ -24,67 +24,67 @@ describe('SqlDacpacDeployV1 Suite', function () {
     });
 
     if (ps) {
-        it('should test EscapeSpecialChars functionality', (done:MochaDone) => {
+        it('should test EscapeSpecialChars functionality', (done: Mocha.Done) => {
             psr.run(path.join(__dirname, 'L0EscapeSpecialCharsFunction.ps1'), done);
         });
 
-        it('should test TrimInputs functionality', (done:MochaDone) => {
+        it('should test TrimInputs functionality', (done: Mocha.Done) => {
             psr.run(path.join(__dirname, 'L0TrimInputsFunction.ps1'), done);
         });
 
-        it('should test RunRemoteDeployment functionality', (done:MochaDone) => {
+        it('should test RunRemoteDeployment functionality', (done: Mocha.Done) => {
             psr.run(path.join(__dirname, 'L0RunRemoteDeploymentFunction.ps1'), done);
         });
 
-        it('should test GetScriptToRun functionality', (done:MochaDone) => {
+        it('should test GetScriptToRun functionality', (done: Mocha.Done) => {
             psr.run(path.join(__dirname, 'L0GetScriptToRunFunction.ps1'), done);
         });
 
-        it('should test Main functionality', (done:MochaDone) => {
+        it('should test Main functionality', (done: Mocha.Done) => {
             psr.run(path.join(__dirname, 'L0MainFunction.ps1'), done);
         });
 
-        it('should test RunCommand functionality', (done:MochaDone) => {
+        it('should test RunCommand functionality', (done: Mocha.Done) => {
             psr.run(path.join(__dirname, 'L0RunCommandFunction.ps1'), done);
         });
 
-        it('should test Get-SqlPackageOnTargetMachine functionality', (done:MochaDone) => {
+        it('should test Get-SqlPackageOnTargetMachine functionality', (done: Mocha.Done) => {
             psr.run(path.join(__dirname, 'L0GetSqlPackageOnTargetMachineFunction.ps1'), done);
         });
 
-        it('should test Get-SqlPackageForSqlVersion functionality', (done:MochaDone) => {
+        it('should test Get-SqlPackageForSqlVersion functionality', (done: Mocha.Done) => {
             psr.run(path.join(__dirname, 'L0GetSqlPackageForSqlVersionFunction.ps1'), done);
         });
 
-        // it('should test LocateHighestVersionSqlPackageWithSql functionality', (done:MochaDone) => {
+        // it('should test LocateHighestVersionSqlPackageWithSql functionality', (done: Mocha.Done) => {
         //     psr.run(path.join(__dirname, 'L0LocateHighestVersionSqlPackageWithSqlFunction.ps1'), done);
         // });
 
-        it('should test LocateHighestVersionSqlPackageWithDacMsi functionality', (done:MochaDone) => {
+        it('should test LocateHighestVersionSqlPackageWithDacMsi functionality', (done: Mocha.Done) => {
             psr.run(path.join(__dirname, 'L0LocateHighestVersionSqlPackageWithDacMsiFunction.ps1'), done);
         });
 
-        it('should test LocateSqlPackageInVS functionality', (done:MochaDone) => {
+        it('should test LocateSqlPackageInVS functionality', (done: Mocha.Done) => {
             psr.run(path.join(__dirname, 'L0LocateSqlPackageInVSFunction.ps1'), done);
         });
 
-        // it('should test LocateHighestVersionSqlPackageInVS functionality', (done:MochaDone) => {
+        // it('should test LocateHighestVersionSqlPackageInVS functionality', (done: Mocha.Done) => {
         //     psr.run(path.join(__dirname, 'L0LocateHighestVersionSqlPackageInVSFunction.ps1'), done);
         // });
 
-        it('should test Get-SqlPackageCmdArgs functionality', (done:MochaDone) => {
+        it('should test Get-SqlPackageCmdArgs functionality', (done: Mocha.Done) => {
             psr.run(path.join(__dirname, 'L0GetSqlPackageCmdArgsFunction.ps1'), done);
         });
 
-        it('should test Invoke-DacpacDeployment functionality', (done:MochaDone) => {
+        it('should test Invoke-DacpacDeployment functionality', (done: Mocha.Done) => {
             psr.run(path.join(__dirname, 'L0InvokeDacpacDeploymentFunction.ps1'), done);
         });
 
-        it('should test Import-SqlPs functionality', (done:MochaDone) => {
+        it('should test Import-SqlPs functionality', (done: Mocha.Done) => {
             psr.run(path.join(__dirname, 'L0ImportSqlPs.ps1'), done);
         });
 
-        it('should test Invoke-SqlQueryDeployment functionality', (done:MochaDone) => {
+        it('should test Invoke-SqlQueryDeployment functionality', (done: Mocha.Done) => {
             psr.run(path.join(__dirname, 'L0InvokeSqlQueryDeploymentFunction.ps1'), done);
         });
     }
