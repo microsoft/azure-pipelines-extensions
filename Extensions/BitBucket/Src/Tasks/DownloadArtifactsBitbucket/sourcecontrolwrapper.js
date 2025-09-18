@@ -58,7 +58,7 @@ var SourceControlWrapper = (function (_super) {
         if (!toolPath) {
             throw (new Error(this.toolType + ' not found.  ensure installed and in the path'));
         }
-        var tool = new tl.ToolRunner(toolPath);
+        var tool = new tl.ToolRunner(toolPath.toString());
         tool.silent = true;
         var creds = this.username + ':' + this.password;
         var escapedCreds = encodeURIComponent(this.username) + ':' + encodeURIComponent(this.password);
