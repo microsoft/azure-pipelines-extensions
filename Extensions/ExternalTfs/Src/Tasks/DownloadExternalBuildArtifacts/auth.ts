@@ -1,6 +1,6 @@
 import tl = require('azure-pipelines-task-lib/task');
 import * as msal from "@azure/msal-node";
-import { getFederatedToken } from "azure-pipelines-tasks-artifacts-common/webapi";
+import { getFederatedToken } from "azure-pipelines-tasks-azure-arm-rest/azCliUtility";
 
 const workloadIdentityFederation = "workloadidentityfederation";
 
@@ -37,11 +37,11 @@ async function getAccessTokenFromFederatedToken(
     authorityUrl: string
   ): Promise<string> {
     const AzureDevOpsResourceId = "499b84ac-1321-427f-aa17-267ca6975798";
-  
+
     // use msal to get access token using service principal with federated token
     tl.debug(`Using authority url: ${authorityUrl}`);
     tl.debug(`Using resource: ${AzureDevOpsResourceId}`);
-  
+
     const config: msal.Configuration = {
       auth: {
         clientId: servicePrincipalId,
@@ -58,14 +58,14 @@ async function getAccessTokenFromFederatedToken(
         },
       },
     };
-  
+
     const app = new msal.ConfidentialClientApplication(config);
-  
+
     const request: msal.ClientCredentialRequest = {
       scopes: [`${AzureDevOpsResourceId}/.default`],
       skipCache: true,
     };
-  
+
     const result = await app.acquireTokenByClientCredential(request);
 
     tl.debug(`Got access token for service principal ${servicePrincipalId}`);
@@ -74,6 +74,6 @@ async function getAccessTokenFromFederatedToken(
         const minutes = (result.expiresOn.getTime() - new Date().getTime())/60000;
         console.log(`Generated access token with expiration time of ${minutes} minutes.`);
     }
-    
+
     return result?.accessToken;
 }

@@ -57,6 +57,7 @@ export class WebClientFactory {
 
             let encryptedContent: string = new Buffer(lookupInfo[1], 'base64').toString('utf8');
 
+            // @ts-ignore there is no type definition for createDecipher method
             let decipher = crypto.createDecipher("aes-256-ctr", encryptKey)
             let decryptedContent = decipher.update(encryptedContent, 'hex', 'utf8')
             decryptedContent += decipher.final('utf8');
