@@ -80,13 +80,13 @@
   ],
   "dataSourceBindings": [
     {
-      "endpointId": "$(connection)",
+      "endpointId": "$(azureDevOpsServiceConnection)",
       "target": "project",
       "dataSourceName": "Projects",
       "resultTemplate": "{ \"Value\" : \"{{{id}}}\", \"DisplayValue\" : \"{{{name}}}\" }"
     },
     {
-      "endpointId": "$(connection)",
+      "endpointId": "$(azureDevOpsServiceConnection)",
       "target": "definition",
       "dataSourceName": "Definitions",
       "parameters": {
@@ -95,7 +95,7 @@
       "resultTemplate": "{ \"Value\" : \"{{{id}}}\", \"DisplayValue\" : \"{{{name}}}\" }"
     },
     {
-      "endpointId": "$(connection)",
+      "endpointId": "$(azureDevOpsServiceConnection)",
       "target": "version",
       "dataSourceName": "Builds",
       "parameters": {
