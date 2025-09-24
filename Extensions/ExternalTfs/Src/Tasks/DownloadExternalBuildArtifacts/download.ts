@@ -68,7 +68,7 @@ async function main(): Promise<void> {
 
         if(isAdoServiceConnectionSet()) {
             endpointUrl = tl.getVariable('System.TeamFoundationCollectionUri');
-            username = "."; 
+            username = ".";
             accessToken = await getADOServiceConnectionDetails();
         } else {
             endpointUrl = tl.getEndpointUrl(connection, false);
