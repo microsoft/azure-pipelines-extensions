@@ -196,7 +196,7 @@ function isAdoServiceConnectionSet() {
 async function getADOServiceConnectionDetails() {
     if (isAdoServiceConnectionSet()) {
         const connectedServiceName = tl.getInput("azureDevOpsServiceConnection", false);
-        var accessToken = await getAccessTokenViaWorkloadIdentityFederation(connectedServiceName);
+        var accessToken = await auth.getAccessTokenViaWorkloadIdentityFederation(connectedServiceName);
         return accessToken;
     } else {
         var errorMessage = "Could not decode the AzureDevOpsServiceConnection. Please ensure you are running the latest agent";
