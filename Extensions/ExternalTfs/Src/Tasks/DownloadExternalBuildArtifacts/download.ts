@@ -2,13 +2,12 @@ var path = require('path')
 var url = require('url')
 var fs = require('fs')
 
-import * as tl from 'azure-pipelines-task-lib/task';
 import { WebApi, getBasicHandler } from 'azure-devops-node-api/WebApi';
+import * as tl from 'azure-pipelines-task-lib/task';
 
-import * as models from "artifact-engine/Models"
-import * as engine from "artifact-engine/Engine"
-import * as providers from "artifact-engine/Providers"
-import * as webHandlers from "artifact-engine/Providers/typed-rest-client/Handlers"
+import * as engine from "artifact-engine/Engine";
+import * as providers from "artifact-engine/Providers";
+import * as webHandlers from "artifact-engine/Providers/typed-rest-client/Handlers";
 import { getAccessTokenViaWorkloadIdentityFederation } from './auth';
 
 tl.setResourcePath(path.join(__dirname, 'task.json'));
@@ -57,26 +56,39 @@ function publishEvent(feature, properties: any): void {
 
 async function main(): Promise<void> {
     var promise = new Promise<void>(async (resolve, reject) => {
-        var connection = tl.getInput("connection", false);
-        var projectId = tl.getInput("project", true);
-        var definitionId = tl.getInput("definition", true);
-        var buildId = tl.getInput("version", true);
-        var itemPattern = tl.getInput("itemPattern", true);
-        var downloadPath = tl.getInput("downloadPath", true);
+        // Read both sets; we'll choose effective values below
+        var connectionType = tl.getInput('connectionType', false);
+        var connectionClassic = tl.getInput('connection', false);
+        var connectionAdo = tl.getInput('azureDevOpsServiceConnection', false);
 
-        var endpointUrl : any;
-        var username : any;
-        var accessToken : any;
+        var projectClassic = tl.getInput('project', false);
+        var versionClassic = tl.getInput('version', false);
 
-        if(isAdoServiceConnectionSet()) {
+        var projectAdo = tl.getInput('projectAdo', false);
+        var versionAdo = tl.getInput('versionAdo', false);
+
+        // Effective values based on selected connection type
+        var connection = connectionType === 'ado' ? connectionAdo : connectionClassic;
+        var projectId = connectionType === 'ado' ? projectAdo : projectClassic;
+        var buildId = connectionType === 'ado' ? versionAdo : versionClassic;
+
+        var itemPattern = tl.getInput('itemPattern', true);
+        var downloadPath = tl.getInput('downloadPath', true);
+
+        var endpointUrl: any;
+        var username: any;
+        var accessToken: any;
+
+        if (isAdoServiceConnectionSet()) {
             endpointUrl = tl.getVariable('System.TeamFoundationCollectionUri');
-            username = "."; 
+            username = '.';
             accessToken = await getADOServiceConnectionDetails();
         } else {
             endpointUrl = tl.getEndpointUrl(connection, false);
             username = tl.getEndpointAuthorizationParameter(connection, 'username', true);
-            accessToken = tl.getEndpointAuthorizationParameter(connection, 'apitoken', true)
-            || tl.getEndpointAuthorizationParameter(connection, 'password', true);
+            accessToken =
+                tl.getEndpointAuthorizationParameter(connection, 'apitoken', true) ||
+                tl.getEndpointAuthorizationParameter(connection, 'password', true);
         }
 
         var credentialHandler = getBasicHandler(username, accessToken);
