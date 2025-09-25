@@ -10,7 +10,7 @@ describe('Ansible Suite', function () {
     after(() => {
     });
 
-    it('should run with playbook and inventory on agent machine for remote machine', (done: MochaDone) => {
+    it('should run with playbook and inventory on agent machine for remote machine', (done: Mocha.Done) => {
         this.timeout(1000);
         let testPath = path.join(__dirname, 'testPlaybookAndInventoryOnAgentMachineForRemoteMachine');
         let runner = new mocktest.MockTestRunner(testPath);
@@ -34,7 +34,7 @@ describe('Ansible Suite', function () {
         }
     });
 
-    it('should run with playbook and inventory on ansible machine for remote machine', (done: MochaDone) => {
+    it('should run with playbook and inventory on ansible machine for remote machine', (done: Mocha.Done) => {
         this.timeout(1000);
         let testPath = path.join(__dirname, 'testPlaybookAndInventoryOnAnsibleMachineForRemoteMachine');
         let runner = new mocktest.MockTestRunner(testPath);
@@ -54,7 +54,7 @@ describe('Ansible Suite', function () {
         }
     });
 
-    it('should run when inventory is the host list for remote machine', (done: MochaDone) => {
+    it('should run when inventory is the host list for remote machine', (done: Mocha.Done) => {
         this.timeout(1000);
         let testPath = path.join(__dirname, 'testInventoryToBeHostListForRemoteMachine');
         let runner = new mocktest.MockTestRunner(testPath);
@@ -74,7 +74,7 @@ describe('Ansible Suite', function () {
         }
     });
 
-    it('should run when inventory is inline content for remote machine', (done: MochaDone) => {
+    it('should run when inventory is inline content for remote machine', (done: Mocha.Done) => {
         this.timeout(1000);
         let testPath = path.join(__dirname, 'testInventoryToBeInlineForRemoteMachine');
         let runner = new mocktest.MockTestRunner(testPath);
@@ -97,7 +97,7 @@ describe('Ansible Suite', function () {
         }
     });
 
-    it('should run when sudo and additional parameters is present for remote machine', (done: MochaDone) => {
+    it('should run when sudo and additional parameters is present for remote machine', (done: Mocha.Done) => {
         this.timeout(1000);
         let testPath = path.join(__dirname, 'testSudoUserAndAdditionalParamsProvidedForRemoteMachine');
         let runner = new mocktest.MockTestRunner(testPath);
@@ -117,7 +117,7 @@ describe('Ansible Suite', function () {
         }
     });
 
-    it('should run playbook via ansible tower', (done: MochaDone) => {
+    it('should run playbook via ansible tower', (done: Mocha.Done) => {
         this.timeout(1000);
         let testPath = path.join(__dirname, 'testTower.js');
         let runner = new mocktest.MockTestRunner(testPath);
@@ -136,7 +136,7 @@ describe('Ansible Suite', function () {
         }
     });
 
-    it('should run with playbook and inventory on agent machine for agent machine', (done: MochaDone) => {
+    it('should run with playbook and inventory on agent machine for agent machine', (done: Mocha.Done) => {
         this.timeout(1000);
         let testPath = path.join(__dirname, 'testPlaybookAndInventoryOnAgentMachineForAgentMachine');
         let runner = new mocktest.MockTestRunner(testPath);
@@ -154,7 +154,7 @@ describe('Ansible Suite', function () {
         }
     });
 
-    it('should run when inventory is the host list for agent machine', (done: MochaDone) => {
+    it('should run when inventory is the host list for agent machine', (done: Mocha.Done) => {
         this.timeout(1000);
         let testPath = path.join(__dirname, 'testInventoryToBeHostListForAgentMachine');
         let runner = new mocktest.MockTestRunner(testPath);
@@ -172,7 +172,7 @@ describe('Ansible Suite', function () {
         }
     });
 
-    it('should run when inventory is inline content for agent machine', (done: MochaDone) => {
+    it('should run when inventory is inline content for agent machine', (done: Mocha.Done) => {
         this.timeout(1000);
         let testPath = path.join(__dirname, 'testInventoryToBeInlineForAgentMachine');
         let runner = new mocktest.MockTestRunner(testPath);

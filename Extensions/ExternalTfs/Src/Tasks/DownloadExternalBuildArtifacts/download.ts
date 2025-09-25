@@ -1,6 +1,5 @@
-var path = require('path')
-var url = require('url')
-var fs = require('fs')
+const fs = require('fs')
+const path = require('path')
 
 import { WebApi, getBasicHandler } from 'azure-devops-node-api/WebApi';
 import * as tl from 'azure-pipelines-task-lib/task';
@@ -8,12 +7,12 @@ import * as tl from 'azure-pipelines-task-lib/task';
 import * as engine from "artifact-engine/Engine";
 import * as providers from "artifact-engine/Providers";
 import * as webHandlers from "artifact-engine/Providers/typed-rest-client/Handlers";
-import { getAccessTokenViaWorkloadIdentityFederation } from './auth';
 
 tl.setResourcePath(path.join(__dirname, 'task.json'));
 
-var taskJson = require('./task.json');
-var auth = require('./auth')
+const taskJson = require('./task.json');
+const auth = require('./auth');
+
 const area: string = 'DownloadExternalBuildArtifacts';
 
 function getDefaultProps() {
@@ -81,7 +80,7 @@ async function main(): Promise<void> {
 
         if (isAdoServiceConnectionSet()) {
             endpointUrl = tl.getVariable('System.TeamFoundationCollectionUri');
-            username = '.';
+            username = ".";
             accessToken = await getADOServiceConnectionDetails();
         } else {
             endpointUrl = tl.getEndpointUrl(connection, false);
@@ -210,7 +209,7 @@ function isAdoServiceConnectionSet() {
 async function getADOServiceConnectionDetails() {
     if (isAdoServiceConnectionSet()) {
         const connectedServiceName = tl.getInput("azureDevOpsServiceConnection", false);
-        var accessToken = await getAccessTokenViaWorkloadIdentityFederation(connectedServiceName);
+        var accessToken = await auth.getAccessTokenViaWorkloadIdentityFederation(connectedServiceName);
         return accessToken;
     } else {
         var errorMessage = "Could not decode the AzureDevOpsServiceConnection. Please ensure you are running the latest agent";
