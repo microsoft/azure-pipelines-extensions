@@ -1,6 +1,6 @@
 const tl = require('azure-pipelines-task-lib/task');
 const msal = require('@azure/msal-node');
-const { getFederatedToken } = require('azure-pipelines-tasks-artifacts-common/webapi');
+const { getFederatedToken } = require('azure-pipelines-tasks-azure-arm-rest/azCliUtility');
 
 const workloadIdentityFederation = "workloadidentityfederation";
 
