@@ -9,24 +9,38 @@
   "version": {
     "Major": 15,
     "Minor": 263,
-    "Patch": 6
+    "Patch": 7
   },
   "demands": [],
   "minimumAgentVersion": "2.144.0",
   "inputs": [
     {
+      "name": "connectionType",
+      "type": "pickList",
+      "label": "Connection type",
+      "defaultValue": "ado",
+      "required": true,
+      "options": {
+        "tfsOrAdo": "Team Foundation Server/Azure DevOps connection",
+        "ado": "Azure DevOps Service Connection"
+      },
+      "helpMarkDown": "Choose which connection to use for artifact discovery and download."
+    },
+    {
       "name": "connection",
       "type": "connectedService:externaltfs",
       "label": "Team Foundation Server/Azure DevOps connection",
       "defaultValue": "",
-      "helpMarkDown": "Team Foundation Server/Azure DevOps connection"
+      "helpMarkDown": "Team Foundation Server/Azure DevOps connection",
+      "visibleRule": "connectionType = tfsOrAdo"
     },
     {
       "name": "azureDevOpsServiceConnection",
       "type": "connectedService:workloadidentityuser",
       "label": "Azure DevOps Service Connection",
       "defaultValue": "",
-      "helpMarkDown": "Select an Azure DevOps Service Connection service connection"
+      "helpMarkDown": "Select an Azure DevOps Service Connection service connection",
+      "visibleRule": "connectionType = ado"
     },
     {
       "name": "project",
@@ -37,7 +51,8 @@
       "properties": {
         "EditableOptions": "True"
       },
-      "helpMarkDown": "Select the project name"
+      "helpMarkDown": "Select the project name",
+      "visibleRule": "connectionType = tfsOrAdo"
     },
     {
       "name": "definition",
@@ -48,7 +63,8 @@
       "properties": {
         "EditableOptions": "True"
       },
-      "helpMarkDown": "Select the build definition name"
+      "helpMarkDown": "Select the build definition name",
+      "visibleRule": "connectionType = tfsOrAdo"
     },
     {
       "name": "version",
@@ -59,7 +75,44 @@
       "properties": {
         "EditableOptions": "True"
       },
-      "helpMarkDown": "Select the build number"
+      "helpMarkDown": "Select the build number",
+      "visibleRule": "connectionType = tfsOrAdo"
+    },
+    {
+      "name": "projectAdo",
+      "type": "pickList",
+      "label": "Project",
+      "defaultValue": "",
+      "required": true,
+      "properties": {
+        "EditableOptions": "True"
+      },
+      "helpMarkDown": "Select the Azure DevOps project",
+      "visibleRule": "connectionType = ado"
+    },
+    {
+      "name": "buildDefinitionAdo",
+      "type": "pickList",
+      "label": "Build definition",
+      "defaultValue": "",
+      "required": true,
+      "properties": {
+        "EditableOptions": "True"
+      },
+      "helpMarkDown": "Select the Azure DevOps build definition",
+      "visibleRule": "connectionType = ado"
+    },
+    {
+      "name": "versionAdo",
+      "type": "pickList",
+      "label": "Build",
+      "defaultValue": "",
+      "required": true,
+      "properties": {
+        "EditableOptions": "True"
+      },
+      "helpMarkDown": "Select the Azure DevOps build number",
+      "visibleRule": "connectionType = ado"
     },
     {
       "name": "itemPattern",
@@ -101,6 +154,31 @@
       "parameters": {
           "project": "$(project)",
           "definition": "$(definition)"
+      },
+      "resultTemplate": "{ \"Value\" : \"{{{id}}}\", \"DisplayValue\" : \"{{{buildNumber}}}\" }"
+    },
+    {
+      "endpointId": "$(azureDevOpsServiceConnection)",
+      "target": "projectAdo",
+      "dataSourceName": "Projects",
+      "resultTemplate": "{ \"Value\" : \"{{{id}}}\", \"DisplayValue\" : \"{{{name}}}\" }"
+    },
+    {
+      "endpointId": "$(azureDevOpsServiceConnection)",
+      "target": "buildDefinitionAdo",
+      "dataSourceName": "Definitions",
+      "parameters": {
+          "project": "$(projectAdo)"
+      },
+      "resultTemplate": "{ \"Value\" : \"{{{id}}}\", \"DisplayValue\" : \"{{{name}}}\" }"
+    },
+    {
+      "endpointId": "$(azureDevOpsServiceConnection)",
+      "target": "versionAdo",
+      "dataSourceName": "Builds",
+      "parameters": {
+          "project": "$(projectAdo)",
+          "definition": "$(buildDefinitionAdo)"
       },
       "resultTemplate": "{ \"Value\" : \"{{{id}}}\", \"DisplayValue\" : \"{{{buildNumber}}}\" }"
     }
