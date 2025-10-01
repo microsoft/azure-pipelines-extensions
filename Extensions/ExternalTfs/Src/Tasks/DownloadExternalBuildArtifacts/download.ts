@@ -63,30 +63,36 @@ async function main(): Promise<void> {
         var projectAdo = tl.getInput('projectAdo', false);
         var versionClassic = tl.getInput('version', false);
         var versionAdo = tl.getInput('versionAdo', false);
-        var itemPattern = tl.getInput('itemPattern', true);
+        var itemPattern = tl.getInput('itemPattern', false);
         var downloadPath = tl.getInput('downloadPath', true);
 
         // Determine inputs for fetching artifacts based on the selected connection type
         var isAdoConnectionType = connectionType === 'ado';
-        var connection = isAdoConnectionType ? connectionAdo : connectionClassic;
+        var serviceConnection = isAdoConnectionType ? connectionAdo : connectionClassic;
         var projectId = isAdoConnectionType ? projectAdo : projectClassic;
         var buildId = isAdoConnectionType ? versionAdo : versionClassic;
 
-        var endpointUrl = tl.getEndpointUrl(connection, false);
+        if (!serviceConnection || !projectId || !buildId) {
+            const error = "Required inputs (service connection, project ID and build ID must be provided.";
+            tl.setResult(tl.TaskResult.Failed, error);
+            reject(error);
+        }
+
+        var endpointUrl = tl.getEndpointUrl(serviceConnection, false);
         var username: any;
         var accessToken: any;
 
         if (isAdoConnectionType) {
-            verifyAdoServiceConnection(connection);
+            verifyAdoServiceConnection(serviceConnection);
             username = ".";
-            accessToken = await auth.getAccessTokenViaWorkloadIdentityFederation(connection);
+            accessToken = await auth.getAccessTokenViaWorkloadIdentityFederation(serviceConnection);
         } else {
-            var connection = tl.getInput("connection", true);
-            endpointUrl = tl.getEndpointUrl(connection, false);
-            username = tl.getEndpointAuthorizationParameter(connection, 'username', true);
+            var serviceConnection = tl.getInput("connection", true);
+            endpointUrl = tl.getEndpointUrl(serviceConnection, false);
+            username = tl.getEndpointAuthorizationParameter(serviceConnection, 'username', true);
             accessToken =
-                tl.getEndpointAuthorizationParameter(connection, 'apitoken', true) ||
-                tl.getEndpointAuthorizationParameter(connection, 'password', true);
+                tl.getEndpointAuthorizationParameter(serviceConnection, 'apitoken', true) ||
+                tl.getEndpointAuthorizationParameter(serviceConnection, 'password', true);
         }
 
         var credentialHandler = getBasicHandler(username, accessToken);

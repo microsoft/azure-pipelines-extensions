@@ -11,6 +11,8 @@ In order to build and package extensions you will need to install some dependenc
 - Ensure you have installed Node.js
 - Run `npm -g install gulp-cli`
 - Run `npm install -g tfx-cli`
+- Run `npm install -g vsts-npm-auth`
+- Run `vsts-npm-auth -config .npmrc` to setup authentication for npm (might be needed if you need to install packages for certain tasks within an extension))
 
 ### How to Build
 
@@ -27,7 +29,6 @@ You'll have to run `gulp build` and `gulp test` before you start packaging.
 - `gulp package` will package all the extensions and stores them in "_package" folder.
 - `gulp package --publisher=<publisher_name>` will package all the extensions under a new publisher name that you specify in "_package" folder.
 - `gulp package --extension=<extension_name>` will package the single extension you mention, and stores it in "_package" folder.
-- PS: Tested the compatibility with node version 10.22.0 on a windows machine.
 
 ## Contribution guideline
 
