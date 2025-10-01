@@ -67,18 +67,20 @@ async function main(): Promise<void> {
         var downloadPath = tl.getInput('downloadPath', true);
 
         // Determine inputs for fetching artifacts based on the selected connection type
-        var connection = connectionType === 'ado' ? connectionAdo : connectionClassic;
-        var projectId = connectionType === 'ado' ? projectAdo : projectClassic;
-        var buildId = connectionType === 'ado' ? versionAdo : versionClassic;
+        var isAdoConnectionType = connectionType === 'ado';
+        var connection = isAdoConnectionType ? connectionAdo : connectionClassic;
+        var projectId = isAdoConnectionType ? projectAdo : projectClassic;
+        var buildId = isAdoConnectionType ? versionAdo : versionClassic;
 
         var endpointUrl: any;
         var username: any;
         var accessToken: any;
 
-        if (isAdoServiceConnectionSet()) {
+        if (isAdoConnectionType) {
+            verifyAdoServiceConnection(connection);
             endpointUrl = tl.getVariable('System.TeamFoundationCollectionUri');
             username = ".";
-            accessToken = await getADOServiceConnectionDetails();
+            accessToken = await auth.getAccessTokenViaWorkloadIdentityFederation(connection);
         } else {
             endpointUrl = tl.getEndpointUrl(connection, false);
             username = tl.getEndpointAuthorizationParameter(connection, 'username', true);
@@ -198,19 +200,9 @@ function executeWithRetriesImplementation(operationName: string, operation: () =
     });
 }
 
-function isAdoServiceConnectionSet() {
-    const connectedServiceName = tl.getInput("azureDevOpsServiceConnection", false);
-    return connectedServiceName && connectedServiceName.trim().length > 0;
-}
-
-async function getADOServiceConnectionDetails() {
-    if (isAdoServiceConnectionSet()) {
-        const connectedServiceName = tl.getInput("azureDevOpsServiceConnection", false);
-        var accessToken = await auth.getAccessTokenViaWorkloadIdentityFederation(connectedServiceName);
-        return accessToken;
-    } else {
-        var errorMessage = "Could not decode the AzureDevOpsServiceConnection. Please ensure you are running the latest agent";
-        throw new Error(errorMessage);
+function verifyAdoServiceConnection(serviceConnection: string) {
+    if (!serviceConnection || serviceConnection.trim().length === 0) {
+        throw new Error("Could not decode the Azure DevOps Service Connection. Please ensure service connection is provided and you are running the latest agent.");
     }
 }
 

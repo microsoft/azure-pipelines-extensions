@@ -1,4 +1,3 @@
-
 {
   "id": "B099689B-039E-4450-8658-C72E3895DD3F",
   "name": "DownloadExternalBuildArtifacts",
@@ -9,8 +8,8 @@
   "author": "ms-vscs-rm",
   "version": {
     "Major": 15,
-    "Minor": 263,
-    "Patch": 7
+    "Minor": 264,
+    "Patch": 0
   },
   "demands": [],
   "minimumAgentVersion": "2.144.0",
