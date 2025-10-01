@@ -21,11 +21,5 @@
   "loc.input.label.azureDevOpsServiceConnection": "Azure DevOps Service Connection",
   "loc.input.help.azureDevOpsServiceConnection": "Azure DevOps Service Connection",
   "loc.input.label.connectionType": "Connection type",
-  "loc.input.help.connectionType": "Select which connection type to use",
-  "loc.input.label.projectAdo": "Project",
-  "loc.input.help.projectAdo": "Select the Azure DevOps project",
-  "loc.input.label.buildDefinitionAdo": "Build definition",
-  "loc.input.help.buildDefinitionAdo": "Select the Azure DevOps build definition",
-  "loc.input.label.versionAdo": "Build",
-  "loc.input.help.versionAdo": "Select the Azure DevOps build number"
+  "loc.input.help.connectionType": "Select which connection type to use"
 }

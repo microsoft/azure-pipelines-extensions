@@ -83,37 +83,37 @@
     {
       "name": "projectAdo",
       "type": "pickList",
-      "label": "ms-resource:loc.input.label.projectAdo",
+      "label": "ms-resource:loc.input.label.project",
       "defaultValue": "",
       "required": true,
       "properties": {
         "EditableOptions": "True"
       },
-      "helpMarkDown": "ms-resource:loc.input.help.projectAdo",
+      "helpMarkDown": "ms-resource:loc.input.help.project",
       "visibleRule": "connectionType = ado"
     },
     {
       "name": "buildDefinitionAdo",
       "type": "pickList",
-      "label": "ms-resource:loc.input.label.buildDefinitionAdo",
+      "label": "ms-resource:loc.input.label.definition",
       "defaultValue": "",
       "required": true,
       "properties": {
         "EditableOptions": "True"
       },
-      "helpMarkDown": "ms-resource:loc.input.help.buildDefinitionAdo",
+      "helpMarkDown": "ms-resource:loc.input.help.definition",
       "visibleRule": "connectionType = ado"
     },
     {
       "name": "versionAdo",
       "type": "pickList",
-      "label": "ms-resource:loc.input.label.versionAdo",
+      "label": "ms-resource:loc.input.label.version",
       "defaultValue": "",
       "required": true,
       "properties": {
         "EditableOptions": "True"
       },
-      "helpMarkDown": "ms-resource:loc.input.help.versionAdo",
+      "helpMarkDown": "ms-resource:loc.input.help.version",
       "visibleRule": "connectionType = ado"
     },
     {
