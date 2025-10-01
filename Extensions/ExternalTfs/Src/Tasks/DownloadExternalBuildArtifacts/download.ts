@@ -55,7 +55,6 @@ function publishEvent(feature, properties: any): void {
 
 async function main(): Promise<void> {
     var promise = new Promise<void>(async (resolve, reject) => {
-        var connection = tl.getInput("connection", false);
         var projectId = tl.getInput("project", true);
         var definitionId = tl.getInput("definition", true);
         var buildId = tl.getInput("version", true);
@@ -67,10 +66,12 @@ async function main(): Promise<void> {
         var accessToken : any;
 
         if(isAdoServiceConnectionSet()) {
-            endpointUrl = tl.getVariable('System.TeamFoundationCollectionUri');
+            var connection = tl.getInput("azureDevOpsServiceConnection", true);
+            endpointUrl = tl.getEndpointUrl(connection, false);
             username = ".";
             accessToken = await getADOServiceConnectionDetails();
         } else {
+            var connection = tl.getInput("connection", true);
             endpointUrl = tl.getEndpointUrl(connection, false);
             username = tl.getEndpointAuthorizationParameter(connection, 'username', true);
             accessToken = tl.getEndpointAuthorizationParameter(connection, 'apitoken', true)
