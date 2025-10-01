@@ -72,16 +72,16 @@ async function main(): Promise<void> {
         var projectId = isAdoConnectionType ? projectAdo : projectClassic;
         var buildId = isAdoConnectionType ? versionAdo : versionClassic;
 
-        var endpointUrl: any;
+        var endpointUrl = tl.getEndpointUrl(connection, false);
         var username: any;
         var accessToken: any;
 
         if (isAdoConnectionType) {
             verifyAdoServiceConnection(connection);
-            endpointUrl = tl.getVariable('System.TeamFoundationCollectionUri');
             username = ".";
             accessToken = await auth.getAccessTokenViaWorkloadIdentityFederation(connection);
         } else {
+            var connection = tl.getInput("connection", true);
             endpointUrl = tl.getEndpointUrl(connection, false);
             username = tl.getEndpointAuthorizationParameter(connection, 'username', true);
             accessToken =
