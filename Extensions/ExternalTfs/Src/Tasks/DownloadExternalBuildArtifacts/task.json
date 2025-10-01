@@ -30,6 +30,7 @@
       "name": "connection",
       "type": "connectedService:externaltfs",
       "label": "Team Foundation Server/Azure DevOps connection",
+      "required": true,
       "defaultValue": "",
       "helpMarkDown": "Team Foundation Server/Azure DevOps connection",
       "visibleRule": "connectionType = tfsOrAdo"
@@ -38,6 +39,7 @@
       "name": "azureDevOpsServiceConnection",
       "type": "connectedService:workloadidentityuser",
       "label": "Azure DevOps Service Connection",
+      "required": true,
       "defaultValue": "",
       "helpMarkDown": "Select an Azure DevOps Service Connection service connection",
       "visibleRule": "connectionType = ado"

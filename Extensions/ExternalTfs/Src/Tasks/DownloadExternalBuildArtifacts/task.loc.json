@@ -30,8 +30,8 @@
       "name": "connection",
       "type": "connectedService:externaltfs",
       "label": "ms-resource:loc.input.label.connection",
+      "required": true,
       "defaultValue": "",
-      "required": false,
       "helpMarkDown": "ms-resource:loc.input.help.connection",
       "visibleRule": "connectionType = tfsOrAdo"
     },
@@ -39,6 +39,7 @@
       "name": "azureDevOpsServiceConnection",
       "type": "connectedService:workloadidentityuser",
       "label": "ms-resource:loc.input.label.azureDevOpsServiceConnection",
+      "required": true,
       "defaultValue": "",
       "helpMarkDown": "ms-resource:loc.input.help.azureDevOpsServiceConnection",
       "visibleRule": "connectionType = ado"
