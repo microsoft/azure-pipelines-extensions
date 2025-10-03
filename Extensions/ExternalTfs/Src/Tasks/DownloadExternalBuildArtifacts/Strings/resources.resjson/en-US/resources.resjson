@@ -19,5 +19,7 @@
   "loc.messages.ArtifactsSuccessfullyDownloaded": "Successfully downloaded artifacts to %s",
   "loc.messages.UnsupportedArtifactType": "Unsupported artifact type: %s",
   "loc.input.label.azureDevOpsServiceConnection": "Azure DevOps Service Connection",
-  "loc.input.help.azureDevOpsServiceConnection": "Azure DevOps Service Connection"
+  "loc.input.help.azureDevOpsServiceConnection": "Azure DevOps Service Connection",
+  "loc.input.label.connectionType": "Connection type",
+  "loc.input.help.connectionType": "Select which connection type to use"
 }

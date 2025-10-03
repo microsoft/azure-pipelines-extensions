@@ -1,4 +1,3 @@
-
 {
   "id": "B099689B-039E-4450-8658-C72E3895DD3F",
   "name": "DownloadExternalBuildArtifacts",
@@ -8,27 +7,42 @@
   "category": "Utility",
   "author": "ms-vscs-rm",
   "version": {
-    "Major": 15,
+    "Major": 16,
     "Minor": 264,
-    "Patch": 2
+    "Patch": 0
   },
   "demands": [],
   "minimumAgentVersion": "2.144.0",
   "inputs": [
     {
+      "name": "connectionType",
+      "type": "pickList",
+      "label": "ms-resource:loc.input.label.connectionType",
+      "defaultValue": "ado",
+      "required": true,
+      "options": {
+        "tfsOrAdo": "Team Foundation Server/Azure DevOps connection",
+        "ado": "Azure DevOps Service Connection"
+      },
+      "helpMarkDown": "ms-resource:loc.input.help.connectionType"
+    },
+    {
       "name": "connection",
       "type": "connectedService:externaltfs",
       "label": "ms-resource:loc.input.label.connection",
+      "required": true,
       "defaultValue": "",
-      "required": false,
-      "helpMarkDown": "ms-resource:loc.input.help.connection"
+      "helpMarkDown": "ms-resource:loc.input.help.connection",
+      "visibleRule": "connectionType = tfsOrAdo"
     },
     {
       "name": "azureDevOpsServiceConnection",
       "type": "connectedService:workloadidentityuser",
       "label": "ms-resource:loc.input.label.azureDevOpsServiceConnection",
+      "required": true,
       "defaultValue": "",
-      "helpMarkDown": "ms-resource:loc.input.help.azureDevOpsServiceConnection"
+      "helpMarkDown": "ms-resource:loc.input.help.azureDevOpsServiceConnection",
+      "visibleRule": "connectionType = ado"
     },
     {
       "name": "project",
@@ -39,7 +53,8 @@
       "properties": {
         "EditableOptions": "True"
       },
-      "helpMarkDown": "ms-resource:loc.input.help.project"
+      "helpMarkDown": "ms-resource:loc.input.help.project",
+      "visibleRule": "connectionType = tfsOrAdo"
     },
     {
       "name": "definition",
@@ -50,7 +65,8 @@
       "properties": {
         "EditableOptions": "True"
       },
-      "helpMarkDown": "ms-resource:loc.input.help.definition"
+      "helpMarkDown": "ms-resource:loc.input.help.definition",
+      "visibleRule": "connectionType = tfsOrAdo"
     },
     {
       "name": "version",
@@ -61,7 +77,44 @@
       "properties": {
         "EditableOptions": "True"
       },
-      "helpMarkDown": "ms-resource:loc.input.help.version"
+      "helpMarkDown": "ms-resource:loc.input.help.version",
+      "visibleRule": "connectionType = tfsOrAdo"
+    },
+    {
+      "name": "projectAdo",
+      "type": "pickList",
+      "label": "ms-resource:loc.input.label.project",
+      "defaultValue": "",
+      "required": true,
+      "properties": {
+        "EditableOptions": "True"
+      },
+      "helpMarkDown": "ms-resource:loc.input.help.project",
+      "visibleRule": "connectionType = ado"
+    },
+    {
+      "name": "buildDefinitionAdo",
+      "type": "pickList",
+      "label": "ms-resource:loc.input.label.definition",
+      "defaultValue": "",
+      "required": true,
+      "properties": {
+        "EditableOptions": "True"
+      },
+      "helpMarkDown": "ms-resource:loc.input.help.definition",
+      "visibleRule": "connectionType = ado"
+    },
+    {
+      "name": "versionAdo",
+      "type": "pickList",
+      "label": "ms-resource:loc.input.label.version",
+      "defaultValue": "",
+      "required": true,
+      "properties": {
+        "EditableOptions": "True"
+      },
+      "helpMarkDown": "ms-resource:loc.input.help.version",
+      "visibleRule": "connectionType = ado"
     },
     {
       "name": "itemPattern",
@@ -103,6 +156,36 @@
       "parameters": {
         "project": "$(project)",
         "definition": "$(definition)"
+      },
+      "resultTemplate": "{ \"Value\" : \"{{{id}}}\", \"DisplayValue\" : \"{{{buildNumber}}}\" }"
+    },
+    {
+      "endpointId": "$(azureDevOpsServiceConnection)",
+      "target": "projectAdo",
+      "dataSourceName": "Projects",
+      "parameters": {
+        "top": 1000
+      },
+      "resultTemplate": "{ \"Value\" : \"{{{id}}}\", \"DisplayValue\" : \"{{{name}}}\" }"
+    },
+    {
+      "endpointId": "$(azureDevOpsServiceConnection)",
+      "target": "buildDefinitionAdo",
+      "dataSourceName": "Definitions",
+      "parameters": {
+        "project": "$(projectAdo)",
+        "top": 500
+      },
+      "resultTemplate": "{ \"Value\" : \"{{{id}}}\", \"DisplayValue\" : \"{{{name}}}\" }"
+    },
+    {
+      "endpointId": "$(azureDevOpsServiceConnection)",
+      "target": "versionAdo",
+      "dataSourceName": "Builds",
+      "parameters": {
+        "project": "$(projectAdo)",
+        "definition": "$(buildDefinitionAdo)",
+        "top": 100
       },
       "resultTemplate": "{ \"Value\" : \"{{{id}}}\", \"DisplayValue\" : \"{{{buildNumber}}}\" }"
     }
