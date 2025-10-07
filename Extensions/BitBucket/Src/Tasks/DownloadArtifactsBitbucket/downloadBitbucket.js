@@ -123,7 +123,7 @@ function getEndpointDetails(inputFieldName) {
             "Token": token,
             "Username": username
         };
-    } else if (scheme === "usernamepassword") {
+    } else {
         var hostUsername = getAuthParameter(bitbucketEndpoint, 'username');
         var hostPassword = getAuthParameter(bitbucketEndpoint, 'password');
         tl.debug('hostUsername: ' + hostUsername);
@@ -132,8 +132,6 @@ function getEndpointDetails(inputFieldName) {
             "Username": hostUsername,
             "Password": hostPassword
         };
-    } else {
-        throw new Error("The authorization scheme " + auth.scheme + " is not supported for a bitbucket endpoint. Please use either 'usernamepassword' or 'token'.");
     }
 }
 
