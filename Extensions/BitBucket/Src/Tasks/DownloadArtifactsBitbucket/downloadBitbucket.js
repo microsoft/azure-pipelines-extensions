@@ -8,6 +8,8 @@ var shell = require("shelljs");
 var scw = require('./sourcecontrolwrapper.js');
 var https = require("https");
 
+var BITBUCKET_API_TOKEN_AUTH_USERNAME = 'x-bitbucket-api-token-auth';
+
 var repositoryId = tl.getInput("definition");
 var branch = tl.getInput("branch");
 var commitId = tl.getInput("version");
@@ -62,8 +64,8 @@ https.request(options, function (rs) {
         // encodes projects and repo names with spaces
         var repoUrl = url.parse(remoteUrl);
         if (bitbucketEndpoint.Token) {
-            // For token authentication, use the token as password with 'x-bitbucket-api-token-auth' as username
-            repoUrl.auth = 'x-bitbucket-api-token-auth:' + bitbucketEndpoint.Token;
+            // For token authentication, use the token as password with API token auth username
+            repoUrl.auth = BITBUCKET_API_TOKEN_AUTH_USERNAME + ':' + bitbucketEndpoint.Token;
         } else if (bitbucketEndpoint.Username && bitbucketEndpoint.Password) {
             repoUrl.auth = bitbucketEndpoint.Username + ':' + bitbucketEndpoint.Password;
         }
@@ -83,7 +85,7 @@ https.request(options, function (rs) {
             debugOutput: this.debugOutput
         };
         if (bitbucketEndpoint.Token) {
-            sch.username = 'x-bitbucket-api-token-auth';
+            sch.username = BITBUCKET_API_TOKEN_AUTH_USERNAME;
             sch.password = bitbucketEndpoint.Token;
         } else {
             sch.username = bitbucketEndpoint.Username;
