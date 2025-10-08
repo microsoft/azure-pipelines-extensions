@@ -191,7 +191,7 @@ extends:
         - task: EsrpCodeSigning@5
           displayName: 'Sign PROD artifact using ESRP task'
           inputs:
-            ConnectedServiceName: '$(Control.EsrpServiceConnectionName)'
+            ConnectedServiceName: '$(Control.EsrpServiceConnectionName.GH)'
             AppRegistrationClientId: '$(Control.AppRegistrationClientId)'
             AppRegistrationTenantId: '$(Control.AppRegistrationTenantId)'
             AuthAKVName: '$(Control.AuthAKVName)'
@@ -217,7 +217,7 @@ extends:
         - task: EsrpCodeSigning@5
           displayName: 'Sign test artifact using ESRP task'
           inputs:
-            ConnectedServiceName: '$(Control.EsrpServiceConnectionName)'
+            ConnectedServiceName: '$(Control.EsrpServiceConnectionName.GH)'
             AppRegistrationClientId: '$(Control.AppRegistrationClientId)'
             AppRegistrationTenantId: '$(Control.AppRegistrationTenantId)'
             AuthAKVName: '$(Control.AuthAKVName)'

@@ -1,17 +1,25 @@
 const fs = require('fs')
 const path = require('path')
 
-import * as tl from 'azure-pipelines-task-lib/task';
 import { WebApi, getBasicHandler } from 'azure-devops-node-api/WebApi';
+import * as tl from 'azure-pipelines-task-lib/task';
 
-import * as engine from "artifact-engine/Engine"
-import * as providers from "artifact-engine/Providers"
-import * as webHandlers from "artifact-engine/Providers/typed-rest-client/Handlers"
+import * as engine from "artifact-engine/Engine";
+import * as providers from "artifact-engine/Providers";
+import * as webHandlers from "artifact-engine/Providers/typed-rest-client/Handlers";
 
 tl.setResourcePath(path.join(__dirname, 'task.json'));
 
 const taskJson = require('./task.json');
 const auth = require('./auth');
+
+export interface ConnectionDetails {
+    serviceConnection: string;
+    projectId: string;
+    buildId: number;
+    accessToken: string;
+    username: string;
+}
 
 const area: string = 'DownloadExternalBuildArtifacts';
 
@@ -55,30 +63,15 @@ function publishEvent(feature, properties: any): void {
 
 async function main(): Promise<void> {
     var promise = new Promise<void>(async (resolve, reject) => {
-        var projectId = tl.getInput("project", true);
-        var definitionId = tl.getInput("definition", true);
-        var buildId = tl.getInput("version", true);
-        var itemPattern = tl.getInput("itemPattern", true);
-        var downloadPath = tl.getInput("downloadPath", true);
+        var connectionType = tl.getInput('connectionType', true);
+        var itemPattern = tl.getInput('itemPattern', false);
+        var downloadPath = tl.getInput('downloadPath', true);
+        var connectionDetails: ConnectionDetails = connectionType === 'ado'
+            ? await configureForAdoSc()
+            : configureForTfsSc();
+        var endpointUrl = tl.getEndpointUrl(connectionDetails.serviceConnection, false);
 
-        var endpointUrl : any;
-        var username : any;
-        var accessToken : any;
-
-        if(isAdoServiceConnectionSet()) {
-            var connection = tl.getInput("azureDevOpsServiceConnection", true);
-            endpointUrl = tl.getEndpointUrl(connection, false);
-            username = ".";
-            accessToken = await getADOServiceConnectionDetails();
-        } else {
-            var connection = tl.getInput("connection", true);
-            endpointUrl = tl.getEndpointUrl(connection, false);
-            username = tl.getEndpointAuthorizationParameter(connection, 'username', true);
-            accessToken = tl.getEndpointAuthorizationParameter(connection, 'apitoken', true)
-            || tl.getEndpointAuthorizationParameter(connection, 'password', true);
-        }
-
-        var credentialHandler = getBasicHandler(username, accessToken);
+        var credentialHandler = getBasicHandler(connectionDetails.username, connectionDetails.accessToken);
         var vssConnection = new WebApi(endpointUrl, credentialHandler);
         var debugMode = tl.getVariable('System.Debug');
         var verbose = debugMode ? debugMode.toLowerCase() != 'false' : false;
@@ -87,9 +80,11 @@ async function main(): Promise<void> {
         var templatePath = path.join(__dirname, 'vsts.handlebars');
         var buildApi = await vssConnection.getBuildApi();
 
-        var artifacts = await executeWithRetries("getArtifacts", () => buildApi.getArtifacts(projectId, parseInt(buildId)), 3).catch((reason) => {
-            reject(reason);
-        });
+        var maxRetries = 3;
+        var artifacts = await executeWithRetries(
+            "getArtifacts",
+            () => buildApi.getArtifacts(connectionDetails.projectId, connectionDetails.buildId),
+            maxRetries).catch(reason => reject(reason));
 
         if (artifacts) {
             var downloadPromises: Array<Promise<any>> = [];
@@ -119,7 +114,10 @@ async function main(): Promise<void> {
 
                     var variables = {};
 
-                    var handler = username ? new webHandlers.BasicCredentialHandler(username, accessToken) : new webHandlers.PersonalAccessTokenCredentialHandler(accessToken);
+                    var handler = connectionDetails.username
+                        ? new webHandlers.BasicCredentialHandler(connectionDetails.username, connectionDetails.accessToken)
+                        : new webHandlers.PersonalAccessTokenCredentialHandler(connectionDetails.accessToken);
+                    
                     var webProvider = new providers.WebProvider(itemsUrl, templatePath, variables, handler);
                     var fileSystemProvider = new providers.FilesystemProvider(downloadPath);
 
@@ -161,6 +159,54 @@ async function main(): Promise<void> {
     return promise;
 }
 
+async function configureForAdoSc(): Promise<ConnectionDetails> {
+    const serviceConnection = tl.getInput('azureDevOpsServiceConnection', true);
+    const projectId = tl.getInput('projectAdo', true);
+    const buildId = tl.getInput('versionAdo', true);
+    validateInputs(serviceConnection, projectId, buildId);
+
+    const accessToken: string = await auth.getAccessTokenViaWorkloadIdentityFederation(serviceConnection);
+    return {
+        serviceConnection,
+        projectId,
+        buildId: parseInt(buildId),
+        accessToken,
+        username: ''
+    };
+}
+
+function configureForTfsSc() : ConnectionDetails {
+    const serviceConnection = tl.getInput("connection", true);
+    const projectId = tl.getInput('project', true);
+    const buildId = tl.getInput('version', true);
+    validateInputs(serviceConnection, projectId, buildId);
+
+    const username = tl.getEndpointAuthorizationParameter(serviceConnection, 'username', true);
+    const accessToken =
+        tl.getEndpointAuthorizationParameter(serviceConnection, 'apitoken', true) ||
+        tl.getEndpointAuthorizationParameter(serviceConnection, 'password', true);
+
+    return {
+        serviceConnection,
+        projectId,
+        buildId: parseInt(buildId),
+        accessToken,
+        username
+    };
+}
+
+function validateInputs(serviceConnection: string, projectId: string, buildId: string) {
+    if (!serviceConnection || serviceConnection.trim().length === 0) {
+        throw new Error("Service connection is not provided.");
+    }
+    if (!projectId) {
+        throw new Error("Project is not provided.");
+    }
+    if (!buildId) {
+        throw new Error("Build is not provided.");
+    }
+}
+
 function executeWithRetries(operationName: string, operation: () => Promise<any>, retryCount): Promise<any> {
     var executePromise = new Promise((resolve, reject) => {
         executeWithRetriesImplementation(operationName, operation, retryCount, resolve, reject);
@@ -187,22 +233,6 @@ function executeWithRetriesImplementation(operationName: string, operation: () =
             setTimeout(() => executeWithRetriesImplementation(operationName, operation, currentRetryCount, resolve, reject), 4 * 1000);
         }
     });
-}
-
-function isAdoServiceConnectionSet() {
-    const connectedServiceName = tl.getInput("azureDevOpsServiceConnection", false);
-    return connectedServiceName && connectedServiceName.trim().length > 0;
-}
-
-async function getADOServiceConnectionDetails() {
-    if (isAdoServiceConnectionSet()) {
-        const connectedServiceName = tl.getInput("azureDevOpsServiceConnection", false);
-        var accessToken = await auth.getAccessTokenViaWorkloadIdentityFederation(connectedServiceName);
-        return accessToken;
-    } else {
-        var errorMessage = "Could not decode the AzureDevOpsServiceConnection. Please ensure you are running the latest agent";
-        throw new Error(errorMessage);
-    }
 }
 
 main()
