@@ -8,6 +8,8 @@ var shell = require("shelljs");
 var scw = require('./sourcecontrolwrapper.js');
 var https = require("https");
 
+var BITBUCKET_API_TOKEN_AUTH_USERNAME = 'x-bitbucket-api-token-auth';
+
 var repositoryId = tl.getInput("definition");
 var branch = tl.getInput("branch");
 var commitId = tl.getInput("version");
@@ -26,11 +28,18 @@ var path = "/2.0/repositories/" + repositoryId;
 var options = {
     host: "api.bitbucket.org",
     method: "GET",
-    path: path,
-    auth: bitbucketEndpoint.Username + ':' + bitbucketEndpoint.Password
+    path: path
 };
 
+// Set authentication based on the endpoint type
+if (bitbucketEndpoint.Token) {
+    options.auth = bitbucketEndpoint.Username + ':' + bitbucketEndpoint.Token;
+} else if (bitbucketEndpoint.Username && bitbucketEndpoint.Password) {
+    options.auth = bitbucketEndpoint.Username + ':' + bitbucketEndpoint.Password;
+}
+
 https.request(options, function (rs) {
+    tl.debug(`HTTP status: ${rs.statusCode} ${rs.statusMessage}`);
     var result;
     var response = '';
     rs.on('data', function (data) {
@@ -54,7 +63,10 @@ https.request(options, function (rs) {
         
         // encodes projects and repo names with spaces
         var repoUrl = url.parse(remoteUrl);
-        if (bitbucketEndpoint.Username && bitbucketEndpoint.Password) {
+        if (bitbucketEndpoint.Token) {
+            // For token authentication, use the token as password with API token auth username
+            repoUrl.auth = BITBUCKET_API_TOKEN_AUTH_USERNAME + ':' + bitbucketEndpoint.Token;
+        } else if (bitbucketEndpoint.Username && bitbucketEndpoint.Password) {
             repoUrl.auth = bitbucketEndpoint.Username + ':' + bitbucketEndpoint.Password;
         }
         
@@ -72,8 +84,13 @@ https.request(options, function (rs) {
             creds: true,
             debugOutput: this.debugOutput
         };
-        sch.username = this.username;
-        sch.password = this.password;
+        if (bitbucketEndpoint.Token) {
+            sch.username = BITBUCKET_API_TOKEN_AUTH_USERNAME;
+            sch.password = bitbucketEndpoint.Token;
+        } else {
+            sch.username = bitbucketEndpoint.Username;
+            sch.password = bitbucketEndpoint.Password;
+        }
 
         Q(0).then(function (code) {
             return sch.clone(repoUrl.format(repoUrl), false, downloadPath, options)
@@ -97,23 +114,36 @@ https.request(options, function (rs) {
 
 function getEndpointDetails(inputFieldName) {
     var bitbucketEndpoint = tl.getInput(inputFieldName);
-    var hostUsername = getAuthParameter(bitbucketEndpoint, 'username');
-    var hostPassword = getAuthParameter(bitbucketEndpoint, 'password');
-    tl.debug('hostUsername: ' + hostUsername);
-    tl.debug('hostPassword: ' + hostPassword);
-
-    return {
-        "Username": hostUsername,
-        "Password": hostPassword
-    };
+    var auth = tl.getEndpointAuthorization(bitbucketEndpoint, false);
+    var scheme = auth.scheme.toLowerCase().trim();
+    
+    if (scheme === "token") {
+        var token = getAuthParameter(bitbucketEndpoint, 'apitoken');
+        var username = getAuthParameter(bitbucketEndpoint, 'email') || '';
+        tl.debug('Using token authentication');
+        return {
+            "Token": token,
+            "Username": username
+        };
+    } else {
+        var hostUsername = getAuthParameter(bitbucketEndpoint, 'username');
+        var hostPassword = getAuthParameter(bitbucketEndpoint, 'password');
+        tl.debug('hostUsername: ' + hostUsername);
+        tl.debug('hostPassword: ' + hostPassword);
+        return {
+            "Username": hostUsername,
+            "Password": hostPassword
+        };
+    }
 }
 
 function getAuthParameter(endpoint, paramName) {
     var paramValue = null;
     var auth = tl.getEndpointAuthorization(endpoint, false);
+    var scheme = auth.scheme.toLowerCase().trim();
     
-    if (auth.scheme.toLowerCase().trim() != "usernamepassword") {
-        throw new Error("The authorization scheme " + auth.scheme + " is not supported for a bitbucket endpoint. Please use a basic instead.");
+    if (scheme !== "usernamepassword" && scheme !== "token") {
+        throw new Error("The authorization scheme " + auth.scheme + " is not supported for a bitbucket endpoint. Please use either 'usernamepassword' or 'token'.");
     }
     
     var keyName = getCaseInsensitiveKeyMatch(auth['parameters'], paramName);
