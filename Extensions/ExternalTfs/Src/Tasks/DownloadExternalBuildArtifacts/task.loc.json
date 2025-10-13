@@ -9,7 +9,7 @@
   "version": {
     "Major": 16,
     "Minor": 264,
-    "Patch": 0
+    "Patch": 1
   },
   "demands": [],
   "minimumAgentVersion": "2.144.0",
@@ -21,7 +21,7 @@
       "defaultValue": "ado",
       "required": true,
       "options": {
-        "tfsOrAdo": "Team Foundation Server/Azure DevOps connection",
+        "reposOrTfs": "Azure Repos/Team Foundation Server connection",
         "ado": "Azure DevOps Service Connection"
       },
       "helpMarkDown": "ms-resource:loc.input.help.connectionType"
@@ -33,7 +33,7 @@
       "required": true,
       "defaultValue": "",
       "helpMarkDown": "ms-resource:loc.input.help.connection",
-      "visibleRule": "connectionType = tfsOrAdo"
+      "visibleRule": "connectionType = reposOrTfs"
     },
     {
       "name": "azureDevOpsServiceConnection",
@@ -54,7 +54,7 @@
         "EditableOptions": "True"
       },
       "helpMarkDown": "ms-resource:loc.input.help.project",
-      "visibleRule": "connectionType = tfsOrAdo"
+      "visibleRule": "connectionType = reposOrTfs"
     },
     {
       "name": "definition",
@@ -66,7 +66,7 @@
         "EditableOptions": "True"
       },
       "helpMarkDown": "ms-resource:loc.input.help.definition",
-      "visibleRule": "connectionType = tfsOrAdo"
+      "visibleRule": "connectionType = reposOrTfs"
     },
     {
       "name": "version",
@@ -78,7 +78,7 @@
         "EditableOptions": "True"
       },
       "helpMarkDown": "ms-resource:loc.input.help.version",
-      "visibleRule": "connectionType = tfsOrAdo"
+      "visibleRule": "connectionType = reposOrTfs"
     },
     {
       "name": "projectAdo",

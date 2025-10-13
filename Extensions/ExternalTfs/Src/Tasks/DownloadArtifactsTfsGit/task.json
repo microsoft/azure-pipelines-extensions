@@ -12,25 +12,39 @@
   ],
   "demands": [],
   "version": {
-    "Major": 15,
-    "Minor": 263,
+    "Major": 16,
+    "Minor": 264,
     "Patch": 0
   },
   "minimumAgentVersion": "2.144.0",
   "instanceNameFormat": "Download Artifacts - External TFS Git",
   "inputs": [
     {
+      "name": "connectionType",
+      "type": "pickList",
+      "label": "Connection type",
+      "defaultValue": "ado",
+      "required": true,
+      "options": {
+        "reposOrTfs": "Azure Repos/Team Foundation Server connection",
+        "ado": "Azure DevOps Service Connection"
+      },
+      "helpMarkDown": "Choose which connection to use for artifact discovery and download."
+    },
+    {
       "name": "connection",
       "type": "connectedService:Externaltfs",
-      "label": "External TFS Connection",
+      "label": "Azure Repos/Team Foundation Server connection",
       "defaultValue": "",
-      "helpMarkDown": "External tfs service connection"
+      "visibleRule": "connectionType = reposOrTfs",
+      "helpMarkDown": "Azure Repos/Team Foundation Server service connection"
     },
     {
       "name": "azureDevOpsServiceConnection",
       "type": "connectedService:workloadidentityuser",
       "label": "Azure DevOps Service Connection",
       "defaultValue": "",
+      "visibleRule": "connectionType = ado",
       "helpMarkDown": "Select an Azure DevOps Service Connection service connection"
     },
     {
@@ -39,10 +53,11 @@
       "label": "Project",
       "defaultValue": "",
       "required": true,
+      "visibleRule": "connectionType = reposOrTfs",
       "properties": {
         "EditableOptions": "True"
       },
-      "helpMarkDown": "TFS team project id"
+      "helpMarkDown": "Project ID"
     },
     {
       "name": "definition",
@@ -50,17 +65,19 @@
       "label": "Repository",
       "defaultValue": "",
       "required": true,
+      "visibleRule": "connectionType = reposOrTfs",
       "properties": {
         "EditableOptions": "True"
       },
-      "helpMarkDown": "TFS git repository id"
-      },
+      "helpMarkDown": "Git repository ID"
+    },
     {
       "name": "branch",
       "type": "pickList",
       "label": "Branch",
       "defaultValue": "",
       "required": true,
+      "visibleRule": "connectionType = reposOrTfs",
       "properties": {
         "EditableOptions": "True"
       },
@@ -69,13 +86,62 @@
     {
       "name": "version",
       "type": "pickList",
-      "label": "Commit Id",
+      "label": "Commit ID",
       "defaultValue": "",
       "required": true,
+      "visibleRule": "connectionType = reposOrTfs",
       "properties": {
         "EditableOptions": "True"
       },
-      "helpMarkDown": "Commit id"
+      "helpMarkDown": "Commit ID"
+    },
+    {
+      "name": "projectAdo",
+      "type": "pickList",
+      "label": "Project",
+      "defaultValue": "",
+      "required": true,
+      "visibleRule": "connectionType = ado",
+      "properties": {
+        "EditableOptions": "True"
+      },
+      "helpMarkDown": "Project ID"
+    },
+    {
+      "name": "definitionAdo",
+      "type": "pickList",
+      "label": "Repository",
+      "defaultValue": "",
+      "required": true,
+      "visibleRule": "connectionType = ado",
+      "properties": {
+        "EditableOptions": "True"
+      },
+      "helpMarkDown": "Git repository ID"
+    },
+    {
+      "name": "branchAdo",
+      "type": "pickList",
+      "label": "Branch",
+      "defaultValue": "",
+      "required": true,
+      "visibleRule": "connectionType = ado",
+      "properties": {
+        "EditableOptions": "True"
+      },
+      "helpMarkDown": "Branch to checkout"
+    },
+    {
+      "name": "versionAdo",
+      "type": "pickList",
+      "label": "Commit ID",
+      "defaultValue": "",
+      "required": true,
+      "visibleRule": "connectionType = ado",
+      "properties": {
+        "EditableOptions": "True"
+      },
+      "helpMarkDown": "Commit ID"
     },
     {
       "name": "downloadPath",
@@ -86,7 +152,7 @@
       "helpMarkDown": "Path on the agent machine where the artifacts will be downloaded"
     }
   ],
-    "dataSourceBindings": [
+  "dataSourceBindings": [
     {
       "target": "project",
       "endpointId": "$(connection)",
@@ -97,7 +163,7 @@
       "target": "definition",
       "endpointId": "$(connection)",
       "dataSourceName": "Repositories",
-      "parameters":{
+      "parameters": {
         "project": "$(project)"
       },
       "resultTemplate": "{ \"Value\" : \"{{{id}}}\", \"DisplayValue\" : \"{{{name}}}\" }"
@@ -106,7 +172,7 @@
       "target": "branch",
       "endpointId": "$(connection)",
       "dataSourceName": "Branches",
-      "parameters":{
+      "parameters": {
         "project": "$(project)",
         "definition": "$(definition)"
       },
@@ -116,10 +182,46 @@
       "target": "version",
       "endpointId": "$(connection)",
       "dataSourceName": "GitCommits",
-      "parameters":{
+      "parameters": {
         "project": "$(project)",
         "definition": "$(definition)",
         "branch": "$(branch)"
+      },
+      "resultTemplate": "{ \"Value\" : \"{{{commitId}}}\", \"DisplayValue\" : \"{{{ #subString 0 8 commitId }}}\" }"
+    },
+    {
+      "target": "projectAdo",
+      "endpointId": "$(azureDevOpsServiceConnection)",
+      "dataSourceName": "Projects",
+      "resultTemplate": "{ \"Value\" : \"{{{id}}}\", \"DisplayValue\" : \"{{{name}}}\" }"
+    },
+    {
+      "target": "definitionAdo",
+      "endpointId": "$(azureDevOpsServiceConnection)",
+      "dataSourceName": "Repositories",
+      "parameters": {
+        "project": "$(projectAdo)"
+      },
+      "resultTemplate": "{ \"Value\" : \"{{{id}}}\", \"DisplayValue\" : \"{{{name}}}\" }"
+    },
+    {
+      "target": "branchAdo",
+      "endpointId": "$(azureDevOpsServiceConnection)",
+      "dataSourceName": "Branches",
+      "parameters": {
+        "project": "$(projectAdo)",
+        "definition": "$(definitionAdo)"
+      },
+      "resultTemplate": "{ \"Value\" : \"{{{ #stringReplace 'refs/heads/' '' name}}}\", \"DisplayValue\" : \"{{{ #stringReplace 'refs/heads/' '' name}}}\" }"
+    },
+    {
+      "target": "versionAdo",
+      "endpointId": "$(azureDevOpsServiceConnection)",
+      "dataSourceName": "GitCommits",
+      "parameters": {
+        "project": "$(projectAdo)",
+        "definition": "$(definitionAdo)",
+        "branch": "$(branchAdo)"
       },
       "resultTemplate": "{ \"Value\" : \"{{{commitId}}}\", \"DisplayValue\" : \"{{{ #subString 0 8 commitId }}}\" }"
     }

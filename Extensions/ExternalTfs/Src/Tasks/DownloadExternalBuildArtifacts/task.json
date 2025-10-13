@@ -9,7 +9,7 @@
   "version": {
     "Major": 16,
     "Minor": 264,
-    "Patch": 0
+    "Patch": 1
   },
   "demands": [],
   "minimumAgentVersion": "2.144.0",
@@ -21,7 +21,7 @@
       "defaultValue": "ado",
       "required": true,
       "options": {
-        "tfsOrAdo": "Team Foundation Server/Azure DevOps connection",
+        "reposOrTfs": "Azure Repos/Team Foundation Server connection",
         "ado": "Azure DevOps Service Connection"
       },
       "helpMarkDown": "Choose which connection to use for artifact discovery and download."
@@ -29,11 +29,11 @@
     {
       "name": "connection",
       "type": "connectedService:externaltfs",
-      "label": "Team Foundation Server/Azure DevOps connection",
+      "label": "Azure Repos/Team Foundation Server connection",
       "required": true,
       "defaultValue": "",
-      "helpMarkDown": "Team Foundation Server/Azure DevOps connection",
-      "visibleRule": "connectionType = tfsOrAdo"
+      "helpMarkDown": "Azure Repos/Team Foundation Server service connection",
+      "visibleRule": "connectionType = reposOrTfs"
     },
     {
       "name": "azureDevOpsServiceConnection",
@@ -54,7 +54,7 @@
         "EditableOptions": "True"
       },
       "helpMarkDown": "Select the project name",
-      "visibleRule": "connectionType = tfsOrAdo"
+      "visibleRule": "connectionType = reposOrTfs"
     },
     {
       "name": "definition",
@@ -66,7 +66,7 @@
         "EditableOptions": "True"
       },
       "helpMarkDown": "Select the build definition name",
-      "visibleRule": "connectionType = tfsOrAdo"
+      "visibleRule": "connectionType = reposOrTfs"
     },
     {
       "name": "version",
@@ -78,7 +78,7 @@
         "EditableOptions": "True"
       },
       "helpMarkDown": "Select the build number",
-      "visibleRule": "connectionType = tfsOrAdo"
+      "visibleRule": "connectionType = reposOrTfs"
     },
     {
       "name": "projectAdo",
