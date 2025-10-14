@@ -162,32 +162,35 @@
     {
       "endpointId": "$(azureDevOpsServiceConnection)",
       "target": "projectAdo",
-      "dataSourceName": "Projects",
+      "endpointUrl": "{{endpoint.url}}/_apis/projects?$top={{top}}",
+      "resultSelector": "jsonpath:$.value[?(@.state=='wellFormed')]",
+      "resultTemplate": "{ \"Value\" : \"{{{id}}}\", \"DisplayValue\" : \"{{{name}}}\" }",
       "parameters": {
         "top": 1000
-      },
-      "resultTemplate": "{ \"Value\" : \"{{{id}}}\", \"DisplayValue\" : \"{{{name}}}\" }"
+      }
     },
     {
       "endpointId": "$(azureDevOpsServiceConnection)",
       "target": "buildDefinitionAdo",
-      "dataSourceName": "Definitions",
+      "endpointUrl": "{{endpoint.url}}/{{project}}/_apis/build/definitions?api-version=7.1&$top={{top}}",
+      "resultSelector": "jsonpath:$.value[?(@.quality=='definition')]",
+      "resultTemplate": "{ \"Value\" : \"{{{id}}}\", \"DisplayValue\" : \"{{{name}}}\" }",
       "parameters": {
-          "project": "$(projectAdo)",
-          "top": 500
-      },
-      "resultTemplate": "{ \"Value\" : \"{{{id}}}\", \"DisplayValue\" : \"{{{name}}}\" }"
+        "project": "$(projectAdo)",
+        "top": 500
+      }
     },
     {
       "endpointId": "$(azureDevOpsServiceConnection)",
       "target": "versionAdo",
-      "dataSourceName": "Builds",
+      "endpointUrl": "{{endpoint.url}}/{{project}}/_apis/build/builds?definitions={{definition}}&resultFilter=succeeded,partiallySucceeded&$top={{top}}",
+      "resultSelector": "jsonpath:$.value[*]",
+      "resultTemplate": "{ \"Value\" : \"{{{id}}}\", \"DisplayValue\" : \"{{{buildNumber}}}\" }",
       "parameters": {
-          "project": "$(projectAdo)",
-          "definition": "$(buildDefinitionAdo)",
-          "top": 100
-      },
-      "resultTemplate": "{ \"Value\" : \"{{{id}}}\", \"DisplayValue\" : \"{{{buildNumber}}}\" }"
+        "project": "$(projectAdo)",
+        "definition": "$(buildDefinitionAdo)",
+        "top": 100
+      }
     }
   ],
   "instanceNameFormat": "Download Artifacts - External Build",
