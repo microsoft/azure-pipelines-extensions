@@ -192,45 +192,38 @@
     {
       "target": "projectAdo",
       "endpointId": "$(azureDevOpsServiceConnection)",
-      "endpointUrl": "{{endpoint.url}}/_apis/projects?$top={{top}}",
-      "resultSelector": "jsonpath:$.value[?(@.state=='wellFormed')]",
-      "resultTemplate": "{ \"Value\" : \"{{{id}}}\", \"DisplayValue\" : \"{{{name}}}\" }",
-      "parameters": {
-        "top": 1000
-      }
+      "dataSourceName": "Projects",
+      "resultTemplate": "{ \"Value\" : \"{{{id}}}\", \"DisplayValue\" : \"{{{name}}}\" }"
     },
     {
       "target": "definitionAdo",
       "endpointId": "$(azureDevOpsServiceConnection)",
-      "endpointUrl": "{{endpoint.url}}/_apis/git/{{project}}/repositories",
-      "resultSelector": "jsonpath:$.value[*]",
-      "resultTemplate": "{ \"Value\" : \"{{{id}}}\", \"DisplayValue\" : \"{{{name}}}\" }",
+      "dataSourceName": "Repositories",
       "parameters": {
         "project": "$(projectAdo)"
-      }
+      },
+      "resultTemplate": "{ \"Value\" : \"{{{id}}}\", \"DisplayValue\" : \"{{{name}}}\" }"
     },
     {
       "target": "branchAdo",
       "endpointId": "$(azureDevOpsServiceConnection)",
-      "endpointUrl": "{{endpoint.url}}/_apis/git/repositories/{{definition}}/stats/branches",
-      "resultSelector": "jsonpath:$.value[*]",
-      "resultTemplate": "{ \"Value\" : \"{{{ #stringReplace 'refs/heads/' '' name}}}\", \"DisplayValue\" : \"{{{ #stringReplace 'refs/heads/' '' name}}}\" }",
+      "dataSourceName": "Branches",
       "parameters": {
         "project": "$(projectAdo)",
         "definition": "$(definitionAdo)"
-      }
+      },
+      "resultTemplate": "{ \"Value\" : \"{{{ #stringReplace 'refs/heads/' '' name}}}\", \"DisplayValue\" : \"{{{ #stringReplace 'refs/heads/' '' name}}}\" }"
     },
     {
       "target": "versionAdo",
       "endpointId": "$(azureDevOpsServiceConnection)",
-      "endpointUrl": "{{endpoint.url}}/_apis/git/{{project}}/repositories/{{definition}}/commits?itemVersion[versionType]=Branch&itemVersion[version]={{branch}}",
-      "resultSelector": "jsonpath:$.value[*]",
-      "resultTemplate": "{ \"Value\" : \"{{{commitId}}}\", \"DisplayValue\" : \"{{{ #subString 0 8 commitId }}}\" }",
+      "dataSourceName": "GitCommits",
       "parameters": {
         "project": "$(projectAdo)",
         "definition": "$(definitionAdo)",
         "branch": "$(branchAdo)"
-      }
+      },
+      "resultTemplate": "{ \"Value\" : \"{{{commitId}}}\", \"DisplayValue\" : \"{{{ #subString 0 8 commitId }}}\" }"
     }
   ],
   "execution": {
@@ -239,7 +232,7 @@
       "argumentFormat": ""
     },
     "Node20": {
-      "target": "downloadTfGit.js",
+      "target": "download.js",
       "argumentFormat": ""
     }
   }

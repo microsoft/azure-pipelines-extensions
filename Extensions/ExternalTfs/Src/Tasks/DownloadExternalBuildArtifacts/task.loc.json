@@ -162,35 +162,32 @@
     {
       "endpointId": "$(azureDevOpsServiceConnection)",
       "target": "projectAdo",
-      "endpointUrl": "{{endpoint.url}}/_apis/projects?$top={{top}}",
-      "resultSelector": "jsonpath:$.value[?(@.state=='wellFormed')]",
-      "resultTemplate": "{ \"Value\" : \"{{{id}}}\", \"DisplayValue\" : \"{{{name}}}\" }",
+      "dataSourceName": "Projects",
       "parameters": {
         "top": 1000
-      }
+      },
+      "resultTemplate": "{ \"Value\" : \"{{{id}}}\", \"DisplayValue\" : \"{{{name}}}\" }"
     },
     {
       "endpointId": "$(azureDevOpsServiceConnection)",
       "target": "buildDefinitionAdo",
-      "endpointUrl": "{{endpoint.url}}/{{project}}/_apis/build/definitions?api-version=7.1&$top={{top}}",
-      "resultSelector": "jsonpath:$.value[?(@.quality=='definition')]",
-      "resultTemplate": "{ \"Value\" : \"{{{id}}}\", \"DisplayValue\" : \"{{{name}}}\" }",
+      "dataSourceName": "Definitions",
       "parameters": {
         "project": "$(projectAdo)",
         "top": 500
-      }
+      },
+      "resultTemplate": "{ \"Value\" : \"{{{id}}}\", \"DisplayValue\" : \"{{{name}}}\" }"
     },
     {
       "endpointId": "$(azureDevOpsServiceConnection)",
       "target": "versionAdo",
-      "endpointUrl": "{{endpoint.url}}/{{project}}/_apis/build/builds?definitions={{definition}}&resultFilter=succeeded,partiallySucceeded&$top={{top}}",
-      "resultSelector": "jsonpath:$.value[*]",
-      "resultTemplate": "{ \"Value\" : \"{{{id}}}\", \"DisplayValue\" : \"{{{buildNumber}}}\" }",
+      "dataSourceName": "Builds",
       "parameters": {
         "project": "$(projectAdo)",
         "definition": "$(buildDefinitionAdo)",
         "top": 100
-      }
+      },
+      "resultTemplate": "{ \"Value\" : \"{{{id}}}\", \"DisplayValue\" : \"{{{buildNumber}}}\" }"
     }
   ],
   "instanceNameFormat": "ms-resource:loc.instanceNameFormat",
