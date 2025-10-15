@@ -193,7 +193,10 @@
       "target": "projectAdo",
       "endpointId": "$(azureDevOpsServiceConnection)",
       "dataSourceName": "Projects",
-      "resultTemplate": "{ \"Value\" : \"{{{id}}}\", \"DisplayValue\" : \"{{{name}}}\" }"
+      "resultTemplate": "{ \"Value\" : \"{{{id}}}\", \"DisplayValue\" : \"{{{name}}}\" }",
+      "parameters": {
+        "top": 1000
+      }
     },
     {
       "target": "definitionAdo",
@@ -232,7 +235,7 @@
       "argumentFormat": ""
     },
     "Node20": {
-      "target": "download.js",
+      "target": "downloadTfGit.js",
       "argumentFormat": ""
     }
   }
