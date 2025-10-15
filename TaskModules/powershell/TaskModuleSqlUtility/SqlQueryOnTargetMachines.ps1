@@ -87,16 +87,28 @@ function Invoke-SqlQueryDeployment
 
         $additionalArguments = EscapeSpecialChars $additionalArguments
 
-        Write-Verbose "Invoke-SqlCmd arguments : $commandToLog  $additionalArguments"
+        $commandToRun = $commandToLog + " " + $additionalArguments
+        $command = "Invoke-SqlCmd @spaltArguments $additionalArguments"
+
+        Write-Host "##[command] $commandToRun"
+
         if ($additionalArguments.ToLower().Contains("-verbose")) {
-            $rawOutput = (Invoke-Expression "Invoke-SqlCmd @spaltArguments $additionalArguments" 4>&1) | Out-String
+            $errors = @()
+
+            $rawOutput = (Invoke-Expression $command -ErrorVariable errors 4>&1 | Out-String)
             $trimmedOutput = $rawOutput.TrimEnd()
-            $trimmedOutput -split "`r?`n" | ForEach-Object { Write-Output $_ }
+            $trimmedOutput -split "`r?`n" | Where-Object { $_.Trim() -ne "" } | ForEach-Object { Write-Output $_ }
+
+            if ($errors.Count -gt 0) {
+                throw 
+            }
         }
         else {
-            Invoke-Expression "Invoke-SqlCmd @spaltArguments $additionalArguments"
+            Invoke-Expression $command
         }
-
+    }
+    Catch {
+        Write-VstsSetResult -Result 'Failed' -Message "Error detected" -DoNotThrow  
     } # End of Try
     Finally
     {
