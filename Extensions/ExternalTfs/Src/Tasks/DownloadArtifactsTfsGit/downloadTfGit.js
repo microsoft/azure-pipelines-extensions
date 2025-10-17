@@ -10,11 +10,17 @@ var auth = require('./auth')
 var PullRefsPrefix = "refs/pull/";
 var PullRefsOriginPrefix = "refs/remotes/origin/pull/";
 
-var repositoryId = tl.getInput("definition");
-var projectId = tl.getInput("project");
-var branch = tl.getInput("branch");
-var commitId = tl.getInput("version");
+var connectionType = tl.getInput("connectionType");
+var isAdoConnectionType = connectionType === 'ado';
+
+var serviceConnection = tl.getInput(isAdoConnectionType ? "azureDevOpsServiceConnection" : "connection");
+var repositoryId = tl.getInput(isAdoConnectionType ? "definitionAdo" : "definition");
+var projectId = tl.getInput(isAdoConnectionType ? "projectAdo" : "project");
+var branch = tl.getInput(isAdoConnectionType ? "branchAdo" : "branch");
+var commitId = tl.getInput(isAdoConnectionType ? "versionAdo" : "version");
 var downloadPath = tl.getInput("downloadPath");
+validateInputs(serviceConnection, repositoryId, projectId, branch, commitId, downloadPath);
+
 var VSTS_HTTP_RETRY = 4;
 
 shell.rm('-rf', downloadPath);
@@ -43,14 +49,14 @@ function executeWithRetries(operationName, operation, currentRetryCount) {
     return deferred.promise
 }
 
-let tfsEndpoint;
+let connectionDetails;
 let isPullRequest;
 let gitw;
 let gopt;
 
-getServiceConnection().then(endpoint => {
-    tfsEndpoint = endpoint;
-    return getGitClientPromise(tfsEndpoint);
+getServiceConnectionDetails(serviceConnection).then(response => {
+    connectionDetails = response;
+    return getGitClientPromise(connectionDetails);
 }).then(gitClient => {
     var gitRepositoryPromise = getRepositoryDetails(gitClient, repositoryId, projectId);
     return gitRepositoryPromise;
@@ -63,15 +69,13 @@ getServiceConnection().then(endpoint => {
     tl.debug("Remote Url:" + remoteUrl);
 
     var gu = url.parse(remoteUrl);
-    if (tfsEndpoint.Username && tfsEndpoint.Password) {
-        gu.auth = tfsEndpoint.Username + ':' + tfsEndpoint.Password;
+    if (connectionDetails.Username && connectionDetails.Password) {
+        gu.auth = connectionDetails.Username + ':' + connectionDetails.Password;
     }
 
     var giturl = gu.format(gu);
     isPullRequest = !!branch && (branch.toLowerCase().startsWith(PullRefsPrefix) || branch.toLowerCase().startsWith(PullRefsOriginPrefix));
     tl.debug("IsPullRequest:" + isPullRequest);
-
-    var ref = branch.startsWith('refs/heads/') ? `refs/remotes/origin/${branch.substr('refs/heads/'.length)}` : branch;
 
     gopt = { creds: true, debugOutput: this.debugOutput };
     gitw.username = this.username;
@@ -99,16 +103,11 @@ getServiceConnection().then(endpoint => {
     tl.setResult(tl.TaskResult.Failed, error);
 });
 
-async function getServiceConnection() {
-    if(isAdoServiceConnectionSet()) {
-        return getADOServiceConnectionDetails();
-    }
-    return getEndpointDetails("connection");
-}
 
-function getGitClientPromise(tfsEndpoint) {
-    var handler = webApim.getBasicHandler(tfsEndpoint.Username, tfsEndpoint.Password);
-    var webApi = new webApim.WebApi(tfsEndpoint.Url, handler);
+
+function getGitClientPromise(connectionDetails) {
+    var handler = webApim.getBasicHandler(connectionDetails.Username, connectionDetails.Password);
+    var webApi = new webApim.WebApi(connectionDetails.Url, handler);
     return webApi.getGitApi();
 }
 
@@ -117,21 +116,48 @@ function getRepositoryDetails(gitClient, repositoryId, projectId) {
     return promise;
 }
 
-function getEndpointDetails(inputFieldName) {
-    var errorMessage = "Could not decode the External Tfs endpoint. Please ensure you are running the latest agent";
-    if (!tl.getEndpointUrl) {
-        throw new Error(errorMessage);
+function validateInputs(serviceConnection, repositoryId, projectId, branch, downloadPath) {
+    if (!serviceConnection || serviceConnection.trim().length === 0) {
+        throw new Error("Service connection is not provided.");
     }
-    var externalTfsEndpoint = tl.getInput(inputFieldName);
-    if (!externalTfsEndpoint) {
-        throw new Error(errorMessage);
+    if (!repositoryId) {
+        throw new Error("Repository is not provided.");
     }
-    var hostUrl = tl.getEndpointUrl(externalTfsEndpoint, false);
+    if (!projectId) {
+        throw new Error("Project is not provided.");
+    }
+    if (!branch) {
+        throw new Error("Branch is not provided.");
+    }
+    if (!downloadPath) {
+        throw new Error("Download path is not provided.");
+    }
+}
+
+async function getServiceConnectionDetails(serviceConnection) {
+    if (useAdoSc()) {
+        return getAdoScDetails(serviceConnection);
+    }
+    return getReposOrTfsScDetails(serviceConnection);
+}
+
+async function getAdoScDetails(serviceConnection) {
+    var accessToken = await auth.getAccessTokenViaWorkloadIdentityFederation(serviceConnection);
+    var hostUrl = tl.getVariable('System.TeamFoundationCollectionUri');
+    return {
+        "Url": hostUrl,
+        "Username": ".",
+        "Password": accessToken
+    };
+}
+
+function getReposOrTfsScDetails(serviceConnection) {
+    var hostUrl = tl.getEndpointUrl(serviceConnection, false);
     if (!hostUrl) {
         throw new Error(errorMessage);
     }
 
-    var auth = tl.getEndpointAuthorization(externalTfsEndpoint, false);
+    var auth = tl.getEndpointAuthorization(serviceConnection, false);
     if (auth.scheme != "UsernamePassword" && auth.scheme != "Token") {
         throw new Error("The authorization scheme " + auth.scheme + " is not supported for a External Tfs endpoint.");
     }
@@ -151,27 +177,6 @@ function getEndpointDetails(inputFieldName) {
         "Username": hostUsername,
         "Password": hostPassword
     };
-}
-
-function isAdoServiceConnectionSet() {
-    const connectedServiceName = tl.getInput("azureDevOpsServiceConnection", false);
-    return connectedServiceName && connectedServiceName.trim().length > 0;
-}
-
-async function getADOServiceConnectionDetails() {
-    const connectedServiceName = tl.getInput("azureDevOpsServiceConnection", false);
-    if (connectedServiceName && connectedServiceName.trim().length > 0) {
-        accessToken = await auth.getAccessTokenViaWorkloadIdentityFederation(connectedServiceName);
-        hostUrl = tl.getVariable('System.TeamFoundationCollectionUri');
-        return {
-            "Url": hostUrl,
-            "Username": ".",
-            "Password": accessToken
-        }; 
-    } else {
-        var errorMessage = "Could not decode the AzureDevOpsServiceConnection. Please ensure you are running the latest agent";
-        throw new Error(errorMessage);
-    }
 }
 
 function getAuthParameter(auth, paramName) {
