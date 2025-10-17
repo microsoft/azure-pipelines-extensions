@@ -18,11 +18,11 @@
       "name": "connectionType",
       "type": "pickList",
       "label": "ms-resource:loc.input.label.connectionType",
-      "defaultValue": "ado",
+      "defaultValue": "reposOrTfs",
       "required": true,
       "options": {
-        "reposOrTfs": "Azure Repos/Team Foundation Server connection",
-        "ado": "Azure DevOps Service Connection"
+        "reposOrTfs": "Azure Repos/Team Foundation Server",
+        "ado": "Azure DevOps (in preview)"
       },
       "helpMarkDown": "ms-resource:loc.input.help.connectionType"
     },

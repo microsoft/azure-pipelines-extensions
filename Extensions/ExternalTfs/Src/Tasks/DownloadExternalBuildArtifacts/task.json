@@ -17,31 +17,31 @@
     {
       "name": "connectionType",
       "type": "pickList",
-      "label": "Connection type",
-      "defaultValue": "ado",
+      "label": "Service Connection Type",
+      "defaultValue": "reposOrTfs",
       "required": true,
       "options": {
-        "reposOrTfs": "Azure Repos/Team Foundation Server connection",
-        "ado": "Azure DevOps Service Connection"
+        "reposOrTfs": "Azure Repos/Team Foundation Server",
+        "ado": "Azure DevOps (in preview)"
       },
-      "helpMarkDown": "Choose which connection to use for artifact discovery and download."
+      "helpMarkDown": "Select which service connection type to use for artifact discovery and download."
     },
     {
       "name": "connection",
       "type": "connectedService:externaltfs",
-      "label": "Azure Repos/Team Foundation Server connection",
+      "label": "Azure Repos/Team Foundation Server service connection",
       "required": true,
       "defaultValue": "",
-      "helpMarkDown": "Azure Repos/Team Foundation Server service connection",
+      "helpMarkDown": "Select Azure Repos/Team Foundation Server service connection",
       "visibleRule": "connectionType = reposOrTfs"
     },
     {
       "name": "azureDevOpsServiceConnection",
       "type": "connectedService:workloadidentityuser",
-      "label": "Azure DevOps Service Connection",
+      "label": "Azure DevOps service connection",
       "required": true,
       "defaultValue": "",
-      "helpMarkDown": "Select an Azure DevOps Service Connection service connection",
+      "helpMarkDown": "Select Azure DevOps service connection (in preview)",
       "visibleRule": "connectionType = ado"
     },
     {
@@ -59,13 +59,13 @@
     {
       "name": "definition",
       "type": "pickList",
-      "label": "Build definition",
+      "label": "Build Definition",
       "defaultValue": "",
       "required": true,
       "properties": {
         "EditableOptions": "True"
       },
-      "helpMarkDown": "Select the build definition name",
+      "helpMarkDown": "Select the build definition",
       "visibleRule": "connectionType = reposOrTfs"
     },
     {
@@ -101,7 +101,7 @@
       "properties": {
         "EditableOptions": "True"
       },
-      "helpMarkDown": "Select the Azure DevOps build definition",
+      "helpMarkDown": "Select the build definition",
       "visibleRule": "connectionType = ado"
     },
     {
@@ -113,7 +113,7 @@
       "properties": {
         "EditableOptions": "True"
       },
-      "helpMarkDown": "Select the Azure DevOps build number",
+      "helpMarkDown": "Select the build number",
       "visibleRule": "connectionType = ado"
     },
     {
@@ -127,7 +127,7 @@
     {
       "name": "downloadPath",
       "type": "string",
-      "label": "Destination directory",
+      "label": "Destination Directory",
       "defaultValue": "$(System.ArtifactsDirectory)",
       "required": true,
       "helpMarkDown": "Path on the agent machine where the artifact will be downloaded"

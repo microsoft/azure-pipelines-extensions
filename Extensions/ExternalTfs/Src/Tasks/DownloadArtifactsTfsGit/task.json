@@ -22,30 +22,30 @@
     {
       "name": "connectionType",
       "type": "pickList",
-      "label": "Connection type",
-      "defaultValue": "ado",
+      "label": "Service Connection Type",
+      "defaultValue": "reposOrTfs",
       "required": true,
       "options": {
-        "reposOrTfs": "Azure Repos/Team Foundation Server connection",
-        "ado": "Azure DevOps Service Connection"
+        "reposOrTfs": "Azure Repos/Team Foundation Server",
+        "ado": "Azure DevOps (in preview)"
       },
-      "helpMarkDown": "Choose which connection to use for artifact discovery and download."
+      "helpMarkDown": "Select which connection to use for artifact discovery and download."
     },
     {
       "name": "connection",
       "type": "connectedService:Externaltfs",
-      "label": "Azure Repos/Team Foundation Server connection",
+      "label": "Azure Repos/Team Foundation Server service connection",
       "defaultValue": "",
       "visibleRule": "connectionType = reposOrTfs",
-      "helpMarkDown": "Azure Repos/Team Foundation Server service connection"
+      "helpMarkDown": "Select Azure Repos/Team Foundation Server service connection"
     },
     {
       "name": "azureDevOpsServiceConnection",
-      "type": "connectedService:workloadidentityuser",
-      "label": "Azure DevOps Service Connection",
+      "type": "connectedService:workloadidentityuser",  
+      "label": "Azure DevOps service connection",
       "defaultValue": "",
       "visibleRule": "connectionType = ado",
-      "helpMarkDown": "Select an Azure DevOps Service Connection service connection"
+      "helpMarkDown": "Select Azure DevOps service connection (in preview)"
     },
     {
       "name": "project",
@@ -57,7 +57,7 @@
       "properties": {
         "EditableOptions": "True"
       },
-      "helpMarkDown": "Project ID"
+      "helpMarkDown": "Select the project"
     },
     {
       "name": "definition",
@@ -69,7 +69,7 @@
       "properties": {
         "EditableOptions": "True"
       },
-      "helpMarkDown": "Git repository ID"
+      "helpMarkDown": "Select the repository"
     },
     {
       "name": "branch",
@@ -81,7 +81,7 @@
       "properties": {
         "EditableOptions": "True"
       },
-      "helpMarkDown": "Branch to checkout"
+      "helpMarkDown": "Select the branch to checkout"
     },
     {
       "name": "version",
@@ -93,7 +93,7 @@
       "properties": {
         "EditableOptions": "True"
       },
-      "helpMarkDown": "Commit ID"
+      "helpMarkDown": "Select the commit ID"
     },
     {
       "name": "projectAdo",
@@ -105,7 +105,7 @@
       "properties": {
         "EditableOptions": "True"
       },
-      "helpMarkDown": "Project ID"
+      "helpMarkDown": "Select the project"
     },
     {
       "name": "definitionAdo",
@@ -117,7 +117,7 @@
       "properties": {
         "EditableOptions": "True"
       },
-      "helpMarkDown": "Git repository ID"
+      "helpMarkDown": "Select the repository"
     },
     {
       "name": "branchAdo",
@@ -129,7 +129,7 @@
       "properties": {
         "EditableOptions": "True"
       },
-      "helpMarkDown": "Branch to checkout"
+      "helpMarkDown": "Select the branch to checkout"
     },
     {
       "name": "versionAdo",
@@ -141,7 +141,7 @@
       "properties": {
         "EditableOptions": "True"
       },
-      "helpMarkDown": "Commit ID"
+      "helpMarkDown": "Select the commit ID"
     },
     {
       "name": "downloadPath",
