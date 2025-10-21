@@ -54,7 +54,7 @@ let isPullRequest;
 let gitw;
 let gopt;
 
-getServiceConnectionDetails(serviceConnection).then(response => {
+getServiceConnectionDetails(isAdoConnectionType, serviceConnection).then(response => {
     connectionDetails = response;
     return getGitClientPromise(connectionDetails);
 }).then(gitClient => {
@@ -134,8 +134,8 @@ function validateInputs(serviceConnection, repositoryId, projectId, branch, down
     }
 }
 
-async function getServiceConnectionDetails(serviceConnection) {
-    if (useAdoSc()) {
+async function getServiceConnectionDetails(isAdoConnectionType, serviceConnection) {
+    if (isAdoConnectionType) {
         return getAdoScDetails(serviceConnection);
     }
     return getReposOrTfsScDetails(serviceConnection);
