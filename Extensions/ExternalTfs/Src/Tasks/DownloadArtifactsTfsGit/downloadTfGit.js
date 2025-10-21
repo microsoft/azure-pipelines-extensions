@@ -1,11 +1,10 @@
 var tl = require('azure-pipelines-task-lib/task');
-var path = require('path');
 var webApim = require('azure-devops-node-api/WebApi');
 var Q = require('q');
 var url = require('url');
 var shell = require("shelljs");
 var gitwm = require('./gitwrapper');
-var auth = require('./auth')
+var auth = require('./auth');
 
 var PullRefsPrefix = "refs/pull/";
 var PullRefsOriginPrefix = "refs/remotes/origin/pull/";
@@ -31,22 +30,21 @@ if (error) {
 }
 
 function executeWithRetries(operationName, operation, currentRetryCount) {
-    var deferred = Q.defer()
-    operation().then((result) => {
-        deferred.resolve(result)
-    }).fail((error) => {
+    var deferred = Q.defer();
+    operation().then(result => {
+        deferred.resolve(result);
+    }).fail(error => {
         if (currentRetryCount <= 0) {
-            tl.error('OperationFailed: ' + operationName)
+            tl.error('OperationFailed: ' + operationName);
             tl.setResult(tl.TaskResult.Failed, error);
-            deferred.reject(error)
+            deferred.reject(error);
         } else {
-            console.log('RetryingOperation', operationName, currentRetryCount)
-            currentRetryCount = currentRetryCount - 1
-            setTimeout(() => executeWithRetries(operationName, operation, currentRetryCount), 4 * 1000)
+            console.log('RetryingOperation', operationName, currentRetryCount);
+            currentRetryCount = currentRetryCount - 1;
+            setTimeout(() => executeWithRetries(operationName, operation, currentRetryCount), 4 * 1000);
         }
-    })
-
-    return deferred.promise
+    });
+    return deferred.promise;
 }
 
 let connectionDetails;
@@ -54,7 +52,7 @@ let isPullRequest;
 let gitw;
 let gopt;
 
-getServiceConnectionDetails(isAdoConnectionType, serviceConnection).then(response => {
+getServiceConnectionDetails().then(response => {
     connectionDetails = response;
     return getGitClientPromise(connectionDetails);
 }).then(gitClient => {
@@ -66,8 +64,7 @@ getServiceConnectionDetails(isAdoConnectionType, serviceConnection).then(respons
     gitw.on('stderr', data => console.log(data.toString()));
 
     var remoteUrl = gitRepository.remoteUrl;
-    tl.debug("Remote Url:" + remoteUrl);
-
+    tl.debug('Remote Url:' + remoteUrl);
     var gu = url.parse(remoteUrl);
     if (connectionDetails.Username && connectionDetails.Password) {
         gu.auth = connectionDetails.Username + ':' + connectionDetails.Password;
@@ -103,20 +100,7 @@ getServiceConnectionDetails(isAdoConnectionType, serviceConnection).then(respons
     tl.setResult(tl.TaskResult.Failed, error);
 });
 
-
-
-function getGitClientPromise(connectionDetails) {
-    var handler = webApim.getBasicHandler(connectionDetails.Username, connectionDetails.Password);
-    var webApi = new webApim.WebApi(connectionDetails.Url, handler);
-    return webApi.getGitApi();
-}
-
-function getRepositoryDetails(gitClient, repositoryId, projectId) {
-    var promise = gitClient.getRepository(repositoryId, projectId);
-    return promise;
-}
-
-function validateInputs(serviceConnection, repositoryId, projectId, branch, downloadPath) {
+function validateInputs(serviceConnection, repositoryId, projectId, branch, commitId, downloadPath) {
     if (!serviceConnection || serviceConnection.trim().length === 0) {
         throw new Error("Service connection is not provided.");
     }
@@ -129,12 +113,15 @@ function validateInputs(serviceConnection, repositoryId, projectId, branch, down
     if (!branch) {
         throw new Error("Branch is not provided.");
     }
+if (!commitId) {
+        throw new Error("Commit ID is not provided.");
+    }
     if (!downloadPath) {
         throw new Error("Download path is not provided.");
     }
 }
 
-async function getServiceConnectionDetails(isAdoConnectionType, serviceConnection) {
+async function getServiceConnectionDetails() {
     if (isAdoConnectionType) {
         return getAdoScDetails(serviceConnection);
     }
@@ -146,8 +133,9 @@ async function getAdoScDetails(serviceConnection) {
     var hostUrl = tl.getVariable('System.TeamFoundationCollectionUri');
     return {
         "Url": hostUrl,
-        "Username": ".",
-        "Password": accessToken
+        "Username": ".", // Username not required for bearer handler; keep placeholder for consistency.
+        "Password": accessToken,
+        "AuthScheme": "Bearer"
     };
 }
 
@@ -191,4 +179,34 @@ function getAuthParameter(auth, paramName) {
     });
     paramValue = auth['parameters'][keyName];
     return paramValue;
+}
+
+function getGitClientPromise(connectionDetails) {
+    let handler;
+    if (connectionDetails.AuthScheme === 'Bearer') {
+        // Use bearer handler for ADO service connections that works with the access token.
+        handler = webApim.getBearerHandler(connectionDetails.Password, true);
+    } else {
+        // For use cases where username/password or token scheme is used we rely on basic handler.
+        handler = webApim.getBasicHandler(connectionDetails.Username, connectionDetails.Password);
+    }
+    var webApi = new webApim.WebApi(connectionDetails.Url, handler);
+    return webApi.getCoreApi()
+        .then(core => core.getProjects(undefined, 1))
+        .then(projects => {
+            tl.debug('Auth probe successful; projects (top1) count: ' + (projects ? projects.length : 0));
+            return webApi.getGitApi();
+        });
+}
+
+function getRepositoryDetails(gitClient, repositoryId, projectId) {
+    return gitClient.getRepository(repositoryId, projectId).then(repo => {
+        if (!repo) {
+            throw new Error('Repository lookup returned null or undefined for id: ' + repositoryId + ', project: ' + projectId + '. Ensure the service connection has appropriate permissions.');
+        }
+        if (!repo.remoteUrl) {
+            throw new Error('Repository object missing remoteUrl. This may indicate insufficient permissions or an API auth issue.');
+        }
+        return repo;
+    });
 }
