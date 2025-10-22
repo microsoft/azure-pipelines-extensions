@@ -29,24 +29,6 @@ if (error) {
     tl.exit(1);
 }
 
-function executeWithRetries(operationName, operation, currentRetryCount) {
-    var deferred = Q.defer();
-    operation().then(result => {
-        deferred.resolve(result);
-    }).fail(error => {
-        if (currentRetryCount <= 0) {
-            tl.error('OperationFailed: ' + operationName);
-            tl.setResult(tl.TaskResult.Failed, error);
-            deferred.reject(error);
-        } else {
-            console.log('RetryingOperation', operationName, currentRetryCount);
-            currentRetryCount = currentRetryCount - 1;
-            setTimeout(() => executeWithRetries(operationName, operation, currentRetryCount), 4 * 1000);
-        }
-    });
-    return deferred.promise;
-}
-
 let connectionDetails;
 let isPullRequest;
 let gitw;
@@ -56,8 +38,7 @@ getServiceConnectionDetails().then(response => {
     connectionDetails = response;
     return getGitClientPromise(connectionDetails);
 }).then(gitClient => {
-    var gitRepositoryPromise = getRepositoryDetails(gitClient, repositoryId, projectId);
-    return gitRepositoryPromise;
+    return getRepositoryDetails(gitClient, repositoryId, projectId);
 }).then(gitRepository => {
     gitw = new gitwm.GitWrapper();
     gitw.on('stdout', data => console.log(data.toString()));
@@ -72,7 +53,7 @@ getServiceConnectionDetails().then(response => {
 
     var giturl = gu.format(gu);
     isPullRequest = !!branch && (branch.toLowerCase().startsWith(PullRefsPrefix) || branch.toLowerCase().startsWith(PullRefsOriginPrefix));
-    tl.debug("IsPullRequest:" + isPullRequest);
+    tl.debug('IsPullRequest:' + isPullRequest);
 
     gopt = { creds: true, debugOutput: this.debugOutput };
     gitw.username = this.username;
@@ -135,7 +116,7 @@ async function getAdoScDetails(serviceConnection) {
         "Url": hostUrl,
         "Username": ".", // Username not required for bearer handler; keep placeholder for consistency.
         "Password": accessToken,
-        "AuthScheme": "Bearer"
+        "Authorization": "Bearer " + accessToken
     };
 }
 
@@ -183,7 +164,7 @@ function getAuthParameter(auth, paramName) {
 
 function getGitClientPromise(connectionDetails) {
     let handler;
-    if (connectionDetails.AuthScheme === 'Bearer') {
+    if (connectionDetails.Authorization) {
         // Use bearer handler for ADO service connections that works with the access token.
         handler = webApim.getBearerHandler(connectionDetails.Password, true);
     } else {
@@ -209,4 +190,22 @@ function getRepositoryDetails(gitClient, repositoryId, projectId) {
         }
         return repo;
     });
+}
+
+function executeWithRetries(operationName, operation, currentRetryCount) {
+    var deferred = Q.defer();
+    operation().then(result => {
+        deferred.resolve(result);
+    }).fail(error => {
+        if (currentRetryCount <= 0) {
+            tl.error('OperationFailed: ' + operationName);
+            tl.setResult(tl.TaskResult.Failed, error);
+            deferred.reject(error);
+        } else {
+            console.log('RetryingOperation', operationName, currentRetryCount);
+            currentRetryCount = currentRetryCount - 1;
+            setTimeout(() => executeWithRetries(operationName, operation, currentRetryCount), 4 * 1000);
+        }
+    });
+    return deferred.promise;
 }
