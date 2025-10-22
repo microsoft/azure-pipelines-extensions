@@ -38,15 +38,13 @@ getServiceConnectionDetails().then(response => {
     connectionDetails = response;
     return getGitClientPromise(connectionDetails);
 }).then(gitClient => {
-    return getRepositoryDetails(gitClient, repositoryId, projectId);
-}).then(gitRepository => {
+    return getRepositoryRemoteUrl(gitClient, repositoryId, projectId);
+}).then(repositoryRemoteUrl => {
     gitw = new gitwm.GitWrapper();
     gitw.on('stdout', data => console.log(data.toString()));
     gitw.on('stderr', data => console.log(data.toString()));
-
-    var remoteUrl = gitRepository.remoteUrl;
-    tl.debug('Remote Url:' + remoteUrl);
-    var gu = url.parse(remoteUrl);
+    
+    var gu = url.parse(repositoryRemoteUrl);
     if (connectionDetails.Username && connectionDetails.Password) {
         gu.auth = connectionDetails.Username + ':' + connectionDetails.Password;
     }
@@ -94,7 +92,7 @@ function validateInputs(serviceConnection, repositoryId, projectId, branch, comm
     if (!branch) {
         throw new Error("Branch is not provided.");
     }
-if (!commitId) {
+    if (!commitId) {
         throw new Error("Commit ID is not provided.");
     }
     if (!downloadPath) {
@@ -114,8 +112,6 @@ async function getAdoScDetails(serviceConnection) {
     var hostUrl = tl.getVariable('System.TeamFoundationCollectionUri');
     return {
         "Url": hostUrl,
-        "Username": ".", // Username not required for bearer handler; keep placeholder for consistency.
-        "Password": accessToken,
         "Authorization": "Bearer " + accessToken
     };
 }
@@ -166,29 +162,30 @@ function getGitClientPromise(connectionDetails) {
     let handler;
     if (connectionDetails.Authorization) {
         // Use bearer handler for ADO service connections that works with the access token.
-        handler = webApim.getBearerHandler(connectionDetails.Password, true);
+        handler = webApim.getBearerHandler(connectionDetails.Authorization, true);
     } else {
         // For use cases where username/password or token scheme is used we rely on basic handler.
         handler = webApim.getBasicHandler(connectionDetails.Username, connectionDetails.Password);
     }
     var webApi = new webApim.WebApi(connectionDetails.Url, handler);
-    return webApi.getCoreApi()
-        .then(core => core.getProjects(undefined, 1))
-        .then(projects => {
-            tl.debug('Auth probe successful; projects (top1) count: ' + (projects ? projects.length : 0));
-            return webApi.getGitApi();
-        });
+    return webApi.getGitApi();
 }
 
-function getRepositoryDetails(gitClient, repositoryId, projectId) {
+function getRepositoryRemoteUrl(gitClient, repositoryId, projectId) {
     return gitClient.getRepository(repositoryId, projectId).then(repo => {
         if (!repo) {
-            throw new Error('Repository lookup returned null or undefined for id: ' + repositoryId + ', project: ' + projectId + '. Ensure the service connection has appropriate permissions.');
+            throw new Error(
+                'Repository lookup returned null or undefined for id: ' + repositoryId + ', project: ' + projectId +
+                '. Ensure the service connection has appropriate permissions.');
         }
-        if (!repo.remoteUrl) {
+    
+        var remoteUrl = repo.remoteUrl;
+        if (!remoteUrl) {
             throw new Error('Repository object missing remoteUrl. This may indicate insufficient permissions or an API auth issue.');
         }
-        return repo;
+
+        tl.debug('Repository remote URL:' + remoteUrl);
+        return remoteUrl;
     });
 }
 
@@ -202,7 +199,7 @@ function executeWithRetries(operationName, operation, currentRetryCount) {
             tl.setResult(tl.TaskResult.Failed, error);
             deferred.reject(error);
         } else {
-            console.log('RetryingOperation', operationName, currentRetryCount);
+            tl.debug('RetryingOperation: ' + operationName + ', currentRetryCount: ' + currentRetryCount);
             currentRetryCount = currentRetryCount - 1;
             setTimeout(() => executeWithRetries(operationName, operation, currentRetryCount), 4 * 1000);
         }
