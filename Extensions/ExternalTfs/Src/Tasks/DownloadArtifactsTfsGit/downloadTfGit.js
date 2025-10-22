@@ -6,8 +6,7 @@ var shell = require("shelljs");
 var gitwm = require('./gitwrapper');
 var auth = require('./auth');
 
-var PullRefsPrefix = "refs/pull/";
-var PullRefsOriginPrefix = "refs/remotes/origin/pull/";
+var GIT_CLONE_RETRY_ATTEMPTS = 4;
 
 var connectionType = tl.getInput("connectionType");
 var isAdoConnectionType = connectionType === 'ado';
@@ -20,8 +19,6 @@ var commitId = tl.getInput(isAdoConnectionType ? "versionAdo" : "version");
 var downloadPath = tl.getInput("downloadPath");
 validateInputs(serviceConnection, repositoryId, projectId, branch, commitId, downloadPath);
 
-var GIT_CLONE_RETRY_ATTEMPTS = 4;
-
 shell.rm('-rf', downloadPath);
 var error = shell.error();
 if (error) {
@@ -31,8 +28,11 @@ if (error) {
 
 let connectionDetails;
 let isPullRequest;
-let gitw;
-let gopt;
+let git;
+const gitOptions = {
+    creds: true,
+    debugOutput: !!process.env['SYSTEM_DEBUG']
+};
 
 getServiceConnectionDetails().then(response => {
     connectionDetails = response;
@@ -40,28 +40,15 @@ getServiceConnectionDetails().then(response => {
 }).then(gitClient => {
     return getRepositoryRemoteUrl(gitClient, repositoryId, projectId);
 }).then(repositoryRemoteUrl => {
-    gitw = new gitwm.GitWrapper();
-    gitw.on('stdout', data => console.log(data.toString()));
-    gitw.on('stderr', data => console.log(data.toString()));
-    
-    var gu = url.parse(repositoryRemoteUrl);
-    if (connectionDetails.Username && connectionDetails.Password) {
-        gu.auth = connectionDetails.Username + ':' + connectionDetails.Password;
-    }
-
-    var giturl = url.format(gu);
-    isPullRequest = !!branch && (branch.toLowerCase().startsWith(PullRefsPrefix) || branch.toLowerCase().startsWith(PullRefsOriginPrefix));
-    tl.debug('IsPullRequest:' + isPullRequest);
-
-    gopt = { creds: true, debugOutput: this.debugOutput };
-    gitw.username = connectionDetails.Username;
-    gitw.password = connectionDetails.Password;
+    var gitReadyRepoUrl = prepareGitConsumableRepoUrl(repositoryRemoteUrl, connectionDetails);
+    git = configureGitApiWrapper(connectionDetails);
+    isPullRequest = isPullRequestBranch(branch);
 
     return executeWithRetries('gitClone', () => {
-        return gitw.clone(giturl, true, downloadPath, gopt).then(result => {
+        return git.clone(gitReadyRepoUrl, true, downloadPath, gitOptions).then(result => {
             if (isPullRequest) {
                 shell.cd(downloadPath);
-                return gitw.fetch(['origin', branch], gopt);
+                return git.fetch(['origin', branch], gitOptions);
             }
             return result;
         });
@@ -69,10 +56,10 @@ getServiceConnectionDetails().then(response => {
 }).then(() => {
     shell.cd(downloadPath);
     var ref = isPullRequest ? commitId : branch;
-    return gitw.checkout(ref, gopt);
+    return git.checkout(ref, gitOptions);
 }).then(() => {
     if (!isPullRequest) {
-        return gitw.checkout(commitId);
+        return git.checkout(commitId);
     }
 }).catch(error => {
     tl.error(error);
@@ -188,6 +175,39 @@ function getRepositoryRemoteUrl(gitClient, repositoryId, projectId) {
         tl.debug('Repository remote URL:' + remoteUrl);
         return remoteUrl;
     });
+}
+
+function prepareGitConsumableRepoUrl(repoUrl, connectionDetails) {
+    var parsedRepoUrl = url.parse(repoUrl);
+    if (connectionDetails.Username && connectionDetails.Password) {
+        parsedRepoUrl.auth = connectionDetails.Username + ':' + connectionDetails.Password;
+    }
+
+    return url.format(parsedRepoUrl);
+}
+
+function configureGitApiWrapper(connectionDetails) {
+    // Create a wrapper around the git CLI so we can call clone/fetch/checkout and stream its output to the logs.
+    var gitApiWrapper = new gitwm.GitWrapper();
+    gitApiWrapper.on('stdout', data => console.log(data.toString()));
+    gitApiWrapper.on('stderr', data => console.log(data.toString()));
+
+    gitApiWrapper.username = connectionDetails.Username;
+    gitApiWrapper.password = connectionDetails.Password;
+    return gitApiWrapper;
+}
+
+function isPullRequestBranch(branch) {
+    var pullRefsPrefix = "refs/pull/";
+    var pullRefsOriginPrefix = "refs/remotes/origin/pull/";
+
+    var isAssociatedWithPullRequest = !!branch && (
+        branch.toLowerCase().startsWith(pullRefsPrefix) ||
+        branch.toLowerCase().startsWith(pullRefsOriginPrefix)
+    );
+    tl.debug('IsPullRequest:' + isAssociatedWithPullRequest);
+
+    return isAssociatedWithPullRequest;
 }
 
 function executeWithRetries(operationName, operation, remainingRetryAttempts) {
