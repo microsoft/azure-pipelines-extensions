@@ -101,27 +101,25 @@ function validateInputs(serviceConnection, repositoryId, projectId, branch, comm
 }
 
 async function getServiceConnectionDetails() {
-    if (isAdoConnectionType) {
-        return getAdoScDetails(serviceConnection);
-    }
-    return getReposOrTfsScDetails(serviceConnection);
-}
-
-async function getAdoScDetails(serviceConnection) {
-    var accessToken = await auth.getAccessTokenViaWorkloadIdentityFederation(serviceConnection);
-    var hostUrl = tl.getVariable('System.TeamFoundationCollectionUri');
-    return {
-        "Url": hostUrl,
-        "Authorization": "Bearer " + accessToken
-    };
-}
-
-function getReposOrTfsScDetails(serviceConnection) {
     var hostUrl = tl.getEndpointUrl(serviceConnection, false);
     if (!hostUrl) {
         throw new Error(errorMessage);
     }
+    
+    return isAdoConnectionType
+        ? getAdoScDetails(serviceConnection, hostUrl)
+        : getReposOrTfsScDetails(serviceConnection, hostUrl);
+}
 
+async function getAdoScDetails(serviceConnection, hostUrl) {
+    var accessToken = await auth.getAccessTokenViaWorkloadIdentityFederation(serviceConnection);
+    return {
+        "Url": hostUrl,
+        "AccessToken": accessToken,
+    };
+}
+
+function getReposOrTfsScDetails(serviceConnection, hostUrl) {
     var auth = tl.getEndpointAuthorization(serviceConnection, false);
     if (auth.scheme != "UsernamePassword" && auth.scheme != "Token") {
         throw new Error("The authorization scheme " + auth.scheme + " is not supported for a External Tfs endpoint.");
@@ -160,13 +158,14 @@ function getAuthParameter(auth, paramName) {
 
 function getGitClientPromise(connectionDetails) {
     let handler;
-    if (connectionDetails.Authorization) {
+    if (connectionDetails.AccessToken) {
         // Use bearer handler for ADO service connections that works with the access token.
-        handler = webApim.getBearerHandler(connectionDetails.Authorization, true);
+        handler = webApim.getBearerHandler(connectionDetails.AccessToken, true);
     } else {
         // For use cases where username/password or token scheme is used we rely on basic handler.
         handler = webApim.getBasicHandler(connectionDetails.Username, connectionDetails.Password);
     }
+
     var webApi = new webApim.WebApi(connectionDetails.Url, handler);
     return webApi.getGitApi();
 }
