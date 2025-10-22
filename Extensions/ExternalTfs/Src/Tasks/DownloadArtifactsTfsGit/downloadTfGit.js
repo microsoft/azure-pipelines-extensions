@@ -20,7 +20,7 @@ var commitId = tl.getInput(isAdoConnectionType ? "versionAdo" : "version");
 var downloadPath = tl.getInput("downloadPath");
 validateInputs(serviceConnection, repositoryId, projectId, branch, commitId, downloadPath);
 
-var VSTS_HTTP_RETRY = 4;
+var GIT_CLONE_RETRY_ATTEMPTS = 4;
 
 shell.rm('-rf', downloadPath);
 var error = shell.error();
@@ -49,13 +49,13 @@ getServiceConnectionDetails().then(response => {
         gu.auth = connectionDetails.Username + ':' + connectionDetails.Password;
     }
 
-    var giturl = gu.format(gu);
+    var giturl = url.format(gu);
     isPullRequest = !!branch && (branch.toLowerCase().startsWith(PullRefsPrefix) || branch.toLowerCase().startsWith(PullRefsOriginPrefix));
     tl.debug('IsPullRequest:' + isPullRequest);
 
     gopt = { creds: true, debugOutput: this.debugOutput };
-    gitw.username = this.username;
-    gitw.password = this.password;
+    gitw.username = connectionDetails.Username;
+    gitw.password = connectionDetails.Password;
 
     return executeWithRetries('gitClone', () => {
         return gitw.clone(giturl, true, downloadPath, gopt).then(result => {
@@ -65,7 +65,7 @@ getServiceConnectionDetails().then(response => {
             }
             return result;
         });
-    }, VSTS_HTTP_RETRY);
+    }, GIT_CLONE_RETRY_ATTEMPTS);
 }).then(() => {
     shell.cd(downloadPath);
     var ref = isPullRequest ? commitId : branch;
@@ -115,7 +115,9 @@ async function getAdoScDetails(serviceConnection, hostUrl) {
     var accessToken = await auth.getAccessTokenViaWorkloadIdentityFederation(serviceConnection);
     return {
         "Url": hostUrl,
-        "AccessToken": accessToken,
+        "Username": "oauth2",
+        "Password": accessToken,
+        "AccessToken": accessToken
     };
 }
 
@@ -188,19 +190,19 @@ function getRepositoryRemoteUrl(gitClient, repositoryId, projectId) {
     });
 }
 
-function executeWithRetries(operationName, operation, currentRetryCount) {
+function executeWithRetries(operationName, operation, remainingRetryAttempts) {
     var deferred = Q.defer();
     operation().then(result => {
         deferred.resolve(result);
     }).fail(error => {
-        if (currentRetryCount <= 0) {
+        if (remainingRetryAttempts <= 0) {
             tl.error('OperationFailed: ' + operationName);
             tl.setResult(tl.TaskResult.Failed, error);
             deferred.reject(error);
         } else {
-            tl.debug('RetryingOperation: ' + operationName + ', currentRetryCount: ' + currentRetryCount);
-            currentRetryCount = currentRetryCount - 1;
-            setTimeout(() => executeWithRetries(operationName, operation, currentRetryCount), 4 * 1000);
+            tl.debug('RetryingOperation: ' + operationName + ', remainingRetryAttempts: ' + remainingRetryAttempts);
+            remainingRetryAttempts = remainingRetryAttempts - 1;
+            setTimeout(() => executeWithRetries(operationName, operation, remainingRetryAttempts), 4 * 1000);
         }
     });
     return deferred.promise;
