@@ -95,9 +95,9 @@ function Invoke-SqlQueryDeployment
         if ($additionalArguments.ToLower().Contains("-verbose")) {
             $errors = @()
 
-            $rawOutput = (Invoke-Expression $command -ErrorVariable errors 4>&1 | Out-String)
-            $trimmedOutput = $rawOutput.TrimEnd()
-            $trimmedOutput -split "`r?`n" | Where-Object { $_.Trim() -ne "" } | ForEach-Object { Write-Output $_ }
+            Invoke-Expression $command -ErrorVariable errors 4>&1 | ForEach-Object {
+                Write-Host $_
+            }
 
             if ($errors.Count -gt 0) {
                 throw 
