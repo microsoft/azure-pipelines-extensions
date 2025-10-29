@@ -1,4 +1,7 @@
-﻿# Function to import SqlPS module & avoid directory switch
+﻿$featureFlags = @{
+    enableVerboseLogging  = [System.Convert]::ToBoolean($env:ENABLE_VERBOSE_LOGGING)
+}
+# Function to import SqlPS module & avoid directory switch
 function Import-SqlPs {
     push-location
     Import-Module SqlPS -ErrorAction 'SilentlyContinue' | out-null
@@ -86,29 +89,38 @@ function Invoke-SqlQueryDeployment
         }
 
         $additionalArguments = EscapeSpecialChars $additionalArguments
+        if ($featureFlags.enableVerboseLogging) {
+            $commandToRun = $commandToLog + " " + $additionalArguments
+            $command = "Invoke-SqlCmd @spaltArguments $additionalArguments"
+            Write-Host "##[command] $commandToRun"
 
-        $commandToRun = $commandToLog + " " + $additionalArguments
-        $command = "Invoke-SqlCmd @spaltArguments $additionalArguments"
+            if ($additionalArguments.ToLower().Contains("-verbose")) {
+                $errors = @()
 
-        Write-Host "##[command] $commandToRun"
+                Invoke-Expression $command -ErrorVariable errors 4>&1 | ForEach-Object {
+                    Write-Host $_
+                }
 
-        if ($additionalArguments.ToLower().Contains("-verbose")) {
-            $errors = @()
-
-            Invoke-Expression $command -ErrorVariable errors 4>&1 | ForEach-Object {
-                Write-Host $_
+                if ($errors.Count -gt 0) {
+                    throw 
+                }
             }
-
-            if ($errors.Count -gt 0) {
-                throw 
+            else{
+                Invoke-Expression $command
             }
         }
         else {
-            Invoke-Expression $command
+            Write-Verbose "Invoke-SqlCmd arguments : $commandToLog  $additionalArguments"
+            Invoke-Expression "Invoke-SqlCmd @spaltArguments $additionalArguments"
         }
     }
     Catch {
-        Write-VstsSetResult -Result 'Failed' -Message "Error detected" -DoNotThrow  
+        if ($featureFlags.enableVerboseLogging) {
+        Write-VstsSetResult -Result 'Failed' -Message "Error detected" -DoNotThrow 
+        }
+        else{
+        Write-VstsSetResult -Result 'Failed' -Message "Error detected without verboseFF logging" -DoNotThrow
+        }
     } # End of Try
     Finally
     {
