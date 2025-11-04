@@ -105,7 +105,7 @@ function Invoke-SqlQueryDeployment
                     throw 
                 }
             }
-            else{
+            else {
                 Invoke-Expression $command
             }
         }
@@ -116,10 +116,10 @@ function Invoke-SqlQueryDeployment
     }
     Catch {
         if ($featureFlags.enableVerboseLogging) {
-        Write-VstsSetResult -Result 'Failed' -Message "Error detected" -DoNotThrow 
+            Write-VstsSetResult -Result 'Failed' -Message "Error detected" -DoNotThrow 
         }
-        else{
-        Write-VstsSetResult -Result 'Failed' -Message "Error detected without verboseFF logging" -DoNotThrow
+        else {
+            throw $_.Exception
         }
     } # End of Try
     Finally
