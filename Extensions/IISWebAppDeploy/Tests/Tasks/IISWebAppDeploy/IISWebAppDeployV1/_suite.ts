@@ -23,55 +23,55 @@ describe('IISWebAppDeployV1 Suite', function () {
     });
 
     if (ps) {
-        it('should test Trim-Inputs functionality', (done:MochaDone) => {
+        it('should test Trim-Inputs functionality', (done: Mocha.Done) => {
             psr.run(path.join(__dirname, 'L0TrimInputsFunction.ps1'), done);
         });
 
-        it('should test EscapeSpecialCharacters functionality', (done:MochaDone) => {
+        it('should test EscapeSpecialCharacters functionality', (done: Mocha.Done) => {
             psr.run(path.join(__dirname, 'L0EscapeSpecialCharactersFunction.ps1'), done);
         });
 
-        it('should test Get-ScriptToRun functionality', (done:MochaDone) => {
+        it('should test Get-ScriptToRun functionality', (done: Mocha.Done) => {
             psr.run(path.join(__dirname, 'L0GetScriptToRunFunction.ps1'), done);
         });
 
-        it('should test Run-RemoteDeployment functionality', (done:MochaDone) => {
+        it('should test Run-RemoteDeployment functionality', (done: Mocha.Done) => {
             psr.run(path.join(__dirname, 'L0RunRemoteDeploymentFunction.ps1'), done);
         });
 
-        it('should test Main functionality', (done:MochaDone) => {
+        it('should test Main functionality', (done: Mocha.Done) => {
             psr.run(path.join(__dirname, 'L0MainFunction.ps1'), done);
         });
 
-        it('should test Run-Command functionality', (done:MochaDone) => {
+        it('should test Run-Command functionality', (done: Mocha.Done) => {
             psr.run(path.join(__dirname, 'L0RunCommandFunction.ps1'), done);
         });
 
-        it('should test Get-MsDeployLocation functionality', (done:MochaDone) => {
+        it('should test Get-MsDeployLocation functionality', (done: Mocha.Done) => {
             psr.run(path.join(__dirname, 'L0GetMsDeployLocationFunction.ps1'), done);
         });
 
-        it('should test Get-MsDeployCmdArgs functionality', (done:MochaDone) => {
+        it('should test Get-MsDeployCmdArgs functionality', (done: Mocha.Done) => {
             psr.run(path.join(__dirname, 'L0GetMsDeployCmdArgsFunction.ps1'), done);
         });
 
-        it('should test Contains-ParamFileXml functionality', (done:MochaDone) => {
+        it('should test Contains-ParamFileXml functionality', (done: Mocha.Done) => {
             psr.run(path.join(__dirname, 'L0ContainsParamFileXmlFunction.ps1'), done);
         });
 
-        it('should test Deploy-WebSite functionality', (done:MochaDone) => {
+        it('should test Deploy-WebSite functionality', (done: Mocha.Done) => {
             psr.run(path.join(__dirname, 'L0DeployWebSiteFunction.ps1'), done);
         });
 
-        it('should test Is-Directory functionality', (done:MochaDone) => {
+        it('should test Is-Directory functionality', (done: Mocha.Done) => {
             psr.run(path.join(__dirname, 'L0IsDirectoryFunction.ps1'), done);
         });
 
-        it('should test Compute-MsDeploy-SetParams functionality', (done:MochaDone) => {
+        it('should test Compute-MsDeploy-SetParams functionality', (done: Mocha.Done) => {
             psr.run(path.join(__dirname, 'L0ComputeMsDeploySetParamsFunction.ps1'), done);
         });
 
-        it('should test Execute-Main functionality', (done:MochaDone) => {
+        it('should test Execute-Main functionality', (done: Mocha.Done) => {
             psr.run(path.join(__dirname, 'L0ExecuteMainFunction.ps1'), done);
         });
     }

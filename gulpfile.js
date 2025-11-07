@@ -1,33 +1,30 @@
 // node built-ins
-var cp = require('child_process');
-var exec = require('child_process').exec;
-var spawn = require('child_process').spawn;
-var fs = require('fs-extra');
-var path = require('path');
-var os = require('os');
-var tsc = require('gulp-typescript');
+const path = require('path');
+const os = require('os');
+const cp = require('child_process');
 
 // build/test script
-var admZip = require('adm-zip');
-var minimist = require('minimist');
-var mocha = require('gulp-mocha');
-var Q = require('q');
-var semver = require('semver');
-var shell = require('shelljs');
-var syncRequest = require('sync-request');
-var request = require('request');
-var xml2js = require('xml2js');
+const admZip = require('adm-zip');
+const del = require('del');
+const fs = require('fs-extra');
+const mocha = require('gulp-mocha');
+const minimist = require('minimist');
+const request = require('request');
+const semver = require('semver');
+const shell = require('shelljs');
+// @ts-ignore
+const syncRequest = require('sync-request');
+const typescript = require('typescript');
+const xml2js = require('xml2js');
+const args = require('yargs').argv;
 
 // gulp modules
-var del = require('del');
-var gts = require('gulp-typescript');
-var gulp = require('gulp');
-var gutil = require('gulp-util');
-var nuget = null;//require('gulp-nuget');
-var pkgm = require('./package');
-var util = require('./package-utils');
-var typescript = require('typescript');
-var args   = require('yargs').argv;
+const gts = require('gulp-typescript');
+const gulp = require('gulp');
+const gutil = require('gulp-util');
+
+const pkgm = require('./package');
+const util = require('./package-utils');
 
 // validation
 var NPM_MIN_VER = '3.0.0';
@@ -78,7 +75,7 @@ function errorHandler(error) {
     process.exit(1);
 }
 
-var rootTsconfigPath = './tsconfig.json';
+var rootTsconfigPath = './base.tsconfig.json';
 
 gulp.task("clean", function() {
     return del([_buildRoot, _packageRoot, nugetPath, _taskModuleBuildRoot]);
@@ -163,7 +160,7 @@ gulp.task("TaskModuleTest", gulp.series('copy:TaskModuleTest', function() {
 }));
 
 gulp.task('prepublish:TaskModulePublish', function (done) {
-	return del([TaskModulesTestRoot], done);
+    return del([TaskModulesTestRoot], done);
 });
 
 gulp.task('TaskModulePublish', gulp.series('prepublish:TaskModulePublish', function (done) {
@@ -269,12 +266,22 @@ gulp.task("compileNode", gulp.series("compilePS", function(cb){
     runNpmInstall(artifactEnginePath);
 
     // Compile tasks
-    var proj = gts.createProject(rootTsconfigPath, { typescript: typescript, declaration: true });
-    var taskFiles = path.join(_extnBuildRoot, "**", "Tasks", "**", "*.ts");
-    var artifactEngineFiles = path.join(_extnBuildRoot, "**", "ArtifactEngine", "**", "*.ts");
+    const tasksProject = gts.createProject(rootTsconfigPath, { typescript: typescript, declaration: true });
+    const taskFiles = path.join(_extnBuildRoot, "**", "Tasks", "**", "*.ts");
+    const artifactEngineFiles = path.join(_extnBuildRoot, "**", "ArtifactEngine", "**", "*.ts");
 
-    gulp.src(["definitions/*.d.ts", taskFiles, artifactEngineFiles, "!**/node_modules/**", "!**/Extensions/ArtifactEngine/definitions/**"])
-        .pipe(proj())
+    const testFiles = path.join(_extnBuildRoot, "**/Tests/**/*.ts");
+
+    gulp.src([taskFiles, `!${testFiles}`, artifactEngineFiles, '!**/node_modules/**'])
+        .pipe(tasksProject())
+        .pipe(gulp.dest(path.join(_buildRoot, "Extensions")))
+        .on("error", errorHandler);
+
+    const testProject = gts.createProject(rootTsconfigPath, { typescript: typescript, declaration: true });
+    const sanitizerTestFiles = path.join(_extnBuildRoot, "**/ps_modules/Sanitizer/Tests/*.ts");
+
+    gulp.src([testFiles, `!${sanitizerTestFiles}`])
+        .pipe(testProject())
         .pipe(gulp.dest(path.join(_buildRoot, "Extensions")))
         .on("error", errorHandler);
 
@@ -436,7 +443,7 @@ function createResjson(callback) {
                 var resjsonPath = path.join(path.dirname(libJson), 'Strings', 'resources.resjson', culture, 'resources.resjson');
                 var resjsonContents = JSON.stringify(cultureStrings, null, 2);
                 shell.mkdir('-p', path.dirname(resjsonPath));
-                fs.writeFileSync(resjsonPath, resjsonContents);
+                fs.writeFileSync(resjsonPath, resjsonContents.replace(/\n/g, os.EOL));
             }
         });
     }
@@ -654,7 +661,86 @@ function compileUIExtensions(extensionRoot) {
     };
 }
 
-gulp.task("build", gulp.series("compileNode"));
+gulp.task("updateTestIds", function(cb) {
+    if (args.test) {
+        var buildExtensionsRoot = path.join(_buildRoot, 'Extensions');
+        if (fs.existsSync(buildExtensionsRoot)) {
+            var extensionDirs = fs.readdirSync(buildExtensionsRoot).filter(function (file) {
+                return fs.statSync(path.join(buildExtensionsRoot, file)).isDirectory();
+            });
+            extensionDirs.forEach(function (extName) {
+                // Check multiple possible locations for vss-extension.json
+                var possiblePaths = [
+                    path.join(buildExtensionsRoot, extName, 'Src', 'vss-extension.json'),
+                    path.join(buildExtensionsRoot, extName, 'src', 'vss-extension.json'),
+                    path.join(buildExtensionsRoot, extName, 'vss-extension.json')
+                ];
+
+                var manifestPath = null;
+                for (var i = 0; i < possiblePaths.length; i++) {
+                    if (fs.existsSync(possiblePaths[i])) {
+                        manifestPath = possiblePaths[i];
+                        break;
+                    }
+                }
+
+                if (manifestPath) {
+                    try {
+                        // Read file and handle potential BOM
+                        var fileContent = fs.readFileSync(manifestPath, 'utf8');
+                        // Remove BOM if present
+                        if (fileContent.charCodeAt(0) === 0xFEFF) {
+                            fileContent = fileContent.slice(1);
+                        }
+
+                        var manifest = JSON.parse(fileContent);
+                        var updated = false;
+
+                        // Check for both 'id' and 'extensionId' properties
+                        var idProperty = manifest.id ? 'id' : (manifest.extensionId ? 'extensionId' : null);
+
+                        if (idProperty && manifest[idProperty] && !manifest[idProperty].endsWith('-test')) {
+                            manifest[idProperty] = manifest[idProperty] + '-test';
+                            updated = true;
+                        }
+
+                        // Update name property
+                        if (manifest.hasOwnProperty('name')) {
+                            manifest.name = `${manifest.name} (Test)`;
+                        }
+
+                        // Always set public to false if it exists
+                        if (manifest.hasOwnProperty('public') && manifest.public !== false) {
+                            manifest.public = false;
+                            updated = true;
+                        } else if (!manifest.hasOwnProperty('public')) {
+                            // Add public: false if it doesn't exist
+                            manifest.public = false;
+                            updated = true;
+                        }
+
+                        if (updated) {
+                            // Write back without BOM
+                            fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+                            console.log('Updated manifest for test build: ' + manifestPath);
+                            console.log('  - ' + idProperty + ': ' + manifest[idProperty]);
+                            console.log('  - Public: ' + manifest.public);
+                        } else if (idProperty && manifest[idProperty].endsWith('-test')) {
+                            console.log('Extension already has -test suffix: ' + manifestPath);
+                        }
+                    } catch (e) {
+                        console.error('Failed to update manifest: ' + manifestPath + ' - ' + e.message);
+                    }
+                } else {
+                    console.log('No vss-extension.json found for extension: ' + extName);
+                }
+            });
+        }
+    }
+    cb();
+});
+
+gulp.task("build", gulp.series("compileNode", "updateTestIds"));
 
 gulp.task("handoff", function(cb) {
     handoff(cb);
@@ -739,15 +825,16 @@ gulp.task("test", gulp.series("testResources", function(){
 // Package//-----------------------------------------------------------------------------------------------------------------
 
 var publisherName = null;
-gulp.task("package",  function(cb) {
-    if(args.publisher){
+gulp.task("package", function(cb) {
+    if (args.publisher) {
         publisherName = args.publisher;
     }
 
     // use gulp package --extension=<Extension_Name> to package an individual package
-    if(args.extension){
+    if (args.extension) {
         createVsixPackage(args.extension);        return;
     }
+
     fs.readdirSync(_extnBuildRoot).filter(function (file) {
         return fs.statSync(path.join(_extnBuildRoot, file)).isDirectory() && file != "Common";
     }).forEach(createVsixPackage);
@@ -874,12 +961,11 @@ var createVsixPackage = function(extensionName) {
 
 var executeCommand = function(cmd, callback) {
     shell.exec(cmd, {silent: true}, function(code, output) {
-       if(code != 0) {
-           console.error("command failed: " + cmd + "\nManually execute to debug");
-       }
-       else {
+        if (code != 0) {
+            console.error("command failed: " + cmd + "\nManually execute to debug");
+        } else {
            callback();
-       }
+        }
     });
 }
 

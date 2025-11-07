@@ -1,14 +1,9 @@
-# Azure Pipelines Extensions 1ES Build Pipeline
-# This pipeline builds, signs, and publishes Azure DevOps extensions using 1ES standards
-# Compliant with Secure Extension Onboarding initiative
+# This pipeline is based on 1ES build pipeline, and it is used to publish a new version of an extension to Marketplace.
 
 name: Extension $(ExtensionName) - $(Date:yyyyMMdd)$(Rev:.r)
 appendCommitMessageToRunName: false
 
 trigger: none
-#  branches:
-#    include:
-#    - main
 
 parameters:
 - name: extensionName
@@ -19,24 +14,12 @@ parameters:
   - Ansible
   - BitBucket
   - CircleCI
-  - CopyStageVariableToReleaseVariable
   - ExternalTfs
-  - GenevaMonitor
   - IISWebAppDeploy
-  - KangarooL2
-  - SampleTask
   - ServiceNow
   - TeamCity
-- name: forceCodeSign
-  displayName: 'Force Code Signing (even for non-main branch)'
-  type: boolean
-  default: false
-- name: publishExtension
-  displayName: 'Publish Extension to Marketplace'
-  type: boolean
-  default: false
-- name: simulateCodeSigningError
-  displayName: 'Simulate code signing error (for testing)'
+- name: skipCiTesting
+  displayName: 'Skip CI testing (use only if CI tests for the selected extension are not yet available)'
   type: boolean
   default: false
 
@@ -44,20 +27,20 @@ variables:
 # 1ES Security Scanning
 - name: CodeQL.Enabled
   value: true
-# Extension registry settings
+# Publisher
 - name: PublisherId
-  value: 'ms-vscs-rm'
-# Signing variables from secure group
+  ${{ if eq(parameters.extensionName, 'TeamCity') }}:
+    value: 'ms-devlabs'
+  ${{ else }}:
+    value: 'ms-vscs-rm'
+# ESRP Signing secrets
 - group: EPS.ESRPSigningProdAME
-# Dynamic variables
+# Dynamic
 - name: ExtensionName
   value: ${{ parameters.extensionName }}
-- name: IsMainBranchBuild
-  value: $[eq(variables['Build.SourceBranchName'], 'main')]
 
 resources:
   repositories:
-  # 1ES Pipeline Templates
   - repository: 1ESPipelineTemplates
     type: git
     name: 1ESPipelineTemplates/1ESPipelineTemplates
@@ -66,12 +49,11 @@ resources:
 extends:
   template: v1/1ES.Official.PipelineTemplate.yml@1ESPipelineTemplates
   parameters:
-    # SDL Configuration
     sdl:
       sourceAnalysisPool:
         name: 1ESPtTfsAgentBuildPoolSDL
       spotBugs:
-        enabled: false # Not applicable for TypeScript/JavaScript
+        enabled: false
       credscan:
         enabled: true
       binskim:
@@ -79,11 +61,9 @@ extends:
       eslint:
         enabled: true
 
-    # Build Pool
     pool:
       name: 1ESPtTfsAgentBuildPool1
 
-    # Custom Build Tags
     customBuildTags:
     - ES365AIMigrationTooling
     - 1ES-AzureExtensions
@@ -92,158 +72,307 @@ extends:
 
     stages:
 
-    - stage: BuildAndTest
-      displayName: 'Build and Test ${{ parameters.extensionName }}'
+    # ======= Build & Package (prepare production and test version of the extension) =======
+    - stage: Build_And_Package_For_Production_And_Test
+      displayName: 'Build & Package (prepare PROD and test version of the extension)'
       jobs:
-      - job: BuildAndTestJob
-        displayName: 'Build Extension'
+      - job: BuildAndPackage
+        displayName: 'Build & Package job for preparing PROD and test version of the extension'
         templateContext:
           outputs:
           - output: pipelineArtifact
-            displayName: 'Publish Build Artifacts (Unsigned)'
-            targetPath: '$(System.ArtifactsDirectory)'
+            displayName: 'Make unsigned PROD build artifacts available'
+            targetPath: '$(System.ArtifactsDirectory)/unsigned'
             artifactName: 'vsix-unsigned'
+          - output: pipelineArtifact
+            displayName: 'Make unsigned test build artifacts available'
+            targetPath: '$(System.ArtifactsDirectory)/test-unsigned'
+            artifactName: 'vsix-test-unsigned'
         steps:
         - checkout: self
-          displayName: 'Checkout Extensions Repository'
+          displayName: 'Checkout repository'
           clean: true
           fetchTags: false
 
         - task: NodeTool@0
-          displayName: 'Install Node.js'
+          displayName: 'Use Node.js 20.x'
           inputs:
-            versionSpec: '10.x'
+            versionSpec: '20.x'
 
         - task: Npm@1
-          displayName: 'Install Dependencies'
+          displayName: 'Install dependencies'
           inputs:
-            command: 'install'
+            command: install
             verbose: false
 
         - task: Npm@1
-          displayName: 'Install TFX CLI'
+          displayName: 'Install TFX CLI (needed for publishing on Marketplace)'
           inputs:
-            command: 'custom'
-            customCommand: 'install -g tfx-cli' 
+            command: custom
+            customCommand: 'install -g tfx-cli'
 
         - task: Npm@1
           displayName: 'Install Gulp CLI'
           inputs:
-            command: 'custom'
+            command: custom
             customCommand: 'install -g gulp-cli'
 
         - task: PowerShell@2
-          displayName: 'Build Extensions with Gulp'
+          displayName: 'Build PROD resources'
           inputs:
-            targetType: 'inline'
+            targetType: inline
             script: 'gulp build'
             workingDirectory: '$(Build.SourcesDirectory)'
 
         - task: PowerShell@2
-          displayName: 'Package Extensions with Gulp'
+          displayName: 'Package PROD resources'
           inputs:
-            targetType: 'inline'
+            targetType: inline
             script: 'gulp package'
             workingDirectory: '$(Build.SourcesDirectory)'
 
-        # Copy VSIX files to artifacts directory
         - task: CopyFiles@2
-          displayName: 'Copy VSIX Files to Artifacts'
+          displayName: 'Copy PROD .vsix file to directory for unsigned production artifacts'
           inputs:
             SourceFolder: '$(Build.SourcesDirectory)/_package'
             Contents: '${{ parameters.extensionName }}/*.vsix'
-            TargetFolder: '$(System.ArtifactsDirectory)'
+            TargetFolder: '$(System.ArtifactsDirectory)/unsigned'
             flattenFolders: true
 
-    - stage: CodeSigning
-      condition: or(eq(variables['IsMainBranchBuild'], 'true'), ${{ eq(parameters.forceCodeSign, 'true') }}, ${{ eq(parameters.simulateCodeSigningError, 'true') }})
-      dependsOn: BuildAndTest
+        - task: PowerShell@2
+          displayName: 'Build test resources'
+          inputs:
+            targetType: inline
+            script: 'gulp build --test'
+            workingDirectory: '$(Build.SourcesDirectory)'
+
+        - task: PowerShell@2
+          displayName: 'Package test resources'
+          inputs:
+            targetType: inline
+            script: 'gulp package'
+            workingDirectory: '$(Build.SourcesDirectory)'
+
+        - task: CopyFiles@2
+          displayName: 'Copy test .vsix file to directory for unsigned test artifacts'
+          inputs:
+            SourceFolder: '$(Build.SourcesDirectory)/_package'
+            Contents: '${{ parameters.extensionName }}/*.vsix'
+            TargetFolder: '$(System.ArtifactsDirectory)/test-unsigned'
+            flattenFolders: true
+
+    # ======= Sign .vsix artifacts (for PROD and test version of the extension) =======
+    - stage: Sign_Vsix_Artifacts
+      displayName: 'Sign .vsix artifacts (for PROD and test version of the extension)'
+      dependsOn: Build_And_Package_For_Production_And_Test
+      condition: succeeded()
       jobs:
-      - job: CodeSigningJob
-        displayName: CodeSigning
+      - job: SignVsix
+        displayName: 'Sign .vsix artifacts job (for PROD and test version of the extension)'
         templateContext:
           outputs:
           - output: pipelineArtifact
-            displayName: 'Signed vsix artifact'
-            targetPath: '$(System.ArtifactsDirectory)'
-            artifactName: vsix-signed
+            displayName: 'Make signed PROD artifact available'
+            targetPath: '$(System.ArtifactsDirectory)/signed'
+            artifactName: 'vsix-signed'
+          - output: pipelineArtifact
+            displayName: 'Make signed test artifact available'
+            targetPath: '$(System.ArtifactsDirectory)/test-signed'
+            artifactName: 'vsix-test-signed'
         steps:
         - download: current
           artifact: vsix-unsigned
-          displayName: Download Artifact
-        - script: |
-            echo "Simulated error in CodeSigning step."
-            exit 1
-          displayName: Simulate CodeSigning Error
-          condition: ${{ eq(parameters.simulateCodeSigningError, 'true') }}
-        - task: CopyFiles@2
-          displayName: 'Copy Files to: $(System.DefaultWorkingDirectory)'
-          inputs:
-            SourceFolder: '$(Pipeline.Workspace)\vsix-unsigned'
-            Contents: '*.vsix'
-            TargetFolder: $(System.DefaultWorkingDirectory)
+          displayName: 'Download unsigned PROD .vsix'
+
+        - download: current
+          artifact: vsix-test-unsigned
+          displayName: 'Download unsigned test .vsix'
+
         - task: EsrpCodeSigning@5
-          displayName: ESRP CodeSigning
+          displayName: 'Sign PROD artifact using ESRP task'
           inputs:
-            ConnectedServiceName: '$(Control.EsrpServiceConnectionName)'
+            ConnectedServiceName: '$(Control.EsrpServiceConnectionName.GH)'
             AppRegistrationClientId: '$(Control.AppRegistrationClientId)'
             AppRegistrationTenantId: '$(Control.AppRegistrationTenantId)'
             AuthAKVName: '$(Control.AuthAKVName)'
             AuthCertName: '$(Control.AuthCertName)'
             AuthSignCertName: '$(Control.AuthSignCertName)'
-            FolderPath: $(System.DefaultWorkingDirectory)
+            FolderPath: '$(Pipeline.Workspace)\vsix-unsigned'
             Pattern: '*.vsix'
             signConfigType: inlineSignParams
             inlineOperation: |-
-              [ 
-                {
-                  "KeyCode": "CP-500813",
-                  "OperationCode": "AdoExtensionSign",
-                  "ToolName": "sign",
-                  "ToolVersion": "1.0",
-                  "Parameters": {}
-                },
-                {
-                  "KeyCode": "CP-500813",
-                  "OperationCode": "AdoExtensionVerify",
-                  "ToolName": "sign",
-                  "ToolVersion": "1.0",
-                  "Parameters": {}
-                }
+              [
+                {"KeyCode":"CP-500813","OperationCode":"AdoExtensionSign","ToolName":"sign","ToolVersion":"1.0","Parameters":{}},
+                {"KeyCode":"CP-500813","OperationCode":"AdoExtensionVerify","ToolName":"sign","ToolVersion":"1.0","Parameters":{}}
               ]
             SessionTimeout: 30
-        - task: CopyFiles@2
-          name: CopyFiles_5
-          displayName: 'Copy Files to: $(System.ArtifactsDirectory)'
-          inputs:
-            Contents: '*.vsix'
-            TargetFolder: $(System.ArtifactsDirectory)
 
-    - stage: PublishToMarketplace
-      dependsOn: CodeSigning
+        - task: CopyFiles@2
+          displayName: 'Copy signed PROD .vsix file to directory for publishing PROD extension'
+          inputs:
+            SourceFolder: '$(Pipeline.Workspace)\vsix-unsigned'
+            Contents: '*.vsix'
+            TargetFolder: '$(System.ArtifactsDirectory)/signed'
+
+        - task: EsrpCodeSigning@5
+          displayName: 'Sign test artifact using ESRP task'
+          inputs:
+            ConnectedServiceName: '$(Control.EsrpServiceConnectionName.GH)'
+            AppRegistrationClientId: '$(Control.AppRegistrationClientId)'
+            AppRegistrationTenantId: '$(Control.AppRegistrationTenantId)'
+            AuthAKVName: '$(Control.AuthAKVName)'
+            AuthCertName: '$(Control.AuthCertName)'
+            AuthSignCertName: '$(Control.AuthSignCertName)'
+            FolderPath: '$(Pipeline.Workspace)\vsix-test-unsigned'
+            Pattern: '*.vsix'
+            signConfigType: inlineSignParams
+            inlineOperation: |-
+              [
+                {"KeyCode":"CP-500813","OperationCode":"AdoExtensionSign","ToolName":"sign","ToolVersion":"1.0","Parameters":{}},
+                {"KeyCode":"CP-500813","OperationCode":"AdoExtensionVerify","ToolName":"sign","ToolVersion":"1.0","Parameters":{}}
+              ]
+            SessionTimeout: 30
+
+        - task: CopyFiles@2
+          displayName: 'Copy signed test .vsix file to directory for publishing test extension'
+          inputs:
+            SourceFolder: '$(Pipeline.Workspace)\vsix-test-unsigned'
+            Contents: '*.vsix'
+            TargetFolder: '$(System.ArtifactsDirectory)/test-signed'
+
+    # ======= Approve test extension publishing on Marketplace =======
+    - stage: Approve_Test_Extension_Publishing
+      displayName: 'Approve test extension publishing on Marketplace (visibility set to private)'
+      dependsOn: Sign_Vsix_Artifacts
+      condition: succeeded()
       jobs:
-      - job: PublishVSIX
-        displayName: Publish vsix to marketplace
+      - job: ApproveTest
+        displayName: 'Manual approval for publishing of the test extension (visibility set to private)'
+        pool: server
+        steps:
+        - task: ManualValidation@0
+          timeoutInMinutes: 1440
+          inputs:
+            notifyUsers: 'razvanmanole@microsoft.com'
+            instructions: 'Approve this step to publish the test version of the extension on Marketplace. The visibility of the extension is by default configured to be private.'
+
+    # ======= Publish test extension on Marketplace (visibility set to private) =======
+    - stage: Publish_Test_Extension
+      displayName: 'Publish test extension on Marketplace (visibility set to private)'
+      dependsOn: Approve_Test_Extension_Publishing
+      condition: succeeded()
+      jobs:
+      - job: PublishTestExtension
+        displayName: 'Publish test extension on Marketplace'
         steps:
         - download: current
-          artifact: vsix-signed
-          displayName: Download Signed Artifact
+          artifact: vsix-test-signed
+          displayName: 'Download the signed version of test .vsix'
 
         - task: NodeTool@0
-          displayName: 'Install Node.js'
+          displayName: 'Use Node.js 20.x'
           inputs:
-            versionSpec: '10.x'
+            versionSpec: '20.x'
 
         - task: TfxInstaller@5
+          displayName: 'Install TFX'
           inputs:
             version: 'v0.21.1'
 
         - task: 1ES.PublishAzureDevOpsExtension@1
-          displayName: 'Publish the public extension to ms-vscs-rm'
+          displayName: 'Publish test extension'
           inputs:
-            connectTo: 'AzureRM'
+            connectTo: AzureRM
             connectedServiceNameAzureRM: '1es-extensions-publication-secure-service-connection'
-            fileType: 'vsix'
+            fileType: vsix
+            vsixFile: '$(Pipeline.Workspace)/vsix-test-signed/*.vsix'
+            targetPath: '$(Pipeline.Workspace)/vsix-test-signed'
+            validateExtension: false
+            useV5: true
+
+    # ======= Execute CI tests and verify newly published test extension =======
+    - ${{ if ne(parameters.skipCiTesting, true) }}:
+      - stage: Execute_CI_Tests
+        displayName: 'Execute CI tests and verify the newly published test extension'
+        dependsOn: Publish_Test_Extension
+        condition: succeeded()
+        variables:
+          CI_TESTS_ORG_URL: 'https://dev.azure.com/canarytest'
+          CI_TESTS_PROJECT: 'PipelineTasks'
+        jobs:
+        - job: QueuePipelineRunAndWaitForResult
+          displayName: 'Trigger pipeline with CI tests for extension and wait for the result'
+          timeoutInMinutes: 120
+          steps:
+          - task: PowerShell@2
+            name: DetermineCiTestPipelineName
+            displayName: 'Determine the pipeline that will be triggered to verify the selected extension'
+            inputs:
+              filePath: '$(Build.SourcesDirectory)/scripts/DetermineCiTestPipelineName.ps1'
+              arguments: -ExtensionName "${{ parameters.extensionName }}"
+              pwsh: true
+              failOnStderr: true
+          - task: AzureCLI@2
+            displayName: 'Trigger selected CI pipeline and wait for the result'
+            inputs:
+              azureSubscription: 'canarytest-extensions-ci-tests-pipeline-connector'
+              scriptType: pscore
+              scriptLocation: scriptPath
+              scriptPath: '$(Build.SourcesDirectory)/scripts/TriggerAdoPipelineAndWaitResult.ps1'
+              arguments: >
+                -OrgUrl "$(CI_TESTS_ORG_URL)"
+                -Project "$(CI_TESTS_PROJECT)"
+                -PipelineName "$(TARGET_PIPELINE_NAME)"
+                -TimeoutMinutes 120
+
+    # ======= Approve PROD extension publishing on Marketplace =======
+    - stage: Approve_Prod_Extension_Publishing
+      displayName: 'Approve PROD extension publishing on Marketplace'
+      ${{ if eq(parameters.skipCiTesting, true) }}:
+        dependsOn: Publish_Test_Extension
+      ${{ if ne(parameters.skipCiTesting, true) }}:
+        dependsOn: Execute_CI_Tests
+      condition: succeeded()
+      jobs:
+      - job: ApproveProd
+        displayName: 'Manual approval for publishing of the PROD extension'
+        pool: server
+        steps:
+        - task: ManualValidation@0
+          timeoutInMinutes: 1440
+          inputs:
+            notifyUsers: 'razvanmanole@microsoft.com'
+            instructions: 'Approve this step to publish the PROD version of the extension on Marketplace. Be careful and ensure that new version is properly tested because after approval changes will be available to all users of the extension.'
+
+    # ======= Publish PROD extension on Marketplace =======
+    - stage: Publish_Prod_Extension
+      displayName: 'Publish PROD extension on Marketplace'
+      dependsOn: Approve_Prod_Extension_Publishing
+      condition: succeeded()
+      jobs:
+      - job: PublishProdExtension
+        displayName: 'Publish PROD extension on Marketplace'
+        steps:
+        - download: current
+          artifact: vsix-signed
+          displayName: 'Download the signed version of PROD .vsix'
+
+        - task: NodeTool@0
+          displayName: 'Use Node.js 20.x'
+          inputs:
+            versionSpec: '20.x'
+
+        - task: TfxInstaller@5
+          displayName: 'Install TFX'
+          inputs:
+            version: 'v0.21.1'
+
+        - task: 1ES.PublishAzureDevOpsExtension@1
+          displayName: 'Publish PROD extension'
+          inputs:
+            connectTo: AzureRM
+            connectedServiceNameAzureRM: '1es-extensions-publication-secure-service-connection'
+            fileType: vsix
             vsixFile: '$(Pipeline.Workspace)/vsix-signed/*.vsix'
             targetPath: '$(Pipeline.Workspace)/vsix-signed'
             validateExtension: false

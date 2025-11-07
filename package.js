@@ -1,22 +1,35 @@
-var through = require('through2');
-var gutil = require('gulp-util');
-var path = require('path');
-var fs = require('fs-extra');
-var check = require('validator');
-var shell = require('shelljs');
-var Q = require('q');
-var os = require('os');
-var cp = require('child_process');
-var gulp = require('gulp');
-var request = require('request');
-var unzip = require('gulp-unzip');
-var stream = require('stream');
-var util = require('./package-utils');
-var shell = require('shelljs');
+const cp = require('child_process');
+const path = require('path');
+
+const fs = require('fs-extra');
+const gulp = require('gulp');
+const gutil = require('gulp-util');
+const Q = require('q');
+const shell = require('shelljs');
+const through = require('through2');
+const check = require('validator');
+
+const util = require('./package-utils');
 
 var createError = function(msg) {
     return new gutil.PluginError('PackageTask', msg);
 }
+
+/**
+ * @typedef {Object} TaskExecutor
+ * @property {string} Node - Indicates that the task is executed using Node.js.
+ * @property {string} Node10 - Indicates that the task is executed using Node.js version 10.
+ * @property {string} Node20 - Indicates that the task is executed using Node.js version 20.
+ */
+
+/**
+ * @typedef {Object} Task
+ * @property {string} id - The unique identifier for the task.
+ * @property {string} name - The name of the task, used as a folder name.
+ * @property {string} friendlyName - A user-friendly name for the task.
+ * @property {string} instanceNameFormat - A format string for the instance name.
+ * @property {TaskExecutor} execution - The execution type of the task, e.g., 'Node'.
+ */
 
 // Validates the structure of a task.json file.
 var validateTask = function(folderName, task) {
@@ -37,7 +50,7 @@ var validateTask = function(folderName, task) {
     }
 
     if (!task.instanceNameFormat) {
-        defer.reject(createError(vn + ': instanceNameFormat is required'));    
+        defer.reject(createError(vn + ': instanceNameFormat is required'));
     }
 
     // resolve if not already rejected
@@ -46,9 +59,16 @@ var validateTask = function(folderName, task) {
 };
 var _tempPath = path.join(__dirname, '_temp');
 
-function copyCommonModules(currentExtnRoot, commonDeps, commonSrc){
-    return through.obj(
+function parseTaskJson(jsonContents) {
+    try {
+        return JSON.parse(jsonContents);
+    } catch (err) {
+        return null;
+    }
+}
 
+function copyCommonModules(currentExtnRoot, commonDeps, commonSrc) {
+    return through.obj(
         function(taskJson, encoding, done) {
             if (!fs.existsSync(taskJson)) {
                 new gutil.PluginError('PackageTask', 'Task json cannot be found: ' + taskJson.path);
@@ -56,34 +76,33 @@ function copyCommonModules(currentExtnRoot, commonDeps, commonSrc){
 
             if (taskJson.isNull() || taskJson.isDirectory()) {
                 this.push(taskJson);
-                return callback();
+                return done();
             }
 
             var taskDirPath = path.dirname(taskJson.path);
             var folderName = path.basename(taskDirPath);
-            var jsonContents = taskJson.contents.toString();
-            var task = {};
-            try {
-                task = JSON.parse(jsonContents);
-            }
-            catch (err) {
-                done(createError(folderName + ' parse error: ' + err.message));
+
+            /** @type {Task} */
+            var task = parseTaskJson(taskJson.contents.toString());
+
+            if (task === null) {
+                done(createError('Parse error in task.json: ' + taskJson.path));
                 return;
             }
 
-            var targetPath;
 
             validateTask(folderName, task)
             .then(function() {
                 // Copy the task to the layout folder.
-                targetPath = path.join(currentExtnRoot, "Src", "Tasks", task.name);
+                const targetPath = path.join(currentExtnRoot, "Src", "Tasks", task.name);
                 shell.mkdir('-p', targetPath);
                 shell.rm(path.join(targetPath, '*.csproj'));
                 shell.rm(path.join(targetPath, '*.md'));
                 // Path to UI contribution files
-                uiPath = path.join(currentExtnRoot, "Src", "UIContribution");
+                const uiPath = path.join(currentExtnRoot, "Src", "UIContribution");
                 // Statically link the required internal common modules.
                 var taskDeps;
+
                 if ((taskDeps = commonDeps[folderName])) {
                     taskDeps.forEach(function (dep) {
                         gutil.log('Linking ' + dep.module + ' into ' + folderName);
@@ -91,29 +110,42 @@ function copyCommonModules(currentExtnRoot, commonDeps, commonSrc){
                         var dest = path.join(targetPath, dep.dest);
                         shell.mkdir('-p', dest);
                         fs.copy(src, dest, "*", function (err) {
-                            if (err) return console.error(err) 
-                        })
+                            if (err) return console.error(err)
+                        });
                     })
                 }
-                var externals = require('./externals.json');
-                if (task.execution['Node']) {
-                     var doNotCache = false;
-                     externals['no-cache'].forEach(function(ext){
-                         if(ext == task.name) {
-                             doNotCache = true;
-                         }
-                     });
-                     
-                     if(doNotCache) {
-                        util.buildNodeTask(taskDirPath, targetPath); 
-                         // For building UI contribution using webpack
-                         if(fs.existsSync(uiPath) && fs.statSync(uiPath).isDirectory()) {
-                            util.buildUIContribution(uiPath,uiPath);
-                        }
-                     } else {
 
+                const externals = require('./externals.json');
+
+                // For building UI contribution using webpack
+                if (fs.existsSync(uiPath) && fs.statSync(uiPath).isDirectory()) {
+                    console.log(`⚒️  Building UI contribution for task: ${task.name}`);
+                    var originalDir = shell.pwd();
+                    util.cd(uiPath);
+                    util.run('npm install');
+                    util.cd(originalDir);
+                }
+
+                if (Object.keys(task.execution).some(x => x.includes('Node'))) {
+                    if (externals['no-cache'].includes(task.name)) {
+                        console.log(`⚒️  Building Node task: ${task.name}`);
+
+                        const originalDir = shell.pwd();
+
+                        try {
+                            util.cd(taskDirPath);
+                            cp.execSync('npm install', { stdio: 'ignore' });
+                            console.log(`\x1b[A\x1b[K✅ npm install at ${taskDirPath} completed successfully.`);
+                        } catch (err) {
+                            console.log(`\x1b[A\x1b[K❌ npm install at ${taskDirPath} failed. Error: ${err.message}`);
+                            process.exit(1);
+                        } finally {
+                            util.cd(originalDir);
+                        }
+                    } else {
                         // Determine the vsts-task-lib version.
                         var libVer = externals.npm['vsts-task-lib'];
+
                         if (!libVer) {
                             throw new Error('External vsts-task-lib not defined in externals.json.');
                         }
@@ -281,7 +313,7 @@ function locCommon() {
 
             if (moduleJson.isNull() || moduleJson.isDirectory()) {
                 this.push(moduleJson);
-                return callback();
+                return done();
             }
 
             // Deserialize the module.json.
@@ -319,13 +351,6 @@ function locCommon() {
             done();
         });
 }
-
-function assertParameter(value, name) {
-	if (!value) {
-		throw new Error('"' + name + '" cannot be null or empty.');
-	}
-}
-
 
 exports.copyCommonModules = copyCommonModules;
 exports.LocCommon = locCommon;

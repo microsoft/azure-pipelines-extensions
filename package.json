@@ -10,12 +10,27 @@
     "url": "https://github.com/Microsoft/vsts-iiswebdeploy.git"
   },
   "devDependencies": {
+    "@types/adm-zip": "^0.4.34",
+    "@types/del": "^2.2.33",
+    "@types/fs-extra": "^0.0.28",
+    "@types/gulp": "^4.0.17",
+    "@types/gulp-mocha": "^0.0.37",
+    "@types/gulp-util": "^3.0.41",
+    "@types/minimist": "^1.2.5",
+    "@types/q": "^1.5.8",
+    "@types/request": "^2.48.12",
+    "@types/semver": "^4.3.27",
+    "@types/shelljs": "^0.3.33",
+    "@types/through2": "^2.0.41",
+    "@types/validator": "^5.7.35",
+    "@types/xml2js": "^0.4.14",
+    "@types/yargs": "^17.0.33",
     "adm-zip": "0.4.11",
     "del": "^2.2.0",
     "fs-extra": "^0.28.0",
     "gulp": "^4.0.2",
     "gulp-mocha": "^6.0.0",
-    "gulp-typescript": "3.0.0",
+    "gulp-typescript": "^5.0.1",
     "gulp-unzip": "^1.1.0",
     "gulp-util": "^3.0.7",
     "minimatch": "3.0.2",
@@ -27,7 +42,7 @@
     "shelljs": "^0.3.0",
     "sync-request": "3.0.1",
     "through2": "^2.0.1",
-    "typescript": "4.5",
+    "typescript": "^4.9.5",
     "validator": "^5.2.0",
     "vsts-task-lib": "^2.0.5",
     "xml2js": "^0.4.17",
@@ -36,5 +51,10 @@
   "dependencies": {
     "natives": "^1.1.6",
     "shell-quote": "^1.8.2"
+  },
+  "overrides": {
+    "gulp-typescript": {
+      "braces": "3.0.3"
+    }
   }
 }
