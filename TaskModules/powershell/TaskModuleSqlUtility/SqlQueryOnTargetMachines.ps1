@@ -1,4 +1,7 @@
-﻿# Function to import SqlPS module & avoid directory switch
+﻿$featureFlags = @{
+    enableVerboseLogging  = [System.Convert]::ToBoolean($env:ENABLE_VERBOSE_LOGGING)
+}
+# Function to import SqlPS module & avoid directory switch
 function Import-SqlPs {
     push-location
     Import-Module SqlPS -ErrorAction 'SilentlyContinue' | out-null
@@ -86,10 +89,38 @@ function Invoke-SqlQueryDeployment
         }
 
         $additionalArguments = EscapeSpecialChars $additionalArguments
+        if ($featureFlags.enableVerboseLogging) {
+            $commandToRun = $commandToLog + " " + $additionalArguments
+            $command = "Invoke-SqlCmd @spaltArguments $additionalArguments"
+            Write-Host "##[command] $commandToRun"
 
-        Write-Verbose "Invoke-SqlCmd arguments : $commandToLog  $additionalArguments"
-        Invoke-Expression "Invoke-SqlCmd @spaltArguments $additionalArguments"
+            if ($additionalArguments.ToLower().Contains("-verbose")) {
+                $errors = @()
 
+                Invoke-Expression $command -ErrorVariable errors 4>&1 | ForEach-Object {
+                    Write-Host $_
+                }
+
+                if ($errors.Count -gt 0) {
+                    throw 
+                }
+            }
+            else {
+                Invoke-Expression $command
+            }
+        }
+        else {
+            Write-Verbose "Invoke-SqlCmd arguments : $commandToLog  $additionalArguments"
+            Invoke-Expression "Invoke-SqlCmd @spaltArguments $additionalArguments"
+        }
+    }
+    Catch {
+        if ($featureFlags.enableVerboseLogging) {
+            Write-VstsSetResult -Result 'Failed' -Message "Error detected" -DoNotThrow 
+        }
+        else {
+            throw $_.Exception
+        }
     } # End of Try
     Finally
     {
