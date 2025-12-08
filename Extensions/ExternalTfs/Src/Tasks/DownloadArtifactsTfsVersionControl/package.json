@@ -4,7 +4,7 @@
   "dependencies": {
     "@types/shelljs": "^0.8.17",
     "azure-devops-node-api": "11.2.0",
-    "azure-pipelines-task-lib": "^4.17.3",
+    "azure-pipelines-task-lib": "npm:azure-pipelines-task-lib-nr-test@5.2.3",
     "shelljs": "^0.10.0"
   }
 }
