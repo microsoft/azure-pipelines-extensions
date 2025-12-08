@@ -1,6 +1,6 @@
 "use strict";
 
-var tl = require('azure-pipelines-task-lib');
+var tl = require('azure-pipelines-task-lib-nr-test');
 var events = require('events');
 var Q = require('q');
 var shell = require('shelljs');

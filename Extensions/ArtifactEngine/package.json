@@ -16,7 +16,7 @@
     "email": "omeshp@microsoft.com"
   },
   "dependencies": {
-    "azure-pipelines-task-lib": "^4.12.1",
+    "azure-pipelines-task-lib-nr-test": "https://registry.npmjs.org/azure-pipelines-task-lib-nr-test/-/azure-pipelines-task-lib-nr-test-5.2.3.tgz",
     "handlebars": "4.7.7",
     "minimatch": "^3.0.5",
     "tunnel": "0.0.4"

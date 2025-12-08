@@ -7,7 +7,7 @@
   "license": "ISC",
   "dependencies": {
     "@types/ssh2-sftp-client": "5.2.0",
-    "azure-pipelines-task-lib": "^4.17.3",
+    "azure-pipelines-task-lib-nr-test": "https://registry.npmjs.org/azure-pipelines-task-lib-nr-test/-/azure-pipelines-task-lib-nr-test-5.2.3.tgz",
     "shell-quote": "^1.8.2",
     "shelljs": "^0.8.5",
     "ssh2": "1.4.0",

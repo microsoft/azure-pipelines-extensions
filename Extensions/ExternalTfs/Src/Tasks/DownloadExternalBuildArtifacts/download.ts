@@ -2,7 +2,7 @@ const fs = require('fs')
 const path = require('path')
 
 import { WebApi, getBasicHandler } from 'azure-devops-node-api/WebApi';
-import * as tl from 'azure-pipelines-task-lib/task';
+import * as tl from 'azure-pipelines-task-lib-nr-test/task';
 
 import * as engine from "artifact-engine/Engine";
 import * as providers from "artifact-engine/Providers";

@@ -1,4 +1,4 @@
-var tl = require('azure-pipelines-task-lib');
+var tl = require('azure-pipelines-task-lib-nr-test');
 var packagejson = require('../package.json');
 
 const area: string = 'artifact-engine';

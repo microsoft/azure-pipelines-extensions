@@ -1,4 +1,4 @@
-var tl = require('azure-pipelines-task-lib/task');
+var tl = require('azure-pipelines-task-lib-nr-test/task');
 var webApim = require('azure-devops-node-api/WebApi');
 var Q = require('q');
 var url = require('url');
