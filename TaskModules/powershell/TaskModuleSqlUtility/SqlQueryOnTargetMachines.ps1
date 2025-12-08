@@ -1,7 +1,4 @@
-﻿$featureFlags = @{
-    enableVerboseLogging  = [System.Convert]::ToBoolean($env:ENABLE_VERBOSE_LOGGING)
-}
-# Function to import SqlPS module & avoid directory switch
+﻿# Function to import SqlPS module & avoid directory switch
 function Import-SqlPs {
     push-location
     Import-Module SqlPS -ErrorAction 'SilentlyContinue' | out-null
@@ -28,7 +25,8 @@ function Invoke-SqlQueryDeployment
         [string]$databaseName,
         [string]$authscheme,
         [System.Management.Automation.PSCredential]$sqlServerCredentials,
-        [string]$additionalArguments
+        [string]$additionalArguments,
+        [bool]$EnableVerboseLogging = $false
     )
 
     Write-Verbose "Entering script SqlQueryOnTargetMachines.ps1"
@@ -39,6 +37,7 @@ function Invoke-SqlQueryDeployment
     Write-Verbose "databaseName = $databaseName"
     Write-Verbose "authscheme = $authscheme"
     Write-Verbose "additionalArguments = $additionalArguments"
+    Write-Verbose "enableVerboseLogging = $EnableVerboseLogging"
 
     try 
     {
@@ -89,7 +88,7 @@ function Invoke-SqlQueryDeployment
         }
 
         $additionalArguments = EscapeSpecialChars $additionalArguments
-        if ($featureFlags.enableVerboseLogging) {
+        if ($EnableVerboseLogging) {
             $commandToRun = $commandToLog + " " + $additionalArguments
             $command = "Invoke-SqlCmd @spaltArguments $additionalArguments"
             Write-Host "##[command] $commandToRun"
@@ -115,7 +114,7 @@ function Invoke-SqlQueryDeployment
         }
     }
     Catch {
-        if ($featureFlags.enableVerboseLogging) {
+        if ($EnableVerboseLogging) {
             Write-VstsSetResult -Result 'Failed' -Message "Error detected" -DoNotThrow 
         }
         else {
