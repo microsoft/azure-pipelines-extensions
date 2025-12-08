@@ -5,7 +5,7 @@ import * as models from '../Models';
 import { Logger } from '../Engine/logger';
 import { ArtifactItemStore } from '../Store/artifactItemStore';
 
-var tl = require('azure-pipelines-task-lib-nr-test');
+var tl = require('azure-pipelines-task-lib');
 
 export class FilesystemProvider implements models.IArtifactProvider {
 

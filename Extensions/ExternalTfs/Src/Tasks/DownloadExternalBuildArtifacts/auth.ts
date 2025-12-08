@@ -1,4 +1,4 @@
-import tl = require('azure-pipelines-task-lib-nr-test/task');
+import tl = require('azure-pipelines-task-lib/task');
 import * as msal from "@azure/msal-node";
 import { getFederatedToken } from "azure-pipelines-tasks-azure-arm-rest/azCliUtility";
 

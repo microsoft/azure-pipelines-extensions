@@ -1,6 +1,6 @@
 var shell = require('shelljs');
 var path = require('path');
-var tl = require('azure-pipelines-task-lib-nr-test/task');
+var tl = require('azure-pipelines-task-lib/task');
 var Q = require('q');
 var url = require('url');
 var tfvcwm = require('./tfvcwrapper');

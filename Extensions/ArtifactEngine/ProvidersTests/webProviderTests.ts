@@ -1,4 +1,4 @@
-var libMocker = require("azure-pipelines-task-lib-nr-test/lib-mocker");
+var libMocker = require("azure-pipelines-task-lib/lib-mocker");
 var stream = require("stream");
 
 import * as assert from 'assert';

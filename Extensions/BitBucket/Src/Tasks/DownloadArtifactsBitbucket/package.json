@@ -2,7 +2,7 @@
   "name": "DownloadArtifactsBitbucket",
   "main": "download.js",
   "dependencies": {
-    "azure-pipelines-task-lib-nr-test": "https://registry.npmjs.org/azure-pipelines-task-lib-nr-test/-/azure-pipelines-task-lib-nr-test-5.2.3.tgz",
+    "azure-pipelines-task-lib": "^4.17.3",
     "vso-node-api": "6.0.1-preview"
   }
 }

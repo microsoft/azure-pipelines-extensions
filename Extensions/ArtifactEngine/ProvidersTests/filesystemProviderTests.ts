@@ -1,6 +1,6 @@
 import * as path from 'path'
 
-var libMocker = require("azure-pipelines-task-lib-nr-test/lib-mocker");
+var libMocker = require("azure-pipelines-task-lib/lib-mocker");
 var stream = require("stream");
 var sinon = require("sinon");
 
@@ -32,7 +32,7 @@ libMocker.enable({
 
 import * as providers from '../Providers';
 import { ArtifactItemStore } from '../Store/artifactItemStore';
-var tl = require("azure-pipelines-task-lib-nr-test");
+var tl = require("azure-pipelines-task-lib");
 
 describe('Unit Tests', () => {
     describe('filesystemProvider tests', () => {

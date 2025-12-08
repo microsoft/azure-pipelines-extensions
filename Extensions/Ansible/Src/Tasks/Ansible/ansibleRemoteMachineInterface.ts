@@ -1,4 +1,4 @@
-import tl = require("azure-pipelines-task-lib-nr-test/task");
+import tl = require("azure-pipelines-task-lib/task");
 import path = require("path");
 import * as ansibleUtils from './ansibleUtils';
 import { RemoteCommandOptions } from './ansibleUtils'

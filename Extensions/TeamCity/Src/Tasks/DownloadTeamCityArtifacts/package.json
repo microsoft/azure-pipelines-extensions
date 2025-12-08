@@ -3,7 +3,7 @@
   "main": "download.js",
   "dependencies": {
     "artifact-engine": "^1.263.0",
-    "azure-pipelines-task-lib-nr-test": "https://registry.npmjs.org/azure-pipelines-task-lib-nr-test/-/azure-pipelines-task-lib-nr-test-5.2.3.tgz",
+    "azure-pipelines-task-lib": "^4.17.3",
     "underscore": "^1.13.4"
   }
 }

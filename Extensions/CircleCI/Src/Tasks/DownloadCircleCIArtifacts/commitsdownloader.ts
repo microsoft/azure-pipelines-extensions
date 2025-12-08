@@ -4,7 +4,7 @@ import * as path from 'path';
 
 import * as providers from 'artifact-engine/Providers';
 import { HttpClientResponse } from 'artifact-engine/Providers/typed-rest-client/HttpClient';
-import * as tl from 'azure-pipelines-task-lib-nr-test/task';
+import * as tl from 'azure-pipelines-task-lib/task';
 import * as Q from 'q';
 
 type BuildObject = {

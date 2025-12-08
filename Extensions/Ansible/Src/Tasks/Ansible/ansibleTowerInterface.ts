@@ -1,4 +1,4 @@
-import tl = require("azure-pipelines-task-lib-nr-test/task");
+import tl = require("azure-pipelines-task-lib/task");
 import path = require("path");
 import querystring = require('querystring');
 import util = require("util");
