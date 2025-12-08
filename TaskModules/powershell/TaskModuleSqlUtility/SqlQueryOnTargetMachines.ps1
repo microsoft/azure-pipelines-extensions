@@ -26,7 +26,7 @@ function Invoke-SqlQueryDeployment
         [string]$authscheme,
         [System.Management.Automation.PSCredential]$sqlServerCredentials,
         [string]$additionalArguments,
-        [bool]$EnableVerboseLogging = $false
+        [bool]$enableVerboseLogging = $false
     )
 
     Write-Verbose "Entering script SqlQueryOnTargetMachines.ps1"
@@ -37,7 +37,7 @@ function Invoke-SqlQueryDeployment
     Write-Verbose "databaseName = $databaseName"
     Write-Verbose "authscheme = $authscheme"
     Write-Verbose "additionalArguments = $additionalArguments"
-    Write-Verbose "enableVerboseLogging = $EnableVerboseLogging"
+    Write-Verbose "enableVerboseLogging = $enableVerboseLogging"
 
     try 
     {
@@ -88,7 +88,7 @@ function Invoke-SqlQueryDeployment
         }
 
         $additionalArguments = EscapeSpecialChars $additionalArguments
-        if ($EnableVerboseLogging) {
+        if ($enableVerboseLogging) {
             $commandToRun = $commandToLog + " " + $additionalArguments
             $command = "Invoke-SqlCmd @spaltArguments $additionalArguments"
             Write-Host "##[command] $commandToRun"
@@ -114,7 +114,7 @@ function Invoke-SqlQueryDeployment
         }
     }
     Catch {
-        if ($EnableVerboseLogging) {
+        if ($enableVerboseLogging) {
             Write-VstsSetResult -Result 'Failed' -Message "Error detected" -DoNotThrow 
         }
         else {
