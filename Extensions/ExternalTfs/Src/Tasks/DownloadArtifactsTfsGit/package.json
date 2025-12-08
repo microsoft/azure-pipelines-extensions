@@ -4,7 +4,7 @@
   "dependencies": {
     "@azure/msal-node": "^2.7.0",
     "azure-devops-node-api": "14.1.0",
-    "azure-pipelines-task-lib": "^4.13.0",
+    "azure-pipelines-task-lib": "npm:azure-pipelines-task-lib-nr-test@5.2.3",
     "azure-pipelines-tasks-azure-arm-rest": "^3.263.0"
   }
 }
