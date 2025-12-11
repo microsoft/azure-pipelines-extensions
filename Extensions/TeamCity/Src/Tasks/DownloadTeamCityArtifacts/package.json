@@ -3,7 +3,7 @@
   "main": "download.js",
   "dependencies": {
     "artifact-engine": "^1.263.0",
-    "azure-pipelines-task-lib": "^4.17.3",
+    "azure-pipelines-task-lib": "^5.2.3",
     "underscore": "^1.13.4"
   }
 }
