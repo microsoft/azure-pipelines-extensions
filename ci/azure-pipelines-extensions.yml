@@ -92,6 +92,22 @@ extends:
           displayName: 'gulp build'
           inputs:
             targets: build
+        - powershell: |
+            Get-ChildItem Env:
+        - powershell: |
+            git --no-pager diff --diff-filter=d --name-only origin/$env:TARGET_BRANCHNAME...$env:SOURCE_BRANCHNAME -- Extensions/*/Src/Tasks/*/package.json | ForEach-Object {
+              $parentFolder = Split-Path $_ -Parent
+              npm i --prefix $parentFolder
+
+              if (git diff --name-only -- $folder) {
+                Write-Error "Changes detected in package-lock.json file at $parentFolder";
+                exit 1
+              }
+            }
+          env:
+            SOURCE_BRANCHNAME: $(System.PullRequest.sourceBranchName)
+            TARGET_BRANCHNAME: $(System.PullRequest.targetBranchName)
+          displayName: Check package.json and package-lock.json are synced
         - task: gulp@0
           displayName: 'gulp test'
           inputs:
