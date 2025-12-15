@@ -79,9 +79,9 @@ extends:
           failOnStderr: true
           displayName: 'Code Checks'
         - task: NodeTool@0
-          displayName: 'Use Node 10.24.1'
+          displayName: 'Use Node v24'
           inputs:
-            versionSpec: 10.24.1
+            versionSpec: 24.*
         - powershell: 'node getUpdatedPaths.js'
           displayName: 'PowerShell Script'
         - task: Npm@1
