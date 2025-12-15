@@ -169,10 +169,29 @@ function copyCommonModules(currentExtnRoot, commonDeps, commonSrc) {
         });
 }
 
+function syncTasksPackageJsonFiles() {
+    return through.obj((taskJson, _, done) => {
+        console.log(`⚒️  Syncing package.json dependencies for task: ${taskJson.path}`);
+        const taskDirPath = path.dirname(taskJson.path);
+        const originalDir = shell.pwd();
+
+        try {
+            util.cd(taskDirPath);
+            cp.execSync('npm install', { stdio: 'ignore' });
+            console.log(`\x1b[A\x1b[K✅ npm install at ${taskDirPath} completed successfully.`);
+        } catch (err) {
+            console.log(`\x1b[A\x1b[K❌ npm install at ${taskDirPath} failed. Error: ${err.message}`);
+            process.exit(1);
+        } finally {
+            util.cd(originalDir);
+        }
+
+        done();
+    });
+}
+
 
 var _strRelPath = path.join('Strings', 'resources.resjson', 'en-US');
-
-
 
 var _cultureNames = [
 	'cs',
@@ -352,5 +371,8 @@ function locCommon() {
         });
 }
 
-exports.copyCommonModules = copyCommonModules;
-exports.LocCommon = locCommon;
+module.exports = {
+    copyCommonModules,
+    locCommon,
+    syncTasksPackageJsonFiles
+};

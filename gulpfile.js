@@ -929,9 +929,12 @@ gulp.task("package_nuget", gulp.series('nuget-download', function() {
 }));
 
 
-gulp.task("locCommon",function(){
-    return gulp.src(path.join(__dirname, 'Extensions/Common/**/module.json'))
-             .pipe(pkgm.LocCommon());
+gulp.task("locCommon",() => {
+    return gulp.src(path.join(__dirname, 'Extensions/Common/**/module.json')).pipe(pkgm.locCommon());
+});
+
+gulp.task("syncTasksPackageJsonFiles", () => {
+    return gulp.src(path.join(__dirname, 'Extensions/*/Src/Tasks/*/package.json')).pipe(pkgm.syncTasksPackageJsonFiles());
 });
 
 var copyCommonModules = function(extensionName) {

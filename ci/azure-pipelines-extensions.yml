@@ -93,6 +93,17 @@ extends:
           inputs:
             targets: build
         - task: gulp@0
+          displayName: Install tasks dependencies from package.json files
+          inputs:
+            targets: syncTasksPackageJsonFiles
+        - powershell: |
+            $changedPackageLockFiles = git diff --name-only Extensions/*/Src/Tasks/*/package-lock.json
+            if ($changedPackageLockFiles.Count -gt 0) {
+              Write-Error "package-lock.json files are out of sync:`n$changedPackageLockFiles`n`nPlease run 'gulp syncTasksPackageJsonFiles' and commit the changes."
+              exit 1
+            }
+          displayName: Check package-lock.json files are in sync
+        - task: gulp@0
           displayName: 'gulp test'
           inputs:
             targets: test
