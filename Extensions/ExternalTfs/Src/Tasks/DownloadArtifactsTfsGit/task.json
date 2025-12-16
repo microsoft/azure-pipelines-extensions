@@ -14,7 +14,7 @@
   "version": {
     "Major": 16,
     "Minor": 267,
-    "Patch": 0
+    "Patch": 1
   },
   "minimumAgentVersion": "2.144.0",
   "instanceNameFormat": "Download Artifacts - External TFS Git",
@@ -41,7 +41,7 @@
     },
     {
       "name": "azureDevOpsServiceConnection",
-      "type": "connectedService:workloadidentityuser",  
+      "type": "connectedService:workloadidentityuser",
       "label": "Azure DevOps service connection",
       "defaultValue": "",
       "visibleRule": "connectionType = ado",
