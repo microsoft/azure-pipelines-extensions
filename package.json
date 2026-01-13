@@ -1,6 +1,6 @@
 {
   "name": "vsts-iiswebapp",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "IIS web application extension for deploying asp.net website.",
   "main": "app.js",
   "author": "Microsoft",
@@ -55,6 +55,9 @@
   "overrides": {
     "gulp-typescript": {
       "braces": "3.0.3"
+    },
+    "request": {
+      "form-data": "2.5.4"
     }
   }
 }
