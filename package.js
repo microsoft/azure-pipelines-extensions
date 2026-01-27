@@ -96,8 +96,8 @@ function copyCommonModules(currentExtnRoot, commonDeps, commonSrc) {
                 // Copy the task to the layout folder.
                 const targetPath = path.join(currentExtnRoot, "Src", "Tasks", task.name);
                 shell.mkdir('-p', targetPath);
-                shell.rm(path.join(targetPath, '*.csproj'));
-                shell.rm(path.join(targetPath, '*.md'));
+                shell.rm('-f', path.join(targetPath, '*.csproj'));
+                shell.rm('-f', path.join(targetPath, '*.md'));
                 // Path to UI contribution files
                 const uiPath = path.join(currentExtnRoot, "Src", "UIContribution");
                 // Statically link the required internal common modules.
