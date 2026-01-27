@@ -8,8 +8,8 @@
   "author": "ms-vscs-rm",
   "version": {
     "Major": 16,
-    "Minor": 267,
-    "Patch": 1
+    "Minor": 269,
+    "Patch": 0
   },
   "demands": [],
   "minimumAgentVersion": "2.144.0",
