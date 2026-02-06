@@ -3,7 +3,7 @@
   "id": "vss-services-circleci-extension",
   "name": "CircleCI artifacts for Release Pipeline",
   "publisher": "ms-vscs-rm",
-  "version": "0.262.1",
+  "version": "0.264.0",
   "public": true,
   "description": "Tool for connecting with CircleCI",
   "_description.comment": "The below format to define artifact extensions is currently in preview and may change in future.",

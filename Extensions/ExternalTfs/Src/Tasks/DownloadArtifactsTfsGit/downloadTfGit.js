@@ -1,21 +1,23 @@
 var tl = require('azure-pipelines-task-lib/task');
-var path = require('path');
 var webApim = require('azure-devops-node-api/WebApi');
 var Q = require('q');
 var url = require('url');
 var shell = require("shelljs");
 var gitwm = require('./gitwrapper');
-var auth = require('./auth')
+var auth = require('./auth');
 
-var PullRefsPrefix = "refs/pull/";
-var PullRefsOriginPrefix = "refs/remotes/origin/pull/";
+var GIT_CLONE_RETRY_ATTEMPTS = 4;
 
-var repositoryId = tl.getInput("definition");
-var projectId = tl.getInput("project");
-var branch = tl.getInput("branch");
-var commitId = tl.getInput("version");
+var connectionType = tl.getInput("connectionType");
+var isAdoConnectionType = connectionType === 'ado';
+
+var serviceConnection = tl.getInput(isAdoConnectionType ? "azureDevOpsServiceConnection" : "connection");
+var repositoryId = tl.getInput(isAdoConnectionType ? "definitionAdo" : "definition");
+var projectId = tl.getInput(isAdoConnectionType ? "projectAdo" : "project");
+var branch = tl.getInput(isAdoConnectionType ? "branchAdo" : "branch");
+var commitId = tl.getInput(isAdoConnectionType ? "versionAdo" : "version");
 var downloadPath = tl.getInput("downloadPath");
-var VSTS_HTTP_RETRY = 4;
+validateInputs(serviceConnection, repositoryId, projectId, branch, commitId, downloadPath);
 
 shell.rm('-rf', downloadPath);
 var error = shell.error();
@@ -24,114 +26,90 @@ if (error) {
     tl.exit(1);
 }
 
-function executeWithRetries(operationName, operation, currentRetryCount) {
-    var deferred = Q.defer()
-    operation().then((result) => {
-        deferred.resolve(result)
-    }).fail((error) => {
-        if (currentRetryCount <= 0) {
-            tl.error('OperationFailed: ' + operationName)
-            tl.setResult(tl.TaskResult.Failed, error);
-            deferred.reject(error)
-        } else {
-            console.log('RetryingOperation', operationName, currentRetryCount)
-            currentRetryCount = currentRetryCount - 1
-            setTimeout(() => executeWithRetries(operationName, operation, currentRetryCount), 4 * 1000)
-        }
-    })
-
-    return deferred.promise
-}
-
-let tfsEndpoint;
+let connectionDetails;
 let isPullRequest;
-let gitw;
-let gopt;
+let git;
+const gitOptions = {
+    creds: true,
+    debugOutput: !!process.env['SYSTEM_DEBUG']
+};
 
-getServiceConnection().then(endpoint => {
-    tfsEndpoint = endpoint;
-    return getGitClientPromise(tfsEndpoint);
+getServiceConnectionDetails().then(response => {
+    connectionDetails = response;
+    return getGitClientPromise(connectionDetails);
 }).then(gitClient => {
-    var gitRepositoryPromise = getRepositoryDetails(gitClient, repositoryId, projectId);
-    return gitRepositoryPromise;
-}).then(gitRepository => {
-    gitw = new gitwm.GitWrapper();
-    gitw.on('stdout', data => console.log(data.toString()));
-    gitw.on('stderr', data => console.log(data.toString()));
-
-    var remoteUrl = gitRepository.remoteUrl;
-    tl.debug("Remote Url:" + remoteUrl);
-
-    var gu = url.parse(remoteUrl);
-    if (tfsEndpoint.Username && tfsEndpoint.Password) {
-        gu.auth = tfsEndpoint.Username + ':' + tfsEndpoint.Password;
-    }
-
-    var giturl = gu.format(gu);
-    isPullRequest = !!branch && (branch.toLowerCase().startsWith(PullRefsPrefix) || branch.toLowerCase().startsWith(PullRefsOriginPrefix));
-    tl.debug("IsPullRequest:" + isPullRequest);
-
-    var ref = branch.startsWith('refs/heads/') ? `refs/remotes/origin/${branch.substr('refs/heads/'.length)}` : branch;
-
-    gopt = { creds: true, debugOutput: this.debugOutput };
-    gitw.username = this.username;
-    gitw.password = this.password;
+    return getRepositoryRemoteUrl(gitClient, repositoryId, projectId);
+}).then(repositoryRemoteUrl => {
+    var gitReadyRepoUrl = prepareGitConsumableRepoUrl(repositoryRemoteUrl, connectionDetails);
+    git = configureGitApiWrapper(connectionDetails);
+    isPullRequest = isPullRequestBranch(branch);
 
     return executeWithRetries('gitClone', () => {
-        return gitw.clone(giturl, true, downloadPath, gopt).then(result => {
+        return git.clone(gitReadyRepoUrl, true, downloadPath, gitOptions).then(result => {
             if (isPullRequest) {
                 shell.cd(downloadPath);
-                return gitw.fetch(['origin', branch], gopt);
+                return git.fetch(['origin', branch], gitOptions);
             }
             return result;
         });
-    }, VSTS_HTTP_RETRY);
+    }, GIT_CLONE_RETRY_ATTEMPTS);
 }).then(() => {
     shell.cd(downloadPath);
     var ref = isPullRequest ? commitId : branch;
-    return gitw.checkout(ref, gopt);
+    return git.checkout(ref, gitOptions);
 }).then(() => {
     if (!isPullRequest) {
-        return gitw.checkout(commitId);
+        return git.checkout(commitId);
     }
 }).catch(error => {
     tl.error(error);
     tl.setResult(tl.TaskResult.Failed, error);
 });
 
-async function getServiceConnection() {
-    if(isAdoServiceConnectionSet()) {
-        return getADOServiceConnectionDetails();
+function validateInputs(serviceConnection, repositoryId, projectId, branch, commitId, downloadPath) {
+    if (!serviceConnection || serviceConnection.trim().length === 0) {
+        throw new Error("Service connection is not provided.");
     }
-    return getEndpointDetails("connection");
+    if (!repositoryId) {
+        throw new Error("Repository is not provided.");
+    }
+    if (!projectId) {
+        throw new Error("Project is not provided.");
+    }
+    if (!branch) {
+        throw new Error("Branch is not provided.");
+    }
+    if (!commitId) {
+        throw new Error("Commit ID is not provided.");
+    }
+    if (!downloadPath) {
+        throw new Error("Download path is not provided.");
+    }
 }
 
-function getGitClientPromise(tfsEndpoint) {
-    var handler = webApim.getBasicHandler(tfsEndpoint.Username, tfsEndpoint.Password);
-    var webApi = new webApim.WebApi(tfsEndpoint.Url, handler);
-    return webApi.getGitApi();
-}
-
-function getRepositoryDetails(gitClient, repositoryId, projectId) {
-    var promise = gitClient.getRepository(repositoryId, projectId);
-    return promise;
-}
-
-function getEndpointDetails(inputFieldName) {
-    var errorMessage = "Could not decode the External Tfs endpoint. Please ensure you are running the latest agent";
-    if (!tl.getEndpointUrl) {
-        throw new Error(errorMessage);
-    }
-    var externalTfsEndpoint = tl.getInput(inputFieldName);
-    if (!externalTfsEndpoint) {
-        throw new Error(errorMessage);
-    }
-    var hostUrl = tl.getEndpointUrl(externalTfsEndpoint, false);
+async function getServiceConnectionDetails() {
+    var hostUrl = tl.getEndpointUrl(serviceConnection, false);
     if (!hostUrl) {
         throw new Error(errorMessage);
     }
+    
+    return isAdoConnectionType
+        ? getAdoScDetails(serviceConnection, hostUrl)
+        : getReposOrTfsScDetails(serviceConnection, hostUrl);
+}
 
-    var auth = tl.getEndpointAuthorization(externalTfsEndpoint, false);
+async function getAdoScDetails(serviceConnection, hostUrl) {
+    var accessToken = await auth.getAccessTokenViaWorkloadIdentityFederation(serviceConnection);
+    return {
+        "Url": hostUrl,
+        "Username": "oauth2",
+        "Password": accessToken,
+        "AccessToken": accessToken
+    };
+}
+
+function getReposOrTfsScDetails(serviceConnection, hostUrl) {
+    var auth = tl.getEndpointAuthorization(serviceConnection, false);
     if (auth.scheme != "UsernamePassword" && auth.scheme != "Token") {
         throw new Error("The authorization scheme " + auth.scheme + " is not supported for a External Tfs endpoint.");
     }
@@ -153,27 +131,6 @@ function getEndpointDetails(inputFieldName) {
     };
 }
 
-function isAdoServiceConnectionSet() {
-    const connectedServiceName = tl.getInput("azureDevOpsServiceConnection", false);
-    return connectedServiceName && connectedServiceName.trim().length > 0;
-}
-
-async function getADOServiceConnectionDetails() {
-    const connectedServiceName = tl.getInput("azureDevOpsServiceConnection", false);
-    if (connectedServiceName && connectedServiceName.trim().length > 0) {
-        accessToken = await auth.getAccessTokenViaWorkloadIdentityFederation(connectedServiceName);
-        hostUrl = tl.getVariable('System.TeamFoundationCollectionUri');
-        return {
-            "Url": hostUrl,
-            "Username": ".",
-            "Password": accessToken
-        }; 
-    } else {
-        var errorMessage = "Could not decode the AzureDevOpsServiceConnection. Please ensure you are running the latest agent";
-        throw new Error(errorMessage);
-    }
-}
-
 function getAuthParameter(auth, paramName) {
     var paramValue = null;
     var parameters = Object.getOwnPropertyNames(auth['parameters']);
@@ -186,4 +143,87 @@ function getAuthParameter(auth, paramName) {
     });
     paramValue = auth['parameters'][keyName];
     return paramValue;
+}
+
+function getGitClientPromise(connectionDetails) {
+    let handler;
+    if (connectionDetails.AccessToken) {
+        // Use bearer handler for ADO service connections that works with the access token.
+        handler = webApim.getBearerHandler(connectionDetails.AccessToken, true);
+    } else {
+        // For use cases where username/password or token scheme is used we rely on basic handler.
+        handler = webApim.getBasicHandler(connectionDetails.Username, connectionDetails.Password);
+    }
+
+    var webApi = new webApim.WebApi(connectionDetails.Url, handler);
+    return webApi.getGitApi();
+}
+
+function getRepositoryRemoteUrl(gitClient, repositoryId, projectId) {
+    return gitClient.getRepository(repositoryId, projectId).then(repo => {
+        if (!repo) {
+            throw new Error(
+                'Repository lookup returned null or undefined for id: ' + repositoryId + ', project: ' + projectId +
+                '. Ensure the service connection has appropriate permissions.');
+        }
+    
+        var remoteUrl = repo.remoteUrl;
+        if (!remoteUrl) {
+            throw new Error('Repository object missing remoteUrl. This may indicate insufficient permissions or an API auth issue.');
+        }
+
+        tl.debug('Repository remote URL:' + remoteUrl);
+        return remoteUrl;
+    });
+}
+
+function prepareGitConsumableRepoUrl(repoUrl, connectionDetails) {
+    var parsedRepoUrl = url.parse(repoUrl);
+    if (connectionDetails.Username && connectionDetails.Password) {
+        parsedRepoUrl.auth = connectionDetails.Username + ':' + connectionDetails.Password;
+    }
+
+    return url.format(parsedRepoUrl);
+}
+
+function configureGitApiWrapper(connectionDetails) {
+    // Create a wrapper around the git CLI so we can call clone/fetch/checkout and stream its output to the logs.
+    var gitApiWrapper = new gitwm.GitWrapper();
+    gitApiWrapper.on('stdout', data => console.log(data.toString()));
+    gitApiWrapper.on('stderr', data => console.log(data.toString()));
+
+    gitApiWrapper.username = connectionDetails.Username;
+    gitApiWrapper.password = connectionDetails.Password;
+    return gitApiWrapper;
+}
+
+function isPullRequestBranch(branch) {
+    var pullRefsPrefix = "refs/pull/";
+    var pullRefsOriginPrefix = "refs/remotes/origin/pull/";
+
+    var isAssociatedWithPullRequest = !!branch && (
+        branch.toLowerCase().startsWith(pullRefsPrefix) ||
+        branch.toLowerCase().startsWith(pullRefsOriginPrefix)
+    );
+    tl.debug('IsPullRequest:' + isAssociatedWithPullRequest);
+
+    return isAssociatedWithPullRequest;
+}
+
+function executeWithRetries(operationName, operation, remainingRetryAttempts) {
+    var deferred = Q.defer();
+    operation().then(result => {
+        deferred.resolve(result);
+    }).fail(error => {
+        if (remainingRetryAttempts <= 0) {
+            tl.error('OperationFailed: ' + operationName);
+            tl.setResult(tl.TaskResult.Failed, error);
+            deferred.reject(error);
+        } else {
+            tl.debug('RetryingOperation: ' + operationName + ', remainingRetryAttempts: ' + remainingRetryAttempts);
+            remainingRetryAttempts = remainingRetryAttempts - 1;
+            setTimeout(() => executeWithRetries(operationName, operation, remainingRetryAttempts), 4 * 1000);
+        }
+    });
+    return deferred.promise;
 }

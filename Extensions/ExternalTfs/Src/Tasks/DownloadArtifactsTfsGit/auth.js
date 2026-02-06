@@ -1,45 +1,40 @@
 const tl = require('azure-pipelines-task-lib/task');
 const msal = require('@azure/msal-node');
-const { getFederatedToken } = require('azure-pipelines-tasks-artifacts-common/webapi');
+const { getFederatedToken } = require('azure-pipelines-tasks-azure-arm-rest/azCliUtility');
 
-const workloadIdentityFederation = "workloadidentityfederation";
-
-async function getAccessTokenViaWorkloadIdentityFederation(connectedService) {
-    const authorizationScheme = tl
-        .getEndpointAuthorizationSchemeRequired(connectedService)
-        .toLowerCase();
-
-    if (authorizationScheme !== workloadIdentityFederation) {
+async function getAccessTokenViaWorkloadIdentityFederation(serviceConnection) {
+    const authorizationScheme = tl.getEndpointAuthorizationSchemeRequired(serviceConnection);
+    if (authorizationScheme.toLowerCase() !== "workloadidentityfederation") {
         throw new Error(`Authorization scheme ${authorizationScheme} is not supported.`);
     }
 
-    const servicePrincipalId = tl.getEndpointAuthorizationParameterRequired(connectedService, "serviceprincipalid");
-    const servicePrincipalTenantId = tl.getEndpointAuthorizationParameterRequired(connectedService, "tenantid");
+    const servicePrincipalId = tl.getEndpointAuthorizationParameterRequired(serviceConnection, "serviceprincipalid");
+    const tenantId = tl.getEndpointAuthorizationParameterRequired(serviceConnection, "tenantid");
 
     const authorityUrl =
-        tl.getEndpointDataParameter(connectedService, "activeDirectoryAuthority", true) || "https://login.microsoftonline.com/";
+        tl.getEndpointDataParameter(serviceConnection, "activeDirectoryAuthority", true) ||
+        "https://login.microsoftonline.com/";
 
-    tl.debug(`Getting federated token for service connection ${connectedService}`);
-
+    tl.debug(`Getting federated token for service connection ${serviceConnection}`);
     let federatedToken = null;
 
     try {
-        federatedToken = await getFederatedToken(connectedService);
+        federatedToken = await getFederatedToken(serviceConnection);
     } catch (error) {
         tl.error(error);
     }
-    
+
     if (!federatedToken || federatedToken.length == 0) {
-        throw new Error(`Failed to get the federatedToken for service connection ${connectedService}`);
+        throw new Error(`Failed to get the federatedToken for service connection ${serviceConnection}`);
     }
-    
-    tl.debug(`Got federated token for service connection ${connectedService}`);
+
+    tl.debug(`Got federated token for service connection ${serviceConnection}`);
 
     // Exchange federated token for service principal token
-    return await getAccessTokenFromFederatedToken(servicePrincipalId, servicePrincipalTenantId, federatedToken, authorityUrl);
+    return await getAccessTokenFromFederatedToken(servicePrincipalId, tenantId, federatedToken, authorityUrl);
 }
 
-async function getAccessTokenFromFederatedToken(servicePrincipalId, servicePrincipalTenantId, federatedToken, authorityUrl) {
+async function getAccessTokenFromFederatedToken(servicePrincipalId, tenantId, federatedToken, authorityUrl) {
     const AzureDevOpsResourceId = "499b84ac-1321-427f-aa17-267ca6975798";
 
     // Use MSAL to get an access token using the service principal with a federated token
@@ -49,7 +44,7 @@ async function getAccessTokenFromFederatedToken(servicePrincipalId, servicePrinc
     const config = {
         auth: {
             clientId: servicePrincipalId,
-            authority: `${authorityUrl.replace(/\/+$/, "")}/${servicePrincipalTenantId}`,
+            authority: `${authorityUrl.replace(/\/+$/, "")}/${tenantId}`,
             clientAssertion: federatedToken,
         },
         system: {

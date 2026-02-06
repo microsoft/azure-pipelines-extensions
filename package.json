@@ -1,6 +1,6 @@
 {
   "name": "vsts-iiswebapp",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "IIS web application extension for deploying asp.net website.",
   "main": "app.js",
   "author": "Microsoft",
@@ -20,7 +20,7 @@
     "@types/q": "^1.5.8",
     "@types/request": "^2.48.12",
     "@types/semver": "^4.3.27",
-    "@types/shelljs": "^0.3.33",
+    "@types/shelljs": "^0.8.17",
     "@types/through2": "^2.0.41",
     "@types/validator": "^5.7.35",
     "@types/xml2js": "^0.4.14",
@@ -30,19 +30,19 @@
     "fs-extra": "^0.28.0",
     "gulp": "^4.0.2",
     "gulp-mocha": "^6.0.0",
-    "gulp-typescript": "3.0.0",
+    "gulp-typescript": "^5.0.1",
     "gulp-unzip": "^1.1.0",
     "gulp-util": "^3.0.7",
     "minimatch": "3.0.2",
-    "minimist": "1.1.1",
-    "mocha": "^5.2.0",
+    "minimist": "1.2.6",
+    "mocha": "^11.7.5",
     "q": "^1.4.1",
     "request": "^2.88.0",
     "semver": "4.3.3",
-    "shelljs": "^0.3.0",
+    "shelljs": "^0.10.0",
     "sync-request": "3.0.1",
     "through2": "^2.0.1",
-    "typescript": "4.5",
+    "typescript": "^4.9.5",
     "validator": "^5.2.0",
     "vsts-task-lib": "^2.0.5",
     "xml2js": "^0.4.17",
@@ -53,8 +53,12 @@
     "shell-quote": "^1.8.2"
   },
   "overrides": {
+    "qs": "6.14.1",
     "gulp-typescript": {
       "braces": "3.0.3"
+    },
+    "request": {
+      "form-data": "2.5.4"
     }
   }
 }

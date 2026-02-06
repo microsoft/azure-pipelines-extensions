@@ -7,26 +7,42 @@
   "category": "Utility",
   "author": "ms-vscs-rm",
   "version": {
-    "Major": 15,
-    "Minor": 261,
+    "Major": 16,
+    "Minor": 269,
     "Patch": 0
   },
   "demands": [],
   "minimumAgentVersion": "2.144.0",
   "inputs": [
     {
+      "name": "connectionType",
+      "type": "pickList",
+      "label": "Service Connection Type",
+      "defaultValue": "reposOrTfs",
+      "required": true,
+      "options": {
+        "reposOrTfs": "Azure Repos/Team Foundation Server",
+        "ado": "Azure DevOps (in preview)"
+      },
+      "helpMarkDown": "Select which service connection type to use for artifact discovery and download."
+    },
+    {
       "name": "connection",
       "type": "connectedService:externaltfs",
-      "label": "Team Foundation Server/Azure DevOps connection",
+      "label": "Azure Repos/Team Foundation Server service connection",
+      "required": true,
       "defaultValue": "",
-      "helpMarkDown": "Team Foundation Server/Azure DevOps connection"
+      "helpMarkDown": "Select Azure Repos/Team Foundation Server service connection",
+      "visibleRule": "connectionType = reposOrTfs"
     },
     {
       "name": "azureDevOpsServiceConnection",
       "type": "connectedService:workloadidentityuser",
-      "label": "Azure DevOps Service Connection",
+      "label": "Azure DevOps service connection",
+      "required": true,
       "defaultValue": "",
-      "helpMarkDown": "Select an Azure DevOps Service Connection service connection"
+      "helpMarkDown": "Select Azure DevOps service connection (in preview)",
+      "visibleRule": "connectionType = ado"
     },
     {
       "name": "project",
@@ -37,18 +53,20 @@
       "properties": {
         "EditableOptions": "True"
       },
-      "helpMarkDown": "Select the project name"
+      "helpMarkDown": "Select the project name",
+      "visibleRule": "connectionType = reposOrTfs"
     },
     {
       "name": "definition",
       "type": "pickList",
-      "label": "Build definition",
+      "label": "Build Definition",
       "defaultValue": "",
       "required": true,
       "properties": {
         "EditableOptions": "True"
       },
-      "helpMarkDown": "Select the build definition name"
+      "helpMarkDown": "Select the build definition",
+      "visibleRule": "connectionType = reposOrTfs"
     },
     {
       "name": "version",
@@ -59,7 +77,44 @@
       "properties": {
         "EditableOptions": "True"
       },
-      "helpMarkDown": "Select the build number"
+      "helpMarkDown": "Select the build number",
+      "visibleRule": "connectionType = reposOrTfs"
+    },
+    {
+      "name": "projectAdo",
+      "type": "pickList",
+      "label": "Project",
+      "defaultValue": "",
+      "required": true,
+      "properties": {
+        "EditableOptions": "True"
+      },
+      "helpMarkDown": "Select the Azure DevOps project",
+      "visibleRule": "connectionType = ado"
+    },
+    {
+      "name": "buildDefinitionAdo",
+      "type": "pickList",
+      "label": "Build definition",
+      "defaultValue": "",
+      "required": true,
+      "properties": {
+        "EditableOptions": "True"
+      },
+      "helpMarkDown": "Select the build definition",
+      "visibleRule": "connectionType = ado"
+    },
+    {
+      "name": "versionAdo",
+      "type": "pickList",
+      "label": "Build",
+      "defaultValue": "",
+      "required": true,
+      "properties": {
+        "EditableOptions": "True"
+      },
+      "helpMarkDown": "Select the build number",
+      "visibleRule": "connectionType = ado"
     },
     {
       "name": "itemPattern",
@@ -72,7 +127,7 @@
     {
       "name": "downloadPath",
       "type": "string",
-      "label": "Destination directory",
+      "label": "Destination Directory",
       "defaultValue": "$(System.ArtifactsDirectory)",
       "required": true,
       "helpMarkDown": "Path on the agent machine where the artifact will be downloaded"
@@ -103,6 +158,36 @@
           "definition": "$(definition)"
       },
       "resultTemplate": "{ \"Value\" : \"{{{id}}}\", \"DisplayValue\" : \"{{{buildNumber}}}\" }"
+    },
+    {
+      "endpointId": "$(azureDevOpsServiceConnection)",
+      "target": "projectAdo",
+      "dataSourceName": "Projects",
+      "parameters": {
+        "top": 1000
+      },
+      "resultTemplate": "{ \"Value\" : \"{{{id}}}\", \"DisplayValue\" : \"{{{name}}}\" }"
+    },
+    {
+      "endpointId": "$(azureDevOpsServiceConnection)",
+      "target": "buildDefinitionAdo",
+      "dataSourceName": "Definitions",
+      "parameters": {
+          "project": "$(projectAdo)",
+          "top": 500
+      },
+      "resultTemplate": "{ \"Value\" : \"{{{id}}}\", \"DisplayValue\" : \"{{{name}}}\" }"
+    },
+    {
+      "endpointId": "$(azureDevOpsServiceConnection)",
+      "target": "versionAdo",
+      "dataSourceName": "Builds",
+      "parameters": {
+          "project": "$(projectAdo)",
+          "definition": "$(buildDefinitionAdo)",
+          "top": 100
+      },
+      "resultTemplate": "{ \"Value\" : \"{{{id}}}\", \"DisplayValue\" : \"{{{buildNumber}}}\" }"
     }
   ],
   "instanceNameFormat": "Download Artifacts - External Build",
@@ -111,7 +196,7 @@
       "target": "download.js",
       "argumentFormat": ""
     },
-    "Node20": {
+    "Node20_1": {
       "target": "download.js",
       "argumentFormat": ""
     }

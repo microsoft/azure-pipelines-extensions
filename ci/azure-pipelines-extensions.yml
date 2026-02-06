@@ -19,7 +19,7 @@ extends:
         baselineSet: default
         baselineFile: $(Build.SourcesDirectory)/.gdn/.gdnbaselines
     pool:
-      name: 1ES-Shared-Hosted-Pool_Windows-Server-2022
+      name: 1ESPtTfsAgentBuildPool1
       os: windows
     customBuildTags:
     - ES365AIMigrationTooling

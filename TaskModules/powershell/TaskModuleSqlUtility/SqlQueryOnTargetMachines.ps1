@@ -25,7 +25,8 @@ function Invoke-SqlQueryDeployment
         [string]$databaseName,
         [string]$authscheme,
         [System.Management.Automation.PSCredential]$sqlServerCredentials,
-        [string]$additionalArguments
+        [string]$additionalArguments,
+        [bool]$enableVerboseLogging = $false
     )
 
     Write-Verbose "Entering script SqlQueryOnTargetMachines.ps1"
@@ -36,6 +37,7 @@ function Invoke-SqlQueryDeployment
     Write-Verbose "databaseName = $databaseName"
     Write-Verbose "authscheme = $authscheme"
     Write-Verbose "additionalArguments = $additionalArguments"
+    Write-Verbose "enableVerboseLogging = $enableVerboseLogging"
 
     try 
     {
@@ -86,10 +88,38 @@ function Invoke-SqlQueryDeployment
         }
 
         $additionalArguments = EscapeSpecialChars $additionalArguments
+        if ($enableVerboseLogging) {
+            $commandToRun = $commandToLog + " " + $additionalArguments
+            $command = "Invoke-SqlCmd @spaltArguments $additionalArguments"
+            Write-Host "##[command] $commandToRun"
 
-        Write-Verbose "Invoke-SqlCmd arguments : $commandToLog  $additionalArguments"
-        Invoke-Expression "Invoke-SqlCmd @spaltArguments $additionalArguments"
+            if ($additionalArguments.ToLower().Contains("-verbose")) {
+                $errors = @()
 
+                Invoke-Expression $command -ErrorVariable errors 4>&1 | ForEach-Object {
+                    Write-Host $_
+                }
+
+                if ($errors.Count -gt 0) {
+                    throw 
+                }
+            }
+            else {
+                Invoke-Expression $command
+            }
+        }
+        else {
+            Write-Verbose "Invoke-SqlCmd arguments : $commandToLog  $additionalArguments"
+            Invoke-Expression "Invoke-SqlCmd @spaltArguments $additionalArguments"
+        }
+    }
+    Catch {
+        if ($enableVerboseLogging) {
+            Write-VstsSetResult -Result 'Failed' -Message "Error detected" -DoNotThrow 
+        }
+        else {
+            throw $_.Exception
+        }
     } # End of Try
     Finally
     {

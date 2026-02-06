@@ -7,9 +7,9 @@
   "license": "ISC",
   "dependencies": {
     "@types/ssh2-sftp-client": "5.2.0",
-    "azure-pipelines-task-lib": "^4.17.3",
+    "azure-pipelines-task-lib": "^5.2.3",
     "shell-quote": "^1.8.2",
-    "shelljs": "^0.8.5",
+    "shelljs": "^0.10.0",
     "ssh2": "1.4.0",
     "ssh2-sftp-client": "^8.1.0",
     "uuid": "^3.3.2",
