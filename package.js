@@ -45,7 +45,7 @@ var validateTask = function(folderName, task) {
         defer.reject(createError(vn + ': name is a required alphanumeric string'));
     }
 
-    if (!task.friendlyName || !check.isLength(task.friendlyName, 1, 40)) {
+    if (!task.friendlyName || !check.isLength(task.friendlyName, {min: 1, max: 40})) {
         defer.reject(createError(vn + ': friendlyName is a required string <= 40 chars'));
     }
 
