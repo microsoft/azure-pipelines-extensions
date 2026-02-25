@@ -84,11 +84,7 @@ extends:
             versionSpec: 18.x
         - powershell: 'node getUpdatedPaths.js'
           displayName: 'PowerShell Script'
-        - task: Npm@1
-          displayName: 'npm install'
-          inputs:
-            command: install
-            verbose: false      
+           
         - task: gulp@0
           displayName: 'gulp build'
           inputs:
