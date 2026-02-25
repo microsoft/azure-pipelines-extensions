@@ -87,11 +87,7 @@ extends:
         - task: Npm@1
           displayName: 'npm install'
           inputs:
-            verbose: false
-        - task: NodeTool@0
-          displayName: 'Switch to Node 18.x for build/test'
-          inputs:
-            versionSpec: 18.x
+            verbose: false      
         - task: gulp@0
           displayName: 'gulp build'
           inputs:
