@@ -81,7 +81,7 @@ extends:
         - task: NodeTool@0
           displayName: 'Switch to Node 18.x for build/test'
           inputs:
-            versionSpec: 18.18.0
+            versionSpec: 18.x
         - powershell: 'node getUpdatedPaths.js'
           displayName: 'PowerShell Script'
         - task: Npm@1
