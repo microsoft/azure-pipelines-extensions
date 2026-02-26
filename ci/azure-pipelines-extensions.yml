@@ -83,10 +83,7 @@ extends:
           inputs:
             versionSpec: 20.x
         - powershell: 'node getUpdatedPaths.js'
-          displayName: 'PowerShell Script'
-        - script: npm ci
-          displayName: 'Install dependencies'
-          workingDirectory: '$(Build.SourcesDirectory)'
+          displayName: 'PowerShell Script'       
 
         - script: npx gulp build
           displayName: 'Run gulp build'
