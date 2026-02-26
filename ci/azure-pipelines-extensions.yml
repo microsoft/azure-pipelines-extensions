@@ -86,11 +86,8 @@ extends:
         - script: |
             node -v
             npm -v
-          displayName: 'Verify Node'       
-
-        - script: npx gulp build
-          displayName: 'Run gulp build'
-          workingDirectory: '$(Build.SourcesDirectory)'   
+          displayName: 'Verify Node' 
+             
         - task: gulp@0
           displayName: 'gulp build'
           inputs:
