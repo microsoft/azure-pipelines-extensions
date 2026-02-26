@@ -79,11 +79,14 @@ extends:
           failOnStderr: true
           displayName: 'Code Checks'
         - task: NodeTool@0
-          displayName: 'Switch to Node 18.x for build/test'
           inputs:
-            versionSpec: 20.x
-        - powershell: 'node getUpdatedPaths.js'
-          displayName: 'PowerShell Script'       
+            versionSpec: '20.x'
+          displayName: 'Install Node 20'
+
+        - script: |
+            node -v
+            npm -v
+          displayName: 'Verify Node'       
 
         - script: npx gulp build
           displayName: 'Run gulp build'
