@@ -79,15 +79,15 @@ extends:
           failOnStderr: true
           displayName: 'Code Checks'
         - task: NodeTool@0
-          displayName: 'Use Node 10.24.1'
           inputs:
-            versionSpec: 10.24.1
-        - powershell: 'node getUpdatedPaths.js'
-          displayName: 'PowerShell Script'
-        - task: Npm@1
-          displayName: 'npm install'
-          inputs:
-            verbose: false
+            versionSpec: '20.x'
+          displayName: 'Install Node 20'
+
+        - script: |
+            node -v
+            npm -v
+          displayName: 'Verify Node' 
+             
         - task: gulp@0
           displayName: 'gulp build'
           inputs:
