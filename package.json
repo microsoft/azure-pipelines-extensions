@@ -33,7 +33,7 @@
     "gulp-typescript": "^5.0.1",
     "gulp-unzip": "^1.1.0",
     "gulp-util": "^3.0.7",
-    "minimatch": "3.0.5",
+    "minimatch": "3.1.3",
     "minimist": "1.2.6",
     "mocha": "^11.7.5",
     "q": "^1.4.1",
