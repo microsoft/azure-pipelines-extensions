@@ -1,0 +1,31 @@
+name: Find Vulnerabilities Agent
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 3 * * 1'
+
+permissions:
+  contents: read
+  models: read
+
+jobs:
+  inference:
+    name: Run vulnerability scan prompt
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run AI inference
+        id: inference
+        uses: actions/ai-inference@v2
+        with:
+          prompt-file: ./.github/agents/Find vulnerabilities.agent.md
+          model: openai/gpt-4o
+          enable-github-mcp: true
+
+      - name: Print inference result
+        run: |
+          echo "${{ steps.inference.outputs.response }}"
