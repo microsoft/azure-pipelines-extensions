@@ -7,7 +7,7 @@ const cp = require('child_process');
 const admZip = require('adm-zip');
 const del = require('del');
 const fs = require('fs-extra');
-const mocha = require('gulp-mocha');
+// const mocha = require('gulp-mocha');
 const minimist = require('minimist');
 const request = require('request');
 const semver = require('semver');
@@ -21,11 +21,13 @@ const args = require('yargs').argv;
 // gulp modules
 const gts = require('gulp-typescript');
 const gulp = require('gulp');
+const { spawn } = require('child_process');
 const gutil = require('gulp-util');
 
 const pkgm = require('./package');
 const util = require('./package-utils');
 
+const cmd = process.platform === 'win32' ? 'npx.cmd' : 'npx';
 // validation
 var NPM_MIN_VER = '3.0.0';
 var MIN_NODE_VER = '4.0.0';
@@ -76,6 +78,33 @@ function errorHandler(error) {
 }
 
 var rootTsconfigPath = './base.tsconfig.json';
+
+function runMocha(files) {
+    const tfBuild = ('' + process.env['TF_BUILD']).toLowerCase() === 'true';
+    return new Promise((resolve, reject) => {
+        const cmd = process.platform === 'win32' ? 'npx.cmd' : 'npx';
+
+        const args = [
+            'mocha',
+            ...files,
+            '--reporter', 'spec',
+            '--ui', 'bdd',
+            tfBuild ? '--no-color' : '--color',
+            '--ignore', '**/node_modules/**'
+        ];
+
+        const proc = spawn(cmd, args, {
+            stdio: 'inherit',
+            shell: true
+        });
+
+        proc.on('close', (code) => {
+            code === 0
+                ? resolve()
+                : reject(new Error(`Mocha failed with exit code ${code}`));
+        });
+    });
+}
 
 gulp.task("clean", function() {
     return del([_buildRoot, _packageRoot, nugetPath, _taskModuleBuildRoot]);
@@ -147,16 +176,16 @@ gulp.task('copy:TaskModuleTest', gulp.series('compile:TaskModuleTest', function 
         .pipe(gulp.dest(TaskModulesTestRoot));
 }));
 
-gulp.task("TaskModuleTest", gulp.series('copy:TaskModuleTest', function() {
+gulp.task("TaskModuleTest", gulp.series('copy:TaskModuleTest', function () {
     process.env['TASK_TEST_TEMP'] = TaskModulesTestTemp;
     shell.rm('-rf', TaskModulesTestTemp);
     shell.mkdir('-p', TaskModulesTestTemp);
 
-    var testSuitePath = path.join(TaskModulesTestRoot, options.suite + '/L0.js');
-    var tfBuild = ('' + process.env['TF_BUILD']).toLowerCase() == 'true'
+    const testSuitePath = path.join(TaskModulesTestRoot, options.suite, 'L0.js');
+    console.log(testSuitePath);
 
-    gulp.src([testSuitePath])
-        .pipe(mocha({ reporter: 'spec', ui: 'bdd', useColors: !tfBuild }));
+    // IMPORTANT: return the Promise so gulp knows when task finishes
+    return runMocha([testSuitePath]);
 }));
 
 gulp.task('prepublish:TaskModulePublish', function (done) {
@@ -790,35 +819,46 @@ gulp.task('testLib_NodeModules', gulp.series('testLib', function () {
 
 gulp.task('testResources', gulp.parallel('testLib_NodeModules', 'ps1tests', 'tstests', 'copyTestData'));
 
-gulp.task("test", gulp.series("testResources", function(){
-    process.env['TASK_TEST_TEMP'] =path.join(__dirname, _testTemp);
+gulp.task("test", gulp.series("testResources", function () {
+    process.env['TASK_TEST_TEMP'] = path.join(__dirname, _testTemp);
     shell.rm('-rf', _testTemp);
     shell.mkdir('-p', _testTemp);
-
-    if (options.suite.indexOf("ArtifactEngine") >= 0  && options.e2e) {
-        var suitePath = path.join(_testRoot, "Extensions/" + options.suite + "/**/*e2e.js");
+    // ---- ArtifactEngine E2E ----
+    if (options.suite.indexOf("ArtifactEngine") >= 0 && options.e2e) {
+        const suitePath = path.join(_testRoot, "Extensions", options.suite, "**/*e2e.js");
         console.log(suitePath);
-        var tfBuild = ('' + process.env['TF_BUILD']).toLowerCase() == 'true'
-        return gulp.src([suitePath])
-            .pipe(mocha({ reporter: 'spec', ui: 'bdd', useColors: !tfBuild }));
+        return runMocha([suitePath]);
     }
-
-    if (options.suite.indexOf("ArtifactEngine") >= 0  && options.perf) {
-        var suitePath = path.join(_testRoot, "Extensions/" + options.suite + "/**/*perf.js");
+    // ---- ArtifactEngine PERF ----
+    if (options.suite.indexOf("ArtifactEngine") >= 0 && options.perf) {
+        const suitePath = path.join(_testRoot, "Extensions", options.suite, "**/*perf.js");
         console.log(suitePath);
-        var tfBuild = ('' + process.env['TF_BUILD']).toLowerCase() == 'true'
-        return gulp.src([suitePath])
-            .pipe(mocha({ reporter: 'spec', ui: 'bdd', useColors: !tfBuild }));
+        return runMocha([suitePath]);
     }
-
-    var suitePath = path.join(_testRoot,"Extensions/" + options.suite + "/Tests/Tasks", options.suite + '/_suite.js');
+    // ---- Default Suite ----
+    const suitePath = path.join(
+        _testRoot,
+        "Extensions",
+        options.suite,
+        "Tests/Tasks",
+        options.suite,
+        "_suite.js"
+    );
+    const suitePath2 = path.join(
+        _testRoot,
+        "Extensions",
+        options.suite,
+        "**/*Tests.js"
+    );
     console.log(suitePath);
-    var suitePath2 = path.join(_testRoot, "Extensions/" + options.suite + "/**/*Tests.js");
     console.log(suitePath2);
-    var tfBuild = ('' + process.env['TF_BUILD']).toLowerCase() == 'true'
-    var ignorePath = "!" + path.join(_testRoot, "Extensions",  "/**/UIContribution{,/**}");
-    return gulp.src([ suitePath, suitePath2, ignorePath ], { allowEmpty: true })
-        .pipe(mocha({ reporter: 'spec', ui: 'bdd', useColors: !tfBuild }));
+    const ignorePath = path.join(_testRoot, "Extensions", "**/UIContribution/**");
+    return runMocha([
+        suitePath,
+        suitePath2,
+        '--ignore',
+        ignorePath
+    ]);
 }));
 
 //-----------------------------------------------------------------------------------------------------------------

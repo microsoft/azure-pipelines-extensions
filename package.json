@@ -29,7 +29,7 @@
     "del": "^2.2.0",
     "fs-extra": "^0.28.0",
     "gulp": "^4.0.2",
-    "gulp-mocha": "^6.0.0",
+    "gulp-mocha": "^10.0.1",
     "gulp-typescript": "^5.0.1",
     "gulp-unzip": "^1.1.0",
     "gulp-util": "^3.0.7",
