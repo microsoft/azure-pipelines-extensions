@@ -6,8 +6,5 @@
     "azure-devops-node-api": "11.2.0",
     "azure-pipelines-task-lib": "^5.2.3",
     "shelljs": "^0.10.0"
-  },
-  "overrides": {
-    "minimatch": "3.1.3"
   }
 }
