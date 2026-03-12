@@ -4,7 +4,7 @@
   "dependencies": {
     "artifact-engine": "^1.263.0",
     "azure-pipelines-task-lib": "^5.2.3",
-    "underscore": "^1.13.4"
+    "underscore": "^1.13.8"
   },
   "overrides": {
     "minimatch": "3.1.5"
