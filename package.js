@@ -67,9 +67,17 @@ function parseTaskJson(jsonContents) {
     }
 }
 
-function copyCommonModules(currentExtnRoot, commonDeps, commonSrc) {
+/**
+ * Gulp plugin to copy common modules into the extension's task folders and build UI contribution if exists.
+ * @param {string} currentExtnRoot - The root directory of the current extension being packaged.
+ * @param {Record<string, Array<{module: string, dest: string}>>} commonDeps - An object mapping task folder names to their common module dependencies.
+ * @param {string} commonSrc - The source directory for common modules.
+ * @param {string} extensionSourcePath - The source path of the extension being packaged.
+ * @returns {NodeJS.ReadWriteStream} A through2 stream that processes task.json files, copies common modules, and builds UI contributions.
+ */
+function copyCommonModules(currentExtnRoot, commonDeps, commonSrc, extensionSourcePath) {
     return through.obj(
-        function(taskJson, encoding, done) {
+        function(taskJson, _encoding, done) {
             if (!fs.existsSync(taskJson)) {
                 new gutil.PluginError('PackageTask', 'Task json cannot be found: ' + taskJson.path);
             }
@@ -95,6 +103,7 @@ function copyCommonModules(currentExtnRoot, commonDeps, commonSrc) {
             .then(function() {
                 // Copy the task to the layout folder.
                 const targetPath = path.join(currentExtnRoot, "Src", "Tasks", task.name);
+                const taskSourcePath = path.join(extensionSourcePath, "Src", "Tasks", task.name);
                 shell.mkdir('-p', targetPath);
                 shell.rm('-f', path.join(targetPath, '*.csproj'));
                 shell.rm('-f', path.join(targetPath, '*.md'));
@@ -134,7 +143,11 @@ function copyCommonModules(currentExtnRoot, commonDeps, commonSrc) {
 
                         try {
                             util.cd(taskDirPath);
-                            cp.execSync('npm install', { stdio: 'ignore' });
+                            if (util.isDebug()) {
+                                cp.execSync(`npm install --verbose --userconfig ${path.join(taskSourcePath, ".npmrc")}`, { stdio: 'inherit' });
+                            } else {
+                                cp.execSync(`npm install --userconfig ${path.join(taskSourcePath, ".npmrc")}`, { stdio: 'ignore' });
+                            }
                             console.log(`\x1b[A\x1b[K✅ npm install at ${taskDirPath} completed successfully.`);
                         } catch (err) {
                             console.log(`\x1b[A\x1b[K❌ npm install at ${taskDirPath} failed. Error: ${err.message}`);
