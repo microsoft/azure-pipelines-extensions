@@ -57,6 +57,7 @@ var artifactEnginePath = path.join(_extnBuildRoot, "ArtifactEngine");
 var _taskModuleBuildRoot = "_build/TaskModules/";
 var sourcePaths = "@(definitions|Extensions)/**/*";
 var ExtensionFolder = "Extensions";
+var artifactEngineSourcePath = path.join(ExtensionFolder, "ArtifactEngine");
 var taskModulesSourcePath = "TaskModules/**/*"
 var TaskModulesFolder = "TaskModules"
 var TaskModulesTestRoot = path.join(_taskModuleBuildRoot, 'powershell', 'Tests');
@@ -642,7 +643,7 @@ function runNpmInstall(packagePath) {
     util.cd(packagePath);
     var packageJsonPath = util.rp('package.json');
     if (util.test('-f', packageJsonPath)) {
-        util.run('npm install');
+        util.run(`npm install --userconfig ${path.join(artifactEngineSourcePath, ".npmrc")}`);
     }
     util.cd(originalDir);
 }
@@ -938,8 +939,9 @@ var copyCommonModules = function(extensionName) {
     var commonDeps = require('./common.json');
     var commonSrc = path.join(__dirname, 'Extensions/Common');
     var currentExtnRoot = path.join(__dirname, "_build/Extensions" ,extensionName);
+    const extensionSourcePath = path.join(__dirname, "Extensions", extensionName);
     return gulp.src(path.join(currentExtnRoot, '**/task.json'))
-        .pipe(pkgm.copyCommonModules(currentExtnRoot, commonDeps, commonSrc));
+        .pipe(pkgm.copyCommonModules(currentExtnRoot, commonDeps, commonSrc, extensionSourcePath));
 }
 
 var createVsixPackage = function(extensionName) {
