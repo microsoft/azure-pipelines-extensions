@@ -1,23 +1,16 @@
-# CI Pipeline: Validates extension changes on feature/PR branches.
+# CI Pipeline: Validates extension changes on user/feature branches.
 # Builds and publishes an unsigned TEST extension, then runs CI tests.
 # No ESRP signing — avoids 1ES branch control restrictions on non-master branches.
 #
-# Trigger options:
-#   - Automatically on PRs targeting master
-#   - Manually via  /azp run  from a GitHub PR comment
-#   - Manually from the Azure DevOps pipeline UI (select extension + branch)
+# Usage:
+#   Run manually from the Azure DevOps pipeline UI.
+#   Select the extension to test and the branch containing your changes.
 
 name: CI - Extension $(ExtensionName) - $(Date:yyyyMMdd)$(Rev:.r)
 appendCommitMessageToRunName: false
 
-# No automatic CI trigger on pushes
 trigger: none
-
-# Auto-trigger on pull requests targeting master
-pr:
-  branches:
-    include:
-    - master
+pr: none
 
 parameters:
 - name: extensionName
