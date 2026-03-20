@@ -5,17 +5,13 @@
 # Trigger modes:
 #   1. Manual run from the Azure DevOps pipeline UI (select extension + branch)
 #   2. PR trigger via  /azp run  comment on a GitHub PR (auto-detects changed extension)
-#   3. Auto-trigger on PRs targeting master
 
 name: CI - Extension $(ExtensionName) - $(Date:yyyyMMdd)$(Rev:.r)
 appendCommitMessageToRunName: false
 
 trigger: none
 
-pr:
-  branches:
-    include:
-    - master
+pr: none
 
 parameters:
 - name: extensionName
@@ -139,10 +135,10 @@ extends:
             workingDirectory: '$(Build.SourcesDirectory)'
 
         - task: CopyFiles@2
-          displayName: 'Copy test .vsix file to unsigned artifacts directory'
+          displayName: 'Copy test .vsix file(s) to unsigned artifacts directory'
           inputs:
             SourceFolder: '$(Build.SourcesDirectory)/_package'
-            Contents: '$(ExtensionName)/*.vsix'
+            Contents: '$(ExtensionCopyPattern)/*.vsix'
             TargetFolder: '$(System.ArtifactsDirectory)/test-unsigned'
             flattenFolders: true
 
@@ -180,43 +176,35 @@ extends:
             validateExtension: false
             useV5: true
 
-    # ======= Execute CI tests and verify the newly published test extension =======
+    # ======= Execute CI tests for all detected extensions =======
     - ${{ if ne(parameters.skipCiTesting, true) }}:
       - stage: Execute_CI_Tests
-        displayName: 'Execute CI tests against the test extension'
+        displayName: 'Execute CI tests for all detected extensions'
         dependsOn: Publish_Test_Extension
         condition: succeeded()
         variables:
           CI_TESTS_ORG_URL: 'https://dev.azure.com/canarytest'
           CI_TESTS_PROJECT: 'PipelineTasks'
         jobs:
-        - job: QueuePipelineRunAndWaitForResult
-          displayName: 'Trigger CI test pipeline and wait for result'
+        - job: TriggerAndWaitForCiTests
+          displayName: 'Trigger CI test pipelines for all extensions and wait for results'
           timeoutInMinutes: 120
           steps:
           - task: PowerShell@2
-            displayName: 'Detect extension (auto-detect for PRs, parameter for manual runs)'
+            displayName: 'Detect changed extensions'
             inputs:
               filePath: '$(Build.SourcesDirectory)/scripts/DetectChangedExtension.ps1'
               arguments: -ParameterExtensionName "${{ parameters.extensionName }}"
               pwsh: true
-          - task: PowerShell@2
-            name: DetermineCiTestPipelineName
-            displayName: 'Determine the pipeline that will be triggered to verify the selected extension'
-            inputs:
-              filePath: '$(Build.SourcesDirectory)/scripts/DetermineCiTestPipelineName.ps1'
-              arguments: -ExtensionName "$(ExtensionName)"
-              pwsh: true
-              failOnStderr: true
           - task: AzureCLI@2
-            displayName: 'Trigger selected CI pipeline and wait for the result'
+            displayName: 'Trigger CI tests for all detected extensions and wait for results'
             inputs:
               azureSubscription: 'canarytest-extensions-ci-tests-pipeline-connector'
               scriptType: pscore
               scriptLocation: scriptPath
-              scriptPath: '$(Build.SourcesDirectory)/scripts/TriggerAdoPipelineAndWaitResult.ps1'
+              scriptPath: '$(Build.SourcesDirectory)/scripts/TriggerCiTestsForAllExtensions.ps1'
               arguments: >
+                -Extensions "$(DetectedExtensions)"
                 -OrgUrl "$(CI_TESTS_ORG_URL)"
                 -Project "$(CI_TESTS_PROJECT)"
-                -PipelineName "$(TARGET_PIPELINE_NAME)"
                 -TimeoutMinutes 120
