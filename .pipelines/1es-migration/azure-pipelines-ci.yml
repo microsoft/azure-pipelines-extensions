@@ -2,15 +2,20 @@
 # Builds and publishes an unsigned TEST extension, then runs CI tests.
 # No ESRP signing — avoids 1ES branch control restrictions on non-master branches.
 #
-# Usage:
-#   Run manually from the Azure DevOps pipeline UI.
-#   Select the extension to test and the branch containing your changes.
+# Trigger modes:
+#   1. Manual run from the Azure DevOps pipeline UI (select extension + branch)
+#   2. PR trigger via  /azp run  comment on a GitHub PR (auto-detects changed extension)
+#   3. Auto-trigger on PRs targeting master
 
 name: CI - Extension $(ExtensionName) - $(Date:yyyyMMdd)$(Rev:.r)
 appendCommitMessageToRunName: false
 
 trigger: none
-pr: none
+
+pr:
+  branches:
+    include:
+    - master
 
 parameters:
 - name: extensionName
@@ -89,6 +94,13 @@ extends:
           clean: true
           fetchTags: false
 
+        - task: PowerShell@2
+          displayName: 'Detect extension (auto-detect for PRs, parameter for manual runs)'
+          inputs:
+            filePath: '$(Build.SourcesDirectory)/scripts/DetectChangedExtension.ps1'
+            arguments: -ParameterExtensionName "${{ parameters.extensionName }}"
+            pwsh: true
+
         - task: NodeTool@0
           displayName: 'Use Node.js 20.x'
           inputs:
@@ -130,7 +142,7 @@ extends:
           displayName: 'Copy test .vsix file to unsigned artifacts directory'
           inputs:
             SourceFolder: '$(Build.SourcesDirectory)/_package'
-            Contents: '${{ parameters.extensionName }}/*.vsix'
+            Contents: '$(ExtensionName)/*.vsix'
             TargetFolder: '$(System.ArtifactsDirectory)/test-unsigned'
             flattenFolders: true
 
@@ -183,11 +195,17 @@ extends:
           timeoutInMinutes: 120
           steps:
           - task: PowerShell@2
+            displayName: 'Detect extension (auto-detect for PRs, parameter for manual runs)'
+            inputs:
+              filePath: '$(Build.SourcesDirectory)/scripts/DetectChangedExtension.ps1'
+              arguments: -ParameterExtensionName "${{ parameters.extensionName }}"
+              pwsh: true
+          - task: PowerShell@2
             name: DetermineCiTestPipelineName
             displayName: 'Determine the pipeline that will be triggered to verify the selected extension'
             inputs:
               filePath: '$(Build.SourcesDirectory)/scripts/DetermineCiTestPipelineName.ps1'
-              arguments: -ExtensionName "${{ parameters.extensionName }}"
+              arguments: -ExtensionName "$(ExtensionName)"
               pwsh: true
               failOnStderr: true
           - task: AzureCLI@2
