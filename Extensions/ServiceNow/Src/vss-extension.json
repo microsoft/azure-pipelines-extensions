@@ -3,7 +3,7 @@
   "id": "vss-services-servicenowchangerequestmanagement",
   "name": "ServiceNow Change Management",
   "publisher": "ms-vscs-rm",
-  "version": "4.262.1",
+  "version": "4.272.1",
   "public": true,
   "description": "Integrate ServiceNow Change Management with Azure Pipelines",
   "categories": [
@@ -302,11 +302,13 @@
               {
                 "target": "AccessToken",
                 "dataSourceName": "AccessToken",
+                "requestVerb": "Post",
                 "resultTemplate": "{\"AccessToken\" : \"{{{access_token}}}\", \"RefreshToken\" : \"{{{refresh_token}}}\", \"ExpiresIn\" : \"{{{expires_in}}}\", \"TokenType\" : \"{{{token_type}}}\", \"Scope\" : \"{{{scope}}}\", \"Error\" : \"{{{error}}}\", \"ErrorDescription\" : \"{{{error_description}}}\"}"
               },
               {
                 "target": "RefreshToken",
                 "dataSourceName": "RefreshToken",
+                "requestVerb": "Post",
                 "resultTemplate": "{\"AccessToken\" : \"{{{access_token}}}\", \"RefreshToken\" : \"{{{refresh_token}}}\", \"ExpiresIn\" : \"{{{expires_in}}}\", \"TokenType\" : \"{{{token_type}}}\", \"Scope\" : \"{{{scope}}}\", \"Error\" : \"{{{error}}}\", \"ErrorDescription\" : \"{{{error_description}}}\"}"
               }
             ]
