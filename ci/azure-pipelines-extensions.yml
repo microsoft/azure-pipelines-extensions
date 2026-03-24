@@ -78,10 +78,10 @@ extends:
           errorActionPreference: continue
           failOnStderr: true
           displayName: 'Code Checks'
-        - task: NodeTool@0
-          displayName: 'Use Node 10.24.1'
+        - task: UseNode@1
+          displayName: Use Node 24.*
           inputs:
-            versionSpec: 10.24.1
+            version: 24.*
         - powershell: 'node getUpdatedPaths.js'
           displayName: 'PowerShell Script'
         - task: Npm@1
