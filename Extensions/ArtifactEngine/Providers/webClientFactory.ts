@@ -52,14 +52,18 @@ export class WebClientFactory {
             let lookupInfo: string[] = lookupKey.split(':', 2);
 
             // file contains encryption key
-            let keyFile = new Buffer(lookupInfo[0], 'base64').toString('utf8');
-            let encryptKey = new Buffer(fs.readFileSync(keyFile, 'utf8'), 'base64');
+            let keyFile = Buffer.from(lookupInfo[0], 'base64').toString('utf8');
+            let encryptKey = Buffer.from(fs.readFileSync(keyFile, 'utf8'), 'base64');
 
-            let encryptedContent: string = new Buffer(lookupInfo[1], 'base64').toString('utf8');
+            let encryptedContent: string = Buffer.from(lookupInfo[1], 'base64').toString('utf8');
 
-            // @ts-ignore there is no type definition for createDecipher method
-            let decipher = crypto.createDecipher("aes-256-ctr", encryptKey)
-            let decryptedContent = decipher.update(encryptedContent, 'hex', 'utf8')
+            // Ensure key is 32 bytes for AES-256
+            const key = encryptKey.length === 32 ? encryptKey : crypto.createHash('sha256').update(encryptKey).digest();
+            // Use zero IV for AES-256-CTR (must match encryption side)
+            const iv = Buffer.alloc(16, 0);
+            
+            let decipher = crypto.createDecipheriv("aes-256-ctr", key, iv);
+            let decryptedContent = decipher.update(encryptedContent, 'hex', 'utf8');
             decryptedContent += decipher.final('utf8');
 
             return decryptedContent;

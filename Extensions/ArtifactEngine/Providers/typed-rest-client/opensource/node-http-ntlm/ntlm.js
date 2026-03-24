@@ -70,7 +70,7 @@ function createType1Message(options){
 		type1flags = type1flags - flags.NTLM_NegotiateOemDomainSupplied;
 
 	var pos = 0;
-	var buf = new Buffer(BODY_LENGTH + domain.length + workstation.length);
+	var buf = Buffer.alloc(BODY_LENGTH + domain.length + workstation.length);
 
 
 	buf.write(protocol, pos, protocol.length); pos += protocol.length; // protocol
@@ -105,7 +105,7 @@ function parseType2Message(rawmsg, callback){
 	if(!match || !match[1])
 		return callback(new Error("Couldn't find NTLM in the message type2 comming from the server"));
 
-	var buf = new Buffer(match[1], 'base64');
+	var buf = Buffer.from(match[1], 'base64');
 
 	var msg = {};
 
@@ -151,15 +151,15 @@ function createType3Message(msg2, options){
 
 	var encryptedRandomSessionKey = "";
 	if(isUnicode){
-		workstationBytes = new Buffer(workstation, 'utf16le');
-		domainNameBytes = new Buffer(domainName, 'utf16le');
-		usernameBytes = new Buffer(username, 'utf16le');
-		encryptedRandomSessionKeyBytes = new Buffer(encryptedRandomSessionKey, 'utf16le');
+		workstationBytes = Buffer.from(workstation, 'utf16le');
+		domainNameBytes = Buffer.from(domainName, 'utf16le');
+		usernameBytes = Buffer.from(username, 'utf16le');
+		encryptedRandomSessionKeyBytes = Buffer.from(encryptedRandomSessionKey, 'utf16le');
 	}else{
-		workstationBytes = new Buffer(workstation, 'ascii');
-		domainNameBytes = new Buffer(domainName, 'ascii');
-		usernameBytes = new Buffer(username, 'ascii');
-		encryptedRandomSessionKeyBytes = new Buffer(encryptedRandomSessionKey, 'ascii');
+		workstationBytes = Buffer.from(workstation, 'ascii');
+		domainNameBytes = Buffer.from(domainName, 'ascii');
+		usernameBytes = Buffer.from(username, 'ascii');
+		encryptedRandomSessionKeyBytes = Buffer.from(encryptedRandomSessionKey, 'ascii');
 	}
 
 	var lmChallengeResponse = calc_resp(create_LM_hashed_password_v1(password), nonce);
@@ -171,7 +171,7 @@ function createType3Message(msg2, options){
 	 	for(var i=0; i < 8; i++){
 	 		clientChallenge += String.fromCharCode( Math.floor(Math.random()*256) );
 	   	}
-	   	var clientChallengeBytes = new Buffer(clientChallenge, 'ascii');
+	   	var clientChallengeBytes = Buffer.from(clientChallenge, 'ascii');
 	    var challenges = ntlm2sr_calc_resp(pwhash, nonce, clientChallengeBytes);
 	    lmChallengeResponse = challenges.lmChallengeResponse;
 	    ntChallengeResponse = challenges.ntChallengeResponse;
@@ -180,7 +180,7 @@ function createType3Message(msg2, options){
 	var signature = 'NTLMSSP\0';
 
 	var pos = 0;
-	var buf = new Buffer(BODY_LENGTH + domainNameBytes.length + usernameBytes.length + workstationBytes.length + lmChallengeResponse.length + ntChallengeResponse.length + encryptedRandomSessionKeyBytes.length);
+	var buf = Buffer.alloc(BODY_LENGTH + domainNameBytes.length + usernameBytes.length + workstationBytes.length + lmChallengeResponse.length + ntChallengeResponse.length + encryptedRandomSessionKeyBytes.length);
 
 	buf.write(signature, pos, signature.length); pos += signature.length;
 	buf.writeUInt32LE(3, pos); pos += 4;          // type 1
@@ -232,9 +232,9 @@ function createType3Message(msg2, options){
 function create_LM_hashed_password_v1(password){
 	// fix the password length to 14 bytes
 	password = password.toUpperCase();
-	var passwordBytes = new Buffer(password, 'ascii');
+	var passwordBytes = Buffer.from(password, 'ascii');
 
-	var passwordBytesPadded = new Buffer(14);
+	var passwordBytesPadded = Buffer.alloc(14);
 	passwordBytesPadded.fill("\0");
 	var sourceEnd = 14;
 	if(passwordBytes.length < 14) sourceEnd = passwordBytes.length;
@@ -329,7 +329,7 @@ function binaryArray2bytes(array){
    		var hexchar1 = binary2hex[binString1];
    		var hexchar2 = binary2hex[binString2];
 
-   		var buf = new Buffer(hexchar1 + '' + hexchar2, 'hex');
+   		var buf = Buffer.from(hexchar1 + '' + hexchar2, 'hex');
    		bufArray.push(buf);
    	}
 
@@ -337,15 +337,15 @@ function binaryArray2bytes(array){
 }
 
 function create_NT_hashed_password_v1(password){
-	var buf = new Buffer(password, 'utf16le');
+	var buf = Buffer.from(password, 'utf16le');
 	var md4 = crypto.createHash('md4');   // CodeQL [SM04514] Suppress - NTLM only supports md4 and md5 hashing algorithms which are weak but cannot be changed to sha256 as the protocol does not support it 
 	md4.update(buf);   // CodeQL [SM01511] Suppress - NTLM only supports md4 and md5 hashing algorithms which are weak but cannot be changed to sha256 as the protocol does not support it
-	return new Buffer(md4.digest());
+	return Buffer.from(md4.digest());
 }
 
 function calc_resp(password_hash, server_challenge){
     // padding with zeros to make the hash 21 bytes long
-    var passHashPadded = new Buffer(21);
+    var passHashPadded = Buffer.alloc(21);
     passHashPadded.fill("\0");
     password_hash.copy(passHashPadded, 0, 0, password_hash.length);
 
@@ -365,7 +365,7 @@ function calc_resp(password_hash, server_challenge){
 
 function ntlm2sr_calc_resp(responseKeyNT, serverChallenge, clientChallenge){
 	// padding with zeros to make the hash 16 bytes longer
-    var lmChallengeResponse = new Buffer(clientChallenge.length + 16);
+    var lmChallengeResponse = Buffer.alloc(clientChallenge.length + 16);
     lmChallengeResponse.fill("\0");
     clientChallenge.copy(lmChallengeResponse, 0, 0, clientChallenge.length);
 
