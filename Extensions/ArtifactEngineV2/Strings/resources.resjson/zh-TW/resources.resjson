@@ -1,0 +1,12 @@
+{
+  "loc.messages.DownloadSummary": "檔案總數: %s，已處理: %s，已跳過: %s，失敗: %s，下載時間: %s 秒，下載大小: %s",
+  "loc.messages.FailedToParseResponse": "無法剖析回應主體: %s，收到錯誤: %s",
+  "loc.messages.DownloadingTo": "正在將 %s 下載到 %s",
+  "loc.messages.DownloadedTo": "已將 %s 下載到 %s",
+  "loc.messages.UnableToReadDirectory": "無法讀取目錄 %s。錯誤: %s",
+  "loc.messages.RetryingDownload": "正在重試下載 %s，重試次數: %s",
+  "loc.messages.SkippingItem": "已跳過處理項目 %s",
+  "loc.messages.UnhandledRejection": "artifact-engine: 未處理的拒絕 %s",
+  "loc.messages.UnhandledException": "artifact-engine: 未處理的例外狀況 %s",
+  "loc.messages.FailedRequest": "失敗的要求: (statusCode)"
+}

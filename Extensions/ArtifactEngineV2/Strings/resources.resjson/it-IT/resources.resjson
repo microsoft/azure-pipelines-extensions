@@ -1,0 +1,12 @@
+{
+  "loc.messages.DownloadSummary": "File totali: %s. Elaborati: %s. Ignorati: %s. Con errori: %s. Tempo di download: %s sec. Dimensioni download: %s",
+  "loc.messages.FailedToParseResponse": "Non è stato possibile analizzare il corpo della risposta: %s. Errore restituito: %s",
+  "loc.messages.DownloadingTo": "Download di %s in %s",
+  "loc.messages.DownloadedTo": "%s scaricato in %s",
+  "loc.messages.UnableToReadDirectory": "Non è possibile leggere la directory %s. Errore: %s",
+  "loc.messages.RetryingDownload": "Nuovo tentativo di download di %s. Conteggio dei tentativi: %s",
+  "loc.messages.SkippingItem": "Elaborazione dell'elemento %s ignorata",
+  "loc.messages.UnhandledRejection": "artifact-engine: rifiuto non gestito %s",
+  "loc.messages.UnhandledException": "artifact-engine: eccezione non gestita %s",
+  "loc.messages.FailedRequest": "Richiesta non riuscita: (statusCode)"
+}

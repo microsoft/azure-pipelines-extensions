@@ -1,0 +1,12 @@
+{
+  "loc.messages.DownloadSummary": "总文件数: %s，已处理: %s，已跳过: %s，已失败: %s，下载时间: %s 秒，下载大小: %s",
+  "loc.messages.FailedToParseResponse": "未能分析响应正文: %s，显示错误: %s",
+  "loc.messages.DownloadingTo": "正在将 %s 下载至 %s",
+  "loc.messages.DownloadedTo": "已将 %s 下载至 %s",
+  "loc.messages.UnableToReadDirectory": "未能读取目录 %s。错误: %s",
+  "loc.messages.RetryingDownload": "重新尝试下载 %s，重试计数: %s",
+  "loc.messages.SkippingItem": "已跳过处理项目 %s",
+  "loc.messages.UnhandledRejection": "项目引擎: 未处理的拒绝 %s",
+  "loc.messages.UnhandledException": "项目引擎: 未处理的异常 %s",
+  "loc.messages.FailedRequest": "请求失败: (statusCode)"
+}
