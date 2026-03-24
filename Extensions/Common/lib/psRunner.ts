@@ -28,7 +28,7 @@ export class PSRunner extends events.EventEmitter {
 		var defer = Q.defer<void>();
 		var powershell = shell.which('powershell.exe');
 		this._childProcess = child.spawn(
-			String(powershell), // command - convert to primitive string for Node 24 compatibility
+			powershell, // command
 			[ // args
 				'-NoLogo',
 				'-Sta',

@@ -49,7 +49,7 @@ export class ansibleTowerInterface extends ansibleInterface {
 
     private getBasicRequestHeader(): any {
         var requestHeader: any = {
-            "Authorization": "Basic " + Buffer.from(this._username + ":" + this._password, 'utf8').toString('base64')
+            "Authorization": "Basic " + new Buffer(this._username + ":" + this._password).toString('base64')
         };
         return requestHeader;
     }
