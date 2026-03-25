@@ -1,4 +1,5 @@
 var crypto = require('crypto');
+var jsMd4 = require('js-md4');
 
 var flags = {
 	NTLM_NegotiateUnicode                :  0x00000001,
@@ -338,9 +339,7 @@ function binaryArray2bytes(array){
 
 function create_NT_hashed_password_v1(password){
 	var buf = Buffer.from(password, 'utf16le');
-	var md4 = crypto.createHash('md5');   // CodeQL [SM04514] Suppress - NTLM only supports md4 and md5 hashing algorithms which are weak but cannot be changed to sha256 as the protocol does not support it 
-	md4.update(buf);   // CodeQL [SM01511] Suppress - NTLM only supports md4 and md5 hashing algorithms which are weak but cannot be changed to sha256 as the protocol does not support it
-	return Buffer.from(md4.digest());
+	return Buffer.from(jsMd4.arrayBuffer(buf));   // CodeQL [SM04514] [SM01511] Suppress - NTLM requires md4 hashing which is weak but cannot be changed as the protocol does not support stronger algorithms. Using js-md4 (pure JS) since crypto.createHash('md4') was removed in Node 17+ (OpenSSL 3.0)
 }
 
 function calc_resp(password_hash, server_challenge){

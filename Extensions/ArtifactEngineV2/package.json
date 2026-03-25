@@ -18,10 +18,10 @@
   "dependencies": {
     "azure-pipelines-task-lib": "^5.2.8",
     "handlebars": "4.7.7",
+    "js-md4": "^0.3.2",
     "minimatch": "^10.0.1",
     "tunnel": "0.0.4"
   },
-
   "devDependencies": {
     "@types/minimatch": "^5.1.2",
     "@types/mocha": "^10.0.10",
