@@ -1,0 +1,243 @@
+# CI Pipeline: Validates extension changes on user/feature branches.
+# Builds and publishes an unsigned TEST extension, then runs CI tests.
+# No ESRP signing — avoids 1ES branch control restrictions on non-master branches.
+#
+# Usage:
+#   Run manually from the Azure DevOps pipeline UI.
+#   Select the extension to test and the branch containing your changes.
+
+name: CI - Extension $(ExtensionName) - $(Date:yyyyMMdd)$(Rev:.r)
+appendCommitMessageToRunName: false
+
+trigger: none
+pr: none
+
+parameters:
+- name: extensionName
+  displayName: 'Extension to Build and Test'
+  type: string
+  default: 'IISWebAppDeploy'
+  values:
+  - Ansible
+  - BitBucket
+  - CircleCI
+  - ExternalTfs
+  - IISWebAppDeploy
+  - ServiceNow
+  - TeamCity
+- name: skipCiTesting
+  displayName: 'Skip CI testing (use only if CI tests for the selected extension are not yet available)'
+  type: boolean
+  default: false
+
+variables:
+# 1ES Security Scanning
+- name: CodeQL.Enabled
+  value: true
+# Dynamic (overridden by DetectChangedExtension.ps1 for PR triggers)
+- name: ExtensionName
+  value: ${{ parameters.extensionName }}
+- name: DetectedExtensions
+  value: ${{ parameters.extensionName }}
+- name: ExtensionCopyPattern
+  value: ${{ parameters.extensionName }}
+
+resources:
+  repositories:
+  - repository: 1ESPipelineTemplates
+    type: git
+    name: 1ESPipelineTemplates/1ESPipelineTemplates
+    ref: refs/tags/release
+
+extends:
+  template: v1/1ES.Official.PipelineTemplate.yml@1ESPipelineTemplates
+  parameters:
+    sdl:
+      sourceAnalysisPool:
+        name: 1ESPtTfsAgentBuildPoolSDL
+      spotBugs:
+        enabled: false
+      credscan:
+        enabled: true
+      binskim:
+        enabled: true
+      eslint:
+        enabled: true
+
+    pool:
+      name: 1ESPtTfsAgentBuildPool1
+
+    customBuildTags:
+    - ES365AIMigrationTooling
+    - 1ES-AzureExtensions
+    - CI-Verification
+    - Extension-${{ parameters.extensionName }}
+
+    stages:
+
+    # ======= Build & Package test extension =======
+    - stage: Build_And_Package_Test_Extension
+      displayName: 'Build & Package test extension'
+      jobs:
+      - job: BuildAndPackage
+        displayName: 'Build & Package test extension'
+        templateContext:
+          outputs:
+          - output: pipelineArtifact
+            displayName: 'Publish unsigned test build artifacts'
+            targetPath: '$(System.ArtifactsDirectory)/test-unsigned'
+            artifactName: 'vsix-test-unsigned'
+        steps:
+        - checkout: self
+          displayName: 'Checkout repository'
+          clean: true
+          fetchTags: false
+
+        - task: PowerShell@2
+          displayName: 'Auto-detect changed extension (PR triggers only)'
+          condition: eq(variables['Build.Reason'], 'PullRequest')
+          inputs:
+            filePath: '$(Build.SourcesDirectory)/scripts/DetectChangedExtension.ps1'
+            arguments: -ParameterExtensionName "${{ parameters.extensionName }}"
+            pwsh: true
+
+        - task: NodeTool@0
+          displayName: 'Use Node.js 20.x'
+          inputs:
+            versionSpec: '20.x'
+
+        - task: Npm@1
+          displayName: 'Install dependencies'
+          inputs:
+            command: install
+            verbose: false
+
+        - task: Npm@1
+          displayName: 'Install TFX CLI (needed for publishing on Marketplace)'
+          inputs:
+            command: custom
+            customCommand: 'install -g tfx-cli'
+
+        - task: Npm@1
+          displayName: 'Install Gulp CLI'
+          inputs:
+            command: custom
+            customCommand: 'install -g gulp-cli'
+
+        - task: PowerShell@2
+          displayName: 'Build test resources'
+          inputs:
+            targetType: inline
+            script: 'gulp build --test'
+            workingDirectory: '$(Build.SourcesDirectory)'
+
+        - task: PowerShell@2
+          displayName: 'Package test resources'
+          inputs:
+            targetType: inline
+            script: 'gulp package'
+            workingDirectory: '$(Build.SourcesDirectory)'
+
+        - task: CopyFiles@2
+          displayName: 'Copy test .vsix file to unsigned artifacts directory'
+          inputs:
+            SourceFolder: '$(Build.SourcesDirectory)/_package'
+            Contents: '$(ExtensionCopyPattern)/*.vsix'
+            TargetFolder: '$(System.ArtifactsDirectory)/test-unsigned'
+            flattenFolders: true
+
+    # ======= Publish unsigned test extension on Marketplace (visibility set to private) =======
+    - stage: Publish_Test_Extension
+      displayName: 'Publish unsigned test extension on Marketplace (private)'
+      dependsOn: Build_And_Package_Test_Extension
+      condition: succeeded()
+      jobs:
+      - job: PublishTestExtension
+        displayName: 'Publish unsigned test extension on Marketplace'
+        steps:
+        - download: current
+          artifact: vsix-test-unsigned
+          displayName: 'Download unsigned test .vsix'
+
+        - task: NodeTool@0
+          displayName: 'Use Node.js 20.x'
+          inputs:
+            versionSpec: '20.x'
+
+        - task: TfxInstaller@5
+          displayName: 'Install TFX'
+          inputs:
+            version: 'v0.21.1'
+
+        - task: 1ES.PublishAzureDevOpsExtension@1
+          displayName: 'Publish test extension (unsigned)'
+          inputs:
+            connectTo: AzureRM
+            connectedServiceNameAzureRM: '1es-extensions-publication-secure-service-connection'
+            fileType: vsix
+            vsixFile: '$(Pipeline.Workspace)/vsix-test-unsigned/*.vsix'
+            targetPath: '$(Pipeline.Workspace)/vsix-test-unsigned'
+            validateExtension: false
+            useV5: true
+
+    # ======= Execute CI tests and verify the newly published test extension =======
+    - ${{ if ne(parameters.skipCiTesting, true) }}:
+      - stage: Execute_CI_Tests
+        displayName: 'Execute CI tests against the test extension'
+        dependsOn: Publish_Test_Extension
+        condition: succeeded()
+        variables:
+          CI_TESTS_ORG_URL: 'https://dev.azure.com/canarytest'
+          CI_TESTS_PROJECT: 'PipelineTasks'
+        jobs:
+        # ── Manual runs: single extension using existing scripts ──
+        - job: ManualCiTest
+          displayName: 'Trigger CI test pipeline (manual run)'
+          condition: ne(variables['Build.Reason'], 'PullRequest')
+          timeoutInMinutes: 120
+          steps:
+          - task: PowerShell@2
+            name: DetermineCiTestPipelineName
+            displayName: 'Determine CI test pipeline for selected extension'
+            inputs:
+              filePath: '$(Build.SourcesDirectory)/scripts/DetermineCiTestPipelineName.ps1'
+              arguments: -ExtensionName "${{ parameters.extensionName }}"
+              pwsh: true
+              failOnStderr: true
+          - task: AzureCLI@2
+            displayName: 'Trigger CI pipeline and wait for result'
+            inputs:
+              azureSubscription: 'canarytest-extensions-ci-tests-pipeline-connector'
+              scriptType: pscore
+              scriptLocation: scriptPath
+              scriptPath: '$(Build.SourcesDirectory)/scripts/TriggerAdoPipelineAndWaitResult.ps1'
+              arguments: >
+                -OrgUrl "$(CI_TESTS_ORG_URL)"
+                -Project "$(CI_TESTS_PROJECT)"
+                -PipelineName "$(TARGET_PIPELINE_NAME)"
+                -TimeoutMinutes 120
+
+        # ── PR triggers (/azp run): all changed extensions in parallel ──
+        - job: PrCiTests
+          displayName: 'Trigger CI test pipelines for all changed extensions (PR)'
+          condition: eq(variables['Build.Reason'], 'PullRequest')
+          timeoutInMinutes: 120
+          steps:
+          - task: PowerShell@2
+            displayName: 'Re-detect changed extensions'
+            inputs:
+              filePath: '$(Build.SourcesDirectory)/scripts/DetectChangedExtension.ps1'
+              arguments: -ParameterExtensionName "${{ parameters.extensionName }}"
+              pwsh: true
+          - task: AzureCLI@2
+            displayName: 'Trigger CI tests for all detected extensions and wait for results'
+            inputs:
+              azureSubscription: 'canarytest-extensions-ci-tests-pipeline-connector'
+              scriptType: pscore
+              scriptLocation: scriptPath
+              scriptPath: '$(Build.SourcesDirectory)/scripts/TriggerCiTestsForAllExtensions.ps1'
+              arguments: >
+                -Extensions "$(DetectedExtensions)"
+                -OrgUrl "$(CI_TESTS_ORG_URL)"
+                -Project "$(CI_TESTS_PROJECT)"
+                -TimeoutMinutes 120

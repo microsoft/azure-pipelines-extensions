@@ -1,26 +1,22 @@
 <#
 .SYNOPSIS
-  Detects which extension changed in a PR and sets the ExtensionName pipeline variable.
+  Detects which extension(s) changed and sets pipeline variables.
 
 .DESCRIPTION
-  Supports two trigger modes:
-  - Manual runs (from ADO UI): uses the parameter value passed in directly.
-  - PR triggers (/azp run or auto-trigger): auto-detects the changed extension
-    by diffing the PR branch against the target branch, and overrides the
-    ExtensionName variable accordingly.
-  Falls back to the parameter value if auto-detection finds no extension changes.
-  Warns if multiple extensions changed (uses the first detected).
+  - Manual runs: uses the parameter value (single extension).
+  - PR triggers (/azp run): auto-detects ALL changed extensions from git diff.
+
+  Sets the following pipeline variables:
+  - ExtensionName        : first detected extension (used for run naming)
+  - DetectedExtensions   : semicolon-separated list (e.g. "Ansible;BitBucket")
+  - ExtensionCopyPattern : glob for CopyFiles (e.g. "{Ansible,BitBucket}" or "Ansible")
 
 .PARAMETER ParameterExtensionName
-  The extension name supplied via the pipeline parameter (used as-is for manual runs,
-  used as fallback for PR triggers).
-
-.PARAMETER AdoVariableName
-  The pipeline variable name to set. Defaults to 'ExtensionName'.
+  Extension name from the pipeline parameter. Used as-is for manual runs,
+  used as fallback for PR triggers when auto-detection finds nothing.
 #>
 param(
-    [string]$ParameterExtensionName = '',
-    [string]$AdoVariableName = 'ExtensionName'
+    [string]$ParameterExtensionName = ''
 )
 
 $ErrorActionPreference = 'Stop'
@@ -35,56 +31,65 @@ $buildReason = $env:BUILD_REASON
 Write-Host "Build reason       : $buildReason"
 Write-Host "Parameter extension: $ParameterExtensionName"
 
-function Set-ExtensionVariable {
-    param([string]$Value)
-    Write-Host "Setting pipeline variable '$AdoVariableName' = '$Value'"
-    Write-Host "##vso[task.setvariable variable=$AdoVariableName]$Value"
+function Set-PipelineVariables {
+    param([string[]]$Extensions)
+
+    $first = $Extensions[0]
+    $joined = $Extensions -join ';'
+    $copyPattern = if ($Extensions.Count -eq 1) { $first } else { '{' + ($Extensions -join ',') + '}' }
+
+    Write-Host "`nSetting pipeline variables:"
+    Write-Host "  ExtensionName        = $first"
+    Write-Host "  DetectedExtensions   = $joined"
+    Write-Host "  ExtensionCopyPattern = $copyPattern"
+
+    Write-Host "##vso[task.setvariable variable=ExtensionName]$first"
+    Write-Host "##vso[task.setvariable variable=DetectedExtensions]$joined"
+    Write-Host "##vso[task.setvariable variable=ExtensionCopyPattern]$copyPattern"
 }
 
-# ── Non-PR triggers (Manual, CI, Schedule, etc.): trust the parameter value ──
+# ── Non-PR triggers (Manual, etc.): use parameter value directly ──
 if ($buildReason -ne 'PullRequest') {
     if ($ParameterExtensionName -and ($validExtensions -contains $ParameterExtensionName)) {
-        Write-Host "Non-PR trigger detected. Using parameter value: $ParameterExtensionName"
-        Set-ExtensionVariable -Value $ParameterExtensionName
+        Write-Host "Non-PR trigger. Using parameter value: $ParameterExtensionName"
+        Set-PipelineVariables -Extensions @($ParameterExtensionName)
         return
     }
     throw "Non-PR trigger requires a valid extensionName parameter. Received: '$ParameterExtensionName'"
 }
 
-# ── PR trigger (/azp run or auto-trigger): auto-detect from git diff ──
-Write-Host "`nPR trigger detected. Auto-detecting changed extension from diff..."
+# ── PR trigger (/azp run): auto-detect all changed extensions from git diff ──
+Write-Host "`nPR trigger detected. Auto-detecting changed extensions..."
 
 $targetBranch = $env:SYSTEM_PULLREQUEST_TARGETBRANCH
 if (-not $targetBranch) {
-    throw "SYSTEM_PULLREQUEST_TARGETBRANCH is not set. Cannot determine target branch."
+    throw "SYSTEM_PULLREQUEST_TARGETBRANCH is not set."
 }
 
 $targetRef = $targetBranch -replace '^refs/heads/', ''
 Write-Host "PR target branch: $targetRef"
 
-# Ensure the target branch ref is available locally for comparison
 git fetch origin $targetRef --depth=50 2>&1 | ForEach-Object { Write-Host $_ }
 
 $changedFiles = git diff --name-only "origin/$targetRef...HEAD" 2>&1
 if ($LASTEXITCODE -ne 0) {
-    Write-Host "##[warning]Three-dot diff failed. Trying two-dot diff as fallback."
+    Write-Host "##[warning]Three-dot diff failed. Trying two-dot diff."
     $changedFiles = git diff "origin/$targetRef" HEAD --name-only
 }
 
 if (-not $changedFiles) {
-    Write-Host "##[warning]No changed files detected between branch and origin/$targetRef."
+    Write-Host "##[warning]No changed files detected."
     if ($ParameterExtensionName -and ($validExtensions -contains $ParameterExtensionName)) {
-        Write-Host "Falling back to parameter value: $ParameterExtensionName"
-        Set-ExtensionVariable -Value $ParameterExtensionName
+        Write-Host "Falling back to parameter: $ParameterExtensionName"
+        Set-PipelineVariables -Extensions @($ParameterExtensionName)
         return
     }
-    throw "No changed files detected and no valid fallback parameter provided."
+    throw "No changed files detected and no valid fallback parameter."
 }
 
 Write-Host "`nChanged files:"
 $changedFiles | ForEach-Object { Write-Host "  $_" }
 
-# Extract unique extension names from changed file paths
 $detectedExtensions = @()
 foreach ($file in $changedFiles) {
     if ($file -match '^Extensions/([^/]+)/') {
@@ -96,19 +101,14 @@ foreach ($file in $changedFiles) {
 }
 
 if ($detectedExtensions.Count -eq 0) {
-    Write-Host "##[warning]No extension-related file changes detected in the PR diff."
+    Write-Host "##[warning]No extension changes found in PR diff."
     if ($ParameterExtensionName -and ($validExtensions -contains $ParameterExtensionName)) {
-        Write-Host "Falling back to parameter value: $ParameterExtensionName"
-        Set-ExtensionVariable -Value $ParameterExtensionName
+        Write-Host "Falling back to parameter: $ParameterExtensionName"
+        Set-PipelineVariables -Extensions @($ParameterExtensionName)
         return
     }
-    throw "No extension changes detected in PR and no valid fallback parameter provided."
+    throw "No extension changes detected and no valid fallback parameter."
 }
 
-if ($detectedExtensions.Count -gt 1) {
-    Write-Host "##[warning]Multiple extensions changed: $($detectedExtensions -join ', '). Using first detected: $($detectedExtensions[0])."
-    Write-Host "##[warning]Consider splitting changes into separate PRs for independent CI testing."
-}
-
-Write-Host "`nAuto-detected extension: $($detectedExtensions[0])"
-Set-ExtensionVariable -Value $detectedExtensions[0]
+Write-Host "`nAuto-detected extensions ($($detectedExtensions.Count)): $($detectedExtensions -join ', ')"
+Set-PipelineVariables -Extensions $detectedExtensions
