@@ -36,6 +36,12 @@
     "minimatch": "3.1.5",
     "mocha": "^11.7.5"
   },
+  "overrides": {
+    "minimist": "0.2.4",
+    "mkdirp@0.5.1": {
+      "minimist": "0.2.4"
+    }
+  },
   "readme": "# Team Services DevOps Task SDK\n\nLibraries for writing Team Services and TFS build and deployment tasks\n\n## Node Task Lib\nLibrary for writing tasks with the node handler\n\n## Contributing\n\n### Node\n\nOnce:\n```bash\n$ cd node\n$ npm install\n$ sudo npm install gulp -g\n```\n\nBuild and test:\n```bash\n$ cd node\n$ gulp\n```\n\n### Powershell\n\nComing soon\n",
   "readmeFilename": "README.md",
   "_id": "vsts-task-lib@0.4.5",

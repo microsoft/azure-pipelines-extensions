@@ -56,6 +56,9 @@
     "mocha@5.2.0": {
       "minimatch": "3.1.5"
     },
+    "mkdirp@0.5.1": {
+      "minimist": "0.2.4"
+    },
     "vsts-task-lib": {
       "minimatch": "3.1.5"
     },
