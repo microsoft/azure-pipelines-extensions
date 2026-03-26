@@ -100,14 +100,14 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
     }
 
     // The following method is an adaptation of code found at https://github.com/SamDecrock/node-http-ntlm/blob/master/httpntlm.js
-    private sendType3Message(httpClient, protocol, options, objs, keepaliveAgent, res, callback): void {
+    private async sendType3Message(httpClient, protocol, options, objs, keepaliveAgent, res, callback): Promise<void> {
         if (!res.headers['www-authenticate']) {
             return callback(new Error('www-authenticate not found on response of second request'));
         }
         // parse type2 message from server:
         var type2msg = ntlm.parseType2Message(res.headers['www-authenticate']);
         // create type3 message:
-        var type3msg = ntlm.createType3Message(type2msg, options);
+        var type3msg = await ntlm.createType3Message(type2msg, options);
         // build type3 request:
         var type3options = {
             headers: {

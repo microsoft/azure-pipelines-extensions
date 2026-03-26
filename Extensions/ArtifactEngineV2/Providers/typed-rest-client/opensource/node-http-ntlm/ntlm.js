@@ -1,5 +1,5 @@
 var crypto = require('crypto');
-var jsMd4 = require('js-md4');
+var hashwasm = require('hash-wasm');
 
 var flags = {
 	NTLM_NegotiateUnicode                :  0x00000001,
@@ -134,7 +134,7 @@ function parseType2Message(rawmsg, callback){
 	return msg;
 }
 
-function createType3Message(msg2, options){
+async function createType3Message(msg2, options){
 	var nonce = msg2.serverChallenge;
 	var username = options.username;
 	var password = options.password;
@@ -164,10 +164,10 @@ function createType3Message(msg2, options){
 	}
 
 	var lmChallengeResponse = calc_resp(create_LM_hashed_password_v1(password), nonce);
-	var ntChallengeResponse = calc_resp(create_NT_hashed_password_v1(password), nonce);
+	var ntChallengeResponse = calc_resp(await create_NT_hashed_password_v1(password), nonce);
 
 	if(isNegotiateExtendedSecurity){
-		var pwhash = create_NT_hashed_password_v1(password);
+		var pwhash = await create_NT_hashed_password_v1(password);
 	 	var clientChallenge = "";
 	 	for(var i=0; i < 8; i++){
 	 		clientChallenge += String.fromCharCode( Math.floor(Math.random()*256) );
@@ -337,9 +337,10 @@ function binaryArray2bytes(array){
    	return Buffer.concat(bufArray);
 }
 
-function create_NT_hashed_password_v1(password){
+async function create_NT_hashed_password_v1(password){
 	var buf = Buffer.from(password, 'utf16le');
-	return Buffer.from(jsMd4.arrayBuffer(buf));   // CodeQL [SM04514] [SM01511] Suppress - NTLM requires md4 hashing which is weak but cannot be changed as the protocol does not support stronger algorithms. Using js-md4 (pure JS) since crypto.createHash('md4') was removed in Node 17+ (OpenSSL 3.0)
+	var hexHash = await hashwasm.md4(buf);   // CodeQL [SM04514] [SM01511] Suppress - NTLM requires md4 hashing which is weak but cannot be changed as the protocol does not support stronger algorithms. Using hash-wasm (pure JS/WASM) since crypto.createHash('md4') was removed in Node 17+ (OpenSSL 3.0)
+	return Buffer.from(hexHash, 'hex');
 }
 
 function calc_resp(password_hash, server_challenge){

@@ -18,7 +18,7 @@
   "dependencies": {
     "azure-pipelines-task-lib": "^5.2.8",
     "handlebars": "4.7.7",
-    "js-md4": "^0.3.2",
+    "hash-wasm": "^4.12.0",
     "minimatch": "^10.0.1",
     "tunnel": "0.0.4"
   },
