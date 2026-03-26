@@ -1,0 +1,12 @@
+{
+  "loc.messages.DownloadSummary": "Всего файлов: %s. Обработано: %s. Пропущено: %s. Сбоев: %s. Время скачивания: %s с. Скачиваемый объем: %s",
+  "loc.messages.FailedToParseResponse": "Не удалось проанализировать текст ответа: %s. Ошибка: %s",
+  "loc.messages.DownloadingTo": "Идет скачивание %s в %s",
+  "loc.messages.DownloadedTo": "Скачано %s в %s",
+  "loc.messages.UnableToReadDirectory": "Не удается считать каталог %s. Ошибка: %s",
+  "loc.messages.RetryingDownload": "Повторная попытка скачать %s, всего попыток: %s",
+  "loc.messages.SkippingItem": "Пропущена обработка элемента %s",
+  "loc.messages.UnhandledRejection": "artifact-engine: необработанное отклонение %s",
+  "loc.messages.UnhandledException": "artifact-engine: необработанное исключение %s",
+  "loc.messages.FailedRequest": "Сбой запроса: (statusCode)"
+}

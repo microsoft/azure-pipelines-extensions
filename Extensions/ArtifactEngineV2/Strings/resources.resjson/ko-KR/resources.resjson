@@ -1,0 +1,12 @@
+{
+  "loc.messages.DownloadSummary": "총 파일: %s, 처리됨: %s, 건너뜀: %s, 실패함: %s, 다운로드 시간: %s초, 다운로드 크기: %s",
+  "loc.messages.FailedToParseResponse": "응답 본문 %s을(를) 구문 분석하지 못했습니다. 오류: %s",
+  "loc.messages.DownloadingTo": "%s을(를) %s에 다운로드하는 중",
+  "loc.messages.DownloadedTo": "%s을(를) %s에 다운로드함",
+  "loc.messages.UnableToReadDirectory": "디렉터리 %s을(를) 읽을 수 없습니다. 오류: %s",
+  "loc.messages.RetryingDownload": "%s 다운로드를 다시 시도하는 중, 다시 시도 횟수: %s회",
+  "loc.messages.SkippingItem": "항목 %s의 처리를 건너뜀",
+  "loc.messages.UnhandledRejection": "artifact-engine: 처리되지 않은 거부 %s",
+  "loc.messages.UnhandledException": "artifact-engine: 처리되지 않은 예외 %s",
+  "loc.messages.FailedRequest": "실패한 요청: (statusCode)"
+}

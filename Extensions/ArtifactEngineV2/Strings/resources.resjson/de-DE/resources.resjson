@@ -1,0 +1,12 @@
+{
+  "loc.messages.DownloadSummary": "Dateien gesamt: %s, verarbeitet: %s, übersprungen: %s, fehlerhaft: %s, Downloadzeit: %s Sek., Downloadgröße: %s",
+  "loc.messages.FailedToParseResponse": "Fehler beim Analysieren des Antworttexts: %s. Erhaltener Fehler: %s",
+  "loc.messages.DownloadingTo": "Download von \"%s\" nach \"%s\" wird durchgeführt.",
+  "loc.messages.DownloadedTo": "Download von \"%s\" nach \"%s\" wurde durchgeführt.",
+  "loc.messages.UnableToReadDirectory": "Das Verzeichnis \"%s\" kann nicht gelesen werden. Fehler: %s",
+  "loc.messages.RetryingDownload": "Download von \"%s\" wird erneut versucht, Wiederholungsanzahl: %s",
+  "loc.messages.SkippingItem": "Die Verarbeitung des Elements \"%s\" wird übersprungen.",
+  "loc.messages.UnhandledRejection": "artifact-engine: nicht verarbeitete Zurückweisung %s",
+  "loc.messages.UnhandledException": "artifact-engine: Ausnahmefehler %s",
+  "loc.messages.FailedRequest": "Fehlerhafte Anforderung: (statusCode)"
+}

@@ -54,10 +54,12 @@ var _buildRoot = path.join(__dirname, "_build");
 var _packageRoot = "_package";
 var _extnBuildRoot = path.join(_buildRoot, "Extensions");
 var artifactEnginePath = path.join(_extnBuildRoot, "ArtifactEngine");
+var artifactEngineV2Path = path.join(_extnBuildRoot, "ArtifactEngineV2");
 var _taskModuleBuildRoot = "_build/TaskModules/";
 var sourcePaths = "@(definitions|Extensions)/**/*";
 var ExtensionFolder = "Extensions";
 var artifactEngineSourcePath = path.join(ExtensionFolder, "ArtifactEngine");
+var artifactEngineV2SourcePath = path.join(ExtensionFolder, "ArtifactEngineV2");
 var taskModulesSourcePath = "TaskModules/**/*"
 var TaskModulesFolder = "TaskModules"
 var TaskModulesTestRoot = path.join(_taskModuleBuildRoot, 'powershell', 'Tests');
@@ -265,15 +267,17 @@ gulp.task("compileNode", gulp.series("compilePS", function(cb){
     }).forEach(copyCommonModules);
 
     runNpmInstall(artifactEnginePath);
+    runNpmInstall(artifactEngineV2Path);
 
     // Compile tasks
     const tasksProject = gts.createProject(rootTsconfigPath, { typescript: typescript, declaration: true });
     const taskFiles = path.join(_extnBuildRoot, "**", "Tasks", "**", "*.ts");
     const artifactEngineFiles = path.join(_extnBuildRoot, "**", "ArtifactEngine", "**", "*.ts");
+    const artifactEngineV2Files = path.join(_extnBuildRoot, "**", "ArtifactEngineV2", "**", "*.ts");
 
     const testFiles = path.join(_extnBuildRoot, "**/Tests/**/*.ts");
 
-    gulp.src([taskFiles, `!${testFiles}`, artifactEngineFiles, '!**/node_modules/**'])
+    gulp.src([taskFiles, `!${testFiles}`, artifactEngineFiles, artifactEngineV2Files, '!**/node_modules/**'])
         .pipe(tasksProject())
         .pipe(gulp.dest(path.join(_buildRoot, "Extensions")))
         .on("error", errorHandler);
@@ -287,6 +291,7 @@ gulp.task("compileNode", gulp.series("compilePS", function(cb){
         .on("error", errorHandler);
 
     validateArtifactEngineTranspileErrors();
+    validateArtifactEngineV2TranspileErrors();
 
     // Generate loc files
     createResjson(cb);
@@ -303,6 +308,24 @@ var validateArtifactEngineTranspileErrors = () => {
     gulp.src([
         path.join(artifactEnginePath, "**", "*.ts"),
         `!${path.join(artifactEnginePath, "node_modules", "**")}`
+    ])
+        .pipe(tsProject())
+        .on("error", (error) => {
+            console.error(`Error "${error.message}" occurs in a file ${error.fullFilename}`);
+            errorHandler();
+        });
+}
+
+var validateArtifactEngineV2TranspileErrors = () => {
+    const tsProject = gts.createProject(path.join(artifactEngineV2Path, "tsconfig.json"), {
+        typescript: require(path.join(artifactEngineV2Path, "node_modules", "typescript")),
+        types: ["mocha", "node"],
+        noEmit: true
+    });
+
+    gulp.src([
+        path.join(artifactEngineV2Path, "**", "*.ts"),
+        `!${path.join(artifactEngineV2Path, "node_modules", "**")}`
     ])
         .pipe(tsProject())
         .on("error", (error) => {

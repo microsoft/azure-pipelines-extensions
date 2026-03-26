@@ -44,6 +44,8 @@ extends:
                   "*package-lock.json",
                   "*\extensions\artifactengine\providers\typed-rest-client\httpclient.ts",
                   "*\extensions\artifactengine\providers\typed-rest-client\util.ts",
+                  "*\extensions\artifactenginev2\providers\typed-rest-client\httpclient.ts",
+                  "*\extensions\artifactenginev2\providers\typed-rest-client\util.ts",
                   "*\extensions\bitbucket\src\tasks\downloadartifactsbitbucket\downloadbitbucket.js",
                   "*\extensions\externaltfs\src\tasks\downloadartifactstfsgit\downloadtfgit.js"
                 )

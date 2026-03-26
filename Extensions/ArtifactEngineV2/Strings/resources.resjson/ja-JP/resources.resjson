@@ -1,0 +1,12 @@
+{
+  "loc.messages.DownloadSummary": "合計ファイル数: %s、処理済み: %s、スキップ: %s、失敗: %s、ダウンロード時間: %s 秒、ダウンロード サイズ: %s",
+  "loc.messages.FailedToParseResponse": "応答本文を解析できませんでした: %s、エラー発生: %s",
+  "loc.messages.DownloadingTo": "%s を %s へダウンロード中",
+  "loc.messages.DownloadedTo": "%s を %s へダウンロード済み",
+  "loc.messages.UnableToReadDirectory": "ディレクトリ %s を読み取ることができません。エラー: %s",
+  "loc.messages.RetryingDownload": "%s のダウンロードを再試行しています。再試行回数: %s",
+  "loc.messages.SkippingItem": "項目 %s の処理をスキップしました",
+  "loc.messages.UnhandledRejection": "artifact-engine: ハンドルされない拒否 %s",
+  "loc.messages.UnhandledException": "artifact-engine: ハンドルされない例外 %s",
+  "loc.messages.FailedRequest": "失敗した要求: (statusCode)"
+}

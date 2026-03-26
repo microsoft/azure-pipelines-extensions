@@ -1,0 +1,57 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff version="1.2">
+  <file original="lib.json" source-language="en-US" target-language="de-DE" datatype="plaintext">
+    <body>
+      <trans-unit xmlns="" id="loc.messages.DownloadSummary">
+        <source>Total Files: %s, Processed: %s, Skipped: %s, Failed: %s, Download time: %s secs, Download size: %s</source>
+        <target state="translated">Dateien gesamt: %s, verarbeitet: %s, übersprungen: %s, fehlerhaft: %s, Downloadzeit: %s Sek., Downloadgröße: %s</target>
+        <note />
+      </trans-unit>
+      <trans-unit xmlns="" id="loc.messages.DownloadedTo">
+        <source>Downloaded %s to %s</source>
+        <target state="translated">Download von "%s" nach "%s" wurde durchgeführt.</target>
+        <note />
+      </trans-unit>
+      <trans-unit xmlns="" id="loc.messages.DownloadingTo">
+        <source>Downloading %s to %s</source>
+        <target state="translated">Download von "%s" nach "%s" wird durchgeführt.</target>
+        <note />
+      </trans-unit>
+      <trans-unit xmlns="" id="loc.messages.FailedRequest">
+        <source>Failed request: (statusCode)</source>
+        <target state="translated">Fehlerhafte Anforderung: (statusCode)</target>
+        <note />
+      </trans-unit>
+      <trans-unit xmlns="" id="loc.messages.FailedToParseResponse">
+        <source>Failed to parse response body: %s, got error : %s</source>
+        <target state="translated">Fehler beim Analysieren des Antworttexts: %s. Erhaltener Fehler: %s</target>
+        <note />
+      </trans-unit>
+      <trans-unit xmlns="" id="loc.messages.RetryingDownload">
+        <source>Retrying download of %s, retry count: %s</source>
+        <target state="translated">Download von "%s" wird erneut versucht, Wiederholungsanzahl: %s</target>
+        <note />
+      </trans-unit>
+      <trans-unit xmlns="" id="loc.messages.SkippingItem">
+        <source>Skipped processing item %s</source>
+        <target state="translated">Die Verarbeitung des Elements "%s" wird übersprungen.</target>
+        <note />
+      </trans-unit>
+      <trans-unit xmlns="" id="loc.messages.UnableToReadDirectory">
+        <source>Unable to read directory %s. Error: %s</source>
+        <target state="translated">Das Verzeichnis "%s" kann nicht gelesen werden. Fehler: %s</target>
+        <note />
+      </trans-unit>
+      <trans-unit xmlns="" id="loc.messages.UnhandledException">
+        <source>artifact-engine-v2: unhandled exception %s</source>
+        <target state="translated">artifact-engine-v2: Ausnahmefehler %s</target>
+        <note />
+      </trans-unit>
+      <trans-unit xmlns="" id="loc.messages.UnhandledRejection">
+        <source>artifact-engine-v2: unhandled rejection %s</source>
+        <target state="translated">artifact-engine-v2: nicht verarbeitete Zurückweisung %s</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>
