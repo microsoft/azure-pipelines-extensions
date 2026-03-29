@@ -69,15 +69,33 @@ if (-not $targetBranch) {
 $targetRef = $targetBranch -replace '^refs/heads/', ''
 Write-Host "PR target branch: $targetRef"
 
-git fetch origin $targetRef --depth=50 2>&1 | ForEach-Object { Write-Host $_ }
+# Fetch target branch history. Use --no-tags to keep it lean.
+# Start with depth 100 to improve merge-base discovery; deepen if the
+# three-dot diff fails (shallow clones may lack the merge base).
+Write-Host "Fetching origin/$targetRef ..."
+git fetch origin $targetRef --depth=100 --no-tags 2>&1 | ForEach-Object { Write-Host $_ }
 
-$changedFiles = git diff --name-only "origin/$targetRef...HEAD" 2>&1
-if ($LASTEXITCODE -ne 0) {
-    Write-Host "##[warning]Three-dot diff failed. Trying two-dot diff."
-    $changedFiles = git diff "origin/$targetRef" HEAD --name-only
+# Prefer three-dot diff (merge-base → HEAD) which is the true PR diff.
+# Fall back to two-dot diff if the merge base is unreachable (shallow clone).
+$changedFiles = $null
+$diffOutput = git diff --name-only "origin/$targetRef...HEAD" 2>&1
+if ($LASTEXITCODE -eq 0) {
+    $changedFiles = @($diffOutput | Where-Object { $_ -and $_ -notmatch '^(fatal|error|warning):' })
+} else {
+    Write-Host "##[warning]Three-dot diff failed (merge base likely outside fetch depth). Deepening fetch..."
+    git fetch --deepen=200 2>&1 | ForEach-Object { Write-Host $_ }
+
+    $diffOutput = git diff --name-only "origin/$targetRef...HEAD" 2>&1
+    if ($LASTEXITCODE -eq 0) {
+        $changedFiles = @($diffOutput | Where-Object { $_ -and $_ -notmatch '^(fatal|error|warning):' })
+    } else {
+        Write-Host "##[warning]Three-dot diff still failed after deepening. Falling back to two-dot diff."
+        $diffOutput = git diff "origin/$targetRef" HEAD --name-only 2>&1
+        $changedFiles = @($diffOutput | Where-Object { $_ -and $_ -notmatch '^(fatal|error|warning):' })
+    }
 }
 
-if (-not $changedFiles) {
+if (-not $changedFiles -or $changedFiles.Count -eq 0) {
     Write-Host "##[warning]No changed files detected."
     if ($ParameterExtensionName -and ($validExtensions -contains $ParameterExtensionName)) {
         Write-Host "Falling back to parameter: $ParameterExtensionName"
@@ -87,17 +105,26 @@ if (-not $changedFiles) {
     throw "No changed files detected and no valid fallback parameter."
 }
 
-Write-Host "`nChanged files:"
+Write-Host "`nChanged files ($($changedFiles.Count)):"
 $changedFiles | ForEach-Object { Write-Host "  $_" }
 
 $detectedExtensions = @()
+$nonExtensionFiles = @()
+
 foreach ($file in $changedFiles) {
     if ($file -match '^Extensions/([^/]+)/') {
         $extName = $Matches[1]
         if (($validExtensions -contains $extName) -and ($detectedExtensions -notcontains $extName)) {
             $detectedExtensions += $extName
         }
+    } else {
+        $nonExtensionFiles += $file
     }
+}
+
+if ($nonExtensionFiles.Count -gt 0) {
+    Write-Host "`nNon-extension files changed ($($nonExtensionFiles.Count)):"
+    $nonExtensionFiles | ForEach-Object { Write-Host "  $_" }
 }
 
 if ($detectedExtensions.Count -eq 0) {

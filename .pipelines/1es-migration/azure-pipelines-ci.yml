@@ -35,8 +35,12 @@ variables:
 # 1ES Security Scanning
 - name: CodeQL.Enabled
   value: true
-# Dynamic
+# Dynamic (overridden by DetectChangedExtension.ps1 for PR triggers)
 - name: ExtensionName
+  value: ${{ parameters.extensionName }}
+- name: DetectedExtensions
+  value: ${{ parameters.extensionName }}
+- name: ExtensionCopyPattern
   value: ${{ parameters.extensionName }}
 
 resources:
@@ -97,6 +101,17 @@ extends:
             arguments: -ParameterExtensionName "${{ parameters.extensionName }}"
             pwsh: true
 
+        - task: PowerShell@2
+          displayName: 'Prepare gulp testAreaPath argument'
+          inputs:
+            targetType: inline
+            pwsh: true
+            script: |
+              # Convert semicolons (DetectedExtensions format) to commas (gulp --testAreaPath format)
+              $gulpAreaPath = "$(DetectedExtensions)" -replace ';', ','
+              Write-Host "Gulp testAreaPath: $gulpAreaPath"
+              Write-Host "##vso[task.setvariable variable=GulpTestAreaPath]$gulpAreaPath"
+
         - task: NodeTool@0
           displayName: 'Use Node.js 20.x'
           inputs:
@@ -121,10 +136,10 @@ extends:
             customCommand: 'install -g gulp-cli'
 
         - task: PowerShell@2
-          displayName: 'Build test resources'
+          displayName: 'Build test resources (scoped to changed extensions)'
           inputs:
             targetType: inline
-            script: 'gulp build --test'
+            script: 'gulp build --test --testAreaPath=$(GulpTestAreaPath)'
             workingDirectory: '$(Build.SourcesDirectory)'
 
         - task: PowerShell@2

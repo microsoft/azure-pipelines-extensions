@@ -94,12 +94,23 @@ extends:
           fetchTags: false
 
         - task: PowerShell@2
-          displayName: 'Auto-detect changed extension (PR triggers only)'
+          displayName: 'Auto-detect changed extensions (PR triggers only)'
           condition: eq(variables['Build.Reason'], 'PullRequest')
           inputs:
             filePath: '$(Build.SourcesDirectory)/scripts/DetectChangedExtension.ps1'
             arguments: -ParameterExtensionName "${{ parameters.extensionName }}"
             pwsh: true
+
+        - task: PowerShell@2
+          displayName: 'Prepare gulp testAreaPath argument'
+          inputs:
+            targetType: inline
+            pwsh: true
+            script: |
+              # Convert semicolons (DetectedExtensions format) to commas (gulp --testAreaPath format)
+              $gulpAreaPath = "$(DetectedExtensions)" -replace ';', ','
+              Write-Host "Gulp testAreaPath: $gulpAreaPath"
+              Write-Host "##vso[task.setvariable variable=GulpTestAreaPath]$gulpAreaPath"
 
         - task: NodeTool@0
           displayName: 'Use Node.js 20.x'
@@ -113,7 +124,7 @@ extends:
             verbose: false
 
         - task: Npm@1
-          displayName: 'Install TFX CLI (needed for publishing on Marketplace)'
+          displayName: 'Install TFX CLI'
           inputs:
             command: custom
             customCommand: 'install -g tfx-cli'
@@ -125,10 +136,10 @@ extends:
             customCommand: 'install -g gulp-cli'
 
         - task: PowerShell@2
-          displayName: 'Build test resources'
+          displayName: 'Build test resources (scoped to changed extensions)'
           inputs:
             targetType: inline
-            script: 'gulp build --test'
+            script: 'gulp build --test --testAreaPath=$(GulpTestAreaPath)'
             workingDirectory: '$(Build.SourcesDirectory)'
 
         - task: PowerShell@2
@@ -139,7 +150,7 @@ extends:
             workingDirectory: '$(Build.SourcesDirectory)'
 
         - task: CopyFiles@2
-          displayName: 'Copy test .vsix file to unsigned artifacts directory'
+          displayName: 'Copy test .vsix file(s) to unsigned artifacts directory'
           inputs:
             SourceFolder: '$(Build.SourcesDirectory)/_package'
             Contents: '$(ExtensionCopyPattern)/*.vsix'
