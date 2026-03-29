@@ -101,17 +101,6 @@ extends:
             arguments: -ParameterExtensionName "${{ parameters.extensionName }}"
             pwsh: true
 
-        - task: PowerShell@2
-          displayName: 'Prepare gulp testAreaPath argument'
-          inputs:
-            targetType: inline
-            pwsh: true
-            script: |
-              # Convert semicolons (DetectedExtensions format) to commas (gulp --testAreaPath format)
-              $gulpAreaPath = "$(DetectedExtensions)" -replace ';', ','
-              Write-Host "Gulp testAreaPath: $gulpAreaPath"
-              Write-Host "##vso[task.setvariable variable=GulpTestAreaPath]$gulpAreaPath"
-
         - task: NodeTool@0
           displayName: 'Use Node.js 20.x'
           inputs:
@@ -136,10 +125,10 @@ extends:
             customCommand: 'install -g gulp-cli'
 
         - task: PowerShell@2
-          displayName: 'Build test resources (scoped to changed extensions)'
+          displayName: 'Build test resources'
           inputs:
             targetType: inline
-            script: 'gulp build --test --testAreaPath=$(GulpTestAreaPath)'
+            script: 'gulp build --test'
             workingDirectory: '$(Build.SourcesDirectory)'
 
         - task: PowerShell@2
