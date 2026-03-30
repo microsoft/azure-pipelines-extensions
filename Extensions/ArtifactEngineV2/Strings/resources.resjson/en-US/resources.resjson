@@ -1,0 +1,12 @@
+{
+  "loc.messages.DownloadSummary": "Total Files: %s, Processed: %s, Skipped: %s, Failed: %s, Download time: %s secs, Download size: %s",
+  "loc.messages.FailedToParseResponse": "Failed to parse response body: %s, got error : %s",
+  "loc.messages.DownloadingTo": "Downloading %s to %s",
+  "loc.messages.DownloadedTo": "Downloaded %s to %s",
+  "loc.messages.UnableToReadDirectory": "Unable to read directory %s. Error: %s",
+  "loc.messages.RetryingDownload": "Retrying download of %s, retry count: %s",
+  "loc.messages.SkippingItem": "Skipped processing item %s",
+  "loc.messages.UnhandledRejection": "artifact-engine: unhandled rejection %s",
+  "loc.messages.UnhandledException": "artifact-engine: unhandled exception %s",
+  "loc.messages.FailedRequest": "Failed request: (statusCode)"
+}
