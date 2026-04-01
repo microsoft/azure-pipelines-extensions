@@ -112,11 +112,10 @@ extends:
             command: install
             verbose: false
 
-        - task: Npm@1
+        - task: TfxInstaller@5
           displayName: 'Install TFX CLI (needed for publishing on Marketplace)'
           inputs:
-            command: custom
-            customCommand: 'install -g tfx-cli'
+            version: 'v0.21.1'
 
         - task: Npm@1
           displayName: 'Install Gulp CLI'
