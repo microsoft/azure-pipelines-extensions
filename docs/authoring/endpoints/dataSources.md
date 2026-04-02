@@ -56,18 +56,78 @@ URL can also include variables that correspond to other task inputs. Variable va
 }
 ```
 
-In addition to defining the URL for the data source, a `resultSelector` can also be defined. In the example above, result selector is a JSON PATH query which gets applied on each of the elements in the the REST API response data.
+In addition to defining the URL for the data source, a `resultSelector` can also be defined. The result selector specifies how to extract data from the REST API response.
 
-Result selector can also be an XPATH query. For e.g. *Azure Classic* endpoint type supports data sources that use XPATH query.
+### resultSelector Reference
 
+The `resultSelector` field must be prefixed with one of the following supported types:
+
+| Prefix | Description | Implementation |
+|--------|-------------|----------------|
+| `jsonpath:` | JSONPath query for JSON responses | [Newtonsoft.Json](https://www.newtonsoft.com/json) (`JToken.SelectTokens`) |
+| `xpath:` | XPath query for XML responses | .NET `System.Xml.XPath` (`XDocument.XPathSelectElements`) |
+| `none` | No selection; returns empty result | - |
+| `plaintext` | Returns raw response body as plain text | - |
+
+#### JSONPath (`jsonpath:`)
+
+JSONPath expressions are evaluated using the **Newtonsoft.Json** (Json.NET) library's [`JToken.SelectTokens()`](https://www.newtonsoft.com/json/help/html/SelectToken.htm) method. The supported syntax follows the [Json.NET JSONPath documentation](https://www.newtonsoft.com/json/help/html/QueryJsonSelectToken.htm).
+
+> **Important:** Not all JSONPath features from other implementations (e.g., Jayway JsonPath for Java, Stefan Goessner's original spec) are supported. Always refer to the Newtonsoft.Json documentation for exact supported syntax.
+
+**Supported operators:**
+
+| Operator | Description | Example |
+|----------|-------------|---------|
+| `$` | Root object | `jsonpath:$` |
+| `.property` | Child property | `jsonpath:$.store.book` |
+| `..property` | Recursive descent (deep scan) | `jsonpath:$..name` |
+| `[*]` | Array wildcard (all elements) | `jsonpath:$.value[*].id` |
+| `[n]` | Array index (zero-based) | `jsonpath:$.value[0]` |
+| `[n,m]` | Array union (multiple indices) | `jsonpath:$.value[0,1]` |
+| `[start:end]` | Array slice | `jsonpath:$.value[0:3]` |
+| `[?()]` | Filter expression | `jsonpath:$.value[?(@.properties.isEnabled == true)]` |
+
+**Examples:**
+
+```json
+// Select all IDs from a "value" array
+"resultSelector": "jsonpath:$.value[*].id"
+
+// Select all names using recursive descent
+"resultSelector": "jsonpath:$..name"
+
+// Filter items based on a nested property value
+"resultSelector": "jsonpath:$.value[?(@.properties.isEnabled == true)]"
+
+// Select the root object itself
+"resultSelector": "jsonpath:$"
 ```
-{
-    "name": "AzureWebSiteNames",
-    "endpointUrl": "$(endpoint.url)/$(endpoint.subscriptionId)/services/webspaces/$(WebSiteLocation)Webspace/sites",
-    "resultSelector": "xpath://Site/Name"
-}
+
+#### XPath (`xpath:`)
+
+XPath expressions are evaluated using .NET's [`XDocument.XPathSelectElements()`](https://learn.microsoft.com/en-us/dotnet/api/system.xml.xpath.extensions.xpathselectelements) method, which supports standard **XPath 1.0** syntax.
+
+> **Important:** Default XML namespaces are automatically stripped from the response before evaluation. You do **not** need to handle default namespace prefixes in your XPath expressions.
+
+**Examples:**
+
+```json
+// Select Name elements under Site
+"resultSelector": "xpath://Site/Name"
+
+// Union of multiple element types
+"resultSelector": "xpath://Blobs/Blob | //Blobs/BlobPrefix"
 ```
 
+#### Other selector types
+
+- **`none`** - Returns an empty result. Useful when no data extraction is needed (e.g., for write-only REST calls).
+- **`plaintext`** - Returns the raw HTTP response body as a single plain-text string.
+
+### Response size limits
+
+The response body is subject to a maximum size limit. If the REST API response exceeds this limit, an error is thrown. Ensure that your API calls include appropriate pagination or filtering parameters to keep response sizes under **2 MB**.
 ## Data source bindings
 
 In order to refer to data sources defined by endpoint type in tasks, data source bindings are used. For e.g. *AzureRmWebAppDeployment* task defines data source binding referring to the above data source :
