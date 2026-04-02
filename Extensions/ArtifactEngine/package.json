@@ -1,6 +1,6 @@
 {
   "name": "artifact-engine",
-  "version": "1.272.0",
+  "version": "1.272.1",
   "description": "Artifact Engine to download artifacts from jenkins, teamcity, vsts",
   "repository": {
     "type": "git",
@@ -22,7 +22,8 @@
     "tunnel": "0.0.4"
   },
   "overrides": {
-    "minimatch": "3.1.5"
+    "minimatch": "3.1.5",
+    "picomatch": "2.3.2"
   },
   "devDependencies": {
     "@types/minimatch": "^2.0.29",
