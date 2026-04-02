@@ -257,8 +257,11 @@ gulp.task("compileNode", gulp.series("compilePS", function(cb){
     }
 
     // Compile UIExtensions
-    fs.readdirSync( path.join(__dirname, 'Extensions/')).filter(function (file) {
-        return fs.statSync(path.join(_extnBuildRoot, file)).isDirectory() && file != "Common";
+    // Note: when running with --testAreaPath, only a subset of extensions are copied into _build.
+    // Guard against missing directories so scoped builds don't fail.
+    fs.readdirSync(path.join(__dirname, 'Extensions/')).filter(function (file) {
+        var buildExtensionPath = path.join(_extnBuildRoot, file);
+        return fs.existsSync(buildExtensionPath) && fs.statSync(buildExtensionPath).isDirectory() && file != "Common";
     }).forEach(compileUIExtensions);
 
     //Foreach task under extensions copy common modules

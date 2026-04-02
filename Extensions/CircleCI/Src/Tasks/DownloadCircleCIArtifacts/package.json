@@ -11,6 +11,7 @@
   "overrides": {
     "artifact-engine": {
       "handlebars": "4.7.9"
-    }
+    },
+    "picomatch": "2.3.2"
   }
 }
