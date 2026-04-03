@@ -167,10 +167,11 @@ extends:
           inputs:
             versionSpec: '20.x'
 
-        - task: TfxInstaller@5
-          displayName: 'Install TFX'
+        - task: Npm@1
+          displayName: 'Install TFX CLI'
           inputs:
-            version: 'v0.21.1'
+            command: custom
+            customCommand: 'install -g tfx-cli'
 
         - task: 1ES.PublishAzureDevOpsExtension@1
           displayName: 'Publish test extension (unsigned)'
