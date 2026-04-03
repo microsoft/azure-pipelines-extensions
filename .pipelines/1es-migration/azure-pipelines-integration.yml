@@ -10,7 +10,11 @@ name: CI - Extension $(ExtensionName) - $(Date:yyyyMMdd)$(Rev:.r)
 appendCommitMessageToRunName: false
 
 trigger: none
-pr: none
+
+pr:
+  branches:
+    include:
+    - master
 
 parameters:
 - name: extensionName
