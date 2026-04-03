@@ -7,5 +7,10 @@
     "artifact-engine": "^1.271.1",
     "azure-pipelines-task-lib": "^5.2.8",
     "underscore": "1.13.8"
+  },
+  "overrides": {
+    "artifact-engine": {
+      "handlebars": "4.7.9"
+    }
   }
 }

@@ -12,6 +12,9 @@
     "typescript": "5.1.6"
   },
   "overrides": {
-    "underscore": "1.13.8"
+    "underscore": "1.13.8",
+    "artifact-engine": {
+      "handlebars": "4.7.9"
+    }
   }
 }
