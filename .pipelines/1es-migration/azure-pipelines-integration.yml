@@ -117,10 +117,10 @@ extends:
             verbose: false
 
         - task: Npm@1
-          displayName: 'Install TFX CLI (needed for publishing on Marketplace)'
+          displayName: 'Install TFX CLI'
           inputs:
-            command: custom
-            customCommand: 'install -g tfx-cli'
+          command: custom
+          customCommand: 'install -g tfx-cli --registry https://pkgs.dev.azure.com/mseng/PipelineTools/_packaging/PipelineTools_PublicPackages/npm/registry/'
 
         - task: Npm@1
           displayName: 'Install Gulp CLI'
@@ -168,12 +168,11 @@ extends:
           inputs:
             versionSpec: '20.x'
 
-        - task: Npm@1
-          displayName: 'Install TFX CLI'
+        - task: TfxInstaller@5
+          displayName: 'Install TFX'
           inputs:
-            command: custom
-            customCommand: 'install -g tfx-cli'
-
+            version: 'v0.21.1'
+            
         - task: 1ES.PublishAzureDevOpsExtension@1
           displayName: 'Publish test extension (unsigned)'
           inputs:
