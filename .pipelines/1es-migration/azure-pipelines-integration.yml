@@ -126,7 +126,7 @@ extends:
           displayName: 'Install Gulp CLI'
           inputs:
             command: custom
-            customCommand: 'install -g gulp-cli'
+            customCommand: 'install -g gulp-cli --registry https://pkgs.dev.azure.com/mseng/PipelineTools/_packaging/PipelineTools_PublicPackages/npm/registry/'
 
         - task: PowerShell@2
           displayName: 'Build test resources'
