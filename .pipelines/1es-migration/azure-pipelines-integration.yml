@@ -128,6 +128,9 @@ extends:
             command: custom
             customCommand: 'install -g gulp-cli --registry https://pkgs.dev.azure.com/mseng/PipelineTools/_packaging/PipelineTools_PublicPackages/npm/registry/'
 
+        - script: npm config set registry https://pkgs.dev.azure.com/mseng/PipelineTools/_packaging/PipelineTools_PublicPackages/npm/registry/
+          displayName: 'Set npm registry to internal feed (Network Isolation workaround)'
+
         - task: PowerShell@2
           displayName: 'Build test resources'
           inputs:
