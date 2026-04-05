@@ -43,6 +43,11 @@ variables:
 # files and package-lock.json resolved URLs.
 - name: npm_config_registry
   value: https://pkgs.dev.azure.com/mseng/PipelineTools/_packaging/PipelineTools_PublicPackages/npm/registry/
+# Ensure npm always finds the authenticated root .npmrc regardless of CWD.
+# npm v7+ stops searching for .npmrc at the nearest package.json, so build
+# subdirectories (_build/Extensions/ArtifactEngine*) never reach the root file.
+- name: npm_config_userconfig
+  value: $(Build.SourcesDirectory)/.npmrc
 # Dynamic (overridden by DetectChangedExtension.ps1 for PR triggers)
 - name: ExtensionName
   value: ${{ parameters.extensionName }}
@@ -137,6 +142,11 @@ extends:
 
         - script: npm config set registry https://pkgs.dev.azure.com/mseng/PipelineTools/_packaging/PipelineTools_PublicPackages/npm/registry/
           displayName: 'Set npm registry to internal feed (Network Isolation workaround)'
+
+        - task: NpmAuthenticate@0
+          displayName: 'Authenticate npm with internal feed'
+          inputs:
+            workingFile: .npmrc
 
         - task: PowerShell@2
           displayName: 'Pre-cache PowerShell Gallery packages (Network Isolation workaround)'

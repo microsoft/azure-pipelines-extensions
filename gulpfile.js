@@ -666,7 +666,7 @@ function runNpmInstall(packagePath) {
     util.cd(packagePath);
     var packageJsonPath = util.rp('package.json');
     if (util.test('-f', packageJsonPath)) {
-        util.run(`npm install --userconfig ${path.join(artifactEngineSourcePath, ".npmrc")}`);
+        util.run(`npm install --userconfig ${path.resolve(__dirname, ".npmrc")}`);
     }
     util.cd(originalDir);
 }
