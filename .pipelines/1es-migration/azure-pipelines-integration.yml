@@ -43,11 +43,6 @@ variables:
 # files and package-lock.json resolved URLs.
 - name: npm_config_registry
   value: https://pkgs.dev.azure.com/mseng/PipelineTools/_packaging/PipelineTools_PublicPackages/npm/registry/
-# Ensure npm always finds the authenticated root .npmrc regardless of CWD.
-# npm v7+ stops searching for .npmrc at the nearest package.json, so build
-# subdirectories (_build/Extensions/ArtifactEngine*) never reach the root file.
-- name: npm_config_userconfig
-  value: $(Build.SourcesDirectory)/.npmrc
 # Dynamic (overridden by DetectChangedExtension.ps1 for PR triggers)
 - name: ExtensionName
   value: ${{ parameters.extensionName }}
@@ -184,20 +179,33 @@ extends:
             targetType: inline
             pwsh: true
             script: |
-              # gulp's runNpmInstall() passes --userconfig Extensions/ArtifactEngine/.npmrc
-              # relative from _build/Extensions/{ExtDir}/, which resolves to
-              # _build/Extensions/{ExtDir}/Extensions/ArtifactEngine/.npmrc (non-existent).
-              # Create these nested paths in the source tree with the authenticated root
-              # .npmrc so that gulp's compilePS task copies them into _build/.
-              $authNpmrc = Join-Path '$(Build.SourcesDirectory)' '.npmrc'
+              # The 1ES build pool DNS-sinkholes registry.npmjs.org, so npm cannot
+              # download tarballs from lockfile URLs that point there.
+              # Fix: (a) delete lockfiles so npm does a fresh install from the configured
+              # internal feed registry, and (b) inject auth tokens into the extension
+              # .npmrc files that compilePS copies to _build/ (these serve as npm's
+              # "project config" in the CWD where npm install runs).
+              $feedUrl = 'pkgs.dev.azure.com/mseng/PipelineTools/_packaging/PipelineTools_PublicPackages/npm/registry/'
+              $authLine = "//${feedUrl}:_authToken=$($env:SYSTEM_ACCESSTOKEN)"
+
               $extDirs = @('ArtifactEngine', 'ArtifactEngineV2')
               foreach ($ext in $extDirs) {
-                $targetDir = Join-Path '$(Build.SourcesDirectory)' 'Extensions' $ext 'Extensions' 'ArtifactEngine'
-                New-Item -ItemType Directory -Path $targetDir -Force | Out-Null
-                Copy-Item $authNpmrc (Join-Path $targetDir '.npmrc') -Force
-                Write-Host "Created authenticated .npmrc at: Extensions/$ext/Extensions/ArtifactEngine/.npmrc"
+                # Delete lockfile so npm resolves from the internal feed, not npmjs.org
+                $lockFile = Join-Path '$(Build.SourcesDirectory)' 'Extensions' $ext 'package-lock.json'
+                if (Test-Path $lockFile) {
+                  Remove-Item $lockFile -Force
+                  Write-Host "Deleted lockfile: Extensions/$ext/package-lock.json"
+                }
+                # Append auth token to the extension .npmrc (project config for npm)
+                $npmrcPath = Join-Path '$(Build.SourcesDirectory)' 'Extensions' $ext '.npmrc'
+                if (Test-Path $npmrcPath) {
+                  Add-Content -Path $npmrcPath -Value "`n$authLine"
+                  Write-Host "Appended auth to: Extensions/$ext/.npmrc"
+                }
               }
             workingDirectory: '$(Build.SourcesDirectory)'
+          env:
+            SYSTEM_ACCESSTOKEN: $(System.AccessToken)
 
         - task: PowerShell@2
           displayName: 'Build test resources'
