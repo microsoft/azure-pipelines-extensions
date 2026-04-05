@@ -182,11 +182,16 @@ extends:
               # The 1ES build pool DNS-sinkholes registry.npmjs.org, so npm cannot
               # download tarballs from lockfile URLs that point there.
               # Fix: (a) delete lockfiles so npm does a fresh install from the configured
-              # internal feed registry, and (b) inject auth tokens into the extension
-              # .npmrc files that compilePS copies to _build/ (these serve as npm's
-              # "project config" in the CWD where npm install runs).
-              $feedUrl = 'pkgs.dev.azure.com/mseng/PipelineTools/_packaging/PipelineTools_PublicPackages/npm/registry/'
-              $authLine = "//${feedUrl}:_authToken=$($env:SYSTEM_ACCESSTOKEN)"
+              # internal feed registry,
+              $rootNpmrc = Join-Path '$(Build.SourcesDirectory)' '.npmrc'
+              # Extract all auth-related lines (those starting with //)
+              $authLines = Get-Content $rootNpmrc | Where-Object { $_ -match '^//' }
+              Write-Host "Auth lines extracted from root .npmrc: $($authLines.Count)"
+              foreach ($line in $authLines) {
+                # Mask token values in log output
+                $masked = $line -replace '=.*', '=***'
+                Write-Host "  $masked"
+              }
 
               $extDirs = @('ArtifactEngine', 'ArtifactEngineV2')
               foreach ($ext in $extDirs) {
@@ -196,16 +201,14 @@ extends:
                   Remove-Item $lockFile -Force
                   Write-Host "Deleted lockfile: Extensions/$ext/package-lock.json"
                 }
-                # Append auth token to the extension .npmrc (project config for npm)
+                # Append NpmAuthenticate's auth lines to the extension .npmrc
                 $npmrcPath = Join-Path '$(Build.SourcesDirectory)' 'Extensions' $ext '.npmrc'
                 if (Test-Path $npmrcPath) {
-                  Add-Content -Path $npmrcPath -Value "`n$authLine"
-                  Write-Host "Appended auth to: Extensions/$ext/.npmrc"
+                  $authLines | ForEach-Object { Add-Content -Path $npmrcPath -Value $_ }
+                  Write-Host "Appended $($authLines.Count) auth lines to: Extensions/$ext/.npmrc"
                 }
               }
             workingDirectory: '$(Build.SourcesDirectory)'
-          env:
-            SYSTEM_ACCESSTOKEN: $(System.AccessToken)
 
         - task: PowerShell@2
           displayName: 'Build test resources'
