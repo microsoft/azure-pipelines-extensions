@@ -179,6 +179,27 @@ extends:
             workingDirectory: '$(Build.SourcesDirectory)'
 
         - task: PowerShell@2
+          displayName: 'Prepare npm auth for gulp subprocess installs'
+          inputs:
+            targetType: inline
+            pwsh: true
+            script: |
+              # gulp's runNpmInstall() passes --userconfig Extensions/ArtifactEngine/.npmrc
+              # relative from _build/Extensions/{ExtDir}/, which resolves to
+              # _build/Extensions/{ExtDir}/Extensions/ArtifactEngine/.npmrc (non-existent).
+              # Create these nested paths in the source tree with the authenticated root
+              # .npmrc so that gulp's compilePS task copies them into _build/.
+              $authNpmrc = Join-Path '$(Build.SourcesDirectory)' '.npmrc'
+              $extDirs = @('ArtifactEngine', 'ArtifactEngineV2')
+              foreach ($ext in $extDirs) {
+                $targetDir = Join-Path '$(Build.SourcesDirectory)' 'Extensions' $ext 'Extensions' 'ArtifactEngine'
+                New-Item -ItemType Directory -Path $targetDir -Force | Out-Null
+                Copy-Item $authNpmrc (Join-Path $targetDir '.npmrc') -Force
+                Write-Host "Created authenticated .npmrc at: Extensions/$ext/Extensions/ArtifactEngine/.npmrc"
+              }
+            workingDirectory: '$(Build.SourcesDirectory)'
+
+        - task: PowerShell@2
           displayName: 'Build test resources'
           inputs:
             targetType: inline
