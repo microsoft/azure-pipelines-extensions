@@ -57,6 +57,8 @@ extends:
   template: v1/1ES.Unofficial.PipelineTemplate.yml@1ESPipelineTemplates
   parameters:
     sdl:
+      networkIsolation:
+        enabled: false
       sourceAnalysisPool:
         name: 1ESPtTfsAgentBuildPoolSDL
       spotBugs:
