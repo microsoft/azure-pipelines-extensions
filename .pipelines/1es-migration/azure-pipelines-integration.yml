@@ -38,6 +38,11 @@ variables:
 # 1ES Security Scanning
 - name: CodeQL.Enabled
   value: true
+# Force ALL npm calls (including gulp's internal cp.execSync) to use the internal feed.
+# The 1ES build pool DNS-sinkholes registry.npmjs.org; this env var overrides all .npmrc
+# files and package-lock.json resolved URLs.
+- name: npm_config_registry
+  value: https://pkgs.dev.azure.com/mseng/PipelineTools/_packaging/PipelineTools_PublicPackages/npm/registry/
 # Dynamic (overridden by DetectChangedExtension.ps1 for PR triggers)
 - name: ExtensionName
   value: ${{ parameters.extensionName }}
