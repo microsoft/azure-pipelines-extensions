@@ -1,0 +1,329 @@
+# CI Pipeline: Validates extension changes on user/feature branches.
+# Builds and publishes an unsigned TEST extension, then runs CI tests.
+# No ESRP signing — avoids 1ES branch control restrictions on non-master branches.
+#
+# Usage:
+#   Run manually from the Azure DevOps pipeline UI.
+#   Select the extension to test and the branch containing your changes.
+
+name: CI - Extension $(ExtensionName) - $(Date:yyyyMMdd)$(Rev:.r)
+appendCommitMessageToRunName: false
+
+trigger: none
+
+pr:
+  branches:
+    include:
+    - master
+
+parameters:
+- name: extensionName
+  displayName: 'Extension to Build and Test'
+  type: string
+  default: 'IISWebAppDeploy'
+  values:
+  - Ansible
+  - BitBucket
+  - CircleCI
+  - ExternalTfs
+  - IISWebAppDeploy
+  - ServiceNow
+  - TeamCity
+- name: skipCiTesting
+  displayName: 'Skip CI testing (use only if CI tests for the selected extension are not yet available)'
+  type: boolean
+  default: false
+
+variables:
+# 1ES Security Scanning
+- name: CodeQL.Enabled
+  value: true
+# Force ALL npm calls (including gulp's internal cp.execSync) to use the internal feed.
+# The 1ES build pool DNS-sinkholes registry.npmjs.org; this env var overrides all .npmrc
+# files and package-lock.json resolved URLs.
+- name: npm_config_registry
+  value: https://pkgs.dev.azure.com/mseng/PipelineTools/_packaging/PipelineTools_PublicPackages/npm/registry/
+# Dynamic (overridden by DetectChangedExtension.ps1 for PR triggers)
+- name: ExtensionName
+  value: ${{ parameters.extensionName }}
+- name: DetectedExtensions
+  value: ${{ parameters.extensionName }}
+- name: ExtensionCopyPattern
+  value: ${{ parameters.extensionName }}
+
+resources:
+  repositories:
+  - repository: 1ESPipelineTemplates
+    type: git
+    name: 1ESPipelineTemplates/1ESPipelineTemplates
+    ref: refs/tags/release
+
+extends:
+  template: v1/1ES.Unofficial.PipelineTemplate.yml@1ESPipelineTemplates
+  parameters:
+    settings:
+      networkIsolationPolicy: Permissive,CFSClean
+    sdl:
+      sourceAnalysisPool:
+        name: 1ESPtTfsAgentBuildPoolSDL
+      spotBugs:
+        enabled: false
+      credscan:
+        enabled: true
+      binskim:
+        enabled: true
+      eslint:
+        enabled: true
+
+    pool:
+      name: 1ESPtTfsAgentBuildPool1
+
+    customBuildTags:
+    - ES365AIMigrationTooling
+    - 1ES-AzureExtensions
+    - CI-Verification
+    - Extension-${{ parameters.extensionName }}
+
+    stages:
+
+    # ======= Build & Package test extension =======
+    - stage: Build_And_Package_Test_Extension
+      displayName: 'Build & Package test extension'
+      jobs:
+      - job: BuildAndPackage
+        displayName: 'Build & Package test extension'
+        templateContext:
+          outputs:
+          - output: pipelineArtifact
+            displayName: 'Publish unsigned test build artifacts'
+            targetPath: '$(System.ArtifactsDirectory)/test-unsigned'
+            artifactName: 'vsix-test-unsigned'
+        steps:
+        - checkout: self
+          displayName: 'Checkout repository'
+          clean: true
+          fetchTags: false
+
+        - task: PowerShell@2
+          displayName: 'Auto-detect changed extensions (PR triggers only)'
+          condition: eq(variables['Build.Reason'], 'PullRequest')
+          inputs:
+            filePath: '$(Build.SourcesDirectory)/scripts/DetectChangedExtension.ps1'
+            arguments: -ParameterExtensionName "${{ parameters.extensionName }}"
+            pwsh: true
+
+        - task: NodeTool@0
+          displayName: 'Use Node.js 20.x'
+          inputs:
+            versionSpec: '20.x'
+
+        - task: Npm@1
+          displayName: 'Install dependencies'
+          inputs:
+            command: install
+            verbose: false
+
+        - task: Npm@1
+          displayName: 'Install TFX CLI'
+          inputs:
+            command: custom
+            customCommand: 'install -g tfx-cli --registry https://pkgs.dev.azure.com/mseng/PipelineTools/_packaging/PipelineTools_PublicPackages/npm/registry/'
+
+        - task: Npm@1
+          displayName: 'Install Gulp CLI'
+          inputs:
+            command: custom
+            customCommand: 'install -g gulp-cli --registry https://pkgs.dev.azure.com/mseng/PipelineTools/_packaging/PipelineTools_PublicPackages/npm/registry/'
+
+        - script: npm config set registry https://pkgs.dev.azure.com/mseng/PipelineTools/_packaging/PipelineTools_PublicPackages/npm/registry/
+          displayName: 'Set npm registry to internal feed (Network Isolation workaround)'
+
+        - task: NpmAuthenticate@0
+          displayName: 'Authenticate npm with internal feed'
+          inputs:
+            workingFile: .npmrc
+
+        - task: PowerShell@2
+          displayName: 'Pre-cache PowerShell Gallery packages (Network Isolation workaround)'
+          inputs:
+            targetType: inline
+            pwsh: true
+            script: |
+              # The 1ES build pool blocks outbound HTTPS to powershellgallery.com via DNS sinkholing.
+              # Pre-extract vendored .nupkg files into the gulp cache directory so that
+              # cacheArchiveFile() in gulpfile.js finds them already cached and skips the download.
+              $packages = @(
+                @{ Name = 'VstsTaskSdk';    Version = '0.7.1' }
+                @{ Name = 'RemoteDeployer'; Version = '0.1.0' }
+              )
+              foreach ($pkg in $packages) {
+                $url = "https://www.powershellgallery.com/api/v2/package/$($pkg.Name)/$($pkg.Version)"
+                $scrubbed = $url -replace '[/\\:?]', '_'
+                $targetDir = Join-Path '$(Build.SourcesDirectory)' '_temp' 'archive' $scrubbed
+                $nupkgFile = Join-Path '$(Build.SourcesDirectory)' '_vendor' "$($pkg.Name).$($pkg.Version).nupkg"
+                if (Test-Path $targetDir) {
+                  Write-Host "Already cached: $($pkg.Name) $($pkg.Version)"
+                  continue
+                }
+                Write-Host "Pre-caching $($pkg.Name) $($pkg.Version) from vendored nupkg..."
+                New-Item -ItemType Directory -Path $targetDir -Force | Out-Null
+                # nupkg is a zip file — extract directly to the cache target
+                Expand-Archive -Path $nupkgFile -DestinationPath $targetDir -Force
+                Write-Host "Cached to: $targetDir"
+              }
+            workingDirectory: '$(Build.SourcesDirectory)'
+
+        - task: PowerShell@2
+          displayName: 'Prepare npm auth for gulp subprocess installs'
+          inputs:
+            targetType: inline
+            pwsh: true
+            script: |
+              # The 1ES build pool DNS-sinkholes registry.npmjs.org, so npm cannot
+              # download tarballs from lockfile URLs that point there.
+              # Fix: (a) delete lockfiles so npm does a fresh install from the configured
+              # internal feed registry,
+              $rootNpmrc = Join-Path '$(Build.SourcesDirectory)' '.npmrc'
+              # Extract all auth-related lines (those starting with //)
+              $authLines = Get-Content $rootNpmrc | Where-Object { $_ -match '^//' }
+              Write-Host "Auth lines extracted from root .npmrc: $($authLines.Count)"
+              foreach ($line in $authLines) {
+                # Mask token values in log output
+                $masked = $line -replace '=.*', '=***'
+                Write-Host "  $masked"
+              }
+
+              $extDirs = @('ArtifactEngine', 'ArtifactEngineV2')
+              foreach ($ext in $extDirs) {
+                # Delete lockfile so npm resolves from the internal feed, not npmjs.org
+                $lockFile = Join-Path '$(Build.SourcesDirectory)' 'Extensions' $ext 'package-lock.json'
+                if (Test-Path $lockFile) {
+                  Remove-Item $lockFile -Force
+                  Write-Host "Deleted lockfile: Extensions/$ext/package-lock.json"
+                }
+                # Append NpmAuthenticate's auth lines to the extension .npmrc
+                $npmrcPath = Join-Path '$(Build.SourcesDirectory)' 'Extensions' $ext '.npmrc'
+                if (Test-Path $npmrcPath) {
+                  $authLines | ForEach-Object { Add-Content -Path $npmrcPath -Value $_ }
+                  Write-Host "Appended $($authLines.Count) auth lines to: Extensions/$ext/.npmrc"
+                }
+              }
+            workingDirectory: '$(Build.SourcesDirectory)'
+
+        - task: PowerShell@2
+          displayName: 'Build test resources'
+          inputs:
+            targetType: inline
+            script: 'gulp build --test'
+            workingDirectory: '$(Build.SourcesDirectory)'
+
+        - task: PowerShell@2
+          displayName: 'Package test resources'
+          inputs:
+            targetType: inline
+            script: 'gulp package'
+            workingDirectory: '$(Build.SourcesDirectory)'
+
+        - task: CopyFiles@2
+          displayName: 'Copy test .vsix file(s) to unsigned artifacts directory'
+          inputs:
+            SourceFolder: '$(Build.SourcesDirectory)/_package'
+            Contents: '$(ExtensionCopyPattern)/*.vsix'
+            TargetFolder: '$(System.ArtifactsDirectory)/test-unsigned'
+            flattenFolders: true
+
+    # ======= Publish unsigned test extension on Marketplace (visibility set to private) =======
+    - stage: Publish_Test_Extension
+      displayName: 'Publish unsigned test extension on Marketplace (private)'
+      dependsOn: Build_And_Package_Test_Extension
+      condition: succeeded()
+      jobs:
+      - job: PublishTestExtension
+        displayName: 'Publish unsigned test extension on Marketplace'
+        steps:
+        - download: current
+          artifact: vsix-test-unsigned
+          displayName: 'Download unsigned test .vsix'
+
+        - task: NodeTool@0
+          displayName: 'Use Node.js 20.x'
+          inputs:
+            versionSpec: '20.x'
+
+        - task: TfxInstaller@5
+          displayName: 'Install TFX'
+          inputs:
+            version: 'v0.21.1'
+
+        - task: 1ES.PublishAzureDevOpsExtension@1
+          displayName: 'Publish test extension (unsigned)'
+          inputs:
+            connectTo: AzureRM
+            connectedServiceNameAzureRM: '1es-extensions-publication-secure-service-connection'
+            fileType: vsix
+            vsixFile: '$(Pipeline.Workspace)/vsix-test-unsigned/*.vsix'
+            targetPath: '$(Pipeline.Workspace)/vsix-test-unsigned'
+            validateExtension: false
+            useV5: true
+
+    # ======= Execute CI tests and verify the newly published test extension =======
+    - ${{ if ne(parameters.skipCiTesting, true) }}:
+      - stage: Execute_CI_Tests
+        displayName: 'Execute CI tests against the test extension'
+        dependsOn: Publish_Test_Extension
+        condition: succeeded()
+        variables:
+          CI_TESTS_ORG_URL: 'https://dev.azure.com/canarytest'
+          CI_TESTS_PROJECT: 'PipelineTasks'
+        jobs:
+        # ── Manual runs: single extension using existing scripts ──
+        - job: ManualCiTest
+          displayName: 'Trigger CI test pipeline (manual run)'
+          condition: ne(variables['Build.Reason'], 'PullRequest')
+          timeoutInMinutes: 120
+          steps:
+          - task: PowerShell@2
+            name: DetermineCiTestPipelineName
+            displayName: 'Determine CI test pipeline for selected extension'
+            inputs:
+              filePath: '$(Build.SourcesDirectory)/scripts/DetermineCiTestPipelineName.ps1'
+              arguments: -ExtensionName "${{ parameters.extensionName }}"
+              pwsh: true
+              failOnStderr: true
+          - task: AzureCLI@2
+            displayName: 'Trigger CI pipeline and wait for result'
+            inputs:
+              azureSubscription: 'canarytest-extensions-ci-tests-pipeline-connector'
+              scriptType: pscore
+              scriptLocation: scriptPath
+              scriptPath: '$(Build.SourcesDirectory)/scripts/TriggerAdoPipelineAndWaitResult.ps1'
+              arguments: >
+                -OrgUrl "$(CI_TESTS_ORG_URL)"
+                -Project "$(CI_TESTS_PROJECT)"
+                -PipelineName "$(TARGET_PIPELINE_NAME)"
+                -TimeoutMinutes 120
+
+        # ── PR triggers (/azp run): all changed extensions in parallel ──
+        - job: PrCiTests
+          displayName: 'Trigger CI test pipelines for all changed extensions (PR)'
+          condition: eq(variables['Build.Reason'], 'PullRequest')
+          timeoutInMinutes: 120
+          steps:
+          - task: PowerShell@2
+            displayName: 'Re-detect changed extensions'
+            inputs:
+              filePath: '$(Build.SourcesDirectory)/scripts/DetectChangedExtension.ps1'
+              arguments: -ParameterExtensionName "${{ parameters.extensionName }}"
+              pwsh: true
+          - task: AzureCLI@2
+            displayName: 'Trigger CI tests for all detected extensions and wait for results'
+            inputs:
+              azureSubscription: 'canarytest-extensions-ci-tests-pipeline-connector'
+              scriptType: pscore
+              scriptLocation: scriptPath
+              scriptPath: '$(Build.SourcesDirectory)/scripts/TriggerCiTestsForAllExtensions.ps1'
+              arguments: >
+                -Extensions "$(DetectedExtensions)"
+                -OrgUrl "$(CI_TESTS_ORG_URL)"
+                -Project "$(CI_TESTS_PROJECT)"
+                -TimeoutMinutes 120
