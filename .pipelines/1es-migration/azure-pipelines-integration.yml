@@ -179,33 +179,45 @@ extends:
             targetType: inline
             pwsh: true
             script: |
-              # The 1ES build pool DNS-sinkholes registry.npmjs.org, so npm cannot
-              # download tarballs from lockfile URLs that point there.
-              # Fix: (a) delete lockfiles so npm does a fresh install from the configured
-              # internal feed registry,
+              # ROOT CAUSE CHAIN:
+              # 1. gulpfile.js runNpmInstall() uses: --userconfig Extensions\ArtifactEngine\.npmrc
+              #    This relative path does NOT exist when CWD is _build/Extensions/{ext}/
+              #    -> npm reads NO user config -> no auth from user config
+              # 2. gulp.src("**/*") does NOT copy dotfiles (.npmrc) to _build/
+              #    -> npm reads NO project config -> no auth from project config
+              # 3. npm_config_registry env var sets the internal feed as registry
+              #    -> npm tries internal feed without auth -> Azure Artifacts returns 401
+              #
+              # FIX: Write auth to npm GLOBAL config ($PREFIX/etc/npmrc).
+              # Global config is ALWAYS read by npm regardless of --userconfig flag.
+              # npm config priority: CLI > env > project > user > GLOBAL > defaults
+              # --userconfig only affects user config (level 4), not global (level 5).
+
               $rootNpmrc = Join-Path '$(Build.SourcesDirectory)' '.npmrc'
-              # Extract all auth-related lines (those starting with //)
               $authLines = Get-Content $rootNpmrc | Where-Object { $_ -match '^//' }
-              Write-Host "Auth lines extracted from root .npmrc: $($authLines.Count)"
+              Write-Host "Auth lines from root .npmrc: $($authLines.Count)"
               foreach ($line in $authLines) {
-                # Mask token values in log output
                 $masked = $line -replace '=.*', '=***'
                 Write-Host "  $masked"
               }
 
+              # Write auth to npm global config
+              $globalPrefix = (npm config get prefix).Trim()
+              $globalNpmrcDir = Join-Path $globalPrefix 'etc'
+              $globalNpmrc = Join-Path $globalNpmrcDir 'npmrc'
+              New-Item -ItemType Directory -Path $globalNpmrcDir -Force | Out-Null
+              foreach ($line in $authLines) {
+                Add-Content -Path $globalNpmrc -Value $line
+              }
+              Write-Host "Wrote $($authLines.Count) auth line(s) to global npmrc: $globalNpmrc"
+
+              # Also delete lockfiles so npm resolves from internal feed, not npmjs.org
               $extDirs = @('ArtifactEngine', 'ArtifactEngineV2')
               foreach ($ext in $extDirs) {
-                # Delete lockfile so npm resolves from the internal feed, not npmjs.org
                 $lockFile = Join-Path '$(Build.SourcesDirectory)' 'Extensions' $ext 'package-lock.json'
                 if (Test-Path $lockFile) {
                   Remove-Item $lockFile -Force
                   Write-Host "Deleted lockfile: Extensions/$ext/package-lock.json"
-                }
-                # Append NpmAuthenticate's auth lines to the extension .npmrc
-                $npmrcPath = Join-Path '$(Build.SourcesDirectory)' 'Extensions' $ext '.npmrc'
-                if (Test-Path $npmrcPath) {
-                  $authLines | ForEach-Object { Add-Content -Path $npmrcPath -Value $_ }
-                  Write-Host "Appended $($authLines.Count) auth lines to: Extensions/$ext/.npmrc"
                 }
               }
             workingDirectory: '$(Build.SourcesDirectory)'
