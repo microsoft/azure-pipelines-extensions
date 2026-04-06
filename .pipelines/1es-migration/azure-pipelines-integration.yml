@@ -236,13 +236,53 @@ extends:
             script: 'gulp package'
             workingDirectory: '$(Build.SourcesDirectory)'
 
-        - task: CopyFiles@2
+        - task: PowerShell@2
           displayName: 'Copy test .vsix file(s) to unsigned artifacts directory'
           inputs:
-            SourceFolder: '$(Build.SourcesDirectory)/_package'
-            Contents: '$(ExtensionCopyPattern)/*.vsix'
-            TargetFolder: '$(System.ArtifactsDirectory)/test-unsigned'
-            flattenFolders: true
+            targetType: inline
+            pwsh: true
+            script: |
+              # CopyFiles@2 does NOT support {A,B} brace expansion (nobrace=true),
+              # so we parse the semicolon-separated DetectedExtensions list directly.
+              $targetDir = '$(System.ArtifactsDirectory)/test-unsigned'
+              $packageDir = '$(Build.SourcesDirectory)/_package'
+              $extensions = '$(DetectedExtensions)' -split ';'
+
+              # Debug: list _package contents
+              Write-Host "=== _package directory contents ==="
+              Get-ChildItem -Path $packageDir -Recurse -File -Filter '*.vsix' -ErrorAction SilentlyContinue |
+                ForEach-Object { Write-Host "  $($_.FullName)" }
+
+              New-Item -ItemType Directory -Path $targetDir -Force | Out-Null
+
+              $copiedCount = 0
+              $copiedExtensions = @()
+
+              foreach ($ext in $extensions) {
+                $ext = $ext.Trim()
+                if (-not $ext) { continue }
+
+                $extDir = Join-Path $packageDir $ext
+                $vsixFiles = Get-ChildItem -Path $extDir -Filter '*.vsix' -ErrorAction SilentlyContinue
+
+                if ($vsixFiles -and $vsixFiles.Count -gt 0) {
+                  foreach ($vsix in $vsixFiles) {
+                    Copy-Item -Path $vsix.FullName -Destination $targetDir -Force
+                    Write-Host "Copied: $($vsix.Name) (from $ext)"
+                    $copiedCount++
+                  }
+                  $copiedExtensions += $ext
+                } else {
+                  Write-Host "##[warning]No .vsix found for '$ext' — packaging may have failed. Skipping."
+                }
+              }
+
+              if ($copiedCount -eq 0) {
+                Write-Host "##[error]No .vsix files copied. All detected extensions failed to package."
+                exit 1
+              }
+
+              Write-Host "`nCopied $copiedCount .vsix file(s) for: $($copiedExtensions -join ', ')"
 
     # ======= Publish unsigned test extension on Marketplace (visibility set to private) =======
     - stage: Publish_Test_Extension
