@@ -333,7 +333,7 @@ extends:
         - task: TfxInstaller@5
           displayName: 'Install TFX'
           inputs:
-            version: 'v0.21.1'
+            version: 'v0.22.2'
 
         - task: 1ES.PublishAzureDevOpsExtension@1
           displayName: 'Publish test extension (unsigned)'
