@@ -293,6 +293,11 @@ extends:
       - job: PublishTestExtension
         displayName: 'Publish unsigned test extension on Marketplace'
         steps:
+        - checkout: self
+          displayName: 'Checkout repository (for .npmrc auth)'
+          clean: true
+          fetchTags: false
+
         - download: current
           artifact: vsix-test-unsigned
           displayName: 'Download unsigned test .vsix'
@@ -301,6 +306,31 @@ extends:
           displayName: 'Use Node.js 20.x'
           inputs:
             versionSpec: '20.x'
+
+        - task: NpmAuthenticate@0
+          displayName: 'Authenticate npm with internal feed'
+          inputs:
+            workingFile: .npmrc
+
+        - task: PowerShell@2
+          displayName: 'Write npm auth to global config (Network Isolation workaround)'
+          inputs:
+            targetType: inline
+            pwsh: true
+            script: |
+              # The 1ES build pool DNS-sinkholes registry.npmjs.org.
+              # TfxInstaller runs "npm install -g tfx-cli" which needs auth for the internal feed.
+              # Write NpmAuthenticate's auth lines to npm global config so TfxInstaller can authenticate.
+              $rootNpmrc = Join-Path '$(Build.SourcesDirectory)' '.npmrc'
+              $authLines = Get-Content $rootNpmrc | Where-Object { $_ -match '^//' }
+              $globalPrefix = (npm config get prefix).Trim()
+              $globalNpmrcDir = Join-Path $globalPrefix 'etc'
+              $globalNpmrc = Join-Path $globalNpmrcDir 'npmrc'
+              New-Item -ItemType Directory -Path $globalNpmrcDir -Force | Out-Null
+              foreach ($line in $authLines) {
+                Add-Content -Path $globalNpmrc -Value $line
+              }
+              Write-Host "Wrote $($authLines.Count) auth line(s) to global npmrc: $globalNpmrc"
 
         - task: TfxInstaller@5
           displayName: 'Install TFX'
