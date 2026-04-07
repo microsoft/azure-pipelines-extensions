@@ -104,6 +104,22 @@ JSONPath expressions are evaluated using the **Newtonsoft.Json** (Json.NET) libr
 "resultSelector": "jsonpath:$"
 ```
 
+**Known limitations:**
+
+The following JSONPath features, available in some other libraries, are **not supported** by Newtonsoft.Json's JPath engine:
+
+| Unsupported Feature | Description |
+|---------------------|-------------|
+| `~` (tilde) | Property name selector. Returns property keys instead of values. Available in libraries like `jsonpath-plus`, but not in Newtonsoft.Json. |
+| `$..['key1','key2']` | Multi-property recursive descent may behave differently than in other JSONPath implementations. |
+
+> **Common pitfall — extracting property names from JSON objects:**
+> Some Azure DevOps REST APIs return data as key-value dictionaries rather than arrays. For example, the Variable Groups API returns variables as:
+> ```json
+> { "variables": { "MyVar1": { "value": "hello" }, "MyVar2": { "value": "world" } } }
+> ```
+> There is currently no supported `resultSelector` expression to extract just the property names (`MyVar1`, `MyVar2`). The `~` operator that some JSONPath libraries support for this purpose is not available in the Newtonsoft.Json implementation used here. In such cases, users must type values manually or use a `resultTemplate` to work with the property values instead of the keys.
+
 #### XPath (`xpath:`)
 
 XPath expressions are evaluated using .NET's [`XDocument.XPathSelectElements()`](https://learn.microsoft.com/en-us/dotnet/api/system.xml.xpath.extensions.xpathselectelements) method, which supports standard **XPath 1.0** syntax.
