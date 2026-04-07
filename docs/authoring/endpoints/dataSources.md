@@ -56,94 +56,119 @@ URL can also include variables that correspond to other task inputs. Variable va
 }
 ```
 
-In addition to defining the URL for the data source, a `resultSelector` can also be defined. The result selector specifies how to extract data from the REST API response.
+In addition to defining the URL for the data source, a `resultSelector` can also be defined. The result selector tells the system how to extract the required data from the API response.
 
 ### resultSelector Reference
 
-The `resultSelector` field must be prefixed with one of the following supported types:
+The `resultSelector` value must start with one of the following prefixes :
 
-| Prefix | Description | Implementation |
-|--------|-------------|----------------|
-| `jsonpath:` | JSONPath query for JSON responses | [Newtonsoft.Json](https://www.newtonsoft.com/json) (`JToken.SelectTokens`) |
-| `xpath:` | XPath query for XML responses | .NET `System.Xml.XPath` (`XDocument.XPathSelectElements`) |
-| `none` | No selection; returns empty result | - |
-| `plaintext` | Returns raw response body as plain text | - |
+| Prefix | Description |
+|--------|-------------|
+| `jsonpath:` | Used to extract data from JSON responses |
+| `xpath:` | Used to extract data from XML responses |
+| `none` | Returns no data |
+| `plaintext` | Returns the full response as plain text |
 
 #### JSONPath (`jsonpath:`)
 
-JSONPath expressions are evaluated using the **Newtonsoft.Json** (Json.NET) library's [`JToken.SelectTokens()`](https://www.newtonsoft.com/json/help/html/SelectToken.htm) method. The supported syntax follows the [Json.NET JSONPath documentation](https://www.newtonsoft.com/json/help/html/QueryJsonSelectToken.htm).
+Use `jsonpath:` when the API response is in JSON format.
 
-> **Important:** Not all JSONPath features from other implementations (e.g., Jayway JsonPath for Java, Stefan Goessner's original spec) are supported. Always refer to the Newtonsoft.Json documentation for exact supported syntax.
+**Common syntax :**
 
-**Supported operators:**
-
-| Operator | Description | Example |
-|----------|-------------|---------|
+| Pattern | Description | Example |
+|---------|-------------|---------|
 | `$` | Root object | `jsonpath:$` |
-| `.property` | Child property | `jsonpath:$.store.book` |
-| `..property` | Recursive descent (deep scan) | `jsonpath:$..name` |
-| `[*]` | Array wildcard (all elements) | `jsonpath:$.value[*].id` |
-| `[n]` | Array index (zero-based) | `jsonpath:$.value[0]` |
-| `[n,m]` | Array union (multiple indices) | `jsonpath:$.value[0,1]` |
-| `[start:end]` | Array slice | `jsonpath:$.value[0:3]` |
-| `[?()]` | Filter expression | `jsonpath:$.value[?(@.properties.isEnabled == true)]` |
+| `.property` | Access a property | `jsonpath:$.value` |
+| `..property` | Search recursively | `jsonpath:$..name` |
+| `[*]` | All items in an array | `jsonpath:$.value[*].id` |
+| `[n]` | Specific item in array | `jsonpath:$.value[0]` |
+| `[n,m]` | Multiple items | `jsonpath:$.value[0,1]` |
+| `[start:end]` | Range of items | `jsonpath:$.value[0:3]` |
+| `[?()]` | Filter condition | `jsonpath:$.value[?(@.properties.isEnabled == true)]` |
 
-**Examples:**
+**Examples :**
 
-```json
-// Select all IDs from a "value" array
+Gets all `id` values from the array :
+```
 "resultSelector": "jsonpath:$.value[*].id"
+```
 
-// Select all names using recursive descent
+Gets all `name` fields from anywhere in the response :
+```
 "resultSelector": "jsonpath:$..name"
+```
 
-// Filter items based on a nested property value
+Gets only items where `isEnabled` is `true` :
+```
 "resultSelector": "jsonpath:$.value[?(@.properties.isEnabled == true)]"
+```
 
-// Select the root object itself
+Returns the full JSON response :
+```
 "resultSelector": "jsonpath:$"
 ```
 
-**Known limitations:**
+**Notes :**
+- Keep JSONPath expressions simple and easy to understand.
+- If something doesn't work, check the API response structure.
+- Some advanced JSONPath features may not be supported.
 
-The following JSONPath features, available in some other libraries, are **not supported** by Newtonsoft.Json's JPath engine:
+**Common limitation :**
 
-| Unsupported Feature | Description |
-|---------------------|-------------|
-| `~` (tilde) | Property name selector. Returns property keys instead of values. Available in libraries like `jsonpath-plus`, but not in Newtonsoft.Json. |
-| `$..['key1','key2']` | Multi-property recursive descent may behave differently than in other JSONPath implementations. |
+Sometimes the API response uses property names as keys rather than returning an array. For e.g. the Variable Groups API returns variables in this format :
 
-> **Common pitfall — extracting property names from JSON objects:**
-> Some Azure DevOps REST APIs return data as key-value dictionaries rather than arrays. For example, the Variable Groups API returns variables as:
-> ```json
-> { "variables": { "MyVar1": { "value": "hello" }, "MyVar2": { "value": "world" } } }
-> ```
-> There is currently no supported `resultSelector` expression to extract just the property names (`MyVar1`, `MyVar2`). The `~` operator that some JSONPath libraries support for this purpose is not available in the Newtonsoft.Json implementation used here. In such cases, users must type values manually or use a `resultTemplate` to work with the property values instead of the keys.
+```
+{
+  "variables": {
+    "MyVar1": { "value": "hello" },
+    "MyVar2": { "value": "world" }
+  }
+}
+```
+
+In this case :
+- You cannot directly extract the keys like `MyVar1`, `MyVar2` using `resultSelector`.
+- You can only extract the property values.
+- Enter values manually, or use `resultTemplate` to format the output.
 
 #### XPath (`xpath:`)
 
-XPath expressions are evaluated using .NET's [`XDocument.XPathSelectElements()`](https://learn.microsoft.com/en-us/dotnet/api/system.xml.xpath.extensions.xpathselectelements) method, which supports standard **XPath 1.0** syntax.
+Use `xpath:` when the API response is in XML format. Standard XPath syntax is supported.
 
-> **Important:** Default XML namespaces are automatically stripped from the response before evaluation. You do **not** need to handle default namespace prefixes in your XPath expressions.
+**Examples :**
 
-**Examples:**
-
-```json
-// Select Name elements under Site
+Selects all `Name` elements under `Site` :
+```
 "resultSelector": "xpath://Site/Name"
+```
 
-// Union of multiple element types
+Selects multiple element types :
+```
 "resultSelector": "xpath://Blobs/Blob | //Blobs/BlobPrefix"
 ```
 
+**Notes :**
+- Standard XPath syntax is supported.
+- You usually don't need to worry about XML namespaces — they are automatically handled.
+
 #### Other selector types
 
-- **`none`** - Returns an empty result. Useful when no data extraction is needed (e.g., for write-only REST calls).
-- **`plaintext`** - Returns the raw HTTP response body as a single plain-text string.
+**`none` :**
+```
+"resultSelector": "none"
+```
+Use when you don't need any data from the response (e.g., for write-only REST calls).
+
+**`plaintext` :**
+```
+"resultSelector": "plaintext"
+```
+Returns the full response as plain text.
 
 ### Response size limits
 
-The response body is subject to a maximum size limit. If the REST API response exceeds this limit, an error is thrown. Ensure that your API calls include appropriate pagination or filtering parameters to keep response sizes under **2 MB**.
+The API response should be less than **2 MB**. If it is too large, the request will fail. Use filtering or pagination in your API calls to reduce the response size.
+
 ## Data source bindings
 
 In order to refer to data sources defined by endpoint type in tasks, data source bindings are used. For e.g. *AzureRmWebAppDeployment* task defines data source binding referring to the above data source :
