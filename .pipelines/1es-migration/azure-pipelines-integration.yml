@@ -76,7 +76,7 @@ extends:
         enabled: true
 
     pool:
-      name: 1ESPtTfsAgentBuildPool8c
+      name: 1ESPtTfsAgentBuildPool1
 
     customBuildTags:
     - ES365AIMigrationTooling
