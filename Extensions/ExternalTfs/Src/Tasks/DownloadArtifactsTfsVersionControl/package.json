@@ -8,6 +8,7 @@
     "shelljs": "^0.10.0"
   },
   "overrides": {
-    "underscore": "1.13.8"
+    "underscore": "1.13.8",
+    "picomatch": "2.3.2"
   }
 }
