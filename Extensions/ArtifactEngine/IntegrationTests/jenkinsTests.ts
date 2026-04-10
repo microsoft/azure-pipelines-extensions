@@ -12,6 +12,8 @@ describe('Integration Tests', () => {
     describe('jenkins tests', () => {
         beforeEach(() => {
             nock.cleanAll();
+            nock.disableNetConnect();
+            nock.enableNetConnect('127.0.0.1');
         });
 
         it('should be able to download jenkins artifact', (done) => {
