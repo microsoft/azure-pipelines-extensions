@@ -2,9 +2,8 @@
 # Builds and publishes an unsigned TEST extension, then runs CI tests.
 # No ESRP signing — avoids 1ES branch control restrictions on non-master branches.
 #
-# Usage:
-#   Run manually from the Azure DevOps pipeline UI.
-#   Select the extension to test and the branch containing your changes.
+# Note: Manual runs are disabled — all stages are skipped when Build.Reason is 'Manual'.
+# This pipeline is intended for PR validation and CI triggers only.
 
 name: CI - Extension $(ExtensionName) - $(Date:yyyyMMdd)$(Rev:.r)
 appendCommitMessageToRunName: false
@@ -20,8 +19,9 @@ parameters:
 - name: extensionName
   displayName: 'Extension to Build and Test'
   type: string
-  default: 'IISWebAppDeploy'
+  default: 'auto'
   values:
+  - auto
   - Ansible
   - BitBucket
   - CircleCI
@@ -89,6 +89,7 @@ extends:
     # ======= Build & Package test extension =======
     - stage: Build_And_Package_Test_Extension
       displayName: 'Build & Package test extension'
+      condition: ne(variables['Build.Reason'], 'Manual')
       jobs:
       - job: BuildAndPackage
         displayName: 'Build & Package test extension'
@@ -260,7 +261,7 @@ extends:
     - stage: Publish_Test_Extension
       displayName: 'Publish unsigned test extension on Marketplace (private)'
       dependsOn: Build_And_Package_Test_Extension
-      condition: succeeded()
+      condition: and(succeeded(), ne(variables['Build.Reason'], 'Manual'))
       jobs:
       - job: PublishTestExtension
         displayName: 'Publish unsigned test extension on Marketplace'
@@ -354,7 +355,7 @@ extends:
       - stage: Execute_CI_Tests
         displayName: 'Execute CI tests against the test extension'
         dependsOn: Publish_Test_Extension
-        condition: succeeded()
+        condition: and(succeeded(), ne(variables['Build.Reason'], 'Manual'))
         variables:
           CI_TESTS_ORG_URL: 'https://dev.azure.com/canarytest'
           CI_TESTS_PROJECT: 'PipelineTasks'
