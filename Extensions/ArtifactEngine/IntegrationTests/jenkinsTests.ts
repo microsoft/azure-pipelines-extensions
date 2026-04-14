@@ -13,6 +13,7 @@ describe('Integration Tests', () => {
         beforeEach(() => {
             nock.cleanAll();
             nock.disableNetConnect();
+            // Allow localhost connections for proxy tests sharing the same mocha process
             nock.enableNetConnect('127.0.0.1');
         });
 
