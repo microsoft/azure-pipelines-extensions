@@ -139,35 +139,35 @@ extends:
             command: custom
             customCommand: 'install -g gulp-cli'
 
-        - task: PowerShell@2
-          displayName: 'Pre-cache PowerShell Gallery packages (Network Isolation workaround)'
-          inputs:
-            targetType: inline
-            pwsh: true
-            script: |
-              # The 1ES build pool blocks outbound HTTPS to powershellgallery.com via DNS sinkholing.
-              # Pre-extract vendored .nupkg files into the gulp cache directory so that
-              # cacheArchiveFile() in gulpfile.js finds them already cached and skips the download.
-              $packages = @(
-                @{ Name = 'VstsTaskSdk';    Version = '0.7.1' }
-                @{ Name = 'RemoteDeployer'; Version = '0.1.0' }
-              )
-              foreach ($pkg in $packages) {
-                $url = "https://www.powershellgallery.com/api/v2/package/$($pkg.Name)/$($pkg.Version)"
-                $scrubbed = $url -replace '[/\\:?]', '_'
-                $targetDir = Join-Path '$(Build.SourcesDirectory)' '_temp' 'archive' $scrubbed
-                $nupkgFile = Join-Path '$(Build.SourcesDirectory)' '_vendor' "$($pkg.Name).$($pkg.Version).nupkg"
-                if (Test-Path $targetDir) {
-                  Write-Host "Already cached: $($pkg.Name) $($pkg.Version)"
-                  continue
-                }
-                Write-Host "Pre-caching $($pkg.Name) $($pkg.Version) from vendored nupkg..."
-                New-Item -ItemType Directory -Path $targetDir -Force | Out-Null
-                # nupkg is a zip file — extract directly to the cache target
-                Expand-Archive -Path $nupkgFile -DestinationPath $targetDir -Force
-                Write-Host "Cached to: $targetDir"
-              }
-            workingDirectory: '$(Build.SourcesDirectory)'
+        # - task: PowerShell@2
+        #   displayName: 'Pre-cache PowerShell Gallery packages (Network Isolation workaround)'
+        #   inputs:
+        #     targetType: inline
+        #     pwsh: true
+        #     script: |
+        #       # The 1ES build pool blocks outbound HTTPS to powershellgallery.com via DNS sinkholing.
+        #       # Pre-extract vendored .nupkg files into the gulp cache directory so that
+        #       # cacheArchiveFile() in gulpfile.js finds them already cached and skips the download.
+        #       $packages = @(
+        #         @{ Name = 'VstsTaskSdk';    Version = '0.7.1' }
+        #         @{ Name = 'RemoteDeployer'; Version = '0.1.0' }
+        #       )
+        #       foreach ($pkg in $packages) {
+        #         $url = "https://www.powershellgallery.com/api/v2/package/$($pkg.Name)/$($pkg.Version)"
+        #         $scrubbed = $url -replace '[/\\:?]', '_'
+        #         $targetDir = Join-Path '$(Build.SourcesDirectory)' '_temp' 'archive' $scrubbed
+        #         $nupkgFile = Join-Path '$(Build.SourcesDirectory)' '_vendor' "$($pkg.Name).$($pkg.Version).nupkg"
+        #         if (Test-Path $targetDir) {
+        #           Write-Host "Already cached: $($pkg.Name) $($pkg.Version)"
+        #           continue
+        #         }
+        #         Write-Host "Pre-caching $($pkg.Name) $($pkg.Version) from vendored nupkg..."
+        #         New-Item -ItemType Directory -Path $targetDir -Force | Out-Null
+        #         # nupkg is a zip file — extract directly to the cache target
+        #         Expand-Archive -Path $nupkgFile -DestinationPath $targetDir -Force
+        #         Write-Host "Cached to: $targetDir"
+        #       }
+        #     workingDirectory: '$(Build.SourcesDirectory)'
 
         - task: PowerShell@2
           displayName: 'Prepare npm auth for gulp subprocess installs'
