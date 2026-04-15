@@ -12,6 +12,9 @@ describe('Integration Tests', () => {
     describe('jenkins tests', () => {
         beforeEach(() => {
             nock.cleanAll();
+            nock.disableNetConnect();
+            // Allow localhost connections for proxy tests sharing the same mocha process
+            nock.enableNetConnect('127.0.0.1');
         });
 
         it('should be able to download jenkins artifact', (done) => {
