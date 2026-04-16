@@ -159,7 +159,7 @@ gulp.task("TaskModuleTest", gulp.series('copy:TaskModuleTest', function() {
     var tfBuild = ('' + process.env['TF_BUILD']).toLowerCase() == 'true'
 
     gulp.src([testSuitePath])
-        .pipe(mocha({ reporter: 'spec', ui: 'bdd', useColors: !tfBuild }));
+        .pipe(mocha({ reporter: 'spec', ui: 'bdd', colors: !tfBuild }));
 }));
 
 gulp.task('prepublish:TaskModulePublish', function (done) {
@@ -827,7 +827,7 @@ gulp.task("test", gulp.series("testResources", function(){
         console.log(suitePath);
         var tfBuild = ('' + process.env['TF_BUILD']).toLowerCase() == 'true'
         return gulp.src([suitePath])
-            .pipe(mocha({ reporter: 'spec', ui: 'bdd', useColors: !tfBuild }));
+            .pipe(mocha({ reporter: 'spec', ui: 'bdd', colors: !tfBuild }));
     }
 
     if (options.suite.indexOf("ArtifactEngine") >= 0  && options.perf) {
@@ -835,7 +835,7 @@ gulp.task("test", gulp.series("testResources", function(){
         console.log(suitePath);
         var tfBuild = ('' + process.env['TF_BUILD']).toLowerCase() == 'true'
         return gulp.src([suitePath])
-            .pipe(mocha({ reporter: 'spec', ui: 'bdd', useColors: !tfBuild }));
+            .pipe(mocha({ reporter: 'spec', ui: 'bdd', colors: !tfBuild }));
     }
 
     var suitePath = path.join(_testRoot,"Extensions/" + options.suite + "/Tests/Tasks", options.suite + '/_suite.js');
@@ -845,7 +845,7 @@ gulp.task("test", gulp.series("testResources", function(){
     var tfBuild = ('' + process.env['TF_BUILD']).toLowerCase() == 'true'
     var ignorePath = "!" + path.join(_testRoot, "Extensions",  "/**/UIContribution{,/**}");
     return gulp.src([ suitePath, suitePath2, ignorePath ], { allowEmpty: true })
-        .pipe(mocha({ reporter: 'spec', ui: 'bdd', useColors: !tfBuild }));
+        .pipe(mocha({ reporter: 'spec', ui: 'bdd', colors: !tfBuild }));
 }));
 
 //-----------------------------------------------------------------------------------------------------------------
