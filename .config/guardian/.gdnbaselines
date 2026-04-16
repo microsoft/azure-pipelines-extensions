@@ -16,14 +16,30 @@
       "alternativeSignatures": [],
       "target": "Extensions/ArtifactEngine/IntegrationTests/proxyTests.ts",
       "line": 112,
+      "uriBaseId": "file:///D:/a/_work/1/s/",
       "memberOf": [
         "default"
       ],
       "tool": "credscan",
       "ruleId": "CSCAN-GENERAL0060",
-      "createdDate": "2025-07-11 14:40:37Z",
-      "expirationDate": "2025-12-28 14:42:17Z",
-      "justification": "This error is baselined with an expiration date of 180 days from 2025-07-11 14:42:17Z"
+      "createdDate": "2026-04-15 11:38:38Z",
+      "expirationDate": "2026-10-03 11:01:08Z",
+      "justification": "This error is baselined with an expiration date of 180 days from 2026-04-16 11:01:08Z"
+    },
+    "f3fa3f9d461db7793e4d09ad39103711a72b6f0f4cf826ebe87ff8ed6a4d19d7": {
+      "signature": "f3fa3f9d461db7793e4d09ad39103711a72b6f0f4cf826ebe87ff8ed6a4d19d7",
+      "alternativeSignatures": [],
+      "target": "Extensions/ArtifactEngineV2/IntegrationTests/proxyTests.ts",
+      "line": 112,
+      "uriBaseId": "file:///D:/a/_work/1/s/",
+      "memberOf": [
+        "default"
+      ],
+      "tool": "credscan",
+      "ruleId": "CSCAN-GENERAL0060",
+      "createdDate": "2026-04-15 11:38:38Z",
+      "expirationDate": "2026-10-03 11:01:08Z",
+      "justification": "This error is baselined with an expiration date of 180 days from 2026-04-16 11:01:08Z"
     },
     "5f2e31b1ba4f272856f64cd737583a1350453e661f28701de58e35aba6f97e3e": {
       "signature": "5f2e31b1ba4f272856f64cd737583a1350453e661f28701de58e35aba6f97e3e",
@@ -32,14 +48,15 @@
       ],
       "target": "TaskModules/powershell/Azure/AzSpnCreation.ps1",
       "line": 151,
+      "uriBaseId": "file:///D:/a/_work/1/s/",
       "memberOf": [
         "default"
       ],
       "tool": "psscriptanalyzer",
       "ruleId": "PSAvoidUsingConvertToSecureStringWithPlainText",
-      "createdDate": "2025-07-11 14:40:37Z",
-      "expirationDate": "2025-12-28 14:42:17Z",
-      "justification": "This error is baselined with an expiration date of 180 days from 2025-07-11 14:42:17Z"
+      "createdDate": "2026-04-15 11:38:38Z",
+      "expirationDate": "2026-10-03 11:01:08Z",
+      "justification": "This error is baselined with an expiration date of 180 days from 2026-04-16 11:01:08Z"
     },
     "622abd48840efd0ee26381ad6dfda6f3e2cd398cc73142d218972ed007730969": {
       "signature": "622abd48840efd0ee26381ad6dfda6f3e2cd398cc73142d218972ed007730969",
@@ -48,14 +65,15 @@
       ],
       "target": "TaskModules/powershell/Azure/SPNCreation.ps1",
       "line": 158,
+      "uriBaseId": "file:///D:/a/_work/1/s/",
       "memberOf": [
         "default"
       ],
       "tool": "psscriptanalyzer",
       "ruleId": "PSAvoidUsingConvertToSecureStringWithPlainText",
-      "createdDate": "2025-07-11 14:40:37Z",
-      "expirationDate": "2025-12-28 14:42:17Z",
-      "justification": "This error is baselined with an expiration date of 180 days from 2025-07-11 14:42:17Z"
+      "createdDate": "2026-04-15 11:38:38Z",
+      "expirationDate": "2026-10-03 11:01:08Z",
+      "justification": "This error is baselined with an expiration date of 180 days from 2026-04-16 11:01:08Z"
     },
     "7d29d6ceddd7f3aa9fdad376b914d031f69905bb1a00c4b32d827b44af20107f": {
       "signature": "7d29d6ceddd7f3aa9fdad376b914d031f69905bb1a00c4b32d827b44af20107f",
@@ -64,14 +82,15 @@
       ],
       "target": "Extensions/Common/DeploymentSDK/Src/InvokeRemoteDeployment.ps1",
       "line": 110,
+      "uriBaseId": "file:///D:/a/_work/1/s/",
       "memberOf": [
         "default"
       ],
       "tool": "psscriptanalyzer",
       "ruleId": "PSAvoidUsingUsernameAndPasswordParams",
-      "createdDate": "2025-07-11 14:40:37Z",
-      "expirationDate": "2025-12-28 14:42:17Z",
-      "justification": "This error is baselined with an expiration date of 180 days from 2025-07-11 14:42:17Z"
+      "createdDate": "2026-04-15 11:38:38Z",
+      "expirationDate": "2026-10-03 11:01:08Z",
+      "justification": "This error is baselined with an expiration date of 180 days from 2026-04-16 11:01:08Z"
     },
     "c21dea631509bb6293daccec1d8dde733fa48503e98b8998a4bbf364d5d95e8b": {
       "signature": "c21dea631509bb6293daccec1d8dde733fa48503e98b8998a4bbf364d5d95e8b",
@@ -80,84 +99,90 @@
       ],
       "target": "Extensions/Common/DeploymentSDK/Src/InvokeRemoteDeployment.ps1",
       "line": 255,
+      "uriBaseId": "file:///D:/a/_work/1/s/",
       "memberOf": [
         "default"
       ],
       "tool": "psscriptanalyzer",
       "ruleId": "PSAvoidUsingUsernameAndPasswordParams",
-      "createdDate": "2025-07-11 14:40:37Z",
-      "expirationDate": "2025-12-28 14:42:17Z",
-      "justification": "This error is baselined with an expiration date of 180 days from 2025-07-11 14:42:17Z"
+      "createdDate": "2026-04-15 11:38:38Z",
+      "expirationDate": "2026-10-03 11:01:08Z",
+      "justification": "This error is baselined with an expiration date of 180 days from 2026-04-16 11:01:08Z"
     },
     "7832132c4e8417bcfdc836d178b2f9c5d03859a0320b40e76892871c06170dad": {
       "signature": "7832132c4e8417bcfdc836d178b2f9c5d03859a0320b40e76892871c06170dad",
       "alternativeSignatures": [],
       "target": "TaskModules/powershell/Tests/TaskModuleIISManageUtility/L0AppcmdAddUpdateApplication.ps1",
       "line": 62,
+      "uriBaseId": "file:///D:/a/_work/1/s/",
       "memberOf": [
         "default"
       ],
       "tool": "credscan",
       "ruleId": "CSCAN-GENERAL0060",
-      "createdDate": "2025-07-11 14:40:37Z",
-      "expirationDate": "2025-12-28 14:42:17Z",
-      "justification": "This error is baselined with an expiration date of 180 days from 2025-07-11 14:42:17Z"
+      "createdDate": "2026-04-15 11:38:38Z",
+      "expirationDate": "2026-10-03 11:01:08Z",
+      "justification": "This error is baselined with an expiration date of 180 days from 2026-04-16 11:01:08Z"
     },
     "3c7dfb251827b7474d824988b975501e453a8b9839f206bab444c455358e4357": {
       "signature": "3c7dfb251827b7474d824988b975501e453a8b9839f206bab444c455358e4357",
       "alternativeSignatures": [],
       "target": "TaskModules/powershell/Tests/TaskModuleIISManageUtility/L0AppcmdAddUpdateAppPool.ps1",
       "line": 62,
+      "uriBaseId": "file:///D:/a/_work/1/s/",
       "memberOf": [
         "default"
       ],
       "tool": "credscan",
       "ruleId": "CSCAN-GENERAL0060",
-      "createdDate": "2025-07-11 14:40:37Z",
-      "expirationDate": "2025-12-28 14:42:17Z",
-      "justification": "This error is baselined with an expiration date of 180 days from 2025-07-11 14:42:17Z"
+      "createdDate": "2026-04-15 11:38:38Z",
+      "expirationDate": "2026-10-03 11:01:08Z",
+      "justification": "This error is baselined with an expiration date of 180 days from 2026-04-16 11:01:08Z"
     },
     "e2c0c661ce2f56a104795824f9a8b27e3204fe971deab7f27bc623d3da6cb756": {
       "signature": "e2c0c661ce2f56a104795824f9a8b27e3204fe971deab7f27bc623d3da6cb756",
       "alternativeSignatures": [],
       "target": "TaskModules/powershell/Tests/TaskModuleIISManageUtility/L0AppcmdAddUpdateVDir.ps1",
       "line": 49,
+      "uriBaseId": "file:///D:/a/_work/1/s/",
       "memberOf": [
         "default"
       ],
       "tool": "credscan",
       "ruleId": "CSCAN-GENERAL0060",
-      "createdDate": "2025-07-11 14:40:37Z",
-      "expirationDate": "2025-12-28 14:42:17Z",
-      "justification": "This error is baselined with an expiration date of 180 days from 2025-07-11 14:42:17Z"
+      "createdDate": "2026-04-15 11:38:38Z",
+      "expirationDate": "2026-10-03 11:01:08Z",
+      "justification": "This error is baselined with an expiration date of 180 days from 2026-04-16 11:01:08Z"
     },
     "dd744c02fc0ca43b3a6b00ad675da09c29fed5d0ef11cc0a63273d6fac6ddfb5": {
       "signature": "dd744c02fc0ca43b3a6b00ad675da09c29fed5d0ef11cc0a63273d6fac6ddfb5",
       "alternativeSignatures": [],
       "target": "TaskModules/powershell/Tests/TaskModuleIISManageUtility/L0AppcmdAddUpdateWebsite.ps1",
       "line": 78,
+      "uriBaseId": "file:///D:/a/_work/1/s/",
       "memberOf": [
         "default"
       ],
       "tool": "credscan",
       "ruleId": "CSCAN-GENERAL0060",
-      "createdDate": "2025-07-11 14:40:37Z",
-      "expirationDate": "2025-12-28 14:42:17Z",
-      "justification": "This error is baselined with an expiration date of 180 days from 2025-07-11 14:42:17Z"
+      "createdDate": "2026-04-15 11:38:38Z",
+      "expirationDate": "2026-10-03 11:01:08Z",
+      "justification": "This error is baselined with an expiration date of 180 days from 2026-04-16 11:01:08Z"
     },
     "272b06793e0f13a54be8a5e4d0866a8bd01ec5739bc743a8917fbf72204d8165": {
       "signature": "272b06793e0f13a54be8a5e4d0866a8bd01ec5739bc743a8917fbf72204d8165",
       "alternativeSignatures": [],
       "target": "TaskModules/powershell/Tests/TaskModuleIISManageUtility/MockHelpers.ps1",
       "line": 9,
+      "uriBaseId": "file:///D:/a/_work/1/s/",
       "memberOf": [
         "default"
       ],
       "tool": "credscan",
       "ruleId": "CSCAN-GENERAL0060",
-      "createdDate": "2025-07-11 14:40:37Z",
-      "expirationDate": "2025-12-28 14:42:17Z",
-      "justification": "This error is baselined with an expiration date of 180 days from 2025-07-11 14:42:17Z"
+      "createdDate": "2026-04-15 11:38:38Z",
+      "expirationDate": "2026-10-03 11:01:08Z",
+      "justification": "This error is baselined with an expiration date of 180 days from 2026-04-16 11:01:08Z"
     },
     "649a73263388478a5ee022f3c765278440c23af873631e53669cd0ff3800defb": {
       "signature": "649a73263388478a5ee022f3c765278440c23af873631e53669cd0ff3800defb",
@@ -166,14 +191,15 @@
       ],
       "target": "Extensions/IISWebAppDeploy/Src/Tasks/IISWebAppDeploy/IISWebAppDeployV1/DeployIISWebApp.ps1",
       "line": 70,
+      "uriBaseId": "file:///D:/a/_work/1/s/",
       "memberOf": [
         "default"
       ],
       "tool": "psscriptanalyzer",
       "ruleId": "PSAvoidUsingUsernameAndPasswordParams",
-      "createdDate": "2025-07-11 14:40:37Z",
-      "expirationDate": "2025-12-28 14:42:17Z",
-      "justification": "This error is baselined with an expiration date of 180 days from 2025-07-11 14:42:17Z"
+      "createdDate": "2026-04-15 11:38:38Z",
+      "expirationDate": "2026-10-03 11:01:08Z",
+      "justification": "This error is baselined with an expiration date of 180 days from 2026-04-16 11:01:08Z"
     },
     "3ebb6cc8809113f07dae9064bd2ffd6c22e616f368a7c206a5f9f29ab9530317": {
       "signature": "3ebb6cc8809113f07dae9064bd2ffd6c22e616f368a7c206a5f9f29ab9530317",
@@ -182,14 +208,15 @@
       ],
       "target": "Extensions/IISWebAppDeploy/Src/Tasks/IISWebAppDeploy/IISWebAppDeployV1/DeployIISWebApp.ps1",
       "line": 96,
+      "uriBaseId": "file:///D:/a/_work/1/s/",
       "memberOf": [
         "default"
       ],
       "tool": "psscriptanalyzer",
       "ruleId": "PSAvoidUsingUsernameAndPasswordParams",
-      "createdDate": "2025-07-11 14:40:37Z",
-      "expirationDate": "2025-12-28 14:42:17Z",
-      "justification": "This error is baselined with an expiration date of 180 days from 2025-07-11 14:42:17Z"
+      "createdDate": "2026-04-15 11:38:38Z",
+      "expirationDate": "2026-10-03 11:01:08Z",
+      "justification": "This error is baselined with an expiration date of 180 days from 2026-04-16 11:01:08Z"
     },
     "00c3e9538a7bab224d93a2a3d59ab6ad224bfa2ea472b5c604cc6c8186fe0f88": {
       "signature": "00c3e9538a7bab224d93a2a3d59ab6ad224bfa2ea472b5c604cc6c8186fe0f88",
@@ -198,14 +225,15 @@
       ],
       "target": "Extensions/IISWebAppDeploy/Src/Tasks/IISWebAppDeploy/IISWebAppDeployV2/DeployIISWebApp.ps1",
       "line": 69,
+      "uriBaseId": "file:///D:/a/_work/1/s/",
       "memberOf": [
         "default"
       ],
       "tool": "psscriptanalyzer",
       "ruleId": "PSAvoidUsingUsernameAndPasswordParams",
-      "createdDate": "2025-07-11 14:40:37Z",
-      "expirationDate": "2025-12-28 14:42:17Z",
-      "justification": "This error is baselined with an expiration date of 180 days from 2025-07-11 14:42:17Z"
+      "createdDate": "2026-04-15 11:38:38Z",
+      "expirationDate": "2026-10-03 11:01:08Z",
+      "justification": "This error is baselined with an expiration date of 180 days from 2026-04-16 11:01:08Z"
     },
     "5b587537b87507f47cde5f391603a30de6020d6f5c5f2d52ed84a1f81eb4b78a": {
       "signature": "5b587537b87507f47cde5f391603a30de6020d6f5c5f2d52ed84a1f81eb4b78a",
@@ -214,14 +242,15 @@
       ],
       "target": "Extensions/IISWebAppDeploy/Src/Tasks/IISWebAppDeploy/IISWebAppDeployV2/DeployIISWebApp.ps1",
       "line": 95,
+      "uriBaseId": "file:///D:/a/_work/1/s/",
       "memberOf": [
         "default"
       ],
       "tool": "psscriptanalyzer",
       "ruleId": "PSAvoidUsingUsernameAndPasswordParams",
-      "createdDate": "2025-07-11 14:40:37Z",
-      "expirationDate": "2025-12-28 14:42:17Z",
-      "justification": "This error is baselined with an expiration date of 180 days from 2025-07-11 14:42:17Z"
+      "createdDate": "2026-04-15 11:38:38Z",
+      "expirationDate": "2026-10-03 11:01:08Z",
+      "justification": "This error is baselined with an expiration date of 180 days from 2026-04-16 11:01:08Z"
     },
     "317abc5b30c507702b8f9a2db2916b0a109cf4aeeefdbcb2ff5dc668bb2bfe00": {
       "signature": "317abc5b30c507702b8f9a2db2916b0a109cf4aeeefdbcb2ff5dc668bb2bfe00",
@@ -230,14 +259,15 @@
       ],
       "target": "Extensions/IISWebAppDeploy/Src/Tasks/IISWebAppMgmt/IISWebAppMgmtV1/AppCmdOnTargetMachines.ps1",
       "line": 439,
+      "uriBaseId": "file:///D:/a/_work/1/s/",
       "memberOf": [
         "default"
       ],
       "tool": "psscriptanalyzer",
       "ruleId": "PSAvoidUsingUsernameAndPasswordParams",
-      "createdDate": "2025-07-11 14:40:37Z",
-      "expirationDate": "2025-12-28 14:42:17Z",
-      "justification": "This error is baselined with an expiration date of 180 days from 2025-07-11 14:42:17Z"
+      "createdDate": "2026-04-15 11:38:38Z",
+      "expirationDate": "2026-10-03 11:01:08Z",
+      "justification": "This error is baselined with an expiration date of 180 days from 2026-04-16 11:01:08Z"
     },
     "de5bfd2e8d28adc4c8d960f1d11a0fcc3190269441b82c409e2d7242b8a5a2ae": {
       "signature": "de5bfd2e8d28adc4c8d960f1d11a0fcc3190269441b82c409e2d7242b8a5a2ae",
@@ -246,14 +276,15 @@
       ],
       "target": "Extensions/IISWebAppDeploy/Src/Tasks/IISWebAppMgmt/IISWebAppMgmtV1/AppCmdOnTargetMachines.ps1",
       "line": 474,
+      "uriBaseId": "file:///D:/a/_work/1/s/",
       "memberOf": [
         "default"
       ],
       "tool": "psscriptanalyzer",
       "ruleId": "PSAvoidUsingUsernameAndPasswordParams",
-      "createdDate": "2025-07-11 14:40:37Z",
-      "expirationDate": "2025-12-28 14:42:17Z",
-      "justification": "This error is baselined with an expiration date of 180 days from 2025-07-11 14:42:17Z"
+      "createdDate": "2026-04-15 11:38:38Z",
+      "expirationDate": "2026-10-03 11:01:08Z",
+      "justification": "This error is baselined with an expiration date of 180 days from 2026-04-16 11:01:08Z"
     },
     "71946dd48ac583fc4eb9f0da212f0094333ed041a621103fe7d317dada9684ae": {
       "signature": "71946dd48ac583fc4eb9f0da212f0094333ed041a621103fe7d317dada9684ae",
@@ -262,14 +293,15 @@
       ],
       "target": "Extensions/IISWebAppDeploy/Src/Tasks/IISWebAppMgmt/IISWebAppMgmtV1/ManageIISWebApp.ps1",
       "line": 109,
+      "uriBaseId": "file:///D:/a/_work/1/s/",
       "memberOf": [
         "default"
       ],
       "tool": "psscriptanalyzer",
       "ruleId": "PSAvoidUsingUsernameAndPasswordParams",
-      "createdDate": "2025-07-11 14:40:37Z",
-      "expirationDate": "2025-12-28 14:42:17Z",
-      "justification": "This error is baselined with an expiration date of 180 days from 2025-07-11 14:42:17Z"
+      "createdDate": "2026-04-15 11:38:38Z",
+      "expirationDate": "2026-10-03 11:01:08Z",
+      "justification": "This error is baselined with an expiration date of 180 days from 2026-04-16 11:01:08Z"
     },
     "9c0bea021e97138f9b3fa75a6abe97343f4400162c87f07838af3263f85f496c": {
       "signature": "9c0bea021e97138f9b3fa75a6abe97343f4400162c87f07838af3263f85f496c",
@@ -278,14 +310,15 @@
       ],
       "target": "Extensions/IISWebAppDeploy/Src/Tasks/IISWebAppMgmt/IISWebAppMgmtV1/ManageIISWebApp.ps1",
       "line": 132,
+      "uriBaseId": "file:///D:/a/_work/1/s/",
       "memberOf": [
         "default"
       ],
       "tool": "psscriptanalyzer",
       "ruleId": "PSAvoidUsingUsernameAndPasswordParams",
-      "createdDate": "2025-07-11 14:40:37Z",
-      "expirationDate": "2025-12-28 14:42:17Z",
-      "justification": "This error is baselined with an expiration date of 180 days from 2025-07-11 14:42:17Z"
+      "createdDate": "2026-04-15 11:38:38Z",
+      "expirationDate": "2026-10-03 11:01:08Z",
+      "justification": "This error is baselined with an expiration date of 180 days from 2026-04-16 11:01:08Z"
     },
     "3e7c08d6179d0b80b7ad07b12eaa9cf3d2cf77e6d73340d0406a092b8137d453": {
       "signature": "3e7c08d6179d0b80b7ad07b12eaa9cf3d2cf77e6d73340d0406a092b8137d453",
@@ -294,14 +327,15 @@
       ],
       "target": "Extensions/IISWebAppDeploy/Src/Tasks/IISWebAppMgmt/IISWebAppMgmtV1/ManageIISWebApp.ps1",
       "line": 182,
+      "uriBaseId": "file:///D:/a/_work/1/s/",
       "memberOf": [
         "default"
       ],
       "tool": "psscriptanalyzer",
       "ruleId": "PSAvoidUsingUsernameAndPasswordParams",
-      "createdDate": "2025-07-11 14:40:37Z",
-      "expirationDate": "2025-12-28 14:42:17Z",
-      "justification": "This error is baselined with an expiration date of 180 days from 2025-07-11 14:42:17Z"
+      "createdDate": "2026-04-15 11:38:38Z",
+      "expirationDate": "2026-10-03 11:01:08Z",
+      "justification": "This error is baselined with an expiration date of 180 days from 2026-04-16 11:01:08Z"
     },
     "8829b1cd07068767c966db6aa7a25bc50dbaecc7209d5456129fd011d93bcb24": {
       "signature": "8829b1cd07068767c966db6aa7a25bc50dbaecc7209d5456129fd011d93bcb24",
@@ -310,14 +344,15 @@
       ],
       "target": "Extensions/IISWebAppDeploy/Src/Tasks/IISWebAppMgmt/IISWebAppMgmtV2/AppCmdOnTargetMachines.ps1",
       "line": 832,
+      "uriBaseId": "file:///D:/a/_work/1/s/",
       "memberOf": [
         "default"
       ],
       "tool": "psscriptanalyzer",
       "ruleId": "PSAvoidUsingUsernameAndPasswordParams",
-      "createdDate": "2025-07-11 14:40:37Z",
-      "expirationDate": "2025-12-28 14:42:17Z",
-      "justification": "This error is baselined with an expiration date of 180 days from 2025-07-11 14:42:17Z"
+      "createdDate": "2026-04-15 11:38:38Z",
+      "expirationDate": "2026-10-03 11:01:08Z",
+      "justification": "This error is baselined with an expiration date of 180 days from 2026-04-16 11:01:08Z"
     },
     "3703e17a6e023440349d52a58ca9d66e238c9ad9c8e64d95dd66f01e26341ad0": {
       "signature": "3703e17a6e023440349d52a58ca9d66e238c9ad9c8e64d95dd66f01e26341ad0",
@@ -326,14 +361,15 @@
       ],
       "target": "Extensions/IISWebAppDeploy/Src/Tasks/IISWebAppMgmt/IISWebAppMgmtV2/AppCmdOnTargetMachines.ps1",
       "line": 840,
+      "uriBaseId": "file:///D:/a/_work/1/s/",
       "memberOf": [
         "default"
       ],
       "tool": "psscriptanalyzer",
       "ruleId": "PSAvoidUsingConvertToSecureStringWithPlainText",
-      "createdDate": "2025-07-11 14:40:37Z",
-      "expirationDate": "2025-12-28 14:42:17Z",
-      "justification": "This error is baselined with an expiration date of 180 days from 2025-07-11 14:42:17Z"
+      "createdDate": "2026-04-15 11:38:38Z",
+      "expirationDate": "2026-10-03 11:01:08Z",
+      "justification": "This error is baselined with an expiration date of 180 days from 2026-04-16 11:01:08Z"
     },
     "ec96af55761f8456e8041284b301f52672bc50834eca2bb3a56ed24df3369032": {
       "signature": "ec96af55761f8456e8041284b301f52672bc50834eca2bb3a56ed24df3369032",
@@ -342,14 +378,15 @@
       ],
       "target": "Extensions/IISWebAppDeploy/Src/Tasks/IISWebAppMgmt/IISWebAppMgmtV2/AppCmdOnTargetMachines.ps1",
       "line": 870,
+      "uriBaseId": "file:///D:/a/_work/1/s/",
       "memberOf": [
         "default"
       ],
       "tool": "psscriptanalyzer",
       "ruleId": "PSAvoidUsingUsernameAndPasswordParams",
-      "createdDate": "2025-07-11 14:40:37Z",
-      "expirationDate": "2025-12-28 14:42:17Z",
-      "justification": "This error is baselined with an expiration date of 180 days from 2025-07-11 14:42:17Z"
+      "createdDate": "2026-04-15 11:38:38Z",
+      "expirationDate": "2026-10-03 11:01:08Z",
+      "justification": "This error is baselined with an expiration date of 180 days from 2026-04-16 11:01:08Z"
     },
     "052f7d590223c9932b61a649f2687f436cb9139b80a938df40b78898d4e1872d": {
       "signature": "052f7d590223c9932b61a649f2687f436cb9139b80a938df40b78898d4e1872d",
@@ -358,14 +395,15 @@
       ],
       "target": "Extensions/IISWebAppDeploy/Src/Tasks/IISWebAppMgmt/IISWebAppMgmtV2/Utility.ps1",
       "line": 107,
+      "uriBaseId": "file:///D:/a/_work/1/s/",
       "memberOf": [
         "default"
       ],
       "tool": "psscriptanalyzer",
       "ruleId": "PSAvoidUsingUsernameAndPasswordParams",
-      "createdDate": "2025-07-11 14:40:37Z",
-      "expirationDate": "2025-12-28 14:42:17Z",
-      "justification": "This error is baselined with an expiration date of 180 days from 2025-07-11 14:42:17Z"
+      "createdDate": "2026-04-15 11:38:38Z",
+      "expirationDate": "2026-10-03 11:01:08Z",
+      "justification": "This error is baselined with an expiration date of 180 days from 2026-04-16 11:01:08Z"
     },
     "3adb08e356e0d423fd6694be210bb8a16bd7e8da7bd70005244690a8061a7cc3": {
       "signature": "3adb08e356e0d423fd6694be210bb8a16bd7e8da7bd70005244690a8061a7cc3",
@@ -374,14 +412,15 @@
       ],
       "target": "Extensions/IISWebAppDeploy/Src/Tasks/IISWebAppMgmt/IISWebAppMgmtV2/Utility.ps1",
       "line": 177,
+      "uriBaseId": "file:///D:/a/_work/1/s/",
       "memberOf": [
         "default"
       ],
       "tool": "psscriptanalyzer",
       "ruleId": "PSAvoidUsingUsernameAndPasswordParams",
-      "createdDate": "2025-07-11 14:40:37Z",
-      "expirationDate": "2025-12-28 14:42:17Z",
-      "justification": "This error is baselined with an expiration date of 180 days from 2025-07-11 14:42:17Z"
+      "createdDate": "2026-04-15 11:38:38Z",
+      "expirationDate": "2026-10-03 11:01:08Z",
+      "justification": "This error is baselined with an expiration date of 180 days from 2026-04-16 11:01:08Z"
     },
     "7bcbf4dfdfc7ac82a8a2c5be1009c7cc7fad760ee3099ad996ad5cb700860164": {
       "signature": "7bcbf4dfdfc7ac82a8a2c5be1009c7cc7fad760ee3099ad996ad5cb700860164",
@@ -390,14 +429,15 @@
       ],
       "target": "Extensions/IISWebAppDeploy/Src/Tasks/IISWebAppMgmt/IISWebAppMgmtV2/Utility.ps1",
       "line": 375,
+      "uriBaseId": "file:///D:/a/_work/1/s/",
       "memberOf": [
         "default"
       ],
       "tool": "psscriptanalyzer",
       "ruleId": "PSAvoidUsingUsernameAndPasswordParams",
-      "createdDate": "2025-07-11 14:40:37Z",
-      "expirationDate": "2025-12-28 14:42:17Z",
-      "justification": "This error is baselined with an expiration date of 180 days from 2025-07-11 14:42:17Z"
+      "createdDate": "2026-04-15 11:38:38Z",
+      "expirationDate": "2026-10-03 11:01:08Z",
+      "justification": "This error is baselined with an expiration date of 180 days from 2026-04-16 11:01:08Z"
     },
     "922f97eefe1244d5ea429bae7ca5598613fdaa06c94f8f753b9b27fa07df04d5": {
       "signature": "922f97eefe1244d5ea429bae7ca5598613fdaa06c94f8f753b9b27fa07df04d5",
@@ -406,14 +446,15 @@
       ],
       "target": "Extensions/IISWebAppDeploy/Src/Tasks/IISWebAppMgmt/IISWebAppMgmtV2/Utility.ps1",
       "line": 385,
+      "uriBaseId": "file:///D:/a/_work/1/s/",
       "memberOf": [
         "default"
       ],
       "tool": "psscriptanalyzer",
       "ruleId": "PSAvoidUsingConvertToSecureStringWithPlainText",
-      "createdDate": "2025-07-11 14:40:37Z",
-      "expirationDate": "2025-12-28 14:42:17Z",
-      "justification": "This error is baselined with an expiration date of 180 days from 2025-07-11 14:42:17Z"
+      "createdDate": "2026-04-15 11:38:38Z",
+      "expirationDate": "2026-10-03 11:01:08Z",
+      "justification": "This error is baselined with an expiration date of 180 days from 2026-04-16 11:01:08Z"
     },
     "11ce87fe1a981a95e0479aeacefc06663f5a7b5edc164d7bbed6483892d00a08": {
       "signature": "11ce87fe1a981a95e0479aeacefc06663f5a7b5edc164d7bbed6483892d00a08",
@@ -422,14 +463,15 @@
       ],
       "target": "Extensions/IISWebAppDeploy/Src/Tasks/IISWebAppMgmt/IISWebAppMgmtV2/Utility.ps1",
       "line": 412,
+      "uriBaseId": "file:///D:/a/_work/1/s/",
       "memberOf": [
         "default"
       ],
       "tool": "psscriptanalyzer",
       "ruleId": "PSAvoidUsingUsernameAndPasswordParams",
-      "createdDate": "2025-07-11 14:40:37Z",
-      "expirationDate": "2025-12-28 14:42:17Z",
-      "justification": "This error is baselined with an expiration date of 180 days from 2025-07-11 14:42:17Z"
+      "createdDate": "2026-04-15 11:38:38Z",
+      "expirationDate": "2026-10-03 11:01:08Z",
+      "justification": "This error is baselined with an expiration date of 180 days from 2026-04-16 11:01:08Z"
     },
     "70053da35abd5b620c290f2eeff8c2db53b37b8fce3709371709410ceda21373": {
       "signature": "70053da35abd5b620c290f2eeff8c2db53b37b8fce3709371709410ceda21373",
@@ -438,14 +480,15 @@
       ],
       "target": "Extensions/IISWebAppDeploy/Src/Tasks/IISWebAppMgmt/IISWebAppMgmtV3/AppCmdOnTargetMachines.ps1",
       "line": 851,
+      "uriBaseId": "file:///D:/a/_work/1/s/",
       "memberOf": [
         "default"
       ],
       "tool": "psscriptanalyzer",
       "ruleId": "PSAvoidUsingUsernameAndPasswordParams",
-      "createdDate": "2025-07-11 14:40:37Z",
-      "expirationDate": "2025-12-28 14:42:17Z",
-      "justification": "This error is baselined with an expiration date of 180 days from 2025-07-11 14:42:17Z"
+      "createdDate": "2026-04-15 11:38:38Z",
+      "expirationDate": "2026-10-03 11:01:08Z",
+      "justification": "This error is baselined with an expiration date of 180 days from 2026-04-16 11:01:08Z"
     },
     "2a109aa4d9e9f3d4460b34167217e222d4f384a935c2b3787368c62f2ea818d8": {
       "signature": "2a109aa4d9e9f3d4460b34167217e222d4f384a935c2b3787368c62f2ea818d8",
@@ -454,14 +497,15 @@
       ],
       "target": "Extensions/IISWebAppDeploy/Src/Tasks/IISWebAppMgmt/IISWebAppMgmtV3/AppCmdOnTargetMachines.ps1",
       "line": 859,
+      "uriBaseId": "file:///D:/a/_work/1/s/",
       "memberOf": [
         "default"
       ],
       "tool": "psscriptanalyzer",
       "ruleId": "PSAvoidUsingConvertToSecureStringWithPlainText",
-      "createdDate": "2025-07-11 14:40:37Z",
-      "expirationDate": "2025-12-28 14:42:17Z",
-      "justification": "This error is baselined with an expiration date of 180 days from 2025-07-11 14:42:17Z"
+      "createdDate": "2026-04-15 11:38:38Z",
+      "expirationDate": "2026-10-03 11:01:08Z",
+      "justification": "This error is baselined with an expiration date of 180 days from 2026-04-16 11:01:08Z"
     },
     "b1d02a9af4c9ce8f729ce4a0b0185163ad193d4f406b88c4a9899c8800b9d6d6": {
       "signature": "b1d02a9af4c9ce8f729ce4a0b0185163ad193d4f406b88c4a9899c8800b9d6d6",
@@ -470,14 +514,15 @@
       ],
       "target": "Extensions/IISWebAppDeploy/Src/Tasks/IISWebAppMgmt/IISWebAppMgmtV3/AppCmdOnTargetMachines.ps1",
       "line": 889,
+      "uriBaseId": "file:///D:/a/_work/1/s/",
       "memberOf": [
         "default"
       ],
       "tool": "psscriptanalyzer",
       "ruleId": "PSAvoidUsingUsernameAndPasswordParams",
-      "createdDate": "2025-07-11 14:40:37Z",
-      "expirationDate": "2025-12-28 14:42:17Z",
-      "justification": "This error is baselined with an expiration date of 180 days from 2025-07-11 14:42:17Z"
+      "createdDate": "2026-04-15 11:38:38Z",
+      "expirationDate": "2026-10-03 11:01:08Z",
+      "justification": "This error is baselined with an expiration date of 180 days from 2026-04-16 11:01:08Z"
     },
     "d4c40d71cb1d303e374b36da36d6505224f8b099fc416670726bd6ac4266d2c3": {
       "signature": "d4c40d71cb1d303e374b36da36d6505224f8b099fc416670726bd6ac4266d2c3",
@@ -486,14 +531,15 @@
       ],
       "target": "Extensions/IISWebAppDeploy/Src/Tasks/IISWebAppMgmt/IISWebAppMgmtV3/Utility.ps1",
       "line": 107,
+      "uriBaseId": "file:///D:/a/_work/1/s/",
       "memberOf": [
         "default"
       ],
       "tool": "psscriptanalyzer",
       "ruleId": "PSAvoidUsingUsernameAndPasswordParams",
-      "createdDate": "2025-07-11 14:40:37Z",
-      "expirationDate": "2025-12-28 14:42:17Z",
-      "justification": "This error is baselined with an expiration date of 180 days from 2025-07-11 14:42:17Z"
+      "createdDate": "2026-04-15 11:38:38Z",
+      "expirationDate": "2026-10-03 11:01:08Z",
+      "justification": "This error is baselined with an expiration date of 180 days from 2026-04-16 11:01:08Z"
     },
     "c66d2aaa4a8c8c28ca41ea29e0d72696db219f5b1ca904cb8b8873dd4e35f073": {
       "signature": "c66d2aaa4a8c8c28ca41ea29e0d72696db219f5b1ca904cb8b8873dd4e35f073",
@@ -502,14 +548,15 @@
       ],
       "target": "Extensions/IISWebAppDeploy/Src/Tasks/IISWebAppMgmt/IISWebAppMgmtV3/Utility.ps1",
       "line": 177,
+      "uriBaseId": "file:///D:/a/_work/1/s/",
       "memberOf": [
         "default"
       ],
       "tool": "psscriptanalyzer",
       "ruleId": "PSAvoidUsingUsernameAndPasswordParams",
-      "createdDate": "2025-07-11 14:40:37Z",
-      "expirationDate": "2025-12-28 14:42:17Z",
-      "justification": "This error is baselined with an expiration date of 180 days from 2025-07-11 14:42:17Z"
+      "createdDate": "2026-04-15 11:38:38Z",
+      "expirationDate": "2026-10-03 11:01:08Z",
+      "justification": "This error is baselined with an expiration date of 180 days from 2026-04-16 11:01:08Z"
     },
     "df0c23f28513ef1ed2ae5a7d6505f4a9f6b00b7ca862a4cf365015ce0c3f9c51": {
       "signature": "df0c23f28513ef1ed2ae5a7d6505f4a9f6b00b7ca862a4cf365015ce0c3f9c51",
@@ -518,14 +565,15 @@
       ],
       "target": "Extensions/IISWebAppDeploy/Src/Tasks/IISWebAppMgmt/IISWebAppMgmtV3/Utility.ps1",
       "line": 375,
+      "uriBaseId": "file:///D:/a/_work/1/s/",
       "memberOf": [
         "default"
       ],
       "tool": "psscriptanalyzer",
       "ruleId": "PSAvoidUsingUsernameAndPasswordParams",
-      "createdDate": "2025-07-11 14:40:37Z",
-      "expirationDate": "2025-12-28 14:42:17Z",
-      "justification": "This error is baselined with an expiration date of 180 days from 2025-07-11 14:42:17Z"
+      "createdDate": "2026-04-15 11:38:38Z",
+      "expirationDate": "2026-10-03 11:01:08Z",
+      "justification": "This error is baselined with an expiration date of 180 days from 2026-04-16 11:01:08Z"
     },
     "09dfc4cab37e506c7cf78dcbcab58e0321fad05d8b0b8f0d2150d0caa7698788": {
       "signature": "09dfc4cab37e506c7cf78dcbcab58e0321fad05d8b0b8f0d2150d0caa7698788",
@@ -534,14 +582,15 @@
       ],
       "target": "Extensions/IISWebAppDeploy/Src/Tasks/IISWebAppMgmt/IISWebAppMgmtV3/Utility.ps1",
       "line": 385,
+      "uriBaseId": "file:///D:/a/_work/1/s/",
       "memberOf": [
         "default"
       ],
       "tool": "psscriptanalyzer",
       "ruleId": "PSAvoidUsingConvertToSecureStringWithPlainText",
-      "createdDate": "2025-07-11 14:40:37Z",
-      "expirationDate": "2025-12-28 14:42:17Z",
-      "justification": "This error is baselined with an expiration date of 180 days from 2025-07-11 14:42:17Z"
+      "createdDate": "2026-04-15 11:38:38Z",
+      "expirationDate": "2026-10-03 11:01:08Z",
+      "justification": "This error is baselined with an expiration date of 180 days from 2026-04-16 11:01:08Z"
     },
     "0a192187d1551cc565769aaea5136dcd7513c9ccecb41b36158af9bd1026f79b": {
       "signature": "0a192187d1551cc565769aaea5136dcd7513c9ccecb41b36158af9bd1026f79b",
@@ -550,14 +599,15 @@
       ],
       "target": "Extensions/IISWebAppDeploy/Src/Tasks/IISWebAppMgmt/IISWebAppMgmtV3/Utility.ps1",
       "line": 412,
+      "uriBaseId": "file:///D:/a/_work/1/s/",
       "memberOf": [
         "default"
       ],
       "tool": "psscriptanalyzer",
       "ruleId": "PSAvoidUsingUsernameAndPasswordParams",
-      "createdDate": "2025-07-11 14:40:37Z",
-      "expirationDate": "2025-12-28 14:42:17Z",
-      "justification": "This error is baselined with an expiration date of 180 days from 2025-07-11 14:42:17Z"
+      "createdDate": "2026-04-15 11:38:38Z",
+      "expirationDate": "2026-10-03 11:01:08Z",
+      "justification": "This error is baselined with an expiration date of 180 days from 2026-04-16 11:01:08Z"
     },
     "cafb6dc9e27629372c38c9a96701b6aa4b242b13393472b7c4cf4458f451f03f": {
       "signature": "cafb6dc9e27629372c38c9a96701b6aa4b242b13393472b7c4cf4458f451f03f",
@@ -566,14 +616,15 @@
       ],
       "target": "Extensions/IISWebAppDeploy/Src/Tasks/SqlDacpacDeploy/SqlDacpacDeployV1/DeployToSqlServer.ps1",
       "line": 32,
+      "uriBaseId": "file:///D:/a/_work/1/s/",
       "memberOf": [
         "default"
       ],
       "tool": "psscriptanalyzer",
       "ruleId": "PSAvoidUsingUsernameAndPasswordParams",
-      "createdDate": "2025-07-11 14:40:37Z",
-      "expirationDate": "2025-12-28 14:42:17Z",
-      "justification": "This error is baselined with an expiration date of 180 days from 2025-07-11 14:42:17Z"
+      "createdDate": "2026-04-15 11:38:38Z",
+      "expirationDate": "2026-10-03 11:01:08Z",
+      "justification": "This error is baselined with an expiration date of 180 days from 2026-04-16 11:01:08Z"
     },
     "e880d8b6aadf76ecbbc6efd1af3aebd88d00792ec6e130e96eea7408d64e9b1d": {
       "signature": "e880d8b6aadf76ecbbc6efd1af3aebd88d00792ec6e130e96eea7408d64e9b1d",
@@ -582,14 +633,15 @@
       ],
       "target": "Extensions/IISWebAppDeploy/Src/Tasks/SqlDacpacDeploy/SqlDacpacDeployV1/DeployToSqlServer.ps1",
       "line": 65,
+      "uriBaseId": "file:///D:/a/_work/1/s/",
       "memberOf": [
         "default"
       ],
       "tool": "psscriptanalyzer",
       "ruleId": "PSAvoidUsingUsernameAndPasswordParams",
-      "createdDate": "2025-07-11 14:40:37Z",
-      "expirationDate": "2025-12-28 14:42:17Z",
-      "justification": "This error is baselined with an expiration date of 180 days from 2025-07-11 14:42:17Z"
+      "createdDate": "2026-04-15 11:38:38Z",
+      "expirationDate": "2026-10-03 11:01:08Z",
+      "justification": "This error is baselined with an expiration date of 180 days from 2026-04-16 11:01:08Z"
     },
     "586b4767cecadbccc422087c9a989e438c592769305868a1be97f5bcd3630636": {
       "signature": "586b4767cecadbccc422087c9a989e438c592769305868a1be97f5bcd3630636",
@@ -598,14 +650,15 @@
       ],
       "target": "Extensions/IISWebAppDeploy/Src/Tasks/SqlDacpacDeploy/SqlDacpacDeployV1/DeployToSqlServer.ps1",
       "line": 200,
+      "uriBaseId": "file:///D:/a/_work/1/s/",
       "memberOf": [
         "default"
       ],
       "tool": "psscriptanalyzer",
       "ruleId": "PSAvoidUsingUsernameAndPasswordParams",
-      "createdDate": "2025-07-11 14:40:37Z",
-      "expirationDate": "2025-12-28 14:42:17Z",
-      "justification": "This error is baselined with an expiration date of 180 days from 2025-07-11 14:42:17Z"
+      "createdDate": "2026-04-15 11:38:38Z",
+      "expirationDate": "2026-10-03 11:01:08Z",
+      "justification": "This error is baselined with an expiration date of 180 days from 2026-04-16 11:01:08Z"
     },
     "374193ee1acbe257cc6840bc471ffc12104cc4530fba91b6c3cfaaadfec846e6": {
       "signature": "374193ee1acbe257cc6840bc471ffc12104cc4530fba91b6c3cfaaadfec846e6",
@@ -614,14 +667,15 @@
       ],
       "target": "Extensions/IISWebAppDeploy/Src/Tasks/SqlDacpacDeploy/SqlDacpacDeployV2/DeployToSqlServer.ps1",
       "line": 31,
+      "uriBaseId": "file:///D:/a/_work/1/s/",
       "memberOf": [
         "default"
       ],
       "tool": "psscriptanalyzer",
       "ruleId": "PSAvoidUsingUsernameAndPasswordParams",
-      "createdDate": "2025-07-11 14:40:37Z",
-      "expirationDate": "2025-12-28 14:42:17Z",
-      "justification": "This error is baselined with an expiration date of 180 days from 2025-07-11 14:42:17Z"
+      "createdDate": "2026-04-15 11:38:38Z",
+      "expirationDate": "2026-10-03 11:01:08Z",
+      "justification": "This error is baselined with an expiration date of 180 days from 2026-04-16 11:01:08Z"
     },
     "966c9e507a3f8418782e432a6ca98dcfde6eeca93531aac6e23385f46c34327f": {
       "signature": "966c9e507a3f8418782e432a6ca98dcfde6eeca93531aac6e23385f46c34327f",
@@ -630,14 +684,15 @@
       ],
       "target": "Extensions/IISWebAppDeploy/Src/Tasks/SqlDacpacDeploy/SqlDacpacDeployV2/DeployToSqlServer.ps1",
       "line": 64,
+      "uriBaseId": "file:///D:/a/_work/1/s/",
       "memberOf": [
         "default"
       ],
       "tool": "psscriptanalyzer",
       "ruleId": "PSAvoidUsingUsernameAndPasswordParams",
-      "createdDate": "2025-07-11 14:40:37Z",
-      "expirationDate": "2025-12-28 14:42:17Z",
-      "justification": "This error is baselined with an expiration date of 180 days from 2025-07-11 14:42:17Z"
+      "createdDate": "2026-04-15 11:38:38Z",
+      "expirationDate": "2026-10-03 11:01:08Z",
+      "justification": "This error is baselined with an expiration date of 180 days from 2026-04-16 11:01:08Z"
     },
     "80eac3fa59249734747d1e887d771f61550045a0695d7175238b9a3ab4d2b144": {
       "signature": "80eac3fa59249734747d1e887d771f61550045a0695d7175238b9a3ab4d2b144",
@@ -646,154 +701,165 @@
       ],
       "target": "Extensions/IISWebAppDeploy/Src/Tasks/SqlDacpacDeploy/SqlDacpacDeployV2/DeployToSqlServer.ps1",
       "line": 199,
+      "uriBaseId": "file:///D:/a/_work/1/s/",
       "memberOf": [
         "default"
       ],
       "tool": "psscriptanalyzer",
       "ruleId": "PSAvoidUsingUsernameAndPasswordParams",
-      "createdDate": "2025-07-11 14:40:37Z",
-      "expirationDate": "2025-12-28 14:42:17Z",
-      "justification": "This error is baselined with an expiration date of 180 days from 2025-07-11 14:42:17Z"
+      "createdDate": "2026-04-15 11:38:38Z",
+      "expirationDate": "2026-10-03 11:01:08Z",
+      "justification": "This error is baselined with an expiration date of 180 days from 2026-04-16 11:01:08Z"
     },
     "35ed6033f7d34752f5ac4492fc4676b18ad8485ac41b68d4b55bdfa674ea8df2": {
       "signature": "35ed6033f7d34752f5ac4492fc4676b18ad8485ac41b68d4b55bdfa674ea8df2",
       "alternativeSignatures": [],
       "target": "Extensions/IISWebAppDeploy/Tests/Tasks/IISWebAppMgmt/IISWebAppMgmtV2/L0AppcmdAddUpdateApplication.ps1",
       "line": 62,
+      "uriBaseId": "file:///D:/a/_work/1/s/",
       "memberOf": [
         "default"
       ],
       "tool": "credscan",
       "ruleId": "CSCAN-GENERAL0060",
-      "createdDate": "2025-07-11 14:40:37Z",
-      "expirationDate": "2025-12-28 14:42:17Z",
-      "justification": "This error is baselined with an expiration date of 180 days from 2025-07-11 14:42:17Z"
+      "createdDate": "2026-04-15 11:38:38Z",
+      "expirationDate": "2026-10-03 11:01:08Z",
+      "justification": "This error is baselined with an expiration date of 180 days from 2026-04-16 11:01:08Z"
     },
     "2d4c5aa5cbce7f01ffd338d560b05227430fbd5ade2f247df7af22ce9b906c2c": {
       "signature": "2d4c5aa5cbce7f01ffd338d560b05227430fbd5ade2f247df7af22ce9b906c2c",
       "alternativeSignatures": [],
       "target": "Extensions/IISWebAppDeploy/Tests/Tasks/IISWebAppMgmt/IISWebAppMgmtV2/L0AppcmdAddUpdateAppPool.ps1",
       "line": 62,
+      "uriBaseId": "file:///D:/a/_work/1/s/",
       "memberOf": [
         "default"
       ],
       "tool": "credscan",
       "ruleId": "CSCAN-GENERAL0060",
-      "createdDate": "2025-07-11 14:40:37Z",
-      "expirationDate": "2025-12-28 14:42:17Z",
-      "justification": "This error is baselined with an expiration date of 180 days from 2025-07-11 14:42:17Z"
+      "createdDate": "2026-04-15 11:38:38Z",
+      "expirationDate": "2026-10-03 11:01:08Z",
+      "justification": "This error is baselined with an expiration date of 180 days from 2026-04-16 11:01:08Z"
     },
     "18afd0e4e8afd561b74eb5db71aa2d187699889f36aff677bc797f77ce3b7434": {
       "signature": "18afd0e4e8afd561b74eb5db71aa2d187699889f36aff677bc797f77ce3b7434",
       "alternativeSignatures": [],
       "target": "Extensions/IISWebAppDeploy/Tests/Tasks/IISWebAppMgmt/IISWebAppMgmtV2/L0AppcmdAddUpdateVDir.ps1",
       "line": 49,
+      "uriBaseId": "file:///D:/a/_work/1/s/",
       "memberOf": [
         "default"
       ],
       "tool": "credscan",
       "ruleId": "CSCAN-GENERAL0060",
-      "createdDate": "2025-07-11 14:40:37Z",
-      "expirationDate": "2025-12-28 14:42:17Z",
-      "justification": "This error is baselined with an expiration date of 180 days from 2025-07-11 14:42:17Z"
+      "createdDate": "2026-04-15 11:38:38Z",
+      "expirationDate": "2026-10-03 11:01:08Z",
+      "justification": "This error is baselined with an expiration date of 180 days from 2026-04-16 11:01:08Z"
     },
     "eecdee0fcd0756aa270ee8a7e4c057ac96902dae2596407a6ab8d5b70a68237e": {
       "signature": "eecdee0fcd0756aa270ee8a7e4c057ac96902dae2596407a6ab8d5b70a68237e",
       "alternativeSignatures": [],
       "target": "Extensions/IISWebAppDeploy/Tests/Tasks/IISWebAppMgmt/IISWebAppMgmtV2/L0AppcmdAddUpdateWebsite.ps1",
       "line": 78,
+      "uriBaseId": "file:///D:/a/_work/1/s/",
       "memberOf": [
         "default"
       ],
       "tool": "credscan",
       "ruleId": "CSCAN-GENERAL0060",
-      "createdDate": "2025-07-11 14:40:37Z",
-      "expirationDate": "2025-12-28 14:42:17Z",
-      "justification": "This error is baselined with an expiration date of 180 days from 2025-07-11 14:42:17Z"
+      "createdDate": "2026-04-15 11:38:38Z",
+      "expirationDate": "2026-10-03 11:01:08Z",
+      "justification": "This error is baselined with an expiration date of 180 days from 2026-04-16 11:01:08Z"
     },
     "a1dc45a5e8b981bc5e1c2b54a583a26c961da7ae27b707e9b6f5e3eee59d96d4": {
       "signature": "a1dc45a5e8b981bc5e1c2b54a583a26c961da7ae27b707e9b6f5e3eee59d96d4",
       "alternativeSignatures": [],
       "target": "Extensions/IISWebAppDeploy/Tests/Tasks/IISWebAppMgmt/IISWebAppMgmtV2/MockHelpers.ps1",
       "line": 9,
+      "uriBaseId": "file:///D:/a/_work/1/s/",
       "memberOf": [
         "default"
       ],
       "tool": "credscan",
       "ruleId": "CSCAN-GENERAL0060",
-      "createdDate": "2025-07-11 14:40:37Z",
-      "expirationDate": "2025-12-28 14:42:17Z",
-      "justification": "This error is baselined with an expiration date of 180 days from 2025-07-11 14:42:17Z"
+      "createdDate": "2026-04-15 11:38:38Z",
+      "expirationDate": "2026-10-03 11:01:08Z",
+      "justification": "This error is baselined with an expiration date of 180 days from 2026-04-16 11:01:08Z"
     },
     "90efb3e02e56c49f89af2e611f23e8daa598d7ee38c85521e354c5fae02a0584": {
       "signature": "90efb3e02e56c49f89af2e611f23e8daa598d7ee38c85521e354c5fae02a0584",
       "alternativeSignatures": [],
       "target": "Extensions/IISWebAppDeploy/Tests/Tasks/IISWebAppMgmt/IISWebAppMgmtV3/L0AppcmdAddUpdateApplication.ps1",
       "line": 62,
+      "uriBaseId": "file:///D:/a/_work/1/s/",
       "memberOf": [
         "default"
       ],
       "tool": "credscan",
       "ruleId": "CSCAN-GENERAL0060",
-      "createdDate": "2025-07-11 14:40:37Z",
-      "expirationDate": "2025-12-28 14:42:17Z",
-      "justification": "This error is baselined with an expiration date of 180 days from 2025-07-11 14:42:17Z"
+      "createdDate": "2026-04-15 11:38:38Z",
+      "expirationDate": "2026-10-03 11:01:08Z",
+      "justification": "This error is baselined with an expiration date of 180 days from 2026-04-16 11:01:08Z"
     },
     "bcd73b281b052a77bdb867838196a81ed82aba86fee63fc9822ce49daa20c583": {
       "signature": "bcd73b281b052a77bdb867838196a81ed82aba86fee63fc9822ce49daa20c583",
       "alternativeSignatures": [],
       "target": "Extensions/IISWebAppDeploy/Tests/Tasks/IISWebAppMgmt/IISWebAppMgmtV3/L0AppcmdAddUpdateAppPool.ps1",
       "line": 62,
+      "uriBaseId": "file:///D:/a/_work/1/s/",
       "memberOf": [
         "default"
       ],
       "tool": "credscan",
       "ruleId": "CSCAN-GENERAL0060",
-      "createdDate": "2025-07-11 14:40:37Z",
-      "expirationDate": "2025-12-28 14:42:17Z",
-      "justification": "This error is baselined with an expiration date of 180 days from 2025-07-11 14:42:17Z"
+      "createdDate": "2026-04-15 11:38:38Z",
+      "expirationDate": "2026-10-03 11:01:08Z",
+      "justification": "This error is baselined with an expiration date of 180 days from 2026-04-16 11:01:08Z"
     },
     "b5b56541be35e45b67d89e2c2998d5021728a2c36cdd99228f53d580bda5df77": {
       "signature": "b5b56541be35e45b67d89e2c2998d5021728a2c36cdd99228f53d580bda5df77",
       "alternativeSignatures": [],
       "target": "Extensions/IISWebAppDeploy/Tests/Tasks/IISWebAppMgmt/IISWebAppMgmtV3/L0AppcmdAddUpdateVDir.ps1",
       "line": 49,
+      "uriBaseId": "file:///D:/a/_work/1/s/",
       "memberOf": [
         "default"
       ],
       "tool": "credscan",
       "ruleId": "CSCAN-GENERAL0060",
-      "createdDate": "2025-07-11 14:40:37Z",
-      "expirationDate": "2025-12-28 14:42:17Z",
-      "justification": "This error is baselined with an expiration date of 180 days from 2025-07-11 14:42:17Z"
+      "createdDate": "2026-04-15 11:38:38Z",
+      "expirationDate": "2026-10-03 11:01:08Z",
+      "justification": "This error is baselined with an expiration date of 180 days from 2026-04-16 11:01:08Z"
     },
     "359f160a88e17c5ce1a87b0c2876501ed037b731dae70a91c0d44e1facfbf725": {
       "signature": "359f160a88e17c5ce1a87b0c2876501ed037b731dae70a91c0d44e1facfbf725",
       "alternativeSignatures": [],
       "target": "Extensions/IISWebAppDeploy/Tests/Tasks/IISWebAppMgmt/IISWebAppMgmtV3/L0AppcmdAddUpdateWebsite.ps1",
       "line": 78,
+      "uriBaseId": "file:///D:/a/_work/1/s/",
       "memberOf": [
         "default"
       ],
       "tool": "credscan",
       "ruleId": "CSCAN-GENERAL0060",
-      "createdDate": "2025-07-11 14:40:37Z",
-      "expirationDate": "2025-12-28 14:42:17Z",
-      "justification": "This error is baselined with an expiration date of 180 days from 2025-07-11 14:42:17Z"
+      "createdDate": "2026-04-15 11:38:38Z",
+      "expirationDate": "2026-10-03 11:01:08Z",
+      "justification": "This error is baselined with an expiration date of 180 days from 2026-04-16 11:01:08Z"
     },
     "8c7f7fa25d9afa12663f5633a51f638d4f0195036d3692a0b6407a3912b19f50": {
       "signature": "8c7f7fa25d9afa12663f5633a51f638d4f0195036d3692a0b6407a3912b19f50",
       "alternativeSignatures": [],
       "target": "Extensions/IISWebAppDeploy/Tests/Tasks/IISWebAppMgmt/IISWebAppMgmtV3/MockHelpers.ps1",
       "line": 9,
+      "uriBaseId": "file:///D:/a/_work/1/s/",
       "memberOf": [
         "default"
       ],
       "tool": "credscan",
       "ruleId": "CSCAN-GENERAL0060",
-      "createdDate": "2025-07-11 14:40:37Z",
-      "expirationDate": "2025-12-28 14:42:17Z",
-      "justification": "This error is baselined with an expiration date of 180 days from 2025-07-11 14:42:17Z"
+      "createdDate": "2026-04-15 11:38:38Z",
+      "expirationDate": "2026-10-03 11:01:08Z",
+      "justification": "This error is baselined with an expiration date of 180 days from 2026-04-16 11:01:08Z"
     }
   }
 }
