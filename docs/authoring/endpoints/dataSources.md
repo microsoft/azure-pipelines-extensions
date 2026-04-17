@@ -66,7 +66,7 @@ The `resultSelector` value must start with one of the following prefixes :
 |--------|-------------|
 | `jsonpath:` | Used to extract data from JSON responses |
 | `xpath:` | Used to extract data from XML responses |
-| `none` | Returns no data |
+| `none` | Returns no data from the response |
 | `plaintext` | Returns the full response as plain text |
 
 #### JSONPath (`jsonpath:`)
@@ -109,9 +109,8 @@ Returns the full JSON response :
 ```
 
 **Notes :**
-- Keep JSONPath expressions simple and easy to understand.
-- If something doesn't work, check the API response structure.
-- Some advanced JSONPath features may not be supported.
+- The implementation uses Newtonsoft.Json `JToken.SelectTokens`, which supports most standard JSONPath operators but not script expressions (`[?(@.length-1)]`).
+- If a query returns no results, verify the response structure by using `jsonpath:$` to see the full response.
 
 **Common limitation :**
 
@@ -157,7 +156,7 @@ Selects multiple element types :
 ```
 "resultSelector": "none"
 ```
-Use when you don't need any data from the response (e.g., for write-only REST calls).
+Use when you don't need any data from the response (e.g., for POST/PUT calls where only the status code matters).
 
 **`plaintext` :**
 ```
