@@ -1126,8 +1126,12 @@ var cacheNpmPackage = function (name, version) {
 }
 
 var cacheNuGetV2Package = function (repository, name, version) {
+    // Allow a pipeline/environment variable to override the repository URL.
+    // This avoids hardcoding internal feed URLs in source files (blocked by policy).
+    var effectiveRepo = process.env.NUGET_V2_REPOSITORY_OVERRIDE || repository;
+
     // Validate the parameters.
-    if (!repository) {
+    if (!effectiveRepo) {
         throw new Error('Parameter "repository" cannot be null or empty.');
     }
 
@@ -1142,9 +1146,9 @@ var cacheNuGetV2Package = function (repository, name, version) {
     // Build the download URL.
     // Azure Artifacts NuGet V2 feeds use query-parameter download URLs,
     // while PowerShell Gallery and other NuGet V2 feeds use /package/{id}/{version}.
-    var baseUrl = repository.replace(/\/$/, '');
+    var baseUrl = effectiveRepo.replace(/\/$/, '');
     var url;
-    if (baseUrl.indexOf('pkgs.dev.azure.com') >= 0 || baseUrl.indexOf('_packaging') >= 0) {
+    if (baseUrl.indexOf('_packaging') >= 0) {
         url = baseUrl + '?id=' + name.toLowerCase() + '&version=' + version;
     } else {
         url = baseUrl + '/package/' + name + '/' + version;

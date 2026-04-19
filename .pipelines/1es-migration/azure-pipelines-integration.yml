@@ -43,6 +43,11 @@ variables:
 # files and package-lock.json resolved URLs.
 - name: npm_config_registry
   value: https://pkgs.dev.azure.com/mseng/PipelineTools/_packaging/PipelineTools_PublicPackages/npm/registry/
+# Override the NuGet V2 repository used by gulpfile.js cacheNuGetV2Package().
+# The 1ES build pool DNS-sinkholes powershellgallery.com; this redirects NuGet package
+# downloads to the internal Azure Artifacts feed (which mirrors the public packages).
+- name: NUGET_V2_REPOSITORY_OVERRIDE
+  value: https://pkgs.dev.azure.com/mseng/PipelineTools/_packaging/PipelineTools_PublicPackages/nuget/v2/
 # Dynamic (overridden by DetectChangedExtension.ps1 for PR triggers)
 - name: ExtensionName
   value: ${{ parameters.extensionName }}
