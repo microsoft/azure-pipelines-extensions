@@ -27,16 +27,6 @@ variables:
 # 1ES Security Scanning
 - name: CodeQL.Enabled
   value: true
-# Force ALL npm calls (including gulp's internal cp.execSync) to use the internal feed.
-# The 1ES build pool DNS-sinkholes registry.npmjs.org; this env var overrides all .npmrc
-# files and package-lock.json resolved URLs.
-- name: npm_config_registry
-  value: https://pkgs.dev.azure.com/mseng/PipelineTools/_packaging/PipelineTools_PublicPackages/npm/registry/
-# Override the NuGet V2 repository used by gulpfile.js cacheNuGetV2Package().
-# The 1ES build pool DNS-sinkholes powershellgallery.com; this redirects NuGet package
-# downloads to the internal Azure Artifacts feed (which mirrors the public packages).
-- name: NUGET_V2_REPOSITORY_OVERRIDE
-  value: https://pkgs.dev.azure.com/mseng/PipelineTools/_packaging/PipelineTools_PublicPackages/nuget/v2/
 # Publisher
 - name: PublisherId
   ${{ if eq(parameters.extensionName, 'TeamCity') }}:
@@ -115,11 +105,6 @@ extends:
             command: install
             verbose: false
 
-        - task: NpmAuthenticate@0
-          displayName: 'Authenticate npm with internal feed'
-          inputs:
-            workingFile: .npmrc
-
         - task: Npm@1
           displayName: 'Install TFX CLI (needed for publishing on Marketplace)'
           inputs:
@@ -131,37 +116,6 @@ extends:
           inputs:
             command: custom
             customCommand: 'install -g gulp-cli'
-
-        - task: PowerShell@2
-          displayName: 'Prepare npm auth for gulp subprocess installs'
-          inputs:
-            targetType: inline
-            pwsh: true
-            script: |
-              # gulpfile.js runNpmInstall() spawns npm with --userconfig pointing to a
-              # relative path that doesn't resolve from _build/. Dotfiles aren't copied
-              # either, so npm has no auth for the internal feed -> 401.
-              # Fix: write auth to npm GLOBAL config which npm always reads.
-              $rootNpmrc = Join-Path '$(Build.SourcesDirectory)' '.npmrc'
-              $authLines = Get-Content $rootNpmrc | Where-Object { $_ -match '^//' }
-
-              $globalPrefix = (npm config get prefix).Trim()
-              $globalNpmrc = Join-Path $globalPrefix 'etc' 'npmrc'
-              New-Item -ItemType Directory -Path (Split-Path $globalNpmrc) -Force | Out-Null
-              foreach ($line in $authLines) {
-                Add-Content -Path $globalNpmrc -Value $line
-              }
-              Write-Host "Wrote $($authLines.Count) auth line(s) to global npmrc: $globalNpmrc"
-
-              # Delete lockfiles so npm resolves from internal feed, not npmjs.org
-              foreach ($ext in @('ArtifactEngine', 'ArtifactEngineV2')) {
-                $lockFile = Join-Path '$(Build.SourcesDirectory)' 'Extensions' $ext 'package-lock.json'
-                if (Test-Path $lockFile) {
-                  Remove-Item $lockFile -Force
-                  Write-Host "Deleted lockfile: Extensions/$ext/package-lock.json"
-                }
-              }
-            workingDirectory: '$(Build.SourcesDirectory)'
 
         - task: PowerShell@2
           displayName: 'Build PROD resources'
