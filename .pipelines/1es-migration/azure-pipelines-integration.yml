@@ -121,13 +121,13 @@ extends:
           displayName: 'Install TFX CLI'
           inputs:
             command: custom
-            customCommand: 'install -g tfx-cli'
+            customCommand: 'install -g tfx-cli --registry https://pkgs.dev.azure.com/mseng/PipelineTools/_packaging/PipelineTools_PublicPackages/npm/registry/'
 
         - task: Npm@1
           displayName: 'Install Gulp CLI'
           inputs:
             command: custom
-            customCommand: 'install -g gulp-cli'
+            customCommand: 'install -g gulp-cli --registry https://pkgs.dev.azure.com/mseng/PipelineTools/_packaging/PipelineTools_PublicPackages/npm/registry/'
 
         - task: PowerShell@2
         #   displayName: 'Pre-cache PowerShell Gallery packages (Network Isolation workaround)'
