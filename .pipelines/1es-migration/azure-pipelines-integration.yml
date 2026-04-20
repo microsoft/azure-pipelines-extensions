@@ -329,10 +329,26 @@ extends:
                 exit 1
               }
 
+              # For PR builds, override the patch version with the PR number so each PR
+              # gets an isolated test extension on the marketplace. This avoids cross-PR
+              # conflicts when multiple developers bump to the same version.
+              # Re-runs of the same PR use --override to update with the latest code.
+              # Manual/CI builds publish with the version as-is from vss-extension.json.
+              $isPR = "$(Build.Reason)" -eq "PullRequest"
+              $prId = if ($isPR) { "$(System.PullRequest.PullRequestId)" } else { $null }
+
+              if ($isPR) {
+                Write-Host "PR build detected (PR #$prId). Patch version will be overridden to isolate this PR."
+              }
+
               $failCount = 0
               foreach ($vsix in $vsixFiles) {
                 Write-Host "`nPublishing: $($vsix.Name)..."
-                tfx extension publish --vsix $vsix.FullName --service-url https://marketplace.visualstudio.com --auth-type pat --token $token --no-color --json
+
+                # --override overwrites the same version with new code on re-runs.
+                # For PR builds, override version to 0.0.<prId> to isolate each PR.
+                $overrideArgs = if ($isPR) { @("--override", "{`"version`": `"0.0.$prId`"}") } else { @() }
+                tfx extension publish --vsix $vsix.FullName --service-url https://marketplace.visualstudio.com --auth-type pat --token $token --no-color --override @overrideArgs
                 if ($LASTEXITCODE -ne 0) {
                   Write-Host "##[error]Failed to publish $($vsix.Name)"
                   $failCount++
