@@ -129,7 +129,7 @@ extends:
             command: custom
             customCommand: 'install -g gulp-cli --registry https://pkgs.dev.azure.com/mseng/PipelineTools/_packaging/PipelineTools_PublicPackages/npm/registry/'
 
-        - task: PowerShell@2
+        #- task: PowerShell@2
         #   displayName: 'Pre-cache PowerShell Gallery packages (Network Isolation workaround)'
         #   inputs:
         #     targetType: inline
