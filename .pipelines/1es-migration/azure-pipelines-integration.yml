@@ -38,11 +38,6 @@ variables:
 # 1ES Security Scanning
 - name: CodeQL.Enabled
   value: true
-# Force ALL npm calls (including gulp's internal cp.execSync) to use the internal feed.
-# The 1ES build pool DNS-sinkholes registry.npmjs.org; this env var overrides all .npmrc
-# files and package-lock.json resolved URLs.
-- name: npm_config_registry
-  value: https://pkgs.dev.azure.com/mseng/PipelineTools/_packaging/PipelineTools_PublicPackages/npm/registry/
 # Dynamic (overridden by DetectChangedExtension.ps1 for PR triggers)
 - name: ExtensionName
   value: ${{ parameters.extensionName }}
@@ -122,11 +117,6 @@ extends:
             command: install
             verbose: false
 
-        - task: NpmAuthenticate@0
-          displayName: 'Authenticate npm with internal feed'
-          inputs:
-            workingFile: .npmrc
-
         - task: Npm@1
           displayName: 'Install TFX CLI'
           inputs:
@@ -139,7 +129,7 @@ extends:
             command: custom
             customCommand: 'install -g gulp-cli'
 
-        # - task: PowerShell@2
+        - task: PowerShell@2
         #   displayName: 'Pre-cache PowerShell Gallery packages (Network Isolation workaround)'
         #   inputs:
         #     targetType: inline
@@ -278,26 +268,26 @@ extends:
           inputs:
             versionSpec: '20.x'
 
-        - task: NpmAuthenticate@0
-          displayName: 'Authenticate npm with internal feed'
-          inputs:
-            workingFile: .npmrc
+        # - task: NpmAuthenticate@0
+        #   displayName: 'Authenticate npm with internal feed'
+        #   inputs:
+        #     workingFile: .npmrc
 
-        - task: PowerShell@2
-          displayName: 'Write npm auth to user config (Network Isolation workaround)'
-          inputs:
-            targetType: inline
-            pwsh: true
-            script: |
-              # TfxInstaller@5 uses --prefix <temp> which changes the global config
-              # location. Write auth to USER config (~/.npmrc) which npm always reads.
-              $rootNpmrc = Join-Path '$(Build.SourcesDirectory)' '.npmrc'
-              $authLines = Get-Content $rootNpmrc | Where-Object { $_ -match '^//' }
-              $userNpmrc = Join-Path $env:USERPROFILE '.npmrc'
-              foreach ($line in $authLines) {
-                Add-Content -Path $userNpmrc -Value $line
-              }
-              Write-Host "Wrote $($authLines.Count) auth line(s) to user npmrc: $userNpmrc"
+        # - task: PowerShell@2
+        #   displayName: 'Write npm auth to user config (Network Isolation workaround)'
+        #   inputs:
+        #     targetType: inline
+        #     pwsh: true
+        #     script: |
+        #       # TfxInstaller@5 uses --prefix <temp> which changes the global config
+        #       # location. Write auth to USER config (~/.npmrc) which npm always reads.
+        #       $rootNpmrc = Join-Path '$(Build.SourcesDirectory)' '.npmrc'
+        #       $authLines = Get-Content $rootNpmrc | Where-Object { $_ -match '^//' }
+        #       $userNpmrc = Join-Path $env:USERPROFILE '.npmrc'
+        #       foreach ($line in $authLines) {
+        #         Add-Content -Path $userNpmrc -Value $line
+        #       }
+        #       Write-Host "Wrote $($authLines.Count) auth line(s) to user npmrc: $userNpmrc"
 
         - task: TfxInstaller@5
           displayName: 'Install TFX'
