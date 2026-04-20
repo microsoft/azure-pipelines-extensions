@@ -69,30 +69,16 @@ if (-not $targetBranch) {
 $targetRef = $targetBranch -replace '^refs/heads/', ''
 Write-Host "PR target branch: $targetRef"
 
-# Fetch target branch history. Use --no-tags to keep it lean.
-# Start with depth 100 to improve merge-base discovery; deepen if the
-# three-dot diff fails (shallow clones may lack the merge base).
+# Fetch target branch so we can diff against it.
 Write-Host "Fetching origin/$targetRef ..."
 git fetch origin $targetRef --depth=100 --no-tags 2>&1 | ForEach-Object { Write-Host $_ }
 
-# Prefer three-dot diff (merge-base → HEAD) which is the true PR diff.
-# Fall back to two-dot diff if the merge base is unreachable (shallow clone).
-$changedFiles = $null
-$diffOutput = git diff --name-only "origin/$targetRef...HEAD" 2>&1
-if ($LASTEXITCODE -eq 0) {
-    $changedFiles = @($diffOutput | Where-Object { $_ -and $_ -notmatch '^(fatal|error|warning):' })
-} else {
-    Write-Host "##[warning]Three-dot diff failed (merge base likely outside fetch depth). Deepening fetch..."
-    git fetch --deepen=200 2>&1 | ForEach-Object { Write-Host $_ }
-
-    $diffOutput = git diff --name-only "origin/$targetRef...HEAD" 2>&1
-    if ($LASTEXITCODE -eq 0) {
-        $changedFiles = @($diffOutput | Where-Object { $_ -and $_ -notmatch '^(fatal|error|warning):' })
-    } else {
-        Write-Host "##[warning]Three-dot diff still failed after deepening. Falling back to two-dot diff."
-        $diffOutput = git diff "origin/$targetRef" HEAD --name-only 2>&1
-        $changedFiles = @($diffOutput | Where-Object { $_ -and $_ -notmatch '^(fatal|error|warning):' })
-    }
+# Diff: three-dot gives the true PR diff (merge-base to HEAD).
+# Falls back to two-dot if merge-base can't be found (very shallow clone).
+$changedFiles = @(git diff --name-only "origin/$targetRef...HEAD" 2>$null)
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "##[warning]Three-dot diff failed. Falling back to two-dot diff."
+    $changedFiles = @(git diff --name-only "origin/$targetRef" HEAD)
 }
 
 if (-not $changedFiles -or $changedFiles.Count -eq 0) {
