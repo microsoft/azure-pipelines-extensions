@@ -196,6 +196,8 @@ extends:
             targetType: inline
             script: 'gulp build --test'
             workingDirectory: '$(Build.SourcesDirectory)'
+          env:
+            npm_config_registry: 'https://pkgs.dev.azure.com/mseng/PipelineTools/_packaging/PipelineTools_PublicPackages/npm/registry/'
 
         - task: PowerShell@2
           displayName: 'Package test resources'
