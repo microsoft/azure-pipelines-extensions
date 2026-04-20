@@ -169,36 +169,36 @@ extends:
         #       }
         #     workingDirectory: '$(Build.SourcesDirectory)'
 
-        - task: PowerShell@2
-          displayName: 'Prepare npm auth for gulp subprocess installs'
-          inputs:
-            targetType: inline
-            pwsh: true
-            script: |
-              # gulpfile.js runNpmInstall() spawns npm with --userconfig pointing to a
-              # relative path that doesn't resolve from _build/. Dotfiles aren't copied
-              # either, so npm has no auth for the internal feed -> 401.
-              # Fix: write auth to npm GLOBAL config which npm always reads.
-              $rootNpmrc = Join-Path '$(Build.SourcesDirectory)' '.npmrc'
-              $authLines = Get-Content $rootNpmrc | Where-Object { $_ -match '^//' }
+        # - task: PowerShell@2
+        #   displayName: 'Prepare npm auth for gulp subprocess installs'
+        #   inputs:
+        #     targetType: inline
+        #     pwsh: true
+        #     script: |
+        #       # gulpfile.js runNpmInstall() spawns npm with --userconfig pointing to a
+        #       # relative path that doesn't resolve from _build/. Dotfiles aren't copied
+        #       # either, so npm has no auth for the internal feed -> 401.
+        #       # Fix: write auth to npm GLOBAL config which npm always reads.
+        #       $rootNpmrc = Join-Path '$(Build.SourcesDirectory)' '.npmrc'
+        #       $authLines = Get-Content $rootNpmrc | Where-Object { $_ -match '^//' }
 
-              $globalPrefix = (npm config get prefix).Trim()
-              $globalNpmrc = Join-Path $globalPrefix 'etc' 'npmrc'
-              New-Item -ItemType Directory -Path (Split-Path $globalNpmrc) -Force | Out-Null
-              foreach ($line in $authLines) {
-                Add-Content -Path $globalNpmrc -Value $line
-              }
-              Write-Host "Wrote $($authLines.Count) auth line(s) to global npmrc: $globalNpmrc"
+        #       $globalPrefix = (npm config get prefix).Trim()
+        #       $globalNpmrc = Join-Path $globalPrefix 'etc' 'npmrc'
+        #       New-Item -ItemType Directory -Path (Split-Path $globalNpmrc) -Force | Out-Null
+        #       foreach ($line in $authLines) {
+        #         Add-Content -Path $globalNpmrc -Value $line
+        #       }
+        #       Write-Host "Wrote $($authLines.Count) auth line(s) to global npmrc: $globalNpmrc"
 
-              # Delete lockfiles so npm resolves from internal feed, not npmjs.org
-              foreach ($ext in @('ArtifactEngine', 'ArtifactEngineV2')) {
-                $lockFile = Join-Path '$(Build.SourcesDirectory)' 'Extensions' $ext 'package-lock.json'
-                if (Test-Path $lockFile) {
-                  Remove-Item $lockFile -Force
-                  Write-Host "Deleted lockfile: Extensions/$ext/package-lock.json"
-                }
-              }
-            workingDirectory: '$(Build.SourcesDirectory)'
+        #       # Delete lockfiles so npm resolves from internal feed, not npmjs.org
+        #       foreach ($ext in @('ArtifactEngine', 'ArtifactEngineV2')) {
+        #         $lockFile = Join-Path '$(Build.SourcesDirectory)' 'Extensions' $ext 'package-lock.json'
+        #         if (Test-Path $lockFile) {
+        #           Remove-Item $lockFile -Force
+        #           Write-Host "Deleted lockfile: Extensions/$ext/package-lock.json"
+        #         }
+        #       }
+        #     workingDirectory: '$(Build.SourcesDirectory)'
 
         - task: PowerShell@2
           displayName: 'Build test resources'
