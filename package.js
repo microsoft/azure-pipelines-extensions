@@ -131,7 +131,7 @@ function copyCommonModules(currentExtnRoot, commonDeps, commonSrc, extensionSour
                     console.log(`⚒️  Building UI contribution for task: ${task.name}`);
                     var originalDir = shell.pwd();
                     util.cd(uiPath);
-                    util.run('npm install');
+                    util.run('npm ci');
                     util.cd(originalDir);
                 }
 
@@ -144,13 +144,13 @@ function copyCommonModules(currentExtnRoot, commonDeps, commonSrc, extensionSour
                         try {
                             util.cd(taskDirPath);
                             if (util.isDebug()) {
-                                cp.execSync(`npm install --verbose --userconfig ${path.join(taskSourcePath, ".npmrc")}`, { stdio: 'inherit' });
+                                cp.execSync(`npm ci --verbose --userconfig ${path.join(taskSourcePath, ".npmrc")}`, { stdio: 'inherit' });
                             } else {
-                                cp.execSync(`npm install --userconfig ${path.join(taskSourcePath, ".npmrc")}`, { stdio: 'ignore' });
+                                cp.execSync(`npm ci --userconfig ${path.join(taskSourcePath, ".npmrc")}`, { stdio: 'ignore' });
                             }
-                            console.log(`\x1b[A\x1b[K✅ npm install at ${taskDirPath} completed successfully.`);
+                            console.log(`\x1b[A\x1b[K✅ npm ci at ${taskDirPath} completed successfully.`);
                         } catch (err) {
-                            console.log(`\x1b[A\x1b[K❌ npm install at ${taskDirPath} failed. Error: ${err.message}`);
+                            console.log(`\x1b[A\x1b[K❌ npm ci at ${taskDirPath} failed. Error: ${err.message}`);
                             process.exit(1);
                         } finally {
                             util.cd(originalDir);
