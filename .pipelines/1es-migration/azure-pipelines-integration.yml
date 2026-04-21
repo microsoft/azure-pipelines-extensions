@@ -190,6 +190,11 @@ extends:
         #       }
         #     workingDirectory: '$(Build.SourcesDirectory)'
 
+        - task: NpmAuthenticate@0
+          displayName: 'npm authenticate (internal feed)'
+          inputs:
+            workingFile: '$(Build.SourcesDirectory)/.npmrc'
+
         - task: PowerShell@2
           displayName: 'Build test resources'
           inputs:
