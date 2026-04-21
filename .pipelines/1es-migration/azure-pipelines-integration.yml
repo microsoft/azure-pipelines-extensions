@@ -203,6 +203,7 @@ extends:
             workingDirectory: '$(Build.SourcesDirectory)'
           env:
             npm_config_registry: 'https://pkgs.dev.azure.com/mseng/PipelineTools/_packaging/PipelineTools_PublicPackages/npm/registry/'
+            npm_config_userconfig: '$(Build.SourcesDirectory)/.npmrc'
 
         - task: PowerShell@2
           displayName: 'Package test resources'
