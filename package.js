@@ -144,10 +144,13 @@ function copyCommonModules(currentExtnRoot, commonDeps, commonSrc, extensionSour
                         try {
                             util.cd(taskDirPath);
                             const npmrcPath = path.join(taskSourcePath, ".npmrc");
+                            const npmCmd = process.platform === 'win32' ? 'npm.cmd' : 'npm';
+                            const npmArgs = ['ci', '--userconfig', `"${npmrcPath}"`];
                             if (util.isDebug()) {
-                                cp.execFileSync('npm', ['ci', '--verbose', '--userconfig', npmrcPath], { stdio: 'inherit' });
+                                npmArgs.splice(1, 0, '--verbose');
+                                cp.execFileSync(npmCmd, npmArgs, { stdio: 'inherit', shell: true });
                             } else {
-                                cp.execFileSync('npm', ['ci', '--userconfig', npmrcPath], { stdio: 'ignore' });
+                                cp.execFileSync(npmCmd, npmArgs, { stdio: 'ignore', shell: true });
                             }
                             console.log(`\x1b[A\x1b[K✅ npm ci at ${taskDirPath} completed successfully.`);
                         } catch (err) {
