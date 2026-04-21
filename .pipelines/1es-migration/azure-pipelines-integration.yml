@@ -276,31 +276,16 @@ extends:
           inputs:
             versionSpec: '20.x'
 
-        # - task: NpmAuthenticate@0
-        #   displayName: 'Authenticate npm with internal feed'
-        #   inputs:
-        #     workingFile: .npmrc
-
-        # - task: PowerShell@2
-        #   displayName: 'Write npm auth to user config (Network Isolation workaround)'
-        #   inputs:
-        #     targetType: inline
-        #     pwsh: true
-        #     script: |
-        #       # TfxInstaller@5 uses --prefix <temp> which changes the global config
-        #       # location. Write auth to USER config (~/.npmrc) which npm always reads.
-        #       $rootNpmrc = Join-Path '$(Build.SourcesDirectory)' '.npmrc'
-        #       $authLines = Get-Content $rootNpmrc | Where-Object { $_ -match '^//' }
-        #       $userNpmrc = Join-Path $env:USERPROFILE '.npmrc'
-        #       foreach ($line in $authLines) {
-        #         Add-Content -Path $userNpmrc -Value $line
-        #       }
-        #       Write-Host "Wrote $($authLines.Count) auth line(s) to user npmrc: $userNpmrc"
-
-        - task: TfxInstaller@5
-          displayName: 'Install TFX'
+        - task: NpmAuthenticate@0
+          displayName: 'Authenticate npm with internal feed'
           inputs:
-            version: 'v0.22.2'
+            workingFile: '$(Build.SourcesDirectory)/.npmrc'
+
+        - task: Npm@1
+          displayName: 'Install TFX CLI'
+          inputs:
+            command: custom
+            customCommand: 'install -g tfx-cli --registry https://pkgs.dev.azure.com/mseng/PipelineTools/_packaging/PipelineTools_PublicPackages/npm/registry/'
 
         - task: AzureCLI@2
           displayName: 'Publish all test extensions (unsigned)'
