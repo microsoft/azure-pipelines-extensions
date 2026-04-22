@@ -9,7 +9,6 @@ const del = require('del');
 const fs = require('fs-extra');
 const mocha = require('gulp-mocha');
 const minimist = require('minimist');
-const request = require('request');
 const semver = require('semver');
 const shell = require('shelljs');
 // @ts-ignore
@@ -27,8 +26,8 @@ const pkgm = require('./package');
 const util = require('./package-utils');
 
 // validation
-var NPM_MIN_VER = '3.0.0';
-var MIN_NODE_VER = '4.0.0';
+var NPM_MIN_VER = '9.0.0';
+var MIN_NODE_VER = '18.0.0';
 
 if (semver.lt(process.versions.node, MIN_NODE_VER)) {
     console.error('requires node >= ' + MIN_NODE_VER + '.  installed: ' + process.versions.node);
@@ -60,10 +59,6 @@ var sourcePaths = "@(definitions|Extensions)/**/*";
 var ExtensionFolder = "Extensions";
 var artifactEngineSourcePath = path.join(ExtensionFolder, "ArtifactEngine");
 var artifactEngineV2SourcePath = path.join(ExtensionFolder, "ArtifactEngineV2");
-var taskModulesSourcePath = "TaskModules/**/*"
-var TaskModulesFolder = "TaskModules"
-var TaskModulesTestRoot = path.join(_taskModuleBuildRoot, 'powershell', 'Tests');
-var TaskModulesTestTemp = path.join(TaskModulesTestRoot, 'Temp');
 var _tempPath = path.join(__dirname, '_temp');
 var _testRoot = "_build/";
 var _testTemp = "_build/Temp";
@@ -110,69 +105,6 @@ gulp.task("compilePS", gulp.series("clean", function() {
             // Create a _build/Extensions folder which will be empty
             return gulp.src(ExtensionFolder, { base: "." }).pipe(gulp.dest(_buildRoot));
         }
-    }
-}));
-
-gulp.task("TaskModuleBuild", gulp.series("clean", function() {
-    gulp.src(taskModulesSourcePath, { base: "."}).pipe(gulp.dest(_buildRoot));
-}));
-
-gulp.task("clean:TaskModuleTest", function(cb) {
-    return del([TaskModulesTestRoot], cb);
-});
-
-gulp.task('compile:TaskModuleTest', gulp.series('clean:TaskModuleTest', function (cb) {
-    var proj = gts.createProject(rootTsconfigPath, { typescript: typescript, declaration: true });
-    var testsPath = path.join('TaskModules', 'powershell', 'Tests', '**/*.ts');
-    var testsLibPath = path.join('Extensions', 'Common', 'lib', '**/*.ts');
-
-    var tsconfigPath = path.join('TaskModules', 'powershell', 'Tests', 'tsconfig.json');
-    if (fs.existsSync(tsconfigPath)) {
-        var projLocal = gts.createProject(tsconfigPath, { typescript: typescript });
-        var tsLocal = gts(projLocal);
-
-        gulp.src([testsLibPath, 'definitions/*.d.ts'])
-            .pipe(proj())
-            .on("error", errorHandler)
-            .pipe(gulp.dest(path.join(_extnBuildRoot, 'Common', 'lib')));
-
-        return gulp.src([testsPath, 'definitions/*.d.ts'])
-            .pipe(tsLocal)
-            .on('error', errorHandler)
-            .pipe(gulp.dest(TaskModulesTestRoot));
-    }
-}));
-
-gulp.task('copy:TaskModuleTest', gulp.series('compile:TaskModuleTest', function (cb) {
-    gulp.src([path.join('Extensions', 'Common', 'lib', '**/*')])
-        .pipe(gulp.dest(path.join(_extnBuildRoot, 'Common', 'lib')));
-    return gulp.src([path.join('TaskModules', 'powershell', 'Tests', '**/*')])
-        .pipe(gulp.dest(TaskModulesTestRoot));
-}));
-
-gulp.task("TaskModuleTest", gulp.series('copy:TaskModuleTest', function() {
-    process.env['TASK_TEST_TEMP'] = TaskModulesTestTemp;
-    shell.rm('-rf', TaskModulesTestTemp);
-    shell.mkdir('-p', TaskModulesTestTemp);
-
-    var testSuitePath = path.join(TaskModulesTestRoot, options.suite + '/L0.js');
-    var tfBuild = ('' + process.env['TF_BUILD']).toLowerCase() == 'true'
-
-    gulp.src([testSuitePath])
-        .pipe(mocha({ reporter: 'spec', ui: 'bdd', useColors: !tfBuild }));
-}));
-
-gulp.task('prepublish:TaskModulePublish', function (done) {
-    return del([TaskModulesTestRoot], done);
-});
-
-gulp.task('TaskModulePublish', gulp.series('prepublish:TaskModulePublish', function (done) {
-    var powershellModulesDirectory = path.join(_taskModuleBuildRoot, 'powershell', '**/*');
-
-    if(options.outputDir){
-        var outputModulesDirectory = path.join(options.outputDir, 'ps_modules');
-        shell.mkdir('-p', outputModulesDirectory);
-        gulp.src(powershellModulesDirectory).pipe(gulp.dest(outputModulesDirectory));
     }
 }));
 
@@ -224,15 +156,6 @@ gulp.task("compileNode", gulp.series("compilePS", function(cb){
                 });
             }
 
-            // Check for archive files.
-            if (externals.archivePackages) {
-                // Walk the array.
-                externals.archivePackages.forEach(function (archive) {
-                    // Cache the archive file.
-                    cacheArchiveFile(archive.url);
-                });
-            }
-
             // check of task modules
             if(externals.taskModule) {
                 var taskModules = Object.keys(externals.taskModule);
@@ -269,8 +192,8 @@ gulp.task("compileNode", gulp.series("compilePS", function(cb){
         return fs.statSync(path.join(_extnBuildRoot, file)).isDirectory() && file != "Common";
     }).forEach(copyCommonModules);
 
-    runNpmInstall(artifactEnginePath);
-    runNpmInstall(artifactEngineV2Path);
+    runNpmInstall(artifactEnginePath, artifactEngineSourcePath);
+    runNpmInstall(artifactEngineV2Path, artifactEngineV2SourcePath);
 
     // Compile tasks
     const tasksProject = gts.createProject(rootTsconfigPath, { typescript: typescript, declaration: true });
@@ -362,7 +285,7 @@ var copyGroup = function (group, sourceRoot, destRoot) {
 
     // multiply by culture name (recursive call to self)
     if (group.dest && group.dest.indexOf('<CULTURE_NAME>') >= 0) {
-        cultureNames.forEach(function (cultureName) {
+        cultures.forEach(function (cultureName) {
             // culture names do not contain any JSON-special characters, so this is OK (albeit a hack)
             var localizedGroupJson = JSON.stringify(group).replace(/<CULTURE_NAME>/g, cultureName);
             copyGroup(JSON.parse(localizedGroupJson), sourceRoot, destRoot);
@@ -481,195 +404,12 @@ function createResjson(callback) {
     }
 }
 
-function handoff(callback) {
-    // create a key->value map of default strings and comments for localizers
-    //
-    // resjson-style resources:
-    //   "greeting": "Hello",
-    //   "_greeting.comment": "A welcome greeting.",
-    //
-    // for more details about resjson: https://msdn.microsoft.com/en-us/library/windows/apps/hh465254.aspx
-
-    try {
-        var allLibJson = shell.find(path.join(__dirname, 'Extensions'))
-            .filter(function (file) {
-                return file.match(/(\/|\\)lib\.json$/);
-            });
-
-        allLibJson.forEach(function (libJson) {
-            console.log('Generating xliff for ' + libJson);
-
-
-            var defaultStrings = {};
-            var comments = {};
-            var lib = JSON.parse(fs.readFileSync(libJson));
-            if (lib.messages) {
-                for (var key of Object.keys(lib.messages)) {
-                    if (!key) {
-                        throw new Error('key cannot be empty: lib.messages.<key>');
-                    }
-
-                    if (key.match(/^_.+\.comment$/)) {
-                        var commentKey = key;
-                        var valueKey = commentKey.substr(   // trim leading "_"
-                            '_'.length,                     // trim trailing ".comment"
-                            commentKey.length - '_.comment'.length);
-                        comments[`loc.messages.${valueKey}`] = lib.messages[commentKey];
-                        continue;
-                    }
-                    else {
-                        defaultStrings[`loc.messages.${key}`] = lib.messages[key];
-                    }
-                }
-            }
-
-            // create or update the culture-specific xlf files
-            for (var culture of cultures) {
-                if (culture.toUpperCase() == 'EN-US') {
-                    continue;
-                }
-
-                // test whether xliff file exists
-                var xliffPath = path.join(path.dirname(libJson), 'xliff', `${culture}.xlf`);
-                var stats;
-                try {
-                    stats = fs.statSync(xliffPath);
-                }
-                catch (err) {
-                    if (err.code != 'ENOENT') {
-                        throw err;
-                    }
-                }
-
-                var xliff;
-                if (stats) {
-                    // parse the file
-                    var parser = new xml2js.Parser();
-                    parser.parseString(
-                        fs.readFileSync(xliffPath),
-                        function (err, result) {
-                            if (err) {
-                                throw err;
-                            }
-
-                            xliff = result;
-                        }
-                    )
-                }
-                else {
-                    // create the initial xliff object
-                    xliff = {
-                        "xliff": {
-                            "$": {
-                                "version": "1.2"
-                            },
-                            "file": [
-                                {
-                                    "$": {
-                                        "original": "lib.json",
-                                        "source-language": "en-US",
-                                        "target-language": culture,
-                                        "datatype": "plaintext"
-                                    },
-                                    "body": [
-                                        {
-                                            "trans-unit": []
-                                        }
-                                    ]
-                                }
-                            ]
-                        }
-                    }
-                }
-
-                // create a map of trans-unit
-                var unitMap = {};
-                for (var unit of xliff.xliff.file[0].body[0]['trans-unit']) {
-                    unitMap[unit['$'].id] = unit;
-                }
-
-                for (var key of Object.keys(defaultStrings)) {
-                    // add the trans-unit
-                    if (!unitMap.hasOwnProperty(key)) {
-                        unitMap[key] = {
-                            "$": {
-                                "id": key
-                            },
-                            "source": [
-                                defaultStrings[key]
-                            ],
-                            "target": [
-                                {
-                                    "$": {
-                                        "state": "new"
-                                    },
-                                    "_": ""
-                                }
-                            ]
-                        };
-                    }
-                    // update the source, target state, and note
-                    else if (unitMap[key].source[0] != defaultStrings[key]) {
-                        unitMap[key].source = [
-                            defaultStrings[key]
-                        ];
-                        if (unitMap[key].target[0]['$'].state != 'new') {
-                            unitMap[key].target[0]['$'].state = "needs-translation";
-                        }
-                    }
-
-                    // always update the note
-                    unitMap[key].note = [
-                        (comments[key] || "")
-                    ];
-                }
-
-                for (var key of Object.keys(unitMap)) {
-                    // delete the trans-unit
-                    if (!defaultStrings.hasOwnProperty(key)) {
-                        delete unitMap[key];
-                    }
-                }
-
-                // update the body of the xliff object
-                xliff.xliff.file[0].body[0]['trans-unit'] = [];
-                for (var key of Object.keys(unitMap).sort()) {
-                    xliff.xliff.file[0].body[0]['trans-unit'].push(unitMap[key]);
-                }
-
-                // write the xliff file
-                var options = {
-                    "renderOpts": {
-                        "pretty": true,
-                        "indent": "  ",
-                        "newline": os.EOL
-                    },
-                    "xmldec": {
-                        "version": "1.0",
-                        "encoding": "utf-8"
-                    }
-                };
-
-                var builder = new xml2js.Builder(options);
-                var xml = builder.buildObject(xliff);
-                shell.mkdir('-p', path.dirname(xliffPath));
-                fs.writeFileSync(xliffPath, '\ufeff' + xml);
-            }
-        });
-    }
-    catch (err) {
-        console.log('error:' + err.message);
-        callback(new gutil.PluginError('compileTasks', err.message));
-        throw err;
-    }
-}
-
-function runNpmInstall(packagePath) {
+function runNpmInstall(packagePath, sourcePath) {
     var originalDir = shell.pwd();
     util.cd(packagePath);
     var packageJsonPath = util.rp('package.json');
     if (util.test('-f', packageJsonPath)) {
-        util.run(`npm ci --userconfig ${path.join(artifactEngineSourcePath, ".npmrc")}`);
+        util.run(`npm ci --userconfig ${path.join(__dirname, sourcePath, ".npmrc")}`);
     }
     util.cd(originalDir);
 }
@@ -769,10 +509,6 @@ gulp.task("updateTestIds", function(cb) {
 
 gulp.task("build", gulp.series("compileNode", "updateTestIds"));
 
-gulp.task("handoff", function(cb) {
-    handoff(cb);
-});
-
 gulp.task("default", gulp.series("build"));
 
 //-----------------------------------------------------------------------------------------------------------------
@@ -849,7 +585,8 @@ gulp.task("test", gulp.series("testResources", function(){
 }));
 
 //-----------------------------------------------------------------------------------------------------------------
-// Package//-----------------------------------------------------------------------------------------------------------------
+// Package
+//-----------------------------------------------------------------------------------------------------------------
 
 var publisherName = null;
 gulp.task("package", function(cb) {
@@ -868,98 +605,6 @@ gulp.task("package", function(cb) {
     cb();
 });
 
-gulp.task('nuget-download', function(done) {
-    console.log("> Checking for nuget.exe");
-    if(fs.existsSync('nuget.exe')) {
-        return done();
-    }
-    console.log("> Downloading nuget.exe");
-    return request.get('https://nuget.org/nuget.exe')
-        .pipe(fs.createWriteStream('nuget.exe'));
-});
-
-gulp.task("package_nuget", gulp.series('nuget-download', function() {
-
-    // nuspec
-    var version = options.version;
-    if (!version) {
-        console.error('ERROR: supply version with --version');
-        process.exit(1);
-    }
-
-    if (!semver.valid(version)) {
-        console.error('ERROR: invalid semver version: ' + version);
-        process.exit(1);
-    }
-
-    if(!options.extension) {
-        console.error('ERROR: supply extension name with --extension');
-        process.exit(1);
-    }
-
-    if(!fs.existsSync("_package\\"+options.extension)) {
-        console.error('ERROR: mentioned extension does not exist');
-        process.exit(1);
-    }
-    // Nuget package
-
-    // Copying extension to contents
-    var extensionPath = path.join("_package", options.extension);
-
-    shell.rm("-rf", nugetPath);
-    var contentsPath = path.join(nugetPath,'pack-source', 'contents');
-    shell.mkdir("-p", contentsPath);
-    shell.cp(path.join(extensionPath,"*"), contentsPath);
-
-    // nuspec
-    var pkgName = 'Mseng.MS.TF.RM.Extensions';
-    console.log();
-    console.log('> Generating .nuspec file');
-    var contents = '<?xml version="1.0" encoding="utf-8"?>' + os.EOL;
-    contents += '<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">' + os.EOL;
-    contents += '   <metadata>' + os.EOL;
-    contents += '      <id>' + pkgName + '</id>' + os.EOL;
-    contents += '      <version>' + version + '</version>' + os.EOL;
-    contents += '      <authors>bigbldt</authors>' + os.EOL;
-    contents += '      <owners>bigbldt,Microsoft</owners>' + os.EOL;
-    contents += '      <requireLicenseAcceptance>false</requireLicenseAcceptance>' + os.EOL;
-    contents += '      <description>For VSS internal use only</description>' + os.EOL;
-    contents += '      <tags>VSSInternal</tags>' + os.EOL;
-    contents += '   </metadata>' + os.EOL;
-    contents += '</package>' + os.EOL;
-    console.log('> Generated .nuspec file');
-
-    console.log();
-    console.log('> Copying extension to package');
-    var nuspecPath = path.join(nugetPath, 'pack-source', pkgName + '.nuspec');
-    fs.writeFileSync(nuspecPath, contents);
-    console.log('> Copied extension to package');
-
-    // package
-    console.log();
-    console.log('> Beginning package...');
-    var nupkgPath = path.join(nugetPath, 'pack-target');
-    var exePath = './nuget.exe';
-    gulp.src(nuspecPath)
-        .pipe(nuget.pack({ nuget: exePath, version: options.version }))
-        .pipe(gulp.dest(nupkgPath));
-    console.log();
-    console.log('> Package Successful');
-
-    if (options.server) {
-        console.log();
-        console.log('> Publishing .nupkg file to server');
-        gulp.src(path.join(nupkgPath, pkgName + "." + options.version + ".nupkg"))
-            .pipe(nuget.push({ source: options.server, nuget: exePath, apiKey: 'SkyRise' }));
-        console.log('> Publish Successful');
-    }
-}));
-
-
-gulp.task("locCommon",function(){
-    return gulp.src(path.join(__dirname, 'Extensions/Common/**/module.json'))
-             .pipe(pkgm.LocCommon());
-});
 
 var copyCommonModules = function(extensionName) {
     var commonDeps = require('./common.json');

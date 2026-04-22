@@ -33,12 +33,6 @@ var test = function (options, p) {
 }
 exports.test = test;
 
-var fail = function (message) {
-    console.error('ERROR: ' + message);
-    process.exit(1);
-}
-exports.fail = fail;
-
 var run = function (cl, inheritStreams, noHeader) {
     if (!noHeader) {
         console.log();
