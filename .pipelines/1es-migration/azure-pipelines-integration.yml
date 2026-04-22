@@ -251,8 +251,10 @@ extends:
                 }
 
                 Write-Host "Overriding version to: $overrideVersion"
-                $overrideJson = "{`"version`": `"$overrideVersion`"}"
-                tfx extension publish --vsix $vsix.FullName --service-url https://marketplace.visualstudio.com --auth-type pat --token $token --no-color --override $overrideJson
+                $overrideFile = Join-Path $env:TEMP "override_$($vsix.BaseName).json"
+                @{ version = $overrideVersion } | ConvertTo-Json -Compress | Set-Content -Path $overrideFile -Encoding utf8
+                Write-Host "Override file contents: $(Get-Content $overrideFile)"
+                tfx extension publish --vsix $vsix.FullName --service-url https://marketplace.visualstudio.com --auth-type pat --token $token --no-color --overrides-file $overrideFile
                 if ($LASTEXITCODE -ne 0) {
                   Write-Host "##[error]Failed to publish $($vsix.Name)"
                   $failCount++
