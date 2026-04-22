@@ -213,62 +213,16 @@ extends:
             scriptType: pscore
             scriptLocation: inlineScript
             inlineScript: |
-              $vsixDir = "$(Pipeline.Workspace)/vsix-test-unsigned"
-              $vsixFiles = Get-ChildItem -Path $vsixDir -Filter "*.vsix"
-
-              if ($vsixFiles.Count -eq 0) {
-                Write-Host "##[error]No .vsix files found in $vsixDir"
-                exit 1
-              }
-
-              Write-Host "Found $($vsixFiles.Count) VSIX file(s) to publish:"
-              $vsixFiles | ForEach-Object { Write-Host "  - $($_.Name)" }
-
-              # Get a marketplace access token from the authenticated service connection
               $token = az account get-access-token --resource 499b84ac-1321-427f-aa17-267ca6975798 --query accessToken -o tsv
               if (-not $token) {
                 Write-Host "##[error]Failed to acquire marketplace access token"
                 exit 1
               }
 
-              # Override the patch version with the BuildId to ensure the version always
-              # increases on each publish. Keeps real major.minor from vss-extension.json.
-              # Extract major.minor from the vsix filename (e.g., "...-test-1.273.2.vsix" → "1.273").
-              $buildId = "$(Build.BuildId)"
-
-              $failCount = 0
-              foreach ($vsix in $vsixFiles) {
-                Write-Host "`nPublishing: $($vsix.Name)..."
-
-                # Parse major.minor from vsix filename: <publisher>.<id>-<major>.<minor>.<patch>.vsix
-                if ($vsix.Name -match '-(\d+)\.(\d+)\.\d+\.vsix$') {
-                  $major = $Matches[1]
-                  $minor = $Matches[2]
-                  $overrideVersion = "$major.$minor.$buildId"
-                } else {
-                  Write-Host "##[warning]Could not parse version from $($vsix.Name). Using 0.0.$buildId."
-                  $overrideVersion = "0.0.$buildId"
-                }
-
-                Write-Host "Overriding version to: $overrideVersion"
-                $overrideFile = Join-Path $env:TEMP "override_$($vsix.BaseName).json"
-                @{ version = $overrideVersion } | ConvertTo-Json -Compress | Set-Content -Path $overrideFile -Encoding utf8
-                Write-Host "Override file contents: $(Get-Content $overrideFile)"
-                tfx extension publish --vsix $vsix.FullName --service-url https://marketplace.visualstudio.com --auth-type pat --token $token --no-color --overrides-file $overrideFile
-                if ($LASTEXITCODE -ne 0) {
-                  Write-Host "##[error]Failed to publish $($vsix.Name)"
-                  $failCount++
-                } else {
-                  Write-Host "Published: $($vsix.Name)"
-                }
-              }
-
-              if ($failCount -gt 0) {
-                Write-Host "##[error]$failCount of $($vsixFiles.Count) extension(s) failed to publish"
-                exit 1
-              }
-
-              Write-Host "`nAll $($vsixFiles.Count) extension(s) published successfully"
+              $(Build.SourcesDirectory)/scripts/PublishTestExtensions.ps1 `
+                -VsixDirectory "$(Pipeline.Workspace)/vsix-test-unsigned" `
+                -BuildId "$(Build.BuildId)" `
+                -MarketplaceToken $token
 
     # ======= Execute CI tests and verify the newly published test extension =======
     - ${{ if ne(parameters.skipCiTesting, true) }}:
