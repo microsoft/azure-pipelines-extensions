@@ -114,13 +114,18 @@ if ($nonExtensionFiles.Count -gt 0) {
 }
 
 if ($detectedExtensions.Count -eq 0) {
-    Write-Host "##[warning]No extension changes found in PR diff."
-    if ($ParameterExtensionName -and ($validExtensions -contains $ParameterExtensionName)) {
+    if ($nonExtensionFiles.Count -gt 0) {
+        Write-Host "`nInfrastructure-only change detected (gulpfile, pipeline YAML, scripts, etc.)."
+        Write-Host "Building ALL extensions to validate no regressions."
+        $detectedExtensions = $validExtensions
+    } elseif ($ParameterExtensionName -and ($validExtensions -contains $ParameterExtensionName)) {
+        Write-Host "##[warning]No extension changes found in PR diff."
         Write-Host "Falling back to parameter: $ParameterExtensionName"
         Set-PipelineVariables -Extensions @($ParameterExtensionName)
         return
+    } else {
+        throw "No extension changes detected and no valid fallback parameter."
     }
-    throw "No extension changes detected and no valid fallback parameter."
 }
 
 Write-Host "`nAuto-detected extensions ($($detectedExtensions.Count)): $($detectedExtensions -join ', ')"

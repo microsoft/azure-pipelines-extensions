@@ -104,17 +104,17 @@ $runningBuilds = @()
 Write-Host "`n=== Triggering CI test pipelines ==="
 foreach ($entry in $extensionsToTest) {
     $ext = $entry.Extension
-    $pName = $entry.PipelineName
+    $pipelineName = $entry.PipelineName
 
-    $pipelineId = ($allPipelines.value | Where-Object { $_.name -eq $pName } | Select-Object -First 1).id
+    $pipelineId = ($allPipelines.value | Where-Object { $_.name -eq $pipelineName } | Select-Object -First 1).id
     if (-not $pipelineId) {
-        Write-Host "##[warning]Pipeline '$pName' not found in project '$Project'. Skipping $ext."
+        Write-Host "##[warning]Pipeline '$pipelineName' not found in project '$Project'. Skipping $ext."
         $skippedExtensions += $ext
         continue
     }
 
     $runUrl = "$orgUrl/$Project/_apis/pipelines/$pipelineId/runs?api-version=7.1"
-    Write-Host "  Triggering: $ext -> $pName (pipelineId=$pipelineId)"
+    Write-Host "  Triggering: $ext -> $pipelineName (pipelineId=$pipelineId)"
 
     try {
         $runResponse = Invoke-RestMethod -Method POST -Uri $runUrl -Headers $headers -Body $body

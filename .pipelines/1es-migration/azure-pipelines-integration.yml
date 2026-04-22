@@ -331,7 +331,7 @@ extends:
                 # --override overwrites the same version with new code on re-runs.
                 # For PR builds, override version to 0.0.<prId> to isolate each PR.
                 $overrideArgs = if ($isPR) { @("--override", "{`"version`": `"0.0.$prId`"}") } else { @() }
-                tfx extension publish --vsix $vsix.FullName --service-url https://marketplace.visualstudio.com --auth-type pat --token $token --no-color --override @overrideArgs
+                tfx extension publish --vsix $vsix.FullName --service-url https://marketplace.visualstudio.com --auth-type pat --token $token --no-color @overrideArgs
                 if ($LASTEXITCODE -ne 0) {
                   Write-Host "##[error]Failed to publish $($vsix.Name)"
                   $failCount++
