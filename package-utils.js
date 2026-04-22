@@ -49,7 +49,7 @@ var run = function (cl, inheritStreams, noHeader) {
     }
     catch (err) {
         if (!inheritStreams) {
-        console.error(err.output ? err.output.toString() : err.message);
+            console.error(err.output ? err.output.toString() : err.message);
         }
 
         process.exit(1);
