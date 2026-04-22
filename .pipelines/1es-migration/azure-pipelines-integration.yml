@@ -27,6 +27,8 @@ variables:
   value: 'auto'
 - name: DetectedExtensions
   value: 'auto'
+- name: ExtensionCopyPattern
+  value: 'auto'
 
 resources:
   repositories:
@@ -107,6 +109,7 @@ extends:
             command: custom
             customCommand: 'install -g gulp-cli --registry https://pkgs.dev.azure.com/mseng/PipelineTools/_packaging/PipelineTools_PublicPackages/npm/registry/'
 
+
         - task: NpmAuthenticate@0
           displayName: 'npm authenticate (internal feed)'
           inputs:
@@ -144,22 +147,22 @@ extends:
               $copiedCount = 0
               $copiedExtensions = @()
 
-              foreach ($extension in $extensions) {
-                $extension = $extension.Trim()
-                if (-not $extension) { continue }
+              foreach ($ext in $extensions) {
+                $ext = $ext.Trim()
+                if (-not $ext) { continue }
 
-                $extDir = Join-Path $packageDir $extension
+                $extDir = Join-Path $packageDir $ext
                 $vsixFiles = Get-ChildItem -Path $extDir -Filter '*.vsix' -ErrorAction SilentlyContinue
 
                 if ($vsixFiles -and $vsixFiles.Count -gt 0) {
                   foreach ($vsix in $vsixFiles) {
                     Copy-Item -Path $vsix.FullName -Destination $targetDir -Force
-                    Write-Host "Copied: $($vsix.Name) (from $extension)"
+                    Write-Host "Copied: $($vsix.Name) (from $ext)"
                     $copiedCount++
                   }
-                  $copiedExtensions += $extension
+                  $copiedExtensions += $ext
                 } else {
-                  Write-Host "##[warning]No .vsix found for '$extension' — packaging may have failed. Skipping."
+                  Write-Host "##[warning]No .vsix found for '$ext' — packaging may have failed. Skipping."
                 }
               }
 
@@ -218,6 +221,7 @@ extends:
 
               $(Build.SourcesDirectory)/scripts/PublishTestExtensions.ps1 `
                 -VsixDirectory "$(Pipeline.Workspace)/vsix-test-unsigned" `
+                -BuildId "$(Build.BuildId)" `
                 -MarketplaceToken $token
 
     # ======= Execute CI tests and verify the newly published test extension =======
