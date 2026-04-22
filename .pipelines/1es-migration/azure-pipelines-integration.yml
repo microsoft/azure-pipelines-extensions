@@ -115,6 +115,28 @@ extends:
           inputs:
             workingFile: '$(Build.SourcesDirectory)/.npmrc'
 
+        - task: AzureCLI@2
+          displayName: 'Sync extension versions with Marketplace'
+          inputs:
+            azureSubscription: '1es-extensions-publication-secure-service-connection'
+            scriptType: pscore
+            scriptLocation: inlineScript
+            inlineScript: |
+              $extensions = '$(DetectedExtensions)' -split ';'
+              foreach ($extension in $extensions) {
+                $extension = $extension.Trim()
+                if (-not $extension) { continue }
+
+                $manifest = Join-Path '$(Build.SourcesDirectory)' "Extensions/$extension/Src/vss-extension.json"
+                if (-not (Test-Path $manifest)) {
+                  Write-Host "##[warning]Manifest not found for '$extension': $manifest — skipping version sync."
+                  continue
+                }
+
+                Write-Host "`n--- Syncing version for $extension ---"
+                & '$(Build.SourcesDirectory)/scripts/BumpExtensionVersion.ps1' -ManifestPath $manifest
+              }
+
         - task: PowerShell@2
           displayName: 'Build test resources'
           inputs:
@@ -221,7 +243,6 @@ extends:
 
               $(Build.SourcesDirectory)/scripts/PublishTestExtensions.ps1 `
                 -VsixDirectory "$(Pipeline.Workspace)/vsix-test-unsigned" `
-                -BuildId "$(Build.BuildId)" `
                 -MarketplaceToken $token
 
     # ======= Execute CI tests and verify the newly published test extension =======
