@@ -231,13 +231,14 @@ extends:
                 exit 1
               }
 
-              # Publish using the version already baked into the .vsix (from vss-extension.json).
-              # tfx overwrites the existing marketplace version in-place on re-publishes.
+              # Publish using the version from vss-extension.json.
+              # --override with an empty JSON object signals tfx to overwrite the existing
+              # marketplace version in-place, allowing re-publishes without bumping versions.
               $failCount = 0
               foreach ($vsix in $vsixFiles) {
                 Write-Host "`nPublishing: $($vsix.Name)..."
 
-                tfx extension publish --vsix $vsix.FullName --service-url https://marketplace.visualstudio.com --auth-type pat --token $token --no-color
+                tfx extension publish --vsix $vsix.FullName --service-url https://marketplace.visualstudio.com --auth-type pat --token $token --no-color --override "{}"
                 if ($LASTEXITCODE -ne 0) {
                   Write-Host "##[error]Failed to publish $($vsix.Name)"
                   $failCount++
