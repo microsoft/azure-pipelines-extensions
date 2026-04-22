@@ -1,23 +1,17 @@
 <#
 .SYNOPSIS
-  Detects which extension(s) changed and sets pipeline variables.
+  Detects which extension(s) changed in a PR and sets pipeline variables.
 
 .DESCRIPTION
-  - Manual runs: uses the parameter value (single extension).
-  - PR triggers (/azp run): auto-detects ALL changed extensions from git diff.
+  Auto-detects ALL changed extensions from git diff against the PR target branch.
+  If only infrastructure files changed (no extension folders), builds all extensions
+  to validate no regressions.
 
   Sets the following pipeline variables:
   - ExtensionName        : first detected extension (used for run naming)
   - DetectedExtensions   : semicolon-separated list (e.g. "Ansible;BitBucket")
   - ExtensionCopyPattern : glob for CopyFiles (e.g. "{Ansible,BitBucket}" or "Ansible")
-
-.PARAMETER ParameterExtensionName
-  Extension name from the pipeline parameter. Used as-is for manual runs,
-  used as fallback for PR triggers when auto-detection finds nothing.
 #>
-param(
-    [string]$ParameterExtensionName = ''
-)
 
 $ErrorActionPreference = 'Stop'
 
@@ -26,10 +20,8 @@ $validExtensions = @(
     'IISWebAppDeploy', 'ServiceNow', 'TeamCity'
 )
 
-$buildReason = $env:BUILD_REASON
-
-Write-Host "Build reason       : $buildReason"
-Write-Host "Parameter extension: $ParameterExtensionName"
+# ── Auto-detect all changed extensions from git diff ──
+Write-Host "Auto-detecting changed extensions from PR diff..."
 
 function Set-PipelineVariables {
     param([string[]]$Extensions)
@@ -47,19 +39,6 @@ function Set-PipelineVariables {
     Write-Host "##vso[task.setvariable variable=DetectedExtensions]$joined"
     Write-Host "##vso[task.setvariable variable=ExtensionCopyPattern]$copyPattern"
 }
-
-# ── Non-PR triggers (Manual, etc.): use parameter value directly ──
-if ($buildReason -ne 'PullRequest') {
-    if ($ParameterExtensionName -and ($validExtensions -contains $ParameterExtensionName)) {
-        Write-Host "Non-PR trigger. Using parameter value: $ParameterExtensionName"
-        Set-PipelineVariables -Extensions @($ParameterExtensionName)
-        return
-    }
-    throw "Non-PR trigger requires a valid extensionName parameter. Received: '$ParameterExtensionName'"
-}
-
-# ── PR trigger (/azp run): auto-detect all changed extensions from git diff ──
-Write-Host "`nPR trigger detected. Auto-detecting changed extensions..."
 
 $targetBranch = $env:SYSTEM_PULLREQUEST_TARGETBRANCH
 if (-not $targetBranch) {
@@ -82,13 +61,8 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 if (-not $changedFiles -or $changedFiles.Count -eq 0) {
-    Write-Host "##[warning]No changed files detected."
-    if ($ParameterExtensionName -and ($validExtensions -contains $ParameterExtensionName)) {
-        Write-Host "Falling back to parameter: $ParameterExtensionName"
-        Set-PipelineVariables -Extensions @($ParameterExtensionName)
-        return
-    }
-    throw "No changed files detected and no valid fallback parameter."
+    Write-Host "##[warning]No changed files detected. Building ALL extensions as a safety measure."
+    $changedFiles = @()
 }
 
 Write-Host "`nChanged files ($($changedFiles.Count)):"
@@ -114,18 +88,8 @@ if ($nonExtensionFiles.Count -gt 0) {
 }
 
 if ($detectedExtensions.Count -eq 0) {
-    if ($nonExtensionFiles.Count -gt 0) {
-        Write-Host "`nInfrastructure-only change detected (gulpfile, pipeline YAML, scripts, etc.)."
-        Write-Host "Building ALL extensions to validate no regressions."
-        $detectedExtensions = $validExtensions
-    } elseif ($ParameterExtensionName -and ($validExtensions -contains $ParameterExtensionName)) {
-        Write-Host "##[warning]No extension changes found in PR diff."
-        Write-Host "Falling back to parameter: $ParameterExtensionName"
-        Set-PipelineVariables -Extensions @($ParameterExtensionName)
-        return
-    } else {
-        throw "No extension changes detected and no valid fallback parameter."
-    }
+    Write-Host "`nNo extension-specific changes found. Building ALL extensions to validate no regressions."
+    $detectedExtensions = $validExtensions
 }
 
 Write-Host "`nAuto-detected extensions ($($detectedExtensions.Count)): $($detectedExtensions -join ', ')"

@@ -1,9 +1,6 @@
-# CI Pipeline: Validates extension changes on user/feature branches.
+# CI Pipeline: Validates extension changes on pull requests.
 # Builds and publishes an unsigned TEST extension, then runs CI tests.
 # No ESRP signing — avoids 1ES branch control restrictions on non-master branches.
-#
-# Note: Manual runs are disabled — all stages are skipped when Build.Reason is 'Manual'.
-# This pipeline is intended for PR validation and CI triggers only.
 
 name: CI - Extension $(ExtensionName) - $(Date:yyyyMMdd)$(Rev:.r)
 appendCommitMessageToRunName: false
@@ -16,19 +13,6 @@ pr:
     - master
 
 parameters:
-- name: extensionName
-  displayName: 'Extension to Build and Test'
-  type: string
-  default: 'auto'
-  values:
-  - auto
-  - Ansible
-  - BitBucket
-  - CircleCI
-  - ExternalTfs
-  - IISWebAppDeploy
-  - ServiceNow
-  - TeamCity
 - name: skipCiTesting
   displayName: 'Skip CI testing (use only if CI tests for the selected extension are not yet available)'
   type: boolean
@@ -38,13 +22,13 @@ variables:
 # 1ES Security Scanning
 - name: CodeQL.Enabled
   value: true
-# Dynamic (overridden by DetectChangedExtension.ps1 for PR triggers)
+# Dynamic (overridden by DetectChangedExtension.ps1)
 - name: ExtensionName
-  value: ${{ parameters.extensionName }}
+  value: 'auto'
 - name: DetectedExtensions
-  value: ${{ parameters.extensionName }}
+  value: 'auto'
 - name: ExtensionCopyPattern
-  value: ${{ parameters.extensionName }}
+  value: 'auto'
 
 resources:
   repositories:
@@ -75,14 +59,12 @@ extends:
     - ES365AIMigrationTooling
     - 1ES-AzureExtensions
     - CI-Verification
-    - Extension-${{ parameters.extensionName }}
 
     stages:
 
     # ======= Build & Package test extension =======
     - stage: Build_And_Package_Test_Extension
       displayName: 'Build & Package test extension'
-      condition: ne(variables['Build.Reason'], 'Manual')
       jobs:
       - job: BuildAndPackage
         displayName: 'Build & Package test extension'
@@ -99,11 +81,9 @@ extends:
           fetchTags: false
 
         - task: PowerShell@2
-          displayName: 'Auto-detect changed extensions (PR triggers only)'
-          condition: eq(variables['Build.Reason'], 'PullRequest')
+          displayName: 'Auto-detect changed extensions'
           inputs:
             filePath: '$(Build.SourcesDirectory)/scripts/DetectChangedExtension.ps1'
-            arguments: -ParameterExtensionName "${{ parameters.extensionName }}"
             pwsh: true
 
         - task: NodeTool@0
@@ -129,66 +109,6 @@ extends:
             command: custom
             customCommand: 'install -g gulp-cli --registry https://pkgs.dev.azure.com/mseng/PipelineTools/_packaging/PipelineTools_PublicPackages/npm/registry/'
 
-        #- task: PowerShell@2
-        #   displayName: 'Pre-cache PowerShell Gallery packages (Network Isolation workaround)'
-        #   inputs:
-        #     targetType: inline
-        #     pwsh: true
-        #     script: |
-        #       # The 1ES build pool blocks outbound HTTPS to powershellgallery.com via DNS sinkholing.
-        #       # Pre-extract vendored .nupkg files into the gulp cache directory so that
-        #       # cacheArchiveFile() in gulpfile.js finds them already cached and skips the download.
-        #       $packages = @(
-        #         @{ Name = 'VstsTaskSdk';    Version = '0.7.1' }
-        #         @{ Name = 'RemoteDeployer'; Version = '0.1.0' }
-        #       )
-        #       foreach ($pkg in $packages) {
-        #         $url = "https://www.powershellgallery.com/api/v2/package/$($pkg.Name)/$($pkg.Version)"
-        #         $scrubbed = $url -replace '[/\\:?]', '_'
-        #         $targetDir = Join-Path '$(Build.SourcesDirectory)' '_temp' 'archive' $scrubbed
-        #         $nupkgFile = Join-Path '$(Build.SourcesDirectory)' '_vendor' "$($pkg.Name).$($pkg.Version).nupkg"
-        #         if (Test-Path $targetDir) {
-        #           Write-Host "Already cached: $($pkg.Name) $($pkg.Version)"
-        #           continue
-        #         }
-        #         Write-Host "Pre-caching $($pkg.Name) $($pkg.Version) from vendored nupkg..."
-        #         New-Item -ItemType Directory -Path $targetDir -Force | Out-Null
-        #         # nupkg is a zip file — extract directly to the cache target
-        #         Expand-Archive -Path $nupkgFile -DestinationPath $targetDir -Force
-        #         Write-Host "Cached to: $targetDir"
-        #       }
-        #     workingDirectory: '$(Build.SourcesDirectory)'
-
-        # - task: PowerShell@2
-        #   displayName: 'Prepare npm auth for gulp subprocess installs'
-        #   inputs:
-        #     targetType: inline
-        #     pwsh: true
-        #     script: |
-        #       # gulpfile.js runNpmInstall() spawns npm with --userconfig pointing to a
-        #       # relative path that doesn't resolve from _build/. Dotfiles aren't copied
-        #       # either, so npm has no auth for the internal feed -> 401.
-        #       # Fix: write auth to npm GLOBAL config which npm always reads.
-        #       $rootNpmrc = Join-Path '$(Build.SourcesDirectory)' '.npmrc'
-        #       $authLines = Get-Content $rootNpmrc | Where-Object { $_ -match '^//' }
-
-        #       $globalPrefix = (npm config get prefix).Trim()
-        #       $globalNpmrc = Join-Path $globalPrefix 'etc' 'npmrc'
-        #       New-Item -ItemType Directory -Path (Split-Path $globalNpmrc) -Force | Out-Null
-        #       foreach ($line in $authLines) {
-        #         Add-Content -Path $globalNpmrc -Value $line
-        #       }
-        #       Write-Host "Wrote $($authLines.Count) auth line(s) to global npmrc: $globalNpmrc"
-
-        #       # Delete lockfiles so npm resolves from internal feed, not npmjs.org
-        #       foreach ($ext in @('ArtifactEngine', 'ArtifactEngineV2')) {
-        #         $lockFile = Join-Path '$(Build.SourcesDirectory)' 'Extensions' $ext 'package-lock.json'
-        #         if (Test-Path $lockFile) {
-        #           Remove-Item $lockFile -Force
-        #           Write-Host "Deleted lockfile: Extensions/$ext/package-lock.json"
-        #         }
-        #       }
-        #     workingDirectory: '$(Build.SourcesDirectory)'
 
         - task: NpmAuthenticate@0
           displayName: 'npm authenticate (internal feed)'
@@ -257,7 +177,6 @@ extends:
     - stage: Publish_Test_Extension
       displayName: 'Publish unsigned test extension on Marketplace (private)'
       dependsOn: Build_And_Package_Test_Extension
-      condition: and(succeeded(), ne(variables['Build.Reason'], 'Manual'))
       jobs:
       - job: PublishTestExtension
         displayName: 'Publish unsigned test extension on Marketplace'
@@ -312,26 +231,17 @@ extends:
                 exit 1
               }
 
-              # For PR builds, override the patch version with the PR number so each PR
-              # gets an isolated test extension on the marketplace. This avoids cross-PR
-              # conflicts when multiple developers bump to the same version.
-              # Re-runs of the same PR use --override to update with the latest code.
-              # Manual/CI builds publish with the version as-is from vss-extension.json.
-              $isPR = "$(Build.Reason)" -eq "PullRequest"
-              $prId = if ($isPR) { "$(System.PullRequest.PullRequestId)" } else { $null }
-
-              if ($isPR) {
-                Write-Host "PR build detected (PR #$prId). Patch version will be overridden to isolate this PR."
-              }
+              # Override version to 0.0.<prId> to isolate each PR on the marketplace.
+              # Re-runs of the same PR overwrite with the latest code.
+              $prId = "$(System.PullRequest.PullRequestId)"
+              Write-Host "PR build (PR #$prId). Version will be overridden to 0.0.$prId."
 
               $failCount = 0
               foreach ($vsix in $vsixFiles) {
                 Write-Host "`nPublishing: $($vsix.Name)..."
 
-                # --override overwrites the same version with new code on re-runs.
-                # For PR builds, override version to 0.0.<prId> to isolate each PR.
-                $overrideArgs = if ($isPR) { @("--override", "{`"version`": `"0.0.$prId`"}") } else { @() }
-                tfx extension publish --vsix $vsix.FullName --service-url https://marketplace.visualstudio.com --auth-type pat --token $token --no-color @overrideArgs
+                $overrideJson = "{`"version`": `"0.0.$prId`"}"
+                tfx extension publish --vsix $vsix.FullName --service-url https://marketplace.visualstudio.com --auth-type pat --token $token --no-color --force --override $overrideJson
                 if ($LASTEXITCODE -ne 0) {
                   Write-Host "##[error]Failed to publish $($vsix.Name)"
                   $failCount++
@@ -352,49 +262,18 @@ extends:
       - stage: Execute_CI_Tests
         displayName: 'Execute CI tests against the test extension'
         dependsOn: Publish_Test_Extension
-        condition: and(succeeded(), ne(variables['Build.Reason'], 'Manual'))
         variables:
           CI_TESTS_ORG_URL: 'https://dev.azure.com/canarytest'
           CI_TESTS_PROJECT: 'PipelineTasks'
         jobs:
-        # ── Manual runs: single extension using existing scripts ──
-        - job: ManualCiTest
-          displayName: 'Trigger CI test pipeline (manual run)'
-          condition: ne(variables['Build.Reason'], 'PullRequest')
-          timeoutInMinutes: 120
-          steps:
-          - task: PowerShell@2
-            name: DetermineCiTestPipelineName
-            displayName: 'Determine CI test pipeline for selected extension'
-            inputs:
-              filePath: '$(Build.SourcesDirectory)/scripts/DetermineCiTestPipelineName.ps1'
-              arguments: -ExtensionName "${{ parameters.extensionName }}"
-              pwsh: true
-              failOnStderr: true
-          - task: AzureCLI@2
-            displayName: 'Trigger CI pipeline and wait for result'
-            inputs:
-              azureSubscription: 'canarytest-extensions-ci-tests-pipeline-connector'
-              scriptType: pscore
-              scriptLocation: scriptPath
-              scriptPath: '$(Build.SourcesDirectory)/scripts/TriggerAdoPipelineAndWaitResult.ps1'
-              arguments: >
-                -OrgUrl "$(CI_TESTS_ORG_URL)"
-                -Project "$(CI_TESTS_PROJECT)"
-                -PipelineName "$(TARGET_PIPELINE_NAME)"
-                -TimeoutMinutes 120
-
-        # ── PR triggers (/azp run): all changed extensions in parallel ──
-        - job: PrCiTests
-          displayName: 'Trigger CI test pipelines for all changed extensions (PR)'
-          condition: eq(variables['Build.Reason'], 'PullRequest')
+        - job: CiTests
+          displayName: 'Trigger CI test pipelines for all changed extensions'
           timeoutInMinutes: 120
           steps:
           - task: PowerShell@2
             displayName: 'Re-detect changed extensions'
             inputs:
               filePath: '$(Build.SourcesDirectory)/scripts/DetectChangedExtension.ps1'
-              arguments: -ParameterExtensionName "${{ parameters.extensionName }}"
               pwsh: true
               
           - task: AzureCLI@2
