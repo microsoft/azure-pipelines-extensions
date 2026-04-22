@@ -1,6 +1,6 @@
 # CI Pipeline: Validates extension changes on pull requests.
 # Builds and publishes an unsigned TEST extension, then runs CI tests.
-# No ESRP signing — avoids 1ES branch control restrictions on non-master branches.
+# No ESRP signing — avoids 1ES branch control restrictions on non-master branches
 
 name: CI - Extension $(ExtensionName) - $(Date:yyyyMMdd)$(Rev:.r)
 appendCommitMessageToRunName: false
