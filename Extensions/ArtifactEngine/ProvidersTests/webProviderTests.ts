@@ -6,6 +6,11 @@ import * as assert from 'assert';
 import * as httpm from '../Providers/typed-rest-client/HttpClient';
 import * as models from '../Models';
 libMocker.registerMock('fs', {
+    statSync: () => {
+        return {
+            isDirectory: () => true
+        }
+    },
     createWriteStream: (a) => {
         var mockedStream = stream.Writable();
         mockedStream._write = () => { };
