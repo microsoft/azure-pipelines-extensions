@@ -71,7 +71,7 @@ function Get-OverrideVersion ([string]$VsixName, [string]$BuildId) {
 # ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
-$vsixFiles = Get-ChildItem -Path $VsixDirectory -Filter '*.vsix'
+$vsixFiles = @(Get-ChildItem -Path $VsixDirectory -Filter '*.vsix')
 
 if ($vsixFiles.Count -eq 0) {
     Write-Host "##[error]No .vsix files found in $VsixDirectory"
