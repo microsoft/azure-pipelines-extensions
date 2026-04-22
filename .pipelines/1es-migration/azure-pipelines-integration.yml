@@ -231,17 +231,13 @@ extends:
                 exit 1
               }
 
-              # Override version to 0.0.<prId> to isolate each PR on the marketplace.
-              # Re-runs of the same PR overwrite with the latest code.
-              $prId = "$(System.PullRequest.PullRequestId)"
-              Write-Host "PR build (PR #$prId). Version will be overridden to 0.0.$prId."
-
+              # Publish using the version already baked into the .vsix (from vss-extension.json).
+              # tfx overwrites the existing marketplace version in-place on re-publishes.
               $failCount = 0
               foreach ($vsix in $vsixFiles) {
                 Write-Host "`nPublishing: $($vsix.Name)..."
 
-                $overrideJson = "{`"version`": `"0.0.$prId`"}"
-                tfx extension publish --vsix $vsix.FullName --service-url https://marketplace.visualstudio.com --auth-type pat --token $token --no-color --force --override $overrideJson
+                tfx extension publish --vsix $vsix.FullName --service-url https://marketplace.visualstudio.com --auth-type pat --token $token --no-color
                 if ($LASTEXITCODE -ne 0) {
                   Write-Host "##[error]Failed to publish $($vsix.Name)"
                   $failCount++
