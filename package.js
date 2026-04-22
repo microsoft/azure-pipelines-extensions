@@ -131,7 +131,7 @@ function copyCommonModules(currentExtnRoot, commonDeps, commonSrc, extensionSour
                     console.log(`⚒️  Building UI contribution for task: ${task.name}`);
                     var originalDir = shell.pwd();
                     util.cd(uiPath);
-                    util.run('npm install');
+                    util.run('npm ci');
                     util.cd(originalDir);
                 }
 
@@ -143,14 +143,18 @@ function copyCommonModules(currentExtnRoot, commonDeps, commonSrc, extensionSour
 
                         try {
                             util.cd(taskDirPath);
+                            const npmrcPath = path.join(taskSourcePath, ".npmrc");
+                            const npmCmd = process.platform === 'win32' ? 'npm.cmd' : 'npm';
+                            const npmArgs = ['ci', '--userconfig', `"${npmrcPath}"`];
                             if (util.isDebug()) {
-                                cp.execSync(`npm install --verbose --userconfig ${path.join(taskSourcePath, ".npmrc")}`, { stdio: 'inherit' });
+                                npmArgs.splice(1, 0, '--verbose');
+                                cp.execFileSync(npmCmd, npmArgs, { stdio: 'inherit', shell: true });
                             } else {
-                                cp.execSync(`npm install --userconfig ${path.join(taskSourcePath, ".npmrc")}`, { stdio: 'ignore' });
+                                cp.execFileSync(npmCmd, npmArgs, { stdio: 'ignore', shell: true });
                             }
-                            console.log(`\x1b[A\x1b[K✅ npm install at ${taskDirPath} completed successfully.`);
+                            console.log(`\x1b[A\x1b[K✅ npm ci at ${taskDirPath} completed successfully.`);
                         } catch (err) {
-                            console.log(`\x1b[A\x1b[K❌ npm install at ${taskDirPath} failed. Error: ${err.message}`);
+                            console.log(`\x1b[A\x1b[K❌ npm ci at ${taskDirPath} failed. Error: ${err.message}`);
                             process.exit(1);
                         } finally {
                             util.cd(originalDir);
