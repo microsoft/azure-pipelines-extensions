@@ -231,14 +231,28 @@ extends:
                 exit 1
               }
 
-              # Publish using the version from vss-extension.json.
-              # --override with an empty JSON object signals tfx to overwrite the existing
-              # marketplace version in-place, allowing re-publishes without bumping versions.
+              # Override the patch version with the BuildId to ensure the version always
+              # increases on each publish. Keeps real major.minor from vss-extension.json.
+              # Extract major.minor from the vsix filename (e.g., "...-test-1.273.2.vsix" → "1.273").
+              $buildId = "$(Build.BuildId)"
+
               $failCount = 0
               foreach ($vsix in $vsixFiles) {
                 Write-Host "`nPublishing: $($vsix.Name)..."
 
-                tfx extension publish --vsix $vsix.FullName --service-url https://marketplace.visualstudio.com --auth-type pat --token $token --no-color --override "{}"
+                # Parse major.minor from vsix filename: <publisher>.<id>-<major>.<minor>.<patch>.vsix
+                if ($vsix.Name -match '-(\d+)\.(\d+)\.\d+\.vsix$') {
+                  $major = $Matches[1]
+                  $minor = $Matches[2]
+                  $overrideVersion = "$major.$minor.$buildId"
+                } else {
+                  Write-Host "##[warning]Could not parse version from $($vsix.Name). Using 0.0.$buildId."
+                  $overrideVersion = "0.0.$buildId"
+                }
+
+                Write-Host "Overriding version to: $overrideVersion"
+                $overrideJson = "{`"version`": `"$overrideVersion`"}"
+                tfx extension publish --vsix $vsix.FullName --service-url https://marketplace.visualstudio.com --auth-type pat --token $token --no-color --override $overrideJson
                 if ($LASTEXITCODE -ne 0) {
                   Write-Host "##[error]Failed to publish $($vsix.Name)"
                   $failCount++
@@ -279,7 +293,7 @@ extends:
               azureSubscription: 'canarytest-extensions-ci-tests-pipeline-connector'
               scriptType: pscore
               scriptLocation: scriptPath
-              scriptPath: '$(Build.SourcesDirectory)/scripts/TriggerCiTestsForAllExtensions.ps1'
+              scriptPath: '$(Build.SourcesDirectory)/scripts/TriggerCiTestsForExtensions.ps1'
               arguments: >
                 -Extensions "$(DetectedExtensions)"
                 -OrgUrl "$(CI_TESTS_ORG_URL)"
