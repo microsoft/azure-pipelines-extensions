@@ -88,3 +88,5 @@ lock
 /version
 packages/
 StyleCop.Cache
+
+.taskkey
