@@ -27,8 +27,6 @@ variables:
   value: 'auto'
 - name: DetectedExtensions
   value: 'auto'
-- name: ExtensionCopyPattern
-  value: 'auto'
 
 resources:
   repositories:
@@ -169,22 +167,22 @@ extends:
               $copiedCount = 0
               $copiedExtensions = @()
 
-              foreach ($ext in $extensions) {
-                $ext = $ext.Trim()
-                if (-not $ext) { continue }
+              foreach ($extension in $extensions) {
+                $extension = $extension.Trim()
+                if (-not $extension) { continue }
 
-                $extDir = Join-Path $packageDir $ext
+                $extDir = Join-Path $packageDir $extension
                 $vsixFiles = Get-ChildItem -Path $extDir -Filter '*.vsix' -ErrorAction SilentlyContinue
 
                 if ($vsixFiles -and $vsixFiles.Count -gt 0) {
                   foreach ($vsix in $vsixFiles) {
                     Copy-Item -Path $vsix.FullName -Destination $targetDir -Force
-                    Write-Host "Copied: $($vsix.Name) (from $ext)"
+                    Write-Host "Copied: $($vsix.Name) (from $extension)"
                     $copiedCount++
                   }
-                  $copiedExtensions += $ext
+                  $copiedExtensions += $extension
                 } else {
-                  Write-Host "##[warning]No .vsix found for '$ext' — packaging may have failed. Skipping."
+                  Write-Host "##[warning]No .vsix found for '$extension' — packaging may have failed. Skipping."
                 }
               }
 
