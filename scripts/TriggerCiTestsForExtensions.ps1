@@ -47,12 +47,12 @@ Write-Host "Project            : $Project"
 $extensionsToTest = @()
 $skippedExtensions = @()
 
-foreach ($ext in $extensionList) {
-    if ($pipelineMapping.ContainsKey($ext)) {
-        $extensionsToTest += @{ Extension = $ext; PipelineName = $pipelineMapping[$ext] }
+foreach ($extension in $extensionList) {
+    if ($pipelineMapping.ContainsKey($extension)) {
+        $extensionsToTest += @{ Extension = $extension; PipelineName = $pipelineMapping[$extension] }
     } else {
-        Write-Host "##[warning]No CI test pipeline mapping for '$ext'. Skipping."
-        $skippedExtensions += $ext
+        Write-Host "##[warning]No CI test pipeline mapping for '$extension'. Skipping."
+        $skippedExtensions += $extension
     }
 }
 
