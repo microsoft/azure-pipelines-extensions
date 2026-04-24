@@ -107,7 +107,6 @@ extends:
             command: custom
             customCommand: 'install -g gulp-cli --registry https://pkgs.dev.azure.com/mseng/PipelineTools/_packaging/PipelineTools_PublicPackages/npm/registry/'
 
-
         - task: NpmAuthenticate@0
           displayName: 'npm authenticate (internal feed)'
           inputs:
