@@ -7,8 +7,9 @@
   Only detected extensions will be published and have CI tests run.
   If no extension-specific changes are found, no extensions are published.
 
-  Sets the following pipeline variable:
+  Sets the following pipeline variables:
   - DetectedExtensions   : semicolon-separated list (e.g. "Ansible;BitBucket")
+  - HasExtensionChanges  : 'true' or 'false' (also set as output variable for cross-stage conditions)
 #>
 
 $ErrorActionPreference = 'Stop'
@@ -27,9 +28,14 @@ function Set-PipelineVariables {
     $extensionList = $Extensions -join ';'
 
     Write-Host "`nSetting pipeline variable:"
+    
     Write-Host "  DetectedExtensions   = $extensionList"
-
     Write-Host "##vso[task.setvariable variable=DetectedExtensions]$extensionList"
+
+    $hasChanges = if ($Extensions.Count -gt 0) { 'true' } else { 'false' }
+    Write-Host "  HasExtensionChanges  = $hasChanges"
+    Write-Host "##vso[task.setvariable variable=HasExtensionChanges]$hasChanges"
+    Write-Host "##vso[task.setvariable variable=HasExtensionChanges;isOutput=true]$hasChanges"
 }
 
 $targetBranch = $env:SYSTEM_PULLREQUEST_TARGETBRANCH
