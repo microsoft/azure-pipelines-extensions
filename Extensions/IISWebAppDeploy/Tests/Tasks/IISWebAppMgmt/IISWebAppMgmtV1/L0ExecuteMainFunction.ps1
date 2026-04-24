@@ -7,6 +7,12 @@ param()
 
 Register-Mock Import-Module { Write-Verbose "Dummy Import-Module" -Verbose }
 
+# Default mock for Get-AppCmdLocation so the tests below do not require IIS
+# to be installed on the build agent. Test 5 re-registers its own mock with
+# an explicit Assert-WasCalled on Get-AppCmdLocation, which still works
+# because the most recent Register-Mock takes precedence.
+Register-Mock Get-AppCmdLocation { return "appcmd.exe", 8 }
+
 # Test 1: Create and update application pool should not be called, createAppPool is false
 $AppPoolName = "SampleAppPool"
 $CreateAppPool = "false"
