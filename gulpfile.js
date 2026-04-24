@@ -784,6 +784,6 @@ var cacheNuGetV2Package = function (repository, name, version) {
         throw new Error('Parameter "version" cannot be null or empty.');
     }
 
-    // Cache the archive file.
+    // Cache the archive file for nuget package.
     return cacheArchiveFile(repository.replace(/\/$/, '') + '/package/' + name + '/' + version);
 }
