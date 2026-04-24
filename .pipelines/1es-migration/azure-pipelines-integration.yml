@@ -79,6 +79,7 @@ extends:
           fetchTags: false
 
         - task: PowerShell@2
+          name: DetectExtensions
           displayName: 'Auto-detect changed extensions'
           inputs:
             filePath: '$(Build.SourcesDirectory)/scripts/DetectChangedExtension.ps1'
@@ -106,7 +107,6 @@ extends:
           inputs:
             command: custom
             customCommand: 'install -g gulp-cli --registry https://pkgs.dev.azure.com/mseng/PipelineTools/_packaging/PipelineTools_PublicPackages/npm/registry/'
-
 
         - task: NpmAuthenticate@0
           displayName: 'npm authenticate (internal feed)'
@@ -165,16 +165,16 @@ extends:
               }
 
               if ($copiedCount -eq 0) {
-                Write-Host "##[error]No .vsix files copied. All detected extensions failed to package."
-                exit 1
+                Write-Host "##[warning]No extensions were detected — nothing to copy."
+              } else {
+                Write-Host "Copied $copiedCount .vsix file(s) for: $($copiedExtensions -join ', ')"
               }
-
-              Write-Host "Copied $copiedCount .vsix file(s) for: $($copiedExtensions -join ', ')"
 
     # ======= Publish unsigned test extension on Marketplace (visibility set to private) =======
     - stage: Publish_Test_Extension
       displayName: 'Publish unsigned test extension on Marketplace (private)'
       dependsOn: Build_And_Package_Test_Extension
+      condition: and(succeeded(), eq(dependencies.Build_And_Package_Test_Extension.outputs['BuildAndPackage.DetectExtensions.HasExtensionChanges'], 'true'))
       jobs:
       - job: PublishTestExtension
         displayName: 'Publish unsigned test extension on Marketplace'
@@ -225,7 +225,10 @@ extends:
     - ${{ if ne(parameters.skipCiTesting, true) }}:
       - stage: Execute_CI_Tests
         displayName: 'Execute CI tests against the test extension'
-        dependsOn: Publish_Test_Extension
+        dependsOn:
+        - Build_And_Package_Test_Extension
+        - Publish_Test_Extension
+        condition: and(not(failed('Publish_Test_Extension')), eq(dependencies.Build_And_Package_Test_Extension.outputs['BuildAndPackage.DetectExtensions.HasExtensionChanges'], 'true'))
         variables:
           CI_TESTS_ORG_URL: 'https://dev.azure.com/canarytest'
           CI_TESTS_PROJECT: 'PipelineTasks'
