@@ -6,7 +6,7 @@
   "loc.messages.UnableToReadDirectory": "Das Verzeichnis \"%s\" kann nicht gelesen werden. Fehler: %s",
   "loc.messages.RetryingDownload": "Download von \"%s\" wird erneut versucht, Wiederholungsanzahl: %s",
   "loc.messages.SkippingItem": "Die Verarbeitung des Elements \"%s\" wird übersprungen.",
-  "loc.messages.UnhandledRejection": "artifact-engine: nicht verarbeitete Zurückweisung %s",
-  "loc.messages.UnhandledException": "artifact-engine: Ausnahmefehler %s",
+  "loc.messages.UnhandledRejection": "artifact-engine-v2: nicht verarbeitete Zurückweisung %s",
+  "loc.messages.UnhandledException": "artifact-engine-v2: Ausnahmefehler %s",
   "loc.messages.FailedRequest": "Fehlerhafte Anforderung: (statusCode)"
 }
