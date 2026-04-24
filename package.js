@@ -83,8 +83,8 @@ function parseTaskJson(jsonContents) {
  */
 function copyCommonModules(currentExtnRoot, commonDeps, commonSrc, extensionSourcePath) {
     return through.obj(function(taskJson, _encoding, done) {
-        if (!fs.existsSync(taskJson)) {
-            new gutil.PluginError('PackageTask', 'Task json cannot be found: ' + taskJson.path);
+        if (!fs.existsSync(taskJson.path)) {
+            return done(createError('Task json cannot be found: ' + taskJson.path));
         }
 
         if (taskJson.isNull() || taskJson.isDirectory()) {
