@@ -8,9 +8,10 @@ param()
 Register-Mock Import-Module { Write-Verbose "Dummy Import-Module" -Verbose }
 
 # Default mock for Get-AppCmdLocation so the tests below do not require IIS
-# to be installed on the build agent. Test 5 re-registers its own mock with
-# an explicit Assert-WasCalled on Get-AppCmdLocation, which still works
-# because the most recent Register-Mock takes precedence.
+# to be installed on the build agent. Register-Mock appends implementations
+# and throws "Multiple matching implementations" if more than one matches a
+# call, so this single registration is shared by every test in the file
+# (including Test 5's Assert-WasCalled below).
 Register-Mock Get-AppCmdLocation { return "appcmd.exe", 8 }
 
 # Test 1: Create and update application pool should not be called, createAppPool is false
@@ -70,7 +71,6 @@ $AddBinging = "true"
 Register-Mock Create-And-Update-WebSite { return } -ParametersEvaluator { $SiteName -eq $WebsiteName }
 Register-Mock Add-SslCert { return } -ParametersEvaluator { $Certhash -eq $SslCertThumbPrint }
 Register-Mock Enable-SNI { return } -ParametersEvaluator { $SiteName -eq $WebsiteName }
-Register-Mock Get-AppCmdLocation { return "appcmd.exe", 8 }
 Execute-Main -CreateWebsite $CreateWebsite -Protocol $Protocol -SslCertThumbPrint $SslCertThumbPrint -AddBinding $AddBinging
 Assert-WasCalled Create-And-Update-WebSite
 Assert-WasCalled Add-SslCert
