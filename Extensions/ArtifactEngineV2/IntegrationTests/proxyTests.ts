@@ -1,51 +1,81 @@
 import * as assert from 'assert';
+import * as http from 'http';
+import * as net from 'net';
 
 import * as engine from "../Engine"
 import * as providers from "../Providers"
 import { BasicCredentialHandler } from "../Providers/typed-rest-client/handlers/basiccreds";
 
-var nock = require('nock');
+var packagejson = require('../package.json');
 
 describe('Integration Tests', () => {
     describe('proxy tests', () => {
 
-        beforeEach(() => {
-            nock.cleanAll();
-        });
-
         it('should be able to download jenkins artifact under proxy', function (done) {
 
-            // Mock the Jenkins endpoint with nock. nock patches http.ClientRequest
-            // at the module level so it intercepts before any proxy agent can
-            // open a socket, which means we don't need a real local proxy server.
-            nock('http://redvstt-lab43:8080', { "encodedQueryParams": true })
-                .get('/job/ArtifactEngineJob/6/api/json')
-                .query({ "tree": "artifacts[*]" })
-                .basicAuth({ user: 'username', pass: 'password' })
-                .reply(200, {
-                    "artifacts": [
-                        { "displayPath": "file1.pdb", "fileName": "file1.pdb", "relativePath": "Extensions/ArtifactEngine/TestData/Jenkins/file1.pdb" },
-                    ]
-                });
+            // nock isn't working well with tunnel proxy so setting up custom server
+            var proxy = http.createServer(function (req, res) {
 
-            nock('http://redvstt-lab43:8080', { "encodedQueryParams": true })
-                .get('/job/ArtifactEngineJob/6/artifact/Extensions/ArtifactEngine/TestData/Jenkins/file1.pdb')
-                .basicAuth({ user: 'username', pass: 'password' })
-                .reply(200, 'dummyFileContent');
+                assert.strictEqual(req.headers['authorization'], 'Basic ' + Buffer.from('username:password').toString('base64'));
+                assert.strictEqual(req.headers['user-agent'], 'artifact-engine ' + packagejson.version);
 
-            let processor = new engine.ArtifactEngine();
-            let processorOptions = getArtifactEngineOptions();
-            let webProvider = getJenkinsWebProvider();
-            let stubProvider = new providers.StubProvider();
+                if (req.url === "/job/ArtifactEngineJob/6/api/json?tree=artifacts[*]") {
+                    res.writeHead(200, { 'Content-Type': 'text/plain' });
+                    res.write(JSON.stringify({
+                        "artifacts": [
+                            { "displayPath": "file1.pdb", "fileName": "file1.pdb", "relativePath": "Extensions/ArtifactEngine/TestData/Jenkins/file1.pdb" },
+                        ]
+                    }));
+                    res.end();
+                    return;
+                }
 
-            var processItemsPromise = processor.processItems(webProvider, stubProvider, processorOptions);
-            processItemsPromise.then((tickets) => {
-                assert.strictEqual(stubProvider.itemsUploaded["Extensions/ArtifactEngine/TestData/Jenkins/file1.pdb"], "dummyFileContent");
-                assert.strictEqual(tickets.find(x => x.artifactItem.path == "Extensions/ArtifactEngine/TestData/Jenkins/file1.pdb").retryCount, 0);
-                done();
-            }, (err) => {
-                done(err);
+                if (req.url === "/job/ArtifactEngineJob/6/artifact/Extensions/ArtifactEngine/TestData/Jenkins/file1.pdb") {
+                    res.writeHead(200, { 'Content-Type': 'text/plain' });
+                    res.write('dummyFileContent');
+                    res.end();
+                    return;
+                }
+
+                res.writeHead(404, { 'Content-Type': 'text/plain' });
+                res.write('page not found!');
+                res.end();
             });
+
+            proxy.on('connect', onConnect);
+            function onConnect(req, clientSocket, head) {
+                assert.strictEqual(req.headers['proxy-authorization'], 'Basic ' + Buffer.from('admin:123:pass#123:').toString('base64'));
+
+                var serverSocket = net.connect({ port: 9011 }, function () {
+                    clientSocket.write('HTTP/1.1 200 Connection established\r\n\r\n');
+                    clientSocket.pipe(serverSocket);
+                    serverSocket.write(head);
+                    serverSocket.pipe(clientSocket);
+                    // workaround, see joyent/node#2524
+                    serverSocket.on('end', function () {
+                        clientSocket.end();
+                    });
+                });
+            };
+
+            proxy.listen(9011, setUpClient);
+
+            function setUpClient() {
+                let processor = new engine.ArtifactEngine();
+                let processorOptions = getArtifactEngineOptions();
+                let webProvider = getJenkinsWebProvider();
+                let stubProvider = new providers.StubProvider();
+
+                var processItemsPromise = processor.processItems(webProvider, stubProvider, processorOptions);
+                processItemsPromise.then((tickets) => {
+                    assert.strictEqual(stubProvider.itemsUploaded["Extensions/ArtifactEngine/TestData/Jenkins/file1.pdb"], "dummyFileContent");
+                    assert.strictEqual(tickets.find(x => x.artifactItem.path == "Extensions/ArtifactEngine/TestData/Jenkins/file1.pdb").retryCount, 0);
+                    proxy.close();
+                    done();
+                }, (err) => {
+                    throw err;
+                });
+            }
         });
     });
 });
@@ -63,10 +93,10 @@ function getArtifactEngineOptions(): engine.ArtifactEngineOptions {
 }
 
 function getJenkinsWebProvider(): providers.WebProvider {
-    var itemsUrl = "http://redvstt-lab43:8080/job/ArtifactEngineJob/6/api/json?tree=artifacts[*]"
+    var itemsUrl = "http://127.0.0.1:9011/job/ArtifactEngineJob/6/api/json?tree=artifacts[*]"
     var variables = {
         "endpoint": {
-            "url": "http://redvstt-lab43:8080"
+            "url": "http://127.0.0.1:9011"
         },
         "definition": "ArtifactEngineJob",
         "version": "6"
