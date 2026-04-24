@@ -3,14 +3,12 @@
   Detects which extension(s) changed in a PR and sets pipeline variables.
 
 .DESCRIPTION
-  Auto-detects ALL changed extensions from git diff against the PR target branch.
-  If only infrastructure files changed (no extension folders), builds all extensions
-  to validate no regressions.
+  Auto-detects changed extensions from git diff against the PR target branch.
+  Only detected extensions will be published and have CI tests run.
+  If no extension-specific changes are found, no extensions are published.
 
-  Sets the following pipeline variables:
-  - ExtensionName        : first detected extension (used for run naming)
+  Sets the following pipeline variable:
   - DetectedExtensions   : semicolon-separated list (e.g. "Ansible;BitBucket")
-  - ExtensionCopyPattern : glob for CopyFiles (e.g. "{Ansible,BitBucket}" or "Ansible")
 #>
 
 $ErrorActionPreference = 'Stop'
@@ -26,18 +24,12 @@ Write-Host "Auto-detecting changed extensions from PR diff..."
 function Set-PipelineVariables {
     param([string[]]$Extensions)
 
-    $first = $Extensions[0]
-    $joined = $Extensions -join ';'
-    $copyPattern = if ($Extensions.Count -eq 1) { $first } else { '{' + ($Extensions -join ',') + '}' }
+    $extensionList = $Extensions -join ';'
 
-    Write-Host "`nSetting pipeline variables:"
-    Write-Host "  ExtensionName        = $first"
-    Write-Host "  DetectedExtensions   = $joined"
-    Write-Host "  ExtensionCopyPattern = $copyPattern"
+    Write-Host "`nSetting pipeline variable:"
+    Write-Host "  DetectedExtensions   = $extensionList"
 
-    Write-Host "##vso[task.setvariable variable=ExtensionName]$first"
-    Write-Host "##vso[task.setvariable variable=DetectedExtensions]$joined"
-    Write-Host "##vso[task.setvariable variable=ExtensionCopyPattern]$copyPattern"
+    Write-Host "##vso[task.setvariable variable=DetectedExtensions]$extensionList"
 }
 
 $targetBranch = $env:SYSTEM_PULLREQUEST_TARGETBRANCH
@@ -60,10 +52,10 @@ if ($LASTEXITCODE -ne 0) {
     $changedFiles = @(git diff --name-only "origin/$targetRef" HEAD)
 }
 
-if (-not $changedFiles -or $changedFiles.Count -eq 0) {
-    Write-Host "##[warning]No changed files detected. Building ALL extensions as a safety measure."
-    $changedFiles = @()
-}
+# if (-not $changedFiles -or $changedFiles.Count -eq 0) {
+#     Write-Host "##[warning]No changed files detected."
+#     $changedFiles = @()
+# }
 
 Write-Host "`nChanged files ($($changedFiles.Count)):"
 $changedFiles | ForEach-Object { Write-Host "  $_" }
@@ -88,9 +80,8 @@ if ($nonExtensionFiles.Count -gt 0) {
 }
 
 if ($detectedExtensions.Count -eq 0) {
-    Write-Host "`nNo extension-specific changes found. Building ALL extensions to validate no regressions."
-    $detectedExtensions = $validExtensions
+    Write-Host "`n##[warning]No extension-specific changes detected. No extensions will be published and CI tests will be skipped."
 }
 
-Write-Host "`nAuto-detected extensions ($($detectedExtensions.Count)): $($detectedExtensions -join ', ')"
+Write-Host "`nDetected extensions ($($detectedExtensions.Count)): $($detectedExtensions -join ', ')"
 Set-PipelineVariables -Extensions $detectedExtensions
