@@ -39,54 +39,53 @@ function Set-PipelineVariables {
 }
 
 $targetBranch = $env:SYSTEM_PULLREQUEST_TARGETBRANCH
+
 if (-not $targetBranch) {
-    throw "SYSTEM_PULLREQUEST_TARGETBRANCH is not set."
-}
+    # Manual run (not a PR) — build, publish and test ALL extensions.
+    Write-Host "##[warning]Not a PR-triggered run (SYSTEM_PULLREQUEST_TARGETBRANCH is not set)."
+    Write-Host "Defaulting to ALL valid extensions: $($validExtensions -join ', ')"
+    $detectedExtensions = $validExtensions
+} else {
+    $targetRef = $targetBranch -replace '^refs/heads/', ''
+    Write-Host "PR target branch: $targetRef"
 
-$targetRef = $targetBranch -replace '^refs/heads/', ''
-Write-Host "PR target branch: $targetRef"
+    # Fetch target branch so we can diff against it.
+    Write-Host "Fetching origin/$targetRef ..."
+    git fetch origin $targetRef --depth=100 --no-tags 2>&1 | ForEach-Object { Write-Host $_ }
 
-# Fetch target branch so we can diff against it.
-Write-Host "Fetching origin/$targetRef ..."
-git fetch origin $targetRef --depth=100 --no-tags 2>&1 | ForEach-Object { Write-Host $_ }
-
-# Diff: three-dot gives the true PR diff (merge-base to HEAD).
-# Falls back to two-dot if merge-base can't be found (very shallow clone).
-$changedFiles = @(git diff --name-only "origin/$targetRef...HEAD" 2>$null)
-if ($LASTEXITCODE -ne 0) {
-    Write-Host "##[warning]Three-dot diff failed. Falling back to two-dot diff."
-    $changedFiles = @(git diff --name-only "origin/$targetRef" HEAD)
-}
-
-# if (-not $changedFiles -or $changedFiles.Count -eq 0) {
-#     Write-Host "##[warning]No changed files detected."
-#     $changedFiles = @()
-# }
-
-Write-Host "`nChanged files ($($changedFiles.Count)):"
-$changedFiles | ForEach-Object { Write-Host "  $_" }
-
-$detectedExtensions = @()
-$nonExtensionFiles = @()
-
-foreach ($file in $changedFiles) {
-    if ($file -match '^Extensions/([^/]+)/') {
-        $extName = $Matches[1]
-        if (($validExtensions -contains $extName) -and ($detectedExtensions -notcontains $extName)) {
-            $detectedExtensions += $extName
-        }
-    } else {
-        $nonExtensionFiles += $file
+    # Diff: three-dot gives the true PR diff (merge-base to HEAD).
+    # Falls back to two-dot if merge-base can't be found (very shallow clone).
+    $changedFiles = @(git diff --name-only "origin/$targetRef...HEAD" 2>$null)
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "##[warning]Three-dot diff failed. Falling back to two-dot diff."
+        $changedFiles = @(git diff --name-only "origin/$targetRef" HEAD)
     }
-}
 
-if ($nonExtensionFiles.Count -gt 0) {
-    Write-Host "`nNon-extension files changed ($($nonExtensionFiles.Count)):"
-    $nonExtensionFiles | ForEach-Object { Write-Host "  $_" }
-}
+    Write-Host "`nChanged files ($($changedFiles.Count)):"
+    $changedFiles | ForEach-Object { Write-Host "  $_" }
 
-if ($detectedExtensions.Count -eq 0) {
-    Write-Host "`n##[warning]No extension-specific changes detected. No extensions will be published and CI tests will be skipped."
+    $detectedExtensions = @()
+    $nonExtensionFiles = @()
+
+    foreach ($file in $changedFiles) {
+        if ($file -match '^Extensions/([^/]+)/') {
+            $extName = $Matches[1]
+            if (($validExtensions -contains $extName) -and ($detectedExtensions -notcontains $extName)) {
+                $detectedExtensions += $extName
+            }
+        } else {
+            $nonExtensionFiles += $file
+        }
+    }
+
+    if ($nonExtensionFiles.Count -gt 0) {
+        Write-Host "`nNon-extension files changed ($($nonExtensionFiles.Count)):"
+        $nonExtensionFiles | ForEach-Object { Write-Host "  $_" }
+    }
+
+    if ($detectedExtensions.Count -eq 0) {
+        Write-Host "`n##[warning]No extension-specific changes detected. No extensions will be published and CI tests will be skipped."
+    }
 }
 
 Write-Host "`nDetected extensions ($($detectedExtensions.Count)): $($detectedExtensions -join ', ')"
