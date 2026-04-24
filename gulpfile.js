@@ -554,52 +554,172 @@ gulp.task('testLib_NodeModules', gulp.series('testLib', function () {
 
 gulp.task('testResources', gulp.parallel('testLib_NodeModules', 'ps1tests', 'tstests', 'copyTestData'));
 
+// Path to mocha CLI (mocha is provided by gulp-mocha; pin to that copy so we
+// don't depend on an extra top-level mocha install).
+var _mochaBin = path.join(__dirname, 'node_modules', 'gulp-mocha', 'node_modules', 'mocha', 'bin', '_mocha');
+
+// Spawn mocha as a separate child Node process for a single logical "suite"
+// (one extension, or one ad-hoc file glob). This isolates module state — most
+// importantly, the global `nock`/`@mswjs/interceptors` HTTP patching done by
+// the ArtifactEngine integration tests — so suites that perform real HTTP
+// (e.g. Ansible's MockTestRunner downloading node.exe) aren't affected.
+//
+// Returns a Promise that resolves with the child's exit code (0 on success).
+function runMochaSuite(label, patterns, ignorePatterns) {
+    var glob = require('glob');
+    var tfBuild = ('' + process.env['TF_BUILD']).toLowerCase() == 'true';
+
+    // glob requires forward-slash patterns even on Windows.
+    var toPosix = function (p) { return String(p).replace(/\\/g, '/'); };
+    var posixIgnores = (ignorePatterns || []).map(toPosix);
+    // Always exclude node_modules: dependencies sometimes ship their own
+    // *tests.js files (e.g. safer-buffer) that we must not run.
+    posixIgnores.push('**/node_modules/**');
+
+    var files = [];
+    var seen = {};
+    (patterns || []).forEach(function (p) {
+        // nocase:false to keep `*Tests.js` (capital T) from matching
+        // dependency files like `tests.js` on case-insensitive filesystems.
+        var matches = glob.sync(toPosix(p), { ignore: posixIgnores, nocase: false });
+        matches.forEach(function (m) {
+            // Normalize back to native separators for spawn args.
+            var native = m.split('/').join(path.sep);
+            if (!seen[native]) { seen[native] = true; files.push(native); }
+        });
+    });
+
+    // Sort the resolved files to keep load order deterministic across platforms.
+    // This matters because some suites (e.g. ArtifactEngine ProvidersTests) call
+    // libMocker.enable({useCleanCache:true}) at module top level with an `fs`
+    // mock that is missing methods (writeFileSync). azure-pipelines-task-lib's
+    // task.js only initializes its Vault on first load (gated by
+    // global['_vsts_task_lib_loaded']); if a non-mocking test file (e.g.
+    // jenkinsTests) loads first it sets that flag, and the subsequent re-load
+    // through the cleared cache becomes a no-op. The previous gulp-mocha based
+    // pipeline relied on alphabetical glob order for this; preserve it.
+    files.sort();
+
+    console.log('\n========================================');
+    console.log('Running mocha suite: ' + label);
+    (patterns || []).forEach(function (p) { console.log('  pattern: ' + p); });
+    (ignorePatterns || []).forEach(function (p) { console.log('  ignore : ' + p); });
+    console.log('  resolved files: ' + files.length);
+    console.log('========================================');
+
+    if (files.length === 0) {
+        console.log('No test files matched for suite ' + label + '; skipping.');
+        return Promise.resolve(0);
+    }
+
+    var args = [_mochaBin, '--reporter', 'spec', '--ui', 'bdd'];
+    if (tfBuild) {
+        args.push('--no-colors');
+    }
+    args = args.concat(files);
+
+    return new Promise(function (resolve) {
+        var child = cp.spawn(process.execPath, args, {
+            stdio: 'inherit',
+            env: process.env,
+            cwd: __dirname
+        });
+        child.on('exit', function (code) { resolve(code == null ? 1 : code); });
+        child.on('error', function (err) {
+            console.error('Failed to spawn mocha for suite ' + label + ': ' + err.message);
+            resolve(1);
+        });
+    });
+}
+
+// Run a list of suites sequentially (do NOT fast-fail; we want a complete CI
+// signal). Returns a Promise that rejects if any suite failed.
+function runMochaSuitesSequentially(suites) {
+    var failures = [];
+    var p = Promise.resolve();
+    suites.forEach(function (s) {
+        p = p.then(function () {
+            return runMochaSuite(s.label, s.patterns, s.ignorePatterns).then(function (code) {
+                if (code !== 0) {
+                    failures.push({ label: s.label, code: code });
+                }
+            });
+        });
+    });
+    return p.then(function () {
+        if (failures.length > 0) {
+            console.error('\n' + failures.length + ' mocha suite(s) failed:');
+            failures.forEach(function (f) { console.error('  - ' + f.label + ' (exit code ' + f.code + ')'); });
+            throw new Error('Mocha test failures: ' + failures.map(function (f) { return f.label; }).join(', '));
+        }
+    });
+}
+
+// Returns the list of test-bearing extension names found under _build/Extensions.
+// We look at the built copy (the same place Mocha would load from) so that the
+// list matches what's actually runnable.
+function discoverBuiltTestBearingExtensions() {
+    var builtExtensionsRoot = path.join(__dirname, _testRoot, 'Extensions');
+    if (!fs.existsSync(builtExtensionsRoot)) return [];
+    return fs.readdirSync(builtExtensionsRoot).filter(function (name) {
+        var dir = path.join(builtExtensionsRoot, name);
+        if (!fs.statSync(dir).isDirectory()) return false;
+        return fs.existsSync(path.join(dir, 'Tests')) || fs.existsSync(path.join(dir, 'EngineTests'));
+    });
+}
+
 gulp.task("test", gulp.series("testResources", function() {
-    process.env['TASK_TEST_TEMP'] =path.join(__dirname, _testTemp);
+    process.env['TASK_TEST_TEMP'] = path.join(__dirname, _testTemp);
     shell.rm('-rf', _testTemp);
     shell.mkdir('-p', _testTemp);
 
-    if (options.suite.indexOf("ArtifactEngine") >= 0  && options.e2e) {
-        var suitePath = path.join(_testRoot, "Extensions/" + options.suite + "/**/*e2e.js");
-        console.log(suitePath);
-        var tfBuild = ('' + process.env['TF_BUILD']).toLowerCase() == 'true'
-        return gulp.src([suitePath])
-            .pipe(mocha({ reporter: 'spec', ui: 'bdd', useColors: !tfBuild }));
+    // ArtifactEngine --e2e and --perf are ad-hoc, single-suite invocations.
+    // They keep their original glob and just go through the per-process helper.
+    if (options.suite.indexOf("ArtifactEngine") >= 0 && options.e2e) {
+        var e2ePath = path.join(_testRoot, "Extensions/" + options.suite + "/**/*e2e.js");
+        return runMochaSuitesSequentially([
+            { label: options.suite + ' (e2e)', patterns: [e2ePath] }
+        ]);
     }
 
-    if (options.suite.indexOf("ArtifactEngine") >= 0  && options.perf) {
-        var suitePath = path.join(_testRoot, "Extensions/" + options.suite + "/**/*perf.js");
-        console.log(suitePath);
-        var tfBuild = ('' + process.env['TF_BUILD']).toLowerCase() == 'true'
-        return gulp.src([suitePath])
-            .pipe(mocha({ reporter: 'spec', ui: 'bdd', useColors: !tfBuild }));
+    if (options.suite.indexOf("ArtifactEngine") >= 0 && options.perf) {
+        var perfPath = path.join(_testRoot, "Extensions/" + options.suite + "/**/*perf.js");
+        return runMochaSuitesSequentially([
+            { label: options.suite + ' (perf)', patterns: [perfPath] }
+        ]);
     }
 
     var selectedSuites = resolveSuitesToRun();
-    var tfBuild = ('' + process.env['TF_BUILD']).toLowerCase() == 'true';
-    var ignorePath = "!" + path.join(_testRoot, "Extensions",  "/**/UIContribution{,/**}");
+    var ignorePatterns = [path.join(_testRoot, "Extensions", "**/UIContribution/**")];
+
+    var extensionsToRun;
     if (selectedSuites === null) {
-        // null = "run all" sentinel (default behavior preserved)
-        var suitePathAll = path.join(_testRoot, "Extensions/**/Tests/Tasks/**/_suite.js");
-        var suitePath2All = path.join(_testRoot, "Extensions/**/*Tests.js");
-        console.log(suitePathAll);
-        console.log(suitePath2All);
-        return gulp.src([ suitePathAll, suitePath2All, ignorePath ], { allowEmpty: true })
-            .pipe(mocha({ reporter: 'spec', ui: 'bdd', useColors: !tfBuild }));
-    }
-    if (selectedSuites.length === 0) {
+        // "run all" sentinel: enumerate every test-bearing extension and run
+        // each in its own mocha child process so module state doesn't leak
+        // between suites.
+        extensionsToRun = discoverBuiltTestBearingExtensions();
+        console.log("Running all suites: " + extensionsToRun.join(', '));
+    } else if (selectedSuites.length === 0) {
         console.log("No test-bearing extensions affected by this change. Skipping mocha run.");
         return Promise.resolve();
+    } else {
+        extensionsToRun = selectedSuites;
     }
-    var sources = [];
-    selectedSuites.forEach(function (name) {
-        sources.push(path.join(_testRoot, "Extensions", name, "Tests/Tasks", name, "_suite.js"));
-        sources.push(path.join(_testRoot, "Extensions", name, "**/*Tests.js"));
+
+    var suites = extensionsToRun.map(function (name) {
+        return {
+            label: name,
+            patterns: [
+                // Match any _suite.js under the extension's Tests/Tasks tree
+                // (some extensions have nested per-version subfolders).
+                path.join(_testRoot, "Extensions", name, "Tests/Tasks/**/_suite.js"),
+                path.join(_testRoot, "Extensions", name, "**/*Tests.js")
+            ],
+            ignorePatterns: ignorePatterns
+        };
     });
-    sources.push(ignorePath);
-    sources.forEach(function (s) { console.log(s); });
-    return gulp.src(sources, { allowEmpty: true })
-        .pipe(mocha({ reporter: 'spec', ui: 'bdd', useColors: !tfBuild }));
+
+    return runMochaSuitesSequentially(suites);
 }));
 
 // Returns:
