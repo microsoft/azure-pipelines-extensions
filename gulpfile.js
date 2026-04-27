@@ -785,5 +785,5 @@ var cacheNuGetV2Package = function (repository, name, version) {
     }
 
     // Cache the archive file.
-    return cacheArchiveFile(repository.replace(/\/$/, '') + '/package/' + name + '/' + version);
+    return cacheArchiveFile(repository.replace(/\/$/, '') + '?id=' + name + '&version=' + version);
 }
