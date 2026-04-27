@@ -784,17 +784,6 @@ var cacheNuGetV2Package = function (repository, name, version) {
         throw new Error('Parameter "version" cannot be null or empty.');
     }
 
-    // Build the download URL.
-    var baseUrl = repository.replace(/\/$/, '');
-    var url;
-    if (baseUrl.indexOf('_packaging') >= 0) {
-        // Azure Artifacts NuGet V2 feeds use query-parameter download URLs.
-        url = baseUrl + '?id=' + name.toLowerCase() + '&version=' + version;
-    } else {
-        // Standard NuGet V2 feeds (e.g. PowerShell Gallery) use path-based URLs.
-        url = baseUrl + '/package/' + name + '/' + version;
-    }
-
     // Cache the archive file.
-    return cacheArchiveFile(url);
+    return cacheArchiveFile(repository.replace(/\/$/, '') + '?id=' + name + '&version=' + version);
 }
