@@ -13,10 +13,9 @@ describe('Integration Tests', () => {
 
         it('should be able to download jenkins artifact under proxy', function (done) {
 
-            // nock isn't working well with tunnel proxy so setting up custom server
             var proxy = http.createServer(function (req, res) {
 
-                assert.strictEqual(req.headers['authorization'], 'Basic ' + Buffer.from('username:password', 'utf8').toString('base64'));
+                assert.strictEqual(req.headers['authorization'], 'Basic ' + Buffer.from('username:password').toString('base64'));
                 assert.strictEqual(req.headers['user-agent'], 'artifact-engine ' + packagejson.version);
 
                 if (req.url === "/job/ArtifactEngineJob/6/api/json?tree=artifacts[*]") {
@@ -44,7 +43,7 @@ describe('Integration Tests', () => {
 
             proxy.on('connect', onConnect);
             function onConnect(req, clientSocket, head) {
-                assert.strictEqual(req.headers['proxy-authorization'], 'Basic ' + Buffer.from('admin:123:pass#123:', 'utf8').toString('base64'));
+                assert.strictEqual(req.headers['proxy-authorization'], 'Basic ' + Buffer.from('admin:123:pass#123:').toString('base64'));
 
                 var serverSocket = net.connect({ port: 9011 }, function () {
                     clientSocket.write('HTTP/1.1 200 Connection established\r\n\r\n');
@@ -93,10 +92,10 @@ function getArtifactEngineOptions(): engine.ArtifactEngineOptions {
 }
 
 function getJenkinsWebProvider(): providers.WebProvider {
-    var itemsUrl = "http://redvstt-lab43:8080/job/ArtifactEngineJob/6/api/json?tree=artifacts[*]"
+    var itemsUrl = "http://127.0.0.1:9011/job/ArtifactEngineJob/6/api/json?tree=artifacts[*]"
     var variables = {
         "endpoint": {
-            "url": "http://redvstt-lab43:8080"
+            "url": "http://127.0.0.1:9011"
         },
         "definition": "ArtifactEngineJob",
         "version": "6"

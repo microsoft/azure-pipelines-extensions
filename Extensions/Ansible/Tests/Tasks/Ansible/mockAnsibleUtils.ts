@@ -33,10 +33,10 @@ export function runCommandOnRemoteMachine(cmd: string, sshClient: any, options: 
     return defer.promise;
 }
 
-export function copyFileToRemoteMachine(scriptFile: string, scpConfig: any): Q.Promise<string> {
+export function copyFileToRemoteMachine(scriptFile: string, dest: string, scpConfig: any): Q.Promise<string> {
     var defer = Q.defer<string>();
     this._writeLine("copied file to remote machine = " + scriptFile);
-    defer.resolve(scpConfig.path);
+    defer.resolve("0");
     return defer.promise;
 }
 

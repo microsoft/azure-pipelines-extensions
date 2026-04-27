@@ -7,6 +7,11 @@ param()
 
 Register-Mock Import-Module { Write-Verbose "Dummy Import-Module" -Verbose }
 
+# Mock Get-AppCmdLocation so the test does not require IIS to be installed
+# on the build agent. Run-Command output is what the function actually
+# inspects; the appcmd path is only used to build the command line.
+Register-Mock Get-AppCmdLocation { return "appcmd.exe", 8 }
+
 $protocal = "http"
 $ipAddress = "*"
 $port = "80"
