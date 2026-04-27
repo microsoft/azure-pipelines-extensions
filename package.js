@@ -131,7 +131,7 @@ function copyCommonModules(currentExtnRoot, commonDeps, commonSrc, extensionSour
                     console.log(`⚒️  Building UI contribution for task: ${task.name}`);
                     var originalDir = shell.pwd();
                     util.cd(uiPath);
-                    util.run('npm install');
+                    util.run('npm ci');
                     util.cd(originalDir);
                 }
 
@@ -143,29 +143,33 @@ function copyCommonModules(currentExtnRoot, commonDeps, commonSrc, extensionSour
 
                         try {
                             util.cd(taskDirPath);
+                            const npmrcPath = path.join(taskSourcePath, ".npmrc");
+                            const npmCmd = process.platform === 'win32' ? 'npm.cmd' : 'npm';
+                            const npmArgs = ['ci', '--userconfig', `"${npmrcPath}"`];
                             if (util.isDebug()) {
-                                cp.execSync(`npm install --verbose --userconfig ${path.join(taskSourcePath, ".npmrc")}`, { stdio: 'inherit' });
+                                npmArgs.splice(1, 0, '--verbose');
+                                cp.execFileSync(npmCmd, npmArgs, { stdio: 'inherit', shell: true });
                             } else {
-                                cp.execSync(`npm install --userconfig ${path.join(taskSourcePath, ".npmrc")}`, { stdio: 'ignore' });
+                                cp.execFileSync(npmCmd, npmArgs, { stdio: 'ignore', shell: true });
                             }
-                            console.log(`\x1b[A\x1b[K✅ npm install at ${taskDirPath} completed successfully.`);
+                            console.log(`\x1b[A\x1b[K✅ npm ci at ${taskDirPath} completed successfully.`);
                         } catch (err) {
-                            console.log(`\x1b[A\x1b[K❌ npm install at ${taskDirPath} failed. Error: ${err.message}`);
+                            console.log(`\x1b[A\x1b[K❌ npm ci at ${taskDirPath} failed. Error: ${err.message}`);
                             process.exit(1);
                         } finally {
                             util.cd(originalDir);
                         }
                     } else {
-                        // Determine the vsts-task-lib version.
-                        var libVer = externals.npm['vsts-task-lib'];
+                        // Determine the azure-pipelines-task-lib version.
+                        var libVer = externals.npm['azure-pipelines-task-lib'];
 
                         if (!libVer) {
-                            throw new Error('External vsts-task-lib not defined in externals.json.');
+                            throw new Error('External azure-pipelines-task-lib not defined in externals.json.');
                         }
 
                         // Copy the lib from the cache.
-                        gutil.log('Linking vsts-task-lib ' + libVer);
-                        var copySource = path.join(_tempPath, 'npm', 'vsts-task-lib', libVer, 'node_modules', '**');
+                        gutil.log('Linking azure-pipelines-task-lib ' + libVer);
+                        var copySource = path.join(_tempPath, 'npm', 'azure-pipelines-task-lib', libVer, 'node_modules', '**');
                         var copyTarget = path.join(targetPath, 'node_modules');
                         shell.mkdir('-p', copyTarget);
                         gulp.src([copySource]).pipe(gulp.dest(copyTarget));
@@ -183,187 +187,4 @@ function copyCommonModules(currentExtnRoot, commonDeps, commonSrc, extensionSour
 }
 
 
-var _strRelPath = path.join('Strings', 'resources.resjson', 'en-US');
-
-
-
-var _cultureNames = [
-	'cs',
-	'de',
-	'es',
-	'fr',
-	'it',
-	'ja',
-	'ko',
-	'pl',
-	'pt-BR',
-	'ru',
-	'tr',
-	'zh-Hans',
-	'zh-Hant'
-];
-
-var createError = function (msg) {
-	return new gutil.PluginError('PackageTask', msg);
-}
-
-var validateModule = function (folderName, module) {
-    var defer = Q.defer();
-    defer.resolve();
-    return defer.promise;
-}
-
-
-var LOC_FRIENDLYNAME = 'loc.friendlyName';
-var LOC_HELPMARKDOWN = 'loc.helpMarkDown';
-var LOC_DESCRIPTION = 'loc.description';
-var LOC_INSTFORMAT = 'loc.instanceNameFormat';
-var LOC_GROUPDISPLAYNAME = 'loc.group.displayName.';
-var LOC_INPUTLABEL = 'loc.input.label.';
-var LOC_INPUTHELP = 'loc.input.help.';
-var LOC_MESSAGES = 'loc.messages.';
-
-var createStrings = function (task, pkgPath, srcPath) {
-	var defer = Q.defer();
-
-	var strPath = path.join(pkgPath, _strRelPath);
-	shell.mkdir('-p', strPath);
-	var srcStrPath = path.join(srcPath, _strRelPath);
-	shell.mkdir('-p', srcStrPath);
-
-	//
-	// Loc tasks.json and product strings content
-	//
-	var strings = {};
-	strings[LOC_FRIENDLYNAME] = task.friendlyName;
-	task['friendlyName'] = 'ms-resource:' + LOC_FRIENDLYNAME;
-
-	strings[LOC_HELPMARKDOWN] = task.helpMarkDown;
-	task['helpMarkDown'] = 'ms-resource:' + LOC_HELPMARKDOWN;
-
-	strings[LOC_DESCRIPTION] = task.description;
-	task['description'] = 'ms-resource:' + LOC_DESCRIPTION;
-
-	strings[LOC_INSTFORMAT] = task.instanceNameFormat;
-	task['instanceNameFormat'] = 'ms-resource:' + LOC_INSTFORMAT;
-
-	if (task.groups) {
-		task.groups.forEach(function (group) {
-			if (group.name) {
-				var key = LOC_GROUPDISPLAYNAME + group.name;
-				strings[key] = group.displayName;
-				group.displayName = 'ms-resource:' + key;
-			}
-		});
-	}
-
-	if (task.inputs) {
-		task.inputs.forEach(function (input) {
-			if (input.name) {
-				var labelKey = LOC_INPUTLABEL + input.name;
-				strings[labelKey] = input.label;
-				input.label = 'ms-resource:' + labelKey;
-
-				if (input.helpMarkDown) {
-					var helpKey = LOC_INPUTHELP + input.name;
-					strings[helpKey] = input.helpMarkDown;
-					input.helpMarkDown = 'ms-resource:' + helpKey;
-				}
-			}
-		});
-	}
-
-	if (task.messages) {
-		for (var key in task.messages) {
-			var messageKey = LOC_MESSAGES + key;
-			strings[messageKey] = task.messages[key];
-			task.messages[key] = 'ms-resource:' + messageKey;
-		}
-	}
-
-	//
-	// Write the tasks.json and strings file in package and back to source
-	//
-	var enPath = path.join(strPath, 'resources.resjson');
-	var enSrcPath = path.join(srcStrPath, 'resources.resjson');
-
-	var enContents = JSON.stringify(strings, null, 2);
-	fs.writeFile(enPath, enContents, function (err) {
-		if (err) {
-			defer.reject(createError('could not create: ' + enPath + ' - ' + err.message));
-			return;
-		}
-
-		var taskPath = path.join(pkgPath, 'task.loc.json');
-
-		var contents = JSON.stringify(task, null, 2);
-
-		fs.writeFile(taskPath, contents, function (err) {
-			if (err) {
-				defer.reject(createError('could not create: ' + taskPath + ' - ' + err.message));
-				return;
-			}
-
-			// copy the loc assets back to the src so they can be checked in
-			shell.cp('-f', enPath, enSrcPath);
-			shell.cp('-f', taskPath, path.join(srcPath, 'task.loc.json'));
-
-			defer.resolve();
-		});
-
-	})
-
-	return defer.promise;
-};
-
-function locCommon() {
-    return through.obj(
-        function (moduleJson, encoding, done) {
-            // Validate the module.json file exists.
-            if (!fs.existsSync(moduleJson)) {
-                new gutil.PluginError('PackageModule', 'Module json cannot be found: ' + moduleJson.path);
-            }
-
-            if (moduleJson.isNull() || moduleJson.isDirectory()) {
-                this.push(moduleJson);
-                return done();
-            }
-
-            // Deserialize the module.json.
-            var jsonContents = moduleJson.contents.toString();
-            var module = {};
-            try {
-                module = JSON.parse(jsonContents);
-            }
-            catch (err) {
-                done(createError('Common module ' + moduleJson.path + ' parse error: ' + err.message));
-                return;
-            }
-
-            // Build the content for the en-US resjson file.
-            var strPath = path.join(path.dirname(moduleJson.path), _strRelPath);
-            shell.mkdir('-p', strPath);
-            var strings = {};
-            if (module.messages) {
-                for (var key in module.messages) {
-                    var messageKey = LOC_MESSAGES + key;
-                    strings[messageKey] = module.messages[key];
-                }
-            }
-
-            // Create the en-US resjson file.
-            var enPath = path.join(strPath, 'resources.resjson');
-            var enContents = JSON.stringify(strings, null, 2);
-            fs.writeFile(enPath, enContents, function (err) {
-                if (err) {
-                    done(createError('Could not create: ' + enPath + ' - ' + err.message));
-                    return;
-                }
-            })
-
-            done();
-        });
-}
-
 exports.copyCommonModules = copyCommonModules;
-exports.LocCommon = locCommon;

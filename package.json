@@ -1,13 +1,16 @@
 {
-  "name": "vsts-iiswebapp",
+  "name": "azure-pipelines-extensions",
   "version": "1.0.1",
-  "description": "IIS web application extension for deploying asp.net website.",
-  "main": "app.js",
+  "description": "Azure Pipelines Extensions is a collection of extensions for Azure Pipelines.",
   "author": "Microsoft",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Microsoft/vsts-iiswebdeploy.git"
+    "url": "https://github.com/microsoft/azure-pipelines-extensions.git"
+  },
+  "scripts": {
+    "build": "gulp build",
+    "test": "gulp test"
   },
   "devDependencies": {
     "@types/adm-zip": "^0.4.34",
@@ -18,7 +21,6 @@
     "@types/gulp-util": "^3.0.41",
     "@types/minimist": "^1.2.5",
     "@types/q": "^1.5.8",
-    "@types/request": "^2.48.12",
     "@types/semver": "^4.3.27",
     "@types/shelljs": "^0.8.17",
     "@types/through2": "^2.0.41",
@@ -31,25 +33,19 @@
     "gulp": "^4.0.2",
     "gulp-mocha": "^6.0.0",
     "gulp-typescript": "^5.0.1",
-    "gulp-unzip": "^1.1.0",
     "gulp-util": "^3.0.7",
     "minimatch": "3.1.5",
     "minimist": "1.2.6",
     "q": "^1.4.1",
-    "request": "^2.88.0",
     "semver": "^5.7.2",
     "shelljs": "^0.10.0",
     "sync-request": "3.0.1",
     "through2": "^2.0.1",
     "typescript": "^4.9.5",
     "validator": "^13.15.22",
-    "vsts-task-lib": "^2.0.5",
+    "azure-pipelines-task-lib": "^5.2.8",
     "xml2js": "^0.4.17",
     "yargs": "^4.7.1"
-  },
-  "dependencies": {
-    "natives": "^1.1.6",
-    "shell-quote": "^1.8.2"
   },
   "overrides": {
     "picomatch": "2.3.2",
@@ -60,14 +56,8 @@
     "mkdirp@0.5.1": {
       "minimist": "0.2.4"
     },
-    "vsts-task-lib": {
-      "minimatch": "3.1.5"
-    },
     "gulp-typescript": {
       "braces": "3.0.3"
-    },
-    "request": {
-      "form-data": "2.5.4"
     }
   }
 }
