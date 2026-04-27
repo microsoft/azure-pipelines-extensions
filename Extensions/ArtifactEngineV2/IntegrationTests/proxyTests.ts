@@ -13,7 +13,6 @@ describe('Integration Tests', () => {
 
         it('should be able to download jenkins artifact under proxy', function (done) {
 
-            // nock isn't working well with tunnel proxy so setting up custom server
             var proxy = http.createServer(function (req, res) {
 
                 assert.strictEqual(req.headers['authorization'], 'Basic ' + Buffer.from('username:password').toString('base64'));
