@@ -7,7 +7,6 @@ const cp = require('child_process');
 const admZip = require('adm-zip');
 const del = require('del');
 const fs = require('fs-extra');
-const mocha = require('gulp-mocha');
 const minimist = require('minimist');
 const semver = require('semver');
 const shell = require('shelljs');
