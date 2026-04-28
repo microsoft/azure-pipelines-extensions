@@ -11,15 +11,6 @@ const util = require('./package-utils');
 const TEMP_PATH = path.join(__dirname, '_temp');
 
 /**
- * Creates a new Error with the specified message for the 'PackageTask' plugin.
- * @param {string} msg - The error message.
- * @returns {Error} A new Error instance with the provided message.
- */
-function createError(msg) {
-    return new Error('PackageTask: ' + msg);
-}
-
-/**
  * @typedef {Object} TaskExecutor
  * @property {string} Node - Indicates that the task is executed using Node.js.
  * @property {string} Node10 - Indicates that the task is executed using Node.js version 10.
@@ -46,13 +37,13 @@ function validateTask(folderName, task) {
         const vn = (task.name || folderName);
 
         if (!task.id || !check.isUUID(task.id)) {
-            return reject(createError(`${vn}: id is a required guid`));
+            return reject(new Error(`${vn}: id is a required guid`));
         } else if (!task.name || !check.isAlphanumeric(task.name)) {
-            return reject(createError(`${vn}: name is a required alphanumeric string`));
+            return reject(new Error(`${vn}: name is a required alphanumeric string`));
         } else if (!task.friendlyName || !check.isLength(task.friendlyName, 1, 40)) {
-            return reject(createError(`${vn}: friendlyName is a required string <= 40 chars`));
+            return reject(new Error(`${vn}: friendlyName is a required string <= 40 chars`));
         } else if (!task.instanceNameFormat) {
-            return reject(createError(`${vn}: instanceNameFormat is required`));
+            return reject(new Error(`${vn}: instanceNameFormat is required`));
         }
 
         return resolve();
@@ -83,7 +74,7 @@ function parseTaskJson(jsonContents) {
 function copyCommonModules(currentExtnRoot, commonDeps, commonSrc, extensionSourcePath) {
     return through.obj(function(taskJson, _encoding, done) {
         if (!fs.existsSync(taskJson.path)) {
-            return done(createError('Task json cannot be found: ' + taskJson.path));
+            return done(new Error('Task json cannot be found: ' + taskJson.path));
         }
 
         if (taskJson.isNull() || taskJson.isDirectory()) {
@@ -98,7 +89,7 @@ function copyCommonModules(currentExtnRoot, commonDeps, commonSrc, extensionSour
         const task = parseTaskJson(taskJson.contents.toString());
 
         if (task === null) {
-            done(createError('Parse error in task.json: ' + taskJson.path));
+            done(new Error('Parse error in task.json: ' + taskJson.path));
             return;
         }
 
