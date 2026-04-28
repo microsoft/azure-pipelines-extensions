@@ -15,12 +15,11 @@ const shell = require('shelljs');
 const syncRequest = require('sync-request');
 const typescript = require('typescript');
 const xml2js = require('xml2js');
-const args = require('yargs').argv;
+const args = require('yargs')(require('yargs/helpers').hideBin(process.argv)).argv;
 
 // gulp modules
 const gts = require('gulp-typescript');
 const gulp = require('gulp');
-const gutil = require('gulp-util');
 
 const pkgm = require('./package');
 const util = require('./package-utils');
@@ -178,7 +177,7 @@ gulp.task("compileNode", gulp.series("compilePS", function(cb){
             });
     } catch (err) {
         console.log('error:' + err.message);
-        cb(new gutil.PluginError('compileTasks', err.message));
+        cb(new Error('compileTasks: ' + err.message));
         return;
     }
 
@@ -400,7 +399,7 @@ function createResjson(callback) {
             });
     } catch (err) {
         console.log('error:' + err.message);
-        callback(new gutil.PluginError('compileTasks', err.message));
+        callback(new Error('compileTasks: ' + err.message));
         throw err;
     }
 }
@@ -904,7 +903,7 @@ var cacheNpmPackage = function (name, version) {
     }
 
     // Short-circuit if already downloaded.
-    gutil.log('Downloading npm package ' + name + '@' + version);
+    console.log('Downloading npm package ' + name + '@' + version);
     var targetPath = path.join(_tempPath, 'npm', name, version);
     if (shell.test('-d', targetPath)) {
         console.log('Package already cached. Skipping.');
@@ -963,7 +962,7 @@ var cacheNpmPackage = function (name, version) {
     try {
         var cmdline = '"' + npmPath + '" install ' + name + '@' + version;
         var result = cp.execSync(cmdline);
-        gutil.log(result.toString());
+        console.log(result.toString());
         if (result.status > 0) {
             throw new Error('npm failed with exit code ' + result.status);
         }

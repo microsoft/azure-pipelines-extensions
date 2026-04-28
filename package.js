@@ -3,7 +3,6 @@ const path = require('path');
 
 const fs = require('fs-extra');
 const gulp = require('gulp');
-const gutil = require('gulp-util');
 const shell = require('shelljs');
 const through = require('through2');
 const check = require('validator');
@@ -12,12 +11,12 @@ const util = require('./package-utils');
 const TEMP_PATH = path.join(__dirname, '_temp');
 
 /**
- * Creates a new PluginError with the specified message for the 'PackageTask' plugin.
- * @param {string} msg - The error message to include in the PluginError.
- * @returns {gutil.PluginError} A new PluginError instance with the provided message.
+ * Creates a new Error with the specified message for the 'PackageTask' plugin.
+ * @param {string} msg - The error message.
+ * @returns {Error} A new Error instance with the provided message.
  */
 function createError(msg) {
-    return new gutil.PluginError('PackageTask', msg);
+    return new Error('PackageTask: ' + msg);
 }
 
 /**
@@ -118,7 +117,7 @@ function copyCommonModules(currentExtnRoot, commonDeps, commonSrc, extensionSour
 
             if ((taskDeps = commonDeps[folderName])) {
                 taskDeps.forEach(function (dep) {
-                    gutil.log('Linking ' + dep.module + ' into ' + folderName);
+                    console.log('Linking ' + dep.module + ' into ' + folderName);
                     const src = path.join(commonSrc, dep.module, "Src/");
                     const dest = path.join(targetPath, dep.dest);
                     shell.mkdir('-p', dest);
@@ -172,7 +171,7 @@ function copyCommonModules(currentExtnRoot, commonDeps, commonSrc, extensionSour
                     }
 
                     // Copy the lib from the cache.
-                    gutil.log('Linking azure-pipelines-task-lib ' + libVer);
+                    console.log('Linking azure-pipelines-task-lib ' + libVer);
                     const copySource = path.join(TEMP_PATH, 'npm', 'azure-pipelines-task-lib', libVer, 'node_modules', '**');
                     const copyTarget = path.join(targetPath, 'node_modules');
                     shell.mkdir('-p', copyTarget);
