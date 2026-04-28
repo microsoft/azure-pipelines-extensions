@@ -204,7 +204,7 @@ gulp.task("compileNode", gulp.series("compilePS", function(cb){
 
     const testFiles = path.join(_extnBuildRoot, "**/Tests/**/*.ts");
 
-    gulp.src([taskFiles, `!${testFiles}`, artifactEngineFiles, artifactEngineV2Files, '!**/node_modules/**'])
+    gulp.src([taskFiles, `!${testFiles}`, artifactEngineFiles, artifactEngineV2Files, '!**/node_modules/**'], { base: _extnBuildRoot })
         .pipe(tasksProject())
         .pipe(gulp.dest(path.join(_buildRoot, "Extensions")))
         .on("error", errorHandler);
@@ -212,7 +212,7 @@ gulp.task("compileNode", gulp.series("compilePS", function(cb){
     const testProject = gts.createProject(rootTsconfigPath, { typescript: typescript, declaration: true });
     const sanitizerTestFiles = path.join(_extnBuildRoot, "**/ps_modules/Sanitizer/Tests/*.ts");
 
-    gulp.src([testFiles, `!${sanitizerTestFiles}`])
+    gulp.src([testFiles, `!${sanitizerTestFiles}`], { base: _extnBuildRoot })
         .pipe(testProject())
         .pipe(gulp.dest(path.join(_buildRoot, "Extensions")))
         .on("error", errorHandler);
