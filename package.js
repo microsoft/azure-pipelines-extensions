@@ -3,22 +3,12 @@ const path = require('path');
 
 const fs = require('fs-extra');
 const gulp = require('gulp');
-const gutil = require('gulp-util');
 const shell = require('shelljs');
 const through = require('through2');
 const check = require('validator');
 
 const util = require('./package-utils');
 const TEMP_PATH = path.join(__dirname, '_temp');
-
-/**
- * Creates a new PluginError with the specified message for the 'PackageTask' plugin.
- * @param {string} msg - The error message to include in the PluginError.
- * @returns {gutil.PluginError} A new PluginError instance with the provided message.
- */
-function createError(msg) {
-    return new gutil.PluginError('PackageTask', msg);
-}
 
 /**
  * @typedef {Object} TaskExecutor
@@ -47,13 +37,13 @@ function validateTask(folderName, task) {
         const vn = (task.name || folderName);
 
         if (!task.id || !check.isUUID(task.id)) {
-            return reject(createError(`${vn}: id is a required guid`));
+            return reject(new Error(`${vn}: id is a required guid`));
         } else if (!task.name || !check.isAlphanumeric(task.name)) {
-            return reject(createError(`${vn}: name is a required alphanumeric string`));
+            return reject(new Error(`${vn}: name is a required alphanumeric string`));
         } else if (!task.friendlyName || !check.isLength(task.friendlyName, 1, 40)) {
-            return reject(createError(`${vn}: friendlyName is a required string <= 40 chars`));
+            return reject(new Error(`${vn}: friendlyName is a required string <= 40 chars`));
         } else if (!task.instanceNameFormat) {
-            return reject(createError(`${vn}: instanceNameFormat is required`));
+            return reject(new Error(`${vn}: instanceNameFormat is required`));
         }
 
         return resolve();
@@ -84,7 +74,7 @@ function parseTaskJson(jsonContents) {
 function copyCommonModules(currentExtnRoot, commonDeps, commonSrc, extensionSourcePath) {
     return through.obj(function(taskJson, _encoding, done) {
         if (!fs.existsSync(taskJson.path)) {
-            return done(createError('Task json cannot be found: ' + taskJson.path));
+            return done(new Error('Task json cannot be found: ' + taskJson.path));
         }
 
         if (taskJson.isNull() || taskJson.isDirectory()) {
@@ -99,7 +89,7 @@ function copyCommonModules(currentExtnRoot, commonDeps, commonSrc, extensionSour
         const task = parseTaskJson(taskJson.contents.toString());
 
         if (task === null) {
-            done(createError('Parse error in task.json: ' + taskJson.path));
+            done(new Error('Parse error in task.json: ' + taskJson.path));
             return;
         }
 
@@ -118,7 +108,7 @@ function copyCommonModules(currentExtnRoot, commonDeps, commonSrc, extensionSour
 
             if ((taskDeps = commonDeps[folderName])) {
                 taskDeps.forEach(function (dep) {
-                    gutil.log('Linking ' + dep.module + ' into ' + folderName);
+                    console.log('Linking ' + dep.module + ' into ' + folderName);
                     const src = path.join(commonSrc, dep.module, "Src/");
                     const dest = path.join(targetPath, dep.dest);
                     shell.mkdir('-p', dest);
@@ -172,7 +162,7 @@ function copyCommonModules(currentExtnRoot, commonDeps, commonSrc, extensionSour
                     }
 
                     // Copy the lib from the cache.
-                    gutil.log('Linking azure-pipelines-task-lib ' + libVer);
+                    console.log('Linking azure-pipelines-task-lib ' + libVer);
                     const copySource = path.join(TEMP_PATH, 'npm', 'azure-pipelines-task-lib', libVer, 'node_modules', '**');
                     const copyTarget = path.join(targetPath, 'node_modules');
                     shell.mkdir('-p', copyTarget);

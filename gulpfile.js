@@ -7,7 +7,6 @@ const cp = require('child_process');
 const admZip = require('adm-zip');
 const del = require('del');
 const fs = require('fs-extra');
-const mocha = require('gulp-mocha');
 const minimist = require('minimist');
 const semver = require('semver');
 const shell = require('shelljs');
@@ -15,12 +14,11 @@ const shell = require('shelljs');
 const syncRequest = require('sync-request');
 const typescript = require('typescript');
 const xml2js = require('xml2js');
-const args = require('yargs').argv;
+const args = require('yargs')(require('yargs/helpers').hideBin(process.argv)).argv;
 
 // gulp modules
 const gts = require('gulp-typescript');
 const gulp = require('gulp');
-const gutil = require('gulp-util');
 
 const pkgm = require('./package');
 const util = require('./package-utils');
@@ -178,7 +176,7 @@ gulp.task("compileNode", gulp.series("compilePS", function(cb){
             });
     } catch (err) {
         console.log('error:' + err.message);
-        cb(new gutil.PluginError('compileTasks', err.message));
+        cb(new Error('compileTasks: ' + err.message));
         return;
     }
 
@@ -206,7 +204,7 @@ gulp.task("compileNode", gulp.series("compilePS", function(cb){
 
     const testFiles = path.join(_extnBuildRoot, "**/Tests/**/*.ts");
 
-    gulp.src([taskFiles, `!${testFiles}`, artifactEngineFiles, artifactEngineV2Files, '!**/node_modules/**'])
+    gulp.src([taskFiles, `!${testFiles}`, artifactEngineFiles, artifactEngineV2Files, '!**/node_modules/**'], { base: _extnBuildRoot })
         .pipe(tasksProject())
         .pipe(gulp.dest(path.join(_buildRoot, "Extensions")))
         .on("error", errorHandler);
@@ -214,7 +212,7 @@ gulp.task("compileNode", gulp.series("compilePS", function(cb){
     const testProject = gts.createProject(rootTsconfigPath, { typescript: typescript, declaration: true });
     const sanitizerTestFiles = path.join(_extnBuildRoot, "**/ps_modules/Sanitizer/Tests/*.ts");
 
-    gulp.src([testFiles, `!${sanitizerTestFiles}`])
+    gulp.src([testFiles, `!${sanitizerTestFiles}`], { base: _extnBuildRoot })
         .pipe(testProject())
         .pipe(gulp.dest(path.join(_buildRoot, "Extensions")))
         .on("error", errorHandler);
@@ -400,7 +398,7 @@ function createResjson(callback) {
             });
     } catch (err) {
         console.log('error:' + err.message);
-        callback(new gutil.PluginError('compileTasks', err.message));
+        callback(new Error('compileTasks: ' + err.message));
         throw err;
     }
 }
@@ -554,9 +552,10 @@ gulp.task('testLib_NodeModules', gulp.series('testLib', function () {
 
 gulp.task('testResources', gulp.parallel('testLib_NodeModules', 'ps1tests', 'tstests', 'copyTestData'));
 
-// Path to mocha CLI (mocha is provided by gulp-mocha; pin to that copy so we
-// don't depend on an extra top-level mocha install).
-var _mochaBin = path.join(__dirname, 'node_modules', 'gulp-mocha', 'node_modules', 'mocha', 'bin', '_mocha');
+// Path to mocha CLI. With newer gulp-mocha versions, mocha is hoisted to the
+// top-level node_modules rather than nested under gulp-mocha. Resolve it via
+// require.resolve so we pick up whichever copy npm has installed.
+var _mochaBin = path.join(path.dirname(require.resolve('mocha/package.json')), 'bin', '_mocha');
 
 // Spawn mocha as a separate child Node process for a single logical "suite"
 // (one extension, or one ad-hoc file glob). This isolates module state — most
@@ -903,7 +902,7 @@ var cacheNpmPackage = function (name, version) {
     }
 
     // Short-circuit if already downloaded.
-    gutil.log('Downloading npm package ' + name + '@' + version);
+    console.log('Downloading npm package ' + name + '@' + version);
     var targetPath = path.join(_tempPath, 'npm', name, version);
     if (shell.test('-d', targetPath)) {
         console.log('Package already cached. Skipping.');
@@ -962,7 +961,7 @@ var cacheNpmPackage = function (name, version) {
     try {
         var cmdline = '"' + npmPath + '" install ' + name + '@' + version;
         var result = cp.execSync(cmdline);
-        gutil.log(result.toString());
+        console.log(result.toString());
         if (result.status > 0) {
             throw new Error('npm failed with exit code ' + result.status);
         }
