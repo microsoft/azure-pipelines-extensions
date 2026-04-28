@@ -27,13 +27,13 @@
     "@types/xml2js": "^0.4.14",
     "@types/yargs": "^17.0.33",
     "adm-zip": "0.4.11",
-    "azure-pipelines-task-lib": "^5.2.8",
+    "azure-pipelines-task-lib": "^5.2.10",
     "del": "^2.2.0",
     "fs-extra": "^8.1.0",
-    "gulp": "^4.0.2",
-    "gulp-mocha": "^6.0.0",
+    "gulp": "^5.0.1",
+    "gulp-mocha": "^10.0.1",
     "gulp-typescript": "^5.0.1",
-    "gulp-util": "^3.0.7",
+    "gulp-util": "^1.0.0",
     "minimatch": "3.1.5",
     "minimist": "1.2.6",
     "semver": "^5.7.2",
@@ -42,12 +42,13 @@
     "through2": "^2.0.1",
     "typescript": "^4.9.5",
     "validator": "^13.15.22",
-    "xml2js": "^0.4.17",
-    "yargs": "^4.7.1"
+    "xml2js": "^0.6.2",
+    "yargs": "^18.0.0"
   },
   "overrides": {
     "picomatch": "2.3.2",
-    "qs": "6.14.1",
+    "qs": "^6.14.2",
+    "serialize-javascript": "^7.0.5",
     "mocha@5.2.0": {
       "minimatch": "3.1.5"
     },

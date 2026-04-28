@@ -554,9 +554,10 @@ gulp.task('testLib_NodeModules', gulp.series('testLib', function () {
 
 gulp.task('testResources', gulp.parallel('testLib_NodeModules', 'ps1tests', 'tstests', 'copyTestData'));
 
-// Path to mocha CLI (mocha is provided by gulp-mocha; pin to that copy so we
-// don't depend on an extra top-level mocha install).
-var _mochaBin = path.join(__dirname, 'node_modules', 'gulp-mocha', 'node_modules', 'mocha', 'bin', '_mocha');
+// Path to mocha CLI. With newer gulp-mocha versions, mocha is hoisted to the
+// top-level node_modules rather than nested under gulp-mocha. Resolve it via
+// require.resolve so we pick up whichever copy npm has installed.
+var _mochaBin = path.join(path.dirname(require.resolve('mocha/package.json')), 'bin', '_mocha');
 
 // Spawn mocha as a separate child Node process for a single logical "suite"
 // (one extension, or one ad-hoc file glob). This isolates module state — most
