@@ -1,0 +1,278 @@
+# CI Pipeline: Validates extension changes on pull requests.
+# Builds and publishes an unsigned TEST extension, then runs CI tests.
+# No ESRP signing — avoids 1ES branch control restrictions on non-master branches.
+
+name: CI - Extension $(ExtensionName) - $(Date:yyyyMMdd)$(Rev:.r)
+appendCommitMessageToRunName: false
+
+trigger: none
+
+pr:
+  branches:
+    include:
+    - master
+
+parameters:
+- name: skipCiTesting
+  displayName: 'Skip CI testing (use only if CI tests for the selected extension are not yet available)'
+  type: boolean
+  default: false
+
+variables:
+# 1ES Security Scanning
+- name: CodeQL.Enabled
+  value: true
+# Dynamic (overridden by DetectChangedExtension.ps1)
+- name: ExtensionName
+  value: 'auto'
+- name: DetectedExtensions
+  value: 'auto'
+- name: ExtensionCopyPattern
+  value: 'auto'
+
+resources:
+  repositories:
+  - repository: 1ESPipelineTemplates
+    type: git
+    name: 1ESPipelineTemplates/1ESPipelineTemplates
+    ref: refs/tags/release
+
+extends:
+  template: v1/1ES.Official.PipelineTemplate.yml@1ESPipelineTemplates
+  parameters:
+    sdl:
+      sourceAnalysisPool:
+        name: 1ESPtTfsAgentBuildPoolSDL
+      spotBugs:
+        enabled: false
+      credscan:
+        enabled: true
+      binskim:
+        enabled: true
+      eslint:
+        enabled: true
+
+    pool:
+      name: 1ESPtTfsAgentBuildPool1
+
+    customBuildTags:
+    - ES365AIMigrationTooling
+    - 1ES-AzureExtensions
+    - CI-Verification
+
+    stages:
+
+    # ======= Build & Package test extension =======
+    - stage: Build_And_Package_Test_Extension
+      displayName: 'Build & Package test extension'
+      jobs:
+      - job: BuildAndPackage
+        displayName: 'Build & Package test extension'
+        templateContext:
+          outputs:
+          - output: pipelineArtifact
+            displayName: 'Publish unsigned test build artifacts'
+            targetPath: '$(System.ArtifactsDirectory)/test-unsigned'
+            artifactName: 'vsix-test-unsigned'
+        steps:
+        - checkout: self
+          displayName: 'Checkout repository'
+          clean: true
+          fetchTags: false
+
+        - task: PowerShell@2
+          displayName: 'Auto-detect changed extensions'
+          inputs:
+            filePath: '$(Build.SourcesDirectory)/scripts/DetectChangedExtension.ps1'
+            pwsh: true
+
+        - task: NodeTool@0
+          displayName: 'Use Node.js 20.x'
+          inputs:
+            versionSpec: '20.x'
+
+        - task: Npm@1
+          displayName: 'Install dependencies'
+          inputs:
+            command: install
+            verbose: false
+
+        - task: Npm@1
+          displayName: 'Install TFX CLI'
+          inputs:
+            command: custom
+            customCommand: 'install -g tfx-cli --registry https://pkgs.dev.azure.com/mseng/PipelineTools/_packaging/PipelineTools_PublicPackages/npm/registry/'
+
+        - task: Npm@1
+          displayName: 'Install Gulp CLI'
+          inputs:
+            command: custom
+            customCommand: 'install -g gulp-cli --registry https://pkgs.dev.azure.com/mseng/PipelineTools/_packaging/PipelineTools_PublicPackages/npm/registry/'
+
+
+        - task: NpmAuthenticate@0
+          displayName: 'npm authenticate (internal feed)'
+          inputs:
+            workingFile: '$(Build.SourcesDirectory)/.npmrc'
+
+        - task: AzureCLI@2
+          displayName: 'Sync extension versions with Marketplace'
+          inputs:
+            azureSubscription: '1es-extensions-publication-secure-service-connection'
+            scriptType: pscore
+            scriptLocation: inlineScript
+            inlineScript: |
+              $extensions = '$(DetectedExtensions)' -split ';'
+              foreach ($extension in $extensions) {
+                $extension = $extension.Trim()
+                if (-not $extension) { continue }
+
+                $manifest = Join-Path '$(Build.SourcesDirectory)' "Extensions/$extension/Src/vss-extension.json"
+                if (-not (Test-Path $manifest)) {
+                  Write-Host "##[warning]Manifest not found for '$extension': $manifest — skipping version sync."
+                  continue
+                }
+
+                Write-Host "`n--- Syncing version for $extension ---"
+                & '$(Build.SourcesDirectory)/scripts/BumpExtensionVersion.ps1' -ManifestPath $manifest
+              }
+
+        - task: PowerShell@2
+          displayName: 'Build test resources'
+          inputs:
+            targetType: inline
+            script: 'gulp build --test'
+            workingDirectory: '$(Build.SourcesDirectory)'
+          env:
+            npm_config_registry: 'https://pkgs.dev.azure.com/mseng/PipelineTools/_packaging/PipelineTools_PublicPackages/npm/registry/'
+            npm_config_userconfig: '$(Build.SourcesDirectory)/.npmrc'
+
+        - task: PowerShell@2
+          displayName: 'Package test resources'
+          inputs:
+            targetType: inline
+            script: 'gulp package'
+            workingDirectory: '$(Build.SourcesDirectory)'
+
+        - task: PowerShell@2
+          displayName: 'Copy test .vsix file(s) to unsigned artifacts directory'
+          inputs:
+            targetType: inline
+            pwsh: true
+            script: |
+              $targetDir = '$(System.ArtifactsDirectory)/test-unsigned'
+              $packageDir = '$(Build.SourcesDirectory)/_package'
+              $extensions = '$(DetectedExtensions)' -split ';'
+
+              New-Item -ItemType Directory -Path $targetDir -Force | Out-Null
+
+              $copiedCount = 0
+              $copiedExtensions = @()
+
+              foreach ($ext in $extensions) {
+                $ext = $ext.Trim()
+                if (-not $ext) { continue }
+
+                $extDir = Join-Path $packageDir $ext
+                $vsixFiles = Get-ChildItem -Path $extDir -Filter '*.vsix' -ErrorAction SilentlyContinue
+
+                if ($vsixFiles -and $vsixFiles.Count -gt 0) {
+                  foreach ($vsix in $vsixFiles) {
+                    Copy-Item -Path $vsix.FullName -Destination $targetDir -Force
+                    Write-Host "Copied: $($vsix.Name) (from $ext)"
+                    $copiedCount++
+                  }
+                  $copiedExtensions += $ext
+                } else {
+                  Write-Host "##[warning]No .vsix found for '$ext' — packaging may have failed. Skipping."
+                }
+              }
+
+              if ($copiedCount -eq 0) {
+                Write-Host "##[error]No .vsix files copied. All detected extensions failed to package."
+                exit 1
+              }
+
+              Write-Host "Copied $copiedCount .vsix file(s) for: $($copiedExtensions -join ', ')"
+
+    # ======= Publish unsigned test extension on Marketplace (visibility set to private) =======
+    - stage: Publish_Test_Extension
+      displayName: 'Publish unsigned test extension on Marketplace (private)'
+      dependsOn: Build_And_Package_Test_Extension
+      jobs:
+      - job: PublishTestExtension
+        displayName: 'Publish unsigned test extension on Marketplace'
+        steps:
+        - checkout: self
+          displayName: 'Checkout repository (for .npmrc auth)'
+          clean: true
+          fetchTags: false
+
+        - download: current
+          artifact: vsix-test-unsigned
+          displayName: 'Download unsigned test .vsix'
+
+        - task: NodeTool@0
+          displayName: 'Use Node.js 20.x'
+          inputs:
+            versionSpec: '20.x'
+
+        - task: NpmAuthenticate@0
+          displayName: 'Authenticate npm with internal feed'
+          inputs:
+            workingFile: '$(Build.SourcesDirectory)/.npmrc'
+
+        - task: Npm@1
+          displayName: 'Install TFX CLI'
+          inputs:
+            command: custom
+            customCommand: 'install -g tfx-cli --registry https://pkgs.dev.azure.com/mseng/PipelineTools/_packaging/PipelineTools_PublicPackages/npm/registry/'
+
+        - task: AzureCLI@2
+          displayName: 'Publish all test extensions (unsigned)'
+          inputs:
+            azureSubscription: '1es-extensions-publication-secure-service-connection'
+            scriptType: pscore
+            scriptLocation: inlineScript
+            inlineScript: |
+              $token = az account get-access-token --resource 499b84ac-1321-427f-aa17-267ca6975798 --query accessToken -o tsv
+              if (-not $token) {
+                Write-Host "##[error]Failed to acquire marketplace access token"
+                exit 1
+              }
+
+              $(Build.SourcesDirectory)/scripts/PublishTestExtensions.ps1 `
+                -VsixDirectory "$(Pipeline.Workspace)/vsix-test-unsigned" `
+                -MarketplaceToken $token
+
+    # ======= Execute CI tests and verify the newly published test extension =======
+    - ${{ if ne(parameters.skipCiTesting, true) }}:
+      - stage: Execute_CI_Tests
+        displayName: 'Execute CI tests against the test extension'
+        dependsOn: Publish_Test_Extension
+        variables:
+          CI_TESTS_ORG_URL: 'https://dev.azure.com/canarytest'
+          CI_TESTS_PROJECT: 'PipelineTasks'
+        jobs:
+        - job: CiTests
+          displayName: 'Trigger CI test pipelines for all changed extensions'
+          timeoutInMinutes: 120
+          steps:
+          - task: PowerShell@2
+            displayName: 'Re-detect changed extensions'
+            inputs:
+              filePath: '$(Build.SourcesDirectory)/scripts/DetectChangedExtension.ps1'
+              pwsh: true
+              
+          - task: AzureCLI@2
+            displayName: 'Trigger CI tests for all detected extensions and wait for results'
+            inputs:
+              azureSubscription: 'canarytest-extensions-ci-tests-pipeline-connector'
+              scriptType: pscore
+              scriptLocation: scriptPath
+              scriptPath: '$(Build.SourcesDirectory)/scripts/TriggerCiTestsForExtensions.ps1'
+              arguments: >
+                -Extensions "$(DetectedExtensions)"
+                -OrgUrl "$(CI_TESTS_ORG_URL)"
+                -Project "$(CI_TESTS_PROJECT)"
+                -TimeoutMinutes 120
