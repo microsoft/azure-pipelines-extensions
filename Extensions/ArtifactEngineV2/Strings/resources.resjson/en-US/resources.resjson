@@ -6,7 +6,7 @@
   "loc.messages.UnableToReadDirectory": "Unable to read directory %s. Error: %s",
   "loc.messages.RetryingDownload": "Retrying download of %s, retry count: %s",
   "loc.messages.SkippingItem": "Skipped processing item %s",
-  "loc.messages.UnhandledRejection": "artifact-engine: unhandled rejection %s",
-  "loc.messages.UnhandledException": "artifact-engine: unhandled exception %s",
+  "loc.messages.UnhandledRejection": "artifact-engine-v2: unhandled rejection %s",
+  "loc.messages.UnhandledException": "artifact-engine-v2: unhandled exception %s",
   "loc.messages.FailedRequest": "Failed request: (statusCode)"
 }

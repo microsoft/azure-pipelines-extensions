@@ -1,5 +1,12 @@
 # This Yaml Document has been converted by ESAI Yaml Pipeline Conversion Tool.
 # This pipeline will be extended to the OneESPT template
+trigger: none
+
+parameters:
+  - name: runAllSuites
+    displayName: 'Run all test suites (bypass change-based filter)'
+    type: boolean
+    default: false
 
 resources:
   repositories:
@@ -84,19 +91,17 @@ extends:
           displayName: Use Node 24.*
           inputs:
             version: 24.*
-        - powershell: 'node getUpdatedPaths.js'
-          displayName: 'PowerShell Script'
-        - task: Npm@1
-          displayName: 'npm install'
-          inputs:
-            verbose: false
+        - script: npm ci --userconfig ./.npmrc
         - task: gulp@0
           displayName: 'gulp build'
           inputs:
             targets: build
-        - task: gulp@0
-          displayName: 'gulp test'
-          inputs:
-            targets: test
-            arguments: '--suite=ArtifactEngine'
-          condition: or(contains(variables['UPDATEDAREAPATHS'], 'ArtifactEngine'),contains(variables['UPDATEDAREAPATHS'], 'package.json'))
+        # Single test step. The gulp `test` task itself decides which suites to run:
+        # - runAllSuites=true                -> all suites
+        # - PR build (Build.Reason=PullRequest + System.PullRequest.TargetBranch)
+        #                                    -> diff target branch with HEAD,
+        #                                       run only suites whose extension changed
+        #                                       (shared infra change -> all suites)
+        # - any other context                -> all suites
+        - script: npm test -- --runAllSuites=${{ parameters.runAllSuites }}
+          displayName: 'Run tests'

@@ -92,7 +92,13 @@ describe('Unit Tests', () => {
         after(() => {
             tl.mkdirP.restore();
             libMocker.deregisterAll();
-            libMocker.disable();
+            // Do NOT call libMocker.disable() here. The artifact-engine pipeline
+            // started by other tests in this suite is still running asynchronously
+            // when this `after` hook fires; its later call to tl.loc() goes
+            // through the hooked loader and throws "Loader has not been hooked"
+            // if we un-hook it now. deregisterAll() removes our mocks, which is
+            // the only teardown we actually need across suites.
+            // libMocker.disable();
         });
     });
 });

@@ -115,6 +115,7 @@ export class WebProvider implements IArtifactProvider {
                         if (err) {
                             Logger.logMessage(err ? JSON.stringify(err) : "");
                             reject(err);
+                            return;
                         }
 
                         try {
@@ -123,6 +124,11 @@ export class WebProvider implements IArtifactProvider {
                             var context = this.extend(response, this.variables);
                             var result = template(context);
                             var items = JSON.parse(result);
+
+                            if (!Array.isArray(items)) {
+                                reject(new Error(tl.loc("FailedToParseResponse", body, `Rendered template '${this.getTemplateFilePath()}' did not produce a JSON array (got ${typeof items}).`)));
+                                return;
+                            }
 
                             resolve(items);
                         } catch (error) {

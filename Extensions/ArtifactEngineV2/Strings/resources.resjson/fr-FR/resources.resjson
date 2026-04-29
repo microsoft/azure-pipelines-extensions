@@ -6,7 +6,7 @@
   "loc.messages.UnableToReadDirectory": "Impossible de lire le répertoire %s. Erreur : %s",
   "loc.messages.RetryingDownload": "Nouvelle tentative de téléchargement de %s, nombre de tentatives : %s",
   "loc.messages.SkippingItem": "Traitement de l’élément ignoré %s",
-  "loc.messages.UnhandledRejection": "artifact-engine : rejet non géré %s",
-  "loc.messages.UnhandledException": "artifact-engine : exception non gérée %s",
+  "loc.messages.UnhandledRejection": "artifact-engine-v2 : rejet non géré %s",
+  "loc.messages.UnhandledException": "artifact-engine-v2 : exception non gérée %s",
   "loc.messages.FailedRequest": "Échec de la demande : (statusCode)"
 }
