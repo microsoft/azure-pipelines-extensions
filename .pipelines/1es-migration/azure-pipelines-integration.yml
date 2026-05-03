@@ -22,11 +22,9 @@ variables:
 # 1ES Security Scanning
 - name: CodeQL.Enabled
   value: true
-# Dynamic (overridden by DetectChangedExtension.ps1)
-- name: ExtensionName
-  value: 'auto'
+# Dynamic (set by gulp detectChangedExtensions)
 - name: DetectedExtensions
-  value: 'auto'
+  value: ''
 
 resources:
   repositories:
@@ -78,13 +76,6 @@ extends:
           clean: true
           fetchTags: false
 
-        - task: PowerShell@2
-          name: DetectExtensions
-          displayName: 'Auto-detect changed extensions'
-          inputs:
-            filePath: '$(Build.SourcesDirectory)/scripts/DetectChangedExtension.ps1'
-            pwsh: true
-
         - task: NodeTool@0
           displayName: 'Use Node.js 20.x'
           inputs:
@@ -112,6 +103,11 @@ extends:
           displayName: 'npm authenticate (internal feed)'
           inputs:
             workingFile: '$(Build.SourcesDirectory)/.npmrc'
+
+        - script: gulp detectChangedExtensions
+          name: DetectExtensions
+          displayName: 'Auto-detect changed extensions'
+          workingDirectory: '$(Build.SourcesDirectory)'
 
         - task: AzureCLI@2
           displayName: 'Sync extension versions with Marketplace'
@@ -254,17 +250,12 @@ extends:
         variables:
           CI_TESTS_ORG_URL: 'https://dev.azure.com/canarytest'
           CI_TESTS_PROJECT: 'PipelineTasks'
+          DetectedExtensions: $[ stageDependencies.Build_And_Package_Test_Extension.BuildAndPackage.outputs['DetectExtensions.DetectedExtensions'] ]
         jobs:
         - job: CiTests
           displayName: 'Trigger CI test pipelines for all changed extensions'
           timeoutInMinutes: 120
           steps:
-          - task: PowerShell@2
-            displayName: 'Re-detect changed extensions'
-            inputs:
-              filePath: '$(Build.SourcesDirectory)/scripts/DetectChangedExtension.ps1'
-              pwsh: true
-              
           - task: AzureCLI@2
             displayName: 'Trigger CI tests for all detected extensions and wait for results'
             inputs:
