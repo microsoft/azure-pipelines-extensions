@@ -865,6 +865,7 @@ gulp.task("detectChangedExtensions", function (done) {
     console.log("\nDetected extensions (" + extensions.length + "): " + extensions.join(', '));
     console.log("\nSetting pipeline variables:");
     console.log("  DetectedExtensions   = " + extensionList);
+    console.log("##vso[task.setvariable variable=DetectedExtensions]" + extensionList);
     console.log("##vso[task.setvariable variable=DetectedExtensions;isOutput=true]" + extensionList);
     console.log("  HasExtensionChanges  = " + hasChanges);
     console.log("##vso[task.setvariable variable=HasExtensionChanges]" + hasChanges);
