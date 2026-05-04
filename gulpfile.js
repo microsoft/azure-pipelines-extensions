@@ -721,15 +721,13 @@ gulp.task("test", gulp.series("testResources", function() {
     return runMochaSuitesSequentially(suites);
 }));
 
-// Returns:
-//   null  -> caller should run ALL suites (default mocha glob, behavior unchanged)
-//   []    -> filter resolved to no extensions; caller should skip mocha entirely
-//   [...] -> exact list of extension names to test
-function resolveSuitesToRun() {
-    if (options.runAllSuites === true || String(options.runAllSuites).toLowerCase() === 'true') {
-        console.log("runAllSuites=true -> running all suites.");
-        return null;
-    }
+// ---------------------------------------------------------------------------
+// Shared git-diff logic
+// ---------------------------------------------------------------------------
+
+// Returns an array of changed file paths (forward-slash normalized) from the
+// PR diff, or null if the diff cannot be determined (non-PR build, fetch failure).
+function getChangedFiles() {
     var buildReason = process.env['BUILD_REASON'];
     var prTarget = process.env['SYSTEM_PULLREQUEST_TARGETBRANCH'];
     if (buildReason !== 'PullRequest' || !prTarget) {
@@ -760,13 +758,61 @@ function resolveSuitesToRun() {
     var files = changedFiles.split(/\r?\n/).filter(function (l) { return l.length > 0; }).map(function (f) { return f.replace(/\\/g, '/'); });
     console.log("Changed files (" + files.length + "):");
     files.forEach(function (f) { console.log("  " + f); });
+    return files;
+}
 
-    var sharedInfra = ['Extensions/Common/', 'package.json', 'gulpfile.js', 'ci/azure-pipelines-extensions.yml'];
-    var hitsShared = files.some(function (f) {
-        return sharedInfra.some(function (p) { return f === p || f.indexOf(p) === 0; });
+var SHARED_INFRA_PREFIXES = ['Extensions/Common/', 'package.json', 'gulpfile.js', 'scripts/', '.pipelines/', 'ci/'];
+
+// Returns true if any changed file touches shared infrastructure.
+function hitsSharedInfra(files) {
+    return files.some(function (f) {
+        return SHARED_INFRA_PREFIXES.some(function (p) { return f === p || f.indexOf(p) === 0; });
     });
-    if (hitsShared) {
-        console.log("Shared infrastructure changed -> running all suites.");
+}
+
+// Given changed files and a filter function, returns matched extension names.
+// Returns null if shared infrastructure changed (caller decides semantics).
+function resolveChangedExtensions(files, filterFn) {
+    if (hitsSharedInfra(files)) {
+        console.log("Shared infrastructure changed -> returning null (all).");
+        return null;
+    }
+    var selected = {};
+    files.forEach(function (f) {
+        var m = f.match(/^Extensions\/([^\/]+)\//);
+        if (!m) return;
+        var ext = m[1];
+        if (filterFn(ext)) selected[ext] = true;
+    });
+    return Object.keys(selected);
+}
+
+// Discover extensions that have Src/vss-extension.json (publishable to marketplace).
+function discoverPublishableExtensions() {
+    var extensionsRoot = path.join(__dirname, 'Extensions');
+    return fs.readdirSync(extensionsRoot).filter(function (name) {
+        var dir = path.join(extensionsRoot, name);
+        if (!fs.statSync(dir).isDirectory()) return false;
+        return fs.existsSync(path.join(dir, 'Src', 'vss-extension.json'));
+    });
+}
+
+// ---------------------------------------------------------------------------
+// resolveSuitesToRun — used by `gulp test` to pick mocha suites
+// ---------------------------------------------------------------------------
+
+// Returns:
+//   null  -> caller should run ALL suites (default mocha glob, behavior unchanged)
+//   []    -> filter resolved to no extensions; caller should skip mocha entirely
+//   [...] -> exact list of extension names to test
+function resolveSuitesToRun() {
+    if (options.runAllSuites === true || String(options.runAllSuites).toLowerCase() === 'true') {
+        console.log("runAllSuites=true -> running all suites.");
+        return null;
+    }
+    var files = getChangedFiles();
+    if (files === null) {
+        console.log("-> running all suites.");
         return null;
     }
     // Auto-discover test-bearing extensions: subdirs of Extensions/ that contain a Tests or EngineTests folder.
@@ -777,17 +823,56 @@ function resolveSuitesToRun() {
         return fs.existsSync(path.join(dir, 'Tests')) || fs.existsSync(path.join(dir, 'EngineTests'));
     });
     console.log("Discovered test-bearing extensions: " + testBearing.join(', '));
-    var selected = {};
-    files.forEach(function (f) {
-        var m = f.match(/^Extensions\/([^\/]+)\//);
-        if (!m) return;
-        var ext = m[1];
-        if (testBearing.indexOf(ext) >= 0) selected[ext] = true;
+    var result = resolveChangedExtensions(files, function (ext) {
+        return testBearing.indexOf(ext) >= 0;
     });
-    var result = Object.keys(selected);
+    if (result === null) {
+        console.log("-> running all suites.");
+        return null;
+    }
     console.log("Selected suites: " + (result.length ? result.join(', ') : '(none)'));
     return result;
 }
+
+// ---------------------------------------------------------------------------
+// gulp detectChangedExtensions — used by CI pipeline to find publishable exts
+// ---------------------------------------------------------------------------
+
+gulp.task("detectChangedExtensions", function (done) {
+    var publishable = discoverPublishableExtensions();
+    console.log("Publishable extensions: " + publishable.join(', '));
+
+    var files = getChangedFiles();
+    var extensions;
+
+    if (files === null) {
+        console.log("Cannot determine changed files -> returning all publishable extensions.");
+        extensions = publishable;
+    } else {
+        var result = resolveChangedExtensions(files, function (ext) {
+            return publishable.indexOf(ext) >= 0;
+        });
+        if (result === null) {
+            console.log("Shared infra changed -> returning all publishable extensions.");
+            extensions = publishable;
+        } else {
+            extensions = result;
+        }
+    }
+
+    var extensionList = extensions.join(';');
+    var hasChanges = extensions.length > 0 ? 'true' : 'false';
+
+    console.log("\nDetected extensions (" + extensions.length + "): " + extensions.join(', '));
+    console.log("\nSetting pipeline variables:");
+    console.log("  DetectedExtensions   = " + extensionList);
+    console.log("##vso[task.setvariable variable=DetectedExtensions]" + extensionList);
+    console.log("##vso[task.setvariable variable=DetectedExtensions;isOutput=true]" + extensionList);
+    console.log("  HasExtensionChanges  = " + hasChanges);
+    console.log("##vso[task.setvariable variable=HasExtensionChanges]" + hasChanges);
+    console.log("##vso[task.setvariable variable=HasExtensionChanges;isOutput=true]" + hasChanges);
+    done();
+});
 
 //-----------------------------------------------------------------------------------------------------------------
 // Package
@@ -990,5 +1075,5 @@ var cacheNuGetV2Package = function (repository, name, version) {
     }
 
     // Cache the archive file.
-    return cacheArchiveFile(repository.replace(/\/$/, '') + '?id=' + name + '&version=' + version);
+    return cacheArchiveFile(repository.replace(/\/$/, '') + '?id=' + name.toLowerCase() + '&version=' + version);
 }
