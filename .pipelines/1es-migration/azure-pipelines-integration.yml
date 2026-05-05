@@ -2,7 +2,7 @@
 # Builds and publishes an unsigned TEST extension, then runs CI tests.
 # No ESRP signing — avoids 1ES branch control restrictions on non-master branches.
 
-name: CI - Extension $(ExtensionName) - $(Date:yyyyMMdd)$(Rev:.r)
+name: CI - Extensions Integration - $(Date:yyyyMMdd)$(Rev:.r)
 appendCommitMessageToRunName: false
 
 trigger: none
@@ -108,28 +108,6 @@ extends:
           name: DetectExtensions
           displayName: 'Auto-detect changed extensions'
           workingDirectory: '$(Build.SourcesDirectory)'
-
-        - task: AzureCLI@2
-          displayName: 'Sync extension versions with Marketplace'
-          inputs:
-            azureSubscription: '1es-extensions-publication-secure-service-connection'
-            scriptType: pscore
-            scriptLocation: inlineScript
-            inlineScript: |
-              $extensions = '$(DetectedExtensions)' -split ';'
-              foreach ($extension in $extensions) {
-                $extension = $extension.Trim()
-                if (-not $extension) { continue }
-
-                $manifest = Join-Path '$(Build.SourcesDirectory)' "Extensions/$extension/Src/vss-extension.json"
-                if (-not (Test-Path $manifest)) {
-                  Write-Host "##[warning]Manifest not found for '$extension': $manifest — skipping version sync."
-                  continue
-                }
-
-                Write-Host "`n--- Syncing version for $extension ---"
-                & '$(Build.SourcesDirectory)/scripts/BumpExtensionVersion.ps1' -ManifestPath $manifest
-              }
 
         - task: PowerShell@2
           displayName: 'Build test resources'
