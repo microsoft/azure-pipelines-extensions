@@ -78,6 +78,14 @@ export class ansibleRemoteMachineInterface extends ansibleCommandLineInterface {
         var username: string = tl.getEndpointAuthorizationParameter(sshEndpoint, 'username', false);
         var password: string = tl.getEndpointAuthorizationParameter(sshEndpoint, 'password', true); //passphrase is optional
         var privateKey: string = process.env['ENDPOINT_DATA_' + sshEndpoint + '_PRIVATEKEY']; //private key is optional, password can be used for connecting
+
+        // Register credentials with the log masker to prevent exposure in pipeline logs
+        if (password) {
+            tl.setSecret(password);
+        }
+        if (privateKey) {
+            tl.setSecret(privateKey);
+        }
         var hostname: string = tl.getEndpointDataParameter(sshEndpoint, 'host', false);
         var port: string = tl.getEndpointDataParameter(sshEndpoint, 'port', true); //port is optional, will use 22 as default port if not specified
         if (!port || port === '') {

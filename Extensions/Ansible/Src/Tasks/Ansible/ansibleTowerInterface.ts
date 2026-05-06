@@ -34,6 +34,11 @@ export class ansibleTowerInterface extends ansibleInterface {
             var endpointAuth = tl.getEndpointAuthorization(connectedService, true);
             this._username = endpointAuth.parameters["username"];
             this._password = endpointAuth.parameters["password"];
+
+            // Register credentials with the log masker to prevent exposure in pipeline logs
+            if (this._password) {
+                tl.setSecret(this._password);
+            }
             this._hostname = tl.getEndpointUrl(connectedService, true);
             this._jobTemplateName = tl.getInput("jobTemplateName");
             this._lastPolledEvent = 0;
