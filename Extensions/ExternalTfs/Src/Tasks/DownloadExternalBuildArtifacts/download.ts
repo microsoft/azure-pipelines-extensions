@@ -166,6 +166,7 @@ async function configureForAdoSc(): Promise<ConnectionDetails> {
     validateInputs(serviceConnection, projectId, buildId);
 
     const accessToken: string = await auth.getAccessTokenViaWorkloadIdentityFederation(serviceConnection);
+    if (accessToken) tl.setSecret(accessToken);
     return {
         serviceConnection,
         projectId,

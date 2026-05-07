@@ -64,6 +64,8 @@ async function getAccessTokenFromFederatedToken(
     const result = await app.acquireTokenByClientCredential(request);
     if (!result?.accessToken) {
         tl.debug("MSAL did not return an access token.");
+    } else {
+        tl.setSecret(result.accessToken);
     }
     if(result?.expiresOn) {
         const minutesUntilExpiration = (result.expiresOn.getTime() - Date.now()) / 60000;
