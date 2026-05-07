@@ -21,6 +21,7 @@ export async function getAccessTokenViaWorkloadIdentityFederation(serviceConnect
   tl.debug(`Getting federated token for service connection ${serviceConnection}`);
   var federatedToken: string = await getFederatedToken(serviceConnection);
   tl.debug(`Got federated token for service connection ${serviceConnection}`);
+  if (federatedToken) tl.setSecret(federatedToken);
 
   // Exchange federated token for service principal token
   return await getAccessTokenFromFederatedToken(servicePrincipalId, tenantId, federatedToken, authorityUrl);

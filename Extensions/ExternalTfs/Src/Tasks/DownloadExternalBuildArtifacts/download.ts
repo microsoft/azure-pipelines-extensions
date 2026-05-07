@@ -186,6 +186,8 @@ function configureForTfsSc() : ConnectionDetails {
         tl.getEndpointAuthorizationParameter(serviceConnection, 'apitoken', true) ||
         tl.getEndpointAuthorizationParameter(serviceConnection, 'password', true);
 
+    if (accessToken) tl.setSecret(accessToken);
+
     return {
         serviceConnection,
         projectId,

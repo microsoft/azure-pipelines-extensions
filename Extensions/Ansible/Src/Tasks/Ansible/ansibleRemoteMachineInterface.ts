@@ -77,12 +77,23 @@ export class ansibleRemoteMachineInterface extends ansibleCommandLineInterface {
         var sshEndpoint = this._taskParameters.sshEndpoint;
         var username: string = tl.getEndpointAuthorizationParameter(sshEndpoint, 'username', false);
         var password: string = tl.getEndpointAuthorizationParameter(sshEndpoint, 'password', true); //passphrase is optional
-        var privateKey: string = process.env['ENDPOINT_DATA_' + sshEndpoint + '_PRIVATEKEY']; //private key is optional, password can be used for connecting
+        var privateKeyEnvVar = 'ENDPOINT_DATA_' + sshEndpoint + '_PRIVATEKEY';
+        var privateKey: string = process.env[privateKeyEnvVar]; //private key is optional, password can be used for connecting
         var hostname: string = tl.getEndpointDataParameter(sshEndpoint, 'host', false);
         var port: string = tl.getEndpointDataParameter(sshEndpoint, 'port', true); //port is optional, will use 22 as default port if not specified
         if (!port || port === '') {
             ansibleUtils._writeLine(tl.loc('UseDefaultPort'));
             port = '22';
+        }
+
+        // Register credentials with the log masker so they are redacted in pipeline logs
+        if (password) {
+            tl.setSecret(password);
+        }
+        if (privateKey) {
+            tl.setSecret(privateKey);
+            // Remove private key from environment to prevent inheritance by child processes
+            delete process.env[privateKeyEnvVar];
         }
 
         //setup the SSH connection configuration based on endpoint details
