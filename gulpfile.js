@@ -815,6 +815,7 @@ function resolveSuitesToRun() {
         console.log("-> running all suites.");
         return null;
     }
+    // Auto-discover test-bearing extensions: subdirs of Extensions/ that contain a Tests or EngineTests folder.
     var extensionsRoot = path.join(__dirname, 'Extensions');
     var testBearing = fs.readdirSync(extensionsRoot).filter(function (name) {
         var dir = path.join(extensionsRoot, name);

@@ -2,7 +2,7 @@
 # Builds and publishes an unsigned TEST extension, then runs CI tests.
 # No ESRP signing — avoids 1ES branch control restrictions on non-master branches.
 
-name: CI - Extension $(ExtensionName) - $(Date:yyyyMMdd)$(Rev:.r)
+name: CI - Extensions Integration - $(Date:yyyyMMdd)$(Rev:.r)
 appendCommitMessageToRunName: false
 
 trigger: none
