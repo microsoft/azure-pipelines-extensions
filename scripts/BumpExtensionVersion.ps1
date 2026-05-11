@@ -5,25 +5,20 @@
 
 .DESCRIPTION
     This script queries the Azure DevOps Marketplace REST API for both the public
-    extension and its corresponding test extension (with "-test" suffix). It compares
-    the local version against the higher of the two Marketplace versions. If the local
-    version is less than or equal to the highest published version, the script
-    auto-increments the patch number.
+    extension and its corresponding test extension (with "-test" suffix).
+    It compares the local version against the higher of the two Marketplace versions.
+    If the local version is less than or equal to the highest published version,
+    the script auto-increments the patch number.
 
     Requires Azure CLI authentication ("az login") to query private test extensions.
+    However, az login will be automatically invoked by the gulp task
+    and no manual configuration is needed.
 
     Intended to be invoked via "gulp build --syncVersions <ExtensionName>" which
     updates the SOURCE vss-extension.json so the developer can commit the change.
 
 .PARAMETER ManifestPath
-    Path to the vss-extension.json file to check and update.
-
-.EXAMPLE
-    # First time: login to Azure CLI
-    az login
-
-    # Bump Ansible extension version (checks both public and private test extension)
-    gulp build --syncVersions Ansible
+    Path to the vss-extension.json file to check and update if necessary.
 #>
 [CmdletBinding()]
 param(
