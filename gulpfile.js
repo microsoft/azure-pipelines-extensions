@@ -7,28 +7,25 @@ const cp = require('child_process');
 const admZip = require('adm-zip');
 const del = require('del');
 const fs = require('fs-extra');
-const mocha = require('gulp-mocha');
 const minimist = require('minimist');
-const request = require('request');
 const semver = require('semver');
 const shell = require('shelljs');
 // @ts-ignore
 const syncRequest = require('sync-request');
 const typescript = require('typescript');
 const xml2js = require('xml2js');
-const args = require('yargs').argv;
+const args = require('yargs')(require('yargs/helpers').hideBin(process.argv)).argv;
 
 // gulp modules
 const gts = require('gulp-typescript');
 const gulp = require('gulp');
-const gutil = require('gulp-util');
 
 const pkgm = require('./package');
 const util = require('./package-utils');
 
 // validation
-var NPM_MIN_VER = '3.0.0';
-var MIN_NODE_VER = '4.0.0';
+var NPM_MIN_VER = '9.0.0';
+var MIN_NODE_VER = '18.0.0';
 
 if (semver.lt(process.versions.node, MIN_NODE_VER)) {
     console.error('requires node >= ' + MIN_NODE_VER + '.  installed: ' + process.versions.node);
@@ -40,8 +37,8 @@ if (semver.lt(process.versions.node, MIN_NODE_VER)) {
 //
 var mopts = {
     string: 'suite',
-    boolean: ['perf', 'e2e'],
-    default: { suite: '**', perf: false, e2e: false }
+    boolean: ['perf', 'e2e', 'runAllSuites'],
+    default: { suite: '**', perf: false, e2e: false, runAllSuites: false }
 };
 
 var options = minimist(process.argv.slice(2), mopts);
@@ -60,10 +57,6 @@ var sourcePaths = "@(definitions|Extensions)/**/*";
 var ExtensionFolder = "Extensions";
 var artifactEngineSourcePath = path.join(ExtensionFolder, "ArtifactEngine");
 var artifactEngineV2SourcePath = path.join(ExtensionFolder, "ArtifactEngineV2");
-var taskModulesSourcePath = "TaskModules/**/*"
-var TaskModulesFolder = "TaskModules"
-var TaskModulesTestRoot = path.join(_taskModuleBuildRoot, 'powershell', 'Tests');
-var TaskModulesTestTemp = path.join(TaskModulesTestRoot, 'Temp');
 var _tempPath = path.join(__dirname, '_temp');
 var _testRoot = "_build/";
 var _testTemp = "_build/Temp";
@@ -113,152 +106,86 @@ gulp.task("compilePS", gulp.series("clean", function() {
     }
 }));
 
-gulp.task("TaskModuleBuild", gulp.series("clean", function() {
-    gulp.src(taskModulesSourcePath, { base: "."}).pipe(gulp.dest(_buildRoot));
-}));
-
-gulp.task("clean:TaskModuleTest", function(cb) {
-    return del([TaskModulesTestRoot], cb);
-});
-
-gulp.task('compile:TaskModuleTest', gulp.series('clean:TaskModuleTest', function (cb) {
-    var proj = gts.createProject(rootTsconfigPath, { typescript: typescript, declaration: true });
-    var testsPath = path.join('TaskModules', 'powershell', 'Tests', '**/*.ts');
-    var testsLibPath = path.join('Extensions', 'Common', 'lib', '**/*.ts');
-
-    var tsconfigPath = path.join('TaskModules', 'powershell', 'Tests', 'tsconfig.json');
-    if (fs.existsSync(tsconfigPath)) {
-        var projLocal = gts.createProject(tsconfigPath, { typescript: typescript });
-        var tsLocal = gts(projLocal);
-
-        gulp.src([testsLibPath, 'definitions/*.d.ts'])
-            .pipe(proj())
-            .on("error", errorHandler)
-            .pipe(gulp.dest(path.join(_extnBuildRoot, 'Common', 'lib')));
-
-        return gulp.src([testsPath, 'definitions/*.d.ts'])
-            .pipe(tsLocal)
-            .on('error', errorHandler)
-            .pipe(gulp.dest(TaskModulesTestRoot));
-    }
-}));
-
-gulp.task('copy:TaskModuleTest', gulp.series('compile:TaskModuleTest', function (cb) {
-    gulp.src([path.join('Extensions', 'Common', 'lib', '**/*')])
-        .pipe(gulp.dest(path.join(_extnBuildRoot, 'Common', 'lib')));
-    return gulp.src([path.join('TaskModules', 'powershell', 'Tests', '**/*')])
-        .pipe(gulp.dest(TaskModulesTestRoot));
-}));
-
-gulp.task("TaskModuleTest", gulp.series('copy:TaskModuleTest', function() {
-    process.env['TASK_TEST_TEMP'] = TaskModulesTestTemp;
-    shell.rm('-rf', TaskModulesTestTemp);
-    shell.mkdir('-p', TaskModulesTestTemp);
-
-    var testSuitePath = path.join(TaskModulesTestRoot, options.suite + '/L0.js');
-    var tfBuild = ('' + process.env['TF_BUILD']).toLowerCase() == 'true'
-
-    gulp.src([testSuitePath])
-        .pipe(mocha({ reporter: 'spec', ui: 'bdd', useColors: !tfBuild }));
-}));
-
-gulp.task('prepublish:TaskModulePublish', function (done) {
-    return del([TaskModulesTestRoot], done);
-});
-
-gulp.task('TaskModulePublish', gulp.series('prepublish:TaskModulePublish', function (done) {
-    var powershellModulesDirectory = path.join(_taskModuleBuildRoot, 'powershell', '**/*');
-
-    if(options.outputDir){
-        var outputModulesDirectory = path.join(options.outputDir, 'ps_modules');
-        shell.mkdir('-p', outputModulesDirectory);
-        gulp.src(powershellModulesDirectory).pipe(gulp.dest(outputModulesDirectory));
-    }
-}));
-
 gulp.task("compileNode", gulp.series("compilePS", function(cb){
-     try {
+    try {
         // Cache all externals in the download directory.
-        var allExternalsJson = shell.find(path.join(__dirname, 'Extensions'))
-            .filter(function (file) {
-                return file.match(/(\/|\\)externals\.json$/);
-            })
-            .concat(path.join(__dirname, 'externals.json'));
-        allExternalsJson.forEach(function (externalsJson) {
-            // Load the externals.json file.
-            console.log('Loading ' + externalsJson);
-            var externals = require(externalsJson);
+        // Cache all externals in the download directory.
+        // Note: shelljs 0.10 `shell.find` returns only the root path itself when
+        // given a Windows-style absolute path — use the relative "Extensions"
+        // directory instead so it walks recursively.
+        shell.find('Extensions')
+            .filter((file) => file.match(/(\/|\\)externals\.json$/))
+            .map((file) => path.resolve(file))
+            .concat(path.join(__dirname, 'externals.json'))
+            .forEach((externalsJson) => {
+                // Load the externals.json file.
+                console.log('Loading ' + externalsJson);
+                var externals = require(externalsJson);
 
-            // Check for NPM externals.
-            if (externals.npm) {
-                // Walk the dictionary.
-                var packageNames = Object.keys(externals.npm);
-                packageNames.forEach(function (packageName) {
-                    // Cache the NPM package.
-                    var packageVersion = externals.npm[packageName];
-                    cacheNpmPackage(packageName, packageVersion);
-                });
-            }
+                // Check for NPM externals.
+                if (externals.npm) {
+                    // Walk the dictionary.
+                    var packageNames = Object.keys(externals.npm);
+                    packageNames.forEach(function (packageName) {
+                        // Cache the NPM package.
+                        var packageVersion = externals.npm[packageName];
+                        cacheNpmPackage(packageName, packageVersion);
+                    });
+                }
 
-            // external NuGet V2 packages
-            if (externals.nugetv2) {
-                var nugetPackages = Object.keys(externals.nugetv2);
-                nugetPackages.forEach(function (package) {
-                    // download and extract the NuGet V2 package
-                    var packageVersion = externals.nugetv2[package].version;
-                    var packageRepository = externals.nugetv2[package].repository;
-                    var copySpecification = externals.nugetv2[package].cp;
+                // external NuGet V2 packages
+                if (externals.nugetv2) {
+                    var nugetPackages = Object.keys(externals.nugetv2);
+                    nugetPackages.forEach(function (package) {
+                        // download and extract the NuGet V2 package
+                        var packageVersion = externals.nugetv2[package].version;
+                        var packageRepository = externals.nugetv2[package].repository;
+                        var copySpecification = externals.nugetv2[package].cp;
 
-                    var packageSource = cacheNuGetV2Package(packageRepository, package, packageVersion);
+                        var packageSource = cacheNuGetV2Package(packageRepository, package, packageVersion);
 
-                    var relativeExternalsPath = path.dirname(externalsJson).replace(new RegExp('/','g'),'\\').replace(path.join(__dirname),'');
-                    if(relativeExternalsPath.startsWith('\\')) {
-                        relativeExternalsPath = relativeExternalsPath.substring(1);
-                    }
-                    var destPath = path.join(_buildRoot, relativeExternalsPath);
+                        var relativeExternalsPath = path.dirname(externalsJson).replace(new RegExp('/','g'),'\\').replace(path.join(__dirname),'');
+                        if(relativeExternalsPath.startsWith('\\')) {
+                            relativeExternalsPath = relativeExternalsPath.substring(1);
+                        }
+                        var destPath = path.join(_buildRoot, relativeExternalsPath);
 
-                    // copy specific files
-                    if (!!copySpecification) {
-                        copyGroups(copySpecification, packageSource, destPath);
-                    }
-                });
-            }
+                        // copy specific files
+                        if (!!copySpecification) {
+                            copyGroups(copySpecification, packageSource, destPath);
+                        }
+                    });
+                }
 
-            // Check for archive files.
-            if (externals.archivePackages) {
-                // Walk the array.
-                externals.archivePackages.forEach(function (archive) {
-                    // Cache the archive file.
-                    cacheArchiveFile(archive.url);
-                });
-            }
+                // check of task modules
+                if (externals.taskModule) {
+                    var taskModules = Object.keys(externals.taskModule);
+                    taskModules.forEach(function (moduleIndex) {
+                        var module = externals.taskModule[moduleIndex];
+                        var srcPath = path.join("TaskModules", module['type'], module['name']);
+                        var relativeExternalsPath = path.dirname(externalsJson).replace(new RegExp('/','g'),'\\').replace(path.join(__dirname),'');
 
-            // check of task modules
-            if(externals.taskModule) {
-                var taskModules = Object.keys(externals.taskModule);
-                taskModules.forEach(function (moduleIndex) {
-                      var module = externals.taskModule[moduleIndex];
-                      var srcPath = path.join("TaskModules", module['type'], module['name']);
-                      var relativeExternalsPath = path.dirname(externalsJson).replace(new RegExp('/','g'),'\\').replace(path.join(__dirname),'');
-                      if(relativeExternalsPath.startsWith('\\')) {
-                         relativeExternalsPath = relativeExternalsPath.substring(1);
-                      }
-                      var destPath = path.join(_buildRoot, relativeExternalsPath, module['dest']);
-                      shell.mkdir('-p', destPath);
-                      shell.cp('-R', srcPath, destPath);
-                });
-            }
-        });
-    }
-    catch (err) {
+                        if (relativeExternalsPath.startsWith('\\')) {
+                            relativeExternalsPath = relativeExternalsPath.substring(1);
+                        }
+                        var destPath = path.join(_buildRoot, relativeExternalsPath, module['dest']);
+                        shell.mkdir('-p', destPath);
+                        shell.cp('-R', srcPath, destPath);
+                    });
+                }
+            });
+    } catch (err) {
         console.log('error:' + err.message);
-        cb(new gutil.PluginError('compileTasks', err.message));
+        cb(new Error('compileTasks: ' + err.message));
         return;
     }
 
     // Compile UIExtensions
-    fs.readdirSync( path.join(__dirname, 'Extensions/')).filter(function (file) {
-        return fs.statSync(path.join(_extnBuildRoot, file)).isDirectory() && file != "Common";
+    // Note: when running with --testAreaPath, only a subset of extensions are copied into _build.
+    // Guard against missing directories so scoped builds don't fail.
+    fs.readdirSync(path.join(__dirname, 'Extensions/')).filter(function (file) {
+        var buildExtensionPath = path.join(_extnBuildRoot, file);
+        return fs.existsSync(buildExtensionPath) && fs.statSync(buildExtensionPath).isDirectory() && file != "Common";
     }).forEach(compileUIExtensions);
 
     //Foreach task under extensions copy common modules
@@ -266,8 +193,8 @@ gulp.task("compileNode", gulp.series("compilePS", function(cb){
         return fs.statSync(path.join(_extnBuildRoot, file)).isDirectory() && file != "Common";
     }).forEach(copyCommonModules);
 
-    runNpmInstall(artifactEnginePath);
-    runNpmInstall(artifactEngineV2Path);
+    runNpmInstall(artifactEnginePath, artifactEngineSourcePath);
+    runNpmInstall(artifactEngineV2Path, artifactEngineV2SourcePath);
 
     // Compile tasks
     const tasksProject = gts.createProject(rootTsconfigPath, { typescript: typescript, declaration: true });
@@ -277,7 +204,7 @@ gulp.task("compileNode", gulp.series("compilePS", function(cb){
 
     const testFiles = path.join(_extnBuildRoot, "**/Tests/**/*.ts");
 
-    gulp.src([taskFiles, `!${testFiles}`, artifactEngineFiles, artifactEngineV2Files, '!**/node_modules/**'])
+    gulp.src([taskFiles, `!${testFiles}`, artifactEngineFiles, artifactEngineV2Files, '!**/node_modules/**'], { base: _extnBuildRoot })
         .pipe(tasksProject())
         .pipe(gulp.dest(path.join(_buildRoot, "Extensions")))
         .on("error", errorHandler);
@@ -285,7 +212,7 @@ gulp.task("compileNode", gulp.series("compilePS", function(cb){
     const testProject = gts.createProject(rootTsconfigPath, { typescript: typescript, declaration: true });
     const sanitizerTestFiles = path.join(_extnBuildRoot, "**/ps_modules/Sanitizer/Tests/*.ts");
 
-    gulp.src([testFiles, `!${sanitizerTestFiles}`])
+    gulp.src([testFiles, `!${sanitizerTestFiles}`], { base: _extnBuildRoot })
         .pipe(testProject())
         .pipe(gulp.dest(path.join(_buildRoot, "Extensions")))
         .on("error", errorHandler);
@@ -359,7 +286,7 @@ var copyGroup = function (group, sourceRoot, destRoot) {
 
     // multiply by culture name (recursive call to self)
     if (group.dest && group.dest.indexOf('<CULTURE_NAME>') >= 0) {
-        cultureNames.forEach(function (cultureName) {
+        cultures.forEach(function (cultureName) {
             // culture names do not contain any JSON-special characters, so this is OK (albeit a hack)
             var localizedGroupJson = JSON.stringify(group).replace(/<CULTURE_NAME>/g, cultureName);
             copyGroup(JSON.parse(localizedGroupJson), sourceRoot, destRoot);
@@ -396,277 +323,92 @@ var copyGroups = function (groups, sourceRoot, destRoot) {
 
 function createResjson(callback) {
     try {
-        var allLibJson = shell.find(path.join(__dirname, 'Extensions'))
-            .filter(function (file) {
-                return file.match(/(\/|\\)lib\.json$/);
-            });
+        shell.find('Extensions')
+            .filter( (file) => file.match(/(\/|\\)lib\.json$/))
+            .map((file) => path.resolve(file))
+            .forEach(function (libJson) {
+                console.log('Generating resJson for ' + libJson);
 
-        allLibJson.forEach(function (libJson) {
-            console.log('Generating resJson for ' + libJson);
+                // create a key->value map of the default strings
+                var defaultStrings = {};
+                var lib = JSON.parse(fs.readFileSync(libJson));
 
-            // create a key->value map of the default strings
-            var defaultStrings = {};
-            var lib = JSON.parse(fs.readFileSync(libJson));
-            if (lib.messages) {
-                for (var key of Object.keys(lib.messages)) {
-                    // skip resjson-style comments for localizers
-                    if (!key || key.match(/^_.+\.comment$/)) {
-                        continue;
-                    }
-
-                    defaultStrings[`loc.messages.${key}`] = lib.messages[key];
-                }
-            }
-
-            // create the culture-specific resjson files
-            for (var culture of cultures) {
-                // initialize the culture-specific strings from the default strings
-                var cultureStrings = {};
-                for (var key of Object.keys(defaultStrings)) {
-                    cultureStrings[key] = defaultStrings[key];
-                }
-
-                // load the culture-specific xliff file
-                var xliffPath = path.join(path.dirname(libJson), 'xliff', `${culture}.xlf`);
-                var stats;
-                try {
-                    stats = fs.statSync(xliffPath);
-                }
-                catch (err) {
-                    if (err.code != 'ENOENT') {
-                        throw err;
-                    }
-                }
-
-                if (stats) {
-                    // parse the culture-specific xliff contents
-                    var parser = new xml2js.Parser();
-                    var xliff;
-                    parser.parseString(
-                        fs.readFileSync(xliffPath),
-                        function (err, result) {
-                            if (err) {
-                                throw err;
-                            }
-
-                            xliff = result;
-                        });
-
-                    // overlay the translated strings
-                    for (var unit of xliff.xliff.file[0].body[0]['trans-unit']) {
-                        if (unit.target[0].$.state == 'translated' &&
-                            defaultStrings.hasOwnProperty(unit.$.id) &&
-                            defaultStrings[unit.$.id] == unit.source[0]) {
-
-                            cultureStrings[unit.$.id] = unit.target[0]._;
+                if (lib.messages) {
+                    for (var key of Object.keys(lib.messages)) {
+                        // skip resjson-style comments for localizers
+                        if (!key || key.match(/^_.+\.comment$/)) {
+                            continue;
                         }
-                    }
-                }
 
-                // write the culture-specific resjson file
-                var resjsonPath = path.join(path.dirname(libJson), 'Strings', 'resources.resjson', culture, 'resources.resjson');
-                var resjsonContents = JSON.stringify(cultureStrings, null, 2);
-                shell.mkdir('-p', path.dirname(resjsonPath));
-                fs.writeFileSync(resjsonPath, resjsonContents.replace(/\n/g, os.EOL));
-            }
-        });
-    }
-    catch (err) {
-        console.log('error:' + err.message);
-        callback(new gutil.PluginError('compileTasks', err.message));
-        throw err;
-    }
-}
-
-function handoff(callback) {
-    // create a key->value map of default strings and comments for localizers
-    //
-    // resjson-style resources:
-    //   "greeting": "Hello",
-    //   "_greeting.comment": "A welcome greeting.",
-    //
-    // for more details about resjson: https://msdn.microsoft.com/en-us/library/windows/apps/hh465254.aspx
-
-    try {
-        var allLibJson = shell.find(path.join(__dirname, 'Extensions'))
-            .filter(function (file) {
-                return file.match(/(\/|\\)lib\.json$/);
-            });
-
-        allLibJson.forEach(function (libJson) {
-            console.log('Generating xliff for ' + libJson);
-
-
-            var defaultStrings = {};
-            var comments = {};
-            var lib = JSON.parse(fs.readFileSync(libJson));
-            if (lib.messages) {
-                for (var key of Object.keys(lib.messages)) {
-                    if (!key) {
-                        throw new Error('key cannot be empty: lib.messages.<key>');
-                    }
-
-                    if (key.match(/^_.+\.comment$/)) {
-                        var commentKey = key;
-                        var valueKey = commentKey.substr(   // trim leading "_"
-                            '_'.length,                     // trim trailing ".comment"
-                            commentKey.length - '_.comment'.length);
-                        comments[`loc.messages.${valueKey}`] = lib.messages[commentKey];
-                        continue;
-                    }
-                    else {
                         defaultStrings[`loc.messages.${key}`] = lib.messages[key];
                     }
                 }
-            }
 
-            // create or update the culture-specific xlf files
-            for (var culture of cultures) {
-                if (culture.toUpperCase() == 'EN-US') {
-                    continue;
-                }
-
-                // test whether xliff file exists
-                var xliffPath = path.join(path.dirname(libJson), 'xliff', `${culture}.xlf`);
-                var stats;
-                try {
-                    stats = fs.statSync(xliffPath);
-                }
-                catch (err) {
-                    if (err.code != 'ENOENT') {
-                        throw err;
+                // create the culture-specific resjson files
+                for (var culture of cultures) {
+                    // initialize the culture-specific strings from the default strings
+                    var cultureStrings = {};
+                    for (var key of Object.keys(defaultStrings)) {
+                        cultureStrings[key] = defaultStrings[key];
                     }
-                }
 
-                var xliff;
-                if (stats) {
-                    // parse the file
-                    var parser = new xml2js.Parser();
-                    parser.parseString(
-                        fs.readFileSync(xliffPath),
-                        function (err, result) {
-                            if (err) {
-                                throw err;
+                    // load the culture-specific xliff file
+                    var xliffPath = path.join(path.dirname(libJson), 'xliff', `${culture}.xlf`);
+                    var stats;
+
+                    try {
+                        stats = fs.statSync(xliffPath);
+                    } catch (err) {
+                        if (err.code != 'ENOENT') {
+                            throw err;
+                        }
+                    }
+
+                    if (stats) {
+                        // parse the culture-specific xliff contents
+                        var parser = new xml2js.Parser();
+                        var xliff;
+                        parser.parseString(
+                            fs.readFileSync(xliffPath),
+                            function (err, result) {
+                                if (err) {
+                                    throw err;
+                                }
+
+                                xliff = result;
+                            });
+
+                        // overlay the translated strings
+                        for (var unit of xliff.xliff.file[0].body[0]['trans-unit']) {
+                            if (unit.target[0].$.state == 'translated' &&
+                                defaultStrings.hasOwnProperty(unit.$.id) &&
+                                defaultStrings[unit.$.id] == unit.source[0]) {
+
+                                cultureStrings[unit.$.id] = unit.target[0]._;
                             }
-
-                            xliff = result;
-                        }
-                    )
-                }
-                else {
-                    // create the initial xliff object
-                    xliff = {
-                        "xliff": {
-                            "$": {
-                                "version": "1.2"
-                            },
-                            "file": [
-                                {
-                                    "$": {
-                                        "original": "lib.json",
-                                        "source-language": "en-US",
-                                        "target-language": culture,
-                                        "datatype": "plaintext"
-                                    },
-                                    "body": [
-                                        {
-                                            "trans-unit": []
-                                        }
-                                    ]
-                                }
-                            ]
-                        }
-                    }
-                }
-
-                // create a map of trans-unit
-                var unitMap = {};
-                for (var unit of xliff.xliff.file[0].body[0]['trans-unit']) {
-                    unitMap[unit['$'].id] = unit;
-                }
-
-                for (var key of Object.keys(defaultStrings)) {
-                    // add the trans-unit
-                    if (!unitMap.hasOwnProperty(key)) {
-                        unitMap[key] = {
-                            "$": {
-                                "id": key
-                            },
-                            "source": [
-                                defaultStrings[key]
-                            ],
-                            "target": [
-                                {
-                                    "$": {
-                                        "state": "new"
-                                    },
-                                    "_": ""
-                                }
-                            ]
-                        };
-                    }
-                    // update the source, target state, and note
-                    else if (unitMap[key].source[0] != defaultStrings[key]) {
-                        unitMap[key].source = [
-                            defaultStrings[key]
-                        ];
-                        if (unitMap[key].target[0]['$'].state != 'new') {
-                            unitMap[key].target[0]['$'].state = "needs-translation";
                         }
                     }
 
-                    // always update the note
-                    unitMap[key].note = [
-                        (comments[key] || "")
-                    ];
+                    // write the culture-specific resjson file
+                    var resjsonPath = path.join(path.dirname(libJson), 'Strings', 'resources.resjson', culture, 'resources.resjson');
+                    var resjsonContents = JSON.stringify(cultureStrings, null, 2);
+                    shell.mkdir('-p', path.dirname(resjsonPath));
+                    fs.writeFileSync(resjsonPath, resjsonContents.replace(/\n/g, os.EOL));
                 }
-
-                for (var key of Object.keys(unitMap)) {
-                    // delete the trans-unit
-                    if (!defaultStrings.hasOwnProperty(key)) {
-                        delete unitMap[key];
-                    }
-                }
-
-                // update the body of the xliff object
-                xliff.xliff.file[0].body[0]['trans-unit'] = [];
-                for (var key of Object.keys(unitMap).sort()) {
-                    xliff.xliff.file[0].body[0]['trans-unit'].push(unitMap[key]);
-                }
-
-                // write the xliff file
-                var options = {
-                    "renderOpts": {
-                        "pretty": true,
-                        "indent": "  ",
-                        "newline": os.EOL
-                    },
-                    "xmldec": {
-                        "version": "1.0",
-                        "encoding": "utf-8"
-                    }
-                };
-
-                var builder = new xml2js.Builder(options);
-                var xml = builder.buildObject(xliff);
-                shell.mkdir('-p', path.dirname(xliffPath));
-                fs.writeFileSync(xliffPath, '\ufeff' + xml);
-            }
-        });
-    }
-    catch (err) {
+            });
+    } catch (err) {
         console.log('error:' + err.message);
-        callback(new gutil.PluginError('compileTasks', err.message));
+        callback(new Error('compileTasks: ' + err.message));
         throw err;
     }
 }
 
-function runNpmInstall(packagePath) {
+function runNpmInstall(packagePath, sourcePath) {
     var originalDir = shell.pwd();
     util.cd(packagePath);
     var packageJsonPath = util.rp('package.json');
     if (util.test('-f', packageJsonPath)) {
-        util.run(`npm install --userconfig ${path.join(artifactEngineSourcePath, ".npmrc")}`);
+        util.run(`npm ci --userconfig ${path.join(__dirname, sourcePath, ".npmrc")}`);
     }
     util.cd(originalDir);
 }
@@ -868,10 +610,6 @@ gulp.task("syncVersions", function(cb) {
 
 gulp.task("build", gulp.series("syncVersions", "compileNode", "updateTestIds"));
 
-gulp.task("handoff", function(cb) {
-    handoff(cb);
-});
-
 gulp.task("default", gulp.series("build"));
 
 //-----------------------------------------------------------------------------------------------------------------
@@ -910,45 +648,337 @@ gulp.task('ps1tests', gulp.series('compileTests', function () {
 }));
 
 gulp.task('testLib_NodeModules', gulp.series('testLib', function () {
-    return gulp.src(path.join(__dirname, 'Extensions/Common/lib/vsts-task-lib/**/*'))
-        .pipe(gulp.dest(path.join(_testRoot, 'Extensions/Common/lib/node_modules/vsts-task-lib')));
+    return gulp.src(path.join(__dirname, 'node_modules/azure-pipelines-task-lib/**/*'))
+        .pipe(gulp.dest(path.join(_testRoot, 'Extensions/Common/lib/node_modules/azure-pipelines-task-lib')));
 }));
 
 gulp.task('testResources', gulp.parallel('testLib_NodeModules', 'ps1tests', 'tstests', 'copyTestData'));
 
-gulp.task("test", gulp.series("testResources", function(){
-    process.env['TASK_TEST_TEMP'] =path.join(__dirname, _testTemp);
+// Path to mocha CLI. With newer gulp-mocha versions, mocha is hoisted to the
+// top-level node_modules rather than nested under gulp-mocha. Resolve it via
+// require.resolve so we pick up whichever copy npm has installed.
+var _mochaBin = path.join(path.dirname(require.resolve('mocha/package.json')), 'bin', '_mocha');
+
+// Spawn mocha as a separate child Node process for a single logical "suite"
+// (one extension, or one ad-hoc file glob). This isolates module state — most
+// importantly, the global `nock`/`@mswjs/interceptors` HTTP patching done by
+// the ArtifactEngine integration tests — so suites that perform real HTTP
+// (e.g. Ansible's MockTestRunner downloading node.exe) aren't affected.
+//
+// Returns a Promise that resolves with the child's exit code (0 on success).
+function runMochaSuite(label, patterns, ignorePatterns) {
+    var glob = require('glob');
+    var tfBuild = ('' + process.env['TF_BUILD']).toLowerCase() == 'true';
+
+    // glob requires forward-slash patterns even on Windows.
+    var toPosix = function (p) { return String(p).replace(/\\/g, '/'); };
+    var posixIgnores = (ignorePatterns || []).map(toPosix);
+    // Always exclude node_modules: dependencies sometimes ship their own
+    // *tests.js files (e.g. safer-buffer) that we must not run.
+    posixIgnores.push('**/node_modules/**');
+
+    var files = [];
+    var seen = {};
+    (patterns || []).forEach(function (p) {
+        // nocase:false to keep `*Tests.js` (capital T) from matching
+        // dependency files like `tests.js` on case-insensitive filesystems.
+        var matches = glob.sync(toPosix(p), { ignore: posixIgnores, nocase: false });
+        matches.forEach(function (m) {
+            // Normalize back to native separators for spawn args.
+            var native = m.split('/').join(path.sep);
+            if (!seen[native]) { seen[native] = true; files.push(native); }
+        });
+    });
+
+    // Sort the resolved files to keep load order deterministic across platforms.
+    // This matters because some suites (e.g. ArtifactEngine ProvidersTests) call
+    // libMocker.enable({useCleanCache:true}) at module top level with an `fs`
+    // mock that is missing methods (writeFileSync). azure-pipelines-task-lib's
+    // task.js only initializes its Vault on first load (gated by
+    // global['_vsts_task_lib_loaded']); if a non-mocking test file (e.g.
+    // jenkinsTests) loads first it sets that flag, and the subsequent re-load
+    // through the cleared cache becomes a no-op. The previous gulp-mocha based
+    // pipeline relied on alphabetical glob order for this; preserve it.
+    files.sort();
+
+    console.log('\n========================================');
+    console.log('Running mocha suite: ' + label);
+    (patterns || []).forEach(function (p) { console.log('  pattern: ' + p); });
+    (ignorePatterns || []).forEach(function (p) { console.log('  ignore : ' + p); });
+    console.log('  resolved files: ' + files.length);
+    console.log('========================================');
+
+    if (files.length === 0) {
+        console.log('No test files matched for suite ' + label + '; skipping.');
+        return Promise.resolve(0);
+    }
+
+    var args = [_mochaBin, '--reporter', 'spec', '--ui', 'bdd'];
+    if (tfBuild) {
+        args.push('--no-colors');
+    }
+    args = args.concat(files);
+
+    return new Promise(function (resolve) {
+        var child = cp.spawn(process.execPath, args, {
+            stdio: 'inherit',
+            env: process.env,
+            cwd: __dirname
+        });
+        child.on('exit', function (code) { resolve(code == null ? 1 : code); });
+        child.on('error', function (err) {
+            console.error('Failed to spawn mocha for suite ' + label + ': ' + err.message);
+            resolve(1);
+        });
+    });
+}
+
+// Run a list of suites sequentially (do NOT fast-fail; we want a complete CI
+// signal). Returns a Promise that rejects if any suite failed.
+function runMochaSuitesSequentially(suites) {
+    var failures = [];
+    var p = Promise.resolve();
+    suites.forEach(function (s) {
+        p = p.then(function () {
+            return runMochaSuite(s.label, s.patterns, s.ignorePatterns).then(function (code) {
+                if (code !== 0) {
+                    failures.push({ label: s.label, code: code });
+                }
+            });
+        });
+    });
+    return p.then(function () {
+        if (failures.length > 0) {
+            console.error('\n' + failures.length + ' mocha suite(s) failed:');
+            failures.forEach(function (f) { console.error('  - ' + f.label + ' (exit code ' + f.code + ')'); });
+            throw new Error('Mocha test failures: ' + failures.map(function (f) { return f.label; }).join(', '));
+        }
+    });
+}
+
+// Returns the list of test-bearing extension names found under _build/Extensions.
+// We look at the built copy (the same place Mocha would load from) so that the
+// list matches what's actually runnable.
+function discoverBuiltTestBearingExtensions() {
+    var builtExtensionsRoot = path.join(__dirname, _testRoot, 'Extensions');
+    if (!fs.existsSync(builtExtensionsRoot)) return [];
+    return fs.readdirSync(builtExtensionsRoot).filter(function (name) {
+        var dir = path.join(builtExtensionsRoot, name);
+        if (!fs.statSync(dir).isDirectory()) return false;
+        return fs.existsSync(path.join(dir, 'Tests')) || fs.existsSync(path.join(dir, 'EngineTests'));
+    });
+}
+
+gulp.task("test", gulp.series("testResources", function() {
+    process.env['TASK_TEST_TEMP'] = path.join(__dirname, _testTemp);
     shell.rm('-rf', _testTemp);
     shell.mkdir('-p', _testTemp);
 
-    if (options.suite.indexOf("ArtifactEngine") >= 0  && options.e2e) {
-        var suitePath = path.join(_testRoot, "Extensions/" + options.suite + "/**/*e2e.js");
-        console.log(suitePath);
-        var tfBuild = ('' + process.env['TF_BUILD']).toLowerCase() == 'true'
-        return gulp.src([suitePath])
-            .pipe(mocha({ reporter: 'spec', ui: 'bdd', useColors: !tfBuild }));
+    // ArtifactEngine --e2e and --perf are ad-hoc, single-suite invocations.
+    // They keep their original glob and just go through the per-process helper.
+    if (options.suite.indexOf("ArtifactEngine") >= 0 && options.e2e) {
+        var e2ePath = path.join(_testRoot, "Extensions/" + options.suite + "/**/*e2e.js");
+        return runMochaSuitesSequentially([
+            { label: options.suite + ' (e2e)', patterns: [e2ePath] }
+        ]);
     }
 
-    if (options.suite.indexOf("ArtifactEngine") >= 0  && options.perf) {
-        var suitePath = path.join(_testRoot, "Extensions/" + options.suite + "/**/*perf.js");
-        console.log(suitePath);
-        var tfBuild = ('' + process.env['TF_BUILD']).toLowerCase() == 'true'
-        return gulp.src([suitePath])
-            .pipe(mocha({ reporter: 'spec', ui: 'bdd', useColors: !tfBuild }));
+    if (options.suite.indexOf("ArtifactEngine") >= 0 && options.perf) {
+        var perfPath = path.join(_testRoot, "Extensions/" + options.suite + "/**/*perf.js");
+        return runMochaSuitesSequentially([
+            { label: options.suite + ' (perf)', patterns: [perfPath] }
+        ]);
     }
 
-    var suitePath = path.join(_testRoot,"Extensions/" + options.suite + "/Tests/Tasks", options.suite + '/_suite.js');
-    console.log(suitePath);
-    var suitePath2 = path.join(_testRoot, "Extensions/" + options.suite + "/**/*Tests.js");
-    console.log(suitePath2);
-    var tfBuild = ('' + process.env['TF_BUILD']).toLowerCase() == 'true'
-    var ignorePath = "!" + path.join(_testRoot, "Extensions",  "/**/UIContribution{,/**}");
-    return gulp.src([ suitePath, suitePath2, ignorePath ], { allowEmpty: true })
-        .pipe(mocha({ reporter: 'spec', ui: 'bdd', useColors: !tfBuild }));
+    var selectedSuites = resolveSuitesToRun();
+    var ignorePatterns = [path.join(_testRoot, "Extensions", "**/UIContribution/**")];
+
+    var extensionsToRun;
+    if (selectedSuites === null) {
+        // "run all" sentinel: enumerate every test-bearing extension and run
+        // each in its own mocha child process so module state doesn't leak
+        // between suites.
+        extensionsToRun = discoverBuiltTestBearingExtensions();
+        console.log("Running all suites: " + extensionsToRun.join(', '));
+    } else if (selectedSuites.length === 0) {
+        console.log("No test-bearing extensions affected by this change. Skipping mocha run.");
+        return Promise.resolve();
+    } else {
+        extensionsToRun = selectedSuites;
+    }
+
+    var suites = extensionsToRun.map(function (name) {
+        return {
+            label: name,
+            patterns: [
+                // Match any _suite.js under the extension's Tests/Tasks tree
+                // (some extensions have nested per-version subfolders).
+                path.join(_testRoot, "Extensions", name, "Tests/Tasks/**/_suite.js"),
+                path.join(_testRoot, "Extensions", name, "**/*Tests.js")
+            ],
+            ignorePatterns: ignorePatterns
+        };
+    });
+
+    return runMochaSuitesSequentially(suites);
 }));
 
+// ---------------------------------------------------------------------------
+// Shared git-diff logic
+// ---------------------------------------------------------------------------
+
+// Returns an array of changed file paths (forward-slash normalized) from the
+// PR diff, or null if the diff cannot be determined (non-PR build, fetch failure).
+function getChangedFiles() {
+    var buildReason = process.env['BUILD_REASON'];
+    var prTarget = process.env['SYSTEM_PULLREQUEST_TARGETBRANCH'];
+    if (buildReason !== 'PullRequest' || !prTarget) {
+        console.log("Not a PR build (BUILD_REASON=" + buildReason + ") -> running all suites.");
+        return null;
+    }
+    // Normalize "refs/heads/master" -> "master".
+    var target = prTarget.replace(/^refs\/heads\//, '');
+    var changedFiles;
+    try {
+        // Deepen modestly so the merge-base is reachable for 3-dot diff even on shallow (depth=1) clones.
+        cp.execSync('git fetch --no-tags --quiet --depth=200 origin ' + target + ':refs/remotes/origin/' + target, { stdio: ['ignore', 'ignore', 'pipe'] });
+    } catch (e) {
+        console.log("Warning: git fetch of origin/" + target + " failed: " + e.message + " -> running all suites.");
+        return null;
+    }
+    try {
+        changedFiles = cp.execSync('git diff --name-only origin/' + target + '...HEAD', { encoding: 'utf8' });
+    } catch (e3) {
+        try {
+            console.log("3-dot diff failed (" + e3.message.split('\n')[0] + "); falling back to 2-dot.");
+            changedFiles = cp.execSync('git diff --name-only origin/' + target + ' HEAD', { encoding: 'utf8' });
+        } catch (e2) {
+            console.log("Warning: git diff failed: " + e2.message + " -> running all suites.");
+            return null;
+        }
+    }
+    var files = changedFiles.split(/\r?\n/).filter(function (l) { return l.length > 0; }).map(function (f) { return f.replace(/\\/g, '/'); });
+    console.log("Changed files (" + files.length + "):");
+    files.forEach(function (f) { console.log("  " + f); });
+    return files;
+}
+
+var SHARED_INFRA_PREFIXES = ['Extensions/Common/', 'package.json', 'gulpfile.js', 'scripts/', '.pipelines/', 'ci/'];
+
+// Returns true if any changed file touches shared infrastructure.
+function hitsSharedInfra(files) {
+    return files.some(function (f) {
+        return SHARED_INFRA_PREFIXES.some(function (p) { return f === p || f.indexOf(p) === 0; });
+    });
+}
+
+// Given changed files and a filter function, returns matched extension names.
+// Returns null if shared infrastructure changed (caller decides semantics).
+function resolveChangedExtensions(files, filterFn) {
+    if (hitsSharedInfra(files)) {
+        console.log("Shared infrastructure changed -> returning null (all).");
+        return null;
+    }
+    var selected = {};
+    files.forEach(function (f) {
+        var m = f.match(/^Extensions\/([^\/]+)\//);
+        if (!m) return;
+        var ext = m[1];
+        if (filterFn(ext)) selected[ext] = true;
+    });
+    return Object.keys(selected);
+}
+
+// Discover extensions that have Src/vss-extension.json (publishable to marketplace).
+function discoverPublishableExtensions() {
+    var extensionsRoot = path.join(__dirname, 'Extensions');
+    return fs.readdirSync(extensionsRoot).filter(function (name) {
+        var dir = path.join(extensionsRoot, name);
+        if (!fs.statSync(dir).isDirectory()) return false;
+        return fs.existsSync(path.join(dir, 'Src', 'vss-extension.json'));
+    });
+}
+
+// ---------------------------------------------------------------------------
+// resolveSuitesToRun — used by `gulp test` to pick mocha suites
+// ---------------------------------------------------------------------------
+
+// Returns:
+//   null  -> caller should run ALL suites (default mocha glob, behavior unchanged)
+//   []    -> filter resolved to no extensions; caller should skip mocha entirely
+//   [...] -> exact list of extension names to test
+function resolveSuitesToRun() {
+    if (options.runAllSuites === true || String(options.runAllSuites).toLowerCase() === 'true') {
+        console.log("runAllSuites=true -> running all suites.");
+        return null;
+    }
+    var files = getChangedFiles();
+    if (files === null) {
+        console.log("-> running all suites.");
+        return null;
+    }
+    // Auto-discover test-bearing extensions: subdirs of Extensions/ that contain a Tests or EngineTests folder.
+    var extensionsRoot = path.join(__dirname, 'Extensions');
+    var testBearing = fs.readdirSync(extensionsRoot).filter(function (name) {
+        var dir = path.join(extensionsRoot, name);
+        if (!fs.statSync(dir).isDirectory()) return false;
+        return fs.existsSync(path.join(dir, 'Tests')) || fs.existsSync(path.join(dir, 'EngineTests'));
+    });
+    console.log("Discovered test-bearing extensions: " + testBearing.join(', '));
+    var result = resolveChangedExtensions(files, function (ext) {
+        return testBearing.indexOf(ext) >= 0;
+    });
+    if (result === null) {
+        console.log("-> running all suites.");
+        return null;
+    }
+    console.log("Selected suites: " + (result.length ? result.join(', ') : '(none)'));
+    return result;
+}
+
+// ---------------------------------------------------------------------------
+// gulp detectChangedExtensions — used by CI pipeline to find publishable exts
+// ---------------------------------------------------------------------------
+
+gulp.task("detectChangedExtensions", function (done) {
+    var publishable = discoverPublishableExtensions();
+    console.log("Publishable extensions: " + publishable.join(', '));
+
+    var files = getChangedFiles();
+    var extensions;
+
+    if (files === null) {
+        console.log("Cannot determine changed files -> returning all publishable extensions.");
+        extensions = publishable;
+    } else {
+        var result = resolveChangedExtensions(files, function (ext) {
+            return publishable.indexOf(ext) >= 0;
+        });
+        if (result === null) {
+            console.log("Shared infra changed -> returning all publishable extensions.");
+            extensions = publishable;
+        } else {
+            extensions = result;
+        }
+    }
+
+    var extensionList = extensions.join(';');
+    var hasChanges = extensions.length > 0 ? 'true' : 'false';
+
+    console.log("\nDetected extensions (" + extensions.length + "): " + extensions.join(', '));
+    console.log("\nSetting pipeline variables:");
+    console.log("  DetectedExtensions   = " + extensionList);
+    console.log("##vso[task.setvariable variable=DetectedExtensions]" + extensionList);
+    console.log("##vso[task.setvariable variable=DetectedExtensions;isOutput=true]" + extensionList);
+    console.log("  HasExtensionChanges  = " + hasChanges);
+    console.log("##vso[task.setvariable variable=HasExtensionChanges]" + hasChanges);
+    console.log("##vso[task.setvariable variable=HasExtensionChanges;isOutput=true]" + hasChanges);
+    done();
+});
+
 //-----------------------------------------------------------------------------------------------------------------
-// Package//-----------------------------------------------------------------------------------------------------------------
+// Package
+//-----------------------------------------------------------------------------------------------------------------
 
 var publisherName = null;
 gulp.task("package", function(cb) {
@@ -967,98 +997,6 @@ gulp.task("package", function(cb) {
     cb();
 });
 
-gulp.task('nuget-download', function(done) {
-    console.log("> Checking for nuget.exe");
-    if(fs.existsSync('nuget.exe')) {
-        return done();
-    }
-    console.log("> Downloading nuget.exe");
-    return request.get('https://nuget.org/nuget.exe')
-        .pipe(fs.createWriteStream('nuget.exe'));
-});
-
-gulp.task("package_nuget", gulp.series('nuget-download', function() {
-
-    // nuspec
-    var version = options.version;
-    if (!version) {
-        console.error('ERROR: supply version with --version');
-        process.exit(1);
-    }
-
-    if (!semver.valid(version)) {
-        console.error('ERROR: invalid semver version: ' + version);
-        process.exit(1);
-    }
-
-    if(!options.extension) {
-        console.error('ERROR: supply extension name with --extension');
-        process.exit(1);
-    }
-
-    if(!fs.existsSync("_package\\"+options.extension)) {
-        console.error('ERROR: mentioned extension does not exist');
-        process.exit(1);
-    }
-    // Nuget package
-
-    // Copying extension to contents
-    var extensionPath = path.join("_package", options.extension);
-
-    shell.rm("-rf", nugetPath);
-    var contentsPath = path.join(nugetPath,'pack-source', 'contents');
-    shell.mkdir("-p", contentsPath);
-    shell.cp(path.join(extensionPath,"*"), contentsPath);
-
-    // nuspec
-    var pkgName = 'Mseng.MS.TF.RM.Extensions';
-    console.log();
-    console.log('> Generating .nuspec file');
-    var contents = '<?xml version="1.0" encoding="utf-8"?>' + os.EOL;
-    contents += '<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">' + os.EOL;
-    contents += '   <metadata>' + os.EOL;
-    contents += '      <id>' + pkgName + '</id>' + os.EOL;
-    contents += '      <version>' + version + '</version>' + os.EOL;
-    contents += '      <authors>bigbldt</authors>' + os.EOL;
-    contents += '      <owners>bigbldt,Microsoft</owners>' + os.EOL;
-    contents += '      <requireLicenseAcceptance>false</requireLicenseAcceptance>' + os.EOL;
-    contents += '      <description>For VSS internal use only</description>' + os.EOL;
-    contents += '      <tags>VSSInternal</tags>' + os.EOL;
-    contents += '   </metadata>' + os.EOL;
-    contents += '</package>' + os.EOL;
-    console.log('> Generated .nuspec file');
-
-    console.log();
-    console.log('> Copying extension to package');
-    var nuspecPath = path.join(nugetPath, 'pack-source', pkgName + '.nuspec');
-    fs.writeFileSync(nuspecPath, contents);
-    console.log('> Copied extension to package');
-
-    // package
-    console.log();
-    console.log('> Beginning package...');
-    var nupkgPath = path.join(nugetPath, 'pack-target');
-    var exePath = './nuget.exe';
-    gulp.src(nuspecPath)
-        .pipe(nuget.pack({ nuget: exePath, version: options.version }))
-        .pipe(gulp.dest(nupkgPath));
-    console.log();
-    console.log('> Package Successful');
-
-    if (options.server) {
-        console.log();
-        console.log('> Publishing .nupkg file to server');
-        gulp.src(path.join(nupkgPath, pkgName + "." + options.version + ".nupkg"))
-            .pipe(nuget.push({ source: options.server, nuget: exePath, apiKey: 'SkyRise' }));
-        console.log('> Publish Successful');
-    }
-}));
-
-
-gulp.task("locCommon",function(){
-    return gulp.src(path.join(__dirname, 'Extensions/Common/**/module.json'))
-             .pipe(pkgm.LocCommon());
-});
 
 var copyCommonModules = function(extensionName) {
     var commonDeps = require('./common.json');
@@ -1151,7 +1089,7 @@ var cacheNpmPackage = function (name, version) {
     }
 
     // Short-circuit if already downloaded.
-    gutil.log('Downloading npm package ' + name + '@' + version);
+    console.log('Downloading npm package ' + name + '@' + version);
     var targetPath = path.join(_tempPath, 'npm', name, version);
     if (shell.test('-d', targetPath)) {
         console.log('Package already cached. Skipping.');
@@ -1194,8 +1132,8 @@ var cacheNpmPackage = function (name, version) {
     }
 
     // Validate the version of npm.
-    var versionOutput = cp.execSync('"' + npmPath + '" --version');
-    var npmVersion = versionOutput.toString().replace(/[\n\r]+/g, '')
+    const versionOutput = cp.execSync('"' + npmPath + '" --version');
+    const npmVersion = versionOutput.toString().replace(/[\n\r]+/g, '')
     console.log('npm version: "' + npmVersion + '"');
     if (semver.lt(npmVersion, NPM_MIN_VER)) {
         throw new Error('npm version must be at least ' + NPM_MIN_VER + '. Found ' + npmVersion);
@@ -1208,14 +1146,13 @@ var cacheNpmPackage = function (name, version) {
     // Run npm install.
     shell.pushd(partialPath);
     try {
-        var cmdline = '"' + npmPath + '" install ' + name + '@' + version;
-        var result = cp.execSync(cmdline);
-        gutil.log(result.toString());
+        const cmdline = '"' + npmPath + '" install ' + name + '@' + version + ' --userconfig ' + path.join(__dirname, ".npmrc");
+        const result = cp.execSync(cmdline);
+
         if (result.status > 0) {
             throw new Error('npm failed with exit code ' + result.status);
         }
-    }
-    finally {
+    } finally {
         shell.popd();
     }
 
@@ -1239,5 +1176,5 @@ var cacheNuGetV2Package = function (repository, name, version) {
     }
 
     // Cache the archive file.
-    return cacheArchiveFile(repository.replace(/\/$/, '') + '/package/' + name + '/' + version);
+    return cacheArchiveFile(repository.replace(/\/$/, '') + '?id=' + name + '&version=' + version);
 }

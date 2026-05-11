@@ -56,17 +56,117 @@ URL can also include variables that correspond to other task inputs. Variable va
 }
 ```
 
-In addition to defining the URL for the data source, a `resultSelector` can also be defined. In the example above, result selector is a JSON PATH query which gets applied on each of the elements in the the REST API response data.
+In addition to defining the URL for the data source, a `resultSelector` can also be defined. The result selector tells the system how to extract the required data from the API response.
 
-Result selector can also be an XPATH query. For e.g. *Azure Classic* endpoint type supports data sources that use XPATH query.
+### resultSelector Reference
+
+The `resultSelector` value must start with one of the following prefixes :
+
+| Prefix | Description |
+|--------|-------------|
+| `jsonpath:` | Used to extract data from JSON responses |
+| `xpath:` | Used to extract data from XML responses |
+| `none` | Returns no data from the response |
+| `plaintext` | Returns the full response as plain text |
+
+#### JSONPath (`jsonpath:`)
+
+Use `jsonpath:` when the API response is in JSON format.
+
+**Common syntax :**
+
+| Pattern | Description | Example |
+|---------|-------------|---------|
+| `$` | Root object | `jsonpath:$` |
+| `.property` | Access a property | `jsonpath:$.value` |
+| `..property` | Search recursively | `jsonpath:$..name` |
+| `[*]` | All items in an array | `jsonpath:$.value[*].id` |
+| `[n]` | Specific item in array | `jsonpath:$.value[0]` |
+| `[n,m]` | Multiple items | `jsonpath:$.value[0,1]` |
+| `[start:end]` | Range of items | `jsonpath:$.value[0:3]` |
+| `[?()]` | Filter condition | `jsonpath:$.value[?(@.properties.isEnabled == true)]` |
+
+**Examples :**
+
+Gets all `id` values from the array :
+```
+"resultSelector": "jsonpath:$.value[*].id"
+```
+
+Gets all `name` fields from anywhere in the response :
+```
+"resultSelector": "jsonpath:$..name"
+```
+
+Gets only items where `isEnabled` is `true` :
+```
+"resultSelector": "jsonpath:$.value[?(@.properties.isEnabled == true)]"
+```
+
+Returns the full JSON response :
+```
+"resultSelector": "jsonpath:$"
+```
+
+**Notes :**
+- The implementation uses Newtonsoft.Json `JToken.SelectTokens`, which supports most standard JSONPath operators but not script expressions (`[?(@.length-1)]`).
+- If a query returns no results, verify the response structure by using `jsonpath:$` to see the full response.
+
+**Common limitation :**
+
+Sometimes the API response uses property names as keys rather than returning an array. For e.g. the Variable Groups API returns variables in this format :
 
 ```
 {
-    "name": "AzureWebSiteNames",
-    "endpointUrl": "$(endpoint.url)/$(endpoint.subscriptionId)/services/webspaces/$(WebSiteLocation)Webspace/sites",
-    "resultSelector": "xpath://Site/Name"
+  "variables": {
+    "MyVar1": { "value": "hello" },
+    "MyVar2": { "value": "world" }
+  }
 }
 ```
+
+In this case :
+- You cannot directly extract the keys like `MyVar1`, `MyVar2` using `resultSelector`.
+- You can only extract the property values.
+- Enter values manually, or use `resultTemplate` to format the output.
+
+#### XPath (`xpath:`)
+
+Use `xpath:` when the API response is in XML format. Standard XPath syntax is supported.
+
+**Examples :**
+
+Selects all `Name` elements under `Site` :
+```
+"resultSelector": "xpath://Site/Name"
+```
+
+Selects multiple element types :
+```
+"resultSelector": "xpath://Blobs/Blob | //Blobs/BlobPrefix"
+```
+
+**Notes :**
+- Standard XPath syntax is supported.
+- You usually don't need to worry about XML namespaces — they are automatically handled.
+
+#### Other selector types
+
+**`none` :**
+```
+"resultSelector": "none"
+```
+Use when you don't need any data from the response (e.g., for POST/PUT calls where only the status code matters).
+
+**`plaintext` :**
+```
+"resultSelector": "plaintext"
+```
+Returns the full response as plain text.
+
+### Response size limits
+
+The API response should be less than **2 MB**. If it is too large, the request will fail. Use filtering or pagination in your API calls to reduce the response size.
 
 ## Data source bindings
 

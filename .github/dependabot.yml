@@ -1,0 +1,14 @@
+version: 2
+# Security-only posture: setting `open-pull-requests-limit: 0` disables
+# version-update PRs while still allowing Dependabot to open PRs for
+# vulnerability fixes (security advisories are not affected by this limit).
+updates:
+  - package-ecosystem: npm
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 0
+    labels:
+      - dependencies
+    commit-message:
+      prefix: deps
