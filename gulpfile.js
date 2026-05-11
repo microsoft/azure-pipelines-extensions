@@ -767,6 +767,11 @@ gulp.task("syncVersions", function (cb) {
         return;
     }
 
+    if (('' + process.env['TF_BUILD']).toLowerCase() === 'true') {
+        cb(new Error('--syncVersions is intended for local development only and cannot run in CI pipelines.'));
+        return;
+    }
+
     // Support comma-separated, space-separated, and repeated flags
     /** @type {string[]} */
     var extensions = [];
