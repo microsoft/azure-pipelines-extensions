@@ -1,20 +1,17 @@
-// node built-ins
-const path = require('path');
-const os = require('os');
 const cp = require('child_process');
+const os = require('os');
+const path = require('path');
+const { parseArgs } = require('util');
 
 // build/test script
 const admZip = require('adm-zip');
 const del = require('del');
 const fs = require('fs-extra');
-const minimist = require('minimist');
-const semver = require('semver');
 const shell = require('shelljs');
 // @ts-ignore
 const syncRequest = require('sync-request');
 const typescript = require('typescript');
 const xml2js = require('xml2js');
-const args = require('yargs')(require('yargs/helpers').hideBin(process.argv)).argv;
 
 // gulp modules
 const gts = require('gulp-typescript');
@@ -23,30 +20,25 @@ const gulp = require('gulp');
 const pkgm = require('./package');
 const util = require('./package-utils');
 
-// validation
-var NPM_MIN_VER = '9.0.0';
-var MIN_NODE_VER = '18.0.0';
-
-if (semver.lt(process.versions.node, MIN_NODE_VER)) {
-    console.error('requires node >= ' + MIN_NODE_VER + '.  installed: ' + process.versions.node);
-    process.exit(1);
-}
-
-//
 // Options
-//
-var mopts = {
-    string: 'suite',
-    boolean: ['perf', 'e2e', 'runAllSuites'],
-    default: { suite: '**', perf: false, e2e: false, runAllSuites: false }
-};
+const { values: options } = parseArgs({
+    args: process.argv.slice(2),
+    options: {
+        suite: { type: 'string', default: '**' },
+        perf: { type: 'boolean', default: false },
+        e2e: { type: 'boolean', default: false },
+        runAllSuites: { type: 'boolean', default: false },
+        testAreaPath: { type: 'string', default: '' },
+        test: { type: 'boolean', default: false },
+        publisher: { type: 'string', default: '' },
+        extension: { type: 'string', default: '' },
+    },
+    allowPositionals: true,
+    strict: true,
+    tokens: true
+});
 
-var options = minimist(process.argv.slice(2), mopts);
-
-//
 // Paths
-//
-
 var _buildRoot = path.join(__dirname, "_build");
 var _packageRoot = "_package";
 var _extnBuildRoot = path.join(_buildRoot, "Extensions");
@@ -68,6 +60,7 @@ var cultures = ['en-US', 'de-DE', 'es-ES', 'fr-FR', 'it-IT', 'ja-JP', 'ko-KR', '
 //-----------------------------------------------------------------------------------------------------------------
 
 function errorHandler(error) {
+    console.error(`Build failed${error ? ': ' + error : ''}`);
     process.exit(1);
 }
 
@@ -78,27 +71,20 @@ gulp.task("clean", function() {
 });
 
 gulp.task("compilePS", gulp.series("clean", function() {
-
-    if(args.testAreaPath === undefined )
-    {
+    if (options.testAreaPath === undefined ) {
         return gulp.src(sourcePaths, { base: "." }).pipe(gulp.dest(_buildRoot));
-    }
-    else
-    {
-        var areaPathArgument = args.testAreaPath;
-        if(areaPathArgument.length > 0 )
-        {
-            console.log('Compiling updated modules - ' + areaPathArgument);
-            var areaPaths = areaPathArgument.trim().split(',');
+    } else {
+        if (options.testAreaPath.length > 0) {
+            console.log('Compiling updated modules - ' + options.testAreaPath);
+            var areaPaths = options.testAreaPath.trim().split(',');
             var filter = [];
+
             for (var n = 0; n < areaPaths.length; n++) {
                 filter.push(ExtensionFolder + '/' + areaPaths[n] + '/**/*')
-                }
+            }
 
             return gulp.src(filter, { base: "." }).pipe(gulp.dest(_buildRoot));
-        }
-        else
-        {
+        } else {
             console.log('No module is updated with given change-set');
             // Create a _build/Extensions folder which will be empty
             return gulp.src(ExtensionFolder, { base: "." }).pipe(gulp.dest(_buildRoot));
@@ -136,16 +122,16 @@ gulp.task("compileNode", gulp.series("compilePS", function(cb){
                 // external NuGet V2 packages
                 if (externals.nugetv2) {
                     var nugetPackages = Object.keys(externals.nugetv2);
-                    nugetPackages.forEach(function (package) {
+                    nugetPackages.forEach(function (pkg) {
                         // download and extract the NuGet V2 package
-                        var packageVersion = externals.nugetv2[package].version;
-                        var packageRepository = externals.nugetv2[package].repository;
-                        var copySpecification = externals.nugetv2[package].cp;
+                        var packageVersion = externals.nugetv2[pkg].version;
+                        var packageRepository = externals.nugetv2[pkg].repository;
+                        var copySpecification = externals.nugetv2[pkg].cp;
 
-                        var packageSource = cacheNuGetV2Package(packageRepository, package, packageVersion);
+                        var packageSource = cacheNuGetV2Package(packageRepository, pkg, packageVersion);
 
                         var relativeExternalsPath = path.dirname(externalsJson).replace(new RegExp('/','g'),'\\').replace(path.join(__dirname),'');
-                        if(relativeExternalsPath.startsWith('\\')) {
+                        if (relativeExternalsPath.startsWith('\\')) {
                             relativeExternalsPath = relativeExternalsPath.substring(1);
                         }
                         var destPath = path.join(_buildRoot, relativeExternalsPath);
@@ -297,7 +283,7 @@ var copyGroup = function (group, sourceRoot, destRoot) {
 
     // build the source array
     var source = typeof group.source == 'string' ? [group.source] : group.source;
-    source = source.map(function (val) { // root the paths
+    source = source.map(function (/** @type {string} */ val) { // root the paths
         return path.join(sourceRoot, val);
     });
 
@@ -330,8 +316,9 @@ function createResjson(callback) {
                 console.log('Generating resJson for ' + libJson);
 
                 // create a key->value map of the default strings
+                /** @type {Object<string, string>} */
                 var defaultStrings = {};
-                var lib = JSON.parse(fs.readFileSync(libJson));
+                var lib = JSON.parse(fs.readFileSync(libJson, 'utf-8'));
 
                 if (lib.messages) {
                     for (var key of Object.keys(lib.messages)) {
@@ -347,6 +334,7 @@ function createResjson(callback) {
                 // create the culture-specific resjson files
                 for (var culture of cultures) {
                     // initialize the culture-specific strings from the default strings
+                    /** @type {Object<string, string>} */
                     var cultureStrings = {};
                     for (var key of Object.keys(defaultStrings)) {
                         cultureStrings[key] = defaultStrings[key];
@@ -367,7 +355,7 @@ function createResjson(callback) {
                     if (stats) {
                         // parse the culture-specific xliff contents
                         var parser = new xml2js.Parser();
-                        var xliff;
+                        var xliff = {};
                         parser.parseString(
                             fs.readFileSync(xliffPath),
                             function (err, result) {
@@ -379,6 +367,7 @@ function createResjson(callback) {
                             });
 
                         // overlay the translated strings
+                        // @ts-ignore
                         for (var unit of xliff.xliff.file[0].body[0]['trans-unit']) {
                             if (unit.target[0].$.state == 'translated' &&
                                 defaultStrings.hasOwnProperty(unit.$.id) &&
@@ -428,7 +417,7 @@ function compileUIExtensions(extensionRoot) {
 }
 
 gulp.task("updateTestIds", function(cb) {
-    if (args.test) {
+    if (options.test) {
         var buildExtensionsRoot = path.join(_buildRoot, 'Extensions');
         if (fs.existsSync(buildExtensionsRoot)) {
             var extensionDirs = fs.readdirSync(buildExtensionsRoot).filter(function (file) {
@@ -464,6 +453,10 @@ gulp.task("updateTestIds", function(cb) {
 
                         // Check for both 'id' and 'extensionId' properties
                         var idProperty = manifest.id ? 'id' : (manifest.extensionId ? 'extensionId' : null);
+
+                        if (idProperty === null) {
+                            throw new Error('Manifest must contain either id or extensionId property');
+                        }
 
                         if (idProperty && manifest[idProperty] && !manifest[idProperty].endsWith('-test')) {
                             manifest[idProperty] = manifest[idProperty] + '-test';
@@ -569,13 +562,15 @@ function runMochaSuite(label, patterns, ignorePatterns) {
     var tfBuild = ('' + process.env['TF_BUILD']).toLowerCase() == 'true';
 
     // glob requires forward-slash patterns even on Windows.
-    var toPosix = function (p) { return String(p).replace(/\\/g, '/'); };
+    var toPosix = function (/** @type {string} */ p) { return String(p).replace(/\\/g, '/'); };
     var posixIgnores = (ignorePatterns || []).map(toPosix);
     // Always exclude node_modules: dependencies sometimes ship their own
     // *tests.js files (e.g. safer-buffer) that we must not run.
     posixIgnores.push('**/node_modules/**');
 
+    /** @type {string[]} */
     var files = [];
+    /** @type {{ [key: string]: boolean }} */
     var seen = {};
     (patterns || []).forEach(function (p) {
         // nocase:false to keep `*Tests.js` (capital T) from matching
@@ -601,8 +596,8 @@ function runMochaSuite(label, patterns, ignorePatterns) {
 
     console.log('\n========================================');
     console.log('Running mocha suite: ' + label);
-    (patterns || []).forEach(function (p) { console.log('  pattern: ' + p); });
-    (ignorePatterns || []).forEach(function (p) { console.log('  ignore : ' + p); });
+    (patterns || []).forEach(function (/** @type {string} */ p) { console.log('  pattern: ' + p); });
+    (ignorePatterns || []).forEach(function (/** @type {string} */ p) { console.log('  ignore : ' + p); });
     console.log('  resolved files: ' + files.length);
     console.log('========================================');
 
@@ -631,9 +626,11 @@ function runMochaSuite(label, patterns, ignorePatterns) {
     });
 }
 
+
 // Run a list of suites sequentially (do NOT fast-fail; we want a complete CI
 // signal). Returns a Promise that rejects if any suite failed.
 function runMochaSuitesSequentially(suites) {
+    /** @type {{ label: string, code: number }[]} */
     var failures = [];
     var p = Promise.resolve();
     suites.forEach(function (s) {
@@ -777,6 +774,7 @@ function resolveChangedExtensions(files, filterFn) {
         console.log("Shared infrastructure changed -> returning null (all).");
         return null;
     }
+    /** @type {Record<string, boolean>} */
     var selected = {};
     files.forEach(function (f) {
         var m = f.match(/^Extensions\/([^\/]+)\//);
@@ -823,7 +821,7 @@ function resolveSuitesToRun() {
         return fs.existsSync(path.join(dir, 'Tests')) || fs.existsSync(path.join(dir, 'EngineTests'));
     });
     console.log("Discovered test-bearing extensions: " + testBearing.join(', '));
-    var result = resolveChangedExtensions(files, function (ext) {
+    var result = resolveChangedExtensions(files, function (/** @type {string} */ ext) {
         return testBearing.indexOf(ext) >= 0;
     });
     if (result === null) {
@@ -849,7 +847,7 @@ gulp.task("detectChangedExtensions", function (done) {
         console.log("Cannot determine changed files -> returning all publishable extensions.");
         extensions = publishable;
     } else {
-        var result = resolveChangedExtensions(files, function (ext) {
+        var result = resolveChangedExtensions(files, function (/** @type {string} */ ext) {
             return publishable.indexOf(ext) >= 0;
         });
         if (result === null) {
@@ -878,15 +876,11 @@ gulp.task("detectChangedExtensions", function (done) {
 // Package
 //-----------------------------------------------------------------------------------------------------------------
 
-var publisherName = null;
 gulp.task("package", function(cb) {
-    if (args.publisher) {
-        publisherName = args.publisher;
-    }
-
     // use gulp package --extension=<Extension_Name> to package an individual package
-    if (args.extension) {
-        createVsixPackage(args.extension);        return;
+    if (options.extension) {
+        createVsixPackage(options.extension);
+        return;
     }
 
     fs.readdirSync(_extnBuildRoot).filter(function (file) {
@@ -909,27 +903,23 @@ var createVsixPackage = function(extensionName) {
     var extnOutputPath = path.join(_packageRoot, extensionName);
     var extnManifestPath = path.join(_extnBuildRoot, extensionName, "Src");
 
-    if(fs.existsSync(extnManifestPath)) {
-      del(extnOutputPath);
-      if (publisherName){
-          var manifest = JSON.parse(fs.readFileSync(path.join(extnManifestPath,"vss-extension.json")));
-          manifest.publisher = publisherName;
-          fs.writeFileSync(path.join(extnManifestPath,"vss-extension.json"), JSON.stringify(manifest));
-      }
-      shell.mkdir("-p", extnOutputPath);
-      var packagingCmd = "tfx extension create --manifest-globs vss-extension.json --root " + extnManifestPath + " --output-path " + extnOutputPath;
-      executeCommand(packagingCmd, function() {});
-    }
-}
+    if (fs.existsSync(extnManifestPath)) {
+        del(extnOutputPath);
 
-var executeCommand = function(cmd, callback) {
-    shell.exec(cmd, {silent: true}, function(code, output) {
-        if (code != 0) {
-            console.error("command failed: " + cmd + "\nManually execute to debug");
-        } else {
-           callback();
+        if (options.publisher) {
+            const manifest = JSON.parse(fs.readFileSync(path.join(extnManifestPath, "vss-extension.json"), 'utf8'));
+            manifest.publisher = options.publisher;
+            fs.writeFileSync(path.join(extnManifestPath,"vss-extension.json"), JSON.stringify(manifest));
         }
-    });
+
+        shell.mkdir("-p", extnOutputPath);
+        var packagingCmd = "tfx extension create --manifest-globs vss-extension.json --root " + extnManifestPath + " --output-path " + extnOutputPath;
+        shell.exec(packagingCmd, {silent: true}, (code) => {
+            if (code !== 0) {
+                console.error(`command failed: ${packagingCmd}\nManually execute to debug`);
+            }
+        });
+    }
 }
 
 var cacheArchiveFile = function (url) {
@@ -1029,14 +1019,6 @@ var cacheNpmPackage = function (name, version) {
         throw new Error('npm not found.  ensure npm 3 or greater is installed');
     }
 
-    // Validate the version of npm.
-    const versionOutput = cp.execSync('"' + npmPath + '" --version');
-    const npmVersion = versionOutput.toString().replace(/[\n\r]+/g, '')
-    console.log('npm version: "' + npmVersion + '"');
-    if (semver.lt(npmVersion, NPM_MIN_VER)) {
-        throw new Error('npm version must be at least ' + NPM_MIN_VER + '. Found ' + npmVersion);
-    }
-
     // Make a node_modules directory. Otherwise the modules will be installed in a node_modules
     // directory further up the directory hierarchy.
     shell.mkdir('-p', path.join(partialPath, 'node_modules'));
@@ -1047,7 +1029,9 @@ var cacheNpmPackage = function (name, version) {
         const cmdline = '"' + npmPath + '" install ' + name + '@' + version + ' --userconfig ' + path.join(__dirname, ".npmrc");
         const result = cp.execSync(cmdline);
 
+        // @ts-ignore
         if (result.status > 0) {
+            // @ts-ignore
             throw new Error('npm failed with exit code ' + result.status);
         }
     } finally {
