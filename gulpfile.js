@@ -772,16 +772,10 @@ gulp.task("syncVersions", function (cb) {
         return;
     }
 
-    // Support comma-separated, space-separated, and repeated flags
-    /** @type {string[]} */
-    var extensions = [];
-    var items = Array.isArray(input) ? input : [input];
-    items.forEach(function (item) {
-        String(item).split(/[,\s]+/).forEach(function (name) {
-            var trimmed = name.trim();
-            if (trimmed) extensions.push(trimmed);
-        });
-    });
+    // Support comma-separated extension names (e.g. --syncVersions Ansible,IISWebAppDeploy)
+    var extensions = String(input).split(',').map(function (name) {
+        return name.trim();
+    }).filter(Boolean);
 
     if (extensions.length === 0) {
         cb();
@@ -819,11 +813,13 @@ gulp.task("syncVersions", function (cb) {
 
     // Run extensions sequentially to avoid concurrent process issues
     var index = 0;
-    var hasError = false;
+    var failedExtensions = [];
 
     function processNext() {
         if (index >= extensions.length) {
-            cb(hasError ? new Error('syncVersions failed for one or more extensions') : undefined);
+            cb(failedExtensions.length > 0
+                ? new Error('syncVersions failed for: ' + failedExtensions.join(', '))
+                : undefined);
             return;
         }
 
@@ -845,7 +841,7 @@ gulp.task("syncVersions", function (cb) {
 
         if (!manifestPath) {
             console.error('No vss-extension.json found for extension: ' + extName);
-            hasError = true;
+            failedExtensions.push(extName);
             processNext();
             return;
         }
@@ -854,7 +850,7 @@ gulp.task("syncVersions", function (cb) {
         var child = cp.execFile('pwsh', ['-NoProfile', '-File', scriptPath, '-ManifestPath', manifestPath], function (err) {
             if (err) {
                 console.error('Version sync failed for: ' + extName);
-                hasError = true;
+                failedExtensions.push(extName);
             }
             processNext();
         });
