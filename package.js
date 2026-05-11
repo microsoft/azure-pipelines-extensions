@@ -125,7 +125,7 @@ function copyCommonModules(currentExtnRoot, commonDeps, commonSrc, extensionSour
                 console.log(`⚒️  Building UI contribution for task: ${task.name}`);
                 const originalDir = shell.pwd();
                 util.cd(uiPath);
-                util.run('npm ci');
+                util.run('npm ci --userconfig ' + path.join(__dirname, ".npmrc"));
                 util.cd(originalDir);
             }
 

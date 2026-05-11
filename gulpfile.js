@@ -1030,8 +1030,8 @@ var cacheNpmPackage = function (name, version) {
     }
 
     // Validate the version of npm.
-    var versionOutput = cp.execSync('"' + npmPath + '" --version');
-    var npmVersion = versionOutput.toString().replace(/[\n\r]+/g, '')
+    const versionOutput = cp.execSync('"' + npmPath + '" --version');
+    const npmVersion = versionOutput.toString().replace(/[\n\r]+/g, '')
     console.log('npm version: "' + npmVersion + '"');
     if (semver.lt(npmVersion, NPM_MIN_VER)) {
         throw new Error('npm version must be at least ' + NPM_MIN_VER + '. Found ' + npmVersion);
@@ -1044,14 +1044,13 @@ var cacheNpmPackage = function (name, version) {
     // Run npm install.
     shell.pushd(partialPath);
     try {
-        var cmdline = '"' + npmPath + '" install ' + name + '@' + version;
-        var result = cp.execSync(cmdline);
-        console.log(result.toString());
+        const cmdline = '"' + npmPath + '" install ' + name + '@' + version + ' --userconfig ' + path.join(__dirname, ".npmrc");
+        const result = cp.execSync(cmdline);
+
         if (result.status > 0) {
             throw new Error('npm failed with exit code ' + result.status);
         }
-    }
-    finally {
+    } finally {
         shell.popd();
     }
 

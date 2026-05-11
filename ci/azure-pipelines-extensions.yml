@@ -91,6 +91,10 @@ extends:
           displayName: Use Node 24.*
           inputs:
             version: 24.*
+        - task: NpmAuthenticate@0
+          displayName: Authenticate with npm registry
+          inputs:
+            workingFile: ./.npmrc
         - script: npm ci --userconfig ./.npmrc
         - task: gulp@0
           displayName: 'gulp build'
