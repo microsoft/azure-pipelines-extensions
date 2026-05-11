@@ -12,7 +12,7 @@
 
     Requires Azure CLI authentication ("az login") to query private test extensions.
 
-    Intended to be invoked via "gulp build --syncversions <ExtensionName>" which
+    Intended to be invoked via "gulp build --syncVersions <ExtensionName>" which
     updates the SOURCE vss-extension.json so the developer can commit the change.
 
 .PARAMETER ManifestPath
@@ -23,7 +23,7 @@
     az login
 
     # Bump Ansible extension version (checks both public and private test extension)
-    gulp build --syncversions Ansible
+    gulp build --syncVersions Ansible
 #>
 [CmdletBinding()]
 param(

@@ -761,7 +761,7 @@ gulp.task("updateTestIds", function (cb) {
 });
 
 gulp.task("syncVersions", function (cb) {
-    var input = args.syncversions;
+    var input = args.syncVersions || args.syncversions;
     if (!input) {
         cb();
         return;
@@ -801,7 +801,7 @@ gulp.task("syncVersions", function (cb) {
         if (loginResult.status !== 0) {
             cb(new Error(
                 'Azure CLI login failed.\n' +
-                'The --syncversions flag requires Azure CLI to query Marketplace extension versions.\n' +
+                'The --syncVersions flag requires Azure CLI to query Marketplace extension versions.\n' +
                 'Ensure Azure CLI is installed (https://aka.ms/installazurecliwindows) and try again.'
             ));
             return;
@@ -846,14 +846,15 @@ gulp.task("syncVersions", function (cb) {
         }
 
         console.log('Syncing version for: ' + extName);
-        var cmd = 'pwsh -NoProfile -File "' + scriptPath + '" -ManifestPath "' + manifestPath + '"';
-        shell.exec(cmd, { silent: false }, function (code) {
-            if (code !== 0) {
+        var child = cp.execFile('pwsh', ['-NoProfile', '-File', scriptPath, '-ManifestPath', manifestPath], function (err) {
+            if (err) {
                 console.error('Version sync failed for: ' + extName);
                 hasError = true;
             }
             processNext();
         });
+        child.stdout.pipe(process.stdout);
+        child.stderr.pipe(process.stderr);
     }
 
     processNext();
