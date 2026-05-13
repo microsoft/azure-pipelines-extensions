@@ -3,6 +3,7 @@ var path = require('path')
 import * as tl from 'azure-pipelines-task-lib/task';
 import * as engine from 'artifact-engine/Engine';
 import * as providers from 'artifact-engine/Providers';
+import ifm = require('artifact-engine/Providers/typed-rest-client/Interfaces');
 import * as webHandlers from 'artifact-engine/Providers/typed-rest-client/Handlers';
 
 import {CommitsDownloader} from "./commitsdownloader"
@@ -11,6 +12,25 @@ tl.setResourcePath(path.join(__dirname, 'task.json'));
 
 var taskJson = require('./task.json');
 const area: string = 'DownloadCircleCIArtifacts';
+
+class CircleTokenCredentialHandler implements ifm.IRequestHandler {
+    token: string;
+
+    constructor(token: string) {
+        this.token = token;
+    }
+
+    prepareRequest(options: any): void {
+        options.headers['Circle-Token'] = this.token;
+    }
+
+    canHandleAuthentication(res: ifm.IHttpResponse): boolean {
+        return false;
+    }
+
+    handleAuthentication(httpClient, protocol, options, objs, finalCallback): void {
+    }
+}
 
 function getDefaultProps() {
     var hostType = (tl.getVariable('SYSTEM.HOSTTYPE') || "").toLowerCase();
@@ -64,13 +84,13 @@ async function main(): Promise<void> {
         console.log(tl.loc("DownloadArtifacts", itemsUrl));
 
         var templatePath = path.join(__dirname, 'circleCI.handlebars.txt');
-        var username = tl.getEndpointAuthorizationParameter(connection, 'username', false)!;
+        var apiToken = tl.getEndpointAuthorizationParameter(connection, 'apitoken', false)!;
         var circleciVariables = {
             "endpoint": {
                 "url": endpointUrl
             }
         };
-        var handler = new webHandlers.BasicCredentialHandler(username, "");
+        var handler = new CircleTokenCredentialHandler(apiToken);
         var webProvider = new providers.WebProvider(itemsUrl, templatePath, circleciVariables, handler);
         var fileSystemProvider = new providers.FilesystemProvider(downloadPath);
 
