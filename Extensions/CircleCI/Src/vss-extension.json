@@ -3,7 +3,7 @@
   "id": "vss-services-circleci-extension",
   "name": "CircleCI artifacts for Release Pipeline",
   "publisher": "ms-vscs-rm",
-  "version": "0.273.0",
+  "version": "0.274.0",
   "public": true,
   "description": "Tool for connecting with CircleCI",
   "_description.comment": "The below format to define artifact extensions is currently in preview and may change in future.",
@@ -73,10 +73,16 @@
         },
         "authenticationSchemes": [
           {
-            "type": "ms.vss-endpoint.endpoint-auth-scheme-basic",
+            "type": "ms.vss-endpoint.endpoint-auth-scheme-token",
+            "headers": [
+              {
+                "name": "Circle-Token",
+                "value": "{{endpoint.apitoken}}"
+              }
+            ],
             "inputDescriptors": [
               {
-                "id": "username",
+                "id": "apitoken",
                 "name": "PAT",
                 "description": "Personal API Token",
                 "inputMode": "passwordbox",
@@ -84,21 +90,6 @@
                 "validation": {
                   "isRequired": true,
                   "dataType": "string"
-                }
-              },
-              {
-                "id": "password",
-                "name": "Password",
-                "inputMode": "none",
-                "isConfidential": true,
-                "validation": {
-                  "isRequired": false,
-                  "dataType": "string"
-                },
-                "values": {
-                  "inputId": "passwordInput",
-                  "defaultValue": "",
-                  "isDisabled": true
                 }
               }
             ]
