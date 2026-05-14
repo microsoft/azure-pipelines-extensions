@@ -62,6 +62,8 @@ var SourceControlWrapper = (function (_super) {
         tool.silent = true;
         var creds = this.username + ':' + this.password;
         var escapedCreds = encodeURIComponent(this.username) + ':' + encodeURIComponent(this.password);
+        if (this.password) tl.setSecret(this.password);
+        if (escapedCreds) tl.setSecret(escapedCreds);
         tool.on('debug', function (message) {
             if (options.debugOutput) {
                 var repl = message.replace(creds, '...');

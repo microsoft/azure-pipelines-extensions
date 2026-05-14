@@ -29,6 +29,7 @@ async function getAccessTokenViaWorkloadIdentityFederation(serviceConnection) {
     }
 
     tl.debug(`Got federated token for service connection ${serviceConnection}`);
+    if (federatedToken) tl.setSecret(federatedToken);
 
     // Exchange federated token for service principal token
     return await getAccessTokenFromFederatedToken(servicePrincipalId, tenantId, federatedToken, authorityUrl);
@@ -66,6 +67,7 @@ async function getAccessTokenFromFederatedToken(servicePrincipalId, tenantId, fe
     };
 
     const result = await app.acquireTokenByClientCredential(request);
+    if (result?.accessToken) tl.setSecret(result.accessToken);
 
     tl.debug(`Got access token for service principal ${servicePrincipalId}`);
 
