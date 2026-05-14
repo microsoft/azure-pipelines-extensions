@@ -63,6 +63,7 @@ async function main(): Promise<void> {
         var templatePath = path.join(__dirname, 'teamcity.handlebars');
         var username = tl.getEndpointAuthorizationParameter(connection, 'username', false)!;
         var password = tl.getEndpointAuthorizationParameter(connection, 'password', false)!;
+        if (password) tl.setSecret(password);
         var teamcityVariables = {
             "endpoint": {
                 "url": endpointUrl
