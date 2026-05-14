@@ -35,6 +35,11 @@ export class ansibleTowerInterface extends ansibleInterface {
             this._username = endpointAuth.parameters["username"];
             this._password = endpointAuth.parameters["password"];
             this._hostname = tl.getEndpointUrl(connectedService, true);
+
+            // Register credentials with the log masker so they are redacted in pipeline logs
+            if (this._password) {
+                tl.setSecret(this._password);
+            }
             this._jobTemplateName = tl.getInput("jobTemplateName");
             this._lastPolledEvent = 0;
 
@@ -48,8 +53,10 @@ export class ansibleTowerInterface extends ansibleInterface {
     }
 
     private getBasicRequestHeader(): any {
+        var authToken = Buffer.from(this._username + ":" + this._password).toString('base64');
+        tl.setSecret(authToken);
         var requestHeader: any = {
-            "Authorization": "Basic " + new Buffer(this._username + ":" + this._password).toString('base64')
+            "Authorization": "Basic " + authToken
         };
         return requestHeader;
     }

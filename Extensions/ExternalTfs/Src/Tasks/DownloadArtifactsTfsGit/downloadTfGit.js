@@ -100,6 +100,7 @@ async function getServiceConnectionDetails() {
 
 async function getAdoScDetails(serviceConnection, hostUrl) {
     var accessToken = await auth.getAccessTokenViaWorkloadIdentityFederation(serviceConnection);
+    if (accessToken) tl.setSecret(accessToken);
     return {
         "Url": hostUrl,
         "Username": "oauth2",
@@ -123,6 +124,7 @@ function getReposOrTfsScDetails(serviceConnection, hostUrl) {
         hostUsername = getAuthParameter(auth, 'username');
         hostPassword = getAuthParameter(auth, 'password');
     }
+    if (hostPassword) tl.setSecret(hostPassword);
 
     return {
         "Url": hostUrl,

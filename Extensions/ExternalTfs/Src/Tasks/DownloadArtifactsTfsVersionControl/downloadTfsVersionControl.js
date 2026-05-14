@@ -61,6 +61,7 @@ function getEndpointDetails(inputFieldName) {
         hostUsername = getAuthParameter(auth, 'username');
         hostPassword = getAuthParameter(auth, 'password');
     }
+    if (hostPassword) tl.setSecret(hostPassword);
     return {
         "Url": hostUrl,
         "Username": hostUsername,

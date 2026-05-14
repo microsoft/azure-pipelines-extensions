@@ -65,6 +65,7 @@ async function main(): Promise<void> {
 
         var templatePath = path.join(__dirname, 'circleCI.handlebars.txt');
         var username = tl.getEndpointAuthorizationParameter(connection, 'username', false)!;
+        if (username) tl.setSecret(username);
         var circleciVariables = {
             "endpoint": {
                 "url": endpointUrl
