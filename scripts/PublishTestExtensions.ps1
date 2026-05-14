@@ -39,7 +39,8 @@ foreach ($vsix in $vsixFiles) {
 
     tfx extension publish --vsix $vsix.FullName `
         --service-url https://marketplace.visualstudio.com `
-        --auth-type pat --token $MarketplaceToken --no-color
+        --auth-type pat --token $MarketplaceToken --no-color `
+        --force-update
 
     if ($LASTEXITCODE -ne 0) {
         Write-Host "##[error]Failed to publish $($vsix.Name)"
