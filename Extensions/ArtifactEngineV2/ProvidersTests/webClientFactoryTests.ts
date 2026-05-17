@@ -44,6 +44,7 @@ libMocker.enable({
 });
 
 import { WebClientFactory } from '../Providers/webClientFactory';
+import { HttpClient } from '../Providers/typed-rest-client/HttpClient';
 
 var sinon = require('sinon');
 
@@ -202,6 +203,107 @@ describe('Unit Tests', () => {
             assert(client, 'client should not be null');
         });
 
+        it('tunnel agent should receive numeric port from explicit proxy port', () => {
+            var httpClient = new HttpClient('test-agent', [], {
+                proxy: {
+                    proxyUrl: 'http://proxy-server:8080',
+                    proxyUsername: '',
+                    proxyPassword: ''
+                }
+            });
+
+            var agent = (httpClient as any)._getAgent('http://target-server/artifact');
+            var proxyAgent = (httpClient as any)._proxyAgent;
+
+            assert(proxyAgent, 'proxy agent should be created');
+            assert.strictEqual(proxyAgent.options.proxy.port, 8080, 'port should be numeric 8080');
+            assert.strictEqual(typeof proxyAgent.options.proxy.port, 'number', 'port should be of type number');
+        });
+
+        it('tunnel agent should default to port 80 for HTTP proxy without explicit port', () => {
+            var httpClient = new HttpClient('test-agent', [], {
+                proxy: {
+                    proxyUrl: 'http://proxy-server',
+                    proxyUsername: '',
+                    proxyPassword: ''
+                }
+            });
+
+            var agent = (httpClient as any)._getAgent('http://target-server/artifact');
+            var proxyAgent = (httpClient as any)._proxyAgent;
+
+            assert(proxyAgent, 'proxy agent should be created');
+            assert.strictEqual(proxyAgent.options.proxy.port, 80, 'port should default to 80 for HTTP proxy');
+            assert.strictEqual(typeof proxyAgent.options.proxy.port, 'number', 'port should be of type number');
+        });
+
+        it('tunnel agent should default to port 443 for HTTPS proxy without explicit port', () => {
+            var httpClient = new HttpClient('test-agent', [], {
+                proxy: {
+                    proxyUrl: 'https://secure-proxy',
+                    proxyUsername: '',
+                    proxyPassword: ''
+                }
+            });
+
+            var agent = (httpClient as any)._getAgent('https://target-server/artifact');
+            var proxyAgent = (httpClient as any)._proxyAgent;
+
+            assert(proxyAgent, 'proxy agent should be created');
+            assert.strictEqual(proxyAgent.options.proxy.port, 443, 'port should default to 443 for HTTPS proxy');
+            assert.strictEqual(typeof proxyAgent.options.proxy.port, 'number', 'port should be of type number');
+        });
+
+        it('HTTPS target through HTTP proxy should create tunnel agent', () => {
+            var httpClient = new HttpClient('test-agent', [], {
+                proxy: {
+                    proxyUrl: 'http://proxy-server:3128',
+                    proxyUsername: '',
+                    proxyPassword: ''
+                }
+            });
+
+            var agent = (httpClient as any)._getAgent('https://artifacts.dev.azure.com/download');
+            var proxyAgent = (httpClient as any)._proxyAgent;
+
+            assert(proxyAgent, 'proxy agent should be created for HTTPS target through HTTP proxy');
+            assert.strictEqual(proxyAgent.options.proxy.host, 'proxy-server', 'proxy host should be set');
+            assert.strictEqual(proxyAgent.options.proxy.port, 3128, 'proxy port should be numeric 3128');
+        });
+
+        it('HTTP target through HTTP proxy should create tunnel agent', () => {
+            var httpClient = new HttpClient('test-agent', [], {
+                proxy: {
+                    proxyUrl: 'http://proxy-server:3128',
+                    proxyUsername: '',
+                    proxyPassword: ''
+                }
+            });
+
+            var agent = (httpClient as any)._getAgent('http://artifacts.dev.azure.com/download');
+            var proxyAgent = (httpClient as any)._proxyAgent;
+
+            assert(proxyAgent, 'proxy agent should be created for HTTP target through HTTP proxy');
+            assert.strictEqual(proxyAgent.options.proxy.host, 'proxy-server', 'proxy host should be set');
+            assert.strictEqual(proxyAgent.options.proxy.port, 3128, 'proxy port should be numeric 3128');
+        });
+
+        it('tunnel agent should include proxy auth credentials with special characters', () => {
+            var httpClient = new HttpClient('test-agent', [], {
+                proxy: {
+                    proxyUrl: 'http://proxy-server:8080',
+                    proxyUsername: 'admin',
+                    proxyPassword: 'p@ss:w0rd#!'
+                }
+            });
+
+            var agent = (httpClient as any)._getAgent('http://target-server/artifact');
+            var proxyAgent = (httpClient as any)._proxyAgent;
+
+            assert(proxyAgent, 'proxy agent should be created');
+            assert.strictEqual(proxyAgent.options.proxy.proxyAuth, 'admin:p@ss:w0rd#!');
+        });
+
         it('initializeProxy should read proxy settings from globals', () => {
             global['_vsts_task_lib_proxy'] = true;
             global['_vsts_task_lib_proxy_url'] = 'http://myproxy:3128';
@@ -253,6 +355,62 @@ describe('Unit Tests', () => {
             (WebClientFactory as any).initializeProxy(options);
 
             assert.strictEqual(options.ignoreSslError, true);
+        });
+    });
+
+    describe('webClientFactory _readTaskLibSecrets error handling', () => {
+
+        it('should throw ENOENT for corrupted base64 in lookupKey', () => {
+            var corruptedLookup = 'validBase64Path:!!!invalid-base64!!!';
+            var thrownError = null;
+
+            try {
+                (WebClientFactory as any)._readTaskLibSecrets(corruptedLookup);
+            } catch (e) {
+                thrownError = e;
+            }
+
+            assert(thrownError, 'should have thrown an error');
+            assert(thrownError.message.indexOf('ENOENT') >= 0 || thrownError.message.indexOf('no such file') >= 0,
+                'Expected ENOENT error but got: ' + thrownError.message);
+        });
+
+        it('should throw invalid key length when key file content is empty', () => {
+            mockKeyFileContent = '';
+
+            var lookupKey = Buffer.from('/fake/path/.taskkey', 'utf8').toString('base64')
+                + ':'
+                + Buffer.from('deadbeef', 'utf8').toString('base64');
+            var thrownError = null;
+
+            try {
+                (WebClientFactory as any)._readTaskLibSecrets(lookupKey);
+            } catch (e) {
+                thrownError = e;
+            }
+
+            assert(thrownError, 'should have thrown an error');
+            assert(thrownError.message.indexOf('Invalid key length') >= 0,
+                'Expected Invalid key length error but got: ' + thrownError.message);
+        });
+
+        it('should throw invalid key length when key file has only whitespace', () => {
+            mockKeyFileContent = '   \n  ';
+
+            var lookupKey = Buffer.from('/fake/path/.taskkey', 'utf8').toString('base64')
+                + ':'
+                + Buffer.from('deadbeef', 'utf8').toString('base64');
+            var thrownError = null;
+
+            try {
+                (WebClientFactory as any)._readTaskLibSecrets(lookupKey);
+            } catch (e) {
+                thrownError = e;
+            }
+
+            assert(thrownError, 'should have thrown an error');
+            assert(thrownError.message.indexOf('Invalid key length') >= 0,
+                'Expected Invalid key length error but got: ' + thrownError.message);
         });
     });
 });
