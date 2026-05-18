@@ -263,7 +263,7 @@ describe('Unit Tests', () => {
                 }
             });
 
-            var agent = (httpClient as any)._getAgent('https://artifacts.dev.azure.com/download');
+            var agent = (httpClient as any)._getAgent('https://artifacts.example.com/download');
             var proxyAgent = (httpClient as any)._proxyAgent;
 
             assert(proxyAgent, 'proxy agent should be created for HTTPS target through HTTP proxy');
@@ -280,7 +280,7 @@ describe('Unit Tests', () => {
                 }
             });
 
-            var agent = (httpClient as any)._getAgent('http://artifacts.dev.azure.com/download');
+            var agent = (httpClient as any)._getAgent('http://artifacts.example.com/download');
             var proxyAgent = (httpClient as any)._proxyAgent;
 
             assert(proxyAgent, 'proxy agent should be created for HTTP target through HTTP proxy');
