@@ -121,6 +121,7 @@ function getEndpointDetails(inputFieldName) {
         var token = getAuthParameter(bitbucketEndpoint, 'apitoken');
         var username = getAuthParameter(bitbucketEndpoint, 'email') || '';
         tl.debug('Using token authentication');
+        if (token) tl.setSecret(token);
         return {
             "Token": token,
             "Username": username
@@ -128,8 +129,8 @@ function getEndpointDetails(inputFieldName) {
     } else {
         var hostUsername = getAuthParameter(bitbucketEndpoint, 'username');
         var hostPassword = getAuthParameter(bitbucketEndpoint, 'password');
+        if (hostPassword) tl.setSecret(hostPassword);
         tl.debug('hostUsername: ' + hostUsername);
-        tl.debug('hostPassword: ' + hostPassword);
         return {
             "Username": hostUsername,
             "Password": hostPassword
