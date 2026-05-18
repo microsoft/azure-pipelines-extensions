@@ -918,18 +918,12 @@ var createVsixPackage = function(extensionName) {
       }
       shell.mkdir("-p", extnOutputPath);
       var packagingCmd = "tfx extension create --manifest-globs vss-extension.json --root " + extnManifestPath + " --output-path " + extnOutputPath;
-      executeCommand(packagingCmd, function() {});
+      var result = shell.exec(packagingCmd, {silent: true});
+      if (result.code !== 0) {
+          console.error("command failed (exit code " + result.code + "): " + packagingCmd);
+          console.error(result.stderr || result.stdout);
+      }
     }
-}
-
-var executeCommand = function(cmd, callback) {
-    shell.exec(cmd, {silent: true}, function(code, output) {
-        if (code != 0) {
-            console.error("command failed: " + cmd + "\nManually execute to debug");
-        } else {
-           callback();
-        }
-    });
 }
 
 var cacheArchiveFile = function (url) {
