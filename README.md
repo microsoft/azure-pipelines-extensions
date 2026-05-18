@@ -20,6 +20,11 @@ In order to build and package extensions you will need to install some dependenc
 
 - `npm install` will install all the node modules required to run gulp to package, build etc.
 - `gulp build`  will copy each task to "_build" folder, and install it's dependencies locally (wrt to the task) and copies the common modules required to run the task.
+  - Use `--syncVersions` to automatically bump the `version` field in `vss-extension.json` so it is higher than what is currently published on the Marketplace. This avoids pipeline failures caused by version conflicts.
+    - Single extension: `gulp build --syncVersions <ExtensionName>`. For example `gulp build --syncVersions Ansible`
+    - Multiple extensions (comma-separated): `gulp build --syncVersions <ExtensionName1>,<ExtensionName2>`. For example `gulp build --syncVersions Ansible,IISWebAppDeploy`
+  - Ensure you run the command with sufficient permissions (e.g. open PowerShell as Administrator), as Azure CLI may need access to protected directories.
+  - You may be prompted to log in to Azure (`az login`) because `--syncVersions` requires an access token to query the Marketplace API. The login prompt will open automatically in the browser if your session has expired.
 - `gulp test` will run all pester or mocha tests written for each task, in the Tests folder.
 
 ### How to package extensions

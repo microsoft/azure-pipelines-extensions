@@ -506,7 +506,109 @@ gulp.task("updateTestIds", function(cb) {
     cb();
 });
 
-gulp.task("build", gulp.series("compileNode", "updateTestIds"));
+gulp.task("syncVersions", function(cb) {
+    var input = args.syncVersions || args.syncversions;
+    if (!input) {
+        cb();
+        return;
+    }
+
+    if (('' + process.env['TF_BUILD']).toLowerCase() === 'true') {
+        cb(new Error('--syncVersions is intended for local development only and cannot run in CI pipelines.'));
+        return;
+    }
+
+    // Support comma-separated extension names (e.g. --syncVersions Ansible,IISWebAppDeploy)
+    // Note: gulp's CLI replaces commas with spaces, so we split on both.
+    var extensions = String(input).split(/[,\s]+/).map(function (name) {
+        return name.trim();
+    }).filter(Boolean);
+
+    if (extensions.length === 0) {
+        cb();
+        return;
+    }
+
+    // Ensure Azure CLI is logged in before processing any extensions.
+    // This runs once (not per-extension) and opens the browser if needed.
+    console.log('Checking Azure CLI login...');
+    var tokenResult = cp.spawnSync('az', [
+        'account', 'get-access-token',
+        '--resource', '499b84ac-1321-427f-aa17-267ca6975798',
+        '--query', 'accessToken', '-o', 'tsv'
+    ], { shell: true, stdio: ['inherit', 'pipe', 'pipe'] });
+
+    if (tokenResult.status !== 0) {
+        console.log('Azure CLI session expired or not logged in. Opening browser for login...');
+        var loginResult = cp.spawnSync('az', ['login', '--output', 'none'], {
+            shell: true,
+            stdio: 'inherit'
+        });
+        if (loginResult.status !== 0) {
+            cb(new Error(
+                'Azure CLI login failed.\n' +
+                'The --syncVersions flag requires Azure CLI to query Marketplace extension versions.\n' +
+                'Ensure Azure CLI is installed (https://aka.ms/installazurecliwindows) and try again.'
+            ));
+            return;
+        }
+    }
+
+    console.log('Azure CLI login OK');
+
+    var scriptPath = path.join(__dirname, 'scripts', 'BumpExtensionVersion.ps1');
+
+    // Run extensions sequentially to avoid concurrent process issues
+    var index = 0;
+    var failedExtensions = [];
+
+    function processNext() {
+        if (index >= extensions.length) {
+            cb(failedExtensions.length > 0
+                ? new Error('syncVersions failed for: ' + failedExtensions.join(', '))
+                : undefined);
+            return;
+        }
+
+        var extName = extensions[index++];
+
+        var possiblePaths = [
+            path.join(__dirname, 'Extensions', extName, 'Src', 'vss-extension.json'),
+            path.join(__dirname, 'Extensions', extName, 'src', 'vss-extension.json'),
+            path.join(__dirname, 'Extensions', extName, 'vss-extension.json')
+        ];
+
+        var manifestPath = null;
+        for (var i = 0; i < possiblePaths.length; i++) {
+            if (fs.existsSync(possiblePaths[i])) {
+                manifestPath = possiblePaths[i];
+                break;
+            }
+        }
+
+        if (!manifestPath) {
+            console.error('No vss-extension.json found for extension: ' + extName);
+            failedExtensions.push(extName);
+            processNext();
+            return;
+        }
+
+        console.log('Syncing version for: ' + extName);
+        var child = cp.execFile('pwsh', ['-NoProfile', '-File', scriptPath, '-ManifestPath', manifestPath], function (err) {
+            if (err) {
+                console.error('Version sync failed for: ' + extName);
+                failedExtensions.push(extName);
+            }
+            processNext();
+        });
+        child.stdout.pipe(process.stdout);
+        child.stderr.pipe(process.stderr);
+    }
+
+    processNext();
+});
+
+gulp.task("build", gulp.series("syncVersions", "compileNode", "updateTestIds"));
 
 gulp.task("default", gulp.series("build"));
 
