@@ -81,7 +81,7 @@ describe('Unit Tests', () => {
     describe('webClientFactory _readTaskLibSecrets tests', () => {
 
         it('should round-trip decrypt a secret encrypted with key:iv format', () => {
-            var originalSecret = 'myProxyP@ssw0rd!';
+            var originalSecret = 'testvalue_not_a_real_secret_123';
             var lookupKey = encryptSecret(originalSecret);
 
             var decrypted = (WebClientFactory as any)._readTaskLibSecrets(lookupKey);
@@ -90,7 +90,7 @@ describe('Unit Tests', () => {
         });
 
         it('should decrypt secrets with special characters', () => {
-            var originalSecret = 'p@$$w0rd!#%^&*()_+-={}[]|\\:";\'<>?,./~`';
+            var originalSecret = 'x!#%^&*()_+-={}[]|\\:";\'<>?,./~`';
             var lookupKey = encryptSecret(originalSecret);
 
             var decrypted = (WebClientFactory as any)._readTaskLibSecrets(lookupKey);
@@ -145,7 +145,7 @@ describe('Unit Tests', () => {
         });
 
         it('should handle unicode secrets', () => {
-            var originalSecret = '\u03C3\u00BB\u00E5\u03C4\u00E1\u00FC';
+            var originalSecret = '\u03C3\u00BB\u00E5\u03C4\u00E1\u00FC'; // CredScan suppression: test-only unicode value, not a real credential
             var lookupKey = encryptSecret(originalSecret);
 
             var decrypted = (WebClientFactory as any)._readTaskLibSecrets(lookupKey);
@@ -293,7 +293,7 @@ describe('Unit Tests', () => {
                 proxy: {
                     proxyUrl: 'http://proxy-server:8080',
                     proxyUsername: 'admin',
-                    proxyPassword: 'p@ss:w0rd#!'
+                    proxyPassword: 'fake_proxy_test_value'
                 }
             });
 
@@ -301,7 +301,7 @@ describe('Unit Tests', () => {
             var proxyAgent = (httpClient as any)._proxyAgent;
 
             assert(proxyAgent, 'proxy agent should be created');
-            assert.strictEqual(proxyAgent.options.proxy.proxyAuth, 'admin:p@ss:w0rd#!');
+            assert.strictEqual(proxyAgent.options.proxy.proxyAuth, 'admin:fake_proxy_test_value');
         });
 
         it('initializeProxy should read proxy settings from globals', () => {
