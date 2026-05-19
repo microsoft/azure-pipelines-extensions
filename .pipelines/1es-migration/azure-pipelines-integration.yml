@@ -109,6 +109,27 @@ extends:
           displayName: 'Auto-detect changed extensions'
           workingDirectory: '$(Build.SourcesDirectory)'
 
+        - task: AzureCLI@2
+          displayName: 'Bump extension versions to exceed Marketplace'
+          inputs:
+            azureSubscription: '1es-extensions-publication-secure-service-connection'
+            scriptType: pscore
+            scriptLocation: inlineScript
+            inlineScript: |
+              $extensions = '$(DetectedExtensions)' -split ';'
+              foreach ($ext in $extensions) {
+                $ext = $ext.Trim()
+                if (-not $ext) { continue }
+
+                $manifestPath = Join-Path '$(Build.SourcesDirectory)' "Extensions/$ext/Src/vss-extension.json"
+                if (Test-Path $manifestPath) {
+                  Write-Host "--- Bumping version for: $ext ---"
+                  & '$(Build.SourcesDirectory)/scripts/BumpExtensionVersion.ps1' -ManifestPath $manifestPath
+                } else {
+                  Write-Host "##[warning]Manifest not found for '$ext' at $manifestPath — skipping version bump."
+                }
+              }
+
         - task: PowerShell@2
           displayName: 'Build test resources'
           inputs:
