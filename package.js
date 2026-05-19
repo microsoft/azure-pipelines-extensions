@@ -139,13 +139,34 @@ function copyCommonModules(currentExtnRoot, commonDeps, commonSrc, extensionSour
                         util.cd(taskDirPath);
                         const npmrcPath = path.join(taskSourcePath, ".npmrc");
                         const npmCmd = process.platform === 'win32' ? 'npm.cmd' : 'npm';
-                        const npmArgs = ['ci', '--install-links=false', '--userconfig', `"${npmrcPath}"`];
+                        const npmArgs = ['ci', '--userconfig', `"${npmrcPath}"`];
                         if (util.isDebug()) {
                             npmArgs.splice(1, 0, '--verbose');
                             cp.execFileSync(npmCmd, npmArgs, { stdio: 'inherit', shell: true });
                         } else {
                             cp.execFileSync(npmCmd, npmArgs, { stdio: 'ignore', shell: true });
                         }
+
+                        // npm ci with local path deps creates junctions (symlinks) which
+                        // cause tfx extension create to fail with EISDIR. Replace any
+                        // junctions in node_modules with a copy of the target contents.
+                        const nodeModulesDir = path.join(taskDirPath, 'node_modules');
+                        if (fs.existsSync(nodeModulesDir)) {
+                            for (const entry of fs.readdirSync(nodeModulesDir)) {
+                                const entryPath = path.join(nodeModulesDir, entry);
+                                try {
+                                    fs.readlinkSync(entryPath);
+                                    // If readlinkSync succeeds, it's a symlink/junction
+                                    const realPath = fs.realpathSync(entryPath);
+                                    fs.removeSync(entryPath);
+                                    fs.copySync(realPath, entryPath, { dereference: true });
+                                    console.log(`  ↳ Replaced symlink/junction with copy: ${entry}`);
+                                } catch (e) {
+                                    // Not a symlink/junction - skip
+                                }
+                            }
+                        }
+
                         console.log(`\x1b[A\x1b[K✅ npm ci at ${taskDirPath} completed successfully.`);
                     } catch (err) {
                         console.log(`\x1b[A\x1b[K❌ npm ci at ${taskDirPath} failed. Error: ${err.message}`);
