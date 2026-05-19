@@ -337,7 +337,7 @@ Here’s the result after applying the data source binding corresponding to `Slo
 }
 ```
 
-**Note**: In case your response is an arrary of strings like `['value1','value2']` you can use template like `"{ Value : "{{defaultResultKey}}", DisplayValue : "{{defaultResultKey}}" }"`.`defaultResultKey` will take on values `value1`, `value2` e.t.c
+**Note**: In case your response is an array of strings like `['value1','value2']` you can use template like `"{ Value : "{{defaultResultKey}}", DisplayValue : "{{defaultResultKey}}" }"`.`defaultResultKey` will take on values `value1`, `value2` e.t.c
 
 ## Test service endpoint
 
