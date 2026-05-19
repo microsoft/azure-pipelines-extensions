@@ -139,7 +139,7 @@ function copyCommonModules(currentExtnRoot, commonDeps, commonSrc, extensionSour
                         util.cd(taskDirPath);
                         const npmrcPath = path.join(taskSourcePath, ".npmrc");
                         const npmCmd = process.platform === 'win32' ? 'npm.cmd' : 'npm';
-                        const npmArgs = ['ci', '--userconfig', `"${npmrcPath}"`];
+                        const npmArgs = ['ci', '--install-links=false', '--userconfig', `"${npmrcPath}"`];
                         if (util.isDebug()) {
                             npmArgs.splice(1, 0, '--verbose');
                             cp.execFileSync(npmCmd, npmArgs, { stdio: 'inherit', shell: true });
