@@ -81,6 +81,11 @@ extends:
           inputs:
             versionSpec: '20.x'
 
+        - task: NpmAuthenticate@0
+          displayName: 'npm authenticate (internal feed)'
+          inputs:
+            workingFile: '$(Build.SourcesDirectory)/.npmrc'
+
         - task: Npm@1
           displayName: 'Install dependencies'
           inputs:
@@ -98,11 +103,6 @@ extends:
           inputs:
             command: custom
             customCommand: 'install -g gulp-cli --registry https://pkgs.dev.azure.com/mseng/PipelineTools/_packaging/PipelineTools_PublicPackages/npm/registry/'
-
-        - task: NpmAuthenticate@0
-          displayName: 'npm authenticate (internal feed)'
-          inputs:
-            workingFile: '$(Build.SourcesDirectory)/.npmrc'
 
         - script: gulp detectChangedExtensions
           name: DetectExtensions

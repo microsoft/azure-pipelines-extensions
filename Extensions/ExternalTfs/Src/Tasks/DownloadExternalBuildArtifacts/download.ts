@@ -166,6 +166,7 @@ async function configureForAdoSc(): Promise<ConnectionDetails> {
     validateInputs(serviceConnection, projectId, buildId);
 
     const accessToken: string = await auth.getAccessTokenViaWorkloadIdentityFederation(serviceConnection);
+    if (accessToken) tl.setSecret(accessToken);
     return {
         serviceConnection,
         projectId,
@@ -185,6 +186,8 @@ function configureForTfsSc() : ConnectionDetails {
     const accessToken =
         tl.getEndpointAuthorizationParameter(serviceConnection, 'apitoken', true) ||
         tl.getEndpointAuthorizationParameter(serviceConnection, 'password', true);
+
+    if (accessToken) tl.setSecret(accessToken);
 
     return {
         serviceConnection,

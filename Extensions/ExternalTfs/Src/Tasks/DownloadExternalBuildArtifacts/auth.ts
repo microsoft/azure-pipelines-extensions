@@ -21,6 +21,7 @@ export async function getAccessTokenViaWorkloadIdentityFederation(serviceConnect
   tl.debug(`Getting federated token for service connection ${serviceConnection}`);
   var federatedToken: string = await getFederatedToken(serviceConnection);
   tl.debug(`Got federated token for service connection ${serviceConnection}`);
+  if (federatedToken) tl.setSecret(federatedToken);
 
   // Exchange federated token for service principal token
   return await getAccessTokenFromFederatedToken(servicePrincipalId, tenantId, federatedToken, authorityUrl);
@@ -63,6 +64,8 @@ async function getAccessTokenFromFederatedToken(
     const result = await app.acquireTokenByClientCredential(request);
     if (!result?.accessToken) {
         tl.debug("MSAL did not return an access token.");
+    } else {
+        tl.setSecret(result.accessToken);
     }
     if(result?.expiresOn) {
         const minutesUntilExpiration = (result.expiresOn.getTime() - Date.now()) / 60000;
