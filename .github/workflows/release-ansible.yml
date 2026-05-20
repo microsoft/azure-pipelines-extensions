@@ -3,6 +3,9 @@ name: Publish Ansible
 on:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 env:
   node-version: 10
   extension-name: ms-vscs-rm.vss-services-ansible-0.258.3.vsix
