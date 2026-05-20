@@ -22,8 +22,8 @@ In Download Fileshare Artifact Task: under advanced options, there will be an op
 ## Artifact Engine Changes
 A CacheProvider will be initialized with a “Hash” that reads the old artifact-metadata.csv
 
-#### PsuedoCode
-The following psuedo-code is invoked in the `artifact-engine`
+#### Pseudocode
+The following pseudo-code is invoked in the `artifact-engine`
 ```
   If(deploymentInput.enableIncrementalDownload is false)
 	{
