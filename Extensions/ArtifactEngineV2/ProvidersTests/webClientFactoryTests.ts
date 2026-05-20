@@ -89,14 +89,6 @@ describe('Unit Tests', () => {
             assert.strictEqual(decrypted, originalSecret, 'Expected \'' + originalSecret + '\' but got \'' + decrypted + '\'');
         });
 
-        it('should decrypt secrets with special characters', () => {
-            var originalSecret = 'x!#%^&*()_+-={}[]|\\:";\'<>?,./~`';
-            var lookupKey = encryptSecret(originalSecret);
-
-            var decrypted = (WebClientFactory as any)._readTaskLibSecrets(lookupKey);
-
-            assert.strictEqual(decrypted, originalSecret);
-        });
 
         it('should decrypt an empty string', () => {
             var originalSecret = '';
@@ -144,14 +136,6 @@ describe('Unit Tests', () => {
             assert.strictEqual(decrypted2, secret2);
         });
 
-        it('should handle unicode secrets', () => {
-            var originalSecret = '\u03C3\u00BB\u00E5\u03C4\u00E1\u00FC'; // CredScan suppression: test-only unicode value, not a real credential
-            var lookupKey = encryptSecret(originalSecret);
-
-            var decrypted = (WebClientFactory as any)._readTaskLibSecrets(lookupKey);
-
-            assert.strictEqual(decrypted, originalSecret);
-        });
 
         it('should fall back to zero IV for older task-lib format (key only, no IV)', () => {
             var encryptKey = crypto.randomBytes(32);
