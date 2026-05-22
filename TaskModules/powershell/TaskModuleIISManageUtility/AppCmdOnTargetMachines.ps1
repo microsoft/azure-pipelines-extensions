@@ -158,13 +158,19 @@ function Add-SslCert
         [string]$hostname,
         [string]$sni,
         [int]$iisVersion,
-        [string]$ipAddress
+        [string]$ipAddress,
+        [string]$certstore
     )
 
     if([string]::IsNullOrWhiteSpace($certhash))
     {
         Write-Verbose "CertHash is empty. Returning"
         return
+    }
+    if([string]::IsNullOrWhiteSpace($certstore))
+    {
+        Write-Verbose "CertStore is empty. Setting it to MY"
+        $certstore = "MY"
     }
 
     if($ipAddress -eq "All Unassigned" -or $ipAddress -eq "*")
@@ -201,7 +207,7 @@ function Add-SslCert
             $isItSameCert = ($extractedCertHash.ToLower() -eq $certhash.ToLower())
         }
 
-        $addCertCmd = [string]::Format("http add sslcert hostnameport={0}:{1} certhash={2} appid={{{3}}} certstorename=MY", $hostname, $port, $certhash, [System.Guid]::NewGuid().toString())
+        $addCertCmd = [string]::Format("http add sslcert hostnameport={0}:{1} certhash={2} appid={{{3}}} certstorename={4}", $hostname, $port, $certhash, [System.Guid]::NewGuid().toString(), $certstore)
     }
     else
     {
@@ -227,7 +233,7 @@ function Add-SslCert
             $isItSameCert = ($extractedCertHash.ToLower() -eq $certhash.ToLower())
         }
         
-        $addCertCmd = [string]::Format("http add sslcert ipport={0}:{1} certhash={2} appid={{{3}}} certstorename=MY", $ipAddress, $port, $certhash, [System.Guid]::NewGuid().toString())
+        $addCertCmd = [string]::Format("http add sslcert ipport={0}:{1} certhash={2} appid={{{3}}} certstorename={4}", $ipAddress, $port, $certhash, [System.Guid]::NewGuid().toString(), $certstore)
     }
 
     if($isItSameBinding -and $isItSameCert)
@@ -317,7 +323,7 @@ function Add-WebsiteBindings {
         }
 
         if($binding.protocol -eq "https") {
-            Add-SslCert -ipAddress $binding.ipAddress -port $binding.port -certhash $binding.sslThumbPrint -hostname $binding.hostName -sni $binding.sniFlag -iisVersion $iisVersion
+            Add-SslCert -ipAddress $binding.ipAddress -port $binding.port -certhash $binding.sslThumbPrint -hostname $binding.hostName -sni $binding.sniFlag -iisVersion $iisVersion -certstore $binding.certStore
             Enable-SNI -siteName $siteName -sni $binding.sniFlag -ipAddress $binding.ipAddress -port $binding.port -hostname $binding.hostName
         }
     }
