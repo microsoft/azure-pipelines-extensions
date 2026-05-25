@@ -7,6 +7,7 @@ const cp = require('child_process');
 const admZip = require('adm-zip');
 const del = require('del');
 const fs = require('fs-extra');
+const glob = require('glob');
 const minimist = require('minimist');
 const semver = require('semver');
 const shell = require('shelljs');
@@ -301,17 +302,41 @@ var copyGroup = function (group, sourceRoot, destRoot) {
         return path.join(sourceRoot, val);
     });
 
+    // Expand glob patterns using node-glob (shelljs 0.10 glob is broken on Windows)
+    var expandedSource = [];
+    source.forEach(function (pattern) {
+        if (pattern.indexOf('*') >= 0 || pattern.indexOf('?') >= 0) {
+            var matches = glob.sync(pattern.split(path.sep).join('/'));
+            if (matches.length === 0) {
+                console.warn('Warning: glob pattern matched no files: ' + pattern);
+            }
+            expandedSource = expandedSource.concat(matches);
+        } else {
+            expandedSource.push(pattern);
+        }
+    });
+
+    if (expandedSource.length === 0) {
+        return;
+    }
+
     // create the destination directory
     var dest = group.dest ? path.join(destRoot, group.dest) : destRoot + '/';
     dest = path.normalize(dest);
     shell.mkdir('-p', dest);
 
-    // copy the files
-    if (group.hasOwnProperty('options') && group.options) {
-        shell.cp(group.options, source, dest);
+    // copy the files — auto-add -R when any source is a directory
+    var hasDir = expandedSource.some(function (s) { return fs.existsSync(s) && fs.statSync(s).isDirectory(); });
+    var options = group.hasOwnProperty('options') && group.options ? group.options : '';
+    if (hasDir && options.indexOf('R') < 0) {
+        options = options ? options + 'R' : '-R';
+    }
+
+    if (options) {
+        shell.cp(options, expandedSource, dest);
     }
     else {
-        shell.cp(source, dest);
+        shell.cp(expandedSource, dest);
     }
 }
 
