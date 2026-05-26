@@ -7,7 +7,6 @@ const cp = require('child_process');
 const admZip = require('adm-zip');
 const del = require('del');
 const fs = require('fs-extra');
-const glob = require('glob');
 const minimist = require('minimist');
 const semver = require('semver');
 const shell = require('shelljs');
@@ -299,44 +298,21 @@ var copyGroup = function (group, sourceRoot, destRoot) {
     // build the source array
     var source = typeof group.source == 'string' ? [group.source] : group.source;
     source = source.map(function (val) { // root the paths
-        return path.join(sourceRoot, val);
+        // Use forward slashes for glob compatibility (shelljs 0.10 + fast-glob
+        return path.join(sourceRoot, val).split(path.sep).join('/');
     });
-
-    // Expand glob patterns using node-glob (shelljs 0.10 glob is broken on Windows)
-    var expandedSource = [];
-    source.forEach(function (pattern) {
-        if (pattern.indexOf('*') >= 0 || pattern.indexOf('?') >= 0) {
-            var matches = glob.sync(pattern.split(path.sep).join('/'));
-            if (matches.length === 0) {
-                console.warn('Warning: glob pattern matched no files: ' + pattern);
-            }
-            expandedSource = expandedSource.concat(matches);
-        } else {
-            expandedSource.push(pattern);
-        }
-    });
-
-    if (expandedSource.length === 0) {
-        return;
-    }
 
     // create the destination directory
     var dest = group.dest ? path.join(destRoot, group.dest) : destRoot + '/';
     dest = path.normalize(dest);
     shell.mkdir('-p', dest);
 
-    // copy the files — auto-add -R when any source is a directory
-    var hasDir = expandedSource.some(function (s) { return fs.existsSync(s) && fs.statSync(s).isDirectory(); });
-    var options = group.hasOwnProperty('options') && group.options ? group.options : '';
-    if (hasDir && options.indexOf('R') < 0) {
-        options = options ? options + 'R' : '-R';
-    }
-
-    if (options) {
-        shell.cp(options, expandedSource, dest);
+    // copy the files
+    if (group.hasOwnProperty('options') && group.options) {
+        shell.cp(group.options, source, dest);
     }
     else {
-        shell.cp(expandedSource, dest);
+        shell.cp('-R', source, dest);
     }
 }
 
