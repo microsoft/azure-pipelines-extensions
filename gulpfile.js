@@ -298,7 +298,8 @@ var copyGroup = function (group, sourceRoot, destRoot) {
     // build the source array
     var source = typeof group.source == 'string' ? [group.source] : group.source;
     source = source.map(function (val) { // root the paths
-        return path.join(sourceRoot, val);
+        // Use forward slashes for glob compatibility (shelljs 0.10 + fast-glob
+        return path.join(sourceRoot, val).split(path.sep).join('/');
     });
 
     // create the destination directory
