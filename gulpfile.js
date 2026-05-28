@@ -1086,7 +1086,7 @@ function createVsixPackage(extensionName) {
         const packagingResult = cp.spawnSync("tfx", packagingArgs, { stdio: "pipe" });
         if (packagingResult.status !== 0) {
             const stderr = packagingResult.stderr ? packagingResult.stderr.toString() : "";
-            console.error(`command failed: tfx ${packagingArgs.join(" ")}\n${stderr}`);
+            throw new Error(`command failed: tfx ${packagingArgs.join(" ")}\n${stderr}`);
         }
 
         console.log(`✅ Packaged extension: ${extensionName}`);
