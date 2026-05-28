@@ -234,7 +234,7 @@ extends:
         dependsOn:
         - Build_And_Package_Test_Extension
         - Publish_Test_Extension
-        condition: and(not(failed('Publish_Test_Extension')), eq(dependencies.Build_And_Package_Test_Extension.outputs['BuildAndPackage.DetectExtensions.HasExtensionChanges'], 'true'))
+        condition: and(succeeded('Publish_Test_Extension'), eq(dependencies.Build_And_Package_Test_Extension.outputs['BuildAndPackage.DetectExtensions.HasExtensionChanges'], 'true'))
         variables:
           CI_TESTS_ORG_URL: 'https://dev.azure.com/canarytest'
           CI_TESTS_PROJECT: 'PipelineTasks'
