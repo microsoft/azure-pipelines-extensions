@@ -109,6 +109,15 @@ extends:
           displayName: 'Auto-detect changed extensions'
           workingDirectory: '$(Build.SourcesDirectory)'
 
+        - task: AzureCLI@2
+          displayName: 'Verify extension versions are bumped'
+          inputs:
+            azureSubscription: '1es-extensions-publication-secure-service-connection'
+            scriptType: pscore
+            scriptLocation: scriptPath
+            scriptPath: '$(Build.SourcesDirectory)/scripts/VerifyExtensionVersions.ps1'
+            arguments: '-SourceDirectory "$(Build.SourcesDirectory)"'
+
         - task: PowerShell@2
           displayName: 'Build test resources'
           inputs:
