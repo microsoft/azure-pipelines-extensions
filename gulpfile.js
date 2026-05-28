@@ -26,7 +26,7 @@ const { values: options } = parseArgs({
     options: {
         gulpfile: { type: 'string' },
         suite: { type: 'string', default: '**' },
-        testAreaPath: { type: 'string', default: '' },
+        testAreaPath: { type: 'string' },
         publisher: { type: 'string' },
         extension: { type: 'string' },
         syncVersions: { type: 'string' },
