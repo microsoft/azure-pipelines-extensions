@@ -18,7 +18,6 @@
   },
   "devDependencies": {
     "@types/adm-zip": "^0.4.34",
-    "@types/fs-extra": "^8.0.0",
     "@types/gulp": "^4.0.17",
     "@types/gulp-mocha": "^0.0.37",
     "@types/node": "^20.19.41",
@@ -28,7 +27,6 @@
     "@types/xml2js": "^0.4.14",
     "adm-zip": "0.4.11",
     "azure-pipelines-task-lib": "^5.2.10",
-    "fs-extra": "^8.1.0",
     "gulp": "^5.0.1",
     "gulp-mocha": "^10.0.1",
     "gulp-typescript": "^5.0.1",
