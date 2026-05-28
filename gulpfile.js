@@ -1,12 +1,12 @@
 // node built-ins
 const cp = require('node:child_process');
+const { rmSync } = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const { parseArgs } = require('node:util');
 
 // build/test script
 const admZip = require('adm-zip');
-const del = require('del');
 const fs = require('fs-extra');
 const shell = require('shelljs');
 // @ts-ignore
@@ -67,8 +67,11 @@ function errorHandler(error) {
 
 const rootTsconfigPath = './base.tsconfig.json';
 
-gulp.task("clean", function () {
-    return del([_buildRoot, _packageRoot, nugetPath, _taskModuleBuildRoot]);
+gulp.task("clean", function (cb) {
+    [_buildRoot, _packageRoot, nugetPath, _taskModuleBuildRoot].forEach(function (p) {
+        rmSync(p, { recursive: true, force: true });
+    });
+    cb();
 });
 
 gulp.task("compilePS", gulp.series("clean", function () {
@@ -1071,7 +1074,7 @@ function createVsixPackage(extensionName) {
     const extnManifestPath = path.join(_extnBuildRoot, extensionName, "Src");
 
     if (fs.existsSync(extnManifestPath)) {
-        del(extnOutputPath);
+        rmSync(extnOutputPath, { recursive: true, force: true });
 
         if (options.publisher) {
             const extensionManifestPath = path.join(extnManifestPath, "vss-extension.json");
