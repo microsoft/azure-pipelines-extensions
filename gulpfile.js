@@ -1,13 +1,13 @@
 // node built-ins
-const path = require('node:path');
-const os = require('node:os');
 const cp = require('node:child_process');
+const os = require('node:os');
+const path = require('node:path');
+const { parseArgs } = require('node:util');
 
 // build/test script
 const admZip = require('adm-zip');
 const del = require('del');
 const fs = require('fs-extra');
-const minimist = require('minimist');
 const shell = require('shelljs');
 // @ts-ignore
 const syncRequest = require('sync-request');
@@ -21,10 +21,22 @@ const gulp = require('gulp');
 const pkgm = require('./package');
 const util = require('./package-utils');
 
-const options = minimist(process.argv.slice(2), {
-    string: ['suite', 'testAreaPath', 'publisher', 'extension', 'syncVersions'],
-    boolean: ['perf', 'e2e', 'runAllSuites'],
-    default: { suite: '**', perf: false, e2e: false, runAllSuites: false }
+const { values: options } = parseArgs({
+    args: process.argv.slice(2),
+    options: {
+        gulpfile: { type: 'string' },
+        suite: { type: 'string', default: '**' },
+        testAreaPath: { type: 'string' },
+        publisher: { type: 'string' },
+        extension: { type: 'string' },
+        syncVersions: { type: 'string' },
+        perf: { type: 'boolean', default: false },
+        e2e: { type: 'boolean', default: false },
+        runAllSuites: { type: 'string' },
+        test: { type: 'boolean', default: false },
+    },
+    strict: true,
+    allowPositionals: true,
 });
 
 const _buildRoot = path.join(__dirname, "_build");
@@ -945,7 +957,7 @@ function discoverPublishableExtensions() {
 //   []    -> filter resolved to no extensions; caller should skip mocha entirely
 //   [...] -> exact list of extension names to test
 function resolveSuitesToRun() {
-    if (options.runAllSuites === true || String(options.runAllSuites).toLowerCase() === 'true') {
+    if (String(options.runAllSuites).toLowerCase() === 'true') {
         console.log("runAllSuites=true -> running all suites.");
         return null;
     }
