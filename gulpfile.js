@@ -1083,7 +1083,7 @@ function createVsixPackage(extensionName) {
         shell.mkdir("-p", extnOutputPath);
 
         const packagingArgs = ["extension", "create", "--manifest-globs", "vss-extension.json", "--root", extnManifestPath, "--output-path", extnOutputPath];
-        const packagingResult = cp.spawnSync("tfx", packagingArgs, { stdio: "pipe" });
+        const packagingResult = cp.spawnSync("tfx", packagingArgs, { stdio: "pipe", shell: true });
         if (packagingResult.status !== 0) {
             const stderr = packagingResult.stderr ? packagingResult.stderr.toString() : "";
             throw new Error(`command failed: tfx ${packagingArgs.join(" ")}\n${stderr}`);
