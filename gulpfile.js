@@ -32,7 +32,7 @@ const { values: options } = parseArgs({
         syncVersions: { type: 'string' },
         perf: { type: 'boolean', default: false },
         e2e: { type: 'boolean', default: false },
-        runAllSuites: { type: 'boolean', default: false },
+        runAllSuites: { type: 'string' },
         test: { type: 'boolean', default: false },
     },
     strict: true,
@@ -957,7 +957,7 @@ function discoverPublishableExtensions() {
 //   []    -> filter resolved to no extensions; caller should skip mocha entirely
 //   [...] -> exact list of extension names to test
 function resolveSuitesToRun() {
-    if (options.runAllSuites === true || String(options.runAllSuites).toLowerCase() === 'true') {
+    if (String(options.runAllSuites).toLowerCase() === 'true') {
         console.log("runAllSuites=true -> running all suites.");
         return null;
     }
