@@ -24,6 +24,7 @@ const util = require('./package-utils');
 const { values: options } = parseArgs({
     args: process.argv.slice(2),
     options: {
+        gulpfile: { type: 'string' },
         suite: { type: 'string', default: '**' },
         testAreaPath: { type: 'string', default: '' },
         publisher: { type: 'string' },
