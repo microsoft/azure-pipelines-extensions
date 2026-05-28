@@ -1,14 +1,13 @@
 // node built-ins
-const path = require('path');
-const os = require('os');
-const cp = require('child_process');
+const path = require('node:path');
+const os = require('node:os');
+const cp = require('node:child_process');
 
 // build/test script
 const admZip = require('adm-zip');
 const del = require('del');
 const fs = require('fs-extra');
 const minimist = require('minimist');
-const semver = require('semver');
 const shell = require('shelljs');
 // @ts-ignore
 const syncRequest = require('sync-request');
@@ -21,15 +20,6 @@ const gulp = require('gulp');
 
 const pkgm = require('./package');
 const util = require('./package-utils');
-
-// validation
-var NPM_MIN_VER = '9.0.0';
-var MIN_NODE_VER = '18.0.0';
-
-if (semver.lt(process.versions.node, MIN_NODE_VER)) {
-    console.error('requires node >= ' + MIN_NODE_VER + '.  installed: ' + process.versions.node);
-    process.exit(1);
-}
 
 const options = minimist(process.argv.slice(2), {
     string: ['suite', 'testAreaPath', 'publisher', 'extension', 'syncVersions'],
@@ -1204,10 +1194,7 @@ function cacheNpmPackage(name, version) {
     // Validate the version of npm.
     const versionOutput = cp.execSync('"' + npmPath + '" --version');
     const npmVersion = versionOutput.toString().replace(/[\n\r]+/g, '')
-    console.log('npm version: "' + npmVersion + '"');
-    if (semver.lt(npmVersion, NPM_MIN_VER)) {
-        throw new Error('npm version must be at least ' + NPM_MIN_VER + '. Found ' + npmVersion);
-    }
+    console.log(`npm version: ${npmVersion}`);
 
     // Make a node_modules directory. Otherwise the modules will be installed in a node_modules
     // directory further up the directory hierarchy.
