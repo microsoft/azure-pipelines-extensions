@@ -1216,7 +1216,9 @@ function cacheNpmPackage(name, version) {
         const cmdline = '"' + npmPath + '" install ' + name + '@' + version + ' --userconfig ' + path.join(__dirname, ".npmrc");
         const result = cp.execSync(cmdline);
 
+        // @ts-ignore
         if (result.status > 0) {
+            // @ts-ignore
             throw new Error('npm failed with exit code ' + result.status);
         }
     } finally {
