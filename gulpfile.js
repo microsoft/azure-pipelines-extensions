@@ -1036,6 +1036,7 @@ gulp.task("package", function (cb) {
     // use gulp package --extension=<Extension_Name> to package an individual package
     if (options.extension) {
         createVsixPackage(options.extension);
+        cb();
         return;
     }
 
@@ -1080,12 +1081,14 @@ function createVsixPackage(extensionName) {
 
         console.log(`📦 Packaging extension: ${extensionName}`);
         shell.mkdir("-p", extnOutputPath);
-        const packagingCmd = "tfx extension create --manifest-globs vss-extension.json --root " + extnManifestPath + " --output-path " + extnOutputPath;
-        shell.exec(packagingCmd, { silent: true }, (code) => {
-            if (code !== 0) {
-                console.error(`command failed: ${packagingCmd}\nManually execute to debug`);
-            }
-        });
+
+        const packagingArgs = ["extension", "create", "--manifest-globs", "vss-extension.json", "--root", extnManifestPath, "--output-path", extnOutputPath];
+        const packagingResult = cp.spawnSync("tfx", packagingArgs, { stdio: "pipe" });
+        if (packagingResult.status !== 0) {
+            const stderr = packagingResult.stderr ? packagingResult.stderr.toString() : "";
+            console.error(`command failed: tfx ${packagingArgs.join(" ")}\n${stderr}`);
+        }
+
         console.log(`✅ Packaged extension: ${extensionName}`);
     }
 }
