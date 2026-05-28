@@ -28,6 +28,7 @@ if (-not $targetBranch) {
     exit 0
 }
 
+$ErrorActionPreference = 'Continue'
 try {
     git fetch --no-tags --quiet --depth=200 origin "${targetBranch}:refs/remotes/origin/$targetBranch" 2>$null
 } catch {
@@ -38,14 +39,20 @@ $changedFiles = git diff --name-only "origin/$targetBranch...HEAD" 2>$null
 if ($LASTEXITCODE -ne 0) {
     $changedFiles = git diff --name-only "origin/$targetBranch" HEAD 2>$null
 }
+$ErrorActionPreference = 'Stop'
 
-$changedExtensions = $changedFiles |
+if (-not $changedFiles) {
+    Write-Host "No changed files detected — skipping version verification."
+    exit 0
+}
+
+[array]$changedExtensions = $changedFiles |
     Where-Object { $_ -match '^Extensions/([^/]+)/' } |
     ForEach-Object { $Matches[1] } |
     Select-Object -Unique |
     Where-Object { $_ -ne 'Common' }
 
-if (-not $changedExtensions -or $changedExtensions.Count -eq 0) {
+if ($changedExtensions.Count -eq 0) {
     Write-Host "No extension-specific file changes detected — skipping version verification."
     exit 0
 }
@@ -67,7 +74,9 @@ foreach ($ext in $changedExtensions) {
     }
 
     Write-Host "--- Verifying: $ext ---"
+    $ErrorActionPreference = 'Continue'
     & $scriptPath -ManifestPath $manifestPath -VerifyOnly
+    $ErrorActionPreference = 'Stop'
 
     if ($LASTEXITCODE -ne 0) {
         $failures += $ext

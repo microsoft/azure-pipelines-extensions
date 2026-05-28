@@ -111,6 +111,7 @@ extends:
 
         - task: AzureCLI@2
           displayName: 'Verify extension versions are bumped'
+          condition: eq(variables['Build.Reason'], 'PullRequest')
           inputs:
             azureSubscription: '1es-extensions-publication-secure-service-connection'
             scriptType: pscore
