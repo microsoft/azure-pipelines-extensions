@@ -9,8 +9,8 @@
     "url": "https://github.com/microsoft/azure-pipelines-extensions.git"
   },
   "engines": {
-    "npm": ">=9.0.0",
-    "node": ">=18.0.0"
+    "npm": ">=10.8.2",
+    "node": ">=20.0.0"
   },
   "scripts": {
     "build": "gulp build",
@@ -22,7 +22,6 @@
     "@types/fs-extra": "^8.0.0",
     "@types/gulp": "^4.0.17",
     "@types/gulp-mocha": "^0.0.37",
-    "@types/minimist": "^1.2.5",
     "@types/shelljs": "^0.8.17",
     "@types/through2": "^2.0.41",
     "@types/validator": "^5.7.35",
@@ -35,7 +34,6 @@
     "gulp-mocha": "^10.0.1",
     "gulp-typescript": "^5.0.1",
     "minimatch": "3.1.5",
-    "minimist": "1.2.6",
     "shelljs": "^0.10.0",
     "sync-request": "3.0.1",
     "through2": "^2.0.1",
