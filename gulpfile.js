@@ -1035,7 +1035,8 @@ gulp.task("detectChangedExtensions", function (done) {
 gulp.task("package", function (cb) {
     // use gulp package --extension=<Extension_Name> to package an individual package
     if (options.extension) {
-        createVsixPackage(options.extension); return;
+        createVsixPackage(options.extension);
+        return;
     }
 
     fs.readdirSync(_extnBuildRoot).filter(function (file) {
@@ -1070,11 +1071,14 @@ function createVsixPackage(extensionName) {
         del(extnOutputPath);
 
         if (options.publisher) {
-            const manifest = JSON.parse(fs.readFileSync(path.join(extnManifestPath, "vss-extension.json"), 'utf8'));
+            const extensionManifestPath = path.join(extnManifestPath, "vss-extension.json");
+            console.log(`🔁 Updating publisher in manifest for ${extensionManifestPath} to "${options.publisher}"`);
+            const manifest = JSON.parse(fs.readFileSync(extensionManifestPath, 'utf8'));
             manifest.publisher = options.publisher;
-            fs.writeFileSync(path.join(extnManifestPath, "vss-extension.json"), JSON.stringify(manifest));
+            fs.writeFileSync(extensionManifestPath, JSON.stringify(manifest));
         }
 
+        console.log(`📦 Packaging extension: ${extensionName}`);
         shell.mkdir("-p", extnOutputPath);
         const packagingCmd = "tfx extension create --manifest-globs vss-extension.json --root " + extnManifestPath + " --output-path " + extnOutputPath;
         shell.exec(packagingCmd, { silent: true }, (code) => {
@@ -1082,6 +1086,7 @@ function createVsixPackage(extensionName) {
                 console.error(`command failed: ${packagingCmd}\nManually execute to debug`);
             }
         });
+        console.log(`✅ Packaged extension: ${extensionName}`);
     }
 }
 
