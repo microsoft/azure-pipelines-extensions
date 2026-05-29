@@ -1,7 +1,7 @@
 const cp = require('child_process');
 const path = require('path');
 
-const fs = require('fs-extra');
+const fs = require('node:fs');
 const gulp = require('gulp');
 const shell = require('shelljs');
 const through = require('through2');
@@ -112,7 +112,7 @@ function copyCommonModules(currentExtnRoot, commonDeps, commonSrc, extensionSour
                     const src = path.join(commonSrc, dep.module, "Src/");
                     const dest = path.join(targetPath, dep.dest);
                     shell.mkdir('-p', dest);
-                    fs.copy(src, dest, function (err) {
+                    fs.cp(src, dest, { recursive: true }, function (err) {
                         if (err) return console.error(err)
                     });
                 })
