@@ -9,14 +9,17 @@
         }
     },
     "no-cache": [
-            "Ansible",
-            "DownloadCircleCIArtifacts",
-            "DownloadTeamCityArtifacts",
-            "DownloadExternalBuildArtifacts",
-            "DownloadArtifactsTfsVersionControl",
-            "DownloadArtifactsTfsGit",
-            "DownloadArtifactsBitbucket",
-            "OptimizelyX",
-            "CopyAgentJobVariableToReleaseVariable"
-        ]
+        "Ansible",
+        "DownloadCircleCIArtifacts",
+        "DownloadTeamCityArtifacts",
+        "DownloadExternalBuildArtifacts",
+        "DownloadArtifactsTfsVersionControl",
+        "DownloadArtifactsTfsGit",
+        "DownloadArtifactsBitbucket",
+        "OptimizelyX",
+        "CopyAgentJobVariableToReleaseVariable"
+    ],
+    "no-engine-strict": [
+        "DownloadArtifactsTfsGit"
+    ]
 }
