@@ -140,6 +140,13 @@ function copyCommonModules(currentExtnRoot, commonDeps, commonSrc, extensionSour
                         const npmrcPath = path.join(taskSourcePath, ".npmrc");
                         const npmCmd = process.platform === 'win32' ? 'npm.cmd' : 'npm';
                         const npmArgs = ['ci', '--userconfig', `"${npmrcPath}"`];
+                        // Opt specific tasks out of engine-strict. The outer `npx gulp build` loads
+                        // the root .npmrc and exports its settings as npm_config_* env vars, which
+                        // take precedence over any nested .npmrc. A CLI flag is the only thing that
+                        // overrides those inherited env vars without disabling engine-strict globally.
+                        if ((externals['no-engine-strict'] || []).includes(task.name)) {
+                            npmArgs.splice(1, 0, '--no-engine-strict');
+                        }
                         if (util.isDebug()) {
                             npmArgs.splice(1, 0, '--verbose');
                             cp.execFileSync(npmCmd, npmArgs, { stdio: 'inherit', shell: true });
