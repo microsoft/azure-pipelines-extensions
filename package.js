@@ -1,14 +1,13 @@
-const cp = require('child_process');
-const path = require('path');
-
+const cp = require('node:child_process');
 const fs = require('node:fs');
-const gulp = require('gulp');
+const path = require('node:path');
+
 const shell = require('shelljs');
 const through = require('through2');
 const check = require('validator');
 
 const util = require('./package-utils');
-const TEMP_PATH = path.join(__dirname, '_temp');
+const externals = require('./externals.json');
 
 /**
  * @typedef {Object} TaskExecutor
@@ -118,8 +117,6 @@ function copyCommonModules(currentExtnRoot, commonDeps, commonSrc, extensionSour
                 })
             }
 
-            const externals = require('./externals.json');
-
             // For building UI contribution using webpack
             if (fs.existsSync(uiPath) && fs.statSync(uiPath).isDirectory()) {
                 console.log(`⚒️  Building UI contribution for task: ${task.name}`);
@@ -130,50 +127,34 @@ function copyCommonModules(currentExtnRoot, commonDeps, commonSrc, extensionSour
             }
 
             if (Object.keys(task.execution).some(x => x.includes('Node'))) {
-                if (externals['no-cache'].includes(task.name)) {
-                    console.log(`⚒️  Building Node task: ${task.name}`);
+                console.log(`⚒️  Building Node task: ${task.name}`);
 
-                    const originalDir = shell.pwd();
+                const originalDir = shell.pwd();
 
-                    try {
-                        util.cd(taskDirPath);
-                        const npmrcPath = path.join(taskSourcePath, ".npmrc");
-                        const npmCmd = process.platform === 'win32' ? 'npm.cmd' : 'npm';
-                        const npmArgs = ['ci', '--userconfig', `"${npmrcPath}"`];
-                        // Opt specific tasks out of engine-strict. The outer `npx gulp build` loads
-                        // the root .npmrc and exports its settings as npm_config_* env vars, which
-                        // take precedence over any nested .npmrc. A CLI flag is the only thing that
-                        // overrides those inherited env vars without disabling engine-strict globally.
-                        if ((externals['no-engine-strict'] || []).includes(task.name)) {
-                            npmArgs.splice(1, 0, '--no-engine-strict');
-                        }
-                        if (util.isDebug()) {
-                            npmArgs.splice(1, 0, '--verbose');
-                            cp.execFileSync(npmCmd, npmArgs, { stdio: 'inherit', shell: true });
-                        } else {
-                            cp.execFileSync(npmCmd, npmArgs, { stdio: 'ignore', shell: true });
-                        }
-                        console.log(`\x1b[A\x1b[K✅ npm ci at ${taskDirPath} completed successfully.`);
-                    } catch (err) {
-                        console.log(`\x1b[A\x1b[K❌ npm ci at ${taskDirPath} failed. Error: ${err.message}`);
-                        process.exit(1);
-                    } finally {
-                        util.cd(originalDir);
+                try {
+                    util.cd(taskDirPath);
+                    const npmrcPath = path.join(taskSourcePath, ".npmrc");
+                    const npmCmd = process.platform === 'win32' ? 'npm.cmd' : 'npm';
+                    const npmArgs = ['ci', '--userconfig', `"${npmrcPath}"`];
+                    // Opt specific tasks out of engine-strict. The outer `npx gulp build` loads
+                    // the root .npmrc and exports its settings as npm_config_* env vars, which
+                    // take precedence over any nested .npmrc. A CLI flag is the only thing that
+                    // overrides those inherited env vars without disabling engine-strict globally.
+                    if ((externals['no-engine-strict'] || []).includes(task.name)) {
+                        npmArgs.splice(1, 0, '--no-engine-strict');
                     }
-                } else {
-                    // Determine the azure-pipelines-task-lib version.
-                    const libVer = externals.npm['azure-pipelines-task-lib'];
-
-                    if (!libVer) {
-                        throw new Error('External azure-pipelines-task-lib not defined in externals.json.');
+                    if (util.isDebug()) {
+                        npmArgs.splice(1, 0, '--verbose');
+                        cp.execFileSync(npmCmd, npmArgs, { stdio: 'inherit', shell: true });
+                    } else {
+                        cp.execFileSync(npmCmd, npmArgs, { stdio: 'ignore', shell: true });
                     }
-
-                    // Copy the lib from the cache.
-                    console.log('Linking azure-pipelines-task-lib ' + libVer);
-                    const copySource = path.join(TEMP_PATH, 'npm', 'azure-pipelines-task-lib', libVer, 'node_modules', '**');
-                    const copyTarget = path.join(targetPath, 'node_modules');
-                    shell.mkdir('-p', copyTarget);
-                    gulp.src([copySource]).pipe(gulp.dest(copyTarget));
+                    console.log(`\x1b[A\x1b[K✅ npm ci at ${taskDirPath} completed successfully.`);
+                } catch (err) {
+                    console.log(`\x1b[A\x1b[K❌ npm ci at ${taskDirPath} failed. Error: ${err.message}`);
+                    process.exit(1);
+                } finally {
+                    util.cd(originalDir);
                 }
             }
         })
