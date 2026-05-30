@@ -99,7 +99,11 @@
     }
   ],
   "execution": {
-    "Node": {
+    "Node16": {
+      "target": "downloadBitbucket.js",
+      "argumentFormat": ""
+    },
+    "Node10": {
       "target": "downloadBitbucket.js",
       "argumentFormat": ""
     }
