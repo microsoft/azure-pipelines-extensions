@@ -23,7 +23,9 @@
 [CmdletBinding()]
 param(
     [Parameter(Mandatory)]
-    [string]$ManifestPath
+    [string]$ManifestPath,
+
+    [switch]$VerifyOnly
 )
 
 $ErrorActionPreference = 'Stop'
@@ -161,6 +163,11 @@ $newVersionStr = $localVersionStr
 
 if ($marketplaceVersion) {
     if ($localVersion -le $marketplaceVersion) {
+        if ($VerifyOnly) {
+            Write-Host "##[error]Version NOT bumped: local ($localVersion) <= Marketplace ($marketplaceVersion)"
+            exit 1
+        }
+
         $newVersionStr = "$($marketplaceVersion.Major).$($marketplaceVersion.Minor).$($marketplaceVersion.Build + 1)"
         Write-Host "Bumping   : $localVersion -> $newVersionStr  (local <= Marketplace max)"
 
