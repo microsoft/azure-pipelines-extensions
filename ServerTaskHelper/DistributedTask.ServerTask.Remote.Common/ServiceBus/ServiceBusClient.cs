@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 using System;
 using DistributedTask.ServerTask.Remote.Common.Request;
 using Microsoft.Azure.ServiceBus;

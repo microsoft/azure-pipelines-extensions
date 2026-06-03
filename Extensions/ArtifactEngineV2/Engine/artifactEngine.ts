@@ -1,4 +1,4 @@
-﻿import * as path from 'path';
+import * as path from 'path';
 
 var tl = require('azure-pipelines-task-lib/task');
 

@@ -1,4 +1,4 @@
-﻿Write-Verbose "Entering script MsDeployOnTargetMachines.ps1"
+Write-Verbose "Entering script MsDeployOnTargetMachines.ps1"
 $MsDeployInstallPathRegKey = "HKLM:\SOFTWARE\Microsoft\IIS Extensions\MSDeploy"
 
 function Run-Command
