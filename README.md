@@ -43,6 +43,11 @@ While updating an extension or its tasks it is important to ensure that:
 
     - For any changed task, we need to update the version number for both, the changed task (in `task.json` file) and extension itself (in `vss-extension.json` file).
     - If only logic around the extension is changed, update the version number for extension only (in `vss-extension.json` file).
+    - **If a shared/common file is changed, update the version number for ALL publishable extensions.** Shared infrastructure files can introduce regressions across all extensions, so a version bump ensures each extension is re-validated and re-published. Shared files include:
+      - `Extensions/Common/`, `Extensions/ArtifactEngine/`, `Extensions/ArtifactEngineV2/`
+      - Root config files: `package.json`, `package-lock.json`, `gulpfile.js`, `tsconfig.json`, `common.json`, `externals.json`, `package.js`, `package-utils.js`, `base.tsconfig.json`
+      - Directories: `definitions/`, `TaskModules/`, `scripts/`, `.pipelines/`, `ci/`
+      - Note: Documentation files (`.md`, `.txt`) and images (`.png`, `.jpg`, `.gif`) in these paths are excluded from this rule.
     - The version number consist of three parts (major, minor, patch). Be aware that minor number should reflect [the current sprint](https://whatsprintis.it/) of Azure DevOps team in which change is being made. Patch number starts from 0 for the initial version, and increments for every change.
 
 2. The changed extension is published to [Marketplace](https://marketplace.visualstudio.com/azuredevops/).

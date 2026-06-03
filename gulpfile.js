@@ -904,15 +904,37 @@ function getChangedFiles() {
     return files;
 }
 
-const SHARED_INFRA_PREFIXES = ['Extensions/Common/', 'package.json', 'gulpfile.js', 'scripts/', '.pipelines/', 'ci/'];
+const SHARED_INFRA_PREFIXES = [
+    'Extensions/Common/',
+    'Extensions/ArtifactEngine/',
+    'Extensions/ArtifactEngineV2/',
+    'common.json',
+    'externals.json',
+    'package.json',
+    'package-lock.json',
+    'package.js',
+    'package-utils.js',
+    'base.tsconfig.json',
+    'tsconfig.json',
+    'gulpfile.js',
+    'definitions/',
+    'TaskModules/',
+    'scripts/',
+    '.pipelines/',
+    'ci/'
+];
+const SHARED_INFRA_IGNORE_EXTENSIONS = ['.md', '.txt', '.png', '.jpg', '.gif'];
 
 /**
  * Returns true if any changed file touches shared infrastructure.
+ * Documentation and image files (.md, .txt, .png, .jpg, .gif) are excluded.
  * @param {string[]} files
  * @returns {boolean}
  */
 function hitsSharedInfra(files) {
     return files.some(function (f) {
+        var dotIndex = f.lastIndexOf('.');
+        if (dotIndex >= 0 && SHARED_INFRA_IGNORE_EXTENSIONS.indexOf(f.substring(dotIndex).toLowerCase()) >= 0) return false;
         return SHARED_INFRA_PREFIXES.some(function (p) { return f === p || f.indexOf(p) === 0; });
     });
 }
