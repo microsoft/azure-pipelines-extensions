@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using DistributedTask.ServerTask.Remote.Common.Request;
 using Microsoft.TeamFoundation.Build.WebApi;
