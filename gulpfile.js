@@ -904,7 +904,25 @@ function getChangedFiles() {
     return files;
 }
 
-const SHARED_INFRA_PREFIXES = ['Extensions/Common/', 'package.json', 'gulpfile.js', 'scripts/', '.pipelines/', 'ci/'];
+const SHARED_INFRA_PREFIXES = [
+    'Extensions/Common/',
+    'Extensions/ArtifactEngine/',
+    'Extensions/ArtifactEngineV2/',
+    'common.json',
+    'externals.json',
+    'package.json',
+    'package-lock.json',
+    'package.js',
+    'package-utils.js',
+    'base.tsconfig.json',
+    'tsconfig.json',
+    'gulpfile.js',
+    'definitions/',
+    'TaskModules/',
+    'scripts/',
+    '.pipelines/',
+    'ci/'
+];
 const SHARED_INFRA_IGNORE_EXTENSIONS = ['.md', '.txt', '.png', '.jpg', '.gif'];
 
 /**
