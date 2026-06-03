@@ -640,6 +640,12 @@ gulp.task("syncVersions", function (cb) {
 
 gulp.task("tscBuildTasks", function (cb) {
     const buildCheckList = JSON.parse(fs.readFileSync(path.join(__dirname, 'externals.json'), 'utf-8'))['tsc-build-check'];
+
+    if (!buildCheckList || buildCheckList.length === 0) {
+        cb();
+        return;
+    }
+
     const tscCliPath = require.resolve('typescript/bin/tsc');
 
     fs.readdirSync(ExtensionFolder, { recursive: true, encoding: 'utf-8' })
