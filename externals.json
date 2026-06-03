@@ -6,6 +6,7 @@
         }
     },
     "no-engine-strict": [
-        "DownloadArtifactsTfsGit"
+        "DownloadArtifactsTfsGit",
+        "DownloadExternalBuildArtifacts"
     ]
 }
