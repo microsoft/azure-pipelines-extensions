@@ -111,13 +111,13 @@ extends:
 
         - task: AzureCLI@2
           displayName: 'Verify extension versions are bumped'
-          condition: eq(variables['Build.Reason'], 'PullRequest')
+          condition: and(eq(variables['Build.Reason'], 'PullRequest'), ne(variables['DetectedExtensions'], ''))
           inputs:
             azureSubscription: '1es-extensions-publication-secure-service-connection'
             scriptType: pscore
             scriptLocation: scriptPath
             scriptPath: '$(Build.SourcesDirectory)/scripts/VerifyExtensionVersions.ps1'
-            arguments: '-SourceDirectory "$(Build.SourcesDirectory)"'
+            arguments: '-Extensions "$(DetectedExtensions)" -SourceDirectory "$(Build.SourcesDirectory)"'
 
         - task: PowerShell@2
           displayName: 'Build test resources'
