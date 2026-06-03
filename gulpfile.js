@@ -60,7 +60,7 @@ const cultures = ['en-US', 'de-DE', 'es-ES', 'fr-FR', 'it-IT', 'ja-JP', 'ko-KR',
  * @returns {void}
  */
 function errorHandler(error) {
-    console.error(`Build failed ${error}`);
+    console.error(`Build failed ${error ? `with error: ${error}` : 'with an unknown error'}`);
     process.exit(1);
 }
 
@@ -638,7 +638,27 @@ gulp.task("syncVersions", function (cb) {
     processNext();
 });
 
-gulp.task("build", gulp.series("syncVersions", "compileNode", "updateTestIds"));
+gulp.task("tscBuildTasks", function (cb) {
+    const buildCheckList = JSON.parse(fs.readFileSync(path.join(__dirname, 'externals.json'), 'utf-8'))['tsc-build-check'];
+    const tscCliPath = require.resolve('typescript/bin/tsc');
+
+    fs.readdirSync(ExtensionFolder, { recursive: true, encoding: 'utf-8' })
+        .filter(x => buildCheckList.find((/** @type{string} */ check) => x.includes(check)) && path.parse(x).base == "tsconfig.json" && !x.includes("node_modules"))
+        .map(x => path.resolve(ExtensionFolder, x))
+        .forEach((configPath) => {
+            try {
+                cp.execFileSync(process.execPath, [tscCliPath, '-p', configPath], { stdio: 'ignore' });
+            } catch (err) {
+                console.error(`TypeScript compilation failed for ${configPath}: ${err.message}`);
+                console.error(`Execute manually the command:\nnpx tsc -p ${configPath}`);
+                cb();
+                errorHandler();
+            }
+        });
+    cb();
+});
+
+gulp.task("build", gulp.series("syncVersions", "compileNode", "tscBuildTasks", "updateTestIds"));
 
 gulp.task("default", gulp.series("build"));
 
