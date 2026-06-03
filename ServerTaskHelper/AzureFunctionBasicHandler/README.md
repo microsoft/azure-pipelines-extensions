@@ -1,4 +1,4 @@
-﻿# Basic Invoke Azure Function Check Example
+# Basic Invoke Azure Function Check Example
  
 This basic example shows an Azure Function that checks if a pipeline run has executed at least one [`CmdLine` task](https://learn.microsoft.com/azure/devops/pipelines/tasks/reference/cmd-line-v2). 
 

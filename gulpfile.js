@@ -75,7 +75,7 @@ gulp.task("clean", function (cb) {
 
 gulp.task("compilePS", gulp.series("clean", function () {
     if (options.testAreaPath === undefined) {
-        return gulp.src(sourcePaths, { base: "." }).pipe(gulp.dest(_buildRoot));
+        return gulp.src(sourcePaths, { base: ".", encoding: false }).pipe(gulp.dest(_buildRoot));
     } else {
         if (options.testAreaPath.length > 0) {
             console.log('Compiling updated modules - ' + options.testAreaPath);
@@ -86,11 +86,11 @@ gulp.task("compilePS", gulp.series("clean", function () {
                 filter.push(ExtensionFolder + '/' + areaPaths[n] + '/**/*')
             }
 
-            return gulp.src(filter, { base: "." }).pipe(gulp.dest(_buildRoot));
+            return gulp.src(filter, { base: ".", encoding: false }).pipe(gulp.dest(_buildRoot));
         } else {
             console.log('No module is updated with given change-set');
             // Create a _build/Extensions folder which will be empty
-            return gulp.src(ExtensionFolder, { base: "." }).pipe(gulp.dest(_buildRoot));
+            return gulp.src(ExtensionFolder, { base: ".", encoding: false }).pipe(gulp.dest(_buildRoot));
         }
     }
 }));
@@ -658,12 +658,12 @@ gulp.task('compileTests', function () {
 });
 
 gulp.task('testLib', gulp.series('compileTests', function () {
-    return gulp.src(['Extensions/Common/lib/**/*'])
+    return gulp.src(['Extensions/Common/lib/**/*'], { encoding: false })
         .pipe(gulp.dest(path.join(_testRoot, 'Extensions/Common/lib/')));
 }));
 
 gulp.task('copyTestData', gulp.series('compileTests', function () {
-    return gulp.src(['Extensions/**/Tests/**/data/**'], { dot: true })
+    return gulp.src(['Extensions/**/Tests/**/data/**'], { dot: true, encoding: false })
         .pipe(gulp.dest(_testRoot + "\\Extensions"));
 }));
 
@@ -678,7 +678,7 @@ gulp.task('ps1tests', gulp.series('compileTests', function () {
 }));
 
 gulp.task('testLib_NodeModules', gulp.series('testLib', function () {
-    return gulp.src(path.join(__dirname, 'node_modules/azure-pipelines-task-lib/**/*'))
+    return gulp.src(path.join(__dirname, 'node_modules/azure-pipelines-task-lib/**/*'), { encoding: false })
         .pipe(gulp.dest(path.join(_testRoot, 'Extensions/Common/lib/node_modules/azure-pipelines-task-lib')));
 }));
 

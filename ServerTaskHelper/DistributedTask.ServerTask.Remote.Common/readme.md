@@ -1,4 +1,4 @@
-﻿### This library can be consumed by developers who wants to build new tasks/solutions on top of vsts server side task infrastructure. It provides the following capabilities:
+### This library can be consumed by developers who wants to build new tasks/solutions on top of vsts server side task infrastructure. It provides the following capabilities:
 
 1. Ability to report task status updates to vsts like task has started, task has completed with succeess or failure.
 2. Ability to report live logs update to vsts.

@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore;
+using Microsoft.AspNetCore;
 
 namespace HttpRequestSampleWithoutHandler.Http
 {
