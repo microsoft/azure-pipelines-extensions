@@ -1,5 +1,5 @@
-# This Yaml Document has been converted by ESAI Yaml Pipeline Conversion Tool.
-# This pipeline will be extended to the OneESPT template
+# Runs extensions tests from this repository.
+# This pipeline is intended to be used as an extension validation gate in PRs, and should not be triggered directly.
 trigger: none
 
 parameters:

@@ -1,14 +1,26 @@
 <#
 .SYNOPSIS
-  Publishes VSIX extensions to the marketplace.
+  Publishes VSIX extensions to the marketplace, with an optional rescue mode for slow Marketplace validation.
 
 .DESCRIPTION
-  For each .vsix in the given directory, publishes it to the VS Marketplace
-  using the version already embedded in the extension source code.
+  Default (publish) mode
+    For each .vsix in the given directory, publishes it to the VS Marketplace using the version already
+    embedded in the extension source code. If `tfx extension publish` exits non-zero with output that
+    indicates Marketplace validation is still running, falls back to polling validation status.
 
-  When -ValidationOnly is provided, the script does not publish. It only
-  polls Marketplace validation status for each extension version found in the
-  provided VSIX files.
+  RescueFailedPublish mode (-RescueFailedPublish -PublishTaskDisplayName <name>)
+    Intended to run after a separate publish task (for example 1ES.PublishAzureDevOpsExtension@1) fails
+    with continueOnError. Reads that task's log via the Azure DevOps REST API and only polls Marketplace
+    validation when the log contains a long-validation timeout indicator. For any other failure (duplicate
+    version, auth issue, malformed package, etc.) the script exits 1 and echoes the tail of the publish
+    task log so the real error is not masked by a misleading "validation timed out" rescue.
+
+    Requires the following environment variables (Azure Pipelines provides them; SYSTEM_ACCESSTOKEN must
+    be mapped explicitly via the task's `env:` block):
+      - SYSTEM_ACCESSTOKEN
+      - SYSTEM_COLLECTIONURI
+      - SYSTEM_TEAMPROJECT
+      - BUILD_BUILDID
 
 .PARAMETER VsixDirectory
   Directory containing .vsix files.
@@ -16,21 +28,39 @@
 .PARAMETER MarketplaceToken
   PAT / access-token for VS Marketplace authentication.
 
-.PARAMETER ValidationOnly
-  If set, skip publish and only poll validation status.
+.PARAMETER RescueFailedPublish
+  If set, inspect the log of the publish task named by -PublishTaskDisplayName and only poll Marketplace
+  validation when the log indicates a long-validation timeout. Otherwise exit 1.
+
+.PARAMETER PublishTaskDisplayName
+  The `displayName` of the publish task to inspect (required with -RescueFailedPublish).
 #>
 param(
     [Parameter(Mandatory)] [string] $VsixDirectory,
     [Parameter(Mandatory)] [string] $MarketplaceToken,
-    [switch] $ValidationOnly
+    [switch] $RescueFailedPublish,
+    [string] $PublishTaskDisplayName
 )
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
+if ($RescueFailedPublish -and [string]::IsNullOrWhiteSpace($PublishTaskDisplayName)) {
+    Write-Host "##[error]-RescueFailedPublish requires -PublishTaskDisplayName"
+    exit 1
+}
+
 $validationRetryCount = 5
 $initialValidationDelaySeconds = 15
 $maxValidationDelaySeconds = 300
+
+# Strings emitted by tfx-cli (and the 1ES publish task that wraps it) when Marketplace validation is
+# still running after the publish call has timed out. Any other failure should be treated as a real
+# error, not a candidate for the validation-polling rescue path.
+$longValidationPatterns = @(
+    'Validation is taking much longer than usual',
+    'This extension will be available after validation is successful'
+)
 
 function Invoke-TfxCommand {
     param(
@@ -86,6 +116,90 @@ function Get-ValidationMetadata {
     return $null
 }
 
+function Get-FailedPublishTaskLog {
+    param(
+        [Parameter(Mandatory)] [string] $TaskDisplayName
+    )
+
+    $required = @{
+        SYSTEM_ACCESSTOKEN   = $env:SYSTEM_ACCESSTOKEN
+        SYSTEM_COLLECTIONURI = $env:SYSTEM_COLLECTIONURI
+        SYSTEM_TEAMPROJECT   = $env:SYSTEM_TEAMPROJECT
+        BUILD_BUILDID        = $env:BUILD_BUILDID
+    }
+    foreach ($entry in $required.GetEnumerator()) {
+        if ([string]::IsNullOrWhiteSpace($entry.Value)) {
+            Write-Host "##[error]Required environment variable $($entry.Key) is not set"
+            return $null
+        }
+    }
+
+    $headers = @{
+        Authorization = "Bearer $($required.SYSTEM_ACCESSTOKEN)"
+        Accept        = 'application/json'
+    }
+
+    $collectionUri = $required.SYSTEM_COLLECTIONURI.TrimEnd('/')
+    $timelineUrl = "$collectionUri/$($required.SYSTEM_TEAMPROJECT)/_apis/build/builds/$($required.BUILD_BUILDID)/timeline?api-version=7.0"
+
+    $taskRecord = $null
+    for ($attempt = 1; $attempt -le 3; $attempt++) {
+        try {
+            $timeline = Invoke-RestMethod -Uri $timelineUrl -Headers $headers -Method Get
+            $taskRecord = $timeline.records |
+                Where-Object { $_.type -eq 'Task' -and $_.name -eq $TaskDisplayName -and $_.log -and $_.log.url } |
+                Sort-Object -Property finishTime -Descending |
+                Select-Object -First 1
+
+            if ($taskRecord) { break }
+        } catch {
+            Write-Host "Attempt $attempt`: failed to fetch build timeline ($($_.Exception.Message))"
+        }
+
+        if ($attempt -lt 3) {
+            Start-Sleep -Seconds 5
+        }
+    }
+
+    if (-not $taskRecord) {
+        Write-Host "##[error]Could not find a finished task record named '$TaskDisplayName' with an uploaded log"
+        return $null
+    }
+
+    try {
+        $logResponse = Invoke-WebRequest -Uri $taskRecord.log.url -Headers $headers -Method Get -UseBasicParsing
+        return $logResponse.Content
+    } catch {
+        Write-Host "##[error]Failed to download log for task '$TaskDisplayName': $($_.Exception.Message)"
+        return $null
+    }
+}
+
+function Test-LogIndicatesLongValidation {
+    param([string] $LogContent)
+
+    if ([string]::IsNullOrEmpty($LogContent)) { return $false }
+    foreach ($pattern in $longValidationPatterns) {
+        if ($LogContent.IndexOf($pattern, [System.StringComparison]::OrdinalIgnoreCase) -ge 0) {
+            return $true
+        }
+    }
+    return $false
+}
+
+function Write-PublishLogTail {
+    param(
+        [string] $LogContent,
+        [int] $LineCount = 40
+    )
+
+    if ([string]::IsNullOrEmpty($LogContent)) { return }
+    $tail = ($LogContent -split "`r?`n" | Select-Object -Last $LineCount) -join [Environment]::NewLine
+    Write-Host "----- Tail of publish task log (last $LineCount lines) -----"
+    Write-Host $tail
+    Write-Host "----- End of publish task log tail -----"
+}
+
 function Wait-ForMarketplaceValidation {
     param(
         [Parameter(Mandatory)] [string] $Publisher,
@@ -132,6 +246,27 @@ function Wait-ForMarketplaceValidation {
 # ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
+$pollOnly = $false
+
+if ($RescueFailedPublish) {
+    Write-Host "Inspecting log of failed publish task '$PublishTaskDisplayName' to decide whether to poll Marketplace validation..."
+
+    $publishLog = Get-FailedPublishTaskLog -TaskDisplayName $PublishTaskDisplayName
+    if ($null -eq $publishLog) {
+        Write-Host "##[error]Could not retrieve publish task log; failing rescue to avoid masking the real error."
+        exit 1
+    }
+
+    if (-not (Test-LogIndicatesLongValidation -LogContent $publishLog)) {
+        Write-Host "##[error]Publish task '$PublishTaskDisplayName' failed for a reason unrelated to Marketplace validation timeout (for example: version already published, auth failure, malformed package). Refer to that task's log for the actual error."
+        Write-PublishLogTail -LogContent $publishLog
+        exit 1
+    }
+
+    Write-Host "Publish task log indicates a long-validation timeout. Polling Marketplace validation status..."
+    $pollOnly = $true
+}
+
 $vsixFiles = @(Get-ChildItem -Path $VsixDirectory -Filter '*.vsix')
 
 if ($vsixFiles.Count -eq 0) {
@@ -139,7 +274,7 @@ if ($vsixFiles.Count -eq 0) {
     exit 1
 }
 
-if ($ValidationOnly) {
+if ($pollOnly) {
     Write-Host "Found $($vsixFiles.Count) VSIX file(s) to validate:"
 } else {
     Write-Host "Found $($vsixFiles.Count) VSIX file(s) to publish:"
@@ -148,7 +283,7 @@ $vsixFiles | ForEach-Object { Write-Host "  - $($_.Name)" }
 
 $failCount = 0
 foreach ($vsix in $vsixFiles) {
-    if ($ValidationOnly) {
+    if ($pollOnly) {
         Write-Host "`nValidating: $($vsix.Name)..."
 
         $metadata = Get-ValidationMetadata -VsixName $vsix.Name
@@ -233,7 +368,7 @@ foreach ($vsix in $vsixFiles) {
 }
 
 if ($failCount -gt 0) {
-    if ($ValidationOnly) {
+    if ($pollOnly) {
         Write-Host "##[error]$failCount of $($vsixFiles.Count) extension(s) failed validation checks"
     } else {
         Write-Host "##[error]$failCount of $($vsixFiles.Count) extension(s) failed to publish"
@@ -241,7 +376,7 @@ if ($failCount -gt 0) {
     exit 1
 }
 
-if ($ValidationOnly) {
+if ($pollOnly) {
     Write-Host "`nAll $($vsixFiles.Count) extension(s) validated successfully"
 } else {
     Write-Host "`nAll $($vsixFiles.Count) extension(s) published successfully"

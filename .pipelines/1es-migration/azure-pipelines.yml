@@ -1,4 +1,7 @@
-# This pipeline is based on 1ES build pipeline, and it is used to publish a new version of an extension to Marketplace.
+# This pipeline is used to publish a new version of PROD extension to Marketplace.
+# Before publishing, it optionally publishes a test version of the extension with visibility set to private,
+# and triggers CI tests that use this test version to validate newly introduced changes.
+# If the tests pass and manual approval for PROD publishing is granted, it proceeds with publishing the PROD version of the extension on Marketplace. 
 
 name: Extension $(ExtensionName) - $(Date:yyyyMMdd)$(Rev:.r)
 appendCommitMessageToRunName: false
@@ -326,7 +329,10 @@ extends:
                 $(Build.SourcesDirectory)/scripts/PublishMarketplaceExtensions.ps1 `
                   -VsixDirectory "$(Pipeline.Workspace)/vsix-test-signed" `
                   -MarketplaceToken $token `
-                  -ValidationOnly
+                  -RescueFailedPublish `
+                  -PublishTaskDisplayName 'Publish test extension'
+            env:
+              SYSTEM_ACCESSTOKEN: $(System.AccessToken)
 
     # ======= Execute CI tests and verify extension =======
     - stage: Execute_CI_Tests
@@ -434,4 +440,7 @@ extends:
               $(Build.SourcesDirectory)/scripts/PublishMarketplaceExtensions.ps1 `
                 -VsixDirectory "$(Pipeline.Workspace)/vsix-signed" `
                 -MarketplaceToken $token `
-                -ValidationOnly
+                -RescueFailedPublish `
+                -PublishTaskDisplayName 'Publish PROD extension'
+          env:
+            SYSTEM_ACCESSTOKEN: $(System.AccessToken)
