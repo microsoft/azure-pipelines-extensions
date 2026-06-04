@@ -63,7 +63,11 @@ async function main(): Promise<void> {
         var templatePath = path.join(__dirname, 'teamcity.handlebars');
         var username = tl.getEndpointAuthorizationParameter(connection, 'username', false)!;
         var password = tl.getEndpointAuthorizationParameter(connection, 'password', false)!;
-        try { if (password) tl.setSecret(password); } catch (e) { tl.debug('Failed to register secret for log masking: ' + e.message); }
+        try {
+            tl.setSecret(password);
+        } catch (e) {
+            tl.debug('Failed to register secret for log masking: ' + e.message);
+        }
         var teamcityVariables = {
             "endpoint": {
                 "url": endpointUrl
