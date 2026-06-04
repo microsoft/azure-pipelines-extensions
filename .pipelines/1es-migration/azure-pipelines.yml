@@ -297,7 +297,9 @@ extends:
               version: 'v0.21.1'
 
           - task: 1ES.PublishAzureDevOpsExtension@1
+            name: PublishTestExtensionToMarketplace
             displayName: 'Publish test extension'
+            continueOnError: true
             inputs:
               connectTo: AzureRM
               connectedServiceNameAzureRM: '1es-extensions-publication-secure-service-connection'
@@ -306,6 +308,25 @@ extends:
               targetPath: '$(Pipeline.Workspace)/vsix-test-signed'
               validateExtension: false
               useV5: true
+
+          - task: AzureCLI@2
+            displayName: 'Poll test extension validation status if primary publish fails'
+            condition: failed('PublishTestExtensionToMarketplace')
+            inputs:
+              azureSubscription: '1es-extensions-publication-secure-service-connection'
+              scriptType: pscore
+              scriptLocation: inlineScript
+              inlineScript: |
+                $token = az account get-access-token --resource 499b84ac-1321-427f-aa17-267ca6975798 --query accessToken -o tsv
+                if (-not $token) {
+                  Write-Host "##[error]Failed to acquire marketplace access token"
+                  exit 1
+                }
+
+                $(Build.SourcesDirectory)/scripts/PublishMarketplaceExtensions.ps1 `
+                  -VsixDirectory "$(Pipeline.Workspace)/vsix-test-signed" `
+                  -MarketplaceToken $token `
+                  -ValidationOnly
 
     # ======= Execute CI tests and verify extension =======
     - stage: Execute_CI_Tests
@@ -384,7 +405,9 @@ extends:
             version: 'v0.21.1'
 
         - task: 1ES.PublishAzureDevOpsExtension@1
+          name: PublishProdExtensionToMarketplace
           displayName: 'Publish PROD extension'
+          continueOnError: true
           inputs:
             connectTo: AzureRM
             connectedServiceNameAzureRM: '1es-extensions-publication-secure-service-connection'
@@ -393,3 +416,22 @@ extends:
             targetPath: '$(Pipeline.Workspace)/vsix-signed'
             validateExtension: false
             useV5: true
+
+        - task: AzureCLI@2
+          displayName: 'Poll PROD extension validation status if primary publish fails'
+          condition: failed('PublishProdExtensionToMarketplace')
+          inputs:
+            azureSubscription: '1es-extensions-publication-secure-service-connection'
+            scriptType: pscore
+            scriptLocation: inlineScript
+            inlineScript: |
+              $token = az account get-access-token --resource 499b84ac-1321-427f-aa17-267ca6975798 --query accessToken -o tsv
+              if (-not $token) {
+                Write-Host "##[error]Failed to acquire marketplace access token"
+                exit 1
+              }
+
+              $(Build.SourcesDirectory)/scripts/PublishMarketplaceExtensions.ps1 `
+                -VsixDirectory "$(Pipeline.Workspace)/vsix-signed" `
+                -MarketplaceToken $token `
+                -ValidationOnly

@@ -217,7 +217,7 @@ extends:
                 exit 1
               }
 
-              $(Build.SourcesDirectory)/scripts/PublishTestExtensions.ps1 `
+              $(Build.SourcesDirectory)/scripts/PublishMarketplaceExtensions.ps1 `
                 -VsixDirectory "$(Pipeline.Workspace)/vsix-test-unsigned" `
                 -MarketplaceToken $token
 
