@@ -65,8 +65,8 @@ async function main(): Promise<void> {
         var password = tl.getEndpointAuthorizationParameter(connection, 'password', false)!;
         try {
             tl.setSecret(password);
-        } catch (e) {
-            tl.debug('Failed to register secret for log masking: ' + String(e));
+        } catch {
+            tl.debug('Failed to register secret for log masking.');
         }
         var teamcityVariables = {
             "endpoint": {

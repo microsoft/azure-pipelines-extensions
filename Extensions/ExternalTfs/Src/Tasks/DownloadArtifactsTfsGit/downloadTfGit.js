@@ -102,8 +102,8 @@ async function getAdoScDetails(serviceConnection, hostUrl) {
     var accessToken = await auth.getAccessTokenViaWorkloadIdentityFederation(serviceConnection);
     try {
         tl.setSecret(accessToken);
-    } catch (e) {
-        tl.debug('Failed to register secret for log masking: ' + String(e));
+    } catch {
+        tl.debug('Failed to register secret for log masking.');
     }
     return {
         "Url": hostUrl,
@@ -130,8 +130,8 @@ function getReposOrTfsScDetails(serviceConnection, hostUrl) {
     }
     try {
         tl.setSecret(hostPassword);
-    } catch (e) {
-        tl.debug('Failed to register secret for log masking: ' + String(e));
+    } catch {
+        tl.debug('Failed to register secret for log masking.');
     }
 
     return {

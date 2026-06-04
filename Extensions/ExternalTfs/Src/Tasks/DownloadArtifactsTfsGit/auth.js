@@ -36,8 +36,8 @@ async function getAccessTokenViaWorkloadIdentityFederation(serviceConnection) {
     tl.debug(`Got federated token for service connection ${serviceConnection}`);
     try {
         tl.setSecret(federatedToken);
-    } catch (e) {
-        tl.debug('Failed to register secret for log masking: ' + String(e));
+    } catch {
+        tl.debug('Failed to register secret for log masking.');
     }
 
     // Exchange federated token for service principal token
@@ -86,8 +86,8 @@ async function getAccessTokenFromFederatedToken(servicePrincipalId, tenantId, fe
     const result = await app.acquireTokenByClientCredential(request);
     try {
         tl.setSecret(result?.accessToken);
-    } catch (e) {
-        tl.debug('Failed to register secret for log masking: ' + String(e));
+    } catch {
+        tl.debug('Failed to register secret for log masking.');
     }
 
     tl.debug(`Got access token for service principal ${servicePrincipalId}`);

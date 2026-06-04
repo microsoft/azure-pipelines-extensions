@@ -168,8 +168,8 @@ async function configureForAdoSc(): Promise<ConnectionDetails> {
     const accessToken: string = await auth.getAccessTokenViaWorkloadIdentityFederation(serviceConnection);
     try {
         tl.setSecret(accessToken);
-    } catch (e) {
-        tl.debug('Failed to register secret for log masking: ' + String(e));
+    } catch {
+        tl.debug('Failed to register secret for log masking.');
     }
     return {
         serviceConnection,
@@ -193,8 +193,8 @@ function configureForTfsSc() : ConnectionDetails {
 
     try {
         tl.setSecret(accessToken);
-    } catch (e) {
-        tl.debug('Failed to register secret for log masking: ' + String(e));
+    } catch {
+        tl.debug('Failed to register secret for log masking.');
     }
 
     return {
