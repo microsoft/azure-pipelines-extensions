@@ -65,7 +65,7 @@
       "helpMarkDown": "Path on the agent machine where the artifacts will be downloaded"
     }
   ],
-    "dataSourceBindings": [
+  "dataSourceBindings": [
     {
       "target": "project",
       "endpointId": "$(connection)",
@@ -73,23 +73,23 @@
       "resultTemplate": "{ \"Value\" : \"{{{id}}}\", \"DisplayValue\" : \"{{{name}}}\" }"
     },
     {
-        "target": "definition",
-        "endpointId": "$(connection)",
-        "dataSourceName": "TfvcProjects",
-        "parameters": {
-            "project": "$(project)"
-        },
-        "resultTemplate": "{ \"Value\" : \"{{#if supportsTFVC}}{{{project.id}}}{{else}}{{/if}}\", \"DisplayValue\" : \"{{#if supportsTFVC}}$/{{{project.name}}}{{else}}{{/if}}\" }"
+      "target": "definition",
+      "endpointId": "$(connection)",
+      "dataSourceName": "TfvcProjects",
+      "parameters": {
+        "project": "$(project)"
+      },
+      "resultTemplate": "{ \"Value\" : \"{{#if supportsTFVC}}{{{project.id}}}{{else}}{{/if}}\", \"DisplayValue\" : \"{{#if supportsTFVC}}$/{{{project.name}}}{{else}}{{/if}}\" }"
     },
     {
-        "target": "version",
-        "endpointId": "$(connection)",
-        "dataSourceName": "TfvcChangesets",
-        "parameters":{
+      "target": "version",
+      "endpointId": "$(connection)",
+      "dataSourceName": "TfvcChangesets",
+      "parameters": {
         "project": "$(project)",
         "definition": "$(definition)"
-        },
-        "resultTemplate": "{ \"Value\" : \"{{{changesetId}}}\", \"DisplayValue\" : \"Changeset {{{changesetId}}}\" }"
+      },
+      "resultTemplate": "{ \"Value\" : \"{{{changesetId}}}\", \"DisplayValue\" : \"Changeset {{{changesetId}}}\" }"
     }
   ],
   "instanceNameFormat": "Download Artifacts - External TFS Version Control",
