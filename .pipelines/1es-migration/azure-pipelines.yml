@@ -16,7 +16,6 @@ parameters:
   values:
   - Ansible
   - BitBucket
-  - CircleCI
   - ExternalTfs
   - IISWebAppDeploy
   - ServiceNow
