@@ -66,7 +66,7 @@ async function main(): Promise<void> {
         try {
             tl.setSecret(password);
         } catch (e) {
-            tl.debug('Failed to register secret for log masking: ' + e.message);
+            tl.debug('Failed to register secret for log masking: ' + String(e));
         }
         var teamcityVariables = {
             "endpoint": {

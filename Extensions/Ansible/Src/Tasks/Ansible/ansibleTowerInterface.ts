@@ -40,7 +40,7 @@ export class ansibleTowerInterface extends ansibleInterface {
             try {
                 tl.setSecret(this._password);
             } catch (e) {
-                tl.debug('Failed to register secret for log masking: ' + e.message);
+                tl.debug('Failed to register secret for log masking: ' + String(e));
             }
             this._jobTemplateName = tl.getInput("jobTemplateName");
             this._lastPolledEvent = 0;
@@ -59,7 +59,7 @@ export class ansibleTowerInterface extends ansibleInterface {
         try {
             tl.setSecret(authToken);
         } catch (e) {
-            tl.debug('Failed to register secret for log masking: ' + e.message);
+            tl.debug('Failed to register secret for log masking: ' + String(e));
         }
         var requestHeader: any = {
             "Authorization": "Basic " + authToken
