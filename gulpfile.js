@@ -656,7 +656,7 @@ gulp.task("tscBuildTasks", function (cb) {
 
             try {
                 pkgm.installDependencies(taskPath, path.basename(taskPath), path.join(taskPath, ".npmrc"));
-                cp.execFileSync(process.execPath, [tscCliPath, '-p', configPath], { stdio: 'inherit' });
+                cp.execFileSync(process.execPath, [tscCliPath, '-p', configPath], { stdio: util.isDebug() ? 'inherit' : 'ignore' });
             } catch (err) {
                 console.error(`TypeScript compilation failed for ${configPath}: ${err.message}`);
                 console.error(`Execute manually the command:\nnpx tsc -p ${configPath}`);
