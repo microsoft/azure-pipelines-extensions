@@ -157,7 +157,7 @@ function copyCommonModules(currentExtnRoot, commonDeps, commonSrc, extensionSour
 function installDependencies(taskPath, taskName, npmrcPath) {
     console.log(`Installing dependencies for task: ${taskName} at path: ${taskPath}`);
     const npmCmd = process.platform === 'win32' ? 'npm.cmd' : 'npm';
-    const npmArgs = ['ci', '--prefix', taskPath, '--userconfig', `"${npmrcPath}"`, '--verbose'];
+    const npmArgs = ['ci', '--prefix', taskPath, '--userconfig', `"${npmrcPath}"`];
 
     // Opt specific tasks out of engine-strict. The outer `npx gulp build` loads
     // the root .npmrc and exports its settings as npm_config_* env vars, which
@@ -167,7 +167,12 @@ function installDependencies(taskPath, taskName, npmrcPath) {
         npmArgs.splice(1, 0, '--no-engine-strict');
     }
 
-    cp.execFileSync(npmCmd, npmArgs, { stdio: util.isDebug() ? 'inherit' : 'ignore', shell: true });
+    const isDebug = util.isDebug();
+    if (isDebug) {
+        npmArgs.push('--verbose');
+    }
+
+    cp.execFileSync(npmCmd, npmArgs, { stdio: isDebug ? 'inherit' : 'ignore', shell: true });
 }
 
 module.exports = {
