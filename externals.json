@@ -1,22 +1,12 @@
 {
-    "npm": {
-        "azure-pipelines-task-lib": "5.2.8"
-    },
     "nugetv2": {
         "VstsTaskSdk": {
             "version": "0.7.1",
             "repository": "https://mseng.pkgs.visualstudio.com/PipelineTools/_packaging/PipelineTools_PublicPackages/nuget/v2/"
         }
     },
-    "no-cache": [
-            "Ansible",
-            "DownloadCircleCIArtifacts",
-            "DownloadTeamCityArtifacts",
-            "DownloadExternalBuildArtifacts",
-            "DownloadArtifactsTfsVersionControl",
-            "DownloadArtifactsTfsGit",
-            "DownloadArtifactsBitbucket",
-            "OptimizelyX",
-            "CopyAgentJobVariableToReleaseVariable"
-        ]
+    "no-engine-strict": [
+        "DownloadArtifactsTfsGit",
+        "DownloadExternalBuildArtifacts"
+    ]
 }

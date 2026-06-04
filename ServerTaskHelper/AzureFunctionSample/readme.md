@@ -1,4 +1,4 @@
-﻿﻿### Sample to create Azure DevOps Pipeline agent using Azure function
+### Sample to create Azure DevOps Pipeline agent using Azure function
 
 You need to provide following inputs in Azure function task body
 

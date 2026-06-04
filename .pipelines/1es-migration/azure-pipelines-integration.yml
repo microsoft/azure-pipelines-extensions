@@ -109,33 +109,15 @@ extends:
           displayName: 'Auto-detect changed extensions'
           workingDirectory: '$(Build.SourcesDirectory)'
 
-
         - task: AzureCLI@2
-          displayName: 'Bump extension versions to exceed Marketplace'
-          condition: ne(variables['DetectedExtensions'], '')
+          displayName: 'Verify extension versions are bumped'
+          condition: and(eq(variables['Build.Reason'], 'PullRequest'), ne(variables['DetectedExtensions'], ''))
           inputs:
             azureSubscription: '1es-extensions-publication-secure-service-connection'
             scriptType: pscore
-            scriptLocation: inlineScript
-            inlineScript: |
-              $ErrorActionPreference = 'Stop'
-              $extensions = '$(DetectedExtensions)' -split ';'
-              foreach ($ext in $extensions) {
-                $ext = $ext.Trim()
-                if (-not $ext) { continue }
-
-                $manifestPath = Join-Path '$(Build.SourcesDirectory)' "Extensions/$ext/Src/vss-extension.json"
-                if (Test-Path $manifestPath) {
-                  Write-Host "--- Bumping version for: $ext ---"
-                  $scriptPath = Join-Path '$(Build.SourcesDirectory)' 'scripts/BumpExtensionVersion.ps1'
-                  & $scriptPath -ManifestPath $manifestPath
-                  if ($LASTEXITCODE -and $LASTEXITCODE -ne 0) {
-                    throw "Version update failed for '$ext' with exit code $LASTEXITCODE"
-                  }
-                } else {
-                  Write-Host "##[warning]Manifest not found for '$ext' at $manifestPath — skipping version bump."
-                }
-              }
+            scriptLocation: scriptPath
+            scriptPath: '$(Build.SourcesDirectory)/scripts/VerifyExtensionVersions.ps1'
+            arguments: '-Extensions "$(DetectedExtensions)" -SourceDirectory "$(Build.SourcesDirectory)"'
 
         - task: PowerShell@2
           displayName: 'Build test resources'
@@ -252,7 +234,7 @@ extends:
         dependsOn:
         - Build_And_Package_Test_Extension
         - Publish_Test_Extension
-        condition: and(not(failed('Publish_Test_Extension')), eq(dependencies.Build_And_Package_Test_Extension.outputs['BuildAndPackage.DetectExtensions.HasExtensionChanges'], 'true'))
+        condition: and(succeeded('Publish_Test_Extension'), eq(dependencies.Build_And_Package_Test_Extension.outputs['BuildAndPackage.DetectExtensions.HasExtensionChanges'], 'true'))
         variables:
           CI_TESTS_ORG_URL: 'https://dev.azure.com/canarytest'
           CI_TESTS_PROJECT: 'PipelineTasks'

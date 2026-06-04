@@ -1,4 +1,4 @@
-﻿param([string] $baseDirectory,
+param([string] $baseDirectory,
       [string] $nugetAPIKey)
 
 $subDirectories = Get-ChildItem -Directory $baseDirectory 
