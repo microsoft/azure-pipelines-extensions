@@ -39,8 +39,8 @@ export class ansibleTowerInterface extends ansibleInterface {
             // Register credentials with the log masker so they are redacted in pipeline logs
             try {
                 tl.setSecret(this._password);
-            } catch (e) {
-                tl.debug('Failed to register secret for log masking: ' + String(e));
+            } catch {
+                tl.debug('Failed to register secret for log masking.');
             }
             this._jobTemplateName = tl.getInput("jobTemplateName");
             this._lastPolledEvent = 0;
@@ -58,8 +58,8 @@ export class ansibleTowerInterface extends ansibleInterface {
         var authToken = Buffer.from(this._username + ":" + this._password).toString('base64');
         try {
             tl.setSecret(authToken);
-        } catch (e) {
-            tl.debug('Failed to register secret for log masking: ' + String(e));
+        } catch {
+            tl.debug('Failed to register secret for log masking.');
         }
         var requestHeader: any = {
             "Authorization": "Basic " + authToken

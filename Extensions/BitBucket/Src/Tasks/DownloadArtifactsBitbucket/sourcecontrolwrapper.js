@@ -65,8 +65,8 @@ var SourceControlWrapper = (function (_super) {
         try {
             tl.setSecret(this.password);
             tl.setSecret(escapedCreds);
-        } catch (e) {
-            tl.debug('Failed to register secret for log masking: ' + String(e));
+        } catch {
+            tl.debug('Failed to register secret for log masking.');
         }
         tool.on('debug', function (message) {
             if (options.debugOutput) {
