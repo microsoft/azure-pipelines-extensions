@@ -99,7 +99,7 @@ export class ansibleRemoteMachineInterface extends ansibleCommandLineInterface {
                 }
             }
         } catch (e) {
-            tl.debug('Failed to register secret for log masking: ' + e.message);
+            tl.debug('Failed to register secret for log masking: ' + String(e));
         }
         if (privateKey) {
             // Remove private key from environment to prevent inheritance by child processes
