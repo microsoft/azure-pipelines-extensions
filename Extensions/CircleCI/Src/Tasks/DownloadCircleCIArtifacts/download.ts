@@ -1,14 +1,16 @@
-var path = require('path');
+var path = require('path')
 
 import * as tl from 'azure-pipelines-task-lib/task';
 import * as engine from 'artifact-engine/Engine';
 import * as providers from 'artifact-engine/Providers';
 import * as webHandlers from 'artifact-engine/Providers/typed-rest-client/Handlers';
 
+import {CommitsDownloader} from "./commitsdownloader"
+
 tl.setResourcePath(path.join(__dirname, 'task.json'));
 
 var taskJson = require('./task.json');
-const area: string = 'DownloadTeamCityArtifacts';
+const area: string = 'DownloadCircleCIArtifacts';
 
 function getDefaultProps() {
     var hostType = (tl.getVariable('SYSTEM.HOSTTYPE') || "").toLowerCase();
@@ -41,7 +43,7 @@ function publishEvent(feature: string, properties: any): void {
                 telemetry = "##vso[task.logissue type=error;code=" + reliabilityData.issueType + ";agentVersion=" + tl.getVariable('Agent.Version') + ";taskId=" + area + "-" + JSON.stringify(taskJson.version) + ";]" + reliabilityData.errorMessage
             }
         }
-        console.log(telemetry);;
+        console.log(telemetry);
     }
     catch (err) {
         tl.warning("Failed to log telemetry, error: " + err);
@@ -51,28 +53,27 @@ function publishEvent(feature: string, properties: any): void {
 async function main(): Promise<void> {
     var promise = new Promise<void>(async (resolve, reject) => {
         let connection = tl.getInput("connection", true)!;
+        let definitionId = tl.getInput("definition", true);
         let buildId = tl.getInput("version", true);
         let itemPattern = tl.getInput("itemPattern", false);
         let downloadPath = tl.getInput("downloadPath", true)!;
 
         var endpointUrl = tl.getEndpointUrl(connection, false);
-        var itemsUrl = endpointUrl + "/httpAuth/app/rest/builds/id:" + buildId + "/artifacts/children/";
+        var itemsUrl = `${endpointUrl}/api/v1.1/project/${definitionId}/${buildId}/artifacts`;
         itemsUrl = itemsUrl.replace(/([^:]\/)\/+/g, "$1");
         console.log(tl.loc("DownloadArtifacts", itemsUrl));
 
-        var templatePath = path.join(__dirname, 'teamcity.handlebars');
+        var templatePath = path.join(__dirname, 'circleCI.handlebars.txt');
         var username = tl.getEndpointAuthorizationParameter(connection, 'username', false)!;
-        var password = tl.getEndpointAuthorizationParameter(connection, 'password', false)!;
-        try { if (password) tl.setSecret(password); } catch (e) { tl.debug('Failed to register secret for log masking: ' + e.message); }
-        var teamcityVariables = {
+        try { if (username) tl.setSecret(username); } catch (e) { tl.debug('Failed to register secret for log masking: ' + e.message); }
+        var circleciVariables = {
             "endpoint": {
                 "url": endpointUrl
             }
         };
-        var handler = new webHandlers.BasicCredentialHandler(username, password);
-        var webProvider = new providers.WebProvider(itemsUrl, templatePath, teamcityVariables, handler);
+        var handler = new webHandlers.BasicCredentialHandler(username, "");
+        var webProvider = new providers.WebProvider(itemsUrl, templatePath, circleciVariables, handler);
         var fileSystemProvider = new providers.FilesystemProvider(downloadPath);
-        var parallelLimit : number = +tl.getVariable("release.artifact.download.parallellimit")!;
 
         var downloader = new engine.ArtifactEngine();
         var downloaderOptions = new engine.ArtifactEngineOptions();
@@ -81,7 +82,7 @@ async function main(): Promise<void> {
         downloaderOptions.verbose = debugMode ? debugMode.toLowerCase() != 'false' : false;
         var parallelLimit : number = +tl.getVariable("release.artifact.download.parallellimit")!;
 
-        if (parallelLimit) {
+        if(parallelLimit){
             downloaderOptions.parallelProcessingLimit = parallelLimit;
         }
 
@@ -91,9 +92,26 @@ async function main(): Promise<void> {
         }).catch((error) => {
             reject(error);
         });
+
+        let downloadCommitsFlag: boolean = tl.getBoolInput("downloadCommitsAndWorkItems", true);
+        if (downloadCommitsFlag) {
+            var webProviderForDownloaingCommits = new providers.WebProvider(itemsUrl, templatePath, circleciVariables, handler);
+            downloadCommits(webProviderForDownloaingCommits);
+        }
     });
 
     return promise;
+}
+
+function downloadCommits(webProvider: providers.WebProvider): void {
+    let currentCircleCIBuild = tl.getInput("version", true)!;
+    let startBuildIdStr = tl.getInput("previousVersion", false) || "";
+
+    if (startBuildIdStr && parseInt(currentCircleCIBuild) > parseInt(startBuildIdStr)) {
+        new CommitsDownloader(webProvider).DownloadFromBuildRangeAndSave(startBuildIdStr, currentCircleCIBuild);
+    } else {
+        new CommitsDownloader(webProvider).DownloadFromSingleBuildAndSave(currentCircleCIBuild);
+    }
 }
 
 main()
