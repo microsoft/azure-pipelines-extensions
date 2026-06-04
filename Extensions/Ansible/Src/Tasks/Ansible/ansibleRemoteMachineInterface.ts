@@ -91,7 +91,13 @@ export class ansibleRemoteMachineInterface extends ansibleCommandLineInterface {
             tl.setSecret(password);
         }
         if (privateKey) {
-            tl.setSecret(privateKey);
+            // PEM private keys are multi-line; setSecret() rejects multi-line values,
+            // so register each line individually to mask partial key material in logs.
+            for (const line of privateKey.split(/\r?\n/)) {
+                if (line.length > 0) {
+                    tl.setSecret(line);
+                }
+            }
             // Remove private key from environment to prevent inheritance by child processes
             delete process.env[privateKeyEnvVar];
         }
