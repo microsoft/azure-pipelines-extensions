@@ -173,4 +173,4 @@ function installDependencies(taskPath, taskName, npmrcPath) {
 module.exports = {
     copyCommonModules,
     installDependencies
-}
+};
