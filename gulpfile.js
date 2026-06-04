@@ -60,7 +60,7 @@ const cultures = ['en-US', 'de-DE', 'es-ES', 'fr-FR', 'it-IT', 'ja-JP', 'ko-KR',
  * @returns {void}
  */
 function errorHandler(error) {
-    console.error(`Build failed ${error}`);
+    console.error(`Build failed ${error ? `with error: ${error}` : 'with an unknown error'}`);
     process.exit(1);
 }
 
@@ -638,7 +638,33 @@ gulp.task("syncVersions", function (cb) {
     processNext();
 });
 
-gulp.task("build", gulp.series("syncVersions", "compileNode", "updateTestIds"));
+gulp.task("tscBuildTasks", function (cb) {
+    const buildCheckList = JSON.parse(fs.readFileSync(path.join(__dirname, 'externals.json'), 'utf-8'))['tsc-build-check'];
+
+    if (!buildCheckList || buildCheckList.length === 0) {
+        cb();
+        return;
+    }
+
+    const tscCliPath = require.resolve('typescript/bin/tsc');
+
+    fs.readdirSync(ExtensionFolder, { recursive: true, encoding: 'utf-8' })
+        .filter(x => buildCheckList.find((/** @type{string} */ check) => x.includes(check)) && path.parse(x).base == "tsconfig.json" && !x.includes("node_modules"))
+        .map(x => path.resolve(ExtensionFolder, x))
+        .forEach((configPath) => {
+            try {
+                cp.execFileSync(process.execPath, [tscCliPath, '-p', configPath], { stdio: 'ignore' });
+            } catch (err) {
+                console.error(`TypeScript compilation failed for ${configPath}: ${err.message}`);
+                console.error(`Execute manually the command:\nnpx tsc -p ${configPath}`);
+                cb();
+                errorHandler();
+            }
+        });
+    cb();
+});
+
+gulp.task("build", gulp.series("syncVersions", "compileNode", "tscBuildTasks", "updateTestIds"));
 
 gulp.task("default", gulp.series("build"));
 
@@ -904,15 +930,37 @@ function getChangedFiles() {
     return files;
 }
 
-const SHARED_INFRA_PREFIXES = ['Extensions/Common/', 'package.json', 'gulpfile.js', 'scripts/', '.pipelines/', 'ci/'];
+const SHARED_INFRA_PREFIXES = [
+    'Extensions/Common/',
+    'Extensions/ArtifactEngine/',
+    'Extensions/ArtifactEngineV2/',
+    'common.json',
+    'externals.json',
+    'package.json',
+    'package-lock.json',
+    'package.js',
+    'package-utils.js',
+    'base.tsconfig.json',
+    'tsconfig.json',
+    'gulpfile.js',
+    'definitions/',
+    'TaskModules/',
+    'scripts/',
+    '.pipelines/',
+    'ci/'
+];
+const SHARED_INFRA_IGNORE_EXTENSIONS = ['.md', '.txt', '.png', '.jpg', '.gif'];
 
 /**
  * Returns true if any changed file touches shared infrastructure.
+ * Documentation and image files (.md, .txt, .png, .jpg, .gif) are excluded.
  * @param {string[]} files
  * @returns {boolean}
  */
 function hitsSharedInfra(files) {
     return files.some(function (f) {
+        var dotIndex = f.lastIndexOf('.');
+        if (dotIndex >= 0 && SHARED_INFRA_IGNORE_EXTENSIONS.indexOf(f.substring(dotIndex).toLowerCase()) >= 0) return false;
         return SHARED_INFRA_PREFIXES.some(function (p) { return f === p || f.indexOf(p) === 0; });
     });
 }

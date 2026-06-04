@@ -8,5 +8,7 @@
     "no-engine-strict": [
         "DownloadArtifactsTfsGit",
         "DownloadExternalBuildArtifacts"
+    ],
+    "tsc-build-check": [
     ]
 }

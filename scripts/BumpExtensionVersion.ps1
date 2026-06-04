@@ -19,11 +19,17 @@
 
 .PARAMETER ManifestPath
     Path to the vss-extension.json file to check and update if necessary.
+
+.PARAMETER VerifyOnly
+    If specified, the script will only verify if the local version is greater than
+    the Marketplace version and will return an error if a bump is needed.
 #>
 [CmdletBinding()]
 param(
     [Parameter(Mandatory)]
-    [string]$ManifestPath
+    [string]$ManifestPath,
+
+    [switch]$VerifyOnly
 )
 
 $ErrorActionPreference = 'Stop'
@@ -161,6 +167,11 @@ $newVersionStr = $localVersionStr
 
 if ($marketplaceVersion) {
     if ($localVersion -le $marketplaceVersion) {
+        if ($VerifyOnly) {
+            Write-Host "##[error]Version NOT bumped: local ($localVersion) <= Marketplace ($marketplaceVersion)"
+            exit 1
+        }
+
         $newVersionStr = "$($marketplaceVersion.Major).$($marketplaceVersion.Minor).$($marketplaceVersion.Build + 1)"
         Write-Host "Bumping   : $localVersion -> $newVersionStr  (local <= Marketplace max)"
 
