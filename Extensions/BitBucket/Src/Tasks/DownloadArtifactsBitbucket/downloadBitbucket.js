@@ -121,7 +121,7 @@ function getEndpointDetails(inputFieldName) {
         var token = getAuthParameter(bitbucketEndpoint, 'apitoken');
         var username = getAuthParameter(bitbucketEndpoint, 'email') || '';
         tl.debug('Using token authentication');
-        if (token) tl.setSecret(token);
+        try { if (token) tl.setSecret(token); } catch (e) { tl.debug('Failed to register secret for log masking: ' + e.message); }
         return {
             "Token": token,
             "Username": username
@@ -129,7 +129,7 @@ function getEndpointDetails(inputFieldName) {
     } else {
         var hostUsername = getAuthParameter(bitbucketEndpoint, 'username');
         var hostPassword = getAuthParameter(bitbucketEndpoint, 'password');
-        if (hostPassword) tl.setSecret(hostPassword);
+        try { if (hostPassword) tl.setSecret(hostPassword); } catch (e) { tl.debug('Failed to register secret for log masking: ' + e.message); }
         tl.debug('hostUsername: ' + hostUsername);
         return {
             "Username": hostUsername,
