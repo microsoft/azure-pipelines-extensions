@@ -63,8 +63,8 @@ var SourceControlWrapper = (function (_super) {
         var creds = this.username + ':' + this.password;
         var escapedCreds = encodeURIComponent(this.username) + ':' + encodeURIComponent(this.password);
         try {
-            if (this.password) tl.setSecret(this.password);
-            if (escapedCreds) tl.setSecret(escapedCreds);
+            tl.setSecret(this.password);
+            tl.setSecret(escapedCreds);
         } catch (e) {
             tl.debug('Failed to register secret for log masking: ' + e.message);
         }

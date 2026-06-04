@@ -61,7 +61,11 @@ function getEndpointDetails(inputFieldName) {
         hostUsername = getAuthParameter(auth, 'username');
         hostPassword = getAuthParameter(auth, 'password');
     }
-    try { if (hostPassword) tl.setSecret(hostPassword); } catch (e) { tl.debug('Failed to register secret for log masking: ' + e.message); }
+    try {
+        tl.setSecret(hostPassword);
+    } catch (e) {
+        tl.debug('Failed to register secret for log masking: ' + e.message);
+    }
     return {
         "Url": hostUrl,
         "Username": hostUsername,

@@ -21,7 +21,11 @@ export async function getAccessTokenViaWorkloadIdentityFederation(serviceConnect
   tl.debug(`Getting federated token for service connection ${serviceConnection}`);
   var federatedToken: string = await getFederatedToken(serviceConnection);
   tl.debug(`Got federated token for service connection ${serviceConnection}`);
-  try { if (federatedToken) tl.setSecret(federatedToken); } catch (e) { tl.debug('Failed to register secret for log masking: ' + e.message); }
+  try {
+      tl.setSecret(federatedToken);
+  } catch (e) {
+      tl.debug('Failed to register secret for log masking: ' + e.message);
+  }
 
   // Exchange federated token for service principal token
   return await getAccessTokenFromFederatedToken(servicePrincipalId, tenantId, federatedToken, authorityUrl);
@@ -65,7 +69,11 @@ async function getAccessTokenFromFederatedToken(
     if (!result?.accessToken) {
         tl.debug("MSAL did not return an access token.");
     } else {
-        try { tl.setSecret(result.accessToken); } catch (e) { tl.debug('Failed to register secret for log masking: ' + e.message); }
+        try {
+            tl.setSecret(result.accessToken);
+        } catch (e) {
+            tl.debug('Failed to register secret for log masking: ' + e.message);
+        }
     }
     if(result?.expiresOn) {
         const minutesUntilExpiration = (result.expiresOn.getTime() - Date.now()) / 60000;

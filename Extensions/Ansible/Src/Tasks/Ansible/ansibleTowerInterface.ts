@@ -38,9 +38,7 @@ export class ansibleTowerInterface extends ansibleInterface {
 
             // Register credentials with the log masker so they are redacted in pipeline logs
             try {
-                if (this._password) {
-                    tl.setSecret(this._password);
-                }
+                tl.setSecret(this._password);
             } catch (e) {
                 tl.debug('Failed to register secret for log masking: ' + e.message);
             }

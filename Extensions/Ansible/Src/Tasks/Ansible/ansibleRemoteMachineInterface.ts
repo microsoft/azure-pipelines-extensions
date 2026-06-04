@@ -88,9 +88,7 @@ export class ansibleRemoteMachineInterface extends ansibleCommandLineInterface {
 
         // Register credentials with the log masker so they are redacted in pipeline logs
         try {
-            if (password) {
-                tl.setSecret(password);
-            }
+            tl.setSecret(password);
             if (privateKey) {
                 // PEM private keys are multi-line; setSecret() rejects multi-line values,
                 // so register each line individually to mask partial key material in logs.
