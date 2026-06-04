@@ -895,16 +895,30 @@ gulp.task("test", gulp.series("testResources", function () {
 // ---------------------------------------------------------------------------
 
 // Returns an array of changed file paths (forward-slash normalized) from the
-// PR diff, or null if the diff cannot be determined (non-PR build, fetch failure).
+// diff against the target branch. Works for PR builds (uses PR target) and
+// manual/CI builds (diffs selected branch against master).
+// Returns null only if the diff cannot be determined (fetch failure, etc.).
 function getChangedFiles() {
     var buildReason = process.env['BUILD_REASON'];
-    var prTarget = process.env['SYSTEM_PULLREQUEST_TARGETBRANCH'];
-    if (buildReason !== 'PullRequest' || !prTarget) {
-        console.log("Not a PR build (BUILD_REASON=" + buildReason + ") -> running all suites.");
-        return null;
+    var target;
+
+    if (buildReason === 'PullRequest') {
+        var prTarget = process.env['SYSTEM_PULLREQUEST_TARGETBRANCH'];
+        if (!prTarget) {
+            console.log("PR build but no target branch set -> running all.");
+            return null;
+        }
+        target = prTarget.replace(/^refs\/heads\//, '');
+    } else {
+        // Manual or CI trigger — diff current branch against master.
+        target = 'master';
+        var sourceBranch = (process.env['BUILD_SOURCEBRANCH'] || '').replace(/^refs\/heads\//, '');
+        if (sourceBranch === target) {
+            console.log("Source branch (" + sourceBranch + ") is the same as target (" + target + ") -> running all.");
+            return null;
+        }
+        console.log("Non-PR build (BUILD_REASON=" + buildReason + "). Diffing against " + target + ".");
     }
-    // Normalize "refs/heads/master" -> "master".
-    var target = prTarget.replace(/^refs\/heads\//, '');
     var changedFiles;
     try {
         // Deepen modestly so the merge-base is reachable for 3-dot diff even on shallow (depth=1) clones.
