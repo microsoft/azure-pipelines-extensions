@@ -652,8 +652,11 @@ gulp.task("tscBuildTasks", function (cb) {
         .filter(x => buildCheckList.find((/** @type{string} */ check) => x.includes(check)) && path.parse(x).base == "tsconfig.json" && !x.includes("node_modules"))
         .map(x => path.resolve(ExtensionFolder, x))
         .forEach((configPath) => {
+            const taskPath = path.dirname(configPath);
+
             try {
-                cp.execFileSync(process.execPath, [tscCliPath, '-p', configPath], { stdio: 'ignore' });
+                pkgm.installDependencies(taskPath, path.basename(taskPath), path.join(taskPath, ".npmrc"));
+                cp.execFileSync(process.execPath, [tscCliPath, '-p', configPath], { stdio: 'inherit' });
             } catch (err) {
                 console.error(`TypeScript compilation failed for ${configPath}: ${err.message}`);
                 console.error(`Execute manually the command:\nnpx tsc -p ${configPath}`);
