@@ -20,6 +20,9 @@ In order to build and package extensions you will need to install some dependenc
 
 - `npm install` will install all the node modules required to run gulp to package, build etc.
 - `gulp build`  will copy each task to "_build" folder, and install it's dependencies locally (wrt to the task) and copies the common modules required to run the task.
+  - `gulp build` also runs `gulp tscBuildTasks` to execute task-specific TypeScript validation (`tsc -p`) for selected task folders.
+  - The list of task folders included in this validation is configured in `externals.json` under `tsc-build-check`.
+  - Run `gulp tscBuildTasks` directly if you want to validate only the task-specific TypeScript checks without running the full build.
   - Use `--syncVersions` to automatically bump the `version` field in `vss-extension.json` so it is higher than what is currently published on the Marketplace. This avoids pipeline failures caused by version conflicts.
     - Single extension: `gulp build --syncVersions <ExtensionName>`. For example `gulp build --syncVersions Ansible`
     - Multiple extensions (comma-separated): `gulp build --syncVersions <ExtensionName1>,<ExtensionName2>`. For example `gulp build --syncVersions Ansible,IISWebAppDeploy`
