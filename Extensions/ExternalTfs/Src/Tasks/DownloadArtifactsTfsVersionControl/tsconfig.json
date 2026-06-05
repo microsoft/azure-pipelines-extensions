@@ -8,11 +8,9 @@
         "noEmit": true,
         "checkJs": true,
         "useUnknownInCatchVariables": false,
-        "strict": true,
-        "ignoreDeprecations": "6.0"
+        "strict": true
     },
-    "files": [
-        "downloadTfsVersionControl.js",
-        "tfvcwrapper.js"
+    "include": [
+        "*.js"
     ]
 }
