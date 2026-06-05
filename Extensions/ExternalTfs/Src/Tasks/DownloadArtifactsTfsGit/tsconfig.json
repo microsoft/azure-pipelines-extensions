@@ -10,9 +10,7 @@
         "useUnknownInCatchVariables": false,
         "strict": true
     },
-    "files": [
-        "auth.js",
-        "downloadTfGit.js",
-        "gitwrapper.js"
+    "include": [
+        "*.js"
     ]
 }
