@@ -169,7 +169,7 @@ async function configureForAdoSc(): Promise<ConnectionDetails> {
     try {
         tl.setSecret(accessToken);
     } catch {
-        tl.debug('Failed to register secret for log masking.');
+        tl.warning('Failed to mask access token for log redaction.');
     }
     return {
         serviceConnection,
@@ -194,7 +194,7 @@ function configureForTfsSc() : ConnectionDetails {
     try {
         tl.setSecret(accessToken);
     } catch {
-        tl.debug('Failed to register secret for log masking.');
+        tl.warning('Failed to mask access token for log redaction.');
     }
 
     return {
