@@ -7,8 +7,7 @@
     "azure-pipelines-task-lib": "^5.2.8",
     "azure-pipelines-tasks-azure-arm-rest": "^3.272.1"
   },
-  "overrides": {
-    "underscore": "1.13.8",
-    "picomatch": "2.3.2"
+  "devDependencies": {
+    "@types/node": "^16.18.126"
   }
 }
