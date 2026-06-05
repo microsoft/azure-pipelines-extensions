@@ -66,7 +66,7 @@ async function main(): Promise<void> {
         try {
             tl.setSecret(password);
         } catch {
-            tl.debug('Failed to register secret for log masking.');
+            tl.warning('Failed to mask password for log redaction.');
         }
         var teamcityVariables = {
             "endpoint": {

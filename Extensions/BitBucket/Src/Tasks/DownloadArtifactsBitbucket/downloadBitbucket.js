@@ -124,7 +124,7 @@ function getEndpointDetails(inputFieldName) {
         try {
             tl.setSecret(token);
         } catch {
-            tl.debug('Failed to register secret for log masking.');
+            tl.warning('Failed to mask API token for log redaction.');
         }
         return {
             "Token": token,
@@ -136,7 +136,7 @@ function getEndpointDetails(inputFieldName) {
         try {
             tl.setSecret(hostPassword);
         } catch {
-            tl.debug('Failed to register secret for log masking.');
+            tl.warning('Failed to mask password for log redaction.');
         }
         tl.debug('hostUsername: ' + hostUsername);
         return {
