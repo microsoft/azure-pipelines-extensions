@@ -155,7 +155,7 @@ async function getServiceConnectionDetails(serviceConnection) {
 async function getAdoScDetails(serviceConnection, hostUrl) {
     var accessToken = await auth.getAccessTokenViaWorkloadIdentityFederation(serviceConnection);
     try {
-        if (accessToken) tl.setSecret(accessToken);
+        tl.setSecret(accessToken);
     } catch {
         tl.warning('Failed to mask access token for log redaction.');
     }
@@ -195,7 +195,7 @@ function getReposOrTfsScDetails(serviceConnection, hostUrl) {
     }
 
     try {
-        if (hostPassword) tl.setSecret(hostPassword);
+        tl.setSecret(hostPassword);
     } catch {
         tl.warning('Failed to mask password for log redaction.');
     }
