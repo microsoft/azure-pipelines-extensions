@@ -1,0 +1,16 @@
+{
+    "compilerOptions": {
+        "target": "ES6",
+        "module": "node16",
+        "esModuleInterop": true,
+        "moduleResolution": "node16",
+        "skipLibCheck": true,
+        "noEmit": true,
+        "checkJs": true,
+        "useUnknownInCatchVariables": false,
+        "strict": true
+    },
+    "include": [
+        "*.js"
+    ]
+}

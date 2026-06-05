@@ -1,3 +1,4 @@
+// @ts-nocheck
 "use strict";
 
 var __extends = (this && this.__extends) || function (d, b) {
@@ -27,13 +28,13 @@ var TfvcWrapper = (function (_super) {
         var rootDirectory = path.dirname(path.dirname(path.dirname(path.dirname(path.dirname(require.main.filename)))));
         var nonWindows = ['darwin', 'linux'];
         if (nonWindows.indexOf(process.platform) == -1) {
-            var agentTf = path.join(rootDirectory, "externals", "vstsom" , "tf.exe");
+            var agentTf = path.join(rootDirectory, "externals", "vstsom", "tf.exe");
             if (fs.existsSync(agentTf)) {
                 tfp = agentTf;
             }
         }
         else {
-            var agentTee = path.join(rootDirectory, "externals", "tee" , "tf");
+            var agentTee = path.join(rootDirectory, "externals", "tee", "tf");
             if (fs.existsSync(agentTee)) {
                 tfp = agentTee;
                 isTEE = true;
@@ -70,7 +71,7 @@ var TfvcWrapper = (function (_super) {
     TfvcWrapper.prototype.get = function (version) {
         if (isTEE === true) {
             if (!version) {
-                return this._exec('get', ['.', '-recursive', '-noprompt'], true);    
+                return this._exec('get', ['.', '-recursive', '-noprompt'], true);
             } else {
                 return this._exec('get', ['.', '-recursive', '-version:' + version, '-noprompt'], true);
             }
@@ -84,7 +85,7 @@ var TfvcWrapper = (function (_super) {
     };
 
     TfvcWrapper.prototype.listWorkspaces = function () {
-            return this._execSync("workspaces", [], true);
+        return this._execSync("workspaces", [], true);
     };
 
     TfvcWrapper.prototype._execSync = function (cmd, args, addDefaultArgs, options) {
@@ -124,20 +125,20 @@ var TfvcWrapper = (function (_super) {
         tf.silent = true;
         // cmd
         tf.arg(cmd, true);
-		
-		if (addDefaultArgs === true) {
+
+        if (addDefaultArgs === true) {
             // default connection related args
             var collectionArg = '-collection:' + connOptions.collection;
             var loginArg = '-login:' + connOptions.username + ',' + connOptions.password;
 
             args = args.concat([collectionArg, loginArg]);
-        } 
-		        
+        }
+
         // args
         args.map(function (arg) {
             tf.arg(arg, true); // raw arg
         });
-		
+
         return tf;
     };
 
