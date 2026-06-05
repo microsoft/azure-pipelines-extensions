@@ -1,5 +1,5 @@
-const fs = require('fs')
-const path = require('path')
+const fs = require('fs');
+const path = require('path');
 
 import { WebApi, getBasicHandler } from 'azure-devops-node-api/WebApi';
 import * as tl from 'azure-pipelines-task-lib/task';
@@ -24,12 +24,13 @@ export interface ConnectionDetails {
 const area: string = 'DownloadExternalBuildArtifacts';
 
 function getDefaultProps() {
-    var hostType = (tl.getVariable('SYSTEM.HOSTTYPE') || "").toLowerCase();
+    const hostType = (tl.getVariable('SYSTEM.HOSTTYPE') || "").toLowerCase();
+
     return {
         hostType: hostType,
         definitionName: '[NonEmail:' + (hostType === 'release' ? tl.getVariable('RELEASE.DEFINITIONNAME') : tl.getVariable('BUILD.DEFINITIONNAME')) + ']',
         processId: hostType === 'release' ? tl.getVariable('RELEASE.RELEASEID') : tl.getVariable('BUILD.BUILDID'),
-        processUrl: hostType === 'release' ? tl.getVariable('RELEASE.RELEASEWEBURL') : (tl.getVariable('SYSTEM.TEAMFOUNDATIONSERVERURI') + tl.getVariable('SYSTEM.TEAMPROJECT') + '/_build?buildId=' + tl.getVariable('BUILD.BUILDID')),
+        processUrl: hostType === 'release' ? tl.getVariable('RELEASE.RELEASEWEBURL') : (tl.getVariable('SYSTEM.TEAMFOUNDATIONSERVERURI')! + tl.getVariable('SYSTEM.TEAMPROJECT') + '/_build?buildId=' + tl.getVariable('BUILD.BUILDID')),
         taskDisplayName: tl.getVariable('TASK.DISPLAYNAME'),
         jobid: tl.getVariable('SYSTEM.JOBID'),
         agentVersion: tl.getVariable('AGENT.VERSION'),
@@ -39,59 +40,62 @@ function getDefaultProps() {
     };
 }
 
-function publishEvent(feature, properties: any): void {
+function publishEvent(feature: "reliability", properties: any): void {
     try {
-        var splitVersion = (process.env.AGENT_VERSION || '').split('.');
-        var major = parseInt(splitVersion[0] || '0');
-        var minor = parseInt(splitVersion[1] || '0');
+        const splitVersion = (process.env.AGENT_VERSION || '').split('.');
+        const major = parseInt(splitVersion[0] || '0');
+        const minor = parseInt(splitVersion[1] || '0');
         let telemetry = '';
+
         if (major > 2 || (major == 2 && minor >= 120)) {
             telemetry = `##vso[telemetry.publish area=${area};feature=${feature}]${JSON.stringify(Object.assign(getDefaultProps(), properties))}`;
-        }
-        else {
+        } else {
             if (feature === 'reliability') {
-                let reliabilityData = properties;
-                telemetry = "##vso[task.logissue type=error;code=" + reliabilityData.issueType + ";agentVersion=" + tl.getVariable('Agent.Version') + ";taskId=" + area + "-" + JSON.stringify(taskJson.version) + ";]" + reliabilityData.errorMessage
+                telemetry = "##vso[task.logissue type=error;code=" + properties.issueType + ";agentVersion=" + tl.getVariable('Agent.Version') + ";taskId=" + area + "-" + JSON.stringify(taskJson.version) + ";]" + properties.errorMessage
             }
         }
+
         console.log(telemetry);;
-    }
-    catch (err) {
+    } catch (err) {
         tl.warning("Failed to log telemetry, error: " + err);
     }
 }
 
 async function main(): Promise<void> {
-    var promise = new Promise<void>(async (resolve, reject) => {
-        var connectionType = tl.getInput('connectionType', true);
-        var itemPattern = tl.getInput('itemPattern', false);
-        var downloadPath = tl.getInput('downloadPath', true);
-        var connectionDetails: ConnectionDetails = connectionType === 'ado'
+    const promise = new Promise<void>(async (resolve, reject) => {
+        const connectionType = tl.getInput('connectionType', true)!;
+        const itemPattern = tl.getInput('itemPattern', false);
+        const downloadPath = tl.getInput('downloadPath', true)!;
+        const connectionDetails: ConnectionDetails = connectionType === 'ado'
             ? await configureForAdoSc()
             : configureForTfsSc();
-        var endpointUrl = tl.getEndpointUrl(connectionDetails.serviceConnection, false);
+        const endpointUrl = tl.getEndpointUrl(connectionDetails.serviceConnection, false);
+        if (!endpointUrl) {
+            throw new Error("Endpoint URL is not provided.");
+        }
 
-        var credentialHandler = getBasicHandler(connectionDetails.username, connectionDetails.accessToken);
-        var vssConnection = new WebApi(endpointUrl, credentialHandler);
-        var debugMode = tl.getVariable('System.Debug');
-        var verbose = debugMode ? debugMode.toLowerCase() != 'false' : false;
-        var parallelLimit: number = +tl.getVariable("release.artifact.download.parallellimit");
+        const credentialHandler = getBasicHandler(connectionDetails.username, connectionDetails.accessToken);
+        const vssConnection = new WebApi(endpointUrl, credentialHandler);
+        const debugMode = tl.getVariable('System.Debug');
+        const verbose = debugMode ? debugMode.toLowerCase() != 'false' : false;
+        const parallelLimitVariable = tl.getVariable ? tl.getVariable("release.artifact.download.parallellimit") : undefined;
+        const parallelLimit: number = +(parallelLimitVariable || "0");
 
-        var templatePath = path.join(__dirname, 'vsts.handlebars');
-        var buildApi = await vssConnection.getBuildApi();
+        const templatePath = path.join(__dirname, 'vsts.handlebars');
+        const buildApi = await vssConnection.getBuildApi();
 
-        var maxRetries = 3;
-        var artifacts = await executeWithRetries(
+        const maxRetries = 3;
+        const artifacts = await executeWithRetries(
             "getArtifacts",
             () => buildApi.getArtifacts(connectionDetails.projectId, connectionDetails.buildId),
             maxRetries).catch(reason => reject(reason));
 
         if (artifacts) {
-            var downloadPromises: Array<Promise<any>> = [];
+            const downloadPromises: Array<Promise<any>> = [];
             console.log("Linked artifacts count: " + artifacts.length);
-            artifacts.forEach(async function (artifact, index, artifacts) {
+            artifacts.forEach(async function (artifact: any) {
                 let downloaderOptions = new engine.ArtifactEngineOptions();
-                downloaderOptions.itemPattern = itemPattern;
+                downloaderOptions.itemPattern = itemPattern || "";
                 downloaderOptions.verbose = verbose;
 
                 if (parallelLimit) {
@@ -100,32 +104,31 @@ async function main(): Promise<void> {
 
                 if (artifact.resource.type.toLowerCase() === "container") {
                     let downloader = new engine.ArtifactEngine();
-                    var containerParts: string[] = artifact.resource.data.split('/', 3);
+                    const containerParts: string[] = artifact.resource.data.split('/', 3);
                     if (containerParts.length !== 3) {
                         throw new Error(tl.loc("FileContainerInvalidArtifactData"));
                     }
 
-                    var containerId: number = parseInt(containerParts[1]);
-                    var containerPath: string = containerParts[2];
+                    const containerId: number = parseInt(containerParts[1]);
+                    const containerPath: string = containerParts[2];
 
-                    var itemsUrl = endpointUrl + "/_apis/resources/Containers/" + containerId + "?itemPath=" + encodeURIComponent(containerPath) + "&isShallow=true";
+                    let itemsUrl = endpointUrl + "/_apis/resources/Containers/" + containerId + "?itemPath=" + encodeURIComponent(containerPath) + "&isShallow=true";
                     itemsUrl = itemsUrl.replace(/([^:]\/)\/+/g, "$1");
                     console.log(tl.loc("DownloadArtifacts", itemsUrl));
 
-                    var variables = {};
+                    const variables = {};
 
-                    var handler = connectionDetails.username
+                    const handler = connectionDetails.username
                         ? new webHandlers.BasicCredentialHandler(connectionDetails.username, connectionDetails.accessToken)
                         : new webHandlers.PersonalAccessTokenCredentialHandler(connectionDetails.accessToken);
-                    
-                    var webProvider = new providers.WebProvider(itemsUrl, templatePath, variables, handler);
-                    var fileSystemProvider = new providers.FilesystemProvider(downloadPath);
+
+                    const webProvider = new providers.WebProvider(itemsUrl, templatePath, variables, handler);
+                    const fileSystemProvider = new providers.FilesystemProvider(downloadPath);
 
                     downloadPromises.push(downloader.processItems(webProvider, fileSystemProvider, downloaderOptions).catch((reason) => {
                         reject(reason);
                     }));
-                }
-                else if (artifact.resource.type.toLowerCase() === "filepath") {
+                } else if (artifact.resource.type.toLowerCase() === "filepath") {
                     let downloader = new engine.ArtifactEngine();
                     let downloadUrl = artifact.resource.data;
                     let artifactLocation = downloadUrl + '/' + artifact.name;
@@ -135,14 +138,13 @@ async function main(): Promise<void> {
                     }
 
                     console.log(tl.loc("DownloadArtifacts", artifactLocation));
-                    var fileShareProvider = new providers.FilesystemProvider(artifactLocation);
-                    var fileSystemProvider = new providers.FilesystemProvider(downloadPath + '\\' + artifact.name);
+                    const fileShareProvider = new providers.FilesystemProvider(artifactLocation);
+                    const fileSystemProvider = new providers.FilesystemProvider(downloadPath + '\\' + artifact.name);
 
                     downloadPromises.push(downloader.processItems(fileShareProvider, fileSystemProvider, downloaderOptions).catch((reason) => {
                         reject(reason);
                     }));
-                }
-                else {
+                } else {
                     console.log(tl.loc('UnsupportedArtifactType', artifact.resource.type));
                 }
             });
@@ -163,33 +165,35 @@ async function configureForAdoSc(): Promise<ConnectionDetails> {
     const serviceConnection = tl.getInput('azureDevOpsServiceConnection', true);
     const projectId = tl.getInput('projectAdo', true);
     const buildId = tl.getInput('versionAdo', true);
-    validateInputs(serviceConnection, projectId, buildId);
+    const inputs = validateInputs(serviceConnection, projectId, buildId);
 
-    const accessToken: string = await auth.getAccessTokenViaWorkloadIdentityFederation(serviceConnection);
+    const accessToken: string = (await auth.getAccessTokenViaWorkloadIdentityFederation(inputs.serviceConnection)) || '';
+
     try {
         tl.setSecret(accessToken);
     } catch {
         tl.warning('Failed to mask access token for log redaction.');
     }
+
     return {
-        serviceConnection,
-        projectId,
-        buildId: parseInt(buildId),
+        serviceConnection: inputs.serviceConnection,
+        projectId: inputs.projectId,
+        buildId: parseInt(inputs.buildId),
         accessToken,
         username: ''
     };
 }
 
-function configureForTfsSc() : ConnectionDetails {
+function configureForTfsSc(): ConnectionDetails {
     const serviceConnection = tl.getInput("connection", true);
     const projectId = tl.getInput('project', true);
     const buildId = tl.getInput('version', true);
-    validateInputs(serviceConnection, projectId, buildId);
+    const inputs = validateInputs(serviceConnection, projectId, buildId);
 
-    const username = tl.getEndpointAuthorizationParameter(serviceConnection, 'username', true);
+    const username = tl.getEndpointAuthorizationParameter(inputs.serviceConnection, 'username', true) || '';
     const accessToken =
-        tl.getEndpointAuthorizationParameter(serviceConnection, 'apitoken', true) ||
-        tl.getEndpointAuthorizationParameter(serviceConnection, 'password', true);
+        tl.getEndpointAuthorizationParameter(inputs.serviceConnection, 'apitoken', true) ||
+        tl.getEndpointAuthorizationParameter(inputs.serviceConnection, 'password', true) || '';
 
     try {
         tl.setSecret(accessToken);
@@ -198,35 +202,47 @@ function configureForTfsSc() : ConnectionDetails {
     }
 
     return {
-        serviceConnection,
-        projectId,
-        buildId: parseInt(buildId),
+        serviceConnection: inputs.serviceConnection,
+        projectId: inputs.projectId,
+        buildId: parseInt(inputs.buildId),
         accessToken,
         username
     };
 }
 
-function validateInputs(serviceConnection: string, projectId: string, buildId: string) {
+function validateInputs(serviceConnection: string | undefined, projectId: string | undefined, buildId: string | undefined): { serviceConnection: string; projectId: string; buildId: string } {
     if (!serviceConnection || serviceConnection.trim().length === 0) {
         throw new Error("Service connection is not provided.");
     }
+
     if (!projectId) {
         throw new Error("Project is not provided.");
     }
+
     if (!buildId) {
         throw new Error("Build is not provided.");
     }
+
+    return {
+        serviceConnection,
+        projectId,
+        buildId
+    };
 }
 
-function executeWithRetries(operationName: string, operation: () => Promise<any>, retryCount): Promise<any> {
-    var executePromise = new Promise((resolve, reject) => {
+async function executeWithRetries(operationName: string, operation: () => Promise<any>, retryCount: number): Promise<any> {
+    return new Promise((resolve, reject) => {
         executeWithRetriesImplementation(operationName, operation, retryCount, resolve, reject);
     });
-
-    return executePromise;
 }
 
-function executeWithRetriesImplementation(operationName: string, operation: () => Promise<any>, currentRetryCount, resolve, reject) {
+function executeWithRetriesImplementation(
+    operationName: string,
+    operation: () => Promise<any>,
+    currentRetryCount: number,
+    resolve: (value: any) => void,
+    reject: (reason?: any) => void
+) {
     operation().then((result) => {
         resolve(result);
     }).catch((error) => {
@@ -247,7 +263,7 @@ function executeWithRetriesImplementation(operationName: string, operation: () =
 }
 
 main()
-    .then((result) => tl.setResult(tl.TaskResult.Succeeded, ""))
+    .then(() => tl.setResult(tl.TaskResult.Succeeded, ""))
     .catch((err) => {
         publishEvent('reliability', { issueType: 'error', errorMessage: JSON.stringify(err, Object.getOwnPropertyNames(err)) });
         tl.setResult(tl.TaskResult.Failed, err)
