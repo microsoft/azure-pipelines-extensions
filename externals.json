@@ -10,5 +10,6 @@
         "DownloadExternalBuildArtifacts"
     ],
     "tsc-build-check": [
+        "DownloadArtifactsTfsVersionControl"
     ]
 }
