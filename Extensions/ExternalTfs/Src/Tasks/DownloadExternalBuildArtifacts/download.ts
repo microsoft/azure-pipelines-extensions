@@ -1,5 +1,5 @@
-const fs = require('fs')
-const path = require('path')
+const fs = require('fs');
+const path = require('path');
 
 import { WebApi, getBasicHandler } from 'azure-devops-node-api/WebApi';
 import * as tl from 'azure-pipelines-task-lib/task';
@@ -29,7 +29,7 @@ function getDefaultProps() {
         hostType: hostType,
         definitionName: '[NonEmail:' + (hostType === 'release' ? tl.getVariable('RELEASE.DEFINITIONNAME') : tl.getVariable('BUILD.DEFINITIONNAME')) + ']',
         processId: hostType === 'release' ? tl.getVariable('RELEASE.RELEASEID') : tl.getVariable('BUILD.BUILDID'),
-        processUrl: hostType === 'release' ? tl.getVariable('RELEASE.RELEASEWEBURL') : (tl.getVariable('SYSTEM.TEAMFOUNDATIONSERVERURI') + tl.getVariable('SYSTEM.TEAMPROJECT') + '/_build?buildId=' + tl.getVariable('BUILD.BUILDID')),
+        processUrl: hostType === 'release' ? tl.getVariable('RELEASE.RELEASEWEBURL') : (tl.getVariable('SYSTEM.TEAMFOUNDATIONSERVERURI')! + tl.getVariable('SYSTEM.TEAMPROJECT') + '/_build?buildId=' + tl.getVariable('BUILD.BUILDID')),
         taskDisplayName: tl.getVariable('TASK.DISPLAYNAME'),
         jobid: tl.getVariable('SYSTEM.JOBID'),
         agentVersion: tl.getVariable('AGENT.VERSION'),
@@ -39,21 +39,22 @@ function getDefaultProps() {
     };
 }
 
-function publishEvent(feature, properties: any): void {
+function publishEvent(feature: "reliability", properties: any): void {
     try {
         var splitVersion = (process.env.AGENT_VERSION || '').split('.');
         var major = parseInt(splitVersion[0] || '0');
         var minor = parseInt(splitVersion[1] || '0');
         let telemetry = '';
+
         if (major > 2 || (major == 2 && minor >= 120)) {
             telemetry = `##vso[telemetry.publish area=${area};feature=${feature}]${JSON.stringify(Object.assign(getDefaultProps(), properties))}`;
-        }
-        else {
+        } else {
             if (feature === 'reliability') {
                 let reliabilityData = properties;
                 telemetry = "##vso[task.logissue type=error;code=" + reliabilityData.issueType + ";agentVersion=" + tl.getVariable('Agent.Version') + ";taskId=" + area + "-" + JSON.stringify(taskJson.version) + ";]" + reliabilityData.errorMessage
             }
         }
+
         console.log(telemetry);;
     }
     catch (err) {
@@ -63,19 +64,23 @@ function publishEvent(feature, properties: any): void {
 
 async function main(): Promise<void> {
     var promise = new Promise<void>(async (resolve, reject) => {
-        var connectionType = tl.getInput('connectionType', true);
+        var connectionType = tl.getInput('connectionType', true)!;
         var itemPattern = tl.getInput('itemPattern', false);
-        var downloadPath = tl.getInput('downloadPath', true);
+        var downloadPath = tl.getInput('downloadPath', true)!;
         var connectionDetails: ConnectionDetails = connectionType === 'ado'
             ? await configureForAdoSc()
             : configureForTfsSc();
         var endpointUrl = tl.getEndpointUrl(connectionDetails.serviceConnection, false);
+        if (!endpointUrl) {
+            throw new Error("Endpoint URL is not provided.");
+        }
 
         var credentialHandler = getBasicHandler(connectionDetails.username, connectionDetails.accessToken);
         var vssConnection = new WebApi(endpointUrl, credentialHandler);
         var debugMode = tl.getVariable('System.Debug');
         var verbose = debugMode ? debugMode.toLowerCase() != 'false' : false;
-        var parallelLimit: number = +tl.getVariable("release.artifact.download.parallellimit");
+        var parallelLimitVariable = tl.getVariable ? tl.getVariable("release.artifact.download.parallellimit") : undefined;
+        var parallelLimit: number = +(parallelLimitVariable || "0");
 
         var templatePath = path.join(__dirname, 'vsts.handlebars');
         var buildApi = await vssConnection.getBuildApi();
@@ -89,9 +94,9 @@ async function main(): Promise<void> {
         if (artifacts) {
             var downloadPromises: Array<Promise<any>> = [];
             console.log("Linked artifacts count: " + artifacts.length);
-            artifacts.forEach(async function (artifact, index, artifacts) {
+            artifacts.forEach(async function (artifact: any) {
                 let downloaderOptions = new engine.ArtifactEngineOptions();
-                downloaderOptions.itemPattern = itemPattern;
+                downloaderOptions.itemPattern = itemPattern || "";
                 downloaderOptions.verbose = verbose;
 
                 if (parallelLimit) {
@@ -117,7 +122,7 @@ async function main(): Promise<void> {
                     var handler = connectionDetails.username
                         ? new webHandlers.BasicCredentialHandler(connectionDetails.username, connectionDetails.accessToken)
                         : new webHandlers.PersonalAccessTokenCredentialHandler(connectionDetails.accessToken);
-                    
+
                     var webProvider = new providers.WebProvider(itemsUrl, templatePath, variables, handler);
                     var fileSystemProvider = new providers.FilesystemProvider(downloadPath);
 
@@ -163,62 +168,80 @@ async function configureForAdoSc(): Promise<ConnectionDetails> {
     const serviceConnection = tl.getInput('azureDevOpsServiceConnection', true);
     const projectId = tl.getInput('projectAdo', true);
     const buildId = tl.getInput('versionAdo', true);
-    validateInputs(serviceConnection, projectId, buildId);
+    const inputs = validateInputs(serviceConnection, projectId, buildId);
 
-    const accessToken: string = await auth.getAccessTokenViaWorkloadIdentityFederation(serviceConnection);
-    if (accessToken) tl.setSecret(accessToken);
+    const accessToken: string = (await auth.getAccessTokenViaWorkloadIdentityFederation(inputs.serviceConnection)) || '';
+
+    if (accessToken) {
+        tl.setSecret(accessToken);
+    }
+
     return {
-        serviceConnection,
-        projectId,
-        buildId: parseInt(buildId),
+        serviceConnection: inputs.serviceConnection,
+        projectId: inputs.projectId,
+        buildId: parseInt(inputs.buildId),
         accessToken,
         username: ''
     };
 }
 
-function configureForTfsSc() : ConnectionDetails {
+function configureForTfsSc(): ConnectionDetails {
     const serviceConnection = tl.getInput("connection", true);
     const projectId = tl.getInput('project', true);
     const buildId = tl.getInput('version', true);
-    validateInputs(serviceConnection, projectId, buildId);
+    const inputs = validateInputs(serviceConnection, projectId, buildId);
 
-    const username = tl.getEndpointAuthorizationParameter(serviceConnection, 'username', true);
+    const username = tl.getEndpointAuthorizationParameter(inputs.serviceConnection, 'username', true) || '';
     const accessToken =
-        tl.getEndpointAuthorizationParameter(serviceConnection, 'apitoken', true) ||
-        tl.getEndpointAuthorizationParameter(serviceConnection, 'password', true);
+        tl.getEndpointAuthorizationParameter(inputs.serviceConnection, 'apitoken', true) ||
+        tl.getEndpointAuthorizationParameter(inputs.serviceConnection, 'password', true) || '';
 
-    if (accessToken) tl.setSecret(accessToken);
+    if (accessToken) {
+        tl.setSecret(accessToken);
+    }
 
     return {
-        serviceConnection,
-        projectId,
-        buildId: parseInt(buildId),
+        serviceConnection: inputs.serviceConnection,
+        projectId: inputs.projectId,
+        buildId: parseInt(inputs.buildId),
         accessToken,
         username
     };
 }
 
-function validateInputs(serviceConnection: string, projectId: string, buildId: string) {
+function validateInputs(serviceConnection: string | undefined, projectId: string | undefined, buildId: string | undefined): { serviceConnection: string; projectId: string; buildId: string } {
     if (!serviceConnection || serviceConnection.trim().length === 0) {
         throw new Error("Service connection is not provided.");
     }
+
     if (!projectId) {
         throw new Error("Project is not provided.");
     }
+
     if (!buildId) {
         throw new Error("Build is not provided.");
     }
+
+    return {
+        serviceConnection,
+        projectId,
+        buildId
+    };
 }
 
-function executeWithRetries(operationName: string, operation: () => Promise<any>, retryCount): Promise<any> {
-    var executePromise = new Promise((resolve, reject) => {
+async function executeWithRetries(operationName: string, operation: () => Promise<any>, retryCount: number): Promise<any> {
+    return new Promise((resolve, reject) => {
         executeWithRetriesImplementation(operationName, operation, retryCount, resolve, reject);
     });
-
-    return executePromise;
 }
 
-function executeWithRetriesImplementation(operationName: string, operation: () => Promise<any>, currentRetryCount, resolve, reject) {
+function executeWithRetriesImplementation(
+    operationName: string,
+    operation: () => Promise<any>,
+    currentRetryCount: number,
+    resolve: (value: any) => void,
+    reject: (reason?: any) => void
+) {
     operation().then((result) => {
         resolve(result);
     }).catch((error) => {
@@ -239,7 +262,7 @@ function executeWithRetriesImplementation(operationName: string, operation: () =
 }
 
 main()
-    .then((result) => tl.setResult(tl.TaskResult.Succeeded, ""))
+    .then(() => tl.setResult(tl.TaskResult.Succeeded, ""))
     .catch((err) => {
         publishEvent('reliability', { issueType: 'error', errorMessage: JSON.stringify(err, Object.getOwnPropertyNames(err)) });
         tl.setResult(tl.TaskResult.Failed, err)
