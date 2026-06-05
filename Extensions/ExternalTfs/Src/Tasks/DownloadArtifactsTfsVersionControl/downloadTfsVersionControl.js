@@ -1,76 +1,71 @@
-const path = require('path');
-const shell = require('shelljs');
+var shell = require('shelljs');
+var path = require('path');
+var tl = require('azure-pipelines-task-lib/task');
+var Q = require('q');
+var url = require('url');
+var tfvcwm = require('./tfvcwrapper');
 
-const tl = require('azure-pipelines-task-lib/task');
+var projectId = tl.getInput("project");
+var repositoryId = tl.getInput("definition");
+var changesetId = tl.getInput("version");
+var downloadPath = tl.getInput("downloadPath");
+var tfsEndpoint = getEndpointDetails("connection");
 
-const tfvcwm = require('./tfvcwrapper');
+console.log("project: " + projectId.toString());
+console.log("definition: " + repositoryId.toString());
+console.log("version: " + (!!changesetId ? changesetId.toString() : "Latest"));
+console.log("downloadPath: " + downloadPath.toString());
+console.log("tfsEndpoint:" + JSON.stringify(tfsEndpoint.Url));
 
-const projectId = /** @type {string} */ (tl.getInput("project", true));
-const repositoryId = /** @type {string} */ (tl.getInput("definition", true));
-const changesetId = tl.getInput("version");
-const downloadPath = /** @type {string} */ (tl.getInput("downloadPath", true));
-const tfsEndpoint = getEndpointDetails("connection");
-
-console.log("project: " + String(projectId));
-console.log("definition: " + String(repositoryId));
-console.log("version: " + (!!changesetId ? String(changesetId) : "Latest"));
-console.log("downloadPath: " + String(downloadPath));
-console.log("tfsEndpoint:" + JSON.stringify(tfsEndpoint && tfsEndpoint.Url));
-
-/** @type {any} */
-const tfvcw = new tfvcwm.TfvcWrapper();
-
-tfvcw.on('stdout', (/** @type {any} */ data) => console.log(data.toString()));
-tfvcw.on('stderr', (/** @type {any} */ data) => console.log(data.toString()));
-tfvcw.on('debug', (/** @type {any} */ data) => console.log(data.toString()));
+var tfvcw = new tfvcwm.TfvcWrapper();
+tfvcw.on('stdout', function (data) {
+    console.log(data.toString());
+});
+tfvcw.on('stderr', function (data) {
+    console.log(data.toString());
+});
+tfvcw.on('debug', function (data) {
+    console.log(data.toString());
+});
 tfvcw.setTfvcConnOptions({
     username: tfsEndpoint.Username,
     password: tfsEndpoint.Password,
     collection: tfsEndpoint.Url
 });
-
 getCode();
 
-/**
- * @param {string} inputFieldName
- */
 function getEndpointDetails(inputFieldName) {
-    const errorMessage = "Could not decode the External Tfs endpoint. Please ensure you are running the latest agent";
+    var errorMessage = "Could not decode the External Tfs endpoint. Please ensure you are running the latest agent";
     if (!tl.getEndpointUrl) {
         throw new Error(errorMessage);
     }
-    const externalTfsEndpoint = tl.getInput(inputFieldName);
+    var externalTfsEndpoint = tl.getInput(inputFieldName);
     if (!externalTfsEndpoint) {
         throw new Error(errorMessage);
     }
-    const hostUrl = tl.getEndpointUrl(externalTfsEndpoint, false);
+    var hostUrl = tl.getEndpointUrl(externalTfsEndpoint, false);
     if (!hostUrl) {
         throw new Error(errorMessage);
     }
-    const auth = tl.getEndpointAuthorization(externalTfsEndpoint, false);
-
-    if (!auth) {
-        throw new Error(errorMessage);
-    }
-
+    var auth = tl.getEndpointAuthorization(externalTfsEndpoint, false);
     if (auth.scheme != "UsernamePassword" && auth.scheme != "Token") {
         throw new Error("The authorization scheme " + auth.scheme + " is not supported for a External Tfs endpoint.");
     }
 
-    let hostUsername = ".";
-    let hostPassword = "";
-
-    if (auth.scheme === "Token") {
+    var hostUsername = ".";
+    var hostPassword = "";
+    if(auth.scheme == "Token") {
         hostPassword = getAuthParameter(auth, 'apitoken');
-    } else {
+    }
+    else {
         hostUsername = getAuthParameter(auth, 'username');
         hostPassword = getAuthParameter(auth, 'password');
     }
-
-    if (hostPassword) {
+    try {
         tl.setSecret(hostPassword);
+    } catch {
+        tl.warning('Failed to mask password for log redaction.');
     }
-
     return {
         "Url": hostUrl,
         "Username": hostUsername,
@@ -78,89 +73,81 @@ function getEndpointDetails(inputFieldName) {
     };
 }
 
-/**
- * @param {{ parameters: Record<string, string> }} auth
- * @param {string} paramName
- * @returns {string}
- */
 function getAuthParameter(auth, paramName) {
-    const parameters = Object.getOwnPropertyNames(auth['parameters']);
-    let keyName;
+    var paramValue = null;
+    var parameters = Object.getOwnPropertyNames(auth['parameters']);
+    var keyName;
     parameters.some(function (key) {
         if (key.toLowerCase() === paramName.toLowerCase()) {
             keyName = key;
             return true;
         }
     });
-
-    if (!keyName) {
-        return "";
-    }
-
-    return auth['parameters'][keyName];
+    paramValue = auth['parameters'][keyName];
+    return paramValue;
 }
 
 function getCode() {
-    const workspaceName = getWorkspaceName();
-    const workspaceMappings = getDefaultTfvcMappings();
+    var workspaceName = getWorkspaceName();
+    var workspaceMappings = getDefaultTfvcMappings();
 
-    const newWorkspace = {
+    var newWorkspace = {
         name: workspaceName,
         mappings: []
     };
 
     console.log("Try deleting workspace if it already exists");
     return tfvcw.deleteWorkspace(newWorkspace)
-        .then(function (/** @type {number} */ retCode) {
+        .then(function(retCode) {
             if (retCode === 0) {
                 console.log("Successfully deleted workspace");
             }
             if (IsPathExists(downloadPath)) {
                 console.log("Cleaning up artifacts download path");
                 return utilExec('rm -fr ' + downloadPath)
-                    .then(function (/** @type {{ code: number, output: string }} */ ret) {
+                    .then(function(ret) {
                         if (ret.code === 0) {
                             console.log("Successfully cleaned up artifacts download path");
                         }
-                        return ret.code;
+                        return Q(ret.code);
                     });
             } else {
-                return 0;
+                return Q(0);
             }
-        }, function (/** @type {unknown} */ error) {
+        }, function(error) {
             console.log("Warning: Failed to delete Workspace. Ignoring it as this could happen due to non existent workspace. " + error);
             if (IsPathExists(downloadPath)) {
                 console.log("Artifacts download path exists. Cleaning up");
                 return utilExec('rm -fr ' + downloadPath)
-                    .then(function (/** @type {{ code: number, output: string }} */ ret) {
+                    .then(function(ret) {
                         if (ret.code === 0) {
                             console.log("Successfully cleaned up artifacts download path");
                         }
-                        return ret.code;
+                        return Q(ret.code);
                     });
             } else {
-                return 0;
+                return Q(0);
             }
         })
-        .then(function () {
+        .then(function() {
             ensurePathExist(downloadPath);
             shell.cd(downloadPath);
             console.log("Creating new workspace: " + newWorkspace.name);
             return tfvcw.newWorkspace(newWorkspace)
-                .then(function (/** @type {number} */ retCode) {
+                .then(function(retCode) {
                     if (retCode === 0) {
                         console.log("Successfully created workspace");
                     }
-                    return retCode;
-                }, function (/** @type {unknown} */ error) {
+                    return Q(retCode);
+                }, function(error) {
                     tl.error("Failed to Create a new Workspace. " + error);
-                    process.exit(1);
+                    tl.exit(1);
                 });
         })
-        .then(function () {
+        .then(function() {
             // workspace must exist now
             // Sometime the job fails with:
-            //   An argument error occurred: Unable to determine the workspace.
+            //   An argument error occurred: Unable to determine the workspace. 
             //   You may be able to correct this by running 'tf workspaces -collection:TeamProjectCollectionUrl'.
             // when getting the source.  Preemptively run this to be safe.
             console.log("List workspaces");
@@ -169,48 +156,45 @@ function getCode() {
             console.log("Current working directory: " + process.cwd());
             console.log("Add default workspace mappings: " + JSON.stringify(workspaceMappings));
             return tfvcw.mapFolder(workspaceMappings.serverPath, workspaceMappings.localPath, newWorkspace)
-                .then(function (/** @type {number} */ retCode) {
+                .then(function(retCode) {
                     if (retCode === 0) {
                         console.log("Successfully added default mapping");
                     }
-                    return retCode;
-                }, function (/** @type {unknown} */ error) {
+                    return Q(retCode);
+                }, function(error) {
                     tl.error("Failed to add default mapping. " + error);
-                    process.exit(1);
+                    tl.exit(1);
                 });
         })
-        .then(function () {
+        .then(function() {
             shell.cd(downloadPath);
             console.log("Sync workspace: " + newWorkspace.name);
-
+            
             if (!changesetId) {
                 console.log("Getting latest changeset as no changeset is specified");
             }
 
             return tfvcw.get(changesetId)
-                .then(function (/** @type {number} */ retCode) {
+                .then(function(retCode) {
                     if (retCode === 0) {
                         console.log("Successfully synced workspace");
                     }
-                    return retCode;
-                }, function (/** @type {unknown} */ error) {
+                    return Q(retCode);
+                }, function(error) {
                     tl.error("Failed to sync workspace. " + error);
-                    process.exit(1);
+                    tl.exit(1);
                 });
         });
 };
 
-/**
- * @param {string} folderPath
- */
-function IsPathExists(folderPath) {
-    return shell.test('-d', folderPath);
+function IsPathExists(path) {
+    return shell.test('-d', path);
 }
 
 function getWorkspaceName() {
-    const downloadFolderName = getDownloadFolder();
+    var downloadFolderName = getDownloadFolder();
     console.log("Download artifact folder: " + downloadFolderName);
-    const workspaceName = ("ws_" + downloadFolderName).slice(0, 60);
+    var workspaceName = ("ws_" + downloadFolderName).slice(0, 60);
     console.log("workspace name: " + workspaceName);
     return workspaceName;
 };
@@ -227,24 +211,18 @@ function getDefaultTfvcMappings() {
     };
 };
 
-/**
- * @param {string} folderPath
- */
-function ensurePathExist(folderPath) {
-    if (!shell.test('-d', folderPath)) {
-        shell.mkdir("-p", folderPath);
-        console.log("Successfully created directory: " + folderPath);
+function ensurePathExist(path) {
+    if (!shell.test('-d', path)) {
+        shell.mkdir("-p", path);
+        console.log("Successfully created directory: " + path);
     }
 };
 
-/**
- * @param {string} cmdLine
- * @returns {Promise<{ code: number, output: string }>}
- */
+// ret is { output: string, code: number }
 function utilExec(cmdLine) {
-    return new Promise(function (resolve) {
-        shell.exec(cmdLine, function (/** @type {number} */ code, /** @type {string} */ output) {
-            resolve({ code: code, output: output });
-        });
+    var defer = Q.defer();
+    shell.exec(cmdLine, function (code, output) {
+        defer.resolve({ code: code, output: output });
     });
+    return defer.promise;
 };
