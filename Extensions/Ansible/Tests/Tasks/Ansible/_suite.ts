@@ -20,8 +20,8 @@ describe('Ansible Suite', function () {
             assert(runner.succeeded, "Should have succeeded");
             assert(runner.stdOutContained('copied file to remote machine = /path/to/ansiblePlaybookRoot'), 'should able to copy playbook to remote machine');
             assert(runner.stdOutContained('copied file to remote machine = /path/to/ansibleInventory'), 'should able to copy inventory file to remote machine');
-            assert(runner.stdOutContained('cmd run on remote machine = ansible-playbook -i /tmp/ansibleInventory /tmp/ansiblePlaybook.yml'), 'should able to run playbook on remote machine');
-            assert(runner.stdOutContained('cmd run on remote machine = rm -rf /tmp/ansiblePlaybook.yml'), 'should clean all the temporary playbook file copied to remote machine');
+            assert(runner.stdOutContained('cmd run on remote machine = ansible-playbook -i /tmp/ansibleInventory /tmp/ansiblePlaybookRoot/ansiblePlaybook.yml'), 'should able to run playbook on remote machine');
+            assert(runner.stdOutContained('cmd run on remote machine = rm -rf /tmp/ansiblePlaybookRoot'), 'should clean all the temporary playbook file copied to remote machine');
             assert(runner.stdOutContained('cmd run on remote machine = rm -f /tmp/ansibleInventory', 'should clean all the temporary inventory file copied to remote machine'));
             assert(runner.stdOutContained('connection to dummy client established'), 'should able connect to client');
             assert(runner.stdOutContained('connection to dummy client terminated'), 'should able disconnect to client');
