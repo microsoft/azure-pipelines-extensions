@@ -68,7 +68,11 @@ function getEndpointDetails(inputFieldName) {
     }
 
     if (hostPassword) {
-        tl.setSecret(hostPassword);
+        try {
+            tl.setSecret(hostPassword);
+        } catch {
+            tl.warning('Failed to mask password for log redaction.');
+        }
     }
 
     return {

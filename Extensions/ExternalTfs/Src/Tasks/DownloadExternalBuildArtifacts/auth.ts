@@ -20,7 +20,11 @@ export async function getAccessTokenViaWorkloadIdentityFederation(serviceConnect
   tl.debug(`Got federated token for service connection ${serviceConnection}`);
 
   if (federatedToken) {
-    tl.setSecret(federatedToken);
+    try {
+        tl.setSecret(federatedToken);
+    } catch {
+        tl.warning('Failed to mask federated token for log redaction.');
+    }
   }
 
   // Exchange federated token for service principal token
@@ -66,7 +70,11 @@ async function getAccessTokenFromFederatedToken(
   if (!result?.accessToken) {
     tl.debug("MSAL did not return an access token.");
   } else {
-    tl.setSecret(result.accessToken);
+    try {
+        tl.setSecret(result.accessToken);
+    } catch {
+        tl.warning('Failed to mask MSAL access token for log redaction.');
+    }
   }
 
   if (result?.expiresOn) {
