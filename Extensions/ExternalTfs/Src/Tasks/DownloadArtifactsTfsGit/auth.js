@@ -84,10 +84,12 @@ async function getAccessTokenFromFederatedToken(servicePrincipalId, tenantId, fe
     };
 
     const result = await app.acquireTokenByClientCredential(request);
-    try {
-        tl.setSecret(result?.accessToken);
-    } catch {
-        tl.warning('Failed to mask MSAL access token for log redaction.');
+    if (result?.accessToken) {
+        try {
+            tl.setSecret(result.accessToken);
+        } catch {
+            tl.warning('Failed to mask MSAL access token for log redaction.');
+        }
     }
 
     tl.debug(`Got access token for service principal ${servicePrincipalId}`);
