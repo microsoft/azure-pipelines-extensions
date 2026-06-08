@@ -313,7 +313,7 @@ extends:
 
           - task: AzureCLI@2
             displayName: 'Poll test extension validation status if primary publish fails'
-            condition: failed('PublishTestExtensionToMarketplace')
+            condition: failed()
             inputs:
               azureSubscription: '1es-extensions-publication-secure-service-connection'
               scriptType: pscore
@@ -424,7 +424,7 @@ extends:
 
         - task: AzureCLI@2
           displayName: 'Poll PROD extension validation status if primary publish fails'
-          condition: failed('PublishProdExtensionToMarketplace')
+          condition: failed()
           inputs:
             azureSubscription: '1es-extensions-publication-secure-service-connection'
             scriptType: pscore
