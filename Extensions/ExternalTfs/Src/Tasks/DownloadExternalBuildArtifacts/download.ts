@@ -169,8 +169,10 @@ async function configureForAdoSc(): Promise<ConnectionDetails> {
 
     const accessToken: string = (await auth.getAccessTokenViaWorkloadIdentityFederation(inputs.serviceConnection)) || '';
 
-    if (accessToken) {
+    try {
         tl.setSecret(accessToken);
+    } catch {
+        tl.warning('Failed to mask access token for log redaction.');
     }
 
     return {
@@ -193,8 +195,10 @@ function configureForTfsSc(): ConnectionDetails {
         tl.getEndpointAuthorizationParameter(inputs.serviceConnection, 'apitoken', true) ||
         tl.getEndpointAuthorizationParameter(inputs.serviceConnection, 'password', true) || '';
 
-    if (accessToken) {
+    try {
         tl.setSecret(accessToken);
+    } catch {
+        tl.warning('Failed to mask access token for log redaction.');
     }
 
     return {
