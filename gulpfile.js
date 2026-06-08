@@ -959,9 +959,11 @@ const SHARED_INFRA_PREFIXES = [
     'package-utils.js',
     'base.tsconfig.json',
     'tsconfig.json',
+    'gulpfile.js',
     'definitions/',
     'TaskModules/',
     'scripts/',
+    '.pipelines/',
     'ci/'
 ];
 const SHARED_INFRA_IGNORE_EXTENSIONS = ['.md', '.txt', '.png', '.jpg', '.gif'];
