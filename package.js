@@ -129,32 +129,13 @@ function copyCommonModules(currentExtnRoot, commonDeps, commonSrc, extensionSour
             if (Object.keys(task.execution).some(x => x.includes('Node'))) {
                 console.log(`⚒️  Building Node task: ${task.name}`);
 
-                const originalDir = shell.pwd();
-
                 try {
-                    util.cd(taskDirPath);
                     const npmrcPath = path.join(taskSourcePath, ".npmrc");
-                    const npmCmd = process.platform === 'win32' ? 'npm.cmd' : 'npm';
-                    const npmArgs = ['ci', '--userconfig', `"${npmrcPath}"`];
-                    // Opt specific tasks out of engine-strict. The outer `npx gulp build` loads
-                    // the root .npmrc and exports its settings as npm_config_* env vars, which
-                    // take precedence over any nested .npmrc. A CLI flag is the only thing that
-                    // overrides those inherited env vars without disabling engine-strict globally.
-                    if ((externals['no-engine-strict'] || []).includes(task.name)) {
-                        npmArgs.splice(1, 0, '--no-engine-strict');
-                    }
-                    if (util.isDebug()) {
-                        npmArgs.splice(1, 0, '--verbose');
-                        cp.execFileSync(npmCmd, npmArgs, { stdio: 'inherit', shell: true });
-                    } else {
-                        cp.execFileSync(npmCmd, npmArgs, { stdio: 'ignore', shell: true });
-                    }
+                    installDependencies(taskDirPath, task.name, npmrcPath);
                     console.log(`\x1b[A\x1b[K✅ npm ci at ${taskDirPath} completed successfully.`);
                 } catch (err) {
                     console.log(`\x1b[A\x1b[K❌ npm ci at ${taskDirPath} failed. Error: ${err.message}`);
                     process.exit(1);
-                } finally {
-                    util.cd(originalDir);
                 }
             }
         })
@@ -167,5 +148,34 @@ function copyCommonModules(currentExtnRoot, commonDeps, commonSrc, extensionSour
     });
 }
 
+/**
+ * Installs the dependencies for a given task using npm ci, with options to handle engine-strict mode and verbose logging.
+ * @param {string} taskPath - The file system path to the task for which dependencies should be installed.
+ * @param {string} taskName - The name of the task, used for determining if engine-strict mode should be disabled based on externals configuration.
+ * @param {string} npmrcPath - The path to the .npmrc file for the task.
+ */
+function installDependencies(taskPath, taskName, npmrcPath) {
+    console.log(`Installing dependencies for task: ${taskName} at path: ${taskPath}`);
+    const npmCmd = process.platform === 'win32' ? 'npm.cmd' : 'npm';
+    const npmArgs = ['ci', '--prefix', taskPath, '--userconfig', `"${npmrcPath}"`];
 
-exports.copyCommonModules = copyCommonModules;
+    // Opt specific tasks out of engine-strict. The outer `npx gulp build` loads
+    // the root .npmrc and exports its settings as npm_config_* env vars, which
+    // take precedence over any nested .npmrc. A CLI flag is the only thing that
+    // overrides those inherited env vars without disabling engine-strict globally.
+    if ((externals['no-engine-strict'] || []).includes(taskName)) {
+        npmArgs.splice(1, 0, '--no-engine-strict');
+    }
+
+    const isDebug = util.isDebug();
+    if (isDebug) {
+        npmArgs.push('--verbose');
+    }
+
+    cp.execFileSync(npmCmd, npmArgs, { stdio: isDebug ? 'inherit' : 'ignore', shell: true });
+}
+
+module.exports = {
+    copyCommonModules,
+    installDependencies
+};

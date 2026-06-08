@@ -6,10 +6,11 @@
         "moduleResolution": "node16",
         "skipLibCheck": true,
         "noEmit": true,
+        "checkJs": true,
         "useUnknownInCatchVariables": false,
         "strict": true
     },
     "include": [
-        "*.ts"
+        "*.js"
     ]
 }

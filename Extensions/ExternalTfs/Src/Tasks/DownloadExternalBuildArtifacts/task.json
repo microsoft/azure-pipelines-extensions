@@ -9,7 +9,7 @@
   "version": {
     "Major": 16,
     "Minor": 275,
-    "Patch": 5
+    "Patch": 0
   },
   "demands": [],
   "minimumAgentVersion": "2.144.0",
@@ -145,7 +145,7 @@
       "target": "definition",
       "dataSourceName": "Definitions",
       "parameters": {
-          "project": "$(project)"
+        "project": "$(project)"
       },
       "resultTemplate": "{ \"Value\" : \"{{{id}}}\", \"DisplayValue\" : \"{{{name}}}\" }"
     },
@@ -154,8 +154,8 @@
       "target": "version",
       "dataSourceName": "Builds",
       "parameters": {
-          "project": "$(project)",
-          "definition": "$(definition)"
+        "project": "$(project)",
+        "definition": "$(definition)"
       },
       "resultTemplate": "{ \"Value\" : \"{{{id}}}\", \"DisplayValue\" : \"{{{buildNumber}}}\" }"
     },
@@ -173,8 +173,8 @@
       "target": "buildDefinitionAdo",
       "dataSourceName": "Definitions",
       "parameters": {
-          "project": "$(projectAdo)",
-          "top": 500
+        "project": "$(projectAdo)",
+        "top": 500
       },
       "resultTemplate": "{ \"Value\" : \"{{{id}}}\", \"DisplayValue\" : \"{{{name}}}\" }"
     },
@@ -183,9 +183,9 @@
       "target": "versionAdo",
       "dataSourceName": "Builds",
       "parameters": {
-          "project": "$(projectAdo)",
-          "definition": "$(buildDefinitionAdo)",
-          "top": 100
+        "project": "$(projectAdo)",
+        "definition": "$(buildDefinitionAdo)",
+        "top": 100
       },
       "resultTemplate": "{ \"Value\" : \"{{{id}}}\", \"DisplayValue\" : \"{{{buildNumber}}}\" }"
     }
