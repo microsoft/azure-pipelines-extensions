@@ -916,8 +916,8 @@ function getChangedFiles() {
         // Manual or CI trigger — diff current branch against master.
         target = 'master';
         var sourceBranch = (process.env['BUILD_SOURCEBRANCH'] || '').replace(/^refs\/heads\//, '');
-        if (sourceBranch === target) {
-            console.log("Source branch (" + sourceBranch + ") is the same as target (" + target + ") -> running all.");
+        if (!sourceBranch || sourceBranch === target) {
+            console.log("Source branch is " + (sourceBranch || 'empty') + " (target: " + target + ") -> running all.");
             return null;
         }
         console.log("Non-PR build (BUILD_REASON=" + buildReason + "). Diffing against " + target + ".");
