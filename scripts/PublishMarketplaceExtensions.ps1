@@ -258,7 +258,10 @@ if ($RescueFailedPublish) {
     }
 
     if (-not (Test-LogIndicatesLongValidation -LogContent $publishLog)) {
-        Write-Host "##[error]Publish task '$PublishTaskDisplayName' failed for a reason unrelated to Marketplace validation timeout (for example: version already published, auth failure, malformed package). Refer to that task's log for the actual error."
+        Write-Host "##[error]Marketplace validation mode was invoked, but the log for task '$PublishTaskDisplayName' does not contain messages that indicate inability to verify status of an extension upload."
+        Write-Host "Two possibilities to investigate:"
+        Write-Host "  1. The publish task failed for an unrelated reason (for example: version already published, authentication failure, malformed package, etc.). The actual error should appear in the publish task log."
+        Write-Host "  2. The publish actually succeeded but emitted warnings that promoted its status to SucceededWithIssues, which falsely triggered this mode. In that case verify the extension's status on Marketplace directly - it may already be published correctly."
         Write-PublishLogTail -LogContent $publishLog
         exit 1
     }
