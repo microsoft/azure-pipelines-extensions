@@ -313,7 +313,7 @@ extends:
 
           - task: AzureCLI@2
             displayName: 'Poll test extension validation status if primary publish fails'
-            condition: failed()
+            condition: in(variables['Agent.JobStatus'], 'SucceededWithIssues')
             inputs:
               azureSubscription: '1es-extensions-publication-secure-service-connection'
               scriptType: pscore
@@ -373,7 +373,9 @@ extends:
     # ======= Approve PROD extension publishing on Marketplace =======
     - stage: Approve_Prod_Extension_Publishing
       displayName: 'Approve PROD extension publishing on Marketplace'
-      dependsOn: Execute_CI_Tests
+      dependsOn:
+      - Execute_CI_Tests
+      - Sign_Vsix_Artifacts
       condition: succeeded()
       jobs:
       - job: ApproveProd
@@ -424,7 +426,7 @@ extends:
 
         - task: AzureCLI@2
           displayName: 'Poll PROD extension validation status if primary publish fails'
-          condition: failed()
+          condition: in(variables['Agent.JobStatus'], 'SucceededWithIssues')
           inputs:
             azureSubscription: '1es-extensions-publication-secure-service-connection'
             scriptType: pscore
