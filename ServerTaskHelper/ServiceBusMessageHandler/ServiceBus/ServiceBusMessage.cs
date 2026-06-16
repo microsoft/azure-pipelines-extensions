@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 using Microsoft.Azure.ServiceBus;
 
 namespace ServiceBusMessageHandler.ServiceBus

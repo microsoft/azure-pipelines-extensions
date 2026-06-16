@@ -60,7 +60,7 @@ const cultures = ['en-US', 'de-DE', 'es-ES', 'fr-FR', 'it-IT', 'ja-JP', 'ko-KR',
  * @returns {void}
  */
 function errorHandler(error) {
-    console.error(`Build failed ${error}`);
+    console.error(`Build failed ${error ? `with error: ${error}` : 'with an unknown error'}`);
     process.exit(1);
 }
 
@@ -75,7 +75,7 @@ gulp.task("clean", function (cb) {
 
 gulp.task("compilePS", gulp.series("clean", function () {
     if (options.testAreaPath === undefined) {
-        return gulp.src(sourcePaths, { base: "." }).pipe(gulp.dest(_buildRoot));
+        return gulp.src(sourcePaths, { base: ".", encoding: false }).pipe(gulp.dest(_buildRoot));
     } else {
         if (options.testAreaPath.length > 0) {
             console.log('Compiling updated modules - ' + options.testAreaPath);
@@ -86,11 +86,11 @@ gulp.task("compilePS", gulp.series("clean", function () {
                 filter.push(ExtensionFolder + '/' + areaPaths[n] + '/**/*')
             }
 
-            return gulp.src(filter, { base: "." }).pipe(gulp.dest(_buildRoot));
+            return gulp.src(filter, { base: ".", encoding: false }).pipe(gulp.dest(_buildRoot));
         } else {
             console.log('No module is updated with given change-set');
             // Create a _build/Extensions folder which will be empty
-            return gulp.src(ExtensionFolder, { base: "." }).pipe(gulp.dest(_buildRoot));
+            return gulp.src(ExtensionFolder, { base: ".", encoding: false }).pipe(gulp.dest(_buildRoot));
         }
     }
 }));
@@ -638,7 +638,36 @@ gulp.task("syncVersions", function (cb) {
     processNext();
 });
 
-gulp.task("build", gulp.series("syncVersions", "compileNode", "updateTestIds"));
+gulp.task("tscBuildTasks", function (cb) {
+    const buildCheckList = JSON.parse(fs.readFileSync(path.join(__dirname, 'externals.json'), 'utf-8'))['tsc-build-check'];
+
+    if (!buildCheckList || buildCheckList.length === 0) {
+        cb();
+        return;
+    }
+
+    const tscCliPath = require.resolve('typescript/bin/tsc');
+
+    fs.readdirSync(ExtensionFolder, { recursive: true, encoding: 'utf-8' })
+        .filter(x => buildCheckList.find((/** @type{string} */ check) => x.includes(check)) && path.parse(x).base == "tsconfig.json" && !x.includes("node_modules"))
+        .map(x => path.resolve(ExtensionFolder, x))
+        .forEach((configPath) => {
+            const taskPath = path.dirname(configPath);
+
+            try {
+                pkgm.installDependencies(taskPath, path.basename(taskPath), path.join(taskPath, ".npmrc"));
+                cp.execFileSync(process.execPath, [tscCliPath, '-p', configPath], { stdio: util.isDebug() ? 'inherit' : 'ignore' });
+            } catch (err) {
+                console.error(`TypeScript compilation failed for ${configPath}: ${err.message}`);
+                console.error(`Execute manually the command:\nnpx tsc -p ${configPath}`);
+                cb();
+                errorHandler();
+            }
+        });
+    cb();
+});
+
+gulp.task("build", gulp.series("syncVersions", "compileNode", "tscBuildTasks", "updateTestIds"));
 
 gulp.task("default", gulp.series("build"));
 
@@ -658,12 +687,12 @@ gulp.task('compileTests', function () {
 });
 
 gulp.task('testLib', gulp.series('compileTests', function () {
-    return gulp.src(['Extensions/Common/lib/**/*'])
+    return gulp.src(['Extensions/Common/lib/**/*'], { encoding: false })
         .pipe(gulp.dest(path.join(_testRoot, 'Extensions/Common/lib/')));
 }));
 
 gulp.task('copyTestData', gulp.series('compileTests', function () {
-    return gulp.src(['Extensions/**/Tests/**/data/**'], { dot: true })
+    return gulp.src(['Extensions/**/Tests/**/data/**'], { dot: true, encoding: false })
         .pipe(gulp.dest(_testRoot + "\\Extensions"));
 }));
 
@@ -678,7 +707,7 @@ gulp.task('ps1tests', gulp.series('compileTests', function () {
 }));
 
 gulp.task('testLib_NodeModules', gulp.series('testLib', function () {
-    return gulp.src(path.join(__dirname, 'node_modules/azure-pipelines-task-lib/**/*'))
+    return gulp.src(path.join(__dirname, 'node_modules/azure-pipelines-task-lib/**/*'), { encoding: false })
         .pipe(gulp.dest(path.join(_testRoot, 'Extensions/Common/lib/node_modules/azure-pipelines-task-lib')));
 }));
 
@@ -869,16 +898,30 @@ gulp.task("test", gulp.series("testResources", function () {
 // ---------------------------------------------------------------------------
 
 // Returns an array of changed file paths (forward-slash normalized) from the
-// PR diff, or null if the diff cannot be determined (non-PR build, fetch failure).
+// diff against the target branch. Works for PR builds (uses PR target) and
+// manual/CI builds (diffs selected branch against master).
+// Returns null only if the diff cannot be determined (fetch failure, etc.).
 function getChangedFiles() {
     var buildReason = process.env['BUILD_REASON'];
-    var prTarget = process.env['SYSTEM_PULLREQUEST_TARGETBRANCH'];
-    if (buildReason !== 'PullRequest' || !prTarget) {
-        console.log("Not a PR build (BUILD_REASON=" + buildReason + ") -> running all suites.");
-        return null;
+    var target;
+
+    if (buildReason === 'PullRequest') {
+        var prTarget = process.env['SYSTEM_PULLREQUEST_TARGETBRANCH'];
+        if (!prTarget) {
+            console.log("PR build but no target branch set -> running all.");
+            return null;
+        }
+        target = prTarget.replace(/^refs\/heads\//, '');
+    } else {
+        // Manual or CI trigger — diff current branch against master.
+        target = 'master';
+        var sourceBranch = (process.env['BUILD_SOURCEBRANCH'] || '').replace(/^refs\/heads\//, '');
+        if (!sourceBranch || sourceBranch === target) {
+            console.log("Source branch is " + (sourceBranch || 'empty') + " (target: " + target + ") -> running all.");
+            return null;
+        }
+        console.log("Non-PR build (BUILD_REASON=" + buildReason + "). Diffing against " + target + ".");
     }
-    // Normalize "refs/heads/master" -> "master".
-    var target = prTarget.replace(/^refs\/heads\//, '');
     var changedFiles;
     try {
         // Deepen modestly so the merge-base is reachable for 3-dot diff even on shallow (depth=1) clones.

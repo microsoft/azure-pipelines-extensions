@@ -1,4 +1,4 @@
-﻿# Override the DebugPreference.
+# Override the DebugPreference.
 if ($global:DebugPreference -eq 'Continue') {
     Write-Verbose '$OVERRIDING $global:DebugPreference from ''Continue'' to ''SilentlyContinue''.'
     $global:DebugPreference = 'SilentlyContinue'

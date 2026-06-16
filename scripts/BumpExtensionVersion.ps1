@@ -22,8 +22,7 @@
 
 .PARAMETER VerifyOnly
     If specified, the script will only verify if the local version is greater than
-    the Marketplace version and will return an error if a bump is needed, without
-    modifying the manifest. This can be used in CI pipelines to enforce version bumps.
+    the Marketplace version and will return an error if a bump is needed.
 #>
 [CmdletBinding()]
 param(

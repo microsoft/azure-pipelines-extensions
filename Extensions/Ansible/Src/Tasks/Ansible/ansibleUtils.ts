@@ -1,6 +1,7 @@
 import tl = require("azure-pipelines-task-lib/task");
 import Q = require("q");
 import util = require("util");
+const fs = require('fs');
 import querystring = require('querystring');
 import * as SftpClient from 'ssh2-sftp-client';
 
@@ -35,11 +36,38 @@ export async function copyFileToRemoteMachine(src: string, dest: string, sftpCon
 
     try {
         await sftpClient.connect(sftpConfig);
-        await sftpClient.put(src, dest);
-        tl.debug('Copied script file to remote machine at: ${dest}');
+
+        // Upload
+        const isDirectory = fs.lstatSync(src).isDirectory();
+    
+        if (isDirectory) {
+            // Make sure the remote directory exists
+            try {
+                await sftpClient.mkdir(dest, true); // recursive = true
+            } catch (err) {
+                if (err.code !== 4 && !err.message.includes('Failure')) {
+                  throw err;
+                }
+                // Check if directory really exists
+                await sftpClient.stat(dest);
+                console.log(`Remote directory exists: ${dest}`);
+            }
+          tl.debug(`Copying directory to remote machine at: ${dest}`);
+          await sftpClient.uploadDir(src, dest);
+          tl.debug(`Copied directory to remote machine at: ${dest}`);
+        } else {
+          tl.debug(`Copying file to remote machine at: ${dest}`); 
+          try {
+            await sftpClient.put(src, dest);
+          } catch (err) {
+            console.error('PUT failed:', err.message);
+          }
+          tl.debug(`Copied file to remote machine at: ${dest}`);
+        }
+        
         defer.resolve('0');
     } catch (err) {
-        defer.reject(tl.loc('RemoteCopyFailed', err));
+            defer.reject(tl.loc('RemoteCopyFailed', err));
     }
 
     try {

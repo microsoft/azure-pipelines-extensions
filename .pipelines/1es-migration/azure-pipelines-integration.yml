@@ -12,12 +12,6 @@ pr:
     include:
     - master
 
-parameters:
-- name: skipCiTesting
-  displayName: 'Skip CI testing (use only if CI tests for the selected extension are not yet available)'
-  type: boolean
-  default: false
-
 variables:
 # 1ES Security Scanning
 - name: CodeQL.Enabled
@@ -111,7 +105,7 @@ extends:
 
         - task: AzureCLI@2
           displayName: 'Verify extension versions are bumped'
-          condition: and(eq(variables['Build.Reason'], 'PullRequest'), ne(variables['DetectedExtensions'], ''))
+          condition: ne(variables['DetectedExtensions'], '')
           inputs:
             azureSubscription: '1es-extensions-publication-secure-service-connection'
             scriptType: pscore
@@ -223,36 +217,35 @@ extends:
                 exit 1
               }
 
-              $(Build.SourcesDirectory)/scripts/PublishTestExtensions.ps1 `
+              $(Build.SourcesDirectory)/scripts/PublishMarketplaceExtensions.ps1 `
                 -VsixDirectory "$(Pipeline.Workspace)/vsix-test-unsigned" `
                 -MarketplaceToken $token
 
     # ======= Execute CI tests and verify the newly published test extension =======
-    - ${{ if ne(parameters.skipCiTesting, true) }}:
-      - stage: Execute_CI_Tests
-        displayName: 'Execute CI tests against the test extension'
-        dependsOn:
-        - Build_And_Package_Test_Extension
-        - Publish_Test_Extension
-        condition: and(succeeded('Publish_Test_Extension'), eq(dependencies.Build_And_Package_Test_Extension.outputs['BuildAndPackage.DetectExtensions.HasExtensionChanges'], 'true'))
-        variables:
-          CI_TESTS_ORG_URL: 'https://dev.azure.com/canarytest'
-          CI_TESTS_PROJECT: 'PipelineTasks'
-          DetectedExtensions: $[ stageDependencies.Build_And_Package_Test_Extension.BuildAndPackage.outputs['DetectExtensions.DetectedExtensions'] ]
-        jobs:
-        - job: CiTests
-          displayName: 'Trigger CI test pipelines for all changed extensions'
-          timeoutInMinutes: 120
-          steps:
-          - task: AzureCLI@2
-            displayName: 'Trigger CI tests for all detected extensions and wait for results'
-            inputs:
-              azureSubscription: 'canarytest-extensions-ci-tests-pipeline-connector'
-              scriptType: pscore
-              scriptLocation: scriptPath
-              scriptPath: '$(Build.SourcesDirectory)/scripts/TriggerCiTestsForExtensions.ps1'
-              arguments: >
-                -Extensions "$(DetectedExtensions)"
-                -OrgUrl "$(CI_TESTS_ORG_URL)"
-                -Project "$(CI_TESTS_PROJECT)"
-                -TimeoutMinutes 120
+    - stage: Execute_CI_Tests
+      displayName: 'Execute CI tests against the test extension'
+      dependsOn:
+      - Build_And_Package_Test_Extension
+      - Publish_Test_Extension
+      condition: and(succeeded('Publish_Test_Extension'), eq(dependencies.Build_And_Package_Test_Extension.outputs['BuildAndPackage.DetectExtensions.HasExtensionChanges'], 'true'))
+      variables:
+        CI_TESTS_ORG_URL: 'https://dev.azure.com/canarytest'
+        CI_TESTS_PROJECT: 'PipelineTasks'
+        DetectedExtensions: $[ stageDependencies.Build_And_Package_Test_Extension.BuildAndPackage.outputs['DetectExtensions.DetectedExtensions'] ]
+      jobs:
+      - job: CiTests
+        displayName: 'Trigger CI test pipelines for all changed extensions'
+        timeoutInMinutes: 120
+        steps:
+        - task: AzureCLI@2
+          displayName: 'Trigger CI tests for all detected extensions and wait for results'
+          inputs:
+            azureSubscription: 'canarytest-extensions-ci-tests-pipeline-connector'
+            scriptType: pscore
+            scriptLocation: scriptPath
+            scriptPath: '$(Build.SourcesDirectory)/scripts/TriggerCiTestsForExtensions.ps1'
+            arguments: >
+              -Extensions "$(DetectedExtensions)"
+              -OrgUrl "$(CI_TESTS_ORG_URL)"
+              -Project "$(CI_TESTS_PROJECT)"
+              -TimeoutMinutes 120

@@ -1,4 +1,4 @@
-﻿import { ItemType } from "./itemType"
+import { ItemType } from "./itemType"
 
 export class ArtifactItem {
     itemType: ItemType;

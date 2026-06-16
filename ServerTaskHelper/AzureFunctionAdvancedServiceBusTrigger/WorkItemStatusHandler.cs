@@ -1,4 +1,4 @@
-﻿using DistributedTask.ServerTask.Remote.Common.Request;
+using DistributedTask.ServerTask.Remote.Common.Request;
 using DistributedTask.ServerTask.Remote.Common.TaskProgress;
 using DistributedTask.ServerTask.Remote.Common.WorkItemProgress.Exceptions;
 using DistributedTask.ServerTask.Remote.Common.WorkItemProgress;

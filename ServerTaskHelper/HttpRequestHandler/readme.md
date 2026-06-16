@@ -1,4 +1,4 @@
-﻿### This is a sample app demonstrates how to plugin an execution handler for a HttpRequest server task using DistributedTask.ServerTask.Remote.Common library.
+### This is a sample app demonstrates how to plugin an execution handler for a HttpRequest server task using DistributedTask.ServerTask.Remote.Common library.
 
 #### Sample app does the following:
 1. Recieve VSTS Task related properties in Http request headers

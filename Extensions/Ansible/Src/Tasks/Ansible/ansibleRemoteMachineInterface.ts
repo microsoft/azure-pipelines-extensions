@@ -40,16 +40,15 @@ export class ansibleRemoteMachineInterface extends ansibleCommandLineInterface {
         if (!ansibleUtils.testIfFileExist(path.join(playbookRoot,playbookFile))) {
             throw tl.loc('PlaybookNotPresent', playbookFile, playbookRoot);
         }
-        var playbookFullPath = playbookRoot + '/' + playbookFile;
-        var remotePlaybookRoot = '/tmp/' + path.basename(playbookFile);
+        var remotePlaybookRoot = '/tmp/' + path.basename(playbookRoot);
         tl.debug('ansiblePlaybookRootPath = ' + '"' + remotePlaybookRoot + '"');
 
         let scpConfig = this._sshConfig || {};
         scpConfig.path = remotePlaybookRoot;
         tl.debug('Copying playbook to ansible machine.');
-        this._playbookPath = remotePlaybookRoot;
+        this._playbookPath = remotePlaybookRoot + "/" + playbookFile;
         this._cleanupCmd.push('rm -rf ' + remotePlaybookRoot);
-        await ansibleUtils.copyFileToRemoteMachine(playbookFullPath,remotePlaybookRoot, scpConfig);
+        await ansibleUtils.copyFileToRemoteMachine(playbookRoot, remotePlaybookRoot, scpConfig);
     }
 
     private async copyInventoryAndSetPathForAgentAsSource() {
@@ -87,11 +86,21 @@ export class ansibleRemoteMachineInterface extends ansibleCommandLineInterface {
         }
 
         // Register credentials with the log masker so they are redacted in pipeline logs
-        if (password) {
+        try {
             tl.setSecret(password);
+            if (privateKey) {
+                // PEM private keys are multi-line; setSecret() rejects multi-line values,
+                // so register each line individually to mask partial key material in logs.
+                for (const line of privateKey.split(/\r?\n/)) {
+                    if (line.length > 0) {
+                        tl.setSecret(line);
+                    }
+                }
+            }
+        } catch {
+            tl.warning('Failed to mask SSH credentials for log redaction.');
         }
         if (privateKey) {
-            tl.setSecret(privateKey);
             // Remove private key from environment to prevent inheritance by child processes
             delete process.env[privateKeyEnvVar];
         }

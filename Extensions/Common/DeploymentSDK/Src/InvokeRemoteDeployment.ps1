@@ -1,4 +1,4 @@
-﻿$InitializationScript = {
+$InitializationScript = {
     function Invoke-PsOnRemote
     {
         param(
