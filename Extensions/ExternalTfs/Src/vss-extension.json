@@ -20,13 +20,13 @@
   },
   "screenshots": [
     {
-      "path": "images/screen1.png"
+      "path": "images/download-artifacts-external-build.png"
     },
     {
-      "path": "images/screen2.png"
+      "path": "images/download-artifacts-external-tfs-git.png"
     },
     {
-      "path": "images/screen3.png"
+      "path": "images/download-artifacts-external-tfvc.png"
     }
   ],
   "content": {
@@ -39,15 +39,27 @@
     },
   "files": [
     {
-       "path": "images/screen1.png",
+       "path": "images/add-an-artifact.png",
        "addressable": true
     },
     {
-       "path": "images/screen2.png",
+       "path": "images/download-artifacts-external-build.png",
        "addressable": true
     },
     {
-       "path": "images/screen3.png",
+       "path": "images/download-artifacts-external-tfs-git.png",
+       "addressable": true
+    },
+    {
+       "path": "images/download-artifacts-external-tfvc.png",
+       "addressable": true
+    },
+    {
+       "path": "images/new-service-connection.png",
+       "addressable": true
+    },
+    {
+       "path": "images/new-tfs-sc.png",
        "addressable": true
     },
     {
