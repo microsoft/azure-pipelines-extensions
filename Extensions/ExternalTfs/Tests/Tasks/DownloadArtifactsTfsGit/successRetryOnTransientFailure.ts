@@ -22,9 +22,6 @@ tr.setInput('branch', BRANCH_REGULAR);
 tr.setInput('version', COMMIT_ID);
 tr.setInput('downloadPath', DOWNLOAD_PATH);
 
-// Force SYSTEM_DEBUG so the task emits "RetryingOperation:" via tl.debug().
-process.env['SYSTEM_DEBUG'] = 'true';
-
 setReposOrTfsEndpoint({ scheme: 'Token' });
 
 // First clone fails, second succeeds -> exercises retry path without exhausting attempts.

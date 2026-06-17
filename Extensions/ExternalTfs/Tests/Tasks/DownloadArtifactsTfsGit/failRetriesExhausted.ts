@@ -21,8 +21,6 @@ tr.setInput('branch', BRANCH_REGULAR);
 tr.setInput('version', COMMIT_ID);
 tr.setInput('downloadPath', DOWNLOAD_PATH);
 
-process.env['SYSTEM_DEBUG'] = 'true';
-
 setReposOrTfsEndpoint({ scheme: 'Token' });
 
 // Force every clone attempt to fail. With GIT_CLONE_RETRY_ATTEMPTS=4 the task

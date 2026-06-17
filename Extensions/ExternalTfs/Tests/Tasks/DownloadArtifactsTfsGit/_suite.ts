@@ -18,6 +18,13 @@ import fs = require('fs');
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const mocktest = require('azure-pipelines-task-lib/mock-test');
 
+// CI parity: hosted agents set this variable so azure-pipelines-task-lib
+// suppresses `tl.debug()` output unless `system.debug=true`. Mirror that
+// behavior locally to prevent assertions that accidentally rely on debug
+// emission from passing locally but failing on the build agent.
+// Spawned child processes inherit this from us via cp.spawnSync.
+process.env['DISTRIBUTEDTASK_TASKS_NODE_SKIPDEBUGLOGSWHENDEBUGMODEOFF'] = 'true';
+
 const taskJsonPath = path.join(__dirname, '..', '..', '..', 'Src', 'Tasks', 'DownloadArtifactsTfsGit', 'task.json');
 
 function getDeclaredNodeVersions(): number[] {
@@ -123,7 +130,12 @@ describe('DownloadArtifactsTfsGit Suite', function () {
                 const runner = newRunner('successPullRequestRemotePrefix');
                 await runAndDump(runner, nodeVersion);
                 if (!runner.succeeded) fail(runner, 'expected task to succeed');
-                assert(runner.stdOutContained('IsPullRequest:true'), 'isPullRequestBranch must accept the refs/remotes/origin/pull/ prefix');
+                // The presence of a `git fetch origin <branch>` call (only issued on the PR
+                // code path) proves isPullRequestBranch() returned true for this ref. We
+                // deliberately do NOT assert on the `IsPullRequest:true` tl.debug line
+                // because tl.debug emission is gated by the agent variable
+                // `DistributedTask.Tasks.Node.SkipDebugLogsWhenDebugModeOff` and is
+                // therefore environment-dependent (suppressed on hosted agents by default).
                 assert(runner.stdOutContained('[mock-git] fetch origin refs/remotes/origin/pull/99/merge'), 'should fetch the PR ref via the alternate prefix');
             });
 
@@ -132,8 +144,12 @@ describe('DownloadArtifactsTfsGit Suite', function () {
                 await runAndDump(runner, nodeVersion);
                 if (!runner.succeeded) fail(runner, 'expected task to succeed after retry');
                 assert(runner.stdOutContained('[mock-git] clone-attempt 1'), 'should make first attempt');
+                // The second clone attempt is the observable proof that executeWithRetries
+                // re-invoked the operation. We do NOT assert on the `RetryingOperation:`
+                // tl.debug line: tl.debug emission is gated by the agent variable
+                // `DistributedTask.Tasks.Node.SkipDebugLogsWhenDebugModeOff` and is
+                // therefore environment-dependent (suppressed on hosted agents by default).
                 assert(runner.stdOutContained('[mock-git] clone-attempt 2'), 'should retry after first failure');
-                assert(runner.stdOutContained('RetryingOperation: gitClone'), 'should emit RetryingOperation debug line');
             });
 
             // ---- Failure / validation scenarios ----------------------------

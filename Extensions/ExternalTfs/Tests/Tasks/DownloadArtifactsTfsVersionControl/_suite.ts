@@ -20,6 +20,13 @@ import fs = require('fs');
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const mocktest = require('azure-pipelines-task-lib/mock-test');
 
+// CI parity: hosted agents set this variable so azure-pipelines-task-lib
+// suppresses `tl.debug()` output unless `system.debug=true`. Mirror that
+// behavior locally to prevent assertions that accidentally rely on debug
+// emission from passing locally but failing on the build agent.
+// Spawned child processes inherit this from us via cp.spawnSync.
+process.env['DISTRIBUTEDTASK_TASKS_NODE_SKIPDEBUGLOGSWHENDEBUGMODEOFF'] = 'true';
+
 const taskJsonPath = path.join(__dirname, '..', '..', '..', 'Src', 'Tasks', 'DownloadArtifactsTfsVersionControl', 'task.json');
 
 // Fallback Node version used when task.json declares only EOL handlers
