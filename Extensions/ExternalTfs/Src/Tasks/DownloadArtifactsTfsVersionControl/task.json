@@ -12,7 +12,7 @@
   "author": "ms-vscs-rm",
   "version": {
     "Major": 15,
-    "Minor": 274,
+    "Minor": 276,
     "Patch": 0
   },
   "demands": [],
@@ -95,6 +95,14 @@
   "instanceNameFormat": "Download Artifacts - External TFS Version Control",
   "execution": {
     "Node": {
+      "target": "downloadTfsVersionControl.js",
+      "argumentFormat": ""
+    },
+    "Node20_1": {
+      "target": "downloadTfsVersionControl.js",
+      "argumentFormat": ""
+    },
+    "Node24": {
       "target": "downloadTfsVersionControl.js",
       "argumentFormat": ""
     }
