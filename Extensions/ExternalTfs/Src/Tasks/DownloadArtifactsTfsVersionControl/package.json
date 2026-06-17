@@ -5,10 +5,11 @@
     "@types/shelljs": "^0.8.17",
     "azure-devops-node-api": "11.2.0",
     "azure-pipelines-task-lib": "^5.2.8",
-    "shelljs": "^0.10.0"
+    "shelljs": "^0.8.5"
   },
   "overrides": {
     "underscore": "1.13.8",
-    "picomatch": "2.3.2"
+    "picomatch": "2.3.2",
+    "shelljs": "^0.8.5"
   }
 }
