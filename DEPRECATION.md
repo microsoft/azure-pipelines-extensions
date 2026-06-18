@@ -1,33 +1,31 @@
-# Introduction
+# Deprecated and removed extensions
 
 Creation: 24-02-2023
 
-This page is prepared for listing the extensions which are no longer supported or maintained, and are marked as deprecated. These Extenions were found under microsoft/azure-pipelines-extensions/Extensions.
+This page lists extensions (and individual tasks within extensions) that are no longer supported or maintained, and have been marked as deprecated or removed from this repository (`microsoft/azure-pipelines-extensions`).
 
-Extensions listed below has been marked deprecated since June 2021.
-In addition to that, as a part of consistency and security improvements, we've started to remove these extensions from this repository.
+Extensions listed below have been marked deprecated since June 2021. As part of consistency and security improvements, we periodically remove the source for deprecated extensions from this repository.
 
-# Deprecated Extensions (latest update: 09-05-2023)
+## Removed Extensions (latest update: 06-2026)
 
-| Extension Name                    | Removal PR                                              | Deprecated Date                                            |
-| -------------------------- | ------------------------------------------------------------------- | ------------------------------------------------------------------- |
-| Google Analytics           | [PR](https://github.com/microsoft/azure-pipelines-extensions/pull/1128) |     06-2021                                                                |
-| Optimizely        | [PR](https://github.com/microsoft/azure-pipelines-extensions/pull/1128) |        06-2021                                                             |
-| DataSources           | [PR](https://github.com/microsoft/azure-pipelines-extensions/pull/1155) |     05-2023                              
-| TwitterSentimentAnalysis           | [PR](https://github.com/microsoft/azure-pipelines-extensions/pull/1187) |     09-2023 
+Extensions whose source has been deleted from this repository. Where the extension was published to the Marketplace under the `ms-vscs-rm` (or related) publisher, the Marketplace listing may have been retired separately.
 
-# Removed Tasks
+| Extension Name | Marketplace Id | Removal PR | Removed Date |
+| --- | --- | --- | --- |
+| Google Analytics | - | [#1128](https://github.com/microsoft/azure-pipelines-extensions/pull/1128) | 06-2021 |
+| Optimizely | - | [#1128](https://github.com/microsoft/azure-pipelines-extensions/pull/1128) | 06-2021 |
+| DataSources | - | [#1155](https://github.com/microsoft/azure-pipelines-extensions/pull/1155) | 05-2023 |
+| TwitterSentimentAnalysis | - | [#1187](https://github.com/microsoft/azure-pipelines-extensions/pull/1187) | 09-2023 |
+| Copy Stage variable to Release variable | `ms-vscs-rm.vss-services-copystagevariabletoreleasevariable` | [#1292](https://github.com/microsoft/azure-pipelines-extensions/pull/1292) | 09-2025 |
+| CircleCI artifacts for Release Pipeline | `ms-vscs-rm.vss-services-circleci-extension` | [#1420](https://github.com/microsoft/azure-pipelines-extensions/pull/1420) | 06-2026 |
+| Terraform | Source moved to [`microsoft/azure-pipelines-terraform`](https://github.com/microsoft/azure-pipelines-terraform) in [#1034](https://github.com/microsoft/azure-pipelines-extensions/pull/1034) | [#1440](https://github.com/microsoft/azure-pipelines-extensions/pull/1440) | 06-2026 |
+
+## Removed Tasks
 
 Individual tasks removed from extensions that otherwise remain published.
 
 | Task | Parent Extension | Removal PR | Removed Date |
 | --- | --- | --- | --- |
-| DownloadArtifactsTfsVersionControl (Download Artifacts - External TFVC) | TFS artifacts for Release Management (`ms-vscs-rm.vss-services-externaltfs`) | TBD | 06-2026 |
-
+| DownloadArtifactsTfsVersionControl (Download Artifacts - External TFVC) | TFS artifacts for Release Management (`ms-vscs-rm.vss-services-externaltfs`) | [#1440](https://github.com/microsoft/azure-pipelines-extensions/pull/1440) | 06-2026 |
 
 [refer https://github.com/microsoft/azure-pipelines-extensions/blob/master/README.md]
-
-
-
-
-
