@@ -9,7 +9,7 @@ It solves the "the artifact I want to deploy lives somewhere else" problem.
 The extension contributes two things:
 
 1. A **service connection input** that points to an existing **Azure Repos/Team Foundation Server service connection** configured in Azure DevOps and used to authenticate against the remote TFS / Azure DevOps account.
-2. **Four artifact source types.** An *artifact source* is the external origin you link to a classic release definition - a Build, Git repo, or TFVC repo on the remote account. Linking one tells Release Management *what to deploy*: the selected version is downloaded automatically at the start of every deployment, and publishing a new external version can trigger a new release. Without this extension a release can only consume artifacts from the same account. The extension is what makes those *external* sources selectable. The same download capability is also packaged as **three download tasks** you can add directly to any build or release pipeline (including YAML).
+2. **Three artifact source types.** An *artifact source* is the external origin you link to a classic release definition - a Build or Git repo on the remote account. Linking one tells Release Management *what to deploy*: the selected version is downloaded automatically at the start of every deployment, and publishing a new external version can trigger a new release. Without this extension a release can only consume artifacts from the same account. The extension is what makes those *external* sources selectable. The same download capability is also packaged as **two download tasks** you can add directly to any build or release pipeline (including YAML).
 
 ## Mental model: how a release uses it
 
@@ -44,7 +44,6 @@ Two steps to get going:
 | External TFS Build | Files published by a build definition (drop) | <ul><li>Directory: <code>Tasks/DownloadExternalBuildArtifacts</code></li><li>UI task name: <strong>Download Artifacts - External Build</strong></li><li>YAML reference: <code>DownloadExternalBuildArtifacts@16</code></li></ul> |
 | External TFS XAML Build | Files published by a XAML build definition | _(handled by the release server)_ |
 | External TFS Git | A Git repo at a specific branch + commit | <ul><li>Directory: <code>Tasks/DownloadArtifactsTfsGit</code></li><li>UI task name: <strong>Download Artifacts - External TFS Git</strong></li><li>YAML reference: <code>DownloadArtifactsTfsGit@16</code></li></ul> |
-| External TFS Version Control | A TFVC repo at a specific changeset | <ul><li>Directory: <code>Tasks/DownloadArtifactsTfsVersionControl</code></li><li>UI task name: <strong>Download Artifacts - External TFVC</strong></li><li>YAML reference: <code>DownloadArtifactsTfsVersionControl@15</code></li></ul> |
 
 ![Add an artifact source in a release definition](images/add-an-artifact.png)
 
@@ -54,11 +53,10 @@ Two steps to get going:
 |---|---|---|
 | **Download Artifacts - External Build** | Build outputs from another TFS / Azure DevOps account or collection | **Azure Repos/Team Foundation Server** service connection or **Azure DevOps** service connection (preview) |
 | **Download Artifacts - External TFS Git** | Source code of a Git repo from another TFS / Azure DevOps account | **Azure Repos/Team Foundation Server** service connection or **Azure DevOps** service connection (preview) |
-| **Download Artifacts - External TFVC** | Source of a TFVC repo from another TFS account | **Azure Repos/Team Foundation Server** service connection only |
 
-| Download Artifacts - External Build | Download Artifacts - External TFS Git | Download Artifacts - External TFVC |
-|---|---|---|
-| ![External Build inputs](images/download-artifacts-external-build.png) | ![External TFS Git inputs](images/download-artifacts-external-tfs-git.png) | ![External TFVC inputs](images/download-artifacts-external-tfvc.png) |
+| Download Artifacts - External Build | Download Artifacts - External TFS Git |
+|---|---|
+| ![External Build inputs](images/download-artifacts-external-build.png) | ![External TFS Git inputs](images/download-artifacts-external-tfs-git.png) |
 
 ## Service connections
 
@@ -83,22 +81,12 @@ A workload-identity based service connection. Supported only by the **External B
 
 ## Known issues
 
-**1. Code artifacts (External TFS Version Control and External TFS Git) do not work with PAT-based on-prem Azure Repos/Team Foundation Server service connections.**
-
-External TFVC fails at the download step with:
-> TF30063: You are not authorized to access `http://{ExternalTfsServerName}:{port}/tfs/DefaultCollection`.
+**1. External TFS Git code artifacts do not work with PAT-based on-prem Azure Repos/Team Foundation Server service connections.**
 
 External TFS Git fails at the download step with:
 > Authentication failed for `http://.:********@{ExternalTfsServerName}:{port}/tfs/DefaultCollection/_git/{GitProjectName}/`
 
-Both work fine with PAT-based **Azure DevOps Services** connections.
-
-**2. External TFVC download fails when the agent runs as Network Service.**
-
-Fails with:
-> TF30063: You are not authorized to access `http://fabfiber.visualstudio.com/DefaultCollection`
-
-**Workaround:** run the agent as an admin user (interactively or as a service) when using the External TFVC artifact.
+Works fine with PAT-based **Azure DevOps Services** connections.
 
 ## FAQ
 

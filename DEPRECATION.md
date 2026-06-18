@@ -16,6 +16,14 @@ In addition to that, as a part of consistency and security improvements, we've s
 | DataSources           | [PR](https://github.com/microsoft/azure-pipelines-extensions/pull/1155) |     05-2023                              
 | TwitterSentimentAnalysis           | [PR](https://github.com/microsoft/azure-pipelines-extensions/pull/1187) |     09-2023 
 
+# Removed Tasks
+
+Individual tasks removed from extensions that otherwise remain published.
+
+| Task | Parent Extension | Removal PR | Removed Date |
+| --- | --- | --- | --- |
+| DownloadArtifactsTfsVersionControl (Download Artifacts - External TFVC) | TFS artifacts for Release Management (`ms-vscs-rm.vss-services-externaltfs`) | TBD | 06-2026 |
+
 
 [refer https://github.com/microsoft/azure-pipelines-extensions/blob/master/README.md]
 
