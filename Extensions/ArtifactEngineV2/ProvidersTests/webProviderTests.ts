@@ -7,7 +7,7 @@ var realFs = require("node:fs");
 
 import * as assert from 'assert';
 
-import * as httpm from '../Providers/typed-rest-client/HttpClient';
+import * as httpm from 'typed-rest-client/HttpClient';
 import * as models from '../Models';
 libMocker.registerMock('fs', {
     statSync: () => {

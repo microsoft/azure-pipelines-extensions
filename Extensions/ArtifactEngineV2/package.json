@@ -1,6 +1,6 @@
 {
   "name": "artifact-engine",
-  "version": "2.275.2",
+  "version": "2.275.3",
   "description": "Artifact Engine to download artifacts from jenkins, teamcity, vsts",
   "repository": {
     "type": "git",
@@ -20,7 +20,7 @@
     "handlebars": "4.7.9",
     "hash-wasm": "^4.12.0",
     "minimatch": "^10.0.1",
-    "tunnel": "0.0.4"
+    "typed-rest-client": "^3.0.0"
   },
   "overrides": {
     "picomatch": "2.3.2"
