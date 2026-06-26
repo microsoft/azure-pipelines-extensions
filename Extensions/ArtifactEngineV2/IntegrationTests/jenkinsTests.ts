@@ -2,7 +2,7 @@ import * as assert from 'assert';
 import * as engine from "../Engine"
 import * as providers from "../Providers"
 
-import { BasicCredentialHandler } from "../Providers/typed-rest-client/handlers/basiccreds";
+import { BasicCredentialHandler } from "typed-rest-client/handlers/basiccreds";
 import { TicketState } from '../Models/ticketState';
 
 var sinon = require('sinon');

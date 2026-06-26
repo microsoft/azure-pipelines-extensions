@@ -4,7 +4,7 @@ import * as net from 'net';
 
 import * as engine from "../Engine"
 import * as providers from "../Providers"
-import { BasicCredentialHandler } from "../Providers/typed-rest-client/handlers/basiccreds";
+import { BasicCredentialHandler } from "typed-rest-client/handlers/basiccreds";
 
 var packagejson = require('../package.json');
 
