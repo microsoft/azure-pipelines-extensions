@@ -14,6 +14,7 @@ switch ($ExtensionName) {
   'ExternalTfs'     { $pipelineName = 'AzDev-ReleaseManagement-ExternalTFS-CI-Test' }
   'IISWebAppDeploy' { $pipelineName = 'AzDev-ReleaseManagement-IIS-Test' }
   'ServiceNow'      { $pipelineName =  'AzDev-ReleaseManagement-ServiceNow-CI-Test' }
+  'TeamCity'        { $pipelineName = 'AzDev-ReleaseManagement-TeamCity-CI-Test' }
   default {
     throw "Pipeline name can't be determined for extension '$ExtensionName'. Update the mapping."
   }
