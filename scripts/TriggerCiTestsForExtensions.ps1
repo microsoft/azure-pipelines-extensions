@@ -29,6 +29,8 @@ $pipelineMapping = @{
     'BitBucket'       = 'AzDev-ReleaseManagement-BitBucket-CI-Test'
     'ExternalTfs'     = 'AzDev-ReleaseManagement-ExternalTFS-CI-Test'
     'IISWebAppDeploy' = 'AzDev-ReleaseManagement-IIS-Test'
+    'ServiceNow'      = 'AzDev-ReleaseManagement-ServiceNow-CI-Test'
+    'TeamCity'        = 'AzDev-ReleaseManagement-TeamCity-CI-Test'
 }
 
 # ── Parse extensions ──
