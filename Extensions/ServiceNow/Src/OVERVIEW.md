@@ -233,9 +233,9 @@ Extensions/ServiceNow/
 
 CI tests run in the `canarytest` Azure DevOps organization against a real ServiceNow instance.
 
-| Pipeline | Purpose | Link |
-|----------|---------|------|
-| `AzDev-ReleaseManagement-ServiceNow-CI-Test` | Full end-to-end CI tests (6 stages, all scenarios) | https://dev.azure.com/canarytest/PipelineTasks/_build/definition?definitionId=323 |
+| Pipeline | Purpose |
+|----------|---------||
+| `AzDev-ReleaseManagement-ServiceNow-CI-Test` | Full end-to-end CI tests (6 stages, all scenarios) |
 
 ### What the CI pipeline tests:
 
@@ -260,8 +260,7 @@ CI tests run in the `canarytest` Azure DevOps organization against a real Servic
 
 ## Publishing to Marketplace
 
-Extensions are published via the **PROD release pipeline**:
-https://dev.azure.com/mseng/AzureDevOps/_build/definition?definitionId=21050
+Extensions are published via the **PROD release pipeline** (search for `AzDev-ReleaseManagement-ServiceNow` in the `mseng/AzureDevOps` project).
 
 ### Publishing steps:
 1. Bump version: `scripts/BumpExtensionVersion.ps1`
@@ -290,7 +289,7 @@ https://dev.azure.com/mseng/AzureDevOps/_build/definition?definitionId=21050
 | Marketplace listing | https://marketplace.visualstudio.com/items?itemName=ms-vscs-rm.vss-services-servicenowchangerequestmanagement |
 | Public Azure DevOps docs | https://learn.microsoft.com/en-us/azure/devops/pipelines/release/approvals/servicenow |
 | ServiceNow Azure Pipelines app | https://store.servicenow.com/sn_appstore_store.do#!/store/application/fa788cb5dbb5630040669c27db961940 |
-| CI test pipeline | https://dev.azure.com/canarytest/PipelineTasks/_build/definition?definitionId=323 |
-| PROD release pipeline | https://dev.azure.com/mseng/AzureDevOps/_build/definition?definitionId=21050 |
-| PR check pipeline | https://dev.azure.com/mseng/AzureDevOps/_build/definition?definitionId=22302 |
+| CI test pipeline | `canarytest/PipelineTasks` — definition ID 323 |
+| PROD release pipeline | `mseng/AzureDevOps` — definition ID 21050 |
+| PR check pipeline | `mseng/AzureDevOps` — definition ID 22302 |
 | OAuth 2.0 spec (RFC 6749) | https://datatracker.ietf.org/doc/html/rfc6749#section-4.1.3 |
