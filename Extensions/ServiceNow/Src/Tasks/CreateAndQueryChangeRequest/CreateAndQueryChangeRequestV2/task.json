@@ -465,7 +465,7 @@
     },
     {
       "name": "CHANGE_SYSTEM_ID",
-      "description": "Sys_id of the change request"
+      "description": "Sys_id of the change request in ServiceNow"
     }
   ]
 }
