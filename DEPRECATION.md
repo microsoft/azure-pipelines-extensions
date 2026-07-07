@@ -6,9 +6,9 @@ This page lists extensions (and individual tasks within extensions) that are no 
 
 Extensions listed below have been marked deprecated since June 2021. As part of consistency and security improvements, we periodically remove the source for deprecated extensions from this repository.
 
-## Removed Extensions (latest update: 06-2026)
+## Removed Extensions (latest update: 07-2026)
 
-Extensions whose source has been deleted from this repository. Where the extension was published to the Marketplace under the `ms-vscs-rm` (or related) publisher, the Marketplace listing may have been retired separately.
+Extensions whose source has been deleted from this repository.
 
 | Extension Name | Marketplace Id | Removal PR | Removed Date |
 | --- | --- | --- | --- |
@@ -18,7 +18,14 @@ Extensions whose source has been deleted from this repository. Where the extensi
 | TwitterSentimentAnalysis | - | [#1187](https://github.com/microsoft/azure-pipelines-extensions/pull/1187) | 09-2023 |
 | Copy Stage variable to Release variable | `ms-vscs-rm.vss-services-copystagevariabletoreleasevariable` | [#1292](https://github.com/microsoft/azure-pipelines-extensions/pull/1292) | 09-2025 |
 | CircleCI artifacts for Release Pipeline | `ms-vscs-rm.vss-services-circleci-extension` | [#1420](https://github.com/microsoft/azure-pipelines-extensions/pull/1420) | 06-2026 |
-| Terraform | Source moved to [`microsoft/azure-pipelines-terraform`](https://github.com/microsoft/azure-pipelines-terraform) in [#1034](https://github.com/microsoft/azure-pipelines-extensions/pull/1034) | [#1440](https://github.com/microsoft/azure-pipelines-extensions/pull/1440) | 06-2026 |
+
+## Moved Extensions
+
+Extensions whose source has moved to another repository, where it continues to be maintained.
+
+| Extension Name | New Location | PR | Moved Date |
+| --- | --- | --- | --- |
+| Terraform | [`microsoft/azure-pipelines-terraform`](https://github.com/microsoft/azure-pipelines-terraform) | [#1034](https://github.com/microsoft/azure-pipelines-extensions/pull/1034) | 03-2022 |
 
 ## Removed Tasks
 
@@ -26,6 +33,6 @@ Individual tasks removed from extensions that otherwise remain published.
 
 | Task | Parent Extension | Removal PR | Removed Date |
 | --- | --- | --- | --- |
-| DownloadArtifactsTfsVersionControl (Download Artifacts - External TFVC) | TFS artifacts for Release Management (`ms-vscs-rm.vss-services-externaltfs`) | [#1440](https://github.com/microsoft/azure-pipelines-extensions/pull/1440) | 06-2026 |
+| DownloadArtifactsTfsVersionControl (Download Artifacts - External TFVC) | TFS artifacts for Release Management (`ms-vscs-rm.vss-services-externaltfs`) | [#1440](https://github.com/microsoft/azure-pipelines-extensions/pull/1440) | 07-2026 |
 
 [refer https://github.com/microsoft/azure-pipelines-extensions/blob/master/README.md]
