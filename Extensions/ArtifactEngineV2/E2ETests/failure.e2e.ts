@@ -4,7 +4,7 @@ import * as path from 'path'
 import * as engine from "../Engine"
 import * as providers from "../Providers"
 
-import { PersonalAccessTokenCredentialHandler } from "../Providers/typed-rest-client/handlers/personalaccesstoken";
+import { PersonalAccessTokenCredentialHandler } from "typed-rest-client/handlers/personalaccesstoken";
 
 var nconf = require('nconf');
 

@@ -44,7 +44,7 @@ libMocker.enable({
 });
 
 import { WebClientFactory } from '../Providers/webClientFactory';
-import { HttpClient } from '../Providers/typed-rest-client/HttpClient';
+import { HttpClient } from 'typed-rest-client/HttpClient';
 
 var sinon = require('sinon');
 
