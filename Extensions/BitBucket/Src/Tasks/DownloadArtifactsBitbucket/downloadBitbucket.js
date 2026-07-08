@@ -123,7 +123,7 @@ function getEndpointDetails(inputFieldName) {
         tl.debug('Using token authentication');
         try {
             tl.setSecret(token);
-        } catch {
+        } catch (e) {
             tl.warning('Failed to mask API token for log redaction.');
         }
         return {
@@ -135,7 +135,7 @@ function getEndpointDetails(inputFieldName) {
         var hostPassword = getAuthParameter(bitbucketEndpoint, 'password');
         try {
             tl.setSecret(hostPassword);
-        } catch {
+        } catch (e) {
             tl.warning('Failed to mask password for log redaction.');
         }
         tl.debug('hostUsername: ' + hostUsername);
