@@ -1,9 +1,8 @@
 "use strict";
 
-var tl = require('azure-pipelines-task-lib');
+var tl = require('azure-pipelines-task-lib/task');
 var events = require('events');
 var Q = require('q');
-var shell = require('shelljs');
 var path = require('path');
 
 var __extends = (this && this.__extends) || function (d, b) {
@@ -37,7 +36,7 @@ var SourceControlWrapper = (function (_super) {
         options.creds = true;
         return this.exec(['fetch'].concat(args), options);
     };
-    
+
     SourceControlWrapper.prototype.checkout = function (ref, options) {
         options = options || {};
         options.creds = true;
@@ -53,19 +52,18 @@ var SourceControlWrapper = (function (_super) {
         var _this = this;
         options = options || {};
         var defer = Q.defer();
-        
-        var toolPath = shell.which(this.toolType, false);
+
+        var toolPath = tl.which(this.toolType, false);
         if (!toolPath) {
             throw (new Error(this.toolType + ' not found.  ensure installed and in the path'));
         }
-        var tool = new tl.ToolRunner(toolPath.toString());
-        tool.silent = true;
+        var tool = tl.tool(toolPath.toString());
         var creds = this.username + ':' + this.password;
         var escapedCreds = encodeURIComponent(this.username) + ':' + encodeURIComponent(this.password);
         try {
             tl.setSecret(this.password);
             tl.setSecret(escapedCreds);
-        } catch {
+        } catch (err) {
             tl.warning('Failed to mask credentials for log redaction.');
         }
         tool.on('debug', function (message) {
@@ -81,7 +79,7 @@ var SourceControlWrapper = (function (_super) {
         tool.on('stderr', function (data) {
             _this.emit('stderr', data);
         });
-        
+
         args.map(function (arg) {
             tool.arg(arg, true); // raw arg
         });

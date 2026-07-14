@@ -1,34 +1,25 @@
 var tl = require('azure-pipelines-task-lib/task');
+var fs = require('fs');
 var path = require('path');
-var webApim = require('vso-node-api/WebApi');
-var gitInterfaces = require('vso-node-api/interfaces/GitInterfaces');
 var Q = require('q');
 var url = require('url');
-var shell = require("shelljs");
 var scw = require('./sourcecontrolwrapper.js');
 var https = require("https");
 
 var BITBUCKET_API_TOKEN_AUTH_USERNAME = 'x-bitbucket-api-token-auth';
 
-var repositoryId = tl.getInput("definition");
-var branch = tl.getInput("branch");
-var commitId = tl.getInput("version");
-var downloadPath = tl.getInput("downloadPath");
+var repositoryId = tl.getInput("definition", true);
+var branch = tl.getInput("branch", true);
+var commitId = tl.getInput("version", true);
+var downloadPath = tl.getInput("downloadPath", true);
 var bitbucketEndpoint = getEndpointDetails("connection");
 
-shell.rm('-rf', downloadPath);
-var error = shell.error();
-if (error) {
-    tl.error(error);
-    tl.exit(1);
-}
+removePathRecursive(downloadPath);
 
-
-var path = "/2.0/repositories/" + repositoryId;
 var options = {
     host: "api.bitbucket.org",
     method: "GET",
-    path: path
+    path: "/2.0/repositories/" + repositoryId
 };
 
 // Set authentication based on the endpoint type
@@ -50,17 +41,17 @@ https.request(options, function (rs) {
         result = JSON.parse(response);
         tl.debug("result:" + JSON.stringify(result));
         var sch = new scw.SourceControlWrapper(result.scm);
-        
+
         sch.on('stdout', function (data) {
             console.log(data.toString());
         });
         sch.on('stderr', function (data) {
             console.log(data.toString());
         });
-        
+
         var remoteUrl = result.links.clone[0].href;
         tl.debug("Remote Url:" + remoteUrl);
-        
+
         // encodes projects and repo names with spaces
         var repoUrl = url.parse(remoteUrl);
         if (bitbucketEndpoint.Token) {
@@ -69,7 +60,7 @@ https.request(options, function (rs) {
         } else if (bitbucketEndpoint.Username && bitbucketEndpoint.Password) {
             repoUrl.auth = bitbucketEndpoint.Username + ':' + bitbucketEndpoint.Password;
         }
-        
+
         // if branch, we want to clone remote branch name to avoid tracking etc.. ('/refs/remotes/...')
         var ref;
         var brPre = 'refs/heads/';
@@ -79,7 +70,7 @@ https.request(options, function (rs) {
         else {
             ref = branch;
         }
-        
+
         var options = {
             creds: true,
             debugOutput: this.debugOutput
@@ -94,17 +85,14 @@ https.request(options, function (rs) {
 
         Q(0).then(function (code) {
             return sch.clone(repoUrl.format(repoUrl), false, downloadPath, options)
-                       .then(
-                function (code) {
-                    shell.cd(downloadPath);
+                .then(function (code) {
+                    process.chdir(downloadPath);
                     return sch.checkout(ref, options);
                 })
-                       .then(
-                function (code) {
+                .then(function (code) {
                     return sch.checkout(commitId);
                 })
-                       .fail(
-                function (error) {
+                .catch(function (error) {
                     tl.error(error);
                     tl.exit(1);
                 });
@@ -113,17 +101,17 @@ https.request(options, function (rs) {
 }).end();
 
 function getEndpointDetails(inputFieldName) {
-    var bitbucketEndpoint = tl.getInput(inputFieldName);
+    var bitbucketEndpoint = tl.getInput(inputFieldName, true);
     var auth = tl.getEndpointAuthorization(bitbucketEndpoint, false);
     var scheme = auth.scheme.toLowerCase().trim();
-    
+
     if (scheme === "token") {
         var token = getAuthParameter(bitbucketEndpoint, 'apitoken');
         var username = getAuthParameter(bitbucketEndpoint, 'email') || '';
         tl.debug('Using token authentication');
         try {
             tl.setSecret(token);
-        } catch {
+        } catch (err) {
             tl.warning('Failed to mask API token for log redaction.');
         }
         return {
@@ -135,7 +123,7 @@ function getEndpointDetails(inputFieldName) {
         var hostPassword = getAuthParameter(bitbucketEndpoint, 'password');
         try {
             tl.setSecret(hostPassword);
-        } catch {
+        } catch (err) {
             tl.warning('Failed to mask password for log redaction.');
         }
         tl.debug('hostUsername: ' + hostUsername);
@@ -150,11 +138,11 @@ function getAuthParameter(endpoint, paramName) {
     var paramValue = null;
     var auth = tl.getEndpointAuthorization(endpoint, false);
     var scheme = auth.scheme.toLowerCase().trim();
-    
+
     if (scheme !== "usernamepassword" && scheme !== "token") {
         throw new Error("The authorization scheme " + auth.scheme + " is not supported for a bitbucket endpoint. Please use either 'usernamepassword' or 'token'.");
     }
-    
+
     var keyName = getCaseInsensitiveKeyMatch(auth['parameters'], paramName);
     paramValue = auth['parameters'][keyName];
 
@@ -170,6 +158,24 @@ function getCaseInsensitiveKeyMatch(data, paramName) {
             return true;
         }
     });
-    
+
     return keyName;
+}
+
+function removePathRecursive(targetPath) {
+    if (!targetPath || !fs.existsSync(targetPath)) {
+        return;
+    }
+
+    var stats = fs.lstatSync(targetPath);
+    if (!stats.isDirectory()) {
+        fs.unlinkSync(targetPath);
+        return;
+    }
+
+    fs.readdirSync(targetPath).forEach(function (entry) {
+        removePathRecursive(path.join(targetPath, entry));
+    });
+
+    fs.rmdirSync(targetPath);
 }
