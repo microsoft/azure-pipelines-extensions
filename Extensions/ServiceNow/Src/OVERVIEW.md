@@ -54,7 +54,7 @@ stages:
           - script: echo "Deploying..."
 
           # After deployment: mark the CR as closed
-          - task: ServiceNowUpdateChangeRequest@2
+          - task: UpdateServiceNowChangeRequest@2
             inputs:
               ServiceNowConnection: 'MyServiceNowConnection'
               UpdateStatus: true
@@ -129,6 +129,9 @@ A record in ServiceNow tracking a planned change. Has a numeric state value:
 
 ```
 New(-5) → Assess(-4) → Authorize(-3) → Scheduled(-2) → Implement(-1) → Review(0) → Closed(3)
+
+> **Note:** These are typical default values. State numbers are configurable
+> per ServiceNow instance and may differ in your environment
 ```
 
 The `CreateAndQueryChangeRequest` gate watches the CR's state and **unblocks the pipeline**
@@ -206,6 +209,9 @@ Extensions/ServiceNow/
             ├── UpdateChangeRequestV0/          ← task.json + icon.png
             ├── UpdateChangeRequestV1/          ← task.json + icon.png
             └── UpdateChangeRequestV2/          ← task.json + icon.png (latest, recommended)
+
+            > **Note:** The folder is named `UpdateChangeRequest` but the task registered
+            > in `task.json` (the name Azure DevOps uses) is `UpdateServiceNowChangeRequest`.
 ```
 
 > There is **no TypeScript or JavaScript** in these task folders. The tasks are pure
@@ -234,7 +240,7 @@ Extensions/ServiceNow/
 CI tests run in the `canarytest` Azure DevOps organization against a real ServiceNow instance.
 
 | Pipeline | Purpose |
-|----------|---------||
+|----------|---------|
 | `AzDev-ReleaseManagement-ServiceNow-CI-Test` | Full end-to-end CI tests (6 stages, all scenarios) |
 
 ### What the CI pipeline tests:
