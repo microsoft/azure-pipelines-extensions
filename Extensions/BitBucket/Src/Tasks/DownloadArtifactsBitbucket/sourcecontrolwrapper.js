@@ -1,27 +1,39 @@
-"use strict";
+const tl = require('azure-pipelines-task-lib/task');
+const events = require('events');
 
-var tl = require('azure-pipelines-task-lib/task');
-var events = require('events');
-var Q = require('q');
-var path = require('path');
+/**
+ * @typedef {Object} ExecOptions
+ * @property {boolean} [creds]
+ * @property {boolean} [debugOutput]
+ * @property {string} [cwd]
+ * @property {NodeJS.ProcessEnv} [env]
+ * @property {NodeJS.WritableStream} [outStream]
+ * @property {NodeJS.WritableStream} [errStream]
+ */
 
-var __extends = (this && this.__extends) || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-};
-
-var SourceControlWrapper = (function (_super) {
-    __extends(SourceControlWrapper, _super);
-    function SourceControlWrapper(toolType) {
-        _super.call(this);
+class SourceControlWrapper extends events.EventEmitter {
+    /**
+     * @param {string} toolType
+     */
+    constructor(toolType) {
+        super();
         this.toolType = toolType;
+        /** @type {string | undefined} */
+        this.username = undefined;
+        /** @type {string | undefined} */
+        this.password = undefined;
     }
 
-    SourceControlWrapper.prototype.clone = function (repository, progress, folder, options) {
+    /**
+     * @param {string} repository
+     * @param {boolean} progress
+     * @param {string | undefined} folder
+     * @param {ExecOptions | undefined} options
+     */
+    clone(repository, progress, folder, options) {
         options = options || {};
         options.creds = true;
-        var args = ['clone', repository];
+        const args = ['clone', repository];
         if (progress) {
             args.push('--progress');
         }
@@ -29,74 +41,92 @@ var SourceControlWrapper = (function (_super) {
             args.push(folder);
         }
         return this.exec(args, options);
-    };
+    }
 
-    SourceControlWrapper.prototype.fetch = function (args, options) {
+    /**
+     * @param {string[]} args
+     * @param {ExecOptions | undefined} options
+     */
+    fetch(args, options) {
         options = options || {};
         options.creds = true;
         return this.exec(['fetch'].concat(args), options);
-    };
+    }
 
-    SourceControlWrapper.prototype.checkout = function (ref, options) {
+    /**
+     * @param {string} ref
+     * @param {ExecOptions} [options]
+     */
+    checkout(ref, options) {
         options = options || {};
         options.creds = true;
         return this.exec(['checkout', ref], options);
-    };
+    }
 
-    SourceControlWrapper.prototype.reset = function (args, options) {
+    /**
+     * @param {string[]} args
+     * @param {ExecOptions | undefined} options
+     */
+    reset(args, options) {
         options = options || {};
         return this.exec(['reset'].concat(args), options);
-    };
+    }
 
-    SourceControlWrapper.prototype.exec = function (args, options) {
-        var _this = this;
-        options = options || {};
-        var defer = Q.defer();
+    /**
+     * @param {string[]} args
+     * @param {ExecOptions | undefined} options
+     */
+    exec(args, options) {
+        const self = this;
+        const execOptions = options || {};
 
-        var toolPath = tl.which(this.toolType, false);
-        if (!toolPath) {
+        /** @type {string} */
+        let toolPath;
+        try {
+            toolPath = tl.which(this.toolType, true);
+        } catch (e) {
             throw (new Error(this.toolType + ' not found.  ensure installed and in the path'));
         }
-        var tool = tl.tool(toolPath.toString());
-        var creds = this.username + ':' + this.password;
-        var escapedCreds = encodeURIComponent(this.username) + ':' + encodeURIComponent(this.password);
+        const tool = tl.tool(toolPath.toString());
+        const username = this.username || '';
+        const password = this.password || '';
+        const creds = username + ':' + password;
+        const escapedCreds = encodeURIComponent(username) + ':' + encodeURIComponent(password);
         try {
-            tl.setSecret(this.password);
+            tl.setSecret(password);
             tl.setSecret(escapedCreds);
-        } catch (err) {
+        } catch (e) {
             tl.warning('Failed to mask credentials for log redaction.');
         }
-        tool.on('debug', function (message) {
-            if (options.debugOutput) {
-                var repl = message.replace(creds, '...');
-                repl = message.replace(escapedCreds, '...');
-                _this.emit('stdout', '[debug]' + repl);
+        tool.on('debug', function (/** @type {string} */ message) {
+            if (execOptions.debugOutput) {
+                let repl = message.replace(creds, '...').replace(escapedCreds, '...');
+                self.emit('stdout', '[debug]' + repl);
             }
         });
-        tool.on('stdout', function (data) {
-            _this.emit('stdout', data);
+        tool.on('stdout', function (/** @type {Buffer | string} */ data) {
+            self.emit('stdout', data);
         });
-        tool.on('stderr', function (data) {
-            _this.emit('stderr', data);
-        });
-
-        args.map(function (arg) {
-            tool.arg(arg, true); // raw arg
+        tool.on('stderr', function (/** @type {Buffer | string} */ data) {
+            self.emit('stderr', data);
         });
 
-        options = options || {};
-        var ops = {
-            cwd: options.cwd || process.cwd(),
-            env: options.env || process.env,
+        args.forEach(function (/** @type {string} */ arg) {
+            tool.arg(arg);
+        });
+
+        const ops = {
+            cwd: execOptions.cwd || process.cwd(),
+            env: execOptions.env || process.env,
             silent: true,
-            outStream: options.outStream || process.stdout,
-            errStream: options.errStream || process.stderr,
+            outStream: execOptions.outStream || process.stdout,
+            errStream: execOptions.errStream || process.stderr,
             failOnStdErr: false,
             ignoreReturnCode: false
         };
 
         return tool.exec(ops);
-    };
-    return SourceControlWrapper;
-}(events.EventEmitter));
+    }
+}
+
 exports.SourceControlWrapper = SourceControlWrapper;
