@@ -16,12 +16,10 @@ var bitbucketEndpoint = getEndpointDetails("connection");
 
 removePathRecursive(downloadPath);
 
-
-var path = "/2.0/repositories/" + repositoryId;
 var options = {
     host: "api.bitbucket.org",
     method: "GET",
-    path: path
+    path: "/2.0/repositories/" + repositoryId
 };
 
 // Set authentication based on the endpoint type
