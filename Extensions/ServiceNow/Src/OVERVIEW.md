@@ -130,9 +130,9 @@ A record in ServiceNow tracking a planned change. Has a numeric state value:
 ```
 New(-5) → Assess(-4) → Authorize(-3) → Scheduled(-2) → Implement(-1) → Review(0) → Closed(3)
 
+```
 > **Note:** These are typical default values. State numbers are configurable
 > per ServiceNow instance and may differ in your environment
-```
 
 The `CreateAndQueryChangeRequest` gate watches the CR's state and **unblocks the pipeline**
 when the state matches the configured `desiredStatus` (e.g., `-1` for Implement).
@@ -210,9 +210,9 @@ Extensions/ServiceNow/
             ├── UpdateChangeRequestV1/          ← task.json + icon.png
             └── UpdateChangeRequestV2/          ← task.json + icon.png (latest, recommended)
 
-            > **Note:** The folder is named `UpdateChangeRequest` but the task registered
-            > in `task.json` (the name Azure DevOps uses) is `UpdateServiceNowChangeRequest`.
 ```
+> **Note:** The folder is named `UpdateChangeRequest` but the task registered
+> in `task.json` (the name Azure DevOps uses) is `UpdateServiceNowChangeRequest`.
 
 > There is **no TypeScript or JavaScript** in these task folders. The tasks are pure
 > `task.json` definitions. All logic runs on the Azure DevOps server using the service
