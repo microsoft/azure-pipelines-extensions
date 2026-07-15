@@ -37,7 +37,7 @@ const bitbucketEndpoint = getEndpointDetails('connection');
 try {
     removePathRecursive(downloadPath);
 } catch (error) {
-    tl.error(error);
+    tl.setResult(tl.TaskResult.Failed, error.message || error);
     process.exit(1);
 }
 
@@ -67,14 +67,14 @@ https.request(options, function (rs) {
     rs.on('end', function () {
         const statusCode = rs.statusCode || 0;
         if (statusCode < 200 || statusCode >= 300) {
-            tl.error('Failed to get repository details from Bitbucket. HTTP status: ' + statusCode + ' ' + rs.statusMessage + '. Response: ' + response);
+            tl.setResult(tl.TaskResult.Failed, 'Failed to get repository details from Bitbucket. HTTP status: ' + statusCode + ' ' + rs.statusMessage + '. Response: ' + response);
             process.exit(1);
         }
 
         try {
             result = JSON.parse(response);
         } catch (error) {
-            tl.error('Failed to parse Bitbucket API response as JSON. Response: ' + response);
+            tl.setResult(tl.TaskResult.Failed, 'Failed to parse Bitbucket API response as JSON. Response: ' + response);
             process.exit(1);
         }
 
@@ -141,7 +141,7 @@ https.request(options, function (rs) {
                 return sch.checkout(commitId);
             })
             .catch(function (error) {
-                tl.error(error);
+                tl.setResult(tl.TaskResult.Failed, error.message || error);
                 process.exit(1);
             });
     });
