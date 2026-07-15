@@ -726,7 +726,7 @@ gulp.task("audit", (done) => {
     const files = getChangedFiles(true);
     let affected;
     if (files === null) {
-        console.log("Cannot determine changed files -> auditing all roots.");
+        console.log("Cannot determine changed files -> skip the check.");
         done();
         return;
     } else {
