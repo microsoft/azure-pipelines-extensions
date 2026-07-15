@@ -1007,8 +1007,8 @@ gulp.task("test", gulp.series("testResources", function () {
  * diff against the target branch. Works for PR builds (uses PR target) and
  * manual/CI builds (diffs selected branch against master).
  * Returns null only if the diff cannot be determined (fetch failure, etc.).
- * @param {boolean} filterLocalChanges
- * @returns {string[] | null}
+ * @param {boolean} [filterLocalChanges] - If true, attempts to resolve the current branch name for local builds (BUILD_REASON=Manual) and filters out changes that are not on the current branch. If false, all changes in the working directory are included.
+ * @returns {string[] | null} The list of changed files, or null if the diff cannot be determined (e.g. fetch failure, no target branch, etc.).
  */
 function getChangedFiles(filterLocalChanges) {
     var buildReason = process.env['BUILD_REASON'];
