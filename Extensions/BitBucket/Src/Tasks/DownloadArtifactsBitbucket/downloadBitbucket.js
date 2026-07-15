@@ -10,7 +10,7 @@ const scw = require('./sourcecontrolwrapper.js');
 /**
  * @typedef {Object} EndpointDetails
  * @property {string} [Username] - The username for the endpoint.
- * @property {string | null} [Password] - The password for the endpoint (if using username/password authentication).
+ * @property {string} [Password] - The password for the endpoint (if using username/password authentication).
  * @property {string | null} [Token] - The token for the endpoint (if using token authentication).
  */
 
@@ -157,14 +157,20 @@ function getEndpointDetails(inputFieldName) {
 
     if (scheme === 'token') {
         const token = getAuthParameter(bitbucketEndpoint, 'apitoken');
+
+        if (!token) {
+            throw new Error('The endpoint ' + bitbucketEndpoint + ' does not have an API token parameter.');
+        }
+
         const username = getAuthParameter(bitbucketEndpoint, 'email') || '';
         tl.debug('Using token authentication');
+
         try {
-            // @ts-ignore since setSecret applies nullability
             tl.setSecret(token);
         } catch (e) {
             tl.warning('Failed to mask API token for log redaction.');
         }
+
         return {
             'Token': token,
             'Username': username
@@ -172,13 +178,19 @@ function getEndpointDetails(inputFieldName) {
     } else {
         const hostUsername = getAuthParameter(bitbucketEndpoint, 'username');
         const hostPassword = getAuthParameter(bitbucketEndpoint, 'password');
+
+        if (hostUsername === undefined || hostPassword === undefined) {
+            throw new Error('The endpoint ' + bitbucketEndpoint + ' does not have the required username and password parameters.');
+        }
+
         try {
-            // @ts-ignore since setSecret applies nullability
             tl.setSecret(hostPassword);
         } catch (e) {
             tl.warning('Failed to mask password for log redaction.');
         }
+
         tl.debug('hostUsername: ' + hostUsername);
+
         return {
             'Username': hostUsername,
             'Password': hostPassword
