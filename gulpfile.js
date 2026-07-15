@@ -983,7 +983,7 @@ gulp.task("test", gulp.series("testResources", function () {
  * diff against the target branch. Works for PR builds (uses PR target) and
  * manual/CI builds (diffs selected branch against master).
  * Returns null only if the diff cannot be determined (fetch failure, etc.).
- * @param {boolean} [filterLocalChanges] - If true, attempts to resolve the current branch name for local builds (BUILD_REASON=Manual) and filters out changes that are not on the current branch. If false, all changes in the working directory are included.
+ * @param {boolean} [filterLocalChanges] - When true and BUILD_SOURCEBRANCH is not set (local runs), resolve the current branch via `git rev-parse --abbrev-ref HEAD` so the diff can still be computed; returns null (run all) if it can't be resolved. When false, the local branch fallback is skipped and such runs return null (run all).
  * @returns {string[] | null} The list of changed files, or null if the diff cannot be determined (e.g. fetch failure, no target branch, etc.).
  */
 function getChangedFiles(filterLocalChanges) {
