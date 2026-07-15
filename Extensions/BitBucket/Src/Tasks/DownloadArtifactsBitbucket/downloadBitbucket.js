@@ -235,8 +235,8 @@ function getEndpointDetails(inputFieldName) {
 
 /**
  * Gets the value of the specified authorization parameter from the given endpoint.
- * @param {*} endpoint - The endpoint from which to retrieve the authorization parameter.
- * @param {*} paramName - The name of the authorization parameter to retrieve.
+ * @param {string} endpoint - The endpoint from which to retrieve the authorization parameter.
+ * @param {string} paramName - The name of the authorization parameter to retrieve.
  * @returns {string|undefined} The value of the authorization parameter, or undefined if not found.
  */
 function getAuthParameter(endpoint, paramName) {
