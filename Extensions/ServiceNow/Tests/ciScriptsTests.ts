@@ -4,14 +4,55 @@ import assert = require('assert');
 import fs = require('fs');
 import { determineCiScriptPath, triggerCiScriptPath } from './helpers';
 
+// Parse the switch statement in DetermineCiTestPipelineName.ps1 to extract extension→pipeline mappings.
+function parseDetermineScript(content: string): Map<string, string> {
+    const mapping = new Map<string, string>();
+    // Match lines like:  "ExtensionName" { $pipelineName = "PipelineName" }
+    const regex = /["'](\w+)["']\s*\{\s*\$\w+\s*=\s*["']([^"']+)["']/g;
+    let match;
+    while ((match = regex.exec(content)) !== null) {
+        mapping.set(match[1], match[2]);
+    }
+    return mapping;
+}
+
+// Parse the $pipelineMapping hashtable in TriggerCiTestsForExtensions.ps1.
+function parseTriggerScript(content: string): Map<string, string> {
+    const mappingStart = content.indexOf('$pipelineMapping = @{');
+    if (mappingStart === -1) {
+        return new Map();
+    }
+    const blockStart = content.indexOf('{', mappingStart);
+    // Brace-counting to find the matching closing brace.
+    // Note: assumes no unescaped braces inside string values within this block.
+    let braceCount = 0;
+    let blockEnd = blockStart;
+    for (let i = blockStart; i < content.length; i++) {
+        if (content[i] === '{') braceCount++;
+        if (content[i] === '}') braceCount--;
+        if (braceCount === 0) { blockEnd = i; break; }
+    }
+    const pipelineMappingBlock = content.substring(blockStart, blockEnd + 1);
+
+    const mapping = new Map<string, string>();
+    const regex = /["'](\w+)["']\s*=\s*["']([^"']+)["']/g;
+    let match;
+    while ((match = regex.exec(pipelineMappingBlock)) !== null) {
+        mapping.set(match[1], match[2]);
+    }
+    return mapping;
+}
+
 describe('CI Scripts Suite', function () {
 
     describe('DetermineCiTestPipelineName.ps1', function () {
 
         let scriptContent: string;
+        let determineMapping: Map<string, string>;
 
         before(function () {
             scriptContent = fs.readFileSync(determineCiScriptPath, 'utf-8');
+            determineMapping = parseDetermineScript(scriptContent);
         });
 
         it('should exist and be non-empty', function () {
@@ -23,20 +64,27 @@ describe('CI Scripts Suite', function () {
         });
 
         it('should map ServiceNow extension to a pipeline name', function () {
-            assert.ok(scriptContent.includes('ServiceNow'),
-                'should reference ServiceNow in mapping');
+            assert.ok(determineMapping.has('ServiceNow'),
+                'parsed switch should include ServiceNow');
         });
 
         it('should map TeamCity extension to a pipeline name', function () {
-            assert.ok(scriptContent.includes('TeamCity'),
-                'should reference TeamCity in mapping');
+            assert.ok(determineMapping.has('TeamCity'),
+                'parsed switch should include TeamCity');
         });
 
         it('should map all expected extensions', function () {
             const expectedExtensions = ['Ansible', 'BitBucket', 'ExternalTfs', 'IISWebAppDeploy', 'ServiceNow', 'TeamCity'];
             expectedExtensions.forEach(ext => {
-                assert.ok(scriptContent.includes(ext),
-                    `should reference ${ext} in mapping`);
+                assert.ok(determineMapping.has(ext),
+                    `parsed switch should include ${ext}`);
+            });
+        });
+
+        it('should have non-empty pipeline names for all mappings', function () {
+            determineMapping.forEach((value, key) => {
+                assert.ok(value.length > 0,
+                    `pipeline name for ${key} should be non-empty`);
             });
         });
 
@@ -51,35 +99,11 @@ describe('CI Scripts Suite', function () {
     describe('TriggerCiTestsForExtensions.ps1', function () {
 
         let scriptContent: string;
-        let pipelineMappingBlock: string;
-
-        function parseTriggerScript(): Map<string, string> {
-            // Extract only the $pipelineMapping = @{...} block
-            const mappingStart = scriptContent.indexOf('$pipelineMapping = @{');
-            if (mappingStart === -1) {
-                return new Map();
-            }
-            const blockStart = scriptContent.indexOf('{', mappingStart);
-            let braceCount = 0;
-            let blockEnd = blockStart;
-            for (let i = blockStart; i < scriptContent.length; i++) {
-                if (scriptContent[i] === '{') braceCount++;
-                if (scriptContent[i] === '}') braceCount--;
-                if (braceCount === 0) { blockEnd = i; break; }
-            }
-            pipelineMappingBlock = scriptContent.substring(blockStart, blockEnd + 1);
-
-            const mapping = new Map<string, string>();
-            const regex = /["'](\w+)["']\s*=\s*["']([^"']+)["']/g;
-            let match;
-            while ((match = regex.exec(pipelineMappingBlock)) !== null) {
-                mapping.set(match[1], match[2]);
-            }
-            return mapping;
-        }
+        let triggerMapping: Map<string, string>;
 
         before(function () {
             scriptContent = fs.readFileSync(triggerCiScriptPath, 'utf-8');
+            triggerMapping = parseTriggerScript(scriptContent);
         });
 
         it('should exist and be non-empty', function () {
@@ -92,29 +116,25 @@ describe('CI Scripts Suite', function () {
         });
 
         it('should map ServiceNow extension', function () {
-            const mapping = parseTriggerScript();
-            assert.ok(mapping.has('ServiceNow'),
+            assert.ok(triggerMapping.has('ServiceNow'),
                 'pipelineMapping should include ServiceNow');
         });
 
         it('should map TeamCity extension', function () {
-            const mapping = parseTriggerScript();
-            assert.ok(mapping.has('TeamCity'),
+            assert.ok(triggerMapping.has('TeamCity'),
                 'pipelineMapping should include TeamCity');
         });
 
         it('should map all expected extensions', function () {
-            const mapping = parseTriggerScript();
             const expectedExtensions = ['Ansible', 'BitBucket', 'ExternalTfs', 'IISWebAppDeploy', 'ServiceNow', 'TeamCity'];
             expectedExtensions.forEach(ext => {
-                assert.ok(mapping.has(ext),
+                assert.ok(triggerMapping.has(ext),
                     `pipelineMapping should include ${ext}`);
             });
         });
 
         it('should have non-empty pipeline names for all mappings', function () {
-            const mapping = parseTriggerScript();
-            mapping.forEach((value, key) => {
+            triggerMapping.forEach((value, key) => {
                 assert.ok(value.length > 0,
                     `pipeline name for ${key} should be non-empty`);
             });
@@ -130,34 +150,35 @@ describe('CI Scripts Suite', function () {
 
     describe('Cross-script consistency', function () {
 
-        it('should have same extensions mapped in both scripts', function () {
+        let determineMapping: Map<string, string>;
+        let triggerMapping: Map<string, string>;
+
+        before(function () {
             const determineContent = fs.readFileSync(determineCiScriptPath, 'utf-8');
             const triggerContent = fs.readFileSync(triggerCiScriptPath, 'utf-8');
+            determineMapping = parseDetermineScript(determineContent);
+            triggerMapping = parseTriggerScript(triggerContent);
+        });
 
-            // Extract extensions from trigger script's $pipelineMapping block
-            const mappingStart = triggerContent.indexOf('$pipelineMapping = @{');
-            const blockStart = triggerContent.indexOf('{', mappingStart);
-            let braceCount = 0;
-            let blockEnd = blockStart;
-            for (let i = blockStart; i < triggerContent.length; i++) {
-                if (triggerContent[i] === '{') braceCount++;
-                if (triggerContent[i] === '}') braceCount--;
-                if (braceCount === 0) { blockEnd = i; break; }
-            }
-            const mappingBlock = triggerContent.substring(blockStart, blockEnd + 1);
-
-            const triggerExtensions: string[] = [];
-            const regex = /["'](\w+)["']\s*=\s*["']/g;
-            let match;
-            while ((match = regex.exec(mappingBlock)) !== null) {
-                triggerExtensions.push(match[1]);
-            }
-
-            // Verify each trigger extension appears in determine script
-            triggerExtensions.forEach(ext => {
-                assert.ok(determineContent.includes(ext),
+        it('every trigger-script extension should appear in the determine script', function () {
+            triggerMapping.forEach((_value, ext) => {
+                assert.ok(determineMapping.has(ext),
                     `Extension "${ext}" mapped in TriggerCiTests should also appear in DetermineCiTestPipelineName`);
             });
+        });
+
+        it('every determine-script extension should appear in the trigger script', function () {
+            determineMapping.forEach((_value, ext) => {
+                assert.ok(triggerMapping.has(ext),
+                    `Extension "${ext}" mapped in DetermineCiTestPipelineName should also appear in TriggerCiTests`);
+            });
+        });
+
+        it('both scripts should map the exact same set of extensions', function () {
+            const determineKeys = Array.from(determineMapping.keys()).sort();
+            const triggerKeys = Array.from(triggerMapping.keys()).sort();
+            assert.deepStrictEqual(determineKeys, triggerKeys,
+                'both scripts should map identical extension sets');
         });
     });
 });

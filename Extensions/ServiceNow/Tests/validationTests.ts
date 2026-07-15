@@ -21,6 +21,25 @@ describe('Validation Suite', function () {
 
     describe('VisibleRule input reference validation', function () {
 
+        // Tokenize a visibleRule into the LHS input names it references.
+        // Rules have the form: "inputA = valueA && inputB = valueB"
+        function extractVisibleRuleInputRefs(rule: string): string[] {
+            // Split on && and || (with optional whitespace), then extract LHS of each clause
+            const clauses = rule.split(/\s*(?:&&|\|\|)\s*/);
+            const refs: string[] = [];
+            for (const clause of clauses) {
+                const match = clause.trim().match(/^(\w+)\s*=/);
+                if (match) {
+                    const name = match[1];
+                    // Skip boolean literals that aren't input names
+                    if (!['true', 'false'].includes(name.toLowerCase())) {
+                        refs.push(name);
+                    }
+                }
+            }
+            return refs;
+        }
+
         allTaskPaths.forEach(({ label, path: taskPath }) => {
             it(`${label}: all visibleRule references should point to existing inputs`, function () {
                 const task = loadJson(taskPath);
@@ -29,12 +48,8 @@ describe('Validation Suite', function () {
                 task.inputs.forEach((input: any) => {
                     if (!input.visibleRule) return;
 
-                    // Extract input names from visibleRule (format: "inputName = value")
-                    const references = input.visibleRule.match(/(\w+)\s*=/g) || [];
-                    references.forEach((ref: string) => {
-                        const refName = ref.replace(/\s*=\s*$/, '').trim();
-                        // Skip known non-input references
-                        if (['true', 'false'].includes(refName.toLowerCase())) return;
+                    const refs = extractVisibleRuleInputRefs(input.visibleRule);
+                    refs.forEach((refName) => {
                         assert.ok(inputNames.has(refName),
                             `Input "${input.name}" visibleRule references "${refName}" which does not exist in ${label} inputs`);
                     });
@@ -51,10 +66,8 @@ describe('Validation Suite', function () {
                 groups.forEach((group: any) => {
                     if (!group.visibleRule) return;
 
-                    const references = group.visibleRule.match(/(\w+)\s*=/g) || [];
-                    references.forEach((ref: string) => {
-                        const refName = ref.replace(/\s*=\s*$/, '').trim();
-                        if (['true', 'false'].includes(refName.toLowerCase())) return;
+                    const refs = extractVisibleRuleInputRefs(group.visibleRule);
+                    refs.forEach((refName) => {
                         assert.ok(inputNames.has(refName),
                             `Group "${group.name}" visibleRule references "${refName}" which does not exist in ${label} inputs`);
                     });

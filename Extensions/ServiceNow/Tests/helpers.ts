@@ -3,7 +3,20 @@
 import path = require('path');
 import fs = require('fs');
 
-export const repoRoot = path.join(__dirname, '..', '..', '..', '..');
+// Anchor repoRoot by walking up from __dirname until we find the 'Extensions' directory.
+// This avoids hard-coding depth relative to _build output layout.
+function findRepoRoot(startDir: string): string {
+    let dir = startDir;
+    while (dir !== path.dirname(dir)) {
+        if (fs.existsSync(path.join(dir, 'Extensions')) && fs.existsSync(path.join(dir, 'scripts'))) {
+            return dir;
+        }
+        dir = path.dirname(dir);
+    }
+    throw new Error(`Could not find repo root (containing Extensions/ and scripts/) from ${startDir}`);
+}
+
+export const repoRoot = findRepoRoot(__dirname);
 export const srcRoot = path.join(repoRoot, 'Extensions', 'ServiceNow', 'Src');
 export const extensionManifestPath = path.join(srcRoot, 'vss-extension.json');
 
