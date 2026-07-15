@@ -667,32 +667,6 @@ gulp.task("tscBuildTasks", function (cb) {
     cb();
 });
 
-// ---------------------------------------------------------------------------
-// gulp audit — runs `npm audit` on affected package roots and fails on
-// vulnerabilities at or above the "high" severity level. Wired into `build`
-// so the existing CI build step enforces it (no separate CI step needed).
-// ---------------------------------------------------------------------------
-
-// Directories that never contain auditable project roots. Used to filter out
-// dependency lockfiles (node_modules) and build output when discovering roots.
-const AUDIT_SKIP_DIRS = ['node_modules', '_build', '_temp', '_package', '_nuget', '.git'];
-
-/**
- * Discover every directory that contains a package.json (an auditable root).
- * Paths are returned relative to the repo root, forward-slash normalized, with
- * the repo root itself represented as '.'.
- * @returns {string[]}
- */
-function discoverAuditRoots() {
-    return fs.readdirSync(__dirname, { recursive: true, encoding: 'utf-8' })
-        .filter((p) => path.basename(p) === 'package.json'
-            && !p.split(path.sep).some((seg) => AUDIT_SKIP_DIRS.includes(seg)))
-        .map((p) => {
-            const dir = path.dirname(p);
-            return dir === '.' ? '.' : dir.split(path.sep).join('/');
-        });
-}
-
 /**
  * Map changed files to the audit roots they belong to. Each file is attributed
  * to the most specific (deepest) enclosing audit root so a change under an
@@ -720,8 +694,10 @@ function resolveAffectedAuditRoots(files, roots) {
 }
 
 gulp.task("audit", (done) => {
-    const roots = discoverAuditRoots();
-    console.log(`Auditable roots (${roots.length}): ${roots.join(', ')}`);
+    const roots = cp.execSync('git ls-files -- "*package.json"', { cwd: __dirname, encoding: 'utf-8' })
+        .split('\n')
+        .map((p) => p.trim())
+        .map((p) => path.posix.dirname(p));
 
     const files = getChangedFiles(true);
     let affected;
