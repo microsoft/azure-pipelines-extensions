@@ -14,6 +14,18 @@ const scw = require('./sourcecontrolwrapper.js');
  * @property {string | null} [Token] - The token for the endpoint (if using token authentication).
  */
 
+/**
+ * @typedef {Object} IBitbucketResponseLinks
+ * @property {Array<{ href: string }>} clone - An array of clone links for the repository.
+ */
+
+/**
+ * @typedef {Object} IBitbucketResponse
+ * @property {string} scm - The source control management type (e.g., "git").
+ * @property {IBitbucketResponseLinks} links - The links object containing repository links.
+ * @property {Array<{ href: string }>} links.clone - An array of clone links for the repository.
+ */
+
 const BITBUCKET_API_TOKEN_AUTH_USERNAME = 'x-bitbucket-api-token-auth';
 
 const repositoryId = tl.getInputRequired('definition');
@@ -45,6 +57,7 @@ if (bitbucketEndpoint.Token) {
 
 https.request(options, function (rs) {
     tl.debug(`HTTP status: ${rs.statusCode} ${rs.statusMessage}`);
+    /** @type {IBitbucketResponse} */
     let result;
     let response = '';
     rs.on('data', function (data) {
@@ -52,7 +65,19 @@ https.request(options, function (rs) {
         response += data
     });
     rs.on('end', function () {
-        result = JSON.parse(response);
+        const statusCode = rs.statusCode || 0;
+        if (statusCode < 200 || statusCode >= 300) {
+            tl.error('Failed to get repository details from Bitbucket. HTTP status: ' + statusCode + ' ' + rs.statusMessage + '. Response: ' + response);
+            process.exit(1);
+        }
+
+        try {
+            result = JSON.parse(response);
+        } catch (error) {
+            tl.error('Failed to parse Bitbucket API response as JSON. Response: ' + response);
+            process.exit(1);
+        }
+
         tl.debug('result:' + JSON.stringify(result));
         const sch = new scw.SourceControlWrapper(result.scm);
 
@@ -63,7 +88,12 @@ https.request(options, function (rs) {
             console.log(data.toString());
         });
 
-        const remoteUrl = result.links.clone[0].href;
+        let remoteUrl = "";
+
+        if (result.links.clone[0]) {
+            remoteUrl = result.links.clone[0].href;
+        }
+
         tl.debug('Remote Url:' + remoteUrl);
 
         // encodes projects and repo names with spaces
