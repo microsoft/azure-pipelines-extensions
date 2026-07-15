@@ -15,15 +15,19 @@ const scw = require('./sourcecontrolwrapper.js');
  */
 
 /**
+ * @typedef {Object} IBitbucketResponseLinksHref
+ * @property {string} href - The URL of the link.
+ */
+
+/**
  * @typedef {Object} IBitbucketResponseLinks
- * @property {Array<{ href: string }>} clone - An array of clone links for the repository.
+ * @property {IBitbucketResponseLinksHref[]} clone - An array of clone links for the repository.
  */
 
 /**
  * @typedef {Object} IBitbucketResponse
  * @property {string} scm - The source control management type (e.g., "git").
  * @property {IBitbucketResponseLinks} links - The links object containing repository links.
- * @property {Array<{ href: string }>} links.clone - An array of clone links for the repository.
  */
 
 const BITBUCKET_API_TOKEN_AUTH_USERNAME = 'x-bitbucket-api-token-auth';
