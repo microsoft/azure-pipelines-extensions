@@ -359,7 +359,7 @@ describe('SourceControlWrapper Unit Suite', function () {
             return {
                 on: function (name: string, cb: Function): void { handlers[name] = cb; },
                 arg: function (value: string): void { seenArgs.push(value); },
-                exec: function (ops: any): Promise<number> {
+                execAsync: function (ops: any): Promise<number> {
                     seenExecOps = ops;
                     handlers.debug('run https://u:p@bitbucket.org/org/repo.git and u%3Ap');
                     handlers.stdout(new Buffer('stdout-line'));
@@ -428,7 +428,7 @@ describe('SourceControlWrapper Unit Suite', function () {
             return {
                 on: function (name: string, cb: Function): void { handlers[name] = cb; },
                 arg: function (): void { return; },
-                exec: function (): Promise<number> {
+                execAsync: function (): Promise<number> {
                     handlers.debug('contains-userpass u:p and u%3Ap');
                     return Promise.resolve(0);
                 }
@@ -464,7 +464,7 @@ describe('SourceControlWrapper Unit Suite', function () {
             return {
                 on: function (): void { return; },
                 arg: function (): void { return; },
-                exec: function (ops: any): Promise<number> {
+                execAsync: function (ops: any): Promise<number> {
                     capturedOps = ops;
                     return Promise.resolve(0);
                 }
@@ -516,7 +516,7 @@ describe('SourceControlWrapper Unit Suite', function () {
             return {
                 on: function (): void { return; },
                 arg: function (): void { return; },
-                exec: function (): Promise<number> { return Promise.resolve(0); }
+                execAsync: function (): Promise<number> { return Promise.resolve(0); }
             };
         };
 
@@ -546,7 +546,7 @@ describe('SourceControlWrapper Unit Suite', function () {
             return {
                 on: function (): void { return; },
                 arg: function (): void { return; },
-                exec: function (): Promise<number> {
+                execAsync: function (): Promise<number> {
                     return Promise.reject(new Error('simulated exec failure'));
                 }
             };

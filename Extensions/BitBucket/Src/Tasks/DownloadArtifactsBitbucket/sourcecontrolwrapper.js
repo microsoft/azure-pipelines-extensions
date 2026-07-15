@@ -125,7 +125,7 @@ class SourceControlWrapper extends events.EventEmitter {
             ignoreReturnCode: false
         };
 
-        return tool.exec(ops);
+        return tool.execAsync(ops);
     }
 }
 
