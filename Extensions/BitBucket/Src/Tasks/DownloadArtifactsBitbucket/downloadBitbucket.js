@@ -199,6 +199,10 @@ function getAuthParameter(endpoint, paramName) {
         throw new Error('The endpoint ' + endpoint + ' does not have any authorization parameters.');
     }
 
+    if (auth.scheme === undefined) {
+        throw new Error('The endpoint ' + endpoint + ' does not have an authorization scheme defined.');
+    }
+
     const scheme = auth.scheme.toLowerCase().trim();
 
     if (scheme !== 'usernamepassword' && scheme !== 'token') {
