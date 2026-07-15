@@ -667,7 +667,112 @@ gulp.task("tscBuildTasks", function (cb) {
     cb();
 });
 
-gulp.task("build", gulp.series("syncVersions", "compileNode", "tscBuildTasks", "updateTestIds"));
+// ---------------------------------------------------------------------------
+// gulp audit — runs `npm audit` on affected package roots and fails on
+// vulnerabilities at or above the "high" severity level. Wired into `build`
+// so the existing CI build step enforces it (no separate CI step needed).
+// ---------------------------------------------------------------------------
+
+// Directories that never contain auditable project roots. Used to filter out
+// dependency lockfiles (node_modules) and build output when discovering roots.
+const AUDIT_SKIP_DIRS = ['node_modules', '_build', '_temp', '_package', '_nuget', '.git'];
+
+/**
+ * Discover every directory that contains a package.json (an auditable root).
+ * Paths are returned relative to the repo root, forward-slash normalized, with
+ * the repo root itself represented as '.'.
+ * @returns {string[]}
+ */
+function discoverAuditRoots() {
+    return fs.readdirSync(__dirname, { recursive: true, encoding: 'utf-8' })
+        .filter((p) => path.basename(p) === 'package.json'
+            && !p.split(path.sep).some((seg) => AUDIT_SKIP_DIRS.includes(seg)))
+        .map((p) => {
+            const dir = path.dirname(p);
+            return dir === '.' ? '.' : dir.split(path.sep).join('/');
+        });
+}
+
+/**
+ * Map changed files to the audit roots they belong to. Each file is attributed
+ * to the most specific (deepest) enclosing audit root so a change under an
+ * extension task folder audits only that folder, not the repo root.
+ * @param {string[]} files
+ * @param {string[]} roots
+ * @returns {string[]}
+ */
+function resolveAffectedAuditRoots(files, roots) {
+    /** @type {Set<string>} */
+    const selected = new Set();
+    for (const f of files) {
+        let best = null;
+        let bestLen = -1;
+        for (const root of roots) {
+            const prefix = root === '.' ? '' : `${root}/`;
+            if (f.startsWith(prefix) && prefix.length > bestLen) {
+                best = root;
+                bestLen = prefix.length;
+            }
+        }
+        if (best !== null) selected.add(best);
+    }
+    return [...selected];
+}
+
+gulp.task("audit", (done) => {
+    const roots = discoverAuditRoots();
+    console.log(`Auditable roots (${roots.length}): ${roots.join(', ')}`);
+
+    const files = getChangedFiles(true);
+    let affected;
+    if (files === null) {
+        console.log("Cannot determine changed files -> auditing all roots.");
+        done();
+        return;
+    } else {
+        affected = resolveAffectedAuditRoots(files, roots);
+    }
+
+    if (affected.length === 0) {
+        console.log("No auditable roots affected by this change. Skipping npm audit.");
+        done();
+        return;
+    }
+
+    console.log(`Auditing affected roots (${affected.length}): ${affected.join(', ')}`);
+
+    /** @type {string[]} */
+    const failures = [];
+
+    for (const root of affected) {
+        const cwd = root === '.' ? __dirname : path.join(__dirname, root);
+        console.log('\n========================================');
+        console.log(`npm audit --audit-level=high in ${root}`);
+        console.log('========================================');
+
+        const result = cp.spawnSync('npm audit --audit-level=high', {
+            cwd,
+            stdio: 'inherit',
+            env: process.env,
+            shell: true
+        });
+        if (result.error) {
+            console.error(`Failed to run npm audit in ${root}: ${result.error.message}`);
+            failures.push(root);
+        } else if (result.status !== 0) {
+            failures.push(root);
+        }
+    }
+
+    if (failures.length > 0) {
+        done(new Error(`npm audit found high/critical vulnerabilities in: ${failures.join(', ')}`));
+        return;
+    }
+    console.log('\nnpm audit passed for all affected roots.');
+    done();
+});
+
+gulp.task("build", gulp.series("syncVersions", "compileNode", "tscBuildTasks", "updateTestIds", "audit"));
 
 gulp.task("default", gulp.series("build"));
 
@@ -897,11 +1002,15 @@ gulp.task("test", gulp.series("testResources", function () {
 // Shared git-diff logic
 // ---------------------------------------------------------------------------
 
-// Returns an array of changed file paths (forward-slash normalized) from the
-// diff against the target branch. Works for PR builds (uses PR target) and
-// manual/CI builds (diffs selected branch against master).
-// Returns null only if the diff cannot be determined (fetch failure, etc.).
-function getChangedFiles() {
+/**
+ * Returns an array of changed file paths (forward-slash normalized) from the
+ * diff against the target branch. Works for PR builds (uses PR target) and
+ * manual/CI builds (diffs selected branch against master).
+ * Returns null only if the diff cannot be determined (fetch failure, etc.).
+ * @param {boolean} filterLocalChanges
+ * @returns {string[] | null}
+ */
+function getChangedFiles(filterLocalChanges) {
     var buildReason = process.env['BUILD_REASON'];
     var target;
 
@@ -916,11 +1025,19 @@ function getChangedFiles() {
         // Manual or CI trigger — diff current branch against master.
         target = 'master';
         var sourceBranch = (process.env['BUILD_SOURCEBRANCH'] || '').replace(/^refs\/heads\//, '');
+        if (!sourceBranch && filterLocalChanges) {
+            try {
+                sourceBranch = cp.execSync('git rev-parse --abbrev-ref HEAD', { encoding: 'utf8' }).trim();
+            } catch (e) {
+                console.log("Could not resolve current git branch: " + e.message + " -> running all.");
+                return null;
+            }
+        }
         if (!sourceBranch || sourceBranch === target) {
             console.log("Source branch is " + (sourceBranch || 'empty') + " (target: " + target + ") -> running all.");
             return null;
         }
-        console.log("Non-PR build (BUILD_REASON=" + buildReason + "). Diffing against " + target + ".");
+        console.log("Non-PR build (BUILD_REASON=" + (buildReason || 'local') + "). Diffing against " + target + ".");
     }
     var changedFiles;
     try {
