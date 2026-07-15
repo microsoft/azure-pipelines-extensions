@@ -94,6 +94,11 @@ https.request(options, function (rs) {
             remoteUrl = result.links.clone[0].href;
         }
 
+        if (!remoteUrl) {
+            tl.setResult(tl.TaskResult.Failed, 'Failed to resolve the repository clone URL from the Bitbucket API response.');
+            process.exit(1);
+        }
+
         tl.debug('Remote Url:' + remoteUrl);
 
         // encodes projects and repo names with spaces
