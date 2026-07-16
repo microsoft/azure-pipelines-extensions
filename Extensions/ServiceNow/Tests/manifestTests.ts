@@ -234,15 +234,12 @@ describe('Manifest Suite', function () {
                     });
                 });
 
-                it('should have non-empty Body in all request steps', function () {
+                it('should have non-empty Body fields when present', function () {
                     const chain = task.execution.HttpRequestChain.Execute;
                     chain.forEach((step: any, index: number) => {
-                        if (step.RequestInputs.Body) {
-                            // Body may contain template expressions (e.g. {{...}}) so we
-                            // cannot parse as JSON; just verify it is non-empty.
-                            assert.ok(step.RequestInputs.Body.length > 0,
-                                `step ${index} Body should be non-empty`);
-                        }
+                        if (!step.RequestInputs.Body) return;
+                        assert.ok(step.RequestInputs.Body.length > 0,
+                            `step ${index} Body should be non-empty`);
                     });
                 });
             });
