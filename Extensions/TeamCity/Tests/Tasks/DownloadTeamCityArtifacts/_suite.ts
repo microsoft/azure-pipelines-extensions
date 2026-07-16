@@ -104,17 +104,6 @@ describe('DownloadTeamCityArtifacts Suite', function () {
         if (runner.succeeded) fail(runner, 'expected task to fail with 401');
     });
 
-    // NOTE: This test asserts the CURRENT (broken) behavior when the TeamCity backend
-    // returns a pre-signed S3 URL and BasicCredentialHandler adds Authorization: Basic
-    // to the S3 request, which S3 rejects with 400 "Only one auth mechanism allowed".
-    // Once the S3 auth bug is fixed (host-scoped auth handler), this test should flip
-    // to expect success.
-    it('documents S3 auth-conflict pre-existing bug (400 Only one auth mechanism allowed)', async function () {
-        const runner = newRunner('fail400S3AuthConflict');
-        await runAndDump(runner, NODE_VERSION);
-        if (runner.succeeded) fail(runner, 'expected task to fail with 400 (S3 auth conflict)');
-    });
-
     it('fails when required "connection" input is missing', async function () {
         const runner = newRunner('failMissingConnection');
         await runAndDump(runner, NODE_VERSION);
