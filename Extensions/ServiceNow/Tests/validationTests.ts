@@ -357,12 +357,12 @@ describe('Validation Suite', function () {
     describe('HelpMarkDown validation', function () {
 
         allTaskPaths.forEach(({ label, path: taskPath }) => {
-            it(`${label}: all inputs should have non-empty helpMarkDown`, function () {
+            it(`${label}: all inputs should have helpMarkDown defined`, function () {
                 const task = loadJson(taskPath);
                 task.inputs.forEach((input: any) => {
                     assert.ok(input.helpMarkDown !== undefined && input.helpMarkDown !== null,
                         `Input "${input.name}" in ${label} should have helpMarkDown defined`);
-                    // Allow empty string for some inputs but not undefined/null
+                    // Allow empty string — only undefined/null is invalid
                 });
             });
         });
