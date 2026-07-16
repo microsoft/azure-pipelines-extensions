@@ -199,29 +199,31 @@ describe('DownloadArtifactsBitbucket Suite', function () {
                 assert(hasAuthError, 'should report a missing endpoint authorization failure');
             });
 
-            it('continues when token auth parameter is missing', async function () {
+            it('fails when token auth parameter is missing', async function () {
                 const runner = newRunner('failMissingAuthParameter');
                 await runAndDump(runner, nodeVersion);
-                if (!runner.succeeded) fail(runner, 'expected task to continue when apitoken parameter is absent');
+                if (runner.succeeded) fail(runner, 'expected task to fail when apitoken parameter is absent');
 
-                assert(runner.stdOutContained('[mock-https] request /2.0/repositories/workspace/repo authUser='), 'should call the API without an auth username when token is absent');
-                assert(runner.stdOutContained('[mock-scw] auth user=token-user@example.com passSet=false'), 'should forward missing token as an unset clone password');
+                assert(runner.stdOutContained('does not have an API token parameter'), 'should surface missing API token failure');
+                assert(!runner.stdOutContained('[mock-https] request'), 'should not call the API when token is missing');
             });
 
-            it('continues when required username/password auth parameter is missing', async function () {
+            it('fails when required password auth parameter is missing', async function () {
                 const runner = newRunner('failMissingPasswordParameter');
                 await runAndDump(runner, nodeVersion);
-                if (!runner.succeeded) fail(runner, 'expected task to continue when password parameter is absent');
+                if (runner.succeeded) fail(runner, 'expected task to fail when password parameter is absent');
 
-                assert(runner.stdOutContained('[mock-scw] auth user=bb-user passSet=false'), 'should forward the username with an unset password');
+                assert(runner.stdOutContained('does not have the required username and password parameters'), 'should surface missing username/password failure');
+                assert(!runner.stdOutContained('[mock-https] request'), 'should not call the API when password is missing');
             });
 
-            it('continues when required username parameter is missing', async function () {
+            it('fails when required username parameter is missing', async function () {
                 const runner = newRunner('failMissingUsernameParameter');
                 await runAndDump(runner, nodeVersion);
-                if (!runner.succeeded) fail(runner, 'expected task to continue when username parameter is absent');
+                if (runner.succeeded) fail(runner, 'expected task to fail when username parameter is absent');
 
-                assert(runner.stdOutContained('[mock-scw] auth user=undefined passSet=true'), 'should forward an undefined username with the configured password');
+                assert(runner.stdOutContained('does not have the required username and password parameters'), 'should surface missing username/password failure');
+                assert(!runner.stdOutContained('[mock-https] request'), 'should not call the API when username is missing');
             });
 
             it('fails when endpoint auth object is present but has no scheme', async function () {
@@ -359,7 +361,7 @@ describe('SourceControlWrapper Unit Suite', function () {
             return {
                 on: function (name: string, cb: Function): void { handlers[name] = cb; },
                 arg: function (value: string): void { seenArgs.push(value); },
-                exec: function (ops: any): Promise<number> {
+                execAsync: function (ops: any): Promise<number> {
                     seenExecOps = ops;
                     handlers.debug('run https://u:p@bitbucket.org/org/repo.git and u%3Ap');
                     handlers.stdout(new Buffer('stdout-line'));
@@ -428,7 +430,7 @@ describe('SourceControlWrapper Unit Suite', function () {
             return {
                 on: function (name: string, cb: Function): void { handlers[name] = cb; },
                 arg: function (): void { return; },
-                exec: function (): Promise<number> {
+                execAsync: function (): Promise<number> {
                     handlers.debug('contains-userpass u:p and u%3Ap');
                     return Promise.resolve(0);
                 }
@@ -464,7 +466,7 @@ describe('SourceControlWrapper Unit Suite', function () {
             return {
                 on: function (): void { return; },
                 arg: function (): void { return; },
-                exec: function (ops: any): Promise<number> {
+                execAsync: function (ops: any): Promise<number> {
                     capturedOps = ops;
                     return Promise.resolve(0);
                 }
@@ -516,7 +518,7 @@ describe('SourceControlWrapper Unit Suite', function () {
             return {
                 on: function (): void { return; },
                 arg: function (): void { return; },
-                exec: function (): Promise<number> { return Promise.resolve(0); }
+                execAsync: function (): Promise<number> { return Promise.resolve(0); }
             };
         };
 
@@ -546,7 +548,7 @@ describe('SourceControlWrapper Unit Suite', function () {
             return {
                 on: function (): void { return; },
                 arg: function (): void { return; },
-                exec: function (): Promise<number> {
+                execAsync: function (): Promise<number> {
                     return Promise.reject(new Error('simulated exec failure'));
                 }
             };

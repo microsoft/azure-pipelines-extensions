@@ -1,0 +1,21 @@
+{
+    "compilerOptions": {
+        "target": "ES6",
+        "module": "commonjs",
+        "esModuleInterop": true,
+        "types": ["node"],
+        "moduleResolution": "node",
+        "skipLibCheck": true,
+        "noEmit": true,
+        "checkJs": true,
+        "useUnknownInCatchVariables": false,
+        "strict": true,
+        "noUncheckedIndexedAccess": true,
+        "exactOptionalPropertyTypes": true,
+        "noPropertyAccessFromIndexSignature": true,
+        "noFallthroughCasesInSwitch": true
+    },
+    "include": [
+        "*.js"
+    ]
+}
