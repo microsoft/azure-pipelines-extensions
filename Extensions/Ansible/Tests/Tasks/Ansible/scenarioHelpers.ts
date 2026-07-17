@@ -13,6 +13,7 @@ export function createRunner(): mockrun.TaskMockRunner {
 
     const runner = new mockrun.TaskMockRunner(taskPath);
     runner.registerMock('azure-pipelines-task-lib/toolrunner', require('azure-pipelines-task-lib/mock-toolrunner'));
+    runner.registerMock('azure-pipelines-task-lib/task', require('azure-pipelines-task-lib/mock-task'));
     runner.registerMock('./ansibleUtils', mockUtils);
 
     process.env['AZURE_HTTP_USER_AGENT'] = 'TFS_useragent';
