@@ -123,17 +123,32 @@ describe('DownloadTeamCityArtifacts Suite', function () {
         const runner = newRunner('failMissingConnection');
         await runAndDump(runner, NODE_VERSION);
         if (runner.succeeded) fail(runner, 'expected task to fail when connection input is missing');
+
+        assert(runner.stdOutContained('Input required: connection'),
+            'should fail with the specific "Input required" error, not a different code path');
+        assert(runner.stdOutContained('##vso[task.complete result=Failed'),
+            'should mark the task Failed');
     });
 
     it('fails when required "version" input is missing', async function () {
         const runner = newRunner('failMissingVersion');
         await runAndDump(runner, NODE_VERSION);
         if (runner.succeeded) fail(runner, 'expected task to fail when version input is missing');
+
+        assert(runner.stdOutContained('Input required: version'),
+            'should fail with the specific "Input required" error, not a different code path');
+        assert(runner.stdOutContained('##vso[task.complete result=Failed'),
+            'should mark the task Failed');
     });
 
     it('fails when required "downloadPath" input is missing', async function () {
         const runner = newRunner('failMissingDownloadPath');
         await runAndDump(runner, NODE_VERSION);
         if (runner.succeeded) fail(runner, 'expected task to fail when downloadPath input is missing');
+
+        assert(runner.stdOutContained('Input required: downloadPath'),
+            'should fail with the specific "Input required" error, not a different code path');
+        assert(runner.stdOutContained('##vso[task.complete result=Failed'),
+            'should mark the task Failed');
     });
 });
