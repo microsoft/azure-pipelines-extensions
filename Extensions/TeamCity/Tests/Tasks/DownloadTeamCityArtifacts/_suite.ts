@@ -96,12 +96,27 @@ describe('DownloadTeamCityArtifacts Suite', function () {
 
         assert(runner.stdOutContained('[mock-artifact-engine] processItems'),
             'should invoke processItems before failing');
+        assert(runner.stdOutContained('##vso[task.issue type=error'),
+            'should surface the backend error via tl.error / task.issue');
+        assert(runner.stdOutContained('##vso[task.complete result=Failed'),
+            'should mark the task Failed (not crash or complete Succeeded)');
+        assert(runner.stdOutContained('404 - Build not found'),
+            'should propagate the actual 404 error message from artifact-engine, not a different failure path');
     });
 
     it('fails when TeamCity returns 401 auth error', async function () {
         const runner = newRunner('fail401AuthFailure');
         await runAndDump(runner, NODE_VERSION);
         if (runner.succeeded) fail(runner, 'expected task to fail with 401');
+
+        assert(runner.stdOutContained('[mock-artifact-engine] processItems'),
+            'should invoke processItems before failing');
+        assert(runner.stdOutContained('##vso[task.issue type=error'),
+            'should surface the backend error via tl.error / task.issue');
+        assert(runner.stdOutContained('##vso[task.complete result=Failed'),
+            'should mark the task Failed (not crash or complete Succeeded)');
+        assert(runner.stdOutContained('401 - Unauthorized'),
+            'should propagate the actual 401 error message from artifact-engine, not a different failure path');
     });
 
     it('fails when required "connection" input is missing', async function () {

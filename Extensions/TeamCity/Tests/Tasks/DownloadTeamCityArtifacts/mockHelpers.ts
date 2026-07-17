@@ -67,15 +67,6 @@ export function setEndpointAuth(username?: string, password?: string): void {
     process.env['ENDPOINT_AUTH_PARAMETER_' + endpoint + '_PASSWORD'] = p;
 }
 
-export function clearEndpointAuth(): void {
-    const endpoint = CONNECTION_ID;
-    delete process.env['ENDPOINT_URL_' + endpoint];
-    delete process.env['ENDPOINT_AUTH_' + endpoint];
-    delete process.env['ENDPOINT_AUTH_SCHEME_' + endpoint];
-    delete process.env['ENDPOINT_AUTH_PARAMETER_' + endpoint + '_USERNAME'];
-    delete process.env['ENDPOINT_AUTH_PARAMETER_' + endpoint + '_PASSWORD'];
-}
-
 // -- Module mocks --------------------------------------------------------------
 
 export function registerAllMocks(tr: tmrm.TaskMockRunner, options?: ScenarioOptions): void {
