@@ -88,11 +88,8 @@ extends:
             command: install
             verbose: false
 
-        - task: Npm@1
-          displayName: 'Install TFX CLI'
-          inputs:
-            command: custom
-            customCommand: 'install -g tfx-cli --registry https://pkgs.dev.azure.com/mseng/PipelineTools/_packaging/PipelineTools_PublicPackages/npm/registry/'
+        - script: echo "##vso[task.prependpath]$(Build.SourcesDirectory)/node_modules/.bin"
+          displayName: 'Add node_modules/.bin to PATH'
 
         - task: Npm@1
           displayName: 'Install Gulp CLI'
@@ -201,10 +198,12 @@ extends:
             workingFile: '$(Build.SourcesDirectory)/.npmrc'
 
         - task: Npm@1
-          displayName: 'Install TFX CLI'
+          displayName: 'Install dependencies'
           inputs:
-            command: custom
-            customCommand: 'install -g tfx-cli --registry https://pkgs.dev.azure.com/mseng/PipelineTools/_packaging/PipelineTools_PublicPackages/npm/registry/'
+            command: 'ci'
+
+        - script: echo "##vso[task.prependpath]$(Build.SourcesDirectory)/node_modules/.bin"
+          displayName: 'Add node_modules/.bin to PATH'
 
         - task: AzureCLI@2
           displayName: 'Publish all test extensions (unsigned)'
