@@ -49,8 +49,17 @@ export function setTowerEnvironment(options?: {
     password?: string;
     url?: string;
 }): void {
-    process.env['ENDPOINT_AUTH_PARAMETER_' + EndpointId + '_USERNAME'] = (options && options.username) || 'DummyUser';
-    process.env['ENDPOINT_AUTH_PARAMETER_' + EndpointId + '_PASSWORD'] = (options && options.password) || 'DummyPassword';
+    const username = (options && options.username) || 'DummyUser';
+    const password = (options && options.password) || 'DummyPassword';
+
+    process.env['ENDPOINT_AUTH_PARAMETER_' + EndpointId + '_USERNAME'] = username;
+    process.env['ENDPOINT_AUTH_PARAMETER_' + EndpointId + '_PASSWORD'] = password;
+    process.env['ENDPOINT_AUTH_' + EndpointId] = JSON.stringify({
+        parameters: {
+            username: username,
+            password: password
+        }
+    });
     process.env['ENDPOINT_URL_' + EndpointId] = (options && options.url) || 'true dummy host';
 }
 
