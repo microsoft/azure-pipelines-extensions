@@ -7,7 +7,7 @@ var realFs = require("node:fs");
 
 import * as assert from 'assert';
 
-import * as httpm from '../Providers/typed-rest-client/HttpClient';
+import * as httpm from 'typed-rest-client/HttpClient';
 import * as models from '../Models';
 libMocker.registerMock('fs', {
     statSync: () => {
@@ -132,6 +132,43 @@ describe('Unit Tests', () => {
             getArtifactItemPromise.then(() => {
                 assert.strictEqual(stubResponse.message.pipe.callCount, 1);
                 assert.strictEqual(stubResponse.message.pipe.args[0][0].constructor.name, 'Unzip');
+                done();
+            }, (err) => {
+                throw err;
+            });
+        });
+    });
+
+    describe('webProvider request header tests', () => {
+
+        it('getArtifactItem should send Accept-Encoding: gzip when requestCompressionForDownloads is enabled', (done) => {
+            var compressProvider = new providers.WebProvider("", "", {}, sinon.spy(), { requestCompressionForDownloads: true } as any);
+            var compressGetStub = sinon.stub(compressProvider.webClient, 'get').returns(new Promise<httpm.HttpClientResponse>((resolve) => { resolve(stubResponse); }));
+
+            compressProvider.getArtifactItem(artifactItem).then(() => {
+                assert.strictEqual(compressGetStub.callCount, 1);
+                assert.strictEqual(compressGetStub.args[0][1]['Accept-Encoding'], 'gzip');
+                done();
+            }, (err) => {
+                throw err;
+            });
+        });
+
+        it('getArtifactItem should not send Accept-Encoding when requestCompressionForDownloads is disabled', (done) => {
+            // webProvider (from beforeEach) is constructed without requestOptions => compression disabled
+            webProvider.getArtifactItem(artifactItem).then(() => {
+                assert.strictEqual(getStub.args[0][1]['Accept-Encoding'], undefined);
+                done();
+            }, (err) => {
+                throw err;
+            });
+        });
+
+        it('getArtifactItem should send the Accept header from the artifact contentType', (done) => {
+            artifactItem.contentType = 'application/octet-stream';
+
+            webProvider.getArtifactItem(artifactItem).then(() => {
+                assert.strictEqual(getStub.args[0][1]['Accept'], 'application/octet-stream');
                 done();
             }, (err) => {
                 throw err;

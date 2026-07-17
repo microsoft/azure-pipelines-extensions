@@ -5,7 +5,7 @@ import * as fs from 'fs'
 import * as engine from "../Engine"
 import * as providers from "../Providers"
 
-import { BasicCredentialHandler } from "../Providers/typed-rest-client/handlers/basiccreds";
+import { BasicCredentialHandler } from "typed-rest-client/handlers/basiccreds";
 
 var nconf = require('nconf');
 var tl = require('azure-pipelines-task-lib/task');

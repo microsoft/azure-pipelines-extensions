@@ -1,7 +1,7 @@
 {
   "manifestVersion": 1.0,
   "id": "vss-services-externaltfs",
-  "version": "16.276.0",
+  "version": "16.277.0",
   "name": "TFS artifacts for Release Management",
   "publisher": "ms-vscs-rm",
   "description": "Deploy external TFS/ Azure DevOps artifacts using Release Management",
@@ -20,13 +20,10 @@
   },
   "screenshots": [
     {
-      "path": "images/screen1.png"
+      "path": "images/download-artifacts-external-build.png"
     },
     {
-      "path": "images/screen2.png"
-    },
-    {
-      "path": "images/screen3.png"
+      "path": "images/download-artifacts-external-tfs-git.png"
     }
   ],
   "content": {
@@ -39,19 +36,24 @@
     },
   "files": [
     {
-       "path": "images/screen1.png",
+       "path": "images/add-an-artifact.png",
        "addressable": true
     },
     {
-       "path": "images/screen2.png",
+       "path": "images/download-artifacts-external-build.png",
        "addressable": true
     },
     {
-       "path": "images/screen3.png",
+       "path": "images/download-artifacts-external-tfs-git.png",
        "addressable": true
     },
     {
-       "path": "Tasks/DownloadArtifactsTfsVersionControl"
+       "path": "images/new-service-connection.png",
+       "addressable": true
+    },
+    {
+       "path": "images/new-tfs-sc.png",
+       "addressable": true
     },
     {
        "path": "Tasks/DownloadArtifactsTfsGit"
@@ -241,160 +243,6 @@
       ],
       "properties": {
         "name": "Tasks/DownloadExternalBuildArtifacts"
-        }
-    },
-    {
-        "id": "externalTFVC-release-artifact-type",
-        "description": "External TFS Version Control",
-        "_description.comment": "Don't Localize the word 'TFS Version Control'",
-        "type": "ms.vss-releaseartifact.release-artifact-type",
-        "targets": [ "ms.vss-releaseartifact.artifact-types" ],
-        "properties": {
-            "name": "ExternalTfvc",
-            "displayName": "External TFS Version Control",
-            "_displayName.comment": "Don't Localize the word 'TFS Version Control'",
-            "endpointTypeId": "ExternalTFS",
-            "uniqueSourceIdentifier": "{{{connection}}}:{{{project}}}:{{{definition}}}",
-            "downloadTaskId": "f77a5e28-640e-4250-aa3a-174fa697a658",
-            "artifactType": "SourceControl",
-            "inputDescriptors": [
-                {
-                    "id": "connection",
-                    "name": "Service Endpoint",
-                    "description": "Service Endpoint Id",
-                    "inputMode": "Combo",
-                    "isConfidential": false,
-                    "hasDynamicValueInformation": true,
-                    "validation": {
-                        "isRequired": true,
-                        "dataType": "string",
-                        "maxLength": 300
-                    }
-                },
-                {
-                    "id": "project",
-                    "name": "Project",
-                    "description": "Projects",
-                    "inputMode": "Combo",
-                    "isConfidential": false,
-                    "hasDynamicValueInformation": true,
-                    "dependencyInputIds": [
-                        "connection"
-                    ],
-                    "validation": {
-                        "isRequired": true,
-                        "dataType": "string",
-                        "maxLength": 300
-                    }
-                },
-                {
-                    "id": "definition",
-                    "name": "Source (repository)",
-                    "description": "Repository to pull",
-                    "inputMode": "Combo",
-                    "isConfidential": false,
-                    "hasDynamicValueInformation": true,
-                    "dependencyInputIds": [
-                        "connection",
-                        "project"
-                    ],
-                    "validation": {
-                        "isRequired": true,
-                        "dataType": "string",
-                        "maxLength": 300
-                    }
-                },
-                {
-                  "id": "defaultVersionType",
-                  "name": "Default version",
-                  "description": "The default version will be deployed when new releases are created. The version can be changed for manually created releases at the time of release creation",
-                  "inputMode": "Combo",
-                  "isConfidential": false,
-                  "hasDynamicValueInformation": false,
-                  "values": {
-                    "inputId": "defaultVersionTypeValues",
-                    "defaultValue": "latestType",
-                    "possibleValues": [
-                      {
-                        "value": "latestType",
-                        "displayValue": "Latest"
-                      },
-                      {
-                        "value": "selectDuringReleaseCreationType",
-                        "displayValue": "Specify at the time of release creation"
-                      }
-                    ],
-                    "isLimitedToPossibleValues": true
-                  },
-                  "validation": {
-                    "isRequired": true,
-                    "dataType": "string"
-                  }
-                },
-                {
-                    "id": "artifacts",
-                    "name": "Artifacts",
-                    "description": "Source Artifacts",
-                    "inputMode": "none",
-                    "isConfidential": false,
-                    "hasDynamicValueInformation": true,
-                    "dependencyInputIds": [
-                        "connection",
-                        "project",
-                        "definition"
-                    ],
-                    "validation": {
-                        "isRequired": false,
-                        "dataType": "string",
-                        "maxLength": 300
-                    }
-                }
-            ],
-            "dataSourceBindings": [
-                {
-                    "target": "project",
-                    "dataSourceName": "Projects",
-                    "resultTemplate": "{ Value : \"{{{id}}}\", DisplayValue : \"{{{name}}}\" }"
-                },
-                {
-                    "target": "definition",
-                    "dataSourceName": "TfvcProjects",
-                    "resultTemplate": "{ Value : \"{{#if supportsTFVC}}{{{project.id}}}{{else}}{{/if}}\", DisplayValue : \"{{#if supportsTFVC}}$/{{{project.name}}}{{else}}{{/if}}\" }"
-                },
-                {
-                    "target": "versions",
-                    "dataSourceName": "TfvcChangesets",
-                    "resultTemplate": "{ Value : \"{{{changesetId}}}\", DisplayValue : \"Changeset {{{changesetId}}}\" }"
-                },
-                {
-                    "target": "latestVersion",
-                    "dataSourceName": "TfvcLatestChangeset",
-                    "resultTemplate": "{ Value : \"{{{changesetId}}}\", DisplayValue : \"Changeset {{{changesetId}}}\" }"
-                },
-                {
-                    "target": "artifacts",
-                    "dataSourceName": "TfvcArtifacts",
-                    "resultTemplate": "{ Value : \"{{{ #regex ([^/]*$) path}}}\", DisplayValue : \"{{{ #regex ([^/]*$) path}}}\", data: { artifactType: \"source\" } }"
-                },
-                {
-                    "target": "artifactItems",
-                    "dataSourceName": "TfvcArtifactItems",
-                    "resultTemplate": "{ Value : \"{{{ #stringReplace sourceName '' path}}}\", DisplayValue : \"{{{ #stringReplace sourceName '' path}}}\", data: { itemType: \"{{#if isFolder}}folder{{else}}file{{/if}}\" } }"
-                }
-            ],
-            "browsableArtifactTypeMapping": {
-                "source": "artifactItems"
-            }
-        }
-    },
-    {
-      "id": "externalTfvc-task",
-      "type": "ms.vss-distributed-task.task",
-      "targets": [
-        "ms.vss-distributed-task.tasks"
-      ],
-      "properties": {
-        "name": "Tasks/DownloadArtifactsTfsVersionControl"
         }
     },
     {

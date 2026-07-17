@@ -19,6 +19,7 @@ extends:
   parameters:
     settings:
       skipBuildTagsForGitHubPullRequests: true
+      networkIsolationPolicy: Permissive,CFSClean,CFSClean2
     featureFlags:
         autoBaseline: false
     sdl:
