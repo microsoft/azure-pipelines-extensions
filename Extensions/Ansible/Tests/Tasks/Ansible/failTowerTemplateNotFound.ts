@@ -4,6 +4,6 @@ const runner = createRunner();
 configureBaseTower(runner);
 setTowerEnvironment();
 
-getMockUtils().setMockTowerTemplate(200, false);
+getMockUtils().setMockTowerTemplate(404, false);
 
 runner.run();
