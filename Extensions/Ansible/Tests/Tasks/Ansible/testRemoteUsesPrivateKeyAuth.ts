@@ -5,7 +5,7 @@ configureBaseRemoteMachine(runner);
 
 setSshEndpointEnvironment({
     password: 'passphrase',
-    privateKey: '-----BEGIN PRIVATE KEY-----\nabc\n-----END PRIVATE KEY-----'
+    privateKey: 'mock-private-key'
 });
 
 runner.run();
