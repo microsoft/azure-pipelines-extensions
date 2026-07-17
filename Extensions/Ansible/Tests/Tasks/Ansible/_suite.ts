@@ -90,10 +90,14 @@ function ensureTaskMainJs(): void {
     }
 }
 
-const nodeVersions = getDeclaredNodeVersions().filter((v) => v >= 20);
+const nodeVersions = getDeclaredNodeVersions();
 
 describe('Ansible Suite', function () {
     this.timeout(120000);
+
+    it('discovers at least one declared Node handler', function () {
+        assert(nodeVersions.length > 0, 'expected at least one Node handler in task.json execution block');
+    });
 
     before(function () {
         ensureTaskMainJs();
