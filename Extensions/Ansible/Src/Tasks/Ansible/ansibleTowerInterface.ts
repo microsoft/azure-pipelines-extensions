@@ -89,9 +89,9 @@ export class ansibleTowerInterface extends ansibleInterface {
         request.method = 'GET';
         request.uri = util.format(this._jobTemplateIdUrlFormat, this._hostname, this._jobTemplateName);
         request.headers = this.getBasicRequestHeader();
-        
+
         var response = await beginRequest(request);
-        if (response.statusCode === 200) {
+        if (response.statusCode === 200 && response.body && response.body['results'] && response.body['results'].length > 0) {
             jobTemplateId = response.body['results'][0]['id'];
         } else {
             throw (tl.loc('JobTemplateNotPresent', this._jobTemplateName));
@@ -105,7 +105,7 @@ export class ansibleTowerInterface extends ansibleInterface {
         request.method = 'GET';
         request.uri = this.getJobApi(jobId);
         request.headers = this.getBasicRequestHeader();
-        
+
         var response = await beginRequest(request);
         if (response.statusCode === 200) {
             status = response.body['status'];
