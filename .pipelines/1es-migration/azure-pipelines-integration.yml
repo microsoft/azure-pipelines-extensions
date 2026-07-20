@@ -88,7 +88,9 @@ extends:
             command: install
             verbose: false
 
-        - script: echo "##vso[task.prependpath]$(Build.SourcesDirectory)/node_modules/.bin"
+        - pwsh: |
+            $binPath = Join-Path "$(Build.SourcesDirectory)" "node_modules" ".bin"
+            Write-Host "##vso[task.prependpath]$binPath"
           displayName: 'Add node_modules/.bin to PATH'
 
         - script: gulp detectChangedExtensions
@@ -196,7 +198,9 @@ extends:
           inputs:
             command: 'ci'
 
-        - script: echo "##vso[task.prependpath]$(Build.SourcesDirectory)/node_modules/.bin"
+        - pwsh: |
+            $binPath = Join-Path "$(Build.SourcesDirectory)" "node_modules" ".bin"
+            Write-Host "##vso[task.prependpath]$binPath"
           displayName: 'Add node_modules/.bin to PATH'
 
         - task: AzureCLI@2
