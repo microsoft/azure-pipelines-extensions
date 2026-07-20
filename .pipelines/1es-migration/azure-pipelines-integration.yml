@@ -91,12 +91,6 @@ extends:
         - script: echo "##vso[task.prependpath]$(Build.SourcesDirectory)/node_modules/.bin"
           displayName: 'Add node_modules/.bin to PATH'
 
-        - task: Npm@1
-          displayName: 'Install Gulp CLI'
-          inputs:
-            command: custom
-            customCommand: 'install -g gulp-cli --registry https://pkgs.dev.azure.com/mseng/PipelineTools/_packaging/PipelineTools_PublicPackages/npm/registry/'
-
         - script: gulp detectChangedExtensions
           name: DetectExtensions
           displayName: 'Auto-detect changed extensions'
