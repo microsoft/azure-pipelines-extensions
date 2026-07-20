@@ -88,18 +88,6 @@ extends:
             command: install
             verbose: false
 
-        - task: Npm@1
-          displayName: 'Install TFX CLI'
-          inputs:
-            command: custom
-            customCommand: 'install -g tfx-cli --registry https://pkgs.dev.azure.com/mseng/PipelineTools/_packaging/PipelineTools_PublicPackages/npm/registry/'
-
-        - task: Npm@1
-          displayName: 'Install Gulp CLI'
-          inputs:
-            command: custom
-            customCommand: 'install -g gulp-cli --registry https://pkgs.dev.azure.com/mseng/PipelineTools/_packaging/PipelineTools_PublicPackages/npm/registry/'
-
         - script: gulp detectChangedExtensions
           name: DetectExtensions
           displayName: 'Auto-detect changed extensions'
@@ -201,10 +189,9 @@ extends:
             workingFile: '$(Build.SourcesDirectory)/.npmrc'
 
         - task: Npm@1
-          displayName: 'Install TFX CLI'
+          displayName: 'Install dependencies'
           inputs:
-            command: custom
-            customCommand: 'install -g tfx-cli --registry https://pkgs.dev.azure.com/mseng/PipelineTools/_packaging/PipelineTools_PublicPackages/npm/registry/'
+            command: 'ci'
 
         - task: AzureCLI@2
           displayName: 'Publish all test extensions (unsigned)'

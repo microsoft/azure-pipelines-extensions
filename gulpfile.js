@@ -4,7 +4,6 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const { parseArgs } = require('node:util');
-//test
 // build/test script
 const admZip = require('adm-zip');
 const shell = require('shelljs');
