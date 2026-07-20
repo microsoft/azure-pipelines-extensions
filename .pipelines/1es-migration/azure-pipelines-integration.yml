@@ -88,6 +88,9 @@ extends:
             command: install
             verbose: false
 
+        - script: echo "##vso[task.prependpath]$(Build.SourcesDirectory)/node_modules/.bin"
+          displayName: 'Add node_modules/.bin to PATH'
+
         - script: gulp detectChangedExtensions
           name: DetectExtensions
           displayName: 'Auto-detect changed extensions'
@@ -192,6 +195,9 @@ extends:
           displayName: 'Install dependencies'
           inputs:
             command: 'ci'
+
+        - script: echo "##vso[task.prependpath]$(Build.SourcesDirectory)/node_modules/.bin"
+          displayName: 'Add node_modules/.bin to PATH'
 
         - task: AzureCLI@2
           displayName: 'Publish all test extensions (unsigned)'
