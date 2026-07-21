@@ -26,7 +26,7 @@
     "@types/validator": "^5.7.35",
     "@types/xml2js": "^0.4.14",
     "adm-zip": "0.4.11",
-    "azure-pipelines-task-lib": "^5.2.10",
+    "azure-pipelines-task-lib": "5.2.8",
     "gulp": "^5.0.1",
     "gulp-mocha": "^10.0.1",
     "gulp-typescript": "^5.0.1",
