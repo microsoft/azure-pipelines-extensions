@@ -9,15 +9,15 @@
         "Build",
         "Release"
     ],
-	"runsOn": [
+    "runsOn": [
         "Agent",
         "DeploymentGroup"
     ],
     "author": "Microsoft Corporation",
     "version": {
         "Major": 0,
-        "Minor": 277,
-        "Patch": 4
+        "Minor": 278,
+        "Patch": 10
     },
     "demands": [],
     "instanceNameFormat": "Run playbook",
@@ -68,7 +68,7 @@
         {
             "name": "connectionOverSsh",
             "type": "connectedService:ssh",
-             "label": "Ansible SSH endpoint",
+            "label": "Ansible SSH endpoint",
             "defaultValue": "",
             "required": true,
             "visibleRule": "ansibleInterface = remoteMachine",
@@ -300,7 +300,7 @@
         {
             "name": "connectionAnsibleTower",
             "type": "connectedService:AnsibleTower",
-             "label": "Tower endpoint",
+            "label": "Tower endpoint",
             "defaultValue": "",
             "required": true,
             "visibleRule": "ansibleInterface = ansibleTower",
