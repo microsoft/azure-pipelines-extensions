@@ -16,8 +16,8 @@
     "author": "Microsoft Corporation",
     "version": {
         "Major": 0,
-        "Minor": 277,
-        "Patch": 4
+        "Minor": 278,
+        "Patch": 0
     },
     "demands": [],
     "instanceNameFormat": "Run playbook",
