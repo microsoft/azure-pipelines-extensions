@@ -184,8 +184,8 @@ function Add-SslCert
 
         $result = Invoke-VstsTool -Filename "netsh" -Arguments $showCertCmd
         $bindingPattern = "Hostname:port\s*:\s*([^:\s]+):(\d+)"
-        $certHashPattern = "Certificate Hash\s*:\s*([a-fA-F0-9]+)"
-        
+        $certHashPattern = "(Certificate Hash|Zertifikathash)\s*:\s*([a-fA-F0-9]+)"
+
         $resultText = $result -join "`n"
         
         if($resultText -match $bindingPattern)
@@ -896,4 +896,5 @@ function Invoke-Main
 
     Invoke-AdditionalCommand -additionalCommands $AppCmdCommands
     Write-Verbose "Exiting Execute-Main function"
+
 }
