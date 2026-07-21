@@ -268,3 +268,5 @@ main()
         publishEvent('reliability', { issueType: 'error', errorMessage: JSON.stringify(err, Object.getOwnPropertyNames(err)) });
         tl.setResult(tl.TaskResult.Failed, err)
     });
+
+    //test comment
