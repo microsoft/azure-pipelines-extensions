@@ -1,13 +1,15 @@
 import path = require("path");
+
 import tl = require("azure-pipelines-task-lib/task");
-import {ansibleInterface}  from './ansibleInterface';
-import {ansibleCommandLineInterface} from './ansibleCommandLineInterface';
-import {ansibleRemoteMachineInterface} from './ansibleRemoteMachineInterface';
-import {ansibleTowerInterface} from './ansibleTowerInterface';
-import {ansibleTaskParameters} from './ansibleTaskParameters';
+
+import { ansibleInterface } from './ansibleInterface';
+import { ansibleCommandLineInterface } from './ansibleCommandLineInterface';
+import { ansibleRemoteMachineInterface } from './ansibleRemoteMachineInterface';
+import { ansibleTowerInterface } from './ansibleTowerInterface';
+import { ansibleTaskParameters } from './ansibleTaskParameters';
 
 try {
-tl.setResourcePath(path.join(__dirname, "task.json"));
+    tl.setResourcePath(path.join(__dirname, "task.json"));
 } catch (error) {
     tl.setResult(tl.TaskResult.Failed, error);
 }
@@ -22,6 +24,7 @@ export class ansibleCommandLineInterfaceFactory {
         }
     }
 }
+
 export class ansibleInterfaceFactory {
     public static GetAnsibleInterface(params: ansibleTaskParameters): ansibleInterface {
         if (params.ansibleInterface != 'ansibleTower') {
@@ -34,8 +37,9 @@ export class ansibleInterfaceFactory {
 
 function run() {
     try {
-        var params:ansibleTaskParameters = ansibleTaskParameters.getInstance();
-        var ansibleInterface: ansibleInterface = ansibleInterfaceFactory.GetAnsibleInterface(params);
+        const params: ansibleTaskParameters = ansibleTaskParameters.getInstance();
+        const ansibleInterface: ansibleInterface = ansibleInterfaceFactory.GetAnsibleInterface(params);
+
         if (ansibleInterface) {
             ansibleInterface.execute();
         } else {
@@ -45,6 +49,5 @@ function run() {
         tl.setResult(tl.TaskResult.Failed, error);
     }
 }
-
 
 run();

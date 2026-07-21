@@ -1,10 +1,30 @@
-import tl = require("azure-pipelines-task-lib/task");
-import path = require("path");
 import querystring = require('querystring');
 import util = require("util");
 
+import tl = require("azure-pipelines-task-lib/task");
+
 import { ansibleInterface } from './ansibleInterface';
-import {WebRequest, WebResponse, beginRequest} from './ansibleUtils';
+import { WebRequest, beginRequest } from './ansibleUtils';
+
+interface JobEventResult {
+    counter: number;
+    stdout: string;
+}
+
+interface JobEventResponse {
+    results: JobEventResult[];
+    next: string | null;
+}
+
+interface JobTemplateResponse {
+    results: {
+        id: string
+    }[];
+}
+
+interface JobStatusResponse {
+    status: string;
+}
 
 export class ansibleTowerInterface extends ansibleInterface {
     constructor() {
@@ -16,35 +36,36 @@ export class ansibleTowerInterface extends ansibleInterface {
         try {
             this._jobTemplateId = await this.getJobTemplateId();
 
-            var jobId = await this.launchJob();
-            var status = await this.updateRunningStatusAndLogs(jobId);
-            if (status === 'successful')
+            const jobId = await this.launchJob();
+            const status = await this.updateRunningStatusAndLogs(jobId);
+
+            if (status === 'successful') {
                 tl.setResult(tl.TaskResult.Succeeded, "");
-            else if (status === 'failed')
+            } else if (status === 'failed') {
                 tl.setResult(tl.TaskResult.Failed, "");
-        }
-        catch (error) {
+            }
+        } catch (error) {
             tl.setResult(tl.TaskResult.Failed, error);
         }
     }
 
     private initializeTaskContants() {
         try {
-            var connectedService = tl.getInput("connectionAnsibleTower", true);
-            var endpointAuth = tl.getEndpointAuthorization(connectedService, true);
-            this._username = endpointAuth.parameters["username"];
-            this._password = endpointAuth.parameters["password"];
+            const connectedService = tl.getInputRequired("connectionAnsibleTower");
+            const endpointAuth = tl.getEndpointAuthorization(connectedService, true);
+
+            this._username = endpointAuth?.parameters["username"];
+            this._password = endpointAuth?.parameters["password"];
             this._hostname = tl.getEndpointUrl(connectedService, true);
 
             // Register credentials with the log masker so they are redacted in pipeline logs
             try {
+                // @ts-ignore setSecret correctly handles undefined/null values
                 tl.setSecret(this._password);
             } catch {
                 tl.warning('Failed to mask Ansible Tower password for log redaction.');
             }
-            this._jobTemplateName = tl.getInput("jobTemplateName");
-            this._lastPolledEvent = 0;
-
+            this._jobTemplateName = tl.getInputRequired("jobTemplateName");
         } catch (error) {
             tl.setResult(tl.TaskResult.Failed, tl.loc("Ansible_ConstructorFailed", error.message));
         }
@@ -55,87 +76,81 @@ export class ansibleTowerInterface extends ansibleInterface {
     }
 
     private getBasicRequestHeader(): any {
-        var authToken = Buffer.from(this._username + ":" + this._password).toString('base64');
+        const authToken = Buffer.from(this._username + ":" + this._password).toString('base64');
+
         try {
             tl.setSecret(authToken);
         } catch {
             tl.warning('Failed to mask auth token for log redaction.');
         }
-        var requestHeader: any = {
+
+        return {
             "Authorization": "Basic " + authToken
         };
-        return requestHeader;
     }
 
-    private getJobLaunchApi(): string {
-        var ansibleJobLaunchUrl: string = util.format(this._jobLaunchUrlFormat, this._hostname, this._jobTemplateId);
-        return ansibleJobLaunchUrl;
+    private getJobLaunchApi() {
+        return util.format(this._jobLaunchUrlFormat, this._hostname, this._jobTemplateId);
     }
 
     private getJobApi(jobId: string): string {
-        var ansibleJobUrl: string = util.format(this._jobUrlFormat, this._hostname, jobId);
-        return ansibleJobUrl;
+        return util.format(this._jobUrlFormat, this._hostname, jobId);
     }
 
     private getJobEventApi(jobId: string, pageSize: number, pageNumber: number): string {
-        var ansibleJobEventUrl: string = util.format(this._jobEventUrlFormat, this._hostname, jobId, pageSize, pageNumber);
-        return ansibleJobEventUrl;
+        return util.format(this._jobEventUrlFormat, this._hostname, jobId, pageSize, pageNumber);
     }
 
     private async getJobTemplateId(): Promise<string> {
-
-        var jobTemplateId: string = null;
-        var request = new WebRequest();
+        const request = new WebRequest();
         request.method = 'GET';
         request.uri = util.format(this._jobTemplateIdUrlFormat, this._hostname, this._jobTemplateName);
         request.headers = this.getBasicRequestHeader();
 
-        var response = await beginRequest(request);
-        if (response.statusCode === 200 && response.body && response.body['results'] && response.body['results'].length > 0) {
-            jobTemplateId = response.body['results'][0]['id'];
-        } else {
+        const response = await beginRequest<JobTemplateResponse>(request);
+
+        if (response.statusCode !== 200 || !response.body?.['results']?.[0]) {
             throw (tl.loc('JobTemplateNotPresent', this._jobTemplateName));
         }
-        return jobTemplateId;
+
+        return response.body!['results'][0]['id'];
     }
 
     private async getJobStatus(jobId: string): Promise<string> {
-        var status: string = null;
-        var request = new WebRequest();
+        const request = new WebRequest();
         request.method = 'GET';
         request.uri = this.getJobApi(jobId);
         request.headers = this.getBasicRequestHeader();
 
-        var response = await beginRequest(request);
-        if (response.statusCode === 200) {
-            status = response.body['status'];
-        } else {
+        const response = await beginRequest<JobStatusResponse>(request);
+
+        if (response.statusCode !== 200) {
             throw (tl.loc('FailedToGetJobDetails', response.statusCode, response.statusMessage));
         }
-        return status;
+
+        return response.body!['status'];
     }
 
     private async getJobEvents(jobId: string, lastDisplayedEvent: number): Promise<string[]> {
-        var stdoutArray: string[] = [];
-        var pageSize = 10;
-        var pageNumber = Math.floor(lastDisplayedEvent / pageSize + 1);
-        var request = new WebRequest();
+        const stdoutArray: string[] = [];
+        const pageSize = 10;
+        const pageNumber = Math.floor(lastDisplayedEvent / pageSize + 1);
+        const request = new WebRequest();
         request.method = 'GET';
         request.headers = this.getBasicRequestHeader();
-        var jobEventUrl = this.getJobEventApi(jobId, pageSize, pageNumber);
+        let jobEventUrl: string | null = this.getJobEventApi(jobId, pageSize, pageNumber);
 
         while (jobEventUrl) {
             request.uri = jobEventUrl;
-            var response = await beginRequest(request);
+            const response = await beginRequest<JobEventResponse>(request);
             if (response.statusCode === 200) {
-                var totalEvents = response.body['count'];
-                var results: any[] = response.body['results'];
-                var nextPageUrl = response.body['next'];
+                const results: JobEventResult[] = response.body!['results'];
+                const nextPageUrl = response.body!['next'];
                 results.forEach((event) => {
                     if (event['counter'] > lastDisplayedEvent)
                         stdoutArray[event['counter']] = event['stdout'];
                 });
-                jobEventUrl = (nextPageUrl != null) ? (this._hostname + nextPageUrl) : null;
+                jobEventUrl = (nextPageUrl != null) ? (this._hostname! + nextPageUrl) : null;
             } else {
                 throw (tl.loc('FailedToGetJobDetails', response.statusCode, response.statusMessage));
             }
@@ -150,15 +165,16 @@ export class ansibleTowerInterface extends ansibleInterface {
     }
 
     private async updateRunningStatusAndLogs(jobId: string): Promise<string> {
-        var waitTimeInSeconds = 10;
-        var timeElapsed = 0;
-        var longRunningJobThreshold = 300;
-        var lastDisplayedEvent = 0;
-        var status: string = "";
+        let waitTimeInSeconds = 10;
+        let timeElapsed = 0;
+        const longRunningJobThreshold = 300;
+        let lastDisplayedEvent = 0;
+        let status = "";
+
         while (true) {
             status = await this.getJobStatus(jobId);
             if (status !== 'pending') {
-                var events = await this.getJobEvents(jobId, lastDisplayedEvent);
+                const events = await this.getJobEvents(jobId, lastDisplayedEvent);
                 events.forEach((value, index) => {
                     lastDisplayedEvent = index;
                     console.log(value);
@@ -181,39 +197,35 @@ export class ansibleTowerInterface extends ansibleInterface {
     }
 
     private async launchJob(): Promise<string> {
-        var jobId: string = null;
-        var request = new WebRequest();
+        const request = new WebRequest();
         request.method = 'POST';
         request.uri = this.getJobLaunchApi();
         request.body = this.getEmptyRequestData();
         request.headers = this.getBasicRequestHeader();
 
-        var response = await beginRequest(request);
+        const response = await beginRequest<{ id: string }>(request);
 
-        if (response.statusCode === 201) {
-            jobId = response.body['id'];
-        } else {
+        if (response.statusCode !== 201 || !response.body) {
             throw (tl.loc('CouldnotLaunchJob', response.statusCode, response.statusMessage));
         }
-        return jobId;
+
+        return response.body['id'];
     }
 
-    private sleepFor(sleepDurationInSeconds): Promise<any> {
-        return new Promise((resolve, reeject) => {
+    private sleepFor(sleepDurationInSeconds: number): Promise<any> {
+        return new Promise(resolve => {
             setTimeout(resolve, sleepDurationInSeconds * 1000);
         });
     }
 
-    private _jobLaunchUrlFormat: string = "%s/api/v1/job_templates/%s/launch/";
-    private _jobUrlFormat: string = "%s/api/v1/jobs/%s/";
-    private _jobEventUrlFormat: string = "%s/api/v1/jobs/%s/job_events/?page_size=%s&page=%s";
-    private _jobTemplateIdUrlFormat: string = "%s/api/v1/job_templates/?name__exact=%s";
+    private _jobLaunchUrlFormat = "%s/api/v1/job_templates/%s/launch/";
+    private _jobUrlFormat = "%s/api/v1/jobs/%s/";
+    private _jobEventUrlFormat = "%s/api/v1/jobs/%s/job_events/?page_size=%s&page=%s";
+    private _jobTemplateIdUrlFormat = "%s/api/v1/job_templates/?name__exact=%s";
 
-    private _connectedService: string;
-    private _jobTemplateName: string;
-    private _jobTemplateId: string;
-    private _username: string;
-    private _password: string;
-    private _hostname: string;
-    private _lastPolledEvent: number;
+    private _jobTemplateName: string | undefined;
+    private _jobTemplateId = "";
+    private _username: string | undefined;
+    private _password: string | undefined;
+    private _hostname: string | undefined;
 }
