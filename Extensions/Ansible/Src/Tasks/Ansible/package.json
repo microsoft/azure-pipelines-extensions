@@ -6,7 +6,6 @@
   "author": "Microsoft",
   "license": "ISC",
   "dependencies": {
-    "@types/ssh2-sftp-client": "5.2.0",
     "azure-pipelines-task-lib": "5.2.8",
     "shell-quote": "^1.8.4",
     "shelljs": "^0.10.0",
@@ -16,10 +15,13 @@
     "vso-node-api": "6.0.1-preview"
   },
   "overrides": {
-    "underscore": "1.13.8",
-    "picomatch": "2.3.2"
+    "adm-zip": "0.6.0"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "devDependencies": {
+    "@types/q": "^1.5.8",
+    "@types/ssh2-sftp-client": "^9.0.6"
   }
 }
