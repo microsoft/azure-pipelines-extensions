@@ -91,7 +91,7 @@ function Configure-WinRMHttpsListener
             throw "File not found: makecert.exe"
         }
 
-        .\makecert -r -pe -n CN=$hostname -b 01/01/2012 -e 01/01/2022 -eku 1.3.6.1.5.5.7.3.1 -ss my -sr localmachine -sky exchange -sp "Microsoft RSA SChannel Cryptographic Provider" -sy 12
+        .\makecert -r -pe -n CN=$hostname -b 01/01/2012 -e 01/01/2032 -eku 1.3.6.1.5.5.7.3.1 -ss my -sr localmachine -sky exchange -sp "Microsoft RSA SChannel Cryptographic Provider" -sy 12
         $thumbprint=(Get-ChildItem cert:\Localmachine\my | Where-Object { $_.Subject -eq "CN=" + $hostname } | Select-Object -Last 1).Thumbprint
 
         if(-not $thumbprint)
@@ -141,7 +141,7 @@ if(-not (Is-InputValid))
 }
 
 netsh advfirewall firewall set rule group="File and Printer Sharing" new enable=yes
-winrm quickconfig
+winrm quickconfig -quiet
 
 # The default MaxEnvelopeSizekb on Windows Server is 500 Kb which is very less. It needs to be at 8192 Kb. The small envelop size if not changed
 # results in WS-Management service responding with error that the request size exceeded the configured MaxEnvelopeSize quota.
