@@ -115,17 +115,10 @@ extends:
             command: install
             verbose: false
 
-        - task: Npm@1
-          displayName: 'Install TFX CLI (needed for publishing on Marketplace)'
-          inputs:
-            command: custom
-            customCommand: 'install -g tfx-cli --registry https://pkgs.dev.azure.com/mseng/PipelineTools/_packaging/PipelineTools_PublicPackages/npm/registry/'
-
-        - task: Npm@1
-          displayName: 'Install Gulp CLI'
-          inputs:
-            command: custom
-            customCommand: 'install -g gulp-cli --registry https://pkgs.dev.azure.com/mseng/PipelineTools/_packaging/PipelineTools_PublicPackages/npm/registry/'
+        - pwsh: |
+            $binPath = Join-Path "$(Build.SourcesDirectory)" "node_modules" ".bin"
+            Write-Host "##vso[task.prependpath]$binPath"
+          displayName: 'Add node_modules/.bin to PATH'
 
         - task: PowerShell@2
           displayName: 'Build PROD resources'
@@ -295,11 +288,26 @@ extends:
             inputs:
               versionSpec: '20.x'
 
-          - task: Npm@1
-            displayName: 'Install TFX CLI'
+          - checkout: self
+            displayName: 'Checkout repository'
+            clean: true
+            fetchTags: false
+
+          - task: NpmAuthenticate@0
+            displayName: 'Authenticate npm with internal CFS-upstream feed'
             inputs:
-              command: custom
-              customCommand: 'install -g tfx-cli --registry https://pkgs.dev.azure.com/mseng/PipelineTools/_packaging/PipelineTools_PublicPackages/npm/registry/'
+              workingFile: '$(Build.SourcesDirectory)/.npmrc'
+
+          - task: Npm@1
+            displayName: 'Install dependencies'
+            inputs:
+              command: install
+              verbose: false
+
+          - pwsh: |
+              $binPath = Join-Path "$(Build.SourcesDirectory)" "node_modules" ".bin"
+              Write-Host "##vso[task.prependpath]$binPath"
+            displayName: 'Add node_modules/.bin to PATH'
 
           - task: 1ES.PublishAzureDevOpsExtension@1
             name: PublishTestExtensionToMarketplace
@@ -409,11 +417,26 @@ extends:
           inputs:
             versionSpec: '20.x'
 
-        - task: Npm@1
-          displayName: 'Install TFX CLI'
+        - checkout: self
+          displayName: 'Checkout repository'
+          clean: true
+          fetchTags: false
+
+        - task: NpmAuthenticate@0
+          displayName: 'Authenticate npm with internal CFS-upstream feed'
           inputs:
-            command: custom
-            customCommand: 'install -g tfx-cli --registry https://pkgs.dev.azure.com/mseng/PipelineTools/_packaging/PipelineTools_PublicPackages/npm/registry/'
+            workingFile: '$(Build.SourcesDirectory)/.npmrc'
+
+        - task: Npm@1
+          displayName: 'Install dependencies'
+          inputs:
+            command: install
+            verbose: false
+
+        - pwsh: |
+            $binPath = Join-Path "$(Build.SourcesDirectory)" "node_modules" ".bin"
+            Write-Host "##vso[task.prependpath]$binPath"
+          displayName: 'Add node_modules/.bin to PATH'
 
         - task: 1ES.PublishAzureDevOpsExtension@1
           name: PublishProdExtensionToMarketplace
