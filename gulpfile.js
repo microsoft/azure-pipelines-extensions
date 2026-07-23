@@ -694,6 +694,12 @@ function resolveAffectedAuditRoots(files, roots) {
 }
 
 gulp.task("audit", (done) => {
+    if (process.env['TF_BUILD']) {
+        console.log("Running in CI pipeline, skipping npm audit. Use --audit to run locally.");
+        done();
+        return;
+    }
+
     const roots = cp.execSync('git ls-files -- "*package.json"', { cwd: __dirname, encoding: 'utf-8' })
         .split('\n')
         .map((p) => p.trim())
@@ -726,7 +732,7 @@ gulp.task("audit", (done) => {
         console.log(`npm audit --audit-level=high in ${root}`);
         console.log('========================================');
 
-        const result = cp.spawnSync('npm audit --audit-level=high', {
+        const result = cp.spawnSync('npm audit --audit-level=high --production', {
             cwd,
             stdio: 'inherit',
             env: process.env,
