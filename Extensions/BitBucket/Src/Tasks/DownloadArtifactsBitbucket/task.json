@@ -13,8 +13,8 @@
   "demands": [],
   "version": {
     "Major": 15,
-    "Minor": 277,
-    "Patch": 6
+    "Minor": 279,
+    "Patch": 2
   },
   "minimumAgentVersion": "1.99.0",
   "instanceNameFormat": "Download Artifacts - Bitbucket",
@@ -37,7 +37,7 @@
         "EditableOptions": "True"
       },
       "helpMarkDown": "Bitbucket repository id"
-      },
+    },
     {
       "name": "branch",
       "type": "pickList",
