@@ -207,9 +207,9 @@ describe('Validation Suite', function () {
         it('should have V0 and V1 with only "Release" visibility', function () {
             const v0 = loadJson(updateTaskV0Path);
             const v1 = loadJson(updateTaskV1Path);
-            assert.deepStrictEqual(v0.visibility, ['Release'],
+            assert.strictEqual(JSON.stringify(v0.visibility), JSON.stringify(['Release']),
                 'V0 should only have Release visibility');
-            assert.deepStrictEqual(v1.visibility, ['Release'],
+            assert.strictEqual(JSON.stringify(v1.visibility), JSON.stringify(['Release']),
                 'V1 should only have Release visibility');
         });
 
