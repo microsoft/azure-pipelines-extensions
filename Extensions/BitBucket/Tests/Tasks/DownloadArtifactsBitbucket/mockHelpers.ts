@@ -170,9 +170,28 @@ function registerFsMock(tr: tmrm.TaskMockRunner, cleanupFixture: boolean, cleanu
 
 function registerHttpsMock(tr: tmrm.TaskMockRunner, apiResponseText?: string): void {
     tr.registerMock('https', {
-        request: function (options: { [key: string]: string }, callback: Function) {
-            const auth = options.auth || '';
-            const authUser = auth.indexOf(':') >= 0 ? auth.split(':')[0] : auth;
+        request: function (options: { [key: string]: string | object }, callback: Function) {
+            let authUser = '';
+            
+            // Check for Authorization header (new method)
+            const headers = options.headers as { [key: string]: string } | undefined;
+            if (headers && headers['Authorization']) {
+                const authHeader = headers['Authorization'];
+                if (authHeader.startsWith('Basic ')) {
+                    // Decode base64 to get username:password
+                    const encoded = authHeader.substring(6);
+                    const decoded = Buffer.from(encoded, 'base64').toString('utf-8');
+                    authUser = decoded.indexOf(':') >= 0 ? decoded.split(':')[0] : decoded;
+                } else if (authHeader.startsWith('Bearer ')) {
+                    // For Bearer tokens, use the token as the auth indicator
+                    authUser = '[oauth2-bearer]';
+                }
+            } else {
+                // Fallback to old options.auth method
+                const auth = (options.auth as string) || '';
+                authUser = auth.indexOf(':') >= 0 ? auth.split(':')[0] : auth;
+            }
+            
             console.log('[mock-https] request ' + options.path + ' authUser=' + authUser);
 
             const response = new events.EventEmitter() as any;
