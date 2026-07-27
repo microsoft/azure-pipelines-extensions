@@ -177,7 +177,7 @@ describe('CI Scripts Suite', function () {
         it('both scripts should map the exact same set of extensions', function () {
             const determineKeys = Array.from(determineMapping.keys()).sort();
             const triggerKeys = Array.from(triggerMapping.keys()).sort();
-            assert.deepStrictEqual(determineKeys, triggerKeys,
+            assert.strictEqual(JSON.stringify(determineKeys), JSON.stringify(triggerKeys),
                 'both scripts should map identical extension sets');
         });
     });
