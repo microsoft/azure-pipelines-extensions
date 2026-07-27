@@ -12,6 +12,7 @@
     "tsc-build-check": [
         "Ansible",
         "DownloadArtifactsTfsGit",
-        "DownloadExternalBuildArtifacts"
+        "DownloadExternalBuildArtifacts",
+        "TeamCity"
     ]
 }
