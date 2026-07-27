@@ -221,9 +221,15 @@ function getEndpointDetails(inputFieldName) {
     const isRetireUsernamePswdEnabled = retireUsernamePswdFF && retireUsernamePswdFF.toLowerCase() === 'true';
 
     if (scheme === 'oauth2') {
-        const accessToken = getAuthParameter(bitbucketEndpoint, 'token');
+        // Azure DevOps OAuth2 service connections may store the token under different parameter names
+        const accessToken = getAuthParameter(bitbucketEndpoint, 'AccessToken')
+            || getAuthParameter(bitbucketEndpoint, 'token')
+            || getAuthParameter(bitbucketEndpoint, 'access_token');
 
         if (!accessToken) {
+            const auth = tl.getEndpointAuthorization(bitbucketEndpoint, false);
+            const availableParams = auth && auth.parameters ? Object.getOwnPropertyNames(auth.parameters).join(', ') : '(none)';
+            tl.debug('Available OAuth2 parameter names: ' + availableParams);
             throw new Error('The endpoint ' + bitbucketEndpoint + ' does not have a token parameter for OAuth2 authentication.');
         }
 
