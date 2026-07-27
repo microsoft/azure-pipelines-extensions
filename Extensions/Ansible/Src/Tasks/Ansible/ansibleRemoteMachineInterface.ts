@@ -1,16 +1,12 @@
-import tl = require("azure-pipelines-task-lib/task");
 import path = require("path");
+
+import tl = require("azure-pipelines-task-lib/task");
+
 import * as ansibleUtils from './ansibleUtils';
-import { RemoteCommandOptions } from './ansibleUtils'
 import { ansibleTaskParameters } from './ansibleTaskParameters';
 import { ansibleCommandLineInterface } from './ansibleCommandLineInterface';
-import * as SftpClient from 'ssh2-sftp-client';
-
-var os = require('os');
-var shell = require('shelljs');
 
 export class ansibleRemoteMachineInterface extends ansibleCommandLineInterface {
-
     constructor(params: ansibleTaskParameters) {
         super(params);
         this._sshClientConnection = null;
@@ -18,32 +14,37 @@ export class ansibleRemoteMachineInterface extends ansibleCommandLineInterface {
     }
 
     protected async _executeAnsiblePlaybook() {
-        let playbookSource: string = this._taskParameters.playbookSource;
-        let inventoryLocation: string = this._taskParameters.inventoryType;
-        let inventoryFileSource: string = this._taskParameters.inventoryFileSource;
+        const playbookSource = this._taskParameters.playbookSource;
+        const inventoryLocation = this._taskParameters.inventoryType;
+        const inventoryFileSource = this._taskParameters.inventoryFileSource;
+
         if (playbookSource == 'agentMachine') {
             await this.copyPlaybookAndSetPathForAgentAsSource()
         }
+
         if (inventoryLocation == 'file' && inventoryFileSource == 'agentMachine') {
             await this.copyInventoryAndSetPathForAgentAsSource();
         }
+
         await super._executeAnsiblePlaybook();
     }
 
     private async copyPlaybookAndSetPathForAgentAsSource() {
-        
-        let playbookFile = this._taskParameters.playbookPath;
-        let playbookRoot = this._taskParameters.playbookRoot;
+        const playbookFile = this._taskParameters.playbookPath;
+        const playbookRoot = this._taskParameters.playbookRoot;
+
         if (!ansibleUtils.testIfDirectoryExist(playbookRoot)) {
             throw tl.loc('PlaybookRootNotDirectory', playbookRoot);
         }
-        if (!ansibleUtils.testIfFileExist(path.join(playbookRoot,playbookFile))) {
+
+        if (!ansibleUtils.testIfFileExist(path.join(playbookRoot, playbookFile))) {
             throw tl.loc('PlaybookNotPresent', playbookFile, playbookRoot);
         }
-        var remotePlaybookRoot = '/tmp/' + path.basename(playbookRoot);
+
+        const remotePlaybookRoot = '/tmp/' + path.basename(playbookRoot);
         tl.debug('ansiblePlaybookRootPath = ' + '"' + remotePlaybookRoot + '"');
 
-        let scpConfig = this._sshConfig || {};
+        const scpConfig = this._sshConfig || {};
         scpConfig.path = remotePlaybookRoot;
         tl.debug('Copying playbook to ansible machine.');
         this._playbookPath = remotePlaybookRoot + "/" + playbookFile;
@@ -52,14 +53,16 @@ export class ansibleRemoteMachineInterface extends ansibleCommandLineInterface {
     }
 
     private async copyInventoryAndSetPathForAgentAsSource() {
-        let inventoryFile: string = this._taskParameters.inventoryFilePath;
+        const inventoryFile = this._taskParameters.inventoryFilePath;
+
         if (!ansibleUtils.testIfFileExist(inventoryFile)) {
             throw tl.loc('InventoryFileNotPresent', inventoryFile);
         }
-        var remoteInventory = '/tmp/' + path.basename(inventoryFile);
+
+        const remoteInventory = '/tmp/' + path.basename(inventoryFile);
         tl.debug('RemoteInventoryPath = ' + '"' + remoteInventory + '"');
 
-        let scpConfig = this._sshConfig || {};
+        const scpConfig = this._sshConfig || {};
         scpConfig.path = remoteInventory;
         tl.debug('Copying Inventory file to ansible machine.');
         this._inventoryPath = remoteInventory;
@@ -73,13 +76,14 @@ export class ansibleRemoteMachineInterface extends ansibleCommandLineInterface {
 
     protected async setupConnection() {
         //read SSH endpoint input
-        var sshEndpoint = this._taskParameters.sshEndpoint;
-        var username: string = tl.getEndpointAuthorizationParameter(sshEndpoint, 'username', false);
-        var password: string = tl.getEndpointAuthorizationParameter(sshEndpoint, 'password', true); //passphrase is optional
-        var privateKeyEnvVar = 'ENDPOINT_DATA_' + sshEndpoint + '_PRIVATEKEY';
-        var privateKey: string = process.env[privateKeyEnvVar]; //private key is optional, password can be used for connecting
-        var hostname: string = tl.getEndpointDataParameter(sshEndpoint, 'host', false);
-        var port: string = tl.getEndpointDataParameter(sshEndpoint, 'port', true); //port is optional, will use 22 as default port if not specified
+        const sshEndpoint = this._taskParameters.sshEndpoint;
+        const username = tl.getEndpointAuthorizationParameter(sshEndpoint, 'username', false);
+        const password = tl.getEndpointAuthorizationParameter(sshEndpoint, 'password', true); //passphrase is optional
+        const privateKeyEnvVar = 'ENDPOINT_DATA_' + sshEndpoint + '_PRIVATEKEY';
+        const privateKey = process.env[privateKeyEnvVar]; //private key is optional, password can be used for connecting
+        const hostname = tl.getEndpointDataParameter(sshEndpoint, 'host', false);
+        let port = tl.getEndpointDataParameter(sshEndpoint, 'port', true); //port is optional, will use 22 as default port if not specified
+
         if (!port || port === '') {
             ansibleUtils._writeLine(tl.loc('UseDefaultPort'));
             port = '22';
@@ -87,7 +91,9 @@ export class ansibleRemoteMachineInterface extends ansibleCommandLineInterface {
 
         // Register credentials with the log masker so they are redacted in pipeline logs
         try {
+            // @ts-ignore setSecret correctly handles null/undefined
             tl.setSecret(password);
+
             if (privateKey) {
                 // PEM private keys are multi-line; setSecret() rejects multi-line values,
                 // so register each line individually to mask partial key material in logs.
@@ -100,6 +106,7 @@ export class ansibleRemoteMachineInterface extends ansibleCommandLineInterface {
         } catch {
             tl.warning('Failed to mask SSH credentials for log redaction.');
         }
+
         if (privateKey) {
             // Remove private key from environment to prevent inheritance by child processes
             delete process.env[privateKeyEnvVar];
@@ -108,6 +115,7 @@ export class ansibleRemoteMachineInterface extends ansibleCommandLineInterface {
         //setup the SSH connection configuration based on endpoint details
         if (privateKey && privateKey !== '') {
             tl.debug('Using private key for ssh connection.');
+
             this._sshConfig = {
                 host: hostname,
                 port: port,
@@ -118,6 +126,7 @@ export class ansibleRemoteMachineInterface extends ansibleCommandLineInterface {
         } else {
             //use password
             tl.debug('Using username and password for ssh connection.');
+
             this._sshConfig = {
                 host: hostname,
                 port: port,
@@ -128,6 +137,7 @@ export class ansibleRemoteMachineInterface extends ansibleCommandLineInterface {
 
         //setup the SSH connection
         ansibleUtils._writeLine(tl.loc('SettingUpSshConnection', this._sshConfig.username, this._sshConfig.host, this._sshConfig.port));
+
         try {
             this._sshClientConnection = await ansibleUtils.setupSshClientConnection(this._sshConfig);
         } catch (err) {
@@ -136,7 +146,7 @@ export class ansibleRemoteMachineInterface extends ansibleCommandLineInterface {
     }
 
     protected terminateConnection() {
-        //close the client connection to halt build execution
+        // Close the client connection to halt build execution
         if (this._sshClientConnection) {
             tl.debug('Closing the SSH client connection.');
             this._sshClientConnection.end();
