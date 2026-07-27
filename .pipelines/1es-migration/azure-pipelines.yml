@@ -288,11 +288,6 @@ extends:
             inputs:
               versionSpec: '20.x'
 
-          - checkout: self
-            displayName: 'Checkout repository'
-            clean: true
-            fetchTags: false
-
           - task: NpmAuthenticate@0
             displayName: 'Authenticate npm with internal CFS-upstream feed'
             inputs:
@@ -417,11 +412,6 @@ extends:
           displayName: 'Use Node.js 20.x'
           inputs:
             versionSpec: '20.x'
-
-        - checkout: self
-          displayName: 'Checkout repository'
-          clean: true
-          fetchTags: false
 
         - task: NpmAuthenticate@0
           displayName: 'Authenticate npm with internal CFS-upstream feed'
