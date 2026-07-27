@@ -10,6 +10,7 @@
         "DownloadExternalBuildArtifacts"
     ],
     "tsc-build-check": [
+        "Ansible",
         "DownloadArtifactsTfsGit",
         "DownloadExternalBuildArtifacts"
     ]
