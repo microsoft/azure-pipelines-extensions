@@ -47,24 +47,36 @@ try {
     process.exit(1);
 }
 
+/** @type {Object.<string, string>} */
+const headers = {};
+
+// Set authentication based on the endpoint type
+if (bitbucketEndpoint.OAuthToken) {
+    // For OAuth2, use Bearer token in Authorization header
+    headers['Authorization'] = 'Bearer ' + bitbucketEndpoint.OAuthToken;
+    tl.debug('Using OAuth2 Bearer token authentication for Bitbucket API');
+} else if (bitbucketEndpoint.Token) {
+    // For Token (App Password), use basic auth
+    headers['Authorization'] = 'Basic ' + Buffer.from(bitbucketEndpoint.Username + ':' + bitbucketEndpoint.Token).toString('base64');
+    tl.debug('Using token authentication for Bitbucket API');
+} else if (bitbucketEndpoint.Username && bitbucketEndpoint.Password) {
+    // For Username/Password, use basic auth
+    headers['Authorization'] = 'Basic ' + Buffer.from(bitbucketEndpoint.Username + ':' + bitbucketEndpoint.Password).toString('base64');
+    tl.debug('Using username/password authentication for Bitbucket API');
+}
+
 const options = {
     host: 'api.bitbucket.org',
     method: 'GET',
     path: '/2.0/repositories/' + repositoryId,
-    auth: ''
+    headers: headers
 };
-
-// Set authentication based on the endpoint type
-if (bitbucketEndpoint.OAuthToken) {
-    options.auth = BITBUCKET_OAUTH2_AUTH_USERNAME + ':' + bitbucketEndpoint.OAuthToken;
-} else if (bitbucketEndpoint.Token) {
-    options.auth = bitbucketEndpoint.Username + ':' + bitbucketEndpoint.Token;
-} else if (bitbucketEndpoint.Username && bitbucketEndpoint.Password) {
-    options.auth = bitbucketEndpoint.Username + ':' + bitbucketEndpoint.Password;
-}
 
 https.request(options, function (rs) {
     tl.debug(`HTTP status: ${rs.statusCode} ${rs.statusMessage}`);
+    if (bitbucketEndpoint.OAuthToken) {
+        tl.debug('Authorization header was set for OAuth2');
+    }
     /** @type {IBitbucketResponse} */
     let result;
     let response = '';
@@ -209,18 +221,19 @@ function getEndpointDetails(inputFieldName) {
     const isRetireUsernamePswdEnabled = retireUsernamePswdFF && retireUsernamePswdFF.toLowerCase() === 'true';
 
     if (scheme === 'oauth2') {
-        const accessToken = getAuthParameter(bitbucketEndpoint, 'accesstoken');
+        const accessToken = getAuthParameter(bitbucketEndpoint, 'token');
 
         if (!accessToken) {
-            throw new Error('The endpoint ' + bitbucketEndpoint + ' does not have an AccessToken parameter for OAuth2 authentication.');
+            throw new Error('The endpoint ' + bitbucketEndpoint + ' does not have a token parameter for OAuth2 authentication.');
         }
 
         tl.debug('Using OAuth2 authentication');
+        tl.debug('OAuth2 Token length: ' + (accessToken ? accessToken.length : 0));
 
         try {
             tl.setSecret(accessToken);
         } catch (e) {
-            tl.warning('Failed to mask OAuth2 access token for log redaction.');
+            tl.warning('Failed to mask OAuth2 token for log redaction.');
         }
 
         return {
