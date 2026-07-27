@@ -9,7 +9,7 @@
   "version": {
     "Major": 15,
     "Minor": 279,
-    "Patch": 0
+    "Patch": 1
   },
   "demands": [],
   "minimumAgentVersion": "2.0.0",
@@ -102,6 +102,14 @@
   "instanceNameFormat": "Download Artifacts - TeamCity",
   "execution": {
     "Node": {
+      "target": "download.js",
+      "argumentFormat": ""
+    },
+    "Node20": {
+      "target": "download.js",
+      "argumentFormat": ""
+    },
+    "Node24": {
       "target": "download.js",
       "argumentFormat": ""
     }
