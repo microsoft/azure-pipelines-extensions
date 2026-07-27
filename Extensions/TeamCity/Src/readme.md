@@ -1,14 +1,14 @@
 # TeamCity&trade; artifacts for Release management
 
-This extension is an integration point for TeamCity&trade; with Release management in Azure DevOps. With this extension, you can deploy artifacts from TeamCity&trade; builds using Release management. 
+This extension integrates TeamCity&trade; with Azure Pipelines. It provides a **TeamCity&trade; service connection** and a **Download TeamCity Artifacts** task, so you can consume TeamCity&trade; build artifacts from both **classic release pipelines** and **YAML pipelines** in Azure DevOps.
 
 > This extension works only with Azure DevOps Services and Azure DevOps Server 2019 Update 1 onwards.
 
 ## Usage
-This extension provides a service endpoint to connect to TeamCity&trade; account. Once connected, you can link a build artifact from the TeamCity&trade; project and deploy the same using Release management orchestration service.
+Using the extension is a two-step workflow: (1) create a **TeamCity&trade; service connection** in your project with your server URL and credentials, then (2) reference that connection from a release-pipeline artifact source or from a **`DownloadTeamCityArtifacts`** task in a YAML pipeline.
 
 ### Connecting to a TeamCity&trade; project
-Go to project settings -> Services tab and create a New Service Endpoint of type TeamCity&trade;:
+Go to project settings -> Service connections tab and create a New Service Endpoint of type TeamCity&trade;:
 ![Creating a TeamCity&trade; endpoint connection](images/screen1.png)
 
 
