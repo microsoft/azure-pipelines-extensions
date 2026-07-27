@@ -76,6 +76,14 @@ describe('IISWebAppMgmtV3 Suite', function () {
             psr.run(path.join(__dirname, 'L0AppcmdTestSSLandSNI.ps1'), done);
         })
 
+        it('test ShowCertBinding function', (done) => {
+            psr.run(path.join(__dirname, 'L0AppcmdShowCertBinding.ps1'), done);
+        })
+
+        it('test AddCertBinding function', (done) => {
+            psr.run(path.join(__dirname, 'L0AppcmdAddCertBinding.ps1'), done);
+        })
+
         it('test application pool exists', (done) => {
             psr.run(path.join(__dirname, 'L0AppcmdTestApplicationPoolExists.ps1'), done);
         })
