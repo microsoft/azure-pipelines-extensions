@@ -246,7 +246,7 @@ CI runs in the `canarytest` Azure DevOps organisation against a self-hosted Team
 
 ### To run tests manually
 
-1. Go to <https://dev.azure.com/canarytest/PipelineTasks/_build?definitionId=317>
+1. In the `canarytest` Azure DevOps organisation, open project **PipelineTasks** → **Pipelines** → definition ID `317` (`AzDev-ReleaseManagement-TeamCity-CI-Test`).
 2. Click **Run pipeline**
 3. All stages run automatically — no manual inputs needed
 
