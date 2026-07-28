@@ -73,7 +73,7 @@ export async function copyFileToRemoteMachine(src: string, dest: string, sftpCon
 
     try {
         sftpClient.on('error', (err) => {
-            tl.debug(`sftpClient: Ignoring error diconnecting: ${err}`);
+            tl.debug(`sftpClient: Ignoring error disconnecting: ${err}`);
         }); // ignore logout errors - since there could be spontaneous ECONNRESET errors after logout; see: https://github.com/mscdex/node-imap/issues/695
         await sftpClient.end();
     } catch (err) {
