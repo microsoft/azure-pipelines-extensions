@@ -5,14 +5,14 @@ import querystring = require('querystring');
 import util = require("util");
 
 import tl = require("azure-pipelines-task-lib/task");
-import httpClient = require('vso-node-api/HttpClient');
+import { HttpClient } from 'typed-rest-client/HttpClient';
 import ssh = require('ssh2');
 import shell = require('shelljs');
 import SftpClient = require('ssh2-sftp-client');
 import Q = require("q");
 var uuid = require('uuid/v4');
 
-var httpObj = new httpClient.HttpCallbackClient(tl.getVariable("AZURE_HTTP_USER_AGENT")!);
+var httpObj = new HttpClient(tl.getVariable("AZURE_HTTP_USER_AGENT")!);
 const Ssh2Client = ssh.Client;
 
 export function _writeLine(str: string): void {
@@ -77,7 +77,8 @@ export async function copyFileToRemoteMachine(src: string, dest: string, sftpCon
         }); // ignore logout errors - since there could be spontaneous ECONNRESET errors after logout; see: https://github.com/mscdex/node-imap/issues/695
         await sftpClient.end();
     } catch (err) {
-        tl.debug(`Failed to close SFTP client: ${err}`);
+        tl.debug(`Failed to close SFTP client: ${err}`);
+
     }
 
     return defer.promise;
@@ -219,19 +220,17 @@ export async function beginRequest<T>(request: WebRequest): Promise<WebResponse<
     return await beginRequestInternal(request);
 }
 
-function beginRequestInternal<T>(request: WebRequest): Promise<WebResponse<T>> {
+async function beginRequestInternal<T>(request: WebRequest): Promise<WebResponse<T>> {
     tl.debug(util.format("[%s]%s", request.method, request.uri));
 
-    return new Promise<WebResponse<T>>((resolve, reject) => {
-        httpObj.send(request.method, request.uri, request.body, request.headers, (error, response, body) => {
-            if (error) {
-                reject(error);
-            } else {
-                var httpResponse = toWebResponse<T>(response, body);
-                resolve(httpResponse);
-            }
-        });
-    });
+    try {
+        const response = await httpObj.request(request.method, request.uri, request.body, request.headers);
+        const body = await response.readBody();
+        var httpResponse = toWebResponse<T>(response.message, body);
+        return httpResponse;
+    } catch (error) {
+        throw error;
+    }
 }
 
 export function getTemporaryInventoryFilePath(): string {
