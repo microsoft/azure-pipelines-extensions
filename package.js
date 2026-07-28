@@ -96,7 +96,6 @@ function copyCommonModules(currentExtnRoot, commonDeps, commonSrc, extensionSour
         .then(function () {
             // Copy the task to the layout folder.
             const targetPath = path.join(currentExtnRoot, "Src", "Tasks", task.name);
-            const taskSourcePath = path.join(extensionSourcePath, "Src", "Tasks", task.name);
             shell.mkdir('-p', targetPath);
             shell.rm('-f', path.join(targetPath, '*.csproj'));
             shell.rm('-f', path.join(targetPath, '*.md'));
@@ -130,8 +129,7 @@ function copyCommonModules(currentExtnRoot, commonDeps, commonSrc, extensionSour
                 console.log(`⚒️  Building Node task: ${task.name}`);
 
                 try {
-                    const npmrcPath = path.join(taskSourcePath, ".npmrc");
-                    installDependencies(taskDirPath, task.name, npmrcPath);
+                    installDependencies(taskDirPath, task.name);
                     console.log(`\x1b[A\x1b[K✅ npm ci at ${taskDirPath} completed successfully.`);
                 } catch (err) {
                     console.log(`\x1b[A\x1b[K❌ npm ci at ${taskDirPath} failed. Error: ${err.message}`);
@@ -150,14 +148,20 @@ function copyCommonModules(currentExtnRoot, commonDeps, commonSrc, extensionSour
 
 /**
  * Installs the dependencies for a given task using npm ci, with options to handle engine-strict mode and verbose logging.
+ * Uses the repository-root .npmrc for --userconfig so the install always has feed
+ * credentials: authentication (NpmAuthenticate@0 in CI, or vsts-npm-auth locally) is
+ * applied to the root .npmrc only. The per-task .npmrc files carry the registry URL but
+ * no auth token, so a task install that has to fetch any package not already in the npm
+ * cache would fail with E401. Registry settings are identical across every .npmrc in the
+ * repo, so using the root one changes nothing except adding the credential.
  * @param {string} taskPath - The file system path to the task for which dependencies should be installed.
  * @param {string} taskName - The name of the task, used for determining if engine-strict mode should be disabled based on externals configuration.
- * @param {string} npmrcPath - The path to the .npmrc file for the task.
  */
-function installDependencies(taskPath, taskName, npmrcPath) {
+function installDependencies(taskPath, taskName) {
     console.log(`Installing dependencies for task: ${taskName} at path: ${taskPath}`);
     const npmCmd = process.platform === 'win32' ? 'npm.cmd' : 'npm';
-    const npmArgs = ['ci', '--prefix', taskPath, '--userconfig', `"${npmrcPath}"`];
+    const rootNpmrcPath = path.join(__dirname, ".npmrc");
+    const npmArgs = ['ci', '--prefix', taskPath, '--userconfig', `"${rootNpmrcPath}"`];
 
     // Opt specific tasks out of engine-strict. The outer `npx gulp build` loads
     // the root .npmrc and exports its settings as npm_config_* env vars, which
