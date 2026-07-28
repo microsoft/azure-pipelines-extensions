@@ -16,7 +16,7 @@
     "Minor": 278,
     "Patch": 1
   },
-  "minimumAgentVersion": "1.99.0",
+  "minimumAgentVersion": "2.206.1",
   "instanceNameFormat": "Download Artifacts - Bitbucket",
   "inputs": [
     {
@@ -99,7 +99,7 @@
     }
   ],
   "execution": {
-    "Node": {
+    "Node16": {
       "target": "downloadBitbucket.js",
       "argumentFormat": ""
     },
