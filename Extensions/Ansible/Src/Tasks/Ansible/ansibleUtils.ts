@@ -10,7 +10,7 @@ import ssh = require('ssh2');
 import shell = require('shelljs');
 import SftpClient = require('ssh2-sftp-client');
 import Q = require("q");
-var uuid = require('uuid/v4');
+import uuid = require('uuid');
 
 var httpObj = new HttpClient(tl.getVariable("AZURE_HTTP_USER_AGENT")!);
 const Ssh2Client = ssh.Client;
@@ -234,7 +234,7 @@ async function beginRequestInternal<T>(request: WebRequest): Promise<WebResponse
 }
 
 export function getTemporaryInventoryFilePath(): string {
-    return '/tmp/' + uuid() + 'inventory.ini';
+    return '/tmp/' + uuid.v4() + 'inventory.ini';
 }
 
 function toWebResponse<T>(response: http.IncomingMessage | undefined, body: string | undefined): WebResponse<T> {
