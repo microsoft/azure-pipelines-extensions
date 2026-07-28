@@ -16,12 +16,11 @@
     "email": "omeshp@microsoft.com"
   },
   "dependencies": {
-    "azure-pipelines-task-lib": "^5.2.8",
+    "azure-pipelines-task-lib": "^5.278.0",
     "handlebars": "4.7.9",
     "typed-rest-client": "^3.0.0"
   },
   "overrides": {
-    "adm-zip": "0.6.0",
     "picomatch": "2.3.2"
   },
   "devDependencies": {

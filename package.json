@@ -28,7 +28,7 @@
     "@types/validator": "^5.7.35",
     "@types/xml2js": "^0.4.14",
     "adm-zip": "0.6.0",
-    "azure-pipelines-task-lib": "5.2.8",
+    "azure-pipelines-task-lib": "5.278.0",
     "gulp": "^5.0.1",
     "gulp-mocha": "^10.0.1",
     "gulp-typescript": "^5.0.1",
@@ -41,7 +41,6 @@
     "xml2js": "^0.6.2"
   },
   "overrides": {
-    "adm-zip": "0.6.0",
     "picomatch": "2.3.2",
     "qs": "^6.14.2",
     "serialize-javascript": "^7.0.5",
