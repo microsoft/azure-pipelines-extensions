@@ -118,8 +118,7 @@ extends:
         - pwsh: |
             $binPath = Join-Path "$(Build.SourcesDirectory)" "node_modules" ".bin"
             Write-Host "##vso[task.prependpath]$binPath"
-            Write-Host "##vso[task.setvariable variable=__tfxpath]$binPath"
-          displayName: 'Add node_modules/.bin to PATH and set __tfxpath'
+          displayName: 'Add node_modules/.bin to PATH
 
         - task: PowerShell@2
           displayName: 'Build PROD resources'
