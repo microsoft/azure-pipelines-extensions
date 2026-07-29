@@ -87,6 +87,24 @@ describe('DownloadTeamCityArtifacts Suite', function () {
             'should propagate the parallellimit variable into downloaderOptions');
     });
 
+    it('succeeds when itemPattern matches nothing (zero artifacts)', async function () {
+        const runner = newRunner('successItemPatternMatchesNothing');
+        await runAndDump(runner, NODE_VERSION);
+        if (!runner.succeeded) fail(runner, 'expected task to succeed even when pattern matches nothing');
+
+        assert(runner.stdOutContained('[mock-artifact-engine] processItems itemPattern=nonexistent/**'),
+            'should pass the no-match pattern through to processItems unchanged');
+    });
+
+    it('collapses double-slash when endpoint URL has trailing slash', async function () {
+        const runner = newRunner('successTrailingSlashUrl');
+        await runAndDump(runner, NODE_VERSION);
+        if (!runner.succeeded) fail(runner, 'expected task to succeed with trailing-slash endpoint');
+
+        assert(runner.stdOutContained('[mock-web-provider] ctor url=https://teamcity.example.com/httpAuth/app/rest/builds/id:42/artifacts/children/'),
+            'should collapse the double slash — URL must NOT contain //httpAuth');
+    });
+
     // -- Failure scenarios ------------------------------------------------------
 
     it('fails when TeamCity returns 404 build-not-found', async function () {
@@ -117,6 +135,21 @@ describe('DownloadTeamCityArtifacts Suite', function () {
             'should mark the task Failed (not crash or complete Succeeded)');
         assert(runner.stdOutContained('401 - Unauthorized'),
             'should propagate the actual 401 error message from artifact-engine, not a different failure path');
+    });
+
+    it('fails when TeamCity returns 500 internal server error', async function () {
+        const runner = newRunner('fail500ServerError');
+        await runAndDump(runner, NODE_VERSION);
+        if (runner.succeeded) fail(runner, 'expected task to fail with 500');
+
+        assert(runner.stdOutContained('[mock-artifact-engine] processItems'),
+            'should invoke processItems before failing');
+        assert(runner.stdOutContained('##vso[task.issue type=error'),
+            'should surface the backend error via tl.error / task.issue');
+        assert(runner.stdOutContained('##vso[task.complete result=Failed'),
+            'should mark the task Failed');
+        assert(runner.stdOutContained('500 - Internal Server Error'),
+            'should propagate the actual 500 error message from artifact-engine');
     });
 
     it('fails when required "connection" input is missing', async function () {
