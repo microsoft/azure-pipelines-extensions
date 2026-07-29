@@ -46,8 +46,6 @@ const artifactEngineV2Path = path.join(_extnBuildRoot, "ArtifactEngineV2");
 const _taskModuleBuildRoot = "_build/TaskModules/";
 const sourcePaths = "@(definitions|Extensions)/**/*";
 const ExtensionFolder = "Extensions";
-const artifactEngineSourcePath = path.join(ExtensionFolder, "ArtifactEngine");
-const artifactEngineV2SourcePath = path.join(ExtensionFolder, "ArtifactEngineV2");
 const _tempPath = path.join(__dirname, '_temp');
 const _testRoot = "_build/";
 const _testTemp = "_build/Temp";
@@ -185,8 +183,8 @@ gulp.task("compileNode", gulp.series("compilePS", function (cb) {
         return fs.statSync(path.join(_extnBuildRoot, file)).isDirectory() && file != "Common";
     }).forEach(copyCommonModules);
 
-    runNpmInstall(artifactEnginePath, artifactEngineSourcePath);
-    runNpmInstall(artifactEngineV2Path, artifactEngineV2SourcePath);
+    runNpmInstall(artifactEnginePath);
+    runNpmInstall(artifactEngineV2Path);
 
     // Compile tasks
     const tasksProject = gts.createProject(rootTsconfigPath, { typescript: typescript, declaration: true });
@@ -417,17 +415,23 @@ function createResjson(callback) {
 }
 
 /**
- * Run npm install for a given package path, using a .npmrc file from the source directory to ensure consistent registry and authentication settings.
- * This is necessary for packages like ArtifactEngine that have their own node_modules and dependencies that must be installed as part of the build process.
+ * Run npm install for a given package path, using the repository-root .npmrc so the
+ * install always has feed credentials. Authentication (NpmAuthenticate@0 in CI, or
+ * vsts-npm-auth locally) is applied to the root .npmrc only; the per-extension .npmrc
+ * files carry the registry URL but no auth token, so a sub-install that has to fetch any
+ * package not already in the npm cache would fail with E401. Pointing --userconfig at the
+ * root .npmrc mirrors the UI-contribution install in package.js and keeps every
+ * extension's npm ci authenticated without per-extension pipeline wiring.
+ * This is necessary for packages like ArtifactEngine that have their own node_modules and
+ * dependencies that must be installed as part of the build process.
  * @param {string} packagePath - The path to the package where npm install should be run.
- * @param {string} sourcePath - The path to the source directory containing the .npmrc file.
  */
-function runNpmInstall(packagePath, sourcePath) {
+function runNpmInstall(packagePath) {
     var originalDir = shell.pwd();
     util.cd(packagePath);
     var packageJsonPath = util.rp('package.json');
     if (util.test('-f', packageJsonPath)) {
-        util.run(`npm ci --userconfig ${path.join(__dirname, sourcePath, ".npmrc")}`);
+        util.run(`npm ci --userconfig ${path.join(__dirname, ".npmrc")}`);
     }
     util.cd(originalDir);
 }
@@ -655,7 +659,7 @@ gulp.task("tscBuildTasks", function (cb) {
             const taskPath = path.dirname(configPath);
 
             try {
-                pkgm.installDependencies(taskPath, path.basename(taskPath), path.join(taskPath, ".npmrc"));
+                pkgm.installDependencies(taskPath, path.basename(taskPath));
                 cp.execFileSync(process.execPath, [tscCliPath, '-p', configPath], { stdio: util.isDebug() ? 'inherit' : 'ignore' });
             } catch (err) {
                 console.error(`TypeScript compilation failed for ${configPath}: ${err.message}`);
