@@ -87,5 +87,9 @@ describe('SqlDacpacDeployV2 Suite', function () {
         it('should test Invoke-SqlQueryDeployment functionality', (done: Mocha.Done) => {
             psr.run(path.join(__dirname, 'L0InvokeSqlQueryDeploymentFunction.ps1'), done);
         });
+
+        it('should test GetSHA256String functionality', (done: Mocha.Done) => {
+            psr.run(path.join(__dirname, 'L0GetSHA256StringFunction.ps1'), done);
+        });
     }
 });
