@@ -98,16 +98,8 @@
       "resultTemplate": "{ \"Value\" : \"{{{hash}}}\", \"DisplayValue\" : \"{{{hash}}}\" }"
     }
   ],
-  "execution": {
+   "execution": {
     "Node16": {
-      "target": "downloadBitbucket.js",
-      "argumentFormat": ""
-    },
-    "Node20": {
-      "target": "downloadBitbucket.js",
-      "argumentFormat": ""
-    },
-    "Node24": {
       "target": "downloadBitbucket.js",
       "argumentFormat": ""
     },

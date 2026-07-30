@@ -11,10 +11,11 @@ export const TOKEN_EMAIL = 'token-user@example.com';
 export const TOKEN_VALUE = 'bb-token';
 export const USERNAME = 'bb-user';
 export const PASSWORD = 'bb-pass';
+export const OAUTH2_TOKEN = 'bb-oauth2-access-token';
 export const SOURCE_TASK_PATH = 'Extensions/BitBucket/Src/Tasks/DownloadArtifactsBitbucket/downloadBitbucket.js';
 
 export interface ScenarioOptions {
-    scheme?: 'Token' | 'UsernamePassword' | 'Unsupported';
+    scheme?: 'Token' | 'UsernamePassword' | 'OAuth2' | 'Unsupported';
     authParameters?: { [key: string]: string };
     authObjectRaw?: string;
     apiResponseText?: string;
@@ -86,6 +87,19 @@ export function setEndpointAuth(options?: ScenarioOptions): void {
         return;
     }
 
+    if (scheme === 'OAuth2') {
+        const token = (parameters && parameters['AccessToken']) || OAUTH2_TOKEN;
+        process.env['ENDPOINT_AUTH_' + endpoint] = JSON.stringify({
+            scheme: 'OAuth2',
+            parameters: parameters || {
+                AccessToken: token
+            }
+        });
+        process.env['ENDPOINT_AUTH_SCHEME_' + endpoint] = 'OAuth2';
+        process.env['ENDPOINT_AUTH_PARAMETER_' + endpoint + '_ACCESSTOKEN'] = token;
+        return;
+    }
+
     process.env['ENDPOINT_AUTH_' + endpoint] = JSON.stringify({
         scheme: 'Bearer',
         parameters: {}
@@ -108,6 +122,7 @@ export function clearEndpointAuth(): void {
     delete process.env['ENDPOINT_AUTH_PARAMETER_' + endpoint + '_EMAIL'];
     delete process.env['ENDPOINT_AUTH_PARAMETER_' + endpoint + '_USERNAME'];
     delete process.env['ENDPOINT_AUTH_PARAMETER_' + endpoint + '_PASSWORD'];
+    delete process.env['ENDPOINT_AUTH_PARAMETER_' + endpoint + '_ACCESSTOKEN'];
 }
 
 function registerFsMock(tr: tmrm.TaskMockRunner, cleanupFixture: boolean, cleanupThrows: boolean): void {
