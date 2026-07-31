@@ -9,6 +9,6 @@ const tr: tmrm.TaskMockRunner = new tmrm.TaskMockRunner(taskPath);
 // Pattern that matches nothing — task should still succeed.
 setRequiredInputs(tr, { itemPattern: 'nonexistent/**' });
 setEndpointAuth();
-registerAllMocks(tr);
+registerAllMocks(tr, { availableItems: ['src/main.ts', 'lib/utils.js', 'docs/readme.md'] });
 
 tr.run();

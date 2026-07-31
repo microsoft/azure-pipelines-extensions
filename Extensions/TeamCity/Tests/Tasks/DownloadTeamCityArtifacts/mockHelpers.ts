@@ -20,6 +20,9 @@ export interface ScenarioOptions {
     downloadFailStatusCode?: number;
     // Custom error message on the rejection. Defaults to "Failed request".
     downloadFailMessage?: string;
+    // Fake artifact list available on the server. When provided, processItems filters
+    // this list against itemPattern and logs the downloadedCount.
+    availableItems?: string[];
 }
 
 // -- Input helpers -------------------------------------------------------------
@@ -80,6 +83,27 @@ function registerArtifactEngineMocks(tr: tmrm.TaskMockRunner, options: ScenarioO
         public parallelProcessingLimit: number = 4;
     }
 
+    // Simple glob matcher for test patterns (handles **, *, and prefix/suffix matching).
+    function simpleGlobMatch(pattern: string, item: string): boolean {
+        if (pattern === '**') return true;
+        // e.g. "nonexistent/**" → prefix match
+        if (pattern.endsWith('/**')) {
+            const prefix = pattern.slice(0, -3);
+            return item.startsWith(prefix + '/') || item === prefix;
+        }
+        // e.g. "**/*.zip" → suffix match
+        if (pattern.startsWith('**/')) {
+            const suffix = pattern.slice(3);
+            if (suffix.startsWith('*')) {
+                // e.g. "**/*.zip" → extension match
+                const ext = suffix.slice(1);
+                return item.endsWith(ext);
+            }
+            return item.endsWith(suffix) || item === suffix;
+        }
+        return item === pattern;
+    }
+
     class MockArtifactEngine {
         public processItems(webProvider: any, fsProvider: any, opts: MockArtifactEngineOptions): Promise<void> {
             console.log('[mock-artifact-engine] processItems itemPattern=' + opts.itemPattern);
@@ -87,6 +111,13 @@ function registerArtifactEngineMocks(tr: tmrm.TaskMockRunner, options: ScenarioO
             console.log('[mock-artifact-engine] processItems verbose=' + opts.verbose);
             console.log('[mock-artifact-engine] webProviderUrl=' + (webProvider && webProvider.url));
             console.log('[mock-artifact-engine] fsProviderPath=' + (fsProvider && fsProvider.rootPath));
+
+            if (options.availableItems) {
+                const matched = options.availableItems.filter(function (item) {
+                    return simpleGlobMatch(opts.itemPattern, item);
+                });
+                console.log('[mock-artifact-engine] processItems downloadedCount=' + matched.length);
+            }
 
             if (options.downloadFailStatusCode) {
                 const err: any = new Error(options.downloadFailMessage || 'Failed request');

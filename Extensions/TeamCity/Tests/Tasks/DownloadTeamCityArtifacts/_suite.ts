@@ -27,11 +27,11 @@ function fail(runner: any, msg: string): never {
     throw new Error(msg);
 }
 
-// TeamCity task.json declares only "Node" (legacy handler). All modern agents run
-// Node 20+ per the repo engines requirement.
-const NODE_VERSION = 20;
+// TeamCity task.json declares Node16, Node20, and Node24 execution handlers.
+const NODE_VERSIONS = [16, 20, 24];
 
-describe('DownloadTeamCityArtifacts Suite', function () {
+NODE_VERSIONS.forEach(function (NODE_VERSION) {
+describe(`DownloadTeamCityArtifacts Suite (Node ${NODE_VERSION})`, function () {
     this.timeout(120000);
 
     // -- Success scenarios ------------------------------------------------------
@@ -94,6 +94,8 @@ describe('DownloadTeamCityArtifacts Suite', function () {
 
         assert(runner.stdOutContained('[mock-artifact-engine] processItems itemPattern=nonexistent/**'),
             'should pass the no-match pattern through to processItems unchanged');
+        assert(runner.stdOutContained('[mock-artifact-engine] processItems downloadedCount=0'),
+            'should download zero items when pattern matches nothing in the available item list');
     });
 
     it('collapses double-slash when endpoint URL has trailing slash', async function () {
@@ -185,3 +187,4 @@ describe('DownloadTeamCityArtifacts Suite', function () {
             'should mark the task Failed');
     });
 });
+}); // end NODE_VERSIONS.forEach
