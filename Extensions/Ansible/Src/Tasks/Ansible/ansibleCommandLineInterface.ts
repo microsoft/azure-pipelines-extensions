@@ -1,5 +1,4 @@
 import tl = require("azure-pipelines-task-lib/task");
-// @ts-ignore there is no type definition for shell-quote
 import { quote } from 'shell-quote';
 
 import { ansibleInterface } from './ansibleInterface';
