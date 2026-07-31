@@ -7,7 +7,7 @@ const taskPath = path.join(process.cwd(), SOURCE_TASK_PATH);
 const tr: tmrm.TaskMockRunner = new tmrm.TaskMockRunner(taskPath);
 
 setRequiredInputs(tr, { branch: 'refs/heads/main' });
-setEndpointAuth({ scheme: 'OAuth2' });
+setEndpointAuth({ scheme: 'OAuth' });
 registerAllMocks(tr);
 
 tr.run();

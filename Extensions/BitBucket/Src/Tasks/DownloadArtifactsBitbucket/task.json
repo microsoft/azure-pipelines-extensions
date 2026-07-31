@@ -14,7 +14,7 @@
   "version": {
     "Major": 15,
     "Minor": 279,
-    "Patch": 25
+    "Patch": 26
   },
   "minimumAgentVersion": "2.206.1",
   "instanceNameFormat": "Download Artifacts - Bitbucket",

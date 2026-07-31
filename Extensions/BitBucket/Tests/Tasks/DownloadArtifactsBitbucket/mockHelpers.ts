@@ -15,7 +15,7 @@ export const OAUTH2_TOKEN = 'bb-oauth2-access-token';
 export const SOURCE_TASK_PATH = 'Extensions/BitBucket/Src/Tasks/DownloadArtifactsBitbucket/downloadBitbucket.js';
 
 export interface ScenarioOptions {
-    scheme?: 'Token' | 'UsernamePassword' | 'OAuth2' | 'Unsupported';
+    scheme?: 'Token' | 'UsernamePassword' | 'OAuth' | 'OAuth2' | 'Unsupported';
     authParameters?: { [key: string]: string };
     authObjectRaw?: string;
     apiResponseText?: string;
@@ -87,15 +87,15 @@ export function setEndpointAuth(options?: ScenarioOptions): void {
         return;
     }
 
-    if (scheme === 'OAuth2') {
+    if (scheme === 'OAuth' || scheme === 'OAuth2') {
         const token = (parameters && parameters['AccessToken']) || OAUTH2_TOKEN;
         process.env['ENDPOINT_AUTH_' + endpoint] = JSON.stringify({
-            scheme: 'OAuth2',
+            scheme: scheme,
             parameters: parameters || {
                 AccessToken: token
             }
         });
-        process.env['ENDPOINT_AUTH_SCHEME_' + endpoint] = 'OAuth2';
+        process.env['ENDPOINT_AUTH_SCHEME_' + endpoint] = scheme;
         process.env['ENDPOINT_AUTH_PARAMETER_' + endpoint + '_ACCESSTOKEN'] = token;
         return;
     }

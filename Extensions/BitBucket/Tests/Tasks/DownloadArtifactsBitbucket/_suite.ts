@@ -78,8 +78,8 @@ describe('DownloadArtifactsBitbucket Suite', function () {
                 assert(runner.stdOutContained('##vso[task.setsecret]bb-token'), 'should register token as secret');
             });
 
-            it('succeeds with OAuth2 auth and uses Bearer token for API and x-token-auth for clone', async function () {
-                const runner = newRunner('successOAuth2Auth');
+            it('succeeds with OAuth auth and uses Bearer token for API and x-token-auth for clone', async function () {
+                const runner = newRunner('successOAuthAuth');
                 await runAndDump(runner, nodeVersion);
                 if (!runner.succeeded) fail(runner, 'expected task to succeed with OAuth2 auth');
 

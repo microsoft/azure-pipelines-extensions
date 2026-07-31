@@ -220,8 +220,9 @@ function getEndpointDetails(inputFieldName) {
     const retireUsernamePswdFF = tl.getVariable('retireusernamepswd');
     const isRetireUsernamePswdEnabled = retireUsernamePswdFF && retireUsernamePswdFF.toLowerCase() === 'true';
 
-    if (scheme === 'oauth2') {
-        // Azure DevOps OAuth2 service connections may store the token under different parameter names
+    if (scheme === 'oauth' || scheme === 'oauth2') {
+        // Azure DevOps Bitbucket OAuth connections use scheme "OAuth" (EndpointAuthorizationSchemes.OAuth).
+        // "oauth2" is accepted as a fallback for any custom service connections that may use that label.
         const accessToken = getAuthParameter(bitbucketEndpoint, 'AccessToken')
             || getAuthParameter(bitbucketEndpoint, 'token')
             || getAuthParameter(bitbucketEndpoint, 'access_token');
@@ -229,17 +230,17 @@ function getEndpointDetails(inputFieldName) {
         if (!accessToken) {
             const auth = tl.getEndpointAuthorization(bitbucketEndpoint, false);
             const availableParams = auth && auth.parameters ? Object.getOwnPropertyNames(auth.parameters).join(', ') : '(none)';
-            tl.debug('Available OAuth2 parameter names: ' + availableParams);
-            throw new Error('The endpoint ' + bitbucketEndpoint + ' does not have a token parameter for OAuth2 authentication.');
+            tl.debug('Available OAuth parameter names: ' + availableParams);
+            throw new Error('The endpoint ' + bitbucketEndpoint + ' does not have a token parameter for OAuth authentication.');
         }
 
-        tl.debug('Using OAuth2 authentication');
-        tl.debug('OAuth2 Token length: ' + (accessToken ? accessToken.length : 0));
+        tl.debug('Using OAuth authentication');
+        tl.debug('OAuth Token length: ' + (accessToken ? accessToken.length : 0));
 
         try {
             tl.setSecret(accessToken);
         } catch (e) {
-            tl.warning('Failed to mask OAuth2 token for log redaction.');
+            tl.warning('Failed to mask OAuth token for log redaction.');
         }
 
         return {
