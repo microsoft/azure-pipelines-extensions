@@ -315,7 +315,7 @@ function getAuthParameter(endpoint, paramName) {
 
     const scheme = auth.scheme.toLowerCase().trim();
 
-    if (scheme !== 'usernamepassword' && scheme !== 'token' && scheme !== 'oauth2') {
+    if (scheme !== 'usernamepassword' && scheme !== 'token' && scheme !== 'oauth2' && scheme !== 'oauth') {
         throw new Error('The authorization scheme ' + auth.scheme + ' is not supported for a bitbucket endpoint. Please use "oauth2", "token", or "usernamepassword".');
     }
 
