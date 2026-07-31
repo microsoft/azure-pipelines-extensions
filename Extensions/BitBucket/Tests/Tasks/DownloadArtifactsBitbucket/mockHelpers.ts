@@ -11,10 +11,11 @@ export const TOKEN_EMAIL = 'token-user@example.com';
 export const TOKEN_VALUE = 'bb-token';
 export const USERNAME = 'bb-user';
 export const PASSWORD = 'bb-pass';
+export const OAUTH2_TOKEN = 'bb-oauth2-access-token';
 export const SOURCE_TASK_PATH = 'Extensions/BitBucket/Src/Tasks/DownloadArtifactsBitbucket/downloadBitbucket.js';
 
 export interface ScenarioOptions {
-    scheme?: 'Token' | 'UsernamePassword' | 'Unsupported';
+    scheme?: 'Token' | 'UsernamePassword' | 'OAuth' | 'OAuth2' | 'Unsupported';
     authParameters?: { [key: string]: string };
     authObjectRaw?: string;
     apiResponseText?: string;
@@ -86,6 +87,19 @@ export function setEndpointAuth(options?: ScenarioOptions): void {
         return;
     }
 
+    if (scheme === 'OAuth' || scheme === 'OAuth2') {
+        const token = (parameters && parameters['AccessToken']) || OAUTH2_TOKEN;
+        process.env['ENDPOINT_AUTH_' + endpoint] = JSON.stringify({
+            scheme: scheme,
+            parameters: parameters || {
+                AccessToken: token
+            }
+        });
+        process.env['ENDPOINT_AUTH_SCHEME_' + endpoint] = scheme;
+        process.env['ENDPOINT_AUTH_PARAMETER_' + endpoint + '_ACCESSTOKEN'] = token;
+        return;
+    }
+
     process.env['ENDPOINT_AUTH_' + endpoint] = JSON.stringify({
         scheme: 'Bearer',
         parameters: {}
@@ -108,6 +122,7 @@ export function clearEndpointAuth(): void {
     delete process.env['ENDPOINT_AUTH_PARAMETER_' + endpoint + '_EMAIL'];
     delete process.env['ENDPOINT_AUTH_PARAMETER_' + endpoint + '_USERNAME'];
     delete process.env['ENDPOINT_AUTH_PARAMETER_' + endpoint + '_PASSWORD'];
+    delete process.env['ENDPOINT_AUTH_PARAMETER_' + endpoint + '_ACCESSTOKEN'];
 }
 
 function registerFsMock(tr: tmrm.TaskMockRunner, cleanupFixture: boolean, cleanupThrows: boolean): void {
@@ -170,9 +185,28 @@ function registerFsMock(tr: tmrm.TaskMockRunner, cleanupFixture: boolean, cleanu
 
 function registerHttpsMock(tr: tmrm.TaskMockRunner, apiResponseText?: string): void {
     tr.registerMock('https', {
-        request: function (options: { [key: string]: string }, callback: Function) {
-            const auth = options.auth || '';
-            const authUser = auth.indexOf(':') >= 0 ? auth.split(':')[0] : auth;
+        request: function (options: { [key: string]: string | object }, callback: Function) {
+            let authUser = '';
+            
+            // Check for Authorization header (new method)
+            const headers = options.headers as { [key: string]: string } | undefined;
+            if (headers && headers['Authorization']) {
+                const authHeader = headers['Authorization'];
+                if (authHeader.startsWith('Basic ')) {
+                    // Decode base64 to get username:password
+                    const encoded = authHeader.substring(6);
+                    const decoded = Buffer.from(encoded, 'base64').toString('utf-8');
+                    authUser = decoded.indexOf(':') >= 0 ? decoded.split(':')[0] : decoded;
+                } else if (authHeader.startsWith('Bearer ')) {
+                    // For Bearer tokens, use the token as the auth indicator
+                    authUser = '[oauth2-bearer]';
+                }
+            } else {
+                // Fallback to old options.auth method
+                const auth = (options.auth as string) || '';
+                authUser = auth.indexOf(':') >= 0 ? auth.split(':')[0] : auth;
+            }
+            
             console.log('[mock-https] request ' + options.path + ' authUser=' + authUser);
 
             const response = new events.EventEmitter() as any;

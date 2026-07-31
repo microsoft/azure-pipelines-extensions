@@ -12,6 +12,7 @@ const scw = require('./sourcecontrolwrapper.js');
  * @property {string} [Username] - The username for the endpoint.
  * @property {string} [Password] - The password for the endpoint (if using username/password authentication).
  * @property {string | null} [Token] - The token for the endpoint (if using token authentication).
+ * @property {string | null} [OAuthToken] - The OAuth2 access token for the endpoint (if using OAuth2 authentication).
  */
 
 /**
@@ -31,6 +32,7 @@ const scw = require('./sourcecontrolwrapper.js');
  */
 
 const BITBUCKET_API_TOKEN_AUTH_USERNAME = 'x-bitbucket-api-token-auth';
+const BITBUCKET_OAUTH2_AUTH_USERNAME = 'x-token-auth';
 
 const repositoryId = tl.getInputRequired('definition');
 const branch = tl.getInputRequired('branch');
@@ -45,22 +47,36 @@ try {
     process.exit(1);
 }
 
+/** @type {Object.<string, string>} */
+const headers = {};
+
+// Set authentication based on the endpoint type
+if (bitbucketEndpoint.OAuthToken) {
+    // For OAuth2, use Bearer token in Authorization header
+    headers['Authorization'] = 'Bearer ' + bitbucketEndpoint.OAuthToken;
+    tl.debug('Using OAuth2 Bearer token authentication for Bitbucket API');
+} else if (bitbucketEndpoint.Token) {
+    // For Token (App Password), use basic auth
+    headers['Authorization'] = 'Basic ' + Buffer.from(bitbucketEndpoint.Username + ':' + bitbucketEndpoint.Token).toString('base64');
+    tl.debug('Using token authentication for Bitbucket API');
+} else if (bitbucketEndpoint.Username && bitbucketEndpoint.Password) {
+    // For Username/Password, use basic auth
+    headers['Authorization'] = 'Basic ' + Buffer.from(bitbucketEndpoint.Username + ':' + bitbucketEndpoint.Password).toString('base64');
+    tl.debug('Using username/password authentication for Bitbucket API');
+}
+
 const options = {
     host: 'api.bitbucket.org',
     method: 'GET',
     path: '/2.0/repositories/' + repositoryId,
-    auth: ''
+    headers: headers
 };
-
-// Set authentication based on the endpoint type
-if (bitbucketEndpoint.Token) {
-    options.auth = bitbucketEndpoint.Username + ':' + bitbucketEndpoint.Token;
-} else if (bitbucketEndpoint.Username && bitbucketEndpoint.Password) {
-    options.auth = bitbucketEndpoint.Username + ':' + bitbucketEndpoint.Password;
-}
 
 https.request(options, function (rs) {
     tl.debug(`HTTP status: ${rs.statusCode} ${rs.statusMessage}`);
+    if (bitbucketEndpoint.OAuthToken) {
+        tl.debug('Authorization header was set for OAuth2');
+    }
     /** @type {IBitbucketResponse} */
     let result;
     let response = '';
@@ -107,7 +123,10 @@ https.request(options, function (rs) {
 
         // encodes projects and repo names with spaces
         const repoUrl = url.parse(remoteUrl);
-        if (bitbucketEndpoint.Token) {
+        if (bitbucketEndpoint.OAuthToken) {
+            // For OAuth2 authentication, use the access token with the OAuth2 username
+            repoUrl.auth = BITBUCKET_OAUTH2_AUTH_USERNAME + ':' + bitbucketEndpoint.OAuthToken;
+        } else if (bitbucketEndpoint.Token) {
             // For token authentication, use the token as password with API token auth username
             repoUrl.auth = BITBUCKET_API_TOKEN_AUTH_USERNAME + ':' + bitbucketEndpoint.Token;
         } else if (bitbucketEndpoint.Username && bitbucketEndpoint.Password) {
@@ -130,7 +149,10 @@ https.request(options, function (rs) {
             creds: true,
             debugOutput: false
         };
-        if (bitbucketEndpoint.Token) {
+        if (bitbucketEndpoint.OAuthToken) {
+            sch.username = BITBUCKET_OAUTH2_AUTH_USERNAME;
+            sch.password = bitbucketEndpoint.OAuthToken;
+        } else if (bitbucketEndpoint.Token) {
             sch.username = BITBUCKET_API_TOKEN_AUTH_USERNAME;
             sch.password = bitbucketEndpoint.Token;
         } else {
@@ -194,7 +216,37 @@ function getEndpointDetails(inputFieldName) {
 
     const scheme = auth.scheme.toLowerCase().trim();
 
-    if (scheme === 'token') {
+    // Feature flag: retire username/password authentication scheme
+    const retireUsernamePswdFF = tl.getVariable('retireusernamepswd');
+    const isRetireUsernamePswdEnabled = retireUsernamePswdFF && retireUsernamePswdFF.toLowerCase() === 'true';
+
+    if (scheme === 'oauth' || scheme === 'oauth2') {
+        // Azure DevOps Bitbucket OAuth connections use scheme "OAuth" (EndpointAuthorizationSchemes.OAuth).
+        // "oauth2" is accepted as a fallback for any custom service connections that may use that label.
+        const accessToken = getAuthParameter(bitbucketEndpoint, 'AccessToken')
+            || getAuthParameter(bitbucketEndpoint, 'token')
+            || getAuthParameter(bitbucketEndpoint, 'access_token');
+
+        if (!accessToken) {
+            const auth = tl.getEndpointAuthorization(bitbucketEndpoint, false);
+            const availableParams = auth && auth.parameters ? Object.getOwnPropertyNames(auth.parameters).join(', ') : '(none)';
+            tl.debug('Available OAuth parameter names: ' + availableParams);
+            throw new Error('The endpoint ' + bitbucketEndpoint + ' does not have a token parameter for OAuth authentication.');
+        }
+
+        tl.debug('Using OAuth authentication');
+        tl.debug('OAuth Token length: ' + (accessToken ? accessToken.length : 0));
+
+        try {
+            tl.setSecret(accessToken);
+        } catch (e) {
+            tl.warning('Failed to mask OAuth token for log redaction.');
+        }
+
+        return {
+            'OAuthToken': accessToken
+        };
+    } else if (scheme === 'token') {
         const token = getAuthParameter(bitbucketEndpoint, 'apitoken');
 
         if (!token) {
@@ -215,6 +267,13 @@ function getEndpointDetails(inputFieldName) {
             'Username': username
         };
     } else {
+        if (isRetireUsernamePswdEnabled) {
+            throw new Error(
+                'The username/password authentication scheme is no longer supported. ' +
+                'Please update your service connection to use OAuth2 or token authentication.'
+            );
+        }
+
         const hostUsername = getAuthParameter(bitbucketEndpoint, 'username');
         const hostPassword = getAuthParameter(bitbucketEndpoint, 'password');
 
@@ -256,8 +315,8 @@ function getAuthParameter(endpoint, paramName) {
 
     const scheme = auth.scheme.toLowerCase().trim();
 
-    if (scheme !== 'usernamepassword' && scheme !== 'token') {
-        throw new Error('The authorization scheme ' + auth.scheme + ' is not supported for a bitbucket endpoint. Please use either "usernamepassword" or "token".');
+    if (scheme !== 'usernamepassword' && scheme !== 'token' && scheme !== 'oauth2' && scheme !== 'oauth') {
+        throw new Error('The authorization scheme ' + auth.scheme + ' is not supported for a bitbucket endpoint. Please use "oauth2", "token", or "usernamepassword".');
     }
 
     const keyName = Object.getOwnPropertyNames(auth['parameters']).find(function (x) { return x.toLowerCase() === paramName.toLowerCase(); });
