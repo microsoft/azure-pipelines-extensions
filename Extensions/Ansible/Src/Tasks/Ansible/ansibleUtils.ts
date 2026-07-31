@@ -9,9 +9,9 @@ import util = require("util");
 import tl = require("azure-pipelines-task-lib/task");
 import ssh = require('ssh2');
 import SftpClient = require('ssh2-sftp-client');
-import httpClient = require('vso-node-api/HttpClient');
+import * as httpClient from 'typed-rest-client/HttpClient';
 
-var httpObj = new httpClient.HttpCallbackClient(tl.getVariable("AZURE_HTTP_USER_AGENT")!);
+var httpObj = new httpClient.HttpClient(tl.getVariable("AZURE_HTTP_USER_AGENT")!);
 const Ssh2Client = ssh.Client;
 
 const CP_EXEC_OPTIONS: cp.ExecOptions = {
@@ -217,19 +217,11 @@ export async function beginRequest<T>(request: WebRequest): Promise<WebResponse<
     return await beginRequestInternal(request);
 }
 
-function beginRequestInternal<T>(request: WebRequest): Promise<WebResponse<T>> {
+async function beginRequestInternal<T>(request: WebRequest): Promise<WebResponse<T>> {
     tl.debug(util.format("[%s]%s", request.method, request.uri));
-
-    return new Promise<WebResponse<T>>((resolve, reject) => {
-        httpObj.send(request.method, request.uri, request.body, request.headers, (error, response, body) => {
-            if (error) {
-                reject(error);
-            } else {
-                var httpResponse = toWebResponse<T>(response, body);
-                resolve(httpResponse);
-            }
-        });
-    });
+    const response = await httpObj.request(request.method, request.uri, request.body, request.headers);
+    const body = await response.readBody();
+    return toWebResponse<T>(response.message, body);
 }
 
 export function getTemporaryInventoryFilePath(): string {
