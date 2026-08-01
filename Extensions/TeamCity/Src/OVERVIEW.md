@@ -118,7 +118,7 @@ The `Artifacts` data source (see `vss-extension.json`) walks these children recu
 
 ### Handlebars Template
 
-`teamcity.handlebars` maps TeamCity's REST JSON (nested `file` / `children/href` shape) into the flat `{path, downloadUrl}` items that the artifact-engine `WebProvider` consumes. If TeamCity's REST shape changes, edit the template — not `download.ts`.
+`teamcity.handlebars` maps TeamCity's REST JSON (nested `file` / `children/href` shape) into the `{path, itemType, metadata.downloadUrl, …}` items that the artifact-engine `WebProvider` consumes. If TeamCity's REST shape changes, edit the template — not `download.ts`.
 
 ### Data Sources (7 total)
 
