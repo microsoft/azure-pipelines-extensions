@@ -78,6 +78,20 @@ describe('DownloadArtifactsBitbucket Suite', function () {
                 assert(runner.stdOutContained('##vso[task.setsecret]bb-token'), 'should register token as secret');
             });
 
+            it('succeeds with OAuth auth and uses Bearer token for API and x-token-auth for clone', async function () {
+                const runner = newRunner('successOAuthAuth');
+                await runAndDump(runner, nodeVersion);
+                if (!runner.succeeded) fail(runner, 'expected task to succeed with OAuth2 auth');
+
+                assert(runner.stdOutContained('[mock-https] request /2.0/repositories/workspace/repo authUser=[oauth2-bearer]'), 'should call Bitbucket API with Bearer token');
+                assert(runner.stdOutContained('[mock-scw] ctor tool=git'), 'should initialize source control wrapper');
+                assert(runner.stdOutContained('[mock-scw] clone https://***@bitbucket.org/org/repo.git .'), 'should clone with authenticated URL');
+                assert(runner.stdOutContained('[mock-scw] auth user=x-token-auth passSet=true'), 'should set x-token-auth username for clone credentials');
+                assert(runner.stdOutContained('[mock-scw] checkout refs/remotes/origin/main'), 'should checkout normalized branch ref');
+                assert(runner.stdOutContained('[mock-scw] checkout 1234567890abcdef1234567890abcdef12345678'), 'should checkout commit');
+                assert(runner.stdOutContained('##vso[task.setsecret]bb-oauth2-access-token'), 'should register OAuth2 token as secret');
+            });
+
             it('succeeds with username/password auth path', async function () {
                 const runner = newRunner('successUserPassAuth');
                 await runAndDump(runner, nodeVersion);
@@ -188,6 +202,16 @@ describe('DownloadArtifactsBitbucket Suite', function () {
                 if (runner.succeeded) fail(runner, 'expected task to fail for unsupported auth scheme');
 
                 assert(runner.stdOutContained('is not supported for a bitbucket endpoint'), 'should reject unsupported auth scheme');
+            });
+
+            it('fails with username/password when retireusernamepswd feature flag is enabled', async function () {
+                const runner = newRunner('failRetiredUsernamePasswordAuth');
+                await runAndDump(runner, nodeVersion);
+                if (runner.succeeded) fail(runner, 'expected task to fail when username/password auth is retired');
+
+                assert(runner.stdOutContained('no longer supported'), 'should surface retirement error message');
+                assert(runner.stdOutContained('OAuth2'), 'should direct user to OAuth2 or token authentication');
+                assert(!runner.stdOutContained('[mock-https] request'), 'should not call the API when auth scheme is retired');
             });
 
             it('fails when endpoint authorization is missing', async function () {
