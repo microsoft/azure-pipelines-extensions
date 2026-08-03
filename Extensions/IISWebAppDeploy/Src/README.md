@@ -7,7 +7,7 @@ Using Windows Remote Management (WinRM), connect to the host machine(s) where II
  - Deploy a Web Application to the IIS Server using [Web Deploy](http://www.iis.net/downloads/microsoft/web-deploy).
  - Deploy a SQL Server Database using DACPAC and [SqlPackage.exe](https://aka.ms/sqlpackage).
 
-To easily **setup WinRM** on the **host machines**, follow the directions for the **[domain-joined machines](https://www.visualstudio.com/en-us/docs/release/examples/other-servers/net-to-vm)** or the **[workgroup machines](https://www.visualstudio.com/en-us/docs/release/examples/other-servers/net-to-workgroup-vm)**.
+To easily **setup WinRM** on the **host machines**, follow the directions for the **[domain-joined machines](https://learn.microsoft.com/en-us/previous-versions/azure/devops/pipelines/apps/cd/deploy-webdeploy-iis-winrm?view=tfs-2017)** or the **[workgroup machines](https://learn.microsoft.com/en-us/previous-versions/azure/devops/pipelines/apps/cd/deploy-webdeploy-iis-winrm?view=tfs-2017)**.
 
 The **Azure DevOps** accounts that are using the **preview tasks** wiz. **IIS Web Application Deployment** or **SQL Server Database Deployment**, should move to this extension. All **future enhancements** to the IIS Web App Deployment task or to the SQL Server Database Deployment task will be provided in this extension.
 
@@ -32,7 +32,7 @@ The extension installs the following tasks:
 ### **Note**
 
 - This extension is **supported in TFS 2017** onwards and is **NOT supported in TFS 2015** or lower versions.
-- All the WinRM Tasks can also be used for Azure VMs as with https protocal
+- All the WinRM Tasks can also be used for Azure VMs as with https protocol
 
 ### **Contact Information**
 

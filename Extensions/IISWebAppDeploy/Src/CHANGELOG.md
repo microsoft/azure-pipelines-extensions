@@ -2,6 +2,32 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.279.14] July 2026
+### Changed
+- Migrated internal package feed to centralized Azure Artifacts feed for network isolation policy compliance (SFI-ES4.2.4).
+- Updated build tooling dependencies: resolved CVE-2026-13149 (brace-expansion ReDoS) in test tooling.
+- No changes to task source code or end-user behavior.
+
+## [1.279.13] May 2026
+### Security
+- Applied MSRC 115015 case fix across extension metadata.
+
+## [1.7.0] February 2024
+### Added
+- IISWebAppMgmtV3: Bypass bindings with duplicate certificates and support multiple certificates.
+
+## [1.6.7] September 2023
+### Fixed
+- Updated task versions to actual published versions.
+
+## [1.6.6] October 2023
+### Fixed
+- Updated PowerShell sanitizer regex to allow more characters (port of azure-pipelines-tasks#19028).
+
+## [1.6.5] September 2023
+### Fixed
+- Fixed missing arguments bug in IISWebAppDeploy V1/V2 MsDeployOnTargetMachines.
+
 ## [1.6.4] 22 August 2023
 ### Added
 - Several improvements for arguments validation.
