@@ -82,7 +82,7 @@ This extension wraps all of that into simple pipeline task inputs.
 
 The extension ships **7 task versions** across 3 task groups:
 
-### 3.1 WinRM: IIS Web App Management (`IISWebAppMgmt`)
+### 3.1 WinRM - IIS Web App Management (`IISWebAppMgmt`)
 
 **Purpose:** Create or update IIS websites, web applications, virtual directories, and application pools.
 **Tool used:** `AppCmd.exe` (built into IIS)
@@ -112,7 +112,7 @@ The extension ships **7 task versions** across 3 task groups:
 
 ---
 
-### 3.2 WinRM: IIS Web App Deployment (`IISWebAppDeploy`)
+### 3.2 WinRM - IIS Web App Deployment (`IISWebAppDeploy`)
 
 **Purpose:** Deploy a web application package to an IIS website.
 **Tool used:** `msdeploy.exe` (Web Deploy) — must be pre-installed on the target machine.
@@ -133,7 +133,7 @@ The extension ships **7 task versions** across 3 task groups:
 
 ---
 
-### 3.3 WinRM: SQL Server Database Deployment (`SqlDacpacDeploy`)
+### 3.3 WinRM - SQL Server DB Deployment (`SqlDacpacDeploy`)
 
 **Purpose:** Deploy a SQL Server database using DACPAC files or run inline SQL scripts.
 **Tool used:** `SqlPackage.exe` (part of SSDT / DacFx).
@@ -165,9 +165,11 @@ Extensions/IISWebAppDeploy/
 │   ├── Assets/
 │   │   └── MITLicense.txt
 │   ├── Images/                             ← Screenshots shown on Marketplace
+│   │   ├── IIS_Web_App.png
+│   │   ├── IIS_Web_App_Large.png
+│   │   ├── IISWebDeployment.png
 │   │   ├── IISWebDeploymentTasks.png
 │   │   ├── IISWebManagement.png
-│   │   ├── IISWebDeployment.png
 │   │   └── SQLServerDacpac.png
 │   └── Tasks/
 │       ├── IISWebAppDeploy/
@@ -212,7 +214,8 @@ Extensions/IISWebAppDeploy/
 | PowerShell | 3+ | Task execution runtime |
 | `VstsTaskSdk` | 0.7.1 | Azure Pipelines PS helper module |
 | `Sanitizer` | — | Input sanitization module |
-| `RemoteDeployer` | 0.1.0 | WinRM bootstrapper (IISWebAppMgmt only) |
+| `RemoteDeployer` | 0.1.0 | WinRM bootstrapper (IISWebAppMgmt V2/V3 only) |
+| `TaskModuleSqlUtility` | — | SQL utility module (SqlDacpacDeploy V1/V2 only) |
 | `AppCmd.exe` | Built into IIS | IIS website/pool management |
 | `msdeploy.exe` | Web Deploy 3.5+ | Web package deployment |
 | `SqlPackage.exe` | SSDT / DacFx | DACPAC deployment |
@@ -346,15 +349,15 @@ npm test
 ```
 
 Test files per task:
-| Task | Test File |
-|------|-----------|
-| IISWebAppDeployV1 | `Tests/Tasks/IISWebAppDeploy/IISWebAppDeployV1/L0Tests.ts` |
-| IISWebAppDeployV2 | `Tests/Tasks/IISWebAppDeploy/IISWebAppDeployV2/L0Tests.ts` |
-| IISWebAppMgmtV1 | `Tests/Tasks/IISWebAppMgmt/IISWebAppMgmtV1/L0Tests.ts` |
-| IISWebAppMgmtV2 | `Tests/Tasks/IISWebAppMgmt/IISWebAppMgmtV2/L0Tests.ts` |
-| IISWebAppMgmtV3 | `Tests/Tasks/IISWebAppMgmt/IISWebAppMgmtV3/L0Tests.ts` |
-| SqlDacpacDeployV1 | `Tests/Tasks/SqlDacpacDeploy/SqlDacpacDeployV1/L0Tests.ts` |
-| SqlDacpacDeployV2 | `Tests/Tasks/SqlDacpacDeploy/SqlDacpacDeployV2/L0Tests.ts` |
+| Task | Test Entry Point |
+|------|------------------|
+| IISWebAppDeployV1 | `Tests/Tasks/IISWebAppDeploy/IISWebAppDeployV1/_suite.ts` |
+| IISWebAppDeployV2 | `Tests/Tasks/IISWebAppDeploy/IISWebAppDeployV2/_suite.ts` |
+| IISWebAppMgmtV1 | `Tests/Tasks/IISWebAppMgmt/IISWebAppMgmtV1/_suite.ts` |
+| IISWebAppMgmtV2 | `Tests/Tasks/IISWebAppMgmt/IISWebAppMgmtV2/_suite.ts` |
+| IISWebAppMgmtV3 | `Tests/Tasks/IISWebAppMgmt/IISWebAppMgmtV3/_suite.ts` |
+| SqlDacpacDeployV1 | `Tests/Tasks/SqlDacpacDeploy/SqlDacpacDeployV1/_suite.ts` |
+| SqlDacpacDeployV2 | `Tests/Tasks/SqlDacpacDeploy/SqlDacpacDeployV2/_suite.ts` |
 
 ### CI Integration Tests (real end-to-end)
 
