@@ -392,13 +392,12 @@ Test files per task:
 |----------|------|
 | Marketplace page | https://marketplace.visualstudio.com/items?itemName=ms-vscs-rm.iiswebapp |
 | GitHub source | https://github.com/microsoft/azure-pipelines-extensions/tree/master/Extensions/IISWebAppDeploy |
-| IISWebAppMgmt detailed docs | http://aka.ms/IISMgmt |
+| IISWebAppMgmt detailed docs | https://github.com/microsoft/azure-pipelines-extensions/blob/master/Extensions/IISWebAppDeploy/Src/Tasks/IISWebAppMgmt/IISWebAppMgmtV3/README_IISAppMgmt.md |
 | IISWebAppDeploy detailed docs | https://github.com/microsoft/azure-pipelines-extensions/blob/master/Extensions/IISWebAppDeploy/Src/Tasks/IISWebAppDeploy/IISWebAppDeployV2/README_IISAppDeploy.md |
 | SqlDacpacDeploy detailed docs | https://github.com/microsoft/azure-pipelines-extensions/blob/master/Extensions/IISWebAppDeploy/Src/Tasks/SqlDacpacDeploy/SqlDacpacDeployV2/README.md |
 | Change log | https://aka.ms/iisextnchangelog |
 | Publish pipeline wiki | https://mseng.visualstudio.com/AzureDevOps/_wiki/wikis/AzureDevOps.wiki/49785/Pipeline-for-publishing-extensions-on-Marketplace |
 | CI pipeline (canarytest) | https://dev.azure.com/canarytest/PipelineTasks/_build?definitionId=263 |
-| Parent US | https://dev.azure.com/mseng/AzureDevOps/_workitems/edit/2429446 |
 | WinRM setup guide (archived) | https://learn.microsoft.com/en-us/previous-versions/azure/devops/pipelines/apps/cd/deploy-webdeploy-iis-winrm?view=tfs-2017 |
 | IIS deployment (current) | https://learn.microsoft.com/en-us/azure/devops/pipelines/release/deploy-webdeploy-iis-deploygroups |
 | Web Deploy download | https://www.iis.net/downloads/microsoft/web-deploy |
