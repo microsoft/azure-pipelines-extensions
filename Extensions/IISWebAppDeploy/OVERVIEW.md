@@ -399,7 +399,8 @@ Test files per task:
 | Publish pipeline wiki | https://mseng.visualstudio.com/AzureDevOps/_wiki/wikis/AzureDevOps.wiki/49785/Pipeline-for-publishing-extensions-on-Marketplace |
 | CI pipeline (canarytest) | https://dev.azure.com/canarytest/PipelineTasks/_build?definitionId=263 |
 | Parent US | https://dev.azure.com/mseng/AzureDevOps/_workitems/edit/2429446 |
-| WinRM setup guide | https://learn.microsoft.com/azure/devops/pipelines/release/deploy-webdeploy-iis-winrm |
+| WinRM setup guide (archived) | https://learn.microsoft.com/en-us/previous-versions/azure/devops/pipelines/apps/cd/deploy-webdeploy-iis-winrm?view=tfs-2017 |
+| IIS deployment (current) | https://learn.microsoft.com/en-us/azure/devops/pipelines/release/deploy-webdeploy-iis-deploygroups |
 | Web Deploy download | https://www.iis.net/downloads/microsoft/web-deploy |
 | AppCmd.exe reference | https://learn.microsoft.com/iis/get-started/getting-started-with-iis/getting-started-with-appcmdexe |
 | SqlPackage.exe reference | https://aka.ms/sqlpackage |
