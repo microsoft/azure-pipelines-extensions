@@ -10,7 +10,7 @@ import ssh = require('ssh2');
 import shell = require('shelljs');
 import SftpClient = require('ssh2-sftp-client');
 import Q = require("q");
-var uuid = require('uuid/v4');
+import crypto = require('crypto');
 
 var httpObj = new httpClient.HttpCallbackClient(tl.getVariable("AZURE_HTTP_USER_AGENT")!);
 const Ssh2Client = ssh.Client;
@@ -77,7 +77,8 @@ export async function copyFileToRemoteMachine(src: string, dest: string, sftpCon
         }); // ignore logout errors - since there could be spontaneous ECONNRESET errors after logout; see: https://github.com/mscdex/node-imap/issues/695
         await sftpClient.end();
     } catch (err) {
-        tl.debug(`Failed to close SFTP client: ${err}`);
+        tl.debug(`Failed to close SFTP client: ${err}`);
+
     }
 
     return defer.promise;
@@ -235,7 +236,7 @@ function beginRequestInternal<T>(request: WebRequest): Promise<WebResponse<T>> {
 }
 
 export function getTemporaryInventoryFilePath(): string {
-    return '/tmp/' + uuid() + 'inventory.ini';
+    return '/tmp/' + crypto.randomUUID() + 'inventory.ini';
 }
 
 function toWebResponse<T>(response: http.IncomingMessage | undefined, body: string | undefined): WebResponse<T> {
