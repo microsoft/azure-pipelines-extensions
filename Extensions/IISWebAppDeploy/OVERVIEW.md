@@ -393,8 +393,8 @@ Test files per task:
 | Marketplace page | https://marketplace.visualstudio.com/items?itemName=ms-vscs-rm.iiswebapp |
 | GitHub source | https://github.com/microsoft/azure-pipelines-extensions/tree/master/Extensions/IISWebAppDeploy |
 | IISWebAppMgmt detailed docs | http://aka.ms/IISMgmt |
-| IISWebAppDeploy detailed docs | http://aka.ms/IISWebDeploy |
-| SqlDacpacDeploy detailed docs | https://aka.ms/SQLDBDeploy |
+| IISWebAppDeploy detailed docs | https://github.com/microsoft/azure-pipelines-extensions/blob/master/Extensions/IISWebAppDeploy/Src/Tasks/IISWebAppDeploy/IISWebAppDeployV2/README_IISAppDeploy.md |
+| SqlDacpacDeploy detailed docs | https://github.com/microsoft/azure-pipelines-extensions/blob/master/Extensions/IISWebAppDeploy/Src/Tasks/SqlDacpacDeploy/SqlDacpacDeployV2/README.md |
 | Change log | https://aka.ms/iisextnchangelog |
 | Publish pipeline wiki | https://mseng.visualstudio.com/AzureDevOps/_wiki/wikis/AzureDevOps.wiki/49785/Pipeline-for-publishing-extensions-on-Marketplace |
 | CI pipeline (canarytest) | https://dev.azure.com/canarytest/PipelineTasks/_build?definitionId=263 |
