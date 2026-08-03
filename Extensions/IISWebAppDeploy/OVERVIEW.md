@@ -87,13 +87,13 @@ The extension ships **7 task versions** across 3 task groups:
 **Purpose:** Create or update IIS websites, web applications, virtual directories, and application pools.
 **Tool used:** `AppCmd.exe` (built into IIS)
 
-| Version | Status | Notes |
-|---------|--------|-------|
-| **V1** (`v1.5.0`) | Stable | Original version |
-| **V2** (`v2.3.0`) | Stable | Added more configuration options |
-| **V3** (`v3.2.0`) | **Current** | PS3 Handler support (PowerShell 3 compatibility) |
+| Version | Status | Handler | Notes |
+|---------|--------|---------|-------|
+| **V1** (`v1.5.0`) | Stable | PowerShell | Original version |
+| **V2** (`v2.3.0`) | Stable | PowerShell3 | Enhanced to manage Web Apps, Virtual Directories, and Application Pools |
+| **V3** (`v3.2.0`) | **Current** | PowerShell3 | PS3 Handler support (same as V2, migrated handler) |
 
-**What V3 can do:**
+**What V2/V3 can do** (V1 only supports Website + App Pool):
 
 | Configuration Type | Actions |
 |-------------------|---------|
@@ -102,12 +102,14 @@ The extension ships **7 task versions** across 3 task groups:
 | IIS Virtual Directory | Create/Update |
 | IIS Application Pool | Create/Update, Start, Stop, Recycle |
 
-**Key inputs:**
+**Key inputs (V3):**
 - `machinesList` — target machine IP/FQDN (comma-separated for multiple)
 - `IISDeploymentType` — Website / Web Application / Virtual Directory / Application Pool
+- `ActionIISWebsite` — Create Or Update / Start / Stop
+- `ActionIISApplicationPool` — Create Or Update / Start / Stop / Recycle
 - `WebsiteName`, `WebsitePhysicalPath` — website config
-- `AppPoolName`, `DotNetVersion`, `PipeLineMode`, `AppPoolIdentityForWebsite` — app pool config
-- `AddBinding`, `Protocol`, `Port`, `SSLCertThumbprint` — binding config
+- `AppPoolNameForWebsite`, `DotNetVersionForWebsite`, `PipeLineModeForWebsite`, `AppPoolIdentityForWebsite` — app pool config
+- `AddBinding`, `Protocol`, `Port`, `SSLCertThumbPrint` — binding config
 - `ConfigureAuthenticationForWebsite` — Anonymous / Basic / Windows auth
 
 ---
@@ -117,19 +119,20 @@ The extension ships **7 task versions** across 3 task groups:
 **Purpose:** Deploy a web application package to an IIS website.
 **Tool used:** `msdeploy.exe` (Web Deploy) — must be pre-installed on the target machine.
 
-| Version | Status | Notes |
-|---------|--------|-------|
-| **V1** (`v1.6.0`) | Stable | Original version |
-| **V2** (`v2.2.0`) | **Current** | Improved parameters support |
+| Version | Status | Handler | Notes |
+|---------|--------|---------|-------|
+| **V1** (`v1.6.0`) | Stable | PowerShell | Original version |
+| **V2** (`v2.2.0`) | **Current** | PowerShell3 | Migrated to PS3 Handler |
 
 **Key inputs:**
 - `WebDeployPackage` — path to `.zip` Web Deploy package (must be accessible by target machine)
 - `WebDeployParamFile` — optional parameters XML file
 - `OverRideParams` — override specific parameters at deploy time (e.g., `name="ConnStr",value="..."`)
 - `WebsiteName` — target IIS website name
-- `TakeAppOfflineFlag` — take app offline during deployment
-- `RemoveAdditionalFilesFlag` — clean target before deploy
-- `ExcludeFilesFromAppDataFlag` — protect App_Data folder
+- `TakeAppOffline` — take app offline during deployment
+- `RemoveAdditionalFiles` — clean target before deploy
+- `ExcludeFilesFromAppData` — protect App_Data folder
+- `AdditionalArguments` — extra msdeploy.exe arguments
 
 ---
 
@@ -138,19 +141,22 @@ The extension ships **7 task versions** across 3 task groups:
 **Purpose:** Deploy a SQL Server database using DACPAC files or run inline SQL scripts.
 **Tool used:** `SqlPackage.exe` (part of SSDT / DacFx).
 
-| Version | Status | Notes |
-|---------|--------|-------|
-| **V1** (`v1.5.0`) | Stable | Original version |
-| **V2** (`v2.2.0`) | **Current** | Added SQL auth and connection string support |
+| Version | Status | Handler | Notes |
+|---------|--------|---------|-------|
+| **V1** (`v1.5.0`) | Stable | PowerShell | Original version (includes SQL auth + connection string) |
+| **V2** (`v2.2.0`) | **Current** | PowerShell3 | Migrated to PS3 Handler |
 
 **Key inputs:**
-- `TaskType` — `dacpac` (deploy DACPAC file) or `sqlInline` (run inline SQL)
+- `TaskType` — `dacpac` (deploy DACPAC file) / `sqlQuery` (run SQL from file) / `sqlInline` (run inline SQL)
 - `DacpacFile` — path to `.dacpac` file
+- `SqlFile` — path to `.sql` file (when TaskType = sqlQuery)
+- `InlineSql` — SQL script to run directly (when TaskType = sqlInline)
 - `TargetMethod` — `server` / `connectionString` / `publishProfile`
 - `ServerName`, `DatabaseName` — target SQL server and database
 - `AuthScheme` — `windowsAuthentication` or `sqlServerAuthentication`
 - `SqlUsername`, `SqlPassword` — credentials for SQL auth
-- `InlineSql` — SQL script to run directly
+- `ConnectionString` — full connection string (when TargetMethod = connectionString)
+- `PublishProfile` — path to publish profile XML (when TargetMethod = publishProfile)
 
 ---
 
@@ -176,26 +182,36 @@ Extensions/IISWebAppDeploy/
 │       │   ├── IISWebAppDeployV1/
 │       │   │   ├── task.json               ← Task definition (inputs, version)
 │       │   │   ├── Main.ps1                ← Entry point
-│       │   │   ├── MsDeployOnTargetMachines.ps1
+│       │   │   ├── DeployIISWebApp.ps1     ← Orchestration script
+│       │   │   ├── MsDeployOnTargetMachines.ps1  ← Core msdeploy logic
+│       │   │   ├── README_IISAppDeploy.md  ← Task documentation
 │       │   │   ├── externals.json          ← PS modules to bundle at build time
-│       │   │   └── ps_modules/             ← (generated at build time)
-│       │   └── IISWebAppDeployV2/          ← Same structure as V1
+│       │   │   └── icon.png
+│       │   └── IISWebAppDeployV2/          ← Same structure as V1 (PowerShell3 handler)
 │       ├── IISWebAppMgmt/
 │       │   ├── IISWebAppMgmtV1/
+│       │   │   ├── task.json, Main.ps1, ManageIISWebApp.ps1
+│       │   │   ├── AppCmdOnTargetMachines.ps1, README_IISAppMgmt.md
+│       │   │   └── externals.json, icon.png
 │       │   ├── IISWebAppMgmtV2/
+│       │   │   ├── task.json, Main.ps1, Utility.ps1
+│       │   │   ├── AppCmdOnTargetMachines.ps1, README_IISAppMgmt.md
+│       │   │   └── externals.json, icon.png
 │       │   └── IISWebAppMgmtV3/
 │       │       ├── task.json               ← v3.2.0
 │       │       ├── Main.ps1                ← Entry point
 │       │       ├── AppCmdOnTargetMachines.ps1  ← Core logic
 │       │       ├── Utility.ps1
-│       │       ├── externals.json
+│       │       ├── externals.json, icon.png
 │       │       └── README_IISAppMgmt.md    ← Detailed task docs (aka.ms/IISMgmt)
 │       └── SqlDacpacDeploy/
 │           ├── SqlDacpacDeployV1/
 │           └── SqlDacpacDeployV2/
 │               ├── task.json               ← v2.2.0
 │               ├── Main.ps1
-│               └── DeployToSqlServer.ps1   ← Core logic
+│               ├── DeployToSqlServer.ps1   ← Core logic
+│               ├── README.md
+│               └── icon.png, icon.svg
 └── Tests/
     └── Tasks/
         ├── IISWebAppDeploy/                ← L0 unit tests (PowerShell + Mocha)
