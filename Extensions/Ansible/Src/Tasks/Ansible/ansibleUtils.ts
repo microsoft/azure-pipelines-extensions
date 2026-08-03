@@ -1,4 +1,5 @@
 import cp = require('child_process');
+import crypto = require('crypto');
 import fs = require('fs');
 import os = require('os');
 import http = require('http');
@@ -6,11 +7,9 @@ import querystring = require('querystring');
 import util = require("util");
 
 import tl = require("azure-pipelines-task-lib/task");
-import httpClient = require('vso-node-api/HttpClient');
 import ssh = require('ssh2');
 import SftpClient = require('ssh2-sftp-client');
-import Q = require("q");
-import crypto = require('crypto');
+import httpClient = require('vso-node-api/HttpClient');
 
 var httpObj = new httpClient.HttpCallbackClient(tl.getVariable("AZURE_HTTP_USER_AGENT")!);
 const Ssh2Client = ssh.Client;
@@ -35,8 +34,6 @@ export class RemoteCommandOptions {
  * @returns {Promise<string>|Promise<T>}
  */
 export async function copyFileToRemoteMachine(src: string, dest: string, sftpConfig: SftpClient.ConnectOptions): Promise<string> {
-    var defer = Q.defer<string>();
-
     const sftpClient = new SftpClient();
 
     try {
@@ -70,22 +67,19 @@ export async function copyFileToRemoteMachine(src: string, dest: string, sftpCon
             tl.debug(`Copied file to remote machine at: ${dest}`);
         }
 
-        defer.resolve('0');
+        return '0';
     } catch (err) {
-        defer.reject(tl.loc('RemoteCopyFailed', err));
+        throw tl.loc('RemoteCopyFailed', err);
+    } finally {
+        try {
+            sftpClient.on('error', (err) => {
+                tl.debug(`sftpClient: Ignoring error diconnecting: ${err}`);
+            }); // ignore logout errors - since there could be spontaneous ECONNRESET errors after logout; see: https://github.com/mscdex/node-imap/issues/695
+            await sftpClient.end();
+        } catch (err) {
+            tl.debug(`Failed to close SFTP client: ${err}`);
+        }
     }
-
-    try {
-        sftpClient.on('error', (err) => {
-            tl.debug(`sftpClient: Ignoring error diconnecting: ${err}`);
-        }); // ignore logout errors - since there could be spontaneous ECONNRESET errors after logout; see: https://github.com/mscdex/node-imap/issues/695
-        await sftpClient.end();
-    } catch (err) {
-        tl.debug(`Failed to close SFTP client: ${err}`);
-
-    }
-
-    return defer.promise;
 }
 
 /**
@@ -93,15 +87,15 @@ export async function copyFileToRemoteMachine(src: string, dest: string, sftpCon
  * @param sshConfig
  * @returns {Promise<any>|Promise<T>}
  */
-export function setupSshClientConnection(sshConfig: any): Q.Promise<ssh.Client> {
-    var defer = Q.defer<ssh.Client>();
-    var client = new Ssh2Client();
-    client.on('ready', () => {
-        defer.resolve(client);
-    }).on('error', (err) => {
-        defer.reject(err);
-    }).connect(sshConfig);
-    return defer.promise;
+export function setupSshClientConnection(sshConfig: any): Promise<ssh.Client> {
+    return new Promise<ssh.Client>((resolve, reject) => {
+        const client = new Ssh2Client();
+        client.on('ready', () => {
+            resolve(client);
+        }).on('error', (err) => {
+            reject(err);
+        }).connect(sshConfig);
+    });
 }
 
 /**
@@ -111,79 +105,74 @@ export function setupSshClientConnection(sshConfig: any): Q.Promise<ssh.Client> 
  * @param options
  * @returns {Promise<string>|Promise<T>}
  */
-export function runCommandOnRemoteMachine(command: string, sshClient: ssh.Client, options: RemoteCommandOptions): Q.Promise<string> {
-    var defer = Q.defer<string>();
-    var stdErrWritten: boolean = false;
+export function runCommandOnRemoteMachine(command: string, sshClient: ssh.Client, options: RemoteCommandOptions): Promise<string> {
+    return new Promise<string>((resolve, reject) => {
+        let stdErrWritten: boolean = false;
 
-    if (!options) {
-        tl.debug('Options not passed to runCommandOnRemoteMachine, setting defaults.');
-        var options = new RemoteCommandOptions();
-        options.failOnStdErr = true;
-    }
-
-    var cmdToRun = command;
-    tl.debug('cmdToRun = ' + cmdToRun);
-
-    sshClient.exec(cmdToRun, (err, stream) => {
-        if (err) {
-            defer.reject(tl.loc('RemoteCmdExecutionErr', err))
-        } else {
-            stream.on('close', (code: string | number, signal: string) => {
-                tl.debug('code = ' + code + ', signal = ' + signal);
-
-                //based on the options decide whether to fail the build or not if data was written to STDERR
-                if (stdErrWritten === true && options.failOnStdErr === true) {
-                    defer.reject(tl.loc('RemoteCmdExecutionErr'));
-                } else if (code && code != 0) {
-                    defer.reject(tl.loc('RemoteCmdNonZeroExitCode', cmdToRun, code));
-                } else {
-                    //success case - code is undefined or code is 0
-                    defer.resolve('0');
-                }
-            }).on('data', (data: string) => {
-                _writeLine(data);
-            }).stderr.on('data', (data) => {
-                stdErrWritten = true;
-                tl.debug('stderr = ' + data);
-                if (data && data.toString().trim() !== '') {
-                    tl.error(data);
-                }
-            });
+        if (!options) {
+            tl.debug('Options not passed to runCommandOnRemoteMachine, setting defaults.');
+            options = new RemoteCommandOptions();
+            options.failOnStdErr = true;
         }
+
+        const cmdToRun = command;
+        tl.debug('cmdToRun = ' + cmdToRun);
+
+        sshClient.exec(cmdToRun, (err, stream) => {
+            if (err) {
+                reject(tl.loc('RemoteCmdExecutionErr', err))
+            } else {
+                stream.on('close', (code: string | number, signal: string) => {
+                    tl.debug('code = ' + code + ', signal = ' + signal);
+
+                    //based on the options decide whether to fail the build or not if data was written to STDERR
+                    if (stdErrWritten === true && options.failOnStdErr === true) {
+                        reject(tl.loc('RemoteCmdExecutionErr'));
+                    } else if (code && code != 0) {
+                        reject(tl.loc('RemoteCmdNonZeroExitCode', cmdToRun, code));
+                    } else {
+                        //success case - code is undefined or code is 0
+                        resolve('0');
+                    }
+                }).on('data', (data: string) => {
+                    _writeLine(data);
+                }).stderr.on('data', (data) => {
+                    stdErrWritten = true;
+                    tl.debug('stderr = ' + data);
+                    if (data && data.toString().trim() !== '') {
+                        tl.error(data);
+                    }
+                });
+            }
+        });
     });
-    return defer.promise;
 }
 
-export function runCommandOnSameMachine(command: string, options: RemoteCommandOptions): Q.Promise<string> {
-    var defer = Q.defer<string>();
-
-    if (!options) {
-        tl.debug('Options not passed to runCommandOnRemoteMachine, setting defaults.');
-        var options = new RemoteCommandOptions();
-        options.failOnStdErr = true;
-    }
-
-    var cmdToRun = command;
-    tl.debug('cmdToRun = ' + cmdToRun);
-
-    cp.exec(cmdToRun, CP_EXEC_OPTIONS, (err, stdout, stderr) => {
-        if (stdout) {
-            tl.debug(stdout);
+export function runCommandOnSameMachine(command: string, options: RemoteCommandOptions): Promise<string> {
+    return new Promise<string>((resolve, reject) => {
+        if (!options) {
+            tl.debug('Options not passed to runCommandOnRemoteMachine, setting defaults.');
+            options = new RemoteCommandOptions();
+            options.failOnStdErr = true;
         }
 
-        if (err) {
-            tl.debug(`code = ${err.code}`);
-            defer.reject(tl.loc('RemoteCmdNonZeroExitCode', cmdToRun, err.code))
-        } else {
-            tl.debug('code = 0');
-            if (stderr != '' && options.failOnStdErr === true) {
-                defer.reject(tl.loc('RemoteCmdExecutionErr'));
+        const cmdToRun = command;
+        tl.debug('cmdToRun = ' + cmdToRun);
+
+        cp.exec(cmdToRun, (err, _stdout, stderr) => {
+            if (err) {
+                tl.debug(`code = ${err.code}`);
+                reject(tl.loc('RemoteCmdNonZeroExitCode', cmdToRun, err.code))
             } else {
-                defer.resolve('0');
+                tl.debug('code = 0');
+                if (stderr != '' && options.failOnStdErr === true) {
+                    reject(tl.loc('RemoteCmdExecutionErr'));
+                } else {
+                    resolve('0');
+                }
             }
-        }
+        });
     });
-    return defer.promise;
 }
 
 export function testIfFileExist(filePath: string): boolean {

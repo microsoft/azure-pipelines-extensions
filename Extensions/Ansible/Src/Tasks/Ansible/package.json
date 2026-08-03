@@ -16,7 +16,6 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "devDependencies": {
-    "@types/q": "^1.5.8",
     "@types/shell-quote": "^1.7.5",
     "@types/ssh2-sftp-client": "^9.0.6"
   }
