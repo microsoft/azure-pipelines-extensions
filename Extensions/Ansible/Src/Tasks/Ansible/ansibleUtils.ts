@@ -187,11 +187,11 @@ export function runCommandOnSameMachine(command: string, options: RemoteCommandO
 }
 
 export function testIfFileExist(filePath: string): boolean {
-    return fs.existsSync(filePath) && fs.lstatSync(filePath).isFile();
+    return fs.existsSync(filePath) && fs.statSync(filePath).isFile();
 }
 
 export function testIfDirectoryExist(directoryPath: string): boolean {
-    return fs.existsSync(directoryPath) && fs.lstatSync(directoryPath).isDirectory();
+    return fs.existsSync(directoryPath) && fs.statSync(directoryPath).isDirectory();
 }
 
 export function getAgentPlatform(): string {
@@ -199,7 +199,7 @@ export function getAgentPlatform(): string {
 }
 
 export function getShellWhich(moduleName: string): string | null {
-    return tl.which(moduleName, true);
+    return tl.which(moduleName, false);
 }
 
 export class WebRequest {
