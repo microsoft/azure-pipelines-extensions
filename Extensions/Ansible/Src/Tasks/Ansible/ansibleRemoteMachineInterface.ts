@@ -37,7 +37,9 @@ export class ansibleRemoteMachineInterface extends ansibleCommandLineInterface {
             throw tl.loc('PlaybookRootNotDirectory', playbookRoot);
         }
 
-        if (!ansibleUtils.testIfFileExist(path.join(playbookRoot, playbookFile))) {
+        const playbookFilePath = path.join(playbookRoot, playbookFile);
+
+        if (!ansibleUtils.testIfFileExist(playbookFilePath)) {
             throw tl.loc('PlaybookNotPresent', playbookFile, playbookRoot);
         }
 

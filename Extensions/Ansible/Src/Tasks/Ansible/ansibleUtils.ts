@@ -1,5 +1,6 @@
-const fs = require('fs');
-var os = require('os');
+import cp = require('child_process');
+import fs = require('fs');
+import os = require('os');
 import http = require('http');
 import querystring = require('querystring');
 import util = require("util");
@@ -7,13 +8,16 @@ import util = require("util");
 import tl = require("azure-pipelines-task-lib/task");
 import httpClient = require('vso-node-api/HttpClient');
 import ssh = require('ssh2');
-import shell = require('shelljs');
 import SftpClient = require('ssh2-sftp-client');
 import Q = require("q");
 import crypto = require('crypto');
 
 var httpObj = new httpClient.HttpCallbackClient(tl.getVariable("AZURE_HTTP_USER_AGENT")!);
 const Ssh2Client = ssh.Client;
+
+const CP_EXEC_OPTIONS: cp.ExecOptions = {
+    maxBuffer: 20 * 1024 * 1024
+};
 
 export function _writeLine(str: string): void {
     process.stdout.write(str + os.EOL);
@@ -162,10 +166,14 @@ export function runCommandOnSameMachine(command: string, options: RemoteCommandO
     var cmdToRun = command;
     tl.debug('cmdToRun = ' + cmdToRun);
 
-    shell.exec(cmdToRun, (err, _stdout, stderr) => {
+    cp.exec(cmdToRun, CP_EXEC_OPTIONS, (err, stdout, stderr) => {
+        if (stdout) {
+            tl.debug(stdout);
+        }
+
         if (err) {
-            tl.debug('code = ' + err);
-            defer.reject(tl.loc('RemoteCmdNonZeroExitCode', cmdToRun, err))
+            tl.debug(`code = ${err.code}`);
+            defer.reject(tl.loc('RemoteCmdNonZeroExitCode', cmdToRun, err.code))
         } else {
             tl.debug('code = 0');
             if (stderr != '' && options.failOnStdErr === true) {
@@ -179,11 +187,11 @@ export function runCommandOnSameMachine(command: string, options: RemoteCommandO
 }
 
 export function testIfFileExist(filePath: string): boolean {
-    return shell.test('-f', filePath)
+    return fs.existsSync(filePath) && fs.statSync(filePath).isFile();
 }
 
 export function testIfDirectoryExist(directoryPath: string): boolean {
-    return shell.test('-d', directoryPath)
+    return fs.existsSync(directoryPath) && fs.statSync(directoryPath).isDirectory();
 }
 
 export function getAgentPlatform(): string {
@@ -191,7 +199,7 @@ export function getAgentPlatform(): string {
 }
 
 export function getShellWhich(moduleName: string): string | null {
-    return shell.which(moduleName);
+    return tl.which(moduleName, false);
 }
 
 export class WebRequest {
