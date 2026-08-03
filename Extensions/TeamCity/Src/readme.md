@@ -1,14 +1,14 @@
 # TeamCity&trade; artifacts for Release management
 
-This extension is an integration point for TeamCity&trade; with Release management in Azure DevOps. With this extension, you can deploy artifacts from TeamCity&trade; builds using Release management. 
+This extension integrates TeamCity&trade; with Azure Pipelines. It provides a **TeamCity&trade; service connection** and a **Download TeamCity Artifacts** task, so you can consume TeamCity&trade; build artifacts from both **classic release pipelines** and **YAML pipelines** in Azure DevOps.
 
-**Note:** This extension work only with Azure DevOps and TFS "15" RC onwards.
+> This extension works only with Azure DevOps Services and Azure DevOps Server 2019 Update 1 onwards.
 
 ## Usage
-This extension provides a service endpoint to connect to TeamCity&trade; account. Once connected, you can link a build artifact from the TeamCity&trade; project and deploy the same using Release management orchestration service.
+Using the extension is a two-step workflow: (1) create a **TeamCity&trade; service connection** in your project with your server URL and credentials, then (2) reference that connection from a release-pipeline artifact source or from a **`DownloadTeamCityArtifacts`** task in a YAML pipeline.
 
 ### Connecting to a TeamCity&trade; project
-Go to project settings -> Services tab and create a New Service Endpoint of type TeamCity&trade;:
+Go to project settings -> Service connections tab and create a New Service Endpoint of type TeamCity&trade;:
 ![Creating a TeamCity&trade; endpoint connection](images/screen1.png)
 
 
@@ -16,7 +16,21 @@ Go to project settings -> Services tab and create a New Service Endpoint of type
 Once you have set up the service endpoint connection, you would be able to link an TeamCity&trade; build artifact in your release definition
 ![Linking TeamCity&trade; artifact](images/screen2.png)
 
-[Learn more about artifacts in Release Management](https://msdn.microsoft.com/library/vs/alm/release/author-release-definition/understanding-artifacts). Also you can use [Azure Pipeline Extensions on Github](https://github.com/Microsoft/azure-pipelines-extensions/issues) to report any issues.
+### Using in YAML pipelines
+Add the `DownloadTeamCityArtifacts` task to a YAML pipeline to download build artifacts from TeamCity&trade; directly into the agent workspace:
+
+```yaml
+steps:
+  - task: DownloadTeamCityArtifacts@15
+    inputs:
+      connection: 'MyTeamCityConnection'         # Service connection name
+      project: 'MyProject'                       # TeamCity project id
+      definition: 'MyProject_BuildConfiguration' # TeamCity build type id
+      version: '12345'                           # Specific build id
+      downloadPath: '$(Build.ArtifactStagingDirectory)/teamcity'
+```
+
+[Learn more about artifacts in Azure Pipelines](https://learn.microsoft.com/en-us/azure/devops/pipelines/release/artifacts). Also you can use [Azure Pipeline Extensions on GitHub](https://github.com/microsoft/azure-pipelines-extensions/issues) to report any issues.
 
 **Note:** TeamCity&trade; is trademark owned by Jetbrains s.r.o.
 
