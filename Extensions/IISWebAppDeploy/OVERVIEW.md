@@ -377,7 +377,7 @@ Test files per task:
 
 ### CI Integration Tests (real end-to-end)
 
-**Location:** `canarytest/PipelineTasks` org → `/ci-extensions/IIS/`
+**Location:** `dev.azure.com/canarytest/PipelineTasks` → `/ci-extensions/IIS/`
 **Pipeline:** `AzDev-ReleaseManagement-IIS-Test` (definition ID 263)
 **What they test:** Real tasks running against a real Windows VM with IIS and SQL Server installed.
 
@@ -416,7 +416,7 @@ Test files per task:
 | SqlDacpacDeploy detailed docs | https://github.com/microsoft/azure-pipelines-extensions/blob/master/Extensions/IISWebAppDeploy/Src/Tasks/SqlDacpacDeploy/SqlDacpacDeployV2/README.md |
 | Change log | https://aka.ms/iisextnchangelog |
 | Publish pipeline wiki | https://mseng.visualstudio.com/AzureDevOps/_wiki/wikis/AzureDevOps.wiki/49785/Pipeline-for-publishing-extensions-on-Marketplace |
-| CI pipeline (canarytest) | `canarytest/PipelineTasks/_build?definitionId=263` (internal) |
+| CI pipeline (canarytest) | https://dev.azure.com/canarytest/PipelineTasks/_build?definitionId=263 |
 | WinRM setup guide (archived) | https://learn.microsoft.com/en-us/previous-versions/azure/devops/pipelines/apps/cd/deploy-webdeploy-iis-winrm?view=tfs-2017 |
 | IIS deployment (current) | https://learn.microsoft.com/en-us/azure/devops/pipelines/release/deploy-webdeploy-iis-deploygroups |
 | Web Deploy download | https://www.iis.net/downloads/microsoft/web-deploy |
