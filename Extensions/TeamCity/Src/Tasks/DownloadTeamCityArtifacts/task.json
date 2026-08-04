@@ -8,11 +8,11 @@
   "author": "ms-vscs-rm",
   "version": {
     "Major": 15,
-    "Minor": 274,
-    "Patch": 0
+    "Minor": 279,
+    "Patch": 2
   },
   "demands": [],
-  "minimumAgentVersion": "2.0.0",
+  "minimumAgentVersion": "2.206.1",
   "inputs": [
     {
       "name": "connection",
@@ -101,7 +101,15 @@
   ],
   "instanceNameFormat": "Download Artifacts - TeamCity",
   "execution": {
-    "Node": {
+    "Node16": {
+      "target": "download.js",
+      "argumentFormat": ""
+    },
+    "Node20": {
+      "target": "download.js",
+      "argumentFormat": ""
+    },
+    "Node24": {
       "target": "download.js",
       "argumentFormat": ""
     }

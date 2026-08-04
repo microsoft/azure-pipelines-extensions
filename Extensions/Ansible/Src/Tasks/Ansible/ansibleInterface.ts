@@ -1,9 +1,7 @@
-
 export class ansibleInterface {
-    constructor() {
-    }
+    constructor() { }
+
     public async execute() {
         throw "selected interface not supported";
     }
 }
-
