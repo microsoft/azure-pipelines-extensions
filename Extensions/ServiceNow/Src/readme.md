@@ -156,7 +156,7 @@ If you plan to use OAuth to connect to your ServiceNow instance from Azure DevOp
 4. Upon submission, you will see a page provides the **Client ID** and **Client secret** for your registered OAuth application.
 
 ### Debugging advanced success criteria expression specified in gate
-1. Run a release pipeline which has ServiceNow gate configured in [debug mode](https://learn.microsoft.com/en-us/azure/devops/pipelines/release/variables?view=azure-devops#debug-mode).
+1. Run a release pipeline which has ServiceNow gate configured in [debug mode](https://learn.microsoft.com/en-us/azure/devops/pipelines/release/variables?view=azure-devops&tabs=batch#run-a-release-in-debug-mode).
 2. View gate logs and look for expression parsing result. You will see why expression evaluation failed.
 3. As expression evaluation is based on response to Get change request API call to ServiceNow instance. Check ServiceNow response and confirm if the properties returned in API response match the ones used in the expression.
 
