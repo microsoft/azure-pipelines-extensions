@@ -10,7 +10,7 @@ This extension enables integration of ServiceNow Change Management with Azure Pi
 > This extension works only with Azure DevOps Services and Azure DevOps Server 2019 Update 1 onwards..
 
 For designer release pipelines, it includes -  
-- A [release gate](https://docs.microsoft.com/en-us/azure/devops/pipelines/release/approvals/gates?view=vsts) to hold the pipeline till the change management process signals implementation for a change request. You can create a new change request for every deployment or use an existing change request.                     
+- A [release gate](https://learn.microsoft.com/en-us/azure/devops/pipelines/release/approvals/gates?view=azure-devops&viewFallbackFrom=vsts) to hold the pipeline till the change management process signals implementation for a change request. You can create a new change request for every deployment or use an existing change request.                     
 - An agentless task to update a change request during the deployment process. It is typically used as the last task in the stage.
 
 For YAML pipelines, it includes - 
@@ -142,12 +142,12 @@ The resulting pipeline for the above pipeline shall be as follows.
 ## Note
 ServiceNow also offers an [advanced integration](https://marketplace.visualstudio.com/items?itemName=ServiceNow.vss-services-servicenow-devops) with Azure DevOps as a licensed product. The advanced integration includes connectivity goes beyond the pipeline integration to include Azure Boards, Azure Repos, Azure Test Plans and Azure Artifacts.
 The licensed product provides a DevOps data model connected to ServiceNow’s Service Graph and advanced reporting and auditing of key metrics. Find out more [here](https://www.servicenow.com/products/devops.html).
-For all support and feedbacks on the change management extension or the advanced integration, use contact us from https://your.servicenow.com/microsoft/devops-1cdf.
+For all support and feedback on the change management extension or the advanced integration, use contact us from https://your.servicenow.com/microsoft/devops-1cdf.
 
 ## FAQs
 ### How to register Azure DevOps in ServiceNow as an OAuth App
 
-If you plan to use OAuth to connect to your ServiceNow instance from Azure DevOps account, you first need to register the Azure DevOps as an OAuth app in ServiceNow. For details see [Creating an endpoint for clients to acccess the ServiceNow instance.](https://docs.servicenow.com/bundle/newyork-platform-administration/page/administer/security/task/t_CreateEndpointforExternalClients.html)
+If you plan to use OAuth to connect to your ServiceNow instance from Azure DevOps account, you first need to register the Azure DevOps as an OAuth app in ServiceNow. For details, search for "Create an endpoint for external clients" in your ServiceNow product documentation (navigate to **System OAuth > Application Registry**).
 
 1. Navigate to **System OAuth > Application Registry** and then click **New**.
 2. On the interceptor page, click **Create an OAuth API endpoint for external clients** and then fill in the form. For the **Redirect URL**, use the following pattern to construct the URL.
@@ -156,9 +156,9 @@ If you plan to use OAuth to connect to your ServiceNow instance from Azure DevOp
 4. Upon submission, you will see a page provides the **Client ID** and **Client secret** for your registered OAuth application.
 
 ### Debugging advanced success criteria expression specified in gate
-1. Run a release pipeline which has ServiceNow gate configured in [debug mode](!https://icm.ad.msft.net/imp/v3/incidents/details/148524877/home).
+1. Run a release pipeline which has ServiceNow gate configured in [debug mode](https://learn.microsoft.com/en-us/azure/devops/pipelines/release/variables?view=azure-devops#debug-mode).
 2. View gate logs and look for expression parsing result. You will see why expression evaluation failed.
-3. As expression evaluation is based on response to Get change request API call to ServiceNow instance. Check ServiceNow response and confirms if the properties returned in API response matches to the one used in expression..
+3. As expression evaluation is based on response to Get change request API call to ServiceNow instance. Check ServiceNow response and confirm if the properties returned in API response match the ones used in the expression.
 
 ### Steps to add mapping for custom fields in Import set transform map :
 
