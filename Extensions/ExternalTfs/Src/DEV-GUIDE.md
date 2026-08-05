@@ -192,13 +192,6 @@ Extensions/ExternalTfs/
 │   ├── readme.md                       ← PUBLIC Marketplace documentation (customer-facing)
 │   ├── DEV-GUIDE.md                    ← This file (internal developer doc)
 │   ├── mp_terms.md                     ← Marketplace license terms
-│   ├── vss_default.png, vss_wide.png   ← Marketplace icons
-│   ├── images/                         ← Screenshots used in readme.md
-│   │   ├── add-an-artifact.png
-│   │   ├── download-artifacts-external-build.png
-│   │   ├── download-artifacts-external-tfs-git.png
-│   │   ├── new-service-connection.png
-│   │   └── new-tfs-sc.png
 │   └── Tasks/
 │       ├── DownloadExternalBuildArtifacts/
 │       │   ├── task.json               ← Task manifest (GUID B099689B-...)
@@ -234,50 +227,6 @@ Extensions/ExternalTfs/
 | `Src/Tasks/DownloadArtifactsTfsGit/gitwrapper.js` | Thin wrapper around the `git` CLI. Injects credentials into clone URLs. |
 | `.pipelines/1es-migration/azure-pipelines.yml` | PROD release pipeline. Select via `extensionName: ExternalTfs`. Publisher: `ms-vscs-rm`. |
 | `scripts/DetermineCiTestPipelineName.ps1` | Maps `ExternalTfs` → `AzDev-ReleaseManagement-ExternalTFS-CI-Test`. |
-
----
-
-## How to Build & Test
-
-From the repository root:
-
-```powershell
-# One-time
-npm install
-
-# Build all extensions (required at least once; no per-extension filter)
-gulp build
-
-# Run L0 tests only for ExternalTfs
-gulp test --suite=ExternalTfs
-
-# Package only the ExternalTfs extension as a .vsix
-gulp package --extension=ExternalTfs
-```
-
----
-
-## CI Coverage
-
-| Pipeline | Repo | Purpose |
-|----------|------|---------|
-| `AzDev-ReleaseManagement-ExternalTFS-CI-Test` | `canarytest/PipelineTasks` | End-to-end CI tests |
-
----
-
-## Publishing to Marketplace
-
-Published via the shared PROD release pipeline at `.pipelines/1es-migration/azure-pipelines.yml`:
-
-1. Bump version in `vss-extension.json`
-2. Commit and merge to master
-3. Run PROD pipeline with `extensionName: ExternalTfs`
-4. Pipeline builds → signs (ESRP) → runs CI tests → waits for approval → publishes
-5. Extension goes live at: `ms-vscs-rm.vss-services-externaltfs`
-
-> ⚠️ **Publisher is `ms-vscs-rm`** (different from TeamCity which uses `ms-devlabs`).
-
-> ⚠️ **Always bump the version** in `vss-extension.json` before publishing. The PR check pipeline will fail if the version was not incremented.
 
 ---
 
