@@ -1,6 +1,7 @@
 import assert = require('assert');
 import childProcess = require('child_process');
 import fs = require('fs');
+import os = require('os');
 import path = require('path');
 import { TestGuid } from './mockAnsibleUtils';
 
@@ -69,6 +70,53 @@ function outputContains(runner: any, value: string): boolean {
     return stdout.indexOf(value) >= 0 || stderr.indexOf(value) >= 0;
 }
 
+function quoteShellArg(value: string): string {
+    if (process.platform === 'win32') {
+        return '"' + value.replace(/"/g, '\\"') + '"';
+    }
+
+    return "'" + value.replace(/'/g, "'\\''") + "'";
+}
+
+async function runRealAgentCommand(scriptContents: string): Promise<{ stdout: string; stderr: string; }> {
+    const ansibleUtils = require(path.join(taskFolderPath, 'ansibleUtils.js'));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ansible-agent-command-'));
+    const scriptPath = path.join(tempDir, 'script.js');
+    fs.writeFileSync(scriptPath, scriptContents, 'utf8');
+
+    const originalStdoutWrite = process.stdout.write.bind(process.stdout);
+    const originalStderrWrite = process.stderr.write.bind(process.stderr);
+    let stdout = '';
+    let stderr = '';
+
+    (process.stdout as any).write = (chunk: any, encoding?: any, callback?: any): boolean => {
+        stdout += Buffer.isBuffer(chunk) ? chunk.toString('utf8') : String(chunk);
+        const writeCallback = typeof encoding === 'function' ? encoding : callback;
+        if (writeCallback) {
+            writeCallback();
+        }
+        return true;
+    };
+
+    (process.stderr as any).write = (chunk: any, encoding?: any, callback?: any): boolean => {
+        stderr += Buffer.isBuffer(chunk) ? chunk.toString('utf8') : String(chunk);
+        const writeCallback = typeof encoding === 'function' ? encoding : callback;
+        if (writeCallback) {
+            writeCallback();
+        }
+        return true;
+    };
+
+    try {
+        await ansibleUtils.runCommandOnSameMachine(quoteShellArg(process.execPath) + ' ' + quoteShellArg(scriptPath), { failOnStdErr: false });
+        return { stdout, stderr };
+    } finally {
+        (process.stdout as any).write = originalStdoutWrite;
+        (process.stderr as any).write = originalStderrWrite;
+        fs.rmSync(tempDir, { recursive: true, force: true });
+    }
+}
+
 function ensureTaskMainJs(): void {
     if (fs.existsSync(taskMainPath)) {
         return;
@@ -101,6 +149,23 @@ describe('Ansible Suite', function () {
 
     before(function () {
         ensureTaskMainJs();
+    });
+
+    it('streams real agent command stdout to normal task output', async function () {
+        const result = await runRealAgentCommand("process.stdout.write('visible ansible output');");
+
+        assert(result.stdout.indexOf('visible ansible output') >= 0, 'should stream stdout to normal task output');
+    });
+
+    it('streams real agent command output beyond the old exec buffer limit', async function () {
+        this.timeout(60000);
+
+        const outputSize = 21 * 1024 * 1024;
+        const marker = 'large-output-complete';
+        const result = await runRealAgentCommand("process.stdout.write('x'.repeat(" + outputSize + ")); process.stdout.write('" + marker + "');");
+
+        assert(result.stdout.length >= outputSize + marker.length, 'should capture output larger than the previous exec maxBuffer');
+        assert(result.stdout.indexOf(marker) >= 0, 'should complete after streaming large stdout');
     });
 
     nodeVersions.forEach(function (nodeVersion) {
