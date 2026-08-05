@@ -159,7 +159,7 @@ export function runCommandOnSameMachine(command: string, options: RemoteCommandO
         const cmdToRun = command;
         tl.debug('cmdToRun = ' + cmdToRun);
 
-        cp.exec(cmdToRun, (err, _stdout, stderr) => {
+        cp.exec(cmdToRun, CP_EXEC_OPTIONS, (err, _stdout, stderr) => {
             if (err) {
                 tl.debug(`code = ${err.code}`);
                 reject(tl.loc('RemoteCmdNonZeroExitCode', cmdToRun, err.code))
