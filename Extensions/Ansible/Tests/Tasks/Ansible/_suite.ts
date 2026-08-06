@@ -182,6 +182,14 @@ describe('Ansible Suite', function () {
         assert(result.stdout.indexOf('visible ansible output') >= 0, 'should stream stdout to normal task output');
     });
 
+    it('prints agent machine playbook output to normal task output', async function () {
+        const playbookOutput = 'PLAY [localhost] ***\\nTASK [Gathering Facts] ***\\nok: [localhost]\\nPLAY RECAP ***************\\n';
+        const result = await runRealAgentCommand("process.stdout.write(" + JSON.stringify(playbookOutput) + ");");
+
+        assert(!result.error, 'should not fail when playbook output is written');
+        assert(result.stdout.indexOf(playbookOutput) >= 0, 'should print playbook output to normal task output');
+    });
+
     it('streams real agent command stderr to normal task output when failOnStdErr is false', async function () {
         const result = await runRealAgentCommand("process.stderr.write('visible ansible stderr');");
 
