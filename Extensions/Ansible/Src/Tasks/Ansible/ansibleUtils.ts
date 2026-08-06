@@ -183,7 +183,9 @@ export function runCommandOnSameMachine(command: string, options: RemoteCommandO
             settled = true;
             tl.debug('code = ' + code + ', signal = ' + signal);
 
-            if (code && code != 0) {
+            if (signal !== null && signal !== undefined) {
+                reject(tl.loc('RemoteCmdExecutionErr'));
+            } else if (code && code != 0) {
                 reject(tl.loc('RemoteCmdNonZeroExitCode', cmdToRun, code));
             } else if (stdErrWritten === true && options.failOnStdErr === true) {
                 reject(tl.loc('RemoteCmdExecutionErr'));
