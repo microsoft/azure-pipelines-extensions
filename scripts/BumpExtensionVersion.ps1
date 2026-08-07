@@ -35,9 +35,12 @@ param(
 $ErrorActionPreference = 'Stop'
 
 # ---------------------------------------------------------------------------
-# Obtain Azure CLI token (login is handled by the gulp task before this script runs)
+# Obtain Azure CLI token (login is handled by the gulp task before this script runs).
+# The token is minted for the tenant that backs the canary org (Microsoft corp tenant);
+# a token from any other tenant is treated as anonymous by that org's API and returns
+# nothing for the private "-test" extension.
 # ---------------------------------------------------------------------------
-$azToken = az account get-access-token --resource 499b84ac-1321-427f-aa17-267ca6975798 --query accessToken -o tsv 2>$null
+$azToken = az account get-access-token --resource 499b84ac-1321-427f-aa17-267ca6975798 --tenant 72f988bf-86f1-41af-91ab-2d7cd011db47 --query accessToken -o tsv 2>$null
 if ($LASTEXITCODE -ne 0 -or -not $azToken) {
     Write-Error "Failed to obtain Azure CLI access token. Ensure you are logged in (az login)."
     exit 1
@@ -128,6 +131,29 @@ function Get-MarketplaceVersion {
     }
     catch {
         Write-Warning "Failed to query Marketplace for '$FullExtensionId': $($_.Exception.Message)"
+    }
+
+    # Private "-test" extensions are not returned by the public Gallery query above.
+    # Read them from the canary org they are installed in (Extension Management API),
+    # using the corp-tenant token acquired earlier.
+    $dot = $FullExtensionId.IndexOf('.')
+    try {
+        $installed = Invoke-RestMethod `
+            -Uri "https://extmgmt.dev.azure.com/canarytest/_apis/extensionmanagement/installedextensions?api-version=7.1-preview.1" `
+            -Method Get `
+            -Headers @{ "Authorization" = "Bearer $Token" }
+
+        $match = $installed.value | Where-Object {
+            $_.publisherId -eq $FullExtensionId.Substring(0, $dot) -and
+            $_.extensionId -eq $FullExtensionId.Substring($dot + 1)
+        } | Select-Object -First 1
+
+        if ($match -and $match.version) {
+            return [version]$match.version
+        }
+    }
+    catch {
+        Write-Warning "Failed to query installed extensions for '$FullExtensionId': $($_.Exception.Message)"
     }
 
     return $null
