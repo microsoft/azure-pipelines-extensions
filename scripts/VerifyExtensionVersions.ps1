@@ -37,10 +37,27 @@ Write-Host "Extensions to verify: $($extensionList -join ', ')"
 Write-Host ""
 
 # ---------------------------------------------------------------------------
+# Current Azure DevOps sprint (fetched directly from whatsprintis.it). The
+# extension minor version must not be bumped ahead of the current sprint.
+# https://github.com/microsoft/azure-pipelines-tasks/blob/master/docs/taskversionbumping.md
+# ---------------------------------------------------------------------------
+$sprint = $null
+try {
+    $current = Invoke-RestMethod -Uri 'https://whatsprintis.it/?json' -TimeoutSec 10 -ErrorAction Stop
+    $sprint  = [int]$current.sprint
+    Write-Host "Current sprint : $sprint"
+}
+catch {
+    Write-Host "##[warning]Could not fetch the current sprint from whatsprintis.it ($($_.Exception.Message)); skipping the sprint version guard."
+}
+Write-Host ""
+
+# ---------------------------------------------------------------------------
 # Verify each extension by calling BumpExtensionVersion.ps1 -VerifyOnly
 # ---------------------------------------------------------------------------
 $scriptPath = Join-Path $SourceDirectory 'scripts/BumpExtensionVersion.ps1'
 $failures = @()
+$aheadOfSprint = @()  # minor version bumped ahead of the current sprint
 
 foreach ($ext in $extensionList) {
     $manifestPath = Join-Path $SourceDirectory "Extensions/$ext/Src/vss-extension.json"
@@ -50,6 +67,14 @@ foreach ($ext in $extensionList) {
     }
 
     Write-Host "--- Verifying: $ext ---"
+
+    # Sprint guard: the minor version must not be bumped ahead of the current sprint. This is a guardrail to prevent accidentally bumping into a future sprint.
+    $minor = ([version](Get-Content $manifestPath -Raw | ConvertFrom-Json).version).Minor
+    if ($null -ne $sprint -and $minor -gt $sprint) {
+        Write-Host "##[error]$ext`: minor version $minor is ahead of the current sprint ($sprint). Do not bump into a future sprint."
+        $aheadOfSprint += $ext
+    }
+
     $ErrorActionPreference = 'Continue'
     & $scriptPath -ManifestPath $manifestPath -VerifyOnly
     $ErrorActionPreference = 'Stop'
@@ -67,6 +92,14 @@ if ($failures.Count -gt 0) {
     Write-Host "##[error]Version not bumped for: $($failures -join ', ')"
     Write-Host "##[error]Please update the 'version' field in vss-extension.json to exceed the Marketplace version."
     Write-Host "##[error]Run: gulp build --syncVersions $($failures -join ',')"
+}
+
+if ($aheadOfSprint.Count -gt 0) {
+    Write-Host "##[error]Version bumped ahead of the current sprint ($sprint) for: $(($aheadOfSprint | Select-Object -Unique) -join ', ')"
+    Write-Host "##[error]Set the minor version to the current sprint ($sprint) - do not bump into a future sprint."
+}
+
+if ($failures.Count -gt 0 -or $aheadOfSprint.Count -gt 0) {
     exit 1
 }
 
