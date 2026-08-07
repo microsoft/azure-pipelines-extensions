@@ -14,10 +14,6 @@ import * as httpClient from 'typed-rest-client/HttpClient';
 var httpObj = new httpClient.HttpClient(tl.getVariable("AZURE_HTTP_USER_AGENT")!);
 const Ssh2Client = ssh.Client;
 
-const CP_EXEC_OPTIONS: cp.ExecOptions = {
-    maxBuffer: 20 * 1024 * 1024
-};
-
 export function _writeLine(str: string): void {
     process.stdout.write(str + os.EOL);
 }
@@ -159,17 +155,42 @@ export function runCommandOnSameMachine(command: string, options: RemoteCommandO
         const cmdToRun = command;
         tl.debug('cmdToRun = ' + cmdToRun);
 
-        cp.exec(cmdToRun, CP_EXEC_OPTIONS, (err, _stdout, stderr) => {
-            if (err) {
-                tl.debug(`code = ${err.code}`);
-                reject(tl.loc('RemoteCmdNonZeroExitCode', cmdToRun, err.code))
+        let stdErrWritten: boolean = false;
+        let settled: boolean = false;
+        const child = cp.spawn(cmdToRun, { shell: true });
+
+        child.stdout.on('data', (data) => {
+            process.stdout.write(data);
+        });
+
+        child.stderr.on('data', (data) => {
+            stdErrWritten = true;
+            process.stderr.write(data);
+        });
+
+        child.on('error', (err) => {
+            if (!settled) {
+                settled = true;
+                reject(tl.loc('RemoteCmdExecutionErr', err));
+            }
+        });
+
+        child.on('close', (code, signal) => {
+            if (settled) {
+                return;
+            }
+
+            settled = true;
+            tl.debug('code = ' + code + ', signal = ' + signal);
+
+            if (signal !== null && signal !== undefined) {
+                reject(tl.loc('RemoteCmdExecutionErr'));
+            } else if (code && code != 0) {
+                reject(tl.loc('RemoteCmdNonZeroExitCode', cmdToRun, code));
+            } else if (stdErrWritten === true && options.failOnStdErr === true) {
+                reject(tl.loc('RemoteCmdExecutionErr'));
             } else {
-                tl.debug('code = 0');
-                if (stderr != '' && options.failOnStdErr === true) {
-                    reject(tl.loc('RemoteCmdExecutionErr'));
-                } else {
-                    resolve('0');
-                }
+                resolve('0');
             }
         });
     });
