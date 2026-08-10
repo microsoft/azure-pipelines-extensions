@@ -133,9 +133,16 @@ function Get-MarketplaceVersion {
         Write-Warning "Failed to query Marketplace for '$FullExtensionId': $($_.Exception.Message)"
     }
 
-    # Private "-test" extensions are not returned by the public Gallery query above.
-    # Read them from the canary org they are installed in (Extension Management API),
-    # using the corp-tenant token acquired earlier.
+    return $null
+}
+
+# ---------------------------------------------------------------------------
+# Helper: read a private "-test" extension's version from the canary org where
+# it is installed (Extension Management API).
+# ---------------------------------------------------------------------------
+function Get-CanaryInstalledVersion {
+    param([string]$FullExtensionId, [string]$Token)
+
     $dot = $FullExtensionId.IndexOf('.')
     try {
         $installed = Invoke-RestMethod `
@@ -166,7 +173,7 @@ $prodId = "$publisher.$extensionId"
 $testId = "$publisher.$extensionId-test"
 
 $prodVersion = Get-MarketplaceVersion -FullExtensionId $prodId -Token $azToken
-$testVersion = Get-MarketplaceVersion -FullExtensionId $testId -Token $azToken
+$testVersion = Get-CanaryInstalledVersion -FullExtensionId $testId -Token $azToken
 
 if ($prodVersion) { Write-Host "PROD ver  : $prodVersion  ($prodId)" }
 else              { Write-Host "PROD ver  : not found     ($prodId)" }
