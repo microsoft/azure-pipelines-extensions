@@ -44,8 +44,13 @@ Write-Host ""
 $sprint = $null
 try {
     $current = Invoke-RestMethod -Uri 'https://whatsprintis.it/?json' -TimeoutSec 10 -ErrorAction Stop
-    $sprint  = [int]$current.sprint
-    Write-Host "Current sprint : $sprint"
+    if ($current.sprint -and [int]$current.sprint -gt 0) {
+        $sprint = [int]$current.sprint
+        Write-Host "Current sprint : $sprint"
+    }
+    else {
+        Write-Host "##[warning]Unexpected response from whatsprintis.it (no valid sprint number); skipping the sprint version guard."
+    }
 }
 catch {
     Write-Host "##[warning]Could not fetch the current sprint from whatsprintis.it ($($_.Exception.Message)); skipping the sprint version guard."
@@ -68,11 +73,20 @@ foreach ($ext in $extensionList) {
 
     Write-Host "--- Verifying: $ext ---"
 
-    # Sprint guard: the minor version must not be bumped ahead of the current sprint. This is a guardrail to prevent accidentally bumping into a future sprint.
-    $minor = ([version](Get-Content $manifestPath -Raw | ConvertFrom-Json).version).Minor
-    if ($null -ne $sprint -and $minor -gt $sprint) {
-        Write-Host "##[error]$ext`: minor version $minor is ahead of the current sprint ($sprint). Do not bump into a future sprint."
-        $aheadOfSprint += $ext
+    # Sprint guard: the minor version must not be bumped ahead of the current
+    # sprint. This is a guardrail to prevent accidentally bumping into a future
+    # sprint. Skipped when the current sprint could not be determined.
+    if ($null -ne $sprint) {
+        try {
+            $minor = ([version](Get-Content $manifestPath -Raw | ConvertFrom-Json).version).Minor
+            if ($minor -gt $sprint) {
+                Write-Host "##[error]$ext`: minor version $minor is ahead of the current sprint ($sprint). Do not bump into a future sprint."
+                $aheadOfSprint += $ext
+            }
+        }
+        catch {
+            Write-Host "##[warning]$ext`: could not read the manifest version for the sprint guard ($($_.Exception.Message))."
+        }
     }
 
     $ErrorActionPreference = 'Continue'
