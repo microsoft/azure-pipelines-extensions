@@ -37,7 +37,7 @@ $ErrorActionPreference = 'Stop'
 # ---------------------------------------------------------------------------
 # Obtain Azure CLI token (login is handled by the gulp task before this script runs)
 # ---------------------------------------------------------------------------
-$azToken = az account get-access-token --resource 499b84ac-1321-427f-aa17-267ca6975798 --tenant 72f988bf-86f1-41af-91ab-2d7cd011db47 --query accessToken -o tsv 2>$null
+$azToken = az account get-access-token --resource 499b84ac-1321-427f-aa17-267ca6975798 --query accessToken -o tsv 2>$null
 if ($LASTEXITCODE -ne 0 -or -not $azToken) {
     Write-Error "Failed to obtain Azure CLI access token. Ensure you are logged in (az login)."
     exit 1
