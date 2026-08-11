@@ -349,7 +349,12 @@ function executeWithRetries(operationName, operation, remainingRetryAttempts) {
         } else {
             tl.debug('RetryingOperation: ' + operationName + ', remainingRetryAttempts: ' + remainingRetryAttempts);
             remainingRetryAttempts = remainingRetryAttempts - 1;
-            setTimeout(() => executeWithRetries(operationName, operation, remainingRetryAttempts), 4 * 1000);
+            setTimeout(() => {
+                executeWithRetries(operationName, operation, remainingRetryAttempts).then(
+                    (result) => deferred.resolve(result),
+                    (retryError) => deferred.reject(retryError)
+                );
+            }, 4 * 1000);
         }
     });
 
