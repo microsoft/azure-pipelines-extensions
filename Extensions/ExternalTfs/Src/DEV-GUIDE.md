@@ -64,35 +64,67 @@ steps:
 2. Select the service connection, project, build definition (or repo), and default version
 3. On every release, the backing task downloads artifacts into `$(System.ArtifactsDirectory)/<alias>/`
 
+> **Note:** The remote server must be reachable from the **agent** running the pipeline, not from the Azure DevOps service itself.
+
+![Add an artifact source in a release definition](images/add-an-artifact.png)
+
+---
+
+## Repository Structure
+
+```
+Extensions/ExternalTfs/
+├── Src/
+│   ├── vss-extension.json              ← Extension manifest: contributions, data sources, artifact types
+│   ├── readme.md                       ← PUBLIC Marketplace documentation (customer-facing)
+│   ├── DEV-GUIDE.md                    ← This file (internal developer doc)
+│   ├── mp_terms.md                     ← Marketplace license terms
+│   └── Tasks/
+│       ├── DownloadExternalBuildArtifacts/
+│       │   ├── task.json               ← Task manifest (GUID B099689B-...)
+│       │   ├── download.ts             ← Entry point: resolves auth, calls Build API, dispatches to artifact-engine or filesystem copy
+│       │   ├── auth.ts                 ← Used when connectionType=ado; exchanges federated token for Azure DevOps access token via MSAL
+│       │   ├── vsts.handlebars         ← Maps Container API JSON to artifact-engine items (container artifacts only)
+│       │   └── package.json
+│       └── DownloadArtifactsTfsGit/
+│           ├── task.json               ← Task manifest (GUID bf7b17db-...)
+│           ├── downloadTfGit.js        ← Entry point: resolves auth, looks up repo URL via Git API, runs git clone + checkout
+│           ├── auth.js                 ← Used when connectionType=ado; JS copy of the same WIF token exchange logic as auth.ts
+│           ├── gitwrapper.js           ← Wraps shell git commands (clone/fetch/checkout); injects credentials into clone URLs
+│           └── package.json
+└── Tests/
+    └── Tasks/
+        ├── DownloadExternalBuildArtifacts/  ← L0 tests
+        └── DownloadArtifactsTfsGit/        ← L0 tests
+```
+
 ---
 
 ## Extension Components
 
-### Tasks (2)
+### Tasks and Artifact Source Types
 
-| Task | Version | What it does |
-|------|---------|-------------|
-| `DownloadExternalBuildArtifacts` | @16 | Downloads build artifacts (container or file-share) from a remote TFS/Azure DevOps build via artifact-engine |
-| `DownloadArtifactsTfsGit` | @16 | Clones a Git repository from a remote TFS/Azure DevOps org via `git clone` |
+| Task | Version | What it does | Artifact Source Type |
+|------|---------|-------------|---------------------|
+| `DownloadExternalBuildArtifacts` | @16 | Downloads build artifacts (container or file-share) via artifact-engine | `ExternalTfsBuild` |
+| `DownloadArtifactsTfsGit` | @16 | Clones a Git repo via `git clone` | `ExternalTfsGit` |
+| _(none — server-side)_ | — | Downloads XAML build drops | `ExternalTfsXamlBuild` |
 
 > Both tasks run on a **build agent** (Node execution handler). They have full access to the agent file system.
 
-### Artifact Source Types (3)
+**What is ExternalTfsXamlBuild?** This is a legacy artifact type for XAML build definitions on a remote TFS server. Unlike the other two artifact types, it has **no backing task** and no `downloadTaskId` in the manifest — the release server handles the download entirely server-side. The drop location can be either a container (downloaded as zip) or a file share (UNC path). It has its own set of data sources (`XamlProjects`, `XamlDefinitions`, `XamlBuilds`, `LatestXamlBuild`, `XamlBuild`). XAML builds are deprecated, so this artifact type exists only for backward compatibility. See the `externalTFSXamlBuild-release-artifact-type` contribution in `vss-extension.json` for the full definition.
 
-| Type | Display Name | Backing Task | Download mechanism |
-|------|-------------|-------------|-------------------|
-| `ExternalTfsBuild` | External TFS Build | `DownloadExternalBuildArtifacts` (GUID `B099689B-039E-4450-8658-C72E3895DD3F`) | artifact-engine HTTP download |
-| `ExternalTfsGit` | External TFS Git | `DownloadArtifactsTfsGit` (GUID `bf7b17db-eb58-4014-ab2b-e4bf9d3b28f1`) | git clone |
-| `ExternalTfsXamlBuild` | External TFS XAML Build | _(none — handled by the release server)_ | Server-side |
+### How Authentication Works
 
-### Service Connections (2 supported)
+Both tasks have a `connectionType` input that controls which service connection is used:
 
-| Connection type | Task input field | Auth mechanism |
-|----------------|-----------------|---------------|
-| **Azure Repos/Team Foundation Server** (`externaltfs` / `Externaltfs`) | `connection` | Username+Password or Token (PAT) |
-| **Azure DevOps** (`workloadidentityuser`) | `azureDevOpsServiceConnection` | Workload Identity Federation (MSAL token exchange) |
+**Option 1: `connectionType = reposOrTfs`** (default)
+The task reads the `connection` input, which accepts an **Azure Repos/Team Foundation Server** service connection. This is the original auth path — authenticates via **PAT** or **Basic Auth** (username + password). The service connection type identifier in `task.json` is `externaltfs` (lowercase in the Build task, `Externaltfs` with capital E in the Git task — both resolve the same endpoint type).
 
-> The `connectionType` input (`reposOrTfs` or `ado`) determines which connection field is read.
+**Option 2: `connectionType = ado`** (preview)
+The task reads the `azureDevOpsServiceConnection` input, which accepts an **Azure DevOps** service connection. This path uses **Workload Identity Federation** — the task exchanges a federated token for an Azure DevOps access token via MSAL (see `auth.ts` / `auth.js`). No PAT needed, no expiration to manage.
+
+**Recommendation:** Use `ado` (Workload Identity Federation) for new setups when connecting to Azure DevOps Services. Use `reposOrTfs` when connecting to on-prem TFS or when WIF is not available.
 
 > **Important:** This extension does NOT register the `ExternalTFS` endpoint type — it is a built-in Azure DevOps endpoint. The extension only registers artifact types and tasks that _consume_ it.
 
@@ -115,51 +147,15 @@ download.ts                                          downloadTfGit.js
   └─ engine.processItems(web/fs, fs, opts)
 ```
 
-**Key difference:** The External Build task uses **artifact-engine** (same pattern as TeamCity) while the Git task uses **shell git commands** via `gitwrapper.js`.
+**Key difference:** The External Build task uses **artifact-engine** while the Git task uses **shell git commands** via `gitwrapper.js`.
 
----
 
-## Auth Module (`auth.ts` / `auth.js`)
-
-Both tasks share the same auth logic (TypeScript in External Build, compiled JS copy in TFS Git):
-
-```
-getAccessTokenViaWorkloadIdentityFederation(serviceConnection)
-  ├─ Validates scheme is "workloadidentityfederation"
-  ├─ Gets federated token via Azure CLI utility
-  ├─ Exchanges federated token for access token via MSAL
-  │    └─ ConfidentialClientApplication.acquireTokenByClientCredential()
-  │         scope: "499b84ac-1321-427f-aa17-267ca6975798/.default" (Azure DevOps resource)
-  └─ Returns access token (masked via tl.setSecret)
-```
-
-> ⚠️ **Secret handling:** Both tasks call `tl.setSecret()` inside try/catch for all tokens and passwords. If masking fails, it only warns — never blocks execution.
-
----
-
-## Handlebars Template (`vsts.handlebars`)
-
-Used only by `DownloadExternalBuildArtifacts` for **container-type** artifacts. Maps the Azure DevOps Container API response into artifact-engine items:
-
-```json
-{
-  "path": "{{this.path}}",
-  "lastModified": "{{this.dateLastModified}}",
-  "fileLength": "{{this.fileLength}}",
-  "itemType": "{{this.itemType}}",
-  "metadata": {
-    "downloadUrl": "{{{this.contentLocation}}}&isShallow=true"
-  }
-}
-```
-
-> File-share (`filepath`) artifacts bypass the template entirely — they use `FilesystemProvider` → `FilesystemProvider` copy.
 
 ---
 
 ## Data Sources
 
-Data sources are defined in `vss-extension.json` for the artifact type bindings:
+Data sources are referenced in `vss-extension.json` via `dataSourceBindings` for the artifact type contributions:
 
 | Data source | Purpose |
 |-------------|---------|
@@ -180,53 +176,6 @@ Data sources are defined in `vss-extension.json` for the artifact type bindings:
 | `XamlBuilds` | Populates XAML build versions |
 | `LatestXamlBuild` | Resolves latest XAML build |
 | `XamlBuild` | Gets XAML build drop details |
-
----
-
-## Repository Structure
-
-```
-Extensions/ExternalTfs/
-├── Src/
-│   ├── vss-extension.json              ← Extension manifest: contributions, data sources, artifact types
-│   ├── readme.md                       ← PUBLIC Marketplace documentation (customer-facing)
-│   ├── DEV-GUIDE.md                    ← This file (internal developer doc)
-│   ├── mp_terms.md                     ← Marketplace license terms
-│   └── Tasks/
-│       ├── DownloadExternalBuildArtifacts/
-│       │   ├── task.json               ← Task manifest (GUID B099689B-...)
-│       │   ├── download.ts             ← Entry point (TypeScript, artifact-engine)
-│       │   ├── auth.ts                 ← WIF token exchange module
-│       │   ├── vsts.handlebars         ← Container response → artifact-engine items
-│       │   └── package.json            ← Dependencies
-│       └── DownloadArtifactsTfsGit/
-│           ├── task.json               ← Task manifest (GUID bf7b17db-...)
-│           ├── downloadTfGit.js        ← Entry point (JavaScript, git clone)
-│           ├── auth.js                 ← WIF token exchange (JS copy)
-│           ├── gitwrapper.js           ← Shell git command wrapper
-│           └── package.json            ← Dependencies
-└── Tests/
-    └── Tasks/
-        ├── DownloadExternalBuildArtifacts/  ← 13 L0 test files
-        └── DownloadArtifactsTfsGit/        ← 22 L0 test files
-```
-
----
-
-## Key Files and Their Purpose
-
-| File | Purpose |
-|------|---------|
-| `Src/vss-extension.json` | Extension manifest. Defines 3 artifact types, 2 tasks, 17 data sources, data source bindings. Publisher: `ms-vscs-rm`, `public: true`. |
-| `Src/Tasks/DownloadExternalBuildArtifacts/task.json` | Task inputs: `connectionType`, `connection`, `azureDevOpsServiceConnection`, `project`, `definition`, `version`, `itemPattern`, `downloadPath` (+ ADO variants). GUID `B099689B-039E-4450-8658-C72E3895DD3F`. |
-| `Src/Tasks/DownloadExternalBuildArtifacts/download.ts` | Entry point. Resolves auth, calls Build API `getArtifacts()`, dispatches to artifact-engine (container) or filesystem copy (filepath). Retries `getArtifacts` up to 3 times. |
-| `Src/Tasks/DownloadExternalBuildArtifacts/auth.ts` | Workload Identity Federation token exchange via MSAL. Shared logic for Azure DevOps service connections. |
-| `Src/Tasks/DownloadExternalBuildArtifacts/vsts.handlebars` | Maps Container API JSON into artifact-engine items (`{path, itemType, metadata.downloadUrl, …}`). |
-| `Src/Tasks/DownloadArtifactsTfsGit/task.json` | Task inputs: same connection toggle + `project`, `definition` (repo ID), `branch`, `version` (commit ID), `downloadPath`. GUID `bf7b17db-eb58-4014-ab2b-e4bf9d3b28f1`. |
-| `Src/Tasks/DownloadArtifactsTfsGit/downloadTfGit.js` | Entry point. Resolves auth, looks up repo remote URL via Git API, runs `git clone` (4 retries) + `git checkout`. |
-| `Src/Tasks/DownloadArtifactsTfsGit/gitwrapper.js` | Thin wrapper around the `git` CLI. Injects credentials into clone URLs. |
-| `.pipelines/1es-migration/azure-pipelines.yml` | PROD release pipeline. Select via `extensionName: ExternalTfs`. Publisher: `ms-vscs-rm`. |
-| `scripts/DetermineCiTestPipelineName.ps1` | Maps `ExternalTfs` → `AzDev-ReleaseManagement-ExternalTFS-CI-Test`. |
 
 ---
 
