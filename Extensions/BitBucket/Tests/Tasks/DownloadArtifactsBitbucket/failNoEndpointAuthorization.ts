@@ -1,0 +1,13 @@
+import path = require('path');
+import tmrm = require('azure-pipelines-task-lib/mock-run');
+
+import { clearEndpointAuth, registerAllMocks, setRequiredInputs, SOURCE_TASK_PATH } from './mockHelpers';
+
+const taskPath = path.join(process.cwd(), SOURCE_TASK_PATH);
+const tr: tmrm.TaskMockRunner = new tmrm.TaskMockRunner(taskPath);
+
+setRequiredInputs(tr);
+clearEndpointAuth();
+registerAllMocks(tr);
+
+tr.run();

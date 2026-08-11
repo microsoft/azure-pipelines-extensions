@@ -6,7 +6,7 @@
   "loc.messages.UnableToReadDirectory": "ディレクトリ %s を読み取ることができません。エラー: %s",
   "loc.messages.RetryingDownload": "%s のダウンロードを再試行しています。再試行回数: %s",
   "loc.messages.SkippingItem": "項目 %s の処理をスキップしました",
-  "loc.messages.UnhandledRejection": "artifact-engine: ハンドルされない拒否 %s",
-  "loc.messages.UnhandledException": "artifact-engine: ハンドルされない例外 %s",
+  "loc.messages.UnhandledRejection": "artifact-engine-v2: ハンドルされない拒否 %s",
+  "loc.messages.UnhandledException": "artifact-engine-v2: ハンドルされない例外 %s",
   "loc.messages.FailedRequest": "失敗した要求: (statusCode)"
 }

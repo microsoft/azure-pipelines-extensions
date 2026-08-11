@@ -1,4 +1,4 @@
-﻿import * as assert from 'assert';
+import * as assert from 'assert';
 
 import * as engine from '../Engine';
 import * as providers from '../Providers';

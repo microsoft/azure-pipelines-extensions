@@ -6,7 +6,7 @@
   "loc.messages.UnableToReadDirectory": "Не удается считать каталог %s. Ошибка: %s",
   "loc.messages.RetryingDownload": "Повторная попытка скачать %s, всего попыток: %s",
   "loc.messages.SkippingItem": "Пропущена обработка элемента %s",
-  "loc.messages.UnhandledRejection": "artifact-engine: необработанное отклонение %s",
-  "loc.messages.UnhandledException": "artifact-engine: необработанное исключение %s",
+  "loc.messages.UnhandledRejection": "artifact-engine-v2: необработанное отклонение %s",
+  "loc.messages.UnhandledException": "artifact-engine-v2: необработанное исключение %s",
   "loc.messages.FailedRequest": "Сбой запроса: (statusCode)"
 }

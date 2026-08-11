@@ -1,4 +1,4 @@
-﻿using System.Threading;
+using System.Threading;
 using System.Threading.Tasks;
 using DistributedTask.ServerTask.Remote.Common.Request;
 using DistributedTask.ServerTask.Remote.Common.TaskProgress;

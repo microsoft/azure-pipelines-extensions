@@ -5,8 +5,8 @@ import * as factory from './webClientFactory';
 import { WebClient } from './webClient'
 
 // only import types from typed-rest-client here
-import { IRequestHandler, IRequestOptions } from './typed-rest-client/Interfaces';
-import { HttpClientResponse } from './typed-rest-client/HttpClient';
+import { IRequestHandler, IRequestOptions } from 'typed-rest-client/Interfaces';
+import { HttpClientResponse } from 'typed-rest-client/HttpClient';
 
 export class ZipProvider implements IArtifactProvider {
     public artifactItemStore: ArtifactItemStore;

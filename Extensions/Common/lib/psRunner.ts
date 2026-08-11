@@ -26,7 +26,8 @@ export class PSRunner extends events.EventEmitter {
 	public start(): void {
 		this.emit('starting');
 		var defer = Q.defer<void>();
-		var powershell = shell.which('powershell.exe');
+		var powershellResult = shell.which('powershell.exe');
+		var powershell: string = powershellResult ? powershellResult.toString() : 'powershell.exe';
 		this._childProcess = child.spawn(
 			powershell, // command
 			[ // args

@@ -51,18 +51,17 @@ export class WebClientFactory {
         if (lookupKey && lookupKey.indexOf(':') > 0) {
             let lookupInfo: string[] = lookupKey.split(':', 2);
 
-            // file contains encryption key
+            // file contains encryption key and IV in "key:iv" format (task-lib 5.2.4+)
             let keyFile = Buffer.from(lookupInfo[0], 'base64').toString('utf8');
-            let encryptKey = Buffer.from(fs.readFileSync(keyFile, 'utf8'), 'base64');
+            let keyAndIv: string = fs.readFileSync(keyFile, 'utf8');
+            let [keyBase64, ivBase64] = keyAndIv.split(':', 2);
+            let encryptKey = Buffer.from(keyBase64, 'base64');
+            // Use IV from file if present (task-lib 5.2.4+), fall back to zero IV for older task-lib
+            let iv = ivBase64 ? Buffer.from(ivBase64, 'base64') : Buffer.alloc(16, 0);
 
             let encryptedContent: string = Buffer.from(lookupInfo[1], 'base64').toString('utf8');
 
-            // Ensure key is 32 bytes for AES-256
-            const key = encryptKey.length === 32 ? encryptKey : crypto.createHash('sha256').update(encryptKey).digest();
-            // Use zero IV for AES-256-CTR (must match encryption side)
-            const iv = Buffer.alloc(16, 0);
-            
-            let decipher = crypto.createDecipheriv("aes-256-ctr", key, iv);
+            let decipher = crypto.createDecipheriv("aes-256-ctr", encryptKey, iv);
             let decryptedContent = decipher.update(encryptedContent, 'hex', 'utf8');
             decryptedContent += decipher.final('utf8');
 

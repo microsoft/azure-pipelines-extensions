@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using DistributedTask.ServerTask.Remote.Common;
 using Microsoft.Azure.ServiceBus;
 

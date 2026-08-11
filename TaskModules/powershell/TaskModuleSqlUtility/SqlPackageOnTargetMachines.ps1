@@ -1,4 +1,4 @@
-﻿function RunCommand
+function RunCommand
 {
     param(
         [string]$command,

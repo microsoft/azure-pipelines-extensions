@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace DistributedTask.ServerTask.Remote.Common.WorkItemProgress.Exceptions
 {

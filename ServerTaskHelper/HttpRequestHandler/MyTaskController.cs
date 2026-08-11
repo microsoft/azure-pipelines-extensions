@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 using DistributedTask.ServerTask.Remote.Common;
 using DistributedTask.ServerTask.Remote.Common.Request;
 using Microsoft.AspNetCore.Mvc;

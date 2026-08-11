@@ -1,4 +1,4 @@
-﻿### This is a sample app demonstrates how to plugin an execution handler for a ServiceBus server task using DistributedTask.ServerTask.Remote.Common library.
+### This is a sample app demonstrates how to plugin an execution handler for a ServiceBus server task using DistributedTask.ServerTask.Remote.Common library.
 
 #### Sample app does the following:
 1. Implement my own `ITaskExecutionHandler`, `MyTaskExecutionHandler`, which deserialize the input object and log a message to VSTS using TaskLogger.

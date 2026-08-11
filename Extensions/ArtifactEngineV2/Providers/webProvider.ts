@@ -1,4 +1,4 @@
-﻿import * as fs from 'fs';
+import * as fs from 'fs';
 import * as path from 'path';
 import * as stream from 'stream';
 import * as zlib from 'zlib';
@@ -10,11 +10,19 @@ import { WebClientFactory } from './webClientFactory';
 import { WebClient } from './webClient'
 
 // only import types from typed-rest-client here
-import { IRequestHandler, IRequestOptions } from './typed-rest-client/Interfaces';
-import { HttpClientResponse } from './typed-rest-client/HttpClient';
+import { IRequestHandler, IRequestOptions } from 'typed-rest-client/Interfaces';
+import { HttpClientResponse } from 'typed-rest-client/HttpClient';
 
 var handlebars = require('handlebars');
 var tl = require('azure-pipelines-task-lib/task');
+
+// artifact-engine-specific extension to IRequestOptions, consumed below to opt into
+// gzip Accept-Encoding for downloads (not part of upstream typed-rest-client).
+declare module 'typed-rest-client/Interfaces' {
+    interface IRequestOptions {
+        requestCompressionForDownloads?: boolean;
+    }
+}
 
 export class WebProvider implements IArtifactProvider {
 
@@ -115,6 +123,7 @@ export class WebProvider implements IArtifactProvider {
                         if (err) {
                             Logger.logMessage(err ? JSON.stringify(err) : "");
                             reject(err);
+                            return;
                         }
 
                         try {
@@ -123,6 +132,11 @@ export class WebProvider implements IArtifactProvider {
                             var context = this.extend(response, this.variables);
                             var result = template(context);
                             var items = JSON.parse(result);
+
+                            if (!Array.isArray(items)) {
+                                reject(new Error(tl.loc("FailedToParseResponse", body, `Rendered template '${this.getTemplateFilePath()}' did not produce a JSON array (got ${typeof items}).`)));
+                                return;
+                            }
 
                             resolve(items);
                         } catch (error) {

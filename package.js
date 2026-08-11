@@ -1,19 +1,13 @@
-const cp = require('child_process');
-const path = require('path');
+const cp = require('node:child_process');
+const fs = require('node:fs');
+const path = require('node:path');
 
-const fs = require('fs-extra');
-const gulp = require('gulp');
-const gutil = require('gulp-util');
-const Q = require('q');
 const shell = require('shelljs');
 const through = require('through2');
 const check = require('validator');
 
 const util = require('./package-utils');
-
-var createError = function(msg) {
-    return new gutil.PluginError('PackageTask', msg);
-}
+const externals = require('./externals.json');
 
 /**
  * @typedef {Object} TaskExecutor
@@ -31,34 +25,35 @@ var createError = function(msg) {
  * @property {TaskExecutor} execution - The execution type of the task, e.g., 'Node'.
  */
 
-// Validates the structure of a task.json file.
-var validateTask = function(folderName, task) {
-    var defer = Q.defer();
+/**
+ * Validates the structure of a task.json file.
+ * @param {string} folderName - The name of the folder containing the task, used for error messages if the task name is missing or invalid.
+ * @param {Task} task - The task object parsed from task.json.
+ * @returns {Promise<void>}
+ */
+function validateTask(folderName, task) {
+    return new Promise((resolve, reject) => {
+        const vn = (task.name || folderName);
 
-    var vn = (task.name || folderName);
+        if (!task.id || !check.isUUID(task.id)) {
+            return reject(new Error(`${vn}: id is a required guid`));
+        } else if (!task.name || !check.isAlphanumeric(task.name)) {
+            return reject(new Error(`${vn}: name is a required alphanumeric string`));
+        } else if (!task.friendlyName || !check.isLength(task.friendlyName, 1, 40)) {
+            return reject(new Error(`${vn}: friendlyName is a required string <= 40 chars`));
+        } else if (!task.instanceNameFormat) {
+            return reject(new Error(`${vn}: instanceNameFormat is required`));
+        }
 
-    if (!task.id || !check.isUUID(task.id)) {
-        defer.reject(createError(vn + ': id is a required guid'));
-    };
-
-    if (!task.name || !check.isAlphanumeric(task.name)) {
-        defer.reject(createError(vn + ': name is a required alphanumeric string'));
-    }
-
-    if (!task.friendlyName || !check.isLength(task.friendlyName, 1, 40)) {
-        defer.reject(createError(vn + ': friendlyName is a required string <= 40 chars'));
-    }
-
-    if (!task.instanceNameFormat) {
-        defer.reject(createError(vn + ': instanceNameFormat is required'));
-    }
-
-    // resolve if not already rejected
-    defer.resolve();
-    return defer.promise;
+        return resolve();
+    });
 };
-var _tempPath = path.join(__dirname, '_temp');
 
+/**
+ * Parses the contents of a task.json file into a Task object.
+ * @param {string} jsonContents
+ * @returns {Task|null} The parsed Task object if successful, or null if parsing fails.
+ */
 function parseTaskJson(jsonContents) {
     try {
         return JSON.parse(jsonContents);
@@ -76,294 +71,115 @@ function parseTaskJson(jsonContents) {
  * @returns {NodeJS.ReadWriteStream} A through2 stream that processes task.json files, copies common modules, and builds UI contributions.
  */
 function copyCommonModules(currentExtnRoot, commonDeps, commonSrc, extensionSourcePath) {
-    return through.obj(
-        function(taskJson, _encoding, done) {
-            if (!fs.existsSync(taskJson)) {
-                new gutil.PluginError('PackageTask', 'Task json cannot be found: ' + taskJson.path);
+    return through.obj(function(taskJson, _encoding, done) {
+        if (!fs.existsSync(taskJson.path)) {
+            return done(new Error('Task json cannot be found: ' + taskJson.path));
+        }
+
+        if (taskJson.isNull() || taskJson.isDirectory()) {
+            this.push(taskJson);
+            return done();
+        }
+
+        const taskDirPath = path.dirname(taskJson.path);
+        const folderName = path.basename(taskDirPath);
+
+        /** @type {Task|null} */
+        const task = parseTaskJson(taskJson.contents.toString());
+
+        if (task === null) {
+            done(new Error('Parse error in task.json: ' + taskJson.path));
+            return;
+        }
+
+        validateTask(folderName, task)
+        .then(function () {
+            // Copy the task to the layout folder.
+            const targetPath = path.join(currentExtnRoot, "Src", "Tasks", task.name);
+            shell.mkdir('-p', targetPath);
+            shell.rm('-f', path.join(targetPath, '*.csproj'));
+            shell.rm('-f', path.join(targetPath, '*.md'));
+            // Path to UI contribution files
+            const uiPath = path.join(currentExtnRoot, "Src", "UIContribution");
+            // Statically link the required internal common modules.
+            let taskDeps;
+
+            if ((taskDeps = commonDeps[folderName])) {
+                taskDeps.forEach(function (dep) {
+                    console.log('Linking ' + dep.module + ' into ' + folderName);
+                    const src = path.join(commonSrc, dep.module, "Src/");
+                    const dest = path.join(targetPath, dep.dest);
+                    shell.mkdir('-p', dest);
+                    fs.cp(src, dest, { recursive: true }, function (err) {
+                        if (err) return console.error(err)
+                    });
+                })
             }
 
-            if (taskJson.isNull() || taskJson.isDirectory()) {
-                this.push(taskJson);
-                return done();
+            // For building UI contribution using webpack
+            if (fs.existsSync(uiPath) && fs.statSync(uiPath).isDirectory()) {
+                console.log(`⚒️  Building UI contribution for task: ${task.name}`);
+                const originalDir = shell.pwd();
+                util.cd(uiPath);
+                util.run('npm ci --userconfig ' + path.join(__dirname, ".npmrc"));
+                util.cd(originalDir);
             }
 
-            var taskDirPath = path.dirname(taskJson.path);
-            var folderName = path.basename(taskDirPath);
+            if (Object.keys(task.execution).some(x => x.includes('Node'))) {
+                console.log(`⚒️  Building Node task: ${task.name}`);
 
-            /** @type {Task} */
-            var task = parseTaskJson(taskJson.contents.toString());
-
-            if (task === null) {
-                done(createError('Parse error in task.json: ' + taskJson.path));
-                return;
-            }
-
-
-            validateTask(folderName, task)
-            .then(function() {
-                // Copy the task to the layout folder.
-                const targetPath = path.join(currentExtnRoot, "Src", "Tasks", task.name);
-                const taskSourcePath = path.join(extensionSourcePath, "Src", "Tasks", task.name);
-                shell.mkdir('-p', targetPath);
-                shell.rm('-f', path.join(targetPath, '*.csproj'));
-                shell.rm('-f', path.join(targetPath, '*.md'));
-                // Path to UI contribution files
-                const uiPath = path.join(currentExtnRoot, "Src", "UIContribution");
-                // Statically link the required internal common modules.
-                var taskDeps;
-
-                if ((taskDeps = commonDeps[folderName])) {
-                    taskDeps.forEach(function (dep) {
-                        gutil.log('Linking ' + dep.module + ' into ' + folderName);
-                        var src = path.join(commonSrc, dep.module, "Src/");
-                        var dest = path.join(targetPath, dep.dest);
-                        shell.mkdir('-p', dest);
-                        fs.copy(src, dest, "*", function (err) {
-                            if (err) return console.error(err)
-                        });
-                    })
-                }
-
-                const externals = require('./externals.json');
-
-                // For building UI contribution using webpack
-                if (fs.existsSync(uiPath) && fs.statSync(uiPath).isDirectory()) {
-                    console.log(`⚒️  Building UI contribution for task: ${task.name}`);
-                    var originalDir = shell.pwd();
-                    util.cd(uiPath);
-                    util.run('npm install');
-                    util.cd(originalDir);
-                }
-
-                if (Object.keys(task.execution).some(x => x.includes('Node'))) {
-                    if (externals['no-cache'].includes(task.name)) {
-                        console.log(`⚒️  Building Node task: ${task.name}`);
-
-                        const originalDir = shell.pwd();
-
-                        try {
-                            util.cd(taskDirPath);
-                            if (util.isDebug()) {
-                                cp.execSync(`npm install --verbose --userconfig ${path.join(taskSourcePath, ".npmrc")}`, { stdio: 'inherit' });
-                            } else {
-                                cp.execSync(`npm install --userconfig ${path.join(taskSourcePath, ".npmrc")}`, { stdio: 'ignore' });
-                            }
-                            console.log(`\x1b[A\x1b[K✅ npm install at ${taskDirPath} completed successfully.`);
-                        } catch (err) {
-                            console.log(`\x1b[A\x1b[K❌ npm install at ${taskDirPath} failed. Error: ${err.message}`);
-                            process.exit(1);
-                        } finally {
-                            util.cd(originalDir);
-                        }
-                    } else {
-                        // Determine the vsts-task-lib version.
-                        var libVer = externals.npm['vsts-task-lib'];
-
-                        if (!libVer) {
-                            throw new Error('External vsts-task-lib not defined in externals.json.');
-                        }
-
-                        // Copy the lib from the cache.
-                        gutil.log('Linking vsts-task-lib ' + libVer);
-                        var copySource = path.join(_tempPath, 'npm', 'vsts-task-lib', libVer, 'node_modules', '**');
-                        var copyTarget = path.join(targetPath, 'node_modules');
-                        shell.mkdir('-p', copyTarget);
-                        gulp.src([copySource]).pipe(gulp.dest(copyTarget));
-                    }
-                }
-                return;
-            })
-            .then(function() {
-                done();
-            })
-            .fail(function(err) {
-                done(err);
-            })
-        });
-}
-
-
-var _strRelPath = path.join('Strings', 'resources.resjson', 'en-US');
-
-
-
-var _cultureNames = [
-	'cs',
-	'de',
-	'es',
-	'fr',
-	'it',
-	'ja',
-	'ko',
-	'pl',
-	'pt-BR',
-	'ru',
-	'tr',
-	'zh-Hans',
-	'zh-Hant'
-];
-
-var createError = function (msg) {
-	return new gutil.PluginError('PackageTask', msg);
-}
-
-var validateModule = function (folderName, module) {
-    var defer = Q.defer();
-    defer.resolve();
-    return defer.promise;
-}
-
-
-var LOC_FRIENDLYNAME = 'loc.friendlyName';
-var LOC_HELPMARKDOWN = 'loc.helpMarkDown';
-var LOC_DESCRIPTION = 'loc.description';
-var LOC_INSTFORMAT = 'loc.instanceNameFormat';
-var LOC_GROUPDISPLAYNAME = 'loc.group.displayName.';
-var LOC_INPUTLABEL = 'loc.input.label.';
-var LOC_INPUTHELP = 'loc.input.help.';
-var LOC_MESSAGES = 'loc.messages.';
-
-var createStrings = function (task, pkgPath, srcPath) {
-	var defer = Q.defer();
-
-	var strPath = path.join(pkgPath, _strRelPath);
-	shell.mkdir('-p', strPath);
-	var srcStrPath = path.join(srcPath, _strRelPath);
-	shell.mkdir('-p', srcStrPath);
-
-	//
-	// Loc tasks.json and product strings content
-	//
-	var strings = {};
-	strings[LOC_FRIENDLYNAME] = task.friendlyName;
-	task['friendlyName'] = 'ms-resource:' + LOC_FRIENDLYNAME;
-
-	strings[LOC_HELPMARKDOWN] = task.helpMarkDown;
-	task['helpMarkDown'] = 'ms-resource:' + LOC_HELPMARKDOWN;
-
-	strings[LOC_DESCRIPTION] = task.description;
-	task['description'] = 'ms-resource:' + LOC_DESCRIPTION;
-
-	strings[LOC_INSTFORMAT] = task.instanceNameFormat;
-	task['instanceNameFormat'] = 'ms-resource:' + LOC_INSTFORMAT;
-
-	if (task.groups) {
-		task.groups.forEach(function (group) {
-			if (group.name) {
-				var key = LOC_GROUPDISPLAYNAME + group.name;
-				strings[key] = group.displayName;
-				group.displayName = 'ms-resource:' + key;
-			}
-		});
-	}
-
-	if (task.inputs) {
-		task.inputs.forEach(function (input) {
-			if (input.name) {
-				var labelKey = LOC_INPUTLABEL + input.name;
-				strings[labelKey] = input.label;
-				input.label = 'ms-resource:' + labelKey;
-
-				if (input.helpMarkDown) {
-					var helpKey = LOC_INPUTHELP + input.name;
-					strings[helpKey] = input.helpMarkDown;
-					input.helpMarkDown = 'ms-resource:' + helpKey;
-				}
-			}
-		});
-	}
-
-	if (task.messages) {
-		for (var key in task.messages) {
-			var messageKey = LOC_MESSAGES + key;
-			strings[messageKey] = task.messages[key];
-			task.messages[key] = 'ms-resource:' + messageKey;
-		}
-	}
-
-	//
-	// Write the tasks.json and strings file in package and back to source
-	//
-	var enPath = path.join(strPath, 'resources.resjson');
-	var enSrcPath = path.join(srcStrPath, 'resources.resjson');
-
-	var enContents = JSON.stringify(strings, null, 2);
-	fs.writeFile(enPath, enContents, function (err) {
-		if (err) {
-			defer.reject(createError('could not create: ' + enPath + ' - ' + err.message));
-			return;
-		}
-
-		var taskPath = path.join(pkgPath, 'task.loc.json');
-
-		var contents = JSON.stringify(task, null, 2);
-
-		fs.writeFile(taskPath, contents, function (err) {
-			if (err) {
-				defer.reject(createError('could not create: ' + taskPath + ' - ' + err.message));
-				return;
-			}
-
-			// copy the loc assets back to the src so they can be checked in
-			shell.cp('-f', enPath, enSrcPath);
-			shell.cp('-f', taskPath, path.join(srcPath, 'task.loc.json'));
-
-			defer.resolve();
-		});
-
-	})
-
-	return defer.promise;
-};
-
-function locCommon() {
-    return through.obj(
-        function (moduleJson, encoding, done) {
-            // Validate the module.json file exists.
-            if (!fs.existsSync(moduleJson)) {
-                new gutil.PluginError('PackageModule', 'Module json cannot be found: ' + moduleJson.path);
-            }
-
-            if (moduleJson.isNull() || moduleJson.isDirectory()) {
-                this.push(moduleJson);
-                return done();
-            }
-
-            // Deserialize the module.json.
-            var jsonContents = moduleJson.contents.toString();
-            var module = {};
-            try {
-                module = JSON.parse(jsonContents);
-            }
-            catch (err) {
-                done(createError('Common module ' + moduleJson.path + ' parse error: ' + err.message));
-                return;
-            }
-
-            // Build the content for the en-US resjson file.
-            var strPath = path.join(path.dirname(moduleJson.path), _strRelPath);
-            shell.mkdir('-p', strPath);
-            var strings = {};
-            if (module.messages) {
-                for (var key in module.messages) {
-                    var messageKey = LOC_MESSAGES + key;
-                    strings[messageKey] = module.messages[key];
+                try {
+                    installDependencies(taskDirPath, task.name);
+                    console.log(`\x1b[A\x1b[K✅ npm ci at ${taskDirPath} completed successfully.`);
+                } catch (err) {
+                    console.log(`\x1b[A\x1b[K❌ npm ci at ${taskDirPath} failed. Error: ${err.message}`);
+                    process.exit(1);
                 }
             }
-
-            // Create the en-US resjson file.
-            var enPath = path.join(strPath, 'resources.resjson');
-            var enContents = JSON.stringify(strings, null, 2);
-            fs.writeFile(enPath, enContents, function (err) {
-                if (err) {
-                    done(createError('Could not create: ' + enPath + ' - ' + err.message));
-                    return;
-                }
-            })
-
+        })
+        .then(function () {
             done();
+        })
+        .catch(function (err) {
+            done(err);
         });
+    });
 }
 
-exports.copyCommonModules = copyCommonModules;
-exports.LocCommon = locCommon;
+/**
+ * Installs the dependencies for a given task using npm ci, with options to handle engine-strict mode and verbose logging.
+ * Uses the repository-root .npmrc for --userconfig so the install always has feed
+ * credentials: authentication (NpmAuthenticate@0 in CI, or vsts-npm-auth locally) is
+ * applied to the root .npmrc only. The per-task .npmrc files carry the registry URL but
+ * no auth token, so a task install that has to fetch any package not already in the npm
+ * cache would fail with E401. Registry settings are identical across every .npmrc in the
+ * repo, so using the root one changes nothing except adding the credential.
+ * @param {string} taskPath - The file system path to the task for which dependencies should be installed.
+ * @param {string} taskName - The name of the task, used for determining if engine-strict mode should be disabled based on externals configuration.
+ */
+function installDependencies(taskPath, taskName) {
+    console.log(`Installing dependencies for task: ${taskName} at path: ${taskPath}`);
+    const npmCmd = process.platform === 'win32' ? 'npm.cmd' : 'npm';
+    const rootNpmrcPath = path.join(__dirname, ".npmrc");
+    const npmArgs = ['ci', '--prefix', taskPath, '--userconfig', `"${rootNpmrcPath}"`];
+
+    // Opt specific tasks out of engine-strict. The outer `npx gulp build` loads
+    // the root .npmrc and exports its settings as npm_config_* env vars, which
+    // take precedence over any nested .npmrc. A CLI flag is the only thing that
+    // overrides those inherited env vars without disabling engine-strict globally.
+    if ((externals['no-engine-strict'] || []).includes(taskName)) {
+        npmArgs.splice(1, 0, '--no-engine-strict');
+    }
+
+    const isDebug = util.isDebug();
+    if (isDebug) {
+        npmArgs.push('--verbose');
+    }
+
+    cp.execFileSync(npmCmd, npmArgs, { stdio: isDebug ? 'inherit' : 'ignore', shell: true });
+}
+
+module.exports = {
+    copyCommonModules,
+    installDependencies
+};

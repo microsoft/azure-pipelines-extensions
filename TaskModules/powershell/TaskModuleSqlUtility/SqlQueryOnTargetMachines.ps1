@@ -1,4 +1,4 @@
-﻿# Function to import SqlPS module & avoid directory switch
+# Function to import SqlPS module & avoid directory switch
 function Import-SqlPs {
     push-location
     Import-Module SqlPS -ErrorAction 'SilentlyContinue' | out-null

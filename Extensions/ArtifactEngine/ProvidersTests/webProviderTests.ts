@@ -1,11 +1,20 @@
 var libMocker = require("azure-pipelines-task-lib/lib-mocker");
 var stream = require("stream");
+// `node:fs` bypasses any mocks registered for the plain `fs` key, so this
+// reference is guaranteed to be the real fs even if other test files have
+// already enabled the mocker.
+var realFs = require("node:fs");
 
 import * as assert from 'assert';
 
 import * as httpm from '../Providers/typed-rest-client/HttpClient';
 import * as models from '../Models';
 libMocker.registerMock('fs', {
+    statSync: () => {
+        return {
+            isDirectory: () => true
+        }
+    },
     createWriteStream: (a) => {
         var mockedStream = stream.Writable();
         mockedStream._write = () => { };
@@ -13,7 +22,16 @@ libMocker.registerMock('fs', {
     },
     existsSync: () => true,
     readFile: (filename, encoding, callback) => {
-        callback(undefined, "{}");
+        // If the consumer is a webProvider unit test (no real template path),
+        // return an empty JSON array so the promise resolves. Otherwise
+        // delegate to the real fs so integration tests that rely on actual
+        // handlebars templates still work, even when this mock leaks past
+        // `disable()` via cached modules.
+        if (typeof filename === 'string' && filename && realFs.existsSync(filename) && realFs.statSync(filename).isFile()) {
+            realFs.readFile(filename, encoding, callback);
+            return;
+        }
+        callback(undefined, "[]");
     }
 });
 libMocker.enable({
@@ -124,5 +142,11 @@ describe('Unit Tests', () => {
 // some bug in libMocker, need to see how to disable
 after(() => {
     libMocker.deregisterAll();
-    //libMocker.disable();
+    // Do NOT call libMocker.disable() here. The artifact-engine pipeline
+    // started by other tests in this suite is still running asynchronously
+    // when this `after` hook fires; its later call to tl.loc() goes
+    // through the hooked loader and throws "Loader has not been hooked"
+    // if we un-hook it now. deregisterAll() removes our mocks, which is
+    // the only teardown we actually need across suites.
+    // libMocker.disable();
 });

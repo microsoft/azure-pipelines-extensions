@@ -1,1 +1,1 @@
-﻿export { ArtifactItemStore } from './artifactItemStore';
+export { ArtifactItemStore } from './artifactItemStore';

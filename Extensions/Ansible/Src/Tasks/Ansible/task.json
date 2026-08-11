@@ -9,17 +9,18 @@
         "Build",
         "Release"
     ],
-	"runsOn": [
+    "runsOn": [
         "Agent",
         "DeploymentGroup"
     ],
     "author": "Microsoft Corporation",
     "version": {
         "Major": 0,
-        "Minor": 273,
-        "Patch": 0
+        "Minor": 279,
+        "Patch": 17
     },
     "demands": [],
+    "minimumAgentVersion": "2.206.1",
     "instanceNameFormat": "Run playbook",
     "groups": [
         {
@@ -68,7 +69,7 @@
         {
             "name": "connectionOverSsh",
             "type": "connectedService:ssh",
-             "label": "Ansible SSH endpoint",
+            "label": "Ansible SSH endpoint",
             "defaultValue": "",
             "required": true,
             "visibleRule": "ansibleInterface = remoteMachine",
@@ -300,7 +301,7 @@
         {
             "name": "connectionAnsibleTower",
             "type": "connectedService:AnsibleTower",
-             "label": "Tower endpoint",
+            "label": "Tower endpoint",
             "defaultValue": "",
             "required": true,
             "visibleRule": "ansibleInterface = ansibleTower",
@@ -324,11 +325,15 @@
         }
     ],
     "execution": {
-        "Node10": {
+        "Node16": {
             "target": "main.js",
             "argumentFormat": ""
         },
         "Node20_1": {
+            "target": "main.js",
+            "argumentFormat": ""
+        },
+        "Node24": {
             "target": "main.js",
             "argumentFormat": ""
         }

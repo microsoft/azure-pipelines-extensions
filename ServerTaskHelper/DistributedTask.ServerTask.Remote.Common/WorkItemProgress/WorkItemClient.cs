@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using DistributedTask.ServerTask.Remote.Common.Build;
 using DistributedTask.ServerTask.Remote.Common.Request;

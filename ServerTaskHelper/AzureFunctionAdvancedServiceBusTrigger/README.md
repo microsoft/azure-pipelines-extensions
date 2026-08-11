@@ -1,4 +1,4 @@
-﻿# Advanced Invoke Azure Function Check Dependency Example
+# Advanced Invoke Azure Function Check Dependency Example
 
 This advanced example shows how to trigger an Azure Function that checks if an [Azure Boards](https://azure.microsoft.com/products/devops/boards/) work item is in a **Completed** state.
 

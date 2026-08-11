@@ -1,4 +1,4 @@
-﻿namespace AzureFunctionSample
+namespace AzureFunctionSample
 {
     internal class MyAppParameters
     {

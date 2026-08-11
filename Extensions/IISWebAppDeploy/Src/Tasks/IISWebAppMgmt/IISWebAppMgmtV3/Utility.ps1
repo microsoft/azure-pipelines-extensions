@@ -1,4 +1,4 @@
-﻿Import-Module $env:CURRENT_TASK_ROOTDIR\ps_modules\VstsTaskSdk
+Import-Module $env:CURRENT_TASK_ROOTDIR\ps_modules\VstsTaskSdk
 Import-Module $env:CURRENT_TASK_ROOTDIR\RemoteDeployer
 
 Write-Verbose "Entering script Utility.ps1"

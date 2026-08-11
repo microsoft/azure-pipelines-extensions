@@ -1,4 +1,4 @@
-﻿import * as Stream from 'stream';
+import * as Stream from 'stream';
 
 import * as models from '../Models';
 import { ItemType } from '../Models';

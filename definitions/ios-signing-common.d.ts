@@ -1,5 +1,3 @@
-/// <reference path="./vsts-task-lib.d.ts" />
-
 declare module 'ios-signing-common/ios-signing-common' {
 
     /**
