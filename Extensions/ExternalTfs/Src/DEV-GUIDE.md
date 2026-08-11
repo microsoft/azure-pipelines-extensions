@@ -89,7 +89,7 @@ Extensions/ExternalTfs/
 │       └── DownloadArtifactsTfsGit/
 │           ├── task.json               ← Task manifest (GUID bf7b17db-...)
 │           ├── downloadTfGit.js        ← Entry point: resolves auth, looks up repo URL via Git API, runs git clone + checkout
-│           ├── auth.js                 ← Used when connectionType=ado; JS copy of the same WIF token exchange logic as auth.ts
+│           ├── auth.js                 ← Used when connectionType=ado; WIF token exchange (similar to auth.ts but with differences in error handling)
 │           ├── gitwrapper.js           ← Wraps shell git commands (clone/fetch/checkout); injects credentials into clone URLs
 │           └── package.json
 └── Tests/
@@ -132,22 +132,26 @@ The task reads the `azureDevOpsServiceConnection` input, which accepts an **Azur
 
 ## Architecture at a Glance
 
-```
-DownloadExternalBuildArtifacts                       DownloadArtifactsTfsGit
-─────────────────────────────────                    ────────────────────────
-download.ts                                          downloadTfGit.js
-  ├─ connectionType switch                             ├─ connectionType switch
-  │    ├─ 'ado'  → auth.ts (WIF token)                │    ├─ 'ado'  → auth.js (WIF token)
-  │    └─ 'reposOrTfs' → endpoint creds               │    └─ 'reposOrTfs' → endpoint creds
-  ├─ WebApi → getBuildApi()                            ├─ WebApi → getGitApi()
-  │    └─ getArtifacts(project, buildId)               │    └─ getRepository() → remoteUrl
-  ├─ Per artifact:                                     ├─ git clone <url> (with retries)
-  │    ├─ container → WebProvider + vsts.handlebars    ├─ git fetch (if PR branch)
-  │    └─ filepath → FilesystemProvider                └─ git checkout <commitId>
-  └─ engine.processItems(web/fs, fs, opts)
-```
+### DownloadExternalBuildArtifacts (`download.ts`)
 
-**Key difference:** The External Build task uses **artifact-engine** while the Git task uses **shell git commands** via `gitwrapper.js`.
+This task downloads build artifacts (files published by a build) from a remote Azure DevOps org or TFS server:
+
+1. **Resolve credentials** — based on `connectionType`, either reads PAT/password from the service connection (`reposOrTfs`) or exchanges a federated token for an access token via MSAL (`ado` → `auth.ts`).
+2. **Query the Build API** — calls `getArtifacts(project, buildId)` to list all artifacts for the specified build. Retries up to 3 times on failure.
+3. **Download each artifact** — depending on artifact type:
+   - **Container** (server-hosted): Uses artifact-engine's `WebProvider` with `vsts.handlebars` to map the Container API response into downloadable items, then streams them to disk.
+   - **File share** (UNC path): Uses artifact-engine's `FilesystemProvider` to copy files directly.
+
+### DownloadArtifactsTfsGit (`downloadTfGit.js`)
+
+This task clones a Git repository from a remote Azure DevOps org or TFS server:
+
+1. **Resolve credentials** — same `connectionType` switch as above (`reposOrTfs` → PAT/password, `ado` → `auth.js` WIF exchange).
+2. **Look up the repo** — calls `getRepository()` via the Git API to get the remote clone URL.
+3. **Clone the repo** — runs `git clone` via `gitwrapper.js` (which injects credentials into the URL). Retries up to 4 times on failure.
+4. **Checkout the version** — if the branch is a PR ref, runs `git fetch` first, then `git checkout <commitId>`.
+
+**Key difference:** The External Build task uses **artifact-engine** (an HTTP download library) while the Git task uses **shell git commands**.
 
 
 
