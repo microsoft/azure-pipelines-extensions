@@ -1,4 +1,4 @@
-# Bitbucket Artifacts Extension - Developer Overview
+# Bitbucket Artifacts Extension - Developer Guide
 
 > New to this extension? Start here. This document covers the extension purpose,
 > customer workflow, runtime architecture, and the files most commonly touched
@@ -8,7 +8,9 @@
 
 ## What Is This Extension?
 
-This Azure DevOps extension integrates Azure Pipelines with Bitbucket source repositories. It registers Bitbucket as an artifact source for classic release pipelines and provides the `DownloadArtifactsBitbucket` task for both build and release pipelines.
+This Azure DevOps extension integrates Azure Pipelines with Bitbucket Cloud source repositories. It uses the built-in Azure DevOps Bitbucket Cloud service connection, registers Bitbucket as an artifact source for classic release pipelines, and provides the `DownloadArtifactsBitbucket` task for both build and release pipelines.
+
+This repository does not implement the Bitbucket Cloud service connection type. `vss-extension.json` declares a demand on `ms.vss-endpoint.bitbucket-endpoint-type` and contributes the task plus release-artifact type that consume that built-in endpoint.
 
 Bitbucket is Atlassian's Git and Mercurial hosting product. Customers who keep source code in Bitbucket can use this extension to bring a repository snapshot into Azure Pipelines without manually downloading or copying source files.
 
@@ -53,6 +55,14 @@ steps:
 3. Pick the repository, branch, and default version.
 4. During release execution, Azure DevOps invokes `DownloadArtifactsBitbucket` to place the repository contents under the artifact download directory.
 
+### Creating the Service Connection
+
+Customers create the connection from Project settings -> Service connections -> New service connection -> Bitbucket Cloud.
+
+For OAuth, the UI asks the customer to select **OAuth**, choose an OAuth configuration, and select **Authorize**. There is no customer-facing token textbox for OAuth. Azure DevOps stores the OAuth token and reports the endpoint authorization scheme as `OAuth`.
+
+Customers can also choose Email and API Token. Username/password authentication is deprecated and may be disabled by the service or rejected at runtime through the `retireusernamepswd` feature flag. New connections should use OAuth or Email and API Token.
+
 ---
 
 ## Extension Components
@@ -67,22 +77,26 @@ The task entry point is `Src/Tasks/DownloadArtifactsBitbucket/downloadBitbucket.
 
 ### The Service Connection
 
-The task consumes Azure DevOps service connections of type `Bitbucket` through the `connection` input. The endpoint type is supplied by the Azure DevOps Bitbucket endpoint contribution demanded by `vss-extension.json`.
+The task consumes the built-in Azure DevOps Bitbucket Cloud service connection through the `connection` input. The endpoint implementation is outside this repository; this extension only consumes the endpoint.
 
 Supported authorization schemes:
 
-| Scheme | Parameters | API authentication | Clone authentication |
-|--------|------------|--------------------|----------------------|
-| `OAuth` | `AccessToken`, `token`, or `access_token` | `Authorization: Bearer <token>` | Username `x-token-auth`, password is the OAuth access token |
-| `OAuth2` | `AccessToken`, `token`, or `access_token` | Same as `OAuth`; accepted for custom service connection compatibility | Same as `OAuth` |
+| Scheme | Parameters read by task | API authentication | Clone authentication |
+|--------|-------------------------|--------------------|----------------------|
+| `OAuth` | `AccessToken`, `token`, or `access_token` from the endpoint payload | `Authorization: Bearer <token>` | Username `x-token-auth`, password is the OAuth access token |
+| `OAuth2` | Same as `OAuth`; compatibility alias for programmatically created custom endpoint payloads | Same as `OAuth` | Same as `OAuth` |
 | `Token` | `apitoken`, optional `email` | Basic auth with `email:apitoken` | Username `x-bitbucket-api-token-auth`, password is the API token |
-| `UsernamePassword` | `username`, `password` | Basic auth with username/password | Username/password |
+| `UsernamePassword` | `username`, `password` | Basic auth with username/password | Username/password; deprecated and may be disabled |
 
 Authorization parameter lookup is case-insensitive. Secrets are registered through `tl.setSecret` before use so token and password values are redacted from logs.
 
 ### The Release Artifact Type
 
-`vss-extension.json` registers a Bitbucket release artifact type. This lets classic release pipelines show Bitbucket in the artifact source picker. The artifact type points at task GUID `A4CD16BE-6028-4077-8015-34F008F55477` through `downloadTaskId`.
+`vss-extension.json` registers a Bitbucket release artifact type. This is what makes Bitbucket appear in the classic release pipeline artifact source picker.
+
+Customers use it when they want a release to deploy source from a Bitbucket repository without adding a YAML task manually. In the classic release UI, they select the Bitbucket artifact source, choose the service connection, repository, branch, and default version. When the release runs, Azure DevOps invokes task GUID `A4CD16BE-6028-4077-8015-34F008F55477` through `downloadTaskId`, and the task downloads the selected repository snapshot before deployment stages run.
+
+The public README screenshots show the customer-facing service connection and artifact-linking flow.
 
 ---
 
@@ -136,16 +150,16 @@ The task is intentionally small. Most behavior is direct input handling, endpoin
 
 ---
 
-## Repository Structure
+## Repository Structure and Key Files
 
 ```text
 Extensions/BitBucket/
 |-- Src/
 |   |-- vss-extension.json                  Extension manifest, Marketplace metadata, release artifact type
-|   |-- readme.md                           Public Marketplace documentation
-|   |-- OVERVIEW.md                         Internal developer onboarding document
+|   |-- README.md                           Public Marketplace documentation
+|   |-- DEV-GUIDE.md                        Internal developer guide
 |   |-- mp_terms.md                         Marketplace license terms
-|   |-- images/                             Screenshots used by readme.md
+|   |-- images/                             Screenshots used by README.md
 |   `-- Tasks/DownloadArtifactsBitbucket/
 |       |-- task.json                        Task manifest, inputs, execution handlers
 |       |-- downloadBitbucket.js             Task entry point
@@ -156,20 +170,16 @@ Extensions/BitBucket/
 `-- Tests/Tasks/DownloadArtifactsBitbucket/ L0 task tests and mock scenarios
 ```
 
----
-
-## Key Files and Their Purpose
+Most maintenance work starts in one of these files:
 
 | File | Purpose |
 |------|---------|
 | `Src/vss-extension.json` | Defines extension metadata, screenshots, task contribution, release artifact type, and data source bindings for repositories, branches, commits, and artifact browsing. |
-| `Src/readme.md` | Public Marketplace-facing documentation. Keep customer-safe and avoid internal-only URLs or implementation notes. |
-| `Src/OVERVIEW.md` | Internal developer onboarding document for architecture and maintenance context. |
+| `Src/README.md` | Public Marketplace-facing documentation. Keep customer-safe and avoid internal-only URLs or implementation notes. |
+| `Src/DEV-GUIDE.md` | Internal developer guide for architecture and maintenance context. |
 | `Src/Tasks/DownloadArtifactsBitbucket/task.json` | Defines task inputs, task version, minimum agent version, and Node handlers. |
 | `Src/Tasks/DownloadArtifactsBitbucket/downloadBitbucket.js` | Runtime task logic: endpoint auth, Bitbucket API call, clone URL auth, branch normalization, clone, and checkout. |
 | `Src/Tasks/DownloadArtifactsBitbucket/sourcecontrolwrapper.js` | Wraps `git` or `hg` execution through `azure-pipelines-task-lib`, forwards output, and masks credentials. |
-| `Tests/Tasks/DownloadArtifactsBitbucket/_suite.ts` | L0 test suite that runs each scenario across declared Node handlers. |
-| `Tests/Tasks/DownloadArtifactsBitbucket/mockHelpers.ts` | Shared mock task setup for endpoint auth, Bitbucket API responses, file cleanup, and source-control calls. |
 
 ---
 
@@ -182,7 +192,7 @@ Important details when changing auth behavior:
 - Keep `OAuth` support; Azure DevOps Bitbucket OAuth connections use that scheme name.
 - Keep OAuth token parameter fallback order: `AccessToken`, `token`, then `access_token`.
 - Keep parameter lookup case-insensitive; existing tests cover this for token and username/password auth.
-- `retireusernamepswd=true` disables `UsernamePassword` at runtime and tells users to move to OAuth2 or token authentication.
+- `retireusernamepswd=true` disables `UsernamePassword` at runtime. User-facing guidance should recommend OAuth or Email and API Token. `OAuth2` is only a compatibility alias for custom endpoint payloads.
 - Do not log raw tokens, passwords, or clone URLs containing credentials.
 
 ---
@@ -197,54 +207,9 @@ The extension manifest defines live data source bindings for repository, branch,
 | `Branches` | Populates branch choices after repository selection. |
 | `Commits` | Populates selectable commit versions for a repository and branch. |
 | `LatestCommit` | Resolves the latest commit for release artifact default version behavior. |
-| `artifacts` / `artifactItems` bindings | Browse repository contents through Bitbucket source APIs for classic release artifacts. |
+| `artifacts` / `artifactItems` bindings | Legacy artifact browsing bindings. They still call Bitbucket API v1 `/1.0/repositories/.../src/...`, which Bitbucket removed in April 2019. Treat them as nonfunctional until migrated to API v2 with the required response-shape changes. |
 
 The task runtime does not use these manifest data source bindings directly. They are used by Azure DevOps UI surfaces before the task starts.
-
----
-
-## How to Build & Test
-
-From the repository root:
-
-```powershell
-# One-time install from repo root
-npm install
-
-# Build only the BitBucket extension
-gulp build --suite=BitBucket
-
-# Run L0 tests only for BitBucket
-gulp test --suite=BitBucket
-
-# Package the extension as a .vsix
-gulp package --suite=BitBucket
-```
-
-If the repository has not been built before, run `gulp build` once without `--suite` to prime shared build output.
-
----
-
-## Test Coverage
-
-L0 tests live in `Extensions/BitBucket/Tests/Tasks/DownloadArtifactsBitbucket/`. They mock the Bitbucket API, endpoint authorization, source-control wrapper, and filesystem cleanup.
-
-Covered scenarios include:
-
-- Token, OAuth, and username/password success paths.
-- Git and Mercurial SCM selection from the Bitbucket API response.
-- Case-insensitive authorization parameter lookup.
-- Branch normalization from `refs/heads/*` to `refs/remotes/origin/*`.
-- Recursive cleanup of an existing download path.
-- Missing inputs, missing auth parameters, unsupported auth schemes, malformed API responses, clone failures, checkout failures, and username/password retirement behavior.
-
----
-
-## Publishing Notes
-
-Before publishing, bump the version in `Src/vss-extension.json` and `Src/Tasks/DownloadArtifactsBitbucket/task.json` consistently. The manifest currently publishes under publisher `ms-vscs-rm` with Marketplace item id `vss-services-bitbucket`.
-
-Do not add `OVERVIEW.md` to the Marketplace `content.details` entry. `readme.md` remains the public documentation shown on the Marketplace listing.
 
 ---
 

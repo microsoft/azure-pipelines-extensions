@@ -1,20 +1,20 @@
 # Bitbucket&reg; artifacts for Release management
 
-This extension integrates Bitbucket&reg; with Azure Pipelines. It provides a **Bitbucket&reg; service connection** and a **Download Artifacts - Bitbucket** task, so you can consume Bitbucket&reg; repository sources from both **classic release pipelines** and **YAML pipelines** in Azure DevOps.
+This extension integrates Bitbucket&reg; Cloud with Azure Pipelines. It uses the built-in **Bitbucket Cloud** service connection and contributes a **Download Artifacts - Bitbucket** task, so you can consume Bitbucket&reg; repository sources from both **classic release pipelines** and **YAML pipelines** in Azure DevOps.
 
 ## Usage
-Using the extension is a two-step workflow: (1) create a **Bitbucket&reg; service connection** in your project with your Bitbucket authentication details, then (2) reference that connection from a release-pipeline artifact source or from a **`DownloadArtifactsBitbucket`** task in a YAML pipeline.
+Using the extension is a two-step workflow: (1) create a **Bitbucket Cloud** service connection in your project with OAuth or an email and API token, then (2) reference that connection from a release-pipeline artifact source or from a **`DownloadArtifactsBitbucket`** task in a YAML pipeline.
 
-### Connecting to a Bitbucket&reg; project
-Go to project settings -> Service connections tab and create a New Service Endpoint of type Bitbucket&reg;:
+### Connecting to Bitbucket&reg; Cloud
+Go to project settings -> Service connections tab, select **New service connection**, and choose **Bitbucket Cloud**:
 ![Creating a Bitbucket&reg; endpoint connection](images/screen1.png)
 
 ### Authentication
-Bitbucket&reg; service connections support OAuth authentication. Configure the service connection with the `OAuth` authorization scheme and provide the OAuth access token in the `AccessToken`, `token`, or `access_token` authorization parameter. Parameter names are case-insensitive.
+For OAuth, select **OAuth**, choose an OAuth configuration, and select **Authorize**. The Azure DevOps Bitbucket Cloud service connection stores the token and reports the authorization scheme as `OAuth`.
 
 OAuth access tokens are sent as Bearer tokens when the extension calls the Bitbucket&reg; API. When repositories are cloned, the extension uses `x-token-auth` as the Git username and the OAuth access token as the password.
 
-Existing `Token` and `UsernamePassword` authorization schemes continue to be supported. `OAuth2` is also accepted for compatibility with custom service connections.
+You can also use **Email and API Token** authentication. Username/password authentication is deprecated and may be disabled by the service or rejected at runtime. For new connections, use OAuth or Email and API Token. The `OAuth2` scheme is accepted only as a compatibility alias for programmatically created custom endpoint payloads.
 
 ### Linking Bitbucket&reg; sources
 Once you have set up the service endpoint connection, you can link Bitbucket&reg; repository sources in your release definition.
