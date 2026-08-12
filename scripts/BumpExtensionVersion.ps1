@@ -149,7 +149,8 @@ if (-not $testVersion) {
         "Authorization" = "Bearer $azToken"
     }
 
-    try {
+    try 
+    {
         $installed = Invoke-RestMethod `
             -Uri "https://extmgmt.dev.azure.com/canarytest/_apis/extensionmanagement/installedextensions?api-version=7.1-preview.1" `
             -Method Get `
