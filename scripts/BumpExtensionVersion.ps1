@@ -142,6 +142,35 @@ $testId = "$publisher.$extensionId-test"
 $prodVersion = Get-MarketplaceVersion -FullExtensionId $prodId -Token $azToken
 $testVersion = Get-MarketplaceVersion -FullExtensionId $testId -Token $azToken
 
+# Fallback: the Gallery returns a private "-test" extension only to authorized identities;
+# if it did not, read the version from the canarytest org where the extension is installed.
+if (-not $testVersion) {
+    $headers = @{
+        "Authorization" = "Bearer $azToken"
+    }
+
+    try 
+    {
+        $installed = Invoke-RestMethod `
+            -Uri "https://extmgmt.dev.azure.com/canarytest/_apis/extensionmanagement/installedextensions?api-version=7.1-preview.1" `
+            -Method Get `
+            -Headers $headers
+
+        $dot = $testId.IndexOf('.')
+        $match = $installed.value | Where-Object {
+            $_.publisherId -eq $testId.Substring(0, $dot) -and
+            $_.extensionId -eq $testId.Substring($dot + 1)
+        } | Select-Object -First 1
+
+        if ($match -and $match.version) {
+            $testVersion = [version]$match.version
+        }
+    }
+    catch {
+        Write-Warning "Failed to query canarytest for '$testId': $($_.Exception.Message)"
+    }
+}
+
 if ($prodVersion) { Write-Host "PROD ver  : $prodVersion  ($prodId)" }
 else              { Write-Host "PROD ver  : not found     ($prodId)" }
 
