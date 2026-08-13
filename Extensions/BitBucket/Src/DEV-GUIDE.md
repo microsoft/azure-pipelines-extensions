@@ -59,7 +59,7 @@ steps:
 
 Customers create the connection from Project settings -> Service connections -> New service connection -> Bitbucket Cloud.
 
-For OAuth, the UI asks the customer to select **OAuth**, choose an OAuth configuration, and select **Authorize**. There is no customer-facing token textbox for OAuth. Azure DevOps stores the OAuth token and reports the endpoint authorization scheme as `OAuth`.
+For OAuth, the UI asks the customer to select **OAuth**, choose an OAuth configuration, and select **Authorize**. There is no customer-facing token textbox for OAuth. The UI labels the method **OAuth**; Azure DevOps currently supplies the endpoint using the internal `OAuth2` scheme. The task accepts both `OAuth` and `OAuth2` for compatibility.
 ![Creating a OAuth SC](images/oauthsc.png)
 
 Customers can also choose Email and API Token. Username/password authentication is deprecated and may be disabled by the service or rejected at runtime through the `retireusernamepswd` feature flag. New connections should use OAuth or Email and API Token.
@@ -85,8 +85,7 @@ Supported authorization schemes:
 
 | Scheme | Parameters read by task | API authentication | Clone authentication |
 |--------|-------------------------|--------------------|----------------------|
-| `OAuth` | `AccessToken`, `token`, or `access_token` from the endpoint payload | `Authorization: Bearer <token>` | Username `x-token-auth`, password is the OAuth access token |
-| `OAuth2` | Same as `OAuth`; compatibility alias for programmatically created custom endpoint payloads | Same as `OAuth` | Same as `OAuth` |
+| `OAuth` / `OAuth2` | `AccessToken`, `token`, or `access_token` from the endpoint payload | `Authorization: Bearer <token>` | Username `x-token-auth`, password is the OAuth access token |
 | `Token` | `apitoken`, optional `email` | Basic auth with `email:apitoken` | Username `x-bitbucket-api-token-auth`, password is the API token |
 | `UsernamePassword` | `username`, `password` | Basic auth with username/password | Username/password; deprecated and may be disabled |
 
@@ -95,6 +94,7 @@ Authorization parameter lookup is case-insensitive. Secrets are registered throu
 ### The Release Artifact Type
 
 `vss-extension.json` registers a Bitbucket release artifact type. This is what makes Bitbucket appear in the classic release pipeline artifact source picker.
+![Creating a release artifact source](images/screen2.png)
 
 Customers use it when they want a release to deploy source from a Bitbucket repository without adding a YAML task manually. In the classic release UI, they select the Bitbucket artifact source, choose the service connection, repository, branch, and default version. When the release runs, Azure DevOps invokes task GUID `A4CD16BE-6028-4077-8015-34F008F55477` through `downloadTaskId`, and the task downloads the selected repository snapshot before deployment stages run.
 
@@ -187,14 +187,14 @@ Most maintenance work starts in one of these files:
 
 ## Authentication Notes
 
-OAuth support was added so Azure DevOps Bitbucket service connections can use the `OAuth` scheme. The runtime also accepts `OAuth2` as a compatibility alias for custom service connections.
+OAuth support was added for the Bitbucket Cloud service connection. The UI labels the method `OAuth`, while Azure DevOps currently supplies the endpoint using the internal `OAuth2` scheme. The runtime accepts both `OAuth` and `OAuth2` for compatibility.
 
 Important details when changing auth behavior:
 
-- Keep `OAuth` support; Azure DevOps Bitbucket OAuth connections use that scheme name.
+- Keep both `OAuth` and `OAuth2` support; the UI label is `OAuth`, while the built-in endpoint currently supplies the internal `OAuth2` scheme.
 - Keep OAuth token parameter fallback order: `AccessToken`, `token`, then `access_token`.
 - Keep parameter lookup case-insensitive; existing tests cover this for token and username/password auth.
-- `retireusernamepswd=true` disables `UsernamePassword` at runtime. User-facing guidance should recommend OAuth or Email and API Token. `OAuth2` is only a compatibility alias for custom endpoint payloads.
+- `retireusernamepswd=true` disables `UsernamePassword` at runtime. User-facing guidance should recommend OAuth or Email and API Token. The UI label is `OAuth`, while the endpoint may use the internal `OAuth2` scheme; the task accepts both schemes for compatibility.
 - Do not log raw tokens, passwords, or clone URLs containing credentials.
 
 ---

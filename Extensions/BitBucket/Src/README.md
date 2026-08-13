@@ -10,11 +10,11 @@ Go to project settings -> Service connections tab, select **New service connecti
 ![Creating a Bitbucket&reg; endpoint connection](images/screen1.png)
 
 ### Authentication
-For OAuth, select **OAuth**, choose an OAuth configuration, and select **Authorize**. The Azure DevOps Bitbucket Cloud service connection stores the token and reports the authorization scheme as `OAuth`.
+For OAuth, select **OAuth**, choose an OAuth configuration, and select **Authorize**. The UI labels the method **OAuth**; Azure DevOps currently supplies the endpoint using the internal `OAuth2` scheme. The task accepts both `OAuth` and `OAuth2` for compatibility.
 
 OAuth access tokens are sent as Bearer tokens when the extension calls the Bitbucket&reg; API. When repositories are cloned, the extension uses `x-token-auth` as the Git username and the OAuth access token as the password.
 
-You can also use **Email and API Token** authentication. Username/password authentication is deprecated and may be disabled by the service or rejected at runtime. For new connections, use OAuth or Email and API Token. The `OAuth2` scheme is accepted only as a compatibility alias for programmatically created custom endpoint payloads.
+You can also use **Email and API Token** authentication. Username/password authentication is deprecated and may be disabled by the service or rejected at runtime. For new connections, use OAuth or Email and API Token. The UI label is **OAuth**, while the endpoint may use the internal `OAuth2` scheme; the task accepts both schemes for compatibility.
 
 ### Linking Bitbucket&reg; sources
 Once you have set up the service endpoint connection, you can link Bitbucket&reg; repository sources in your release definition.
@@ -33,6 +33,8 @@ steps:
       version: '1234567890abcdef1234567890abcdef12345678' # Commit id
       downloadPath: '$(Build.SourcesDirectory)/bitbucket'
 ```
+
+The task requires Azure Pipelines agent version 2.206.1 or newer. Self-hosted agents must also have Git available on `PATH`.
 
 [Learn more about artifacts in Azure Pipelines](https://learn.microsoft.com/en-us/azure/devops/pipelines/release/artifacts). You can use [Azure Pipeline Extensions on GitHub](https://github.com/microsoft/azure-pipelines-extensions/issues) to report issues.
 
