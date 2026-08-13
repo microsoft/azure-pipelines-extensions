@@ -60,8 +60,10 @@ steps:
 Customers create the connection from Project settings -> Service connections -> New service connection -> Bitbucket Cloud.
 
 For OAuth, the UI asks the customer to select **OAuth**, choose an OAuth configuration, and select **Authorize**. There is no customer-facing token textbox for OAuth. Azure DevOps stores the OAuth token and reports the endpoint authorization scheme as `OAuth`.
+![Creating a OAuth SC](images/oauthsc.png)
 
 Customers can also choose Email and API Token. Username/password authentication is deprecated and may be disabled by the service or rejected at runtime through the `retireusernamepswd` feature flag. New connections should use OAuth or Email and API Token.
+![Creating emailapi sc](images/emailapisc.png)
 
 ---
 
@@ -96,7 +98,7 @@ Authorization parameter lookup is case-insensitive. Secrets are registered throu
 
 Customers use it when they want a release to deploy source from a Bitbucket repository without adding a YAML task manually. In the classic release UI, they select the Bitbucket artifact source, choose the service connection, repository, branch, and default version. When the release runs, Azure DevOps invokes task GUID `A4CD16BE-6028-4077-8015-34F008F55477` through `downloadTaskId`, and the task downloads the selected repository snapshot before deployment stages run.
 
-The public README screenshots show the customer-facing service connection and artifact-linking flow.
+![Creating a release](images/releasetask.png)
 
 ---
 
