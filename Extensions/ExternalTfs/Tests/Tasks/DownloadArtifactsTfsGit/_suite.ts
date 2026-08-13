@@ -150,6 +150,9 @@ describe('DownloadArtifactsTfsGit Suite', function () {
                 // `DistributedTask.Tasks.Node.SkipDebugLogsWhenDebugModeOff` and is
                 // therefore environment-dependent (suppressed on hosted agents by default).
                 assert(runner.stdOutContained('[mock-git] clone-attempt 2'), 'should retry after first failure');
+                assert(!runner.stdOutContained('[mock-git] clone-attempt 3'), 'should stop retrying after the clone succeeds');
+                assert(runner.stdOutContained('[mock-git] checkout master'), 'should continue by checking out the branch after the retry succeeds');
+                assert(runner.stdOutContained('[mock-git] checkout 1234567890abcdef1234567890abcdef12345678'), 'should continue by checking out the requested commit after the retry succeeds');
             });
 
             // ---- Failure / validation scenarios ----------------------------
@@ -255,6 +258,7 @@ describe('DownloadArtifactsTfsGit Suite', function () {
                 // GIT_CLONE_RETRY_ATTEMPTS = 4 => 1 initial + 4 retries = 5 attempts.
                 assert(runner.stdOutContained('[mock-git] clone-attempt 5'), 'should attempt clone the maximum number of times');
                 assert(runner.stdOutContained('OperationFailed: gitClone'), 'should emit OperationFailed once retries are exhausted');
+                assert(!runner.stdOutContained('[mock-git] checkout '), 'should not attempt checkout after clone retries are exhausted');
             });
         });
     });
