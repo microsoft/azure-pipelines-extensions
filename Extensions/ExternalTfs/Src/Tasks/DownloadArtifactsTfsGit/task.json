@@ -14,7 +14,7 @@
   "version": {
     "Major": 16,
     "Minor": 279,
-    "Patch": 2
+    "Patch": 32
   },
   "minimumAgentVersion": "2.206.1",
   "instanceNameFormat": "Download Artifacts - External TFS Git",
