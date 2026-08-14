@@ -215,7 +215,12 @@ describe('DownloadArtifactsTfsGit Suite', function () {
                 if (runner.succeeded) fail(runner, 'expected task to fail when endpoint authorization is missing');
                 assert(runner.stdOutContained('Failed to get authorization details for service connection'), 'expected error mentioning missing authorization');
             });
-
+            it('fails gracefully when authorization parameters object is missing', async function () {
+                const runner = newRunner('failMissingAuthParameterObject');
+                await runAndDump(runner, nodeVersion);
+                if (runner.succeeded) fail(runner, 'expected task to fail when auth parameters object is missing');
+                assert(runner.stdOutContained('Password is not provided for the service connection'), 'expected null-safe guard to fail with a clear authentication error');
+            });
             it('fails when authorization scheme is not Token/UsernamePassword', async function () {
                 const runner = newRunner('failUnsupportedAuthScheme');
                 await runAndDump(runner, nodeVersion);
