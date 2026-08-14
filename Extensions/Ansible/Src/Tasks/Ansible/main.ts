@@ -43,7 +43,7 @@ function run() {
         if (ansibleInterface) {
             ansibleInterface.execute();
         } else {
-            tl.setResult(tl.TaskResult.Failed, "");
+            tl.setResult(tl.TaskResult.Failed, tl.loc("AnsibleInterfaceNotInitialized"));
         }
     } catch (error) {
         tl.setResult(tl.TaskResult.Failed, error);
