@@ -42,7 +42,7 @@ export class ansibleTowerInterface extends ansibleInterface {
             if (status === 'successful') {
                 tl.setResult(tl.TaskResult.Succeeded, "");
             } else if (status === 'failed') {
-                tl.setResult(tl.TaskResult.Failed, "");
+                tl.setResult(tl.TaskResult.Failed, tl.loc('AnsibleTowerJobFailed', jobId));
             }
         } catch (error) {
             tl.setResult(tl.TaskResult.Failed, error);
