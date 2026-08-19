@@ -13,6 +13,7 @@
         "Ansible",
         "DownloadArtifactsBitbucket",
         "DownloadArtifactsTfsGit",
-        "DownloadExternalBuildArtifacts"
+        "DownloadExternalBuildArtifacts",
+        "DownloadTeamCityArtifacts"
     ]
 }
