@@ -3,6 +3,7 @@
   "loc.messages.FailedToParseResponse": "No se pudo analizar el cuerpo de la respuesta: %s. Error: %s",
   "loc.messages.DownloadingTo": "Descargando %s en %s",
   "loc.messages.DownloadedTo": "%s descargado en %s",
+  "loc.messages.InvalidArtifactPath": "Artifact path %s resolves outside the download directory.",
   "loc.messages.UnableToReadDirectory": "No se puede leer el directorio %s. Error: %s",
   "loc.messages.RetryingDownload": "Reintentando la descarga de %s, número de reintentos: %s",
   "loc.messages.SkippingItem": "Procesamiento de %s omitido",

@@ -3,6 +3,7 @@
   "loc.messages.FailedToParseResponse": "Не удалось проанализировать текст ответа: %s. Ошибка: %s",
   "loc.messages.DownloadingTo": "Идет скачивание %s в %s",
   "loc.messages.DownloadedTo": "Скачано %s в %s",
+  "loc.messages.InvalidArtifactPath": "Artifact path %s resolves outside the download directory.",
   "loc.messages.UnableToReadDirectory": "Не удается считать каталог %s. Ошибка: %s",
   "loc.messages.RetryingDownload": "Повторная попытка скачать %s, всего попыток: %s",
   "loc.messages.SkippingItem": "Пропущена обработка элемента %s",

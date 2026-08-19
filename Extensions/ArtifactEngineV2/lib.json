@@ -4,6 +4,7 @@
         "FailedToParseResponse": "Failed to parse response body: %s, got error : %s",
         "DownloadingTo": "Downloading %s to %s",
         "DownloadedTo": "Downloaded %s to %s",
+        "InvalidArtifactPath": "Artifact path %s resolves outside the download directory.",
         "UnableToReadDirectory": "Unable to read directory %s. Error: %s",
         "RetryingDownload": "Retrying download of %s, retry count: %s",
         "SkippingItem": "Skipped processing item %s",
