@@ -11,6 +11,7 @@
     ],
     "tsc-build-check": [
         "Ansible",
+        "DownloadArtifactsBitbucket",
         "DownloadArtifactsTfsGit",
         "DownloadExternalBuildArtifacts"
     ]
