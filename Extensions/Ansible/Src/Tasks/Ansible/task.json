@@ -17,7 +17,7 @@
     "version": {
         "Major": 0,
         "Minor": 279,
-        "Patch": 17
+        "Patch": 28
     },
     "demands": [],
     "minimumAgentVersion": "2.206.1",
@@ -348,6 +348,8 @@
         "RemoteFileCleanUpFailed": "Failed to delete the script file copied to the Ansible machine. Error: %s.",
         "JobTemplateNotPresent": "Failed to locate job template. Job template with name %s is not present.",
         "Ansible_ConstructorFailed": "Cannot initialize Ansible: %s.",
+        "AnsibleInterfaceNotInitialized": "Failed to initialize the Ansible interface.",
+        "AnsibleTowerJobFailed": "Ansible Tower job %s failed.",
         "FailedToGetJobDetails": "Failed to get job details. Ansible returns with error code %s and message %s.",
         "CouldnotLaunchJob": "Failed to launch job. Ansible returns with error code %s and message %s.",
         "AgentOnWindowsMachine": "Both agent and Ansible should be on linux machine",

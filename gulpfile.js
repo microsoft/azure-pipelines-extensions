@@ -553,9 +553,17 @@ gulp.task("syncVersions", function (cb) {
 
     // Support comma-separated extension names (e.g. --syncVersions Ansible,IISWebAppDeploy)
     // Note: gulp's CLI replaces commas with spaces, so we split on both.
-    var extensions = String(options.syncVersions).split(/[,\s]+/).map(function (name) {
-        return name.trim();
-    }).filter(Boolean);
+    // Also support --syncVersions all to bump every publishable extension.
+    var requested = String(options.syncVersions).trim();
+    /** @type {string[]} */
+    var extensions = [];
+    if (requested.toLowerCase() === 'all') {
+        extensions = discoverPublishableExtensions();
+    } else {
+        extensions = String(options.syncVersions).split(/[,\s]+/).map(function (name) {
+            return name.trim();
+        }).filter(Boolean);
+    }
 
     if (extensions.length === 0) {
         cb();

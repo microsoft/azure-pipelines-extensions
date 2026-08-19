@@ -467,6 +467,7 @@ describe('Ansible Suite', function () {
                 const runner = newRunner('testTowerFailedJob');
                 await runAndDump(runner, nodeVersion);
                 expectFailure(runner, 'expected tower failed-job status to fail task');
+                assert(outputContains(runner, 'loc_mock_AnsibleTowerJobFailed'), 'should report the failed tower job');
             });
 
             it('fails when tower job status api returns non-200', async function () {
