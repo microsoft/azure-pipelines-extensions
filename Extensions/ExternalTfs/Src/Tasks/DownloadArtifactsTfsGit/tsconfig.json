@@ -24,8 +24,9 @@
         "noUncheckedIndexedAccess": true,
         "noImplicitOverride": true,
         "noPropertyAccessFromIndexSignature": true,
-        "allowUnusedLabels": true,
-        "allowUnreachableCode": true
+        "forceConsistentCasingInFileNames": true,
+        "allowUnusedLabels": false,
+        "allowUnreachableCode": false
     },
     "include": [
         "*.js"
