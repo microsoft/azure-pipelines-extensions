@@ -1,128 +1,212 @@
-# Ansible extension contributor guide
+# Getting started with the Ansible extension
 
-This document introduces the Ansible extension to contributors. For the customer-facing documentation published to the Visual Studio Marketplace, see [Src/readme.md](Src/readme.md).
+This guide explains the Ansible concepts and setup required to use the `Ansible@0` task in Azure Pipelines. For the complete task input reference, see [Src/readme.md](Src/readme.md).
 
-## Overview
+## What the extension does
 
-The extension adds the `Ansible@0` Azure Pipelines task. The task runs an Ansible playbook by building and executing an `ansible-playbook` command with the inventory and options selected by the user.
+Ansible automates configuration, deployment, and orchestration across one or more machines. The extension adds an Azure Pipelines task that runs an Ansible playbook from:
 
-Customers use the task to include configuration management, application deployment, and infrastructure orchestration in build or release pipelines without writing the command-line integration themselves.
+- A Linux pipeline agent where Ansible is installed.
+- A remote machine where Ansible is installed, accessed through an SSH service connection.
 
-## Basic concepts
+The extension runs Ansible but does not install or configure it.
 
-- **Control node**: The machine where Ansible is installed and the playbook is executed.
-- **Managed node**: A machine or device targeted by the playbook.
-- **Playbook**: A YAML file that defines the automation to perform.
-- **Inventory**: The hosts and groups targeted by the playbook.
-- **SSH service connection**: The Azure Pipelines service connection used to access a remote control node.
+## Ansible concepts
 
-Ansible must be installed on the selected control node and available on `PATH`. The task does not install Ansible.
+You only need a few concepts to get started:
 
-## Execution modes
+- **Control node**: The machine where Ansible is installed and the playbook runs. In this extension, the control node is either the pipeline agent or a remote machine.
+- **Managed node**: A machine or device that Ansible configures.
+- **Playbook**: A YAML file containing the automation steps to run.
+- **Inventory**: A list of managed nodes, optionally organized into groups.
+- **Module**: A unit of work performed by Ansible, such as copying a file, installing a package, or starting a service.
 
-The task exposes two execution modes through the **Ansible location** input.
+Ansible connects from the control node to managed nodes. For Linux managed nodes, this connection commonly uses SSH.
+
+## Before you begin
+
+Prepare the following:
+
+1. A playbook that describes the required automation.
+2. One or more managed nodes.
+3. Network access from the Ansible control node to the managed nodes.
+4. Credentials that allow Ansible to connect to the managed nodes.
+5. An inventory, unless you intend to use Ansible's configured default inventory.
+
+Install Ansible on the control node by following the [Ansible installation guidance](http://docs.ansible.com/ansible/latest/intro_installation.html). Ensure that the `ansible-playbook` command is available on `PATH`.
+
+Native Windows machines are not supported as Ansible control nodes.
+
+## Choose where Ansible runs
 
 ### Agent machine
 
-The pipeline agent is the Ansible control node. The task:
+Choose **Agent machine** when Ansible is installed on the Linux pipeline agent.
 
-1. Verifies that the agent is not running native Windows.
-2. Verifies that Ansible is available on `PATH`.
-3. Resolves the selected inventory.
-4. Runs `ansible-playbook` on the agent.
-5. Removes any temporary inline inventory file.
+Use this option when:
 
-This mode is useful when a self-hosted Linux agent already has Ansible and the required dependencies installed.
+- You manage a Linux agent with Ansible already installed.
+- The playbook and inventory are available in the pipeline workspace.
+- The agent can connect directly to all managed nodes.
+
+The playbook file path and inventory file path refer to files on the agent.
 
 ### Remote machine
 
-A remote machine is the Ansible control node. The task:
+Choose **Remote machine** when Ansible is installed on another machine.
 
-1. Connects to the machine using an SSH service connection.
-2. Optionally copies the playbook directory from the agent to the remote machine.
-3. Optionally copies an inventory file from the agent to the remote machine.
-4. Resolves host-list or inline inventory on the remote machine when selected.
-5. Runs `ansible-playbook` remotely.
-6. Removes files copied or created under `/tmp`.
-7. Closes the SSH connection.
+Create an [SSH endpoint](https://www.visualstudio.com/en-us/docs/build/concepts/library/service-endpoints#sep-ssh) for the remote control node. The service connection can use a password or a private key. If the private key is encrypted, also provide its passphrase.
 
-The SSH service connection supports password authentication or private-key authentication with an optional passphrase.
+The playbook and inventory can already exist on the remote machine, or the task can copy them from the pipeline agent.
 
-## Playbook and inventory sources
+## Create a basic playbook
 
-For agent execution, the playbook must be available on the agent.
+The following playbook verifies that Ansible can connect to every host in the `web` inventory group:
 
-For remote execution, the playbook can either:
-
-- Be available on the agent and copied to the remote machine.
-- Already exist on the remote machine.
-
-The task supports these inventory choices:
-
-| Inventory choice | Behavior |
-| --- | --- |
-| Default inventory | Runs without `-i`, so Ansible resolves its configured default inventory. |
-| File | Passes the selected inventory file to `ansible-playbook -i`. For remote execution, the file can be copied from the agent or already exist remotely. |
-| Host list | Passes the comma-terminated host list directly to `ansible-playbook -i`. |
-| Inline | Writes the supplied content to a temporary inventory file and passes that file with `-i`. Dynamic inline inventory is also marked executable. |
-
-When **Sudo** is enabled, the task adds `-b --become-user <user>`. If no user is supplied, it uses `root`. Additional parameters are appended to the command unchanged.
-
-Do not place secrets in additional parameters because the complete command can appear in diagnostic logs.
-
-## Implementation flow
-
-The main execution path is:
-
-1. `ansibleTaskParameters.ts` reads task inputs from `task.json`.
-2. `main.ts` selects the implementation for the requested execution mode.
-3. `ansibleCommandLineInterface.ts` resolves inventory, builds the command, executes it, and performs cleanup.
-4. `ansibleRemoteMachineInterface.ts` adds SSH setup and remote file-copy behavior.
-5. `ansibleUtils.ts` provides command, SSH, SFTP, temporary-file, and HTTP helpers.
-
-The command-line implementation is shared between agent and remote execution. Remote execution extends the agent implementation and overrides connection, command execution, and cleanup behavior.
-
-`ansibleTowerInterface.ts` contains a legacy Ansible Tower implementation. Ansible Tower is not currently exposed as an option by the task's **Ansible location** input.
-
-## Repository layout
-
-| Path | Purpose |
-| --- | --- |
-| `Src/vss-extension.json` | Marketplace extension manifest, assets, and task contribution. |
-| `Src/readme.md` | Customer-facing Marketplace documentation. |
-| `Src/Tasks/Ansible/task.json` | Task metadata, inputs, Node handlers, and localized messages. |
-| `Src/Tasks/Ansible/main.ts` | Task entry point and implementation selection. |
-| `Src/Tasks/Ansible/ansibleTaskParameters.ts` | Input parsing and defaults. |
-| `Src/Tasks/Ansible/ansibleCommandLineInterface.ts` | Shared command construction and agent execution. |
-| `Src/Tasks/Ansible/ansibleRemoteMachineInterface.ts` | SSH connection, remote copy, execution, and cleanup. |
-| `Src/Tasks/Ansible/ansibleUtils.ts` | Shared process, SSH, file-transfer, and request helpers. |
-| `Tests/Tasks/Ansible` | Mock task scenarios and the Ansible test suite. |
-
-## Making changes
-
-Keep the following surfaces synchronized:
-
-- Update `task.json` when adding or changing a task input.
-- Update `ansibleTaskParameters.ts` to read new or changed inputs.
-- Update the relevant execution implementation.
-- Add success and failure scenarios under `Tests/Tasks/Ansible`.
-- Update `Src/readme.md` when customer-visible behavior changes.
-- Update this guide when architecture or contributor workflows change.
-
-Avoid changing input names or the task's major version without considering existing pipelines. Minor task versions are selected automatically within the same major version.
-
-## Build and tests
-
-The repository requires Node.js 20 or later and npm 10.8.2 or later.
-
-From the repository root:
-
-```text
-npm install
-npm run build
-npm test
+```yaml
+---
+- name: Verify managed nodes
+  hosts: web
+  gather_facts: false
+  tasks:
+    - name: Ping managed nodes
+      ansible.builtin.ping:
 ```
 
-The Ansible suite exercises every Node handler declared in `task.json`. It covers agent and remote execution, inventory types, playbook and inventory copying, SSH authentication, sudo and additional parameters, cleanup, command output, and expected failure paths.
+Save it as `playbooks/ping.yml`.
 
-Use the repository-level commands rather than the `test` script in `Src/Tasks/Ansible/package.json`.
+## Define the inventory
+
+The inventory identifies the managed nodes. The task provides four inventory choices.
+
+### Default inventory
+
+Select **Use default inventory file** to let Ansible use its configured default inventory. The conventional default file is `/etc/ansible/hosts`.
+
+### Inventory file
+
+Select **File** to provide an inventory file. Ansible supports INI and YAML inventory formats.
+
+Example INI inventory:
+
+```ini
+[web]
+web1.example.com
+web2.example.com
+```
+
+Example YAML inventory:
+
+```yaml
+all:
+  children:
+    web:
+      hosts:
+        web1.example.com:
+        web2.example.com:
+```
+
+### Host list
+
+Select **Host list** for a simple comma-separated list of hosts:
+
+```text
+web1.example.com,web2.example.com
+```
+
+Use `hosts: all` in the playbook when using this option because a host list does not define custom inventory groups such as `web`.
+
+### Inline inventory
+
+Select **Inline** to enter inventory content directly in the task. Enable **Dynamic inventory** only when the content is an executable inventory script that returns inventory data.
+
+## Configure the task
+
+### Run on the agent
+
+```yaml
+- task: Ansible@0
+  displayName: Run Ansible playbook
+  inputs:
+    ansibleInterface: agentMachine
+    playbookPathOnAgentMachine: '$(System.DefaultWorkingDirectory)/playbooks/ping.yml'
+    inventoriesAgentMachine: file
+    inventoryFileOnAgentMachine: '$(System.DefaultWorkingDirectory)/inventory/hosts.ini'
+```
+
+### Run on a remote control node
+
+This example copies the playbook directory and inventory file from the agent to the remote control node:
+
+```yaml
+- task: Ansible@0
+  displayName: Run Ansible playbook remotely
+  inputs:
+    ansibleInterface: remoteMachine
+    connectionOverSsh: 'My Ansible SSH connection'
+    playbookSourceRemoteMachine: agentMachine
+    playbookRootRemoteMachine: '$(System.DefaultWorkingDirectory)/playbooks'
+    playbookPathLinkedArtifactOnRemoteMachine: 'ping.yml'
+    inventoriesRemoteMachine: file
+    inventoryFileSourceRemoteMachine: agentMachine
+    inventoryFileLinkedArtifactOnRemoteMachine: '$(System.DefaultWorkingDirectory)/inventory/hosts.ini'
+```
+
+When the files already exist on the remote control node, select **Ansible machine** as their source and provide their remote paths.
+
+## Privilege escalation and additional parameters
+
+Enable **Sudo** when the playbook must run operations as another user. The task uses `root` when **Sudo user** is empty. The control node and managed nodes must already be configured for the required Ansible privilege escalation.
+
+Use **Additional parameters** for supported `ansible-playbook` options such as limiting hosts or passing extra variables:
+
+```text
+--limit web1.example.com --extra-vars "environment=test"
+```
+
+Do not include secrets directly in this field. Prefer secret pipeline variables and established Ansible secret-management practices.
+
+## Validate the setup
+
+Before relying on the pipeline task, validate the same playbook and inventory from the selected control node:
+
+```text
+ansible-playbook -i inventory/hosts.ini playbooks/ping.yml --syntax-check
+ansible-playbook -i inventory/hosts.ini playbooks/ping.yml
+```
+
+This separates Ansible, inventory, credential, and network problems from pipeline configuration problems.
+
+## Common problems
+
+### Ansible cannot be found
+
+Confirm that Ansible is installed on the selected control node and that `ansible-playbook` is available on `PATH` for the account running the command.
+
+### A managed node is unreachable
+
+Verify:
+
+- The inventory contains the correct host name or IP address for the managed node.
+- The control node can reach the managed node on its SSH port, which is usually port 22.
+- The SSH username configured in the inventory or additional parameters exists on the managed node.
+- The password or private key used by Ansible authenticates that user.
+- The control node trusts the managed node's SSH host key.
+
+Test the connection from the control node before running the pipeline:
+
+```text
+ssh <username>@<managed-node>
+ansible all -i inventory/hosts.ini -m ping
+```
+
+### The playbook targets no hosts
+
+Ensure that the value of `hosts` in the playbook matches a group in the inventory. Use `hosts: all` with the task's **Host list** inventory option.
+
+## Learn more
+
+- [Ansible documentation](http://docs.ansible.com/ansible/latest/index.html)
+- [Playbooks](http://docs.ansible.com/ansible/latest/playbooks.html)
+- [Inventory](http://docs.ansible.com/ansible/latest/intro_inventory.html)
+- [Dynamic inventory](http://docs.ansible.com/ansible/latest/intro_dynamic_inventory.html)
