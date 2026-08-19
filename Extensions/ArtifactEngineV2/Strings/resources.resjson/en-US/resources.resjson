@@ -3,6 +3,7 @@
   "loc.messages.FailedToParseResponse": "Failed to parse response body: %s, got error : %s",
   "loc.messages.DownloadingTo": "Downloading %s to %s",
   "loc.messages.DownloadedTo": "Downloaded %s to %s",
+  "loc.messages.InvalidArtifactPath": "Artifact path %s resolves outside the download directory.",
   "loc.messages.UnableToReadDirectory": "Unable to read directory %s. Error: %s",
   "loc.messages.RetryingDownload": "Retrying download of %s, retry count: %s",
   "loc.messages.SkippingItem": "Skipped processing item %s",

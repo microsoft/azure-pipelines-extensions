@@ -3,6 +3,7 @@
   "loc.messages.FailedToParseResponse": "Fehler beim Analysieren des Antworttexts: %s. Erhaltener Fehler: %s",
   "loc.messages.DownloadingTo": "Download von \"%s\" nach \"%s\" wird durchgeführt.",
   "loc.messages.DownloadedTo": "Download von \"%s\" nach \"%s\" wurde durchgeführt.",
+  "loc.messages.InvalidArtifactPath": "Artifact path %s resolves outside the download directory.",
   "loc.messages.UnableToReadDirectory": "Das Verzeichnis \"%s\" kann nicht gelesen werden. Fehler: %s",
   "loc.messages.RetryingDownload": "Download von \"%s\" wird erneut versucht, Wiederholungsanzahl: %s",
   "loc.messages.SkippingItem": "Die Verarbeitung des Elements \"%s\" wird übersprungen.",
