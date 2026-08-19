@@ -219,6 +219,13 @@ describe('DownloadArtifactsTfsGit Suite', function () {
                 const runner = newRunner('failMissingAuthParameterObject');
                 await runAndDump(runner, nodeVersion);
                 if (runner.succeeded) fail(runner, 'expected task to fail when auth parameters object is missing');
+                // Username is checked before Password in getGitClientPromise, so it surfaces first when both are absent.
+                assert(runner.stdOutContained('Username is not provided for the service connection'), 'expected null-safe guard to fail with a clear authentication error');
+            });
+            it('fails gracefully when password parameter is missing', async function () {
+                const runner = newRunner('failMissingPassword');
+                await runAndDump(runner, nodeVersion);
+                if (runner.succeeded) fail(runner, 'expected task to fail when password parameter is missing');
                 assert(runner.stdOutContained('Password is not provided for the service connection'), 'expected null-safe guard to fail with a clear authentication error');
             });
             it('fails when authorization scheme is not Token/UsernamePassword', async function () {
