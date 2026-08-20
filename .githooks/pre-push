@@ -1,0 +1,10 @@
+#!/bin/sh
+
+npx gulp syncVersions --syncVersions=changed
+
+status=$?
+
+if [ "$status" -ne 0 ]; then
+  echo "pre-push hook failed: syncVersions did not complete successfully." >&2
+  exit "$status"
+fi

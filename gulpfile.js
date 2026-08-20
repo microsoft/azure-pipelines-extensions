@@ -20,6 +20,8 @@ const gulp = require('gulp');
 const pkgm = require('./package');
 const util = require('./package-utils');
 
+require('./scripts/install-git-hooks');
+
 const { values: options } = parseArgs({
     args: process.argv.slice(2),
     options: {
@@ -540,6 +542,17 @@ gulp.task("updateTestIds", function (cb) {
     cb();
 });
 
+function getChangedExtensions() {
+    const publishable = discoverPublishableExtensions();
+    const files = getChangedFiles(true);
+
+    if (files != null) {
+        return resolveChangedExtensions(files, ext => publishable.indexOf(ext) >= 0);
+    }
+
+    return [];
+}
+
 gulp.task("syncVersions", function (cb) {
     if (!options.syncVersions) {
         cb();
@@ -559,6 +572,8 @@ gulp.task("syncVersions", function (cb) {
     var extensions = [];
     if (requested.toLowerCase() === 'all') {
         extensions = discoverPublishableExtensions();
+    } else if (requested.toLowerCase() === 'changed') {
+        extensions = getChangedExtensions() ?? [];
     } else {
         extensions = String(options.syncVersions).split(/[,\s]+/).map(function (name) {
             return name.trim();
@@ -998,10 +1013,10 @@ gulp.task("test", gulp.series("testResources", function () {
 
 /**
  * Returns an array of changed file paths (forward-slash normalized) from the
- * diff against the target branch. Works for PR builds (uses PR target) and
- * manual/CI builds (diffs selected branch against master).
+ * diff against the target branch. Local runs also include staged, unstaged,
+ * and untracked files in the working tree.
  * Returns null only if the diff cannot be determined (fetch failure, etc.).
- * @param {boolean} [filterLocalChanges] - When true and BUILD_SOURCEBRANCH is not set (local runs), resolve the current branch via `git rev-parse --abbrev-ref HEAD` so the diff can still be computed; returns null (run all) if it can't be resolved. When false, the local branch fallback is skipped and such runs return null (run all).
+ * @param {boolean} [filterLocalChanges] - When true and BUILD_SOURCEBRANCH is not set (local runs), resolve the current branch via `git rev-parse --abbrev-ref HEAD` and include working-tree changes. Returns null (run all) if the branch cannot be resolved. When false, the local branch fallback is skipped and such runs return null (run all).
  * @returns {string[] | null} The list of changed files, or null if the diff cannot be determined (e.g. fetch failure, no target branch, etc.).
  */
 function getChangedFiles(filterLocalChanges) {
@@ -1053,6 +1068,26 @@ function getChangedFiles(filterLocalChanges) {
         }
     }
     var files = changedFiles.split(/\r?\n/).filter(function (l) { return l.length > 0; }).map(function (f) { return f.replace(/\\/g, '/'); });
+
+    // Local validation must account for edits that have not been committed yet.
+    // Include untracked files as well because `git diff HEAD` only reports tracked files.
+    var isLocalRun = !buildReason && !process.env['BUILD_SOURCEBRANCH'] && filterLocalChanges;
+    if (isLocalRun) {
+        try {
+            var workingTreeFiles = cp.execSync('git diff --name-only HEAD', { encoding: 'utf8' });
+            var untrackedFiles = cp.execSync('git ls-files --others --exclude-standard', { encoding: 'utf8' });
+            files = files.concat(
+                workingTreeFiles.split(/\r?\n/),
+                untrackedFiles.split(/\r?\n/)
+            )
+                .filter(function (f) { return f.length > 0; })
+                .map(function (f) { return f.replace(/\\/g, '/'); })
+                .filter(function (f, index, all) { return all.indexOf(f) === index; });
+            console.log("Including local working-tree changes.");
+        } catch (e4) {
+            console.log("Warning: could not determine local working-tree changes: " + e4.message);
+        }
+    }
     console.log("Changed files (" + files.length + "):");
     files.forEach(function (f) { console.log("  " + f); });
     return files;

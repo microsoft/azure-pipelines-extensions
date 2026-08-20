@@ -32,6 +32,10 @@ In order to build and package extensions you will need to install some dependenc
   - You may be prompted to log in to Azure (`az login`) because `--syncVersions` requires an access token to query the Marketplace API. The login prompt will open automatically in the browser if your session has expired.
 - `gulp test` will run all pester or mocha tests written for each task, in the Tests folder.
 
+### Git hooks
+
+Running `npm install` or `npm ci` from the repository root automatically registers the hooks in `.githooks` through Git's local `core.hooksPath` setting. The `pre-push` hook then synchronizes versions for changed extensions before a push.
+
 ### How to package extensions
 
 You'll have to run `gulp build` and `gulp test` before you start packaging.
