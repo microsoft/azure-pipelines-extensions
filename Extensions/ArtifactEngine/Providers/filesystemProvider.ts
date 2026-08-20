@@ -52,7 +52,23 @@ export class FilesystemProvider implements models.IArtifactProvider {
 
     public putArtifactItem(item: models.ArtifactItem, stream: NodeJS.ReadableStream): Promise<models.ArtifactItem> {
         return new Promise((resolve, reject) => {
-            const outputItemPath = path.join(this._rootLocation, item.path);
+            let outputItemPath: string;
+            if (!tl.getPipelineFeature("EnableArtifactEnginePathValidation")) {
+                outputItemPath = path.join(this._rootLocation, item.path);
+            }
+            else {
+                // Feature on: reject item paths that resolve outside the download root.
+                const resolvedRoot: string = path.resolve(this._rootLocation);
+                const resolvedTarget: string = path.resolve(resolvedRoot, item.path);
+                const relative: string = path.relative(resolvedRoot, resolvedTarget);
+                if (relative === '..'
+                    || relative.startsWith('..' + path.sep)
+                    || path.isAbsolute(relative)) {
+                    reject(new Error(tl.loc("InvalidArtifactPath", item.path)));
+                    return;
+                }
+                outputItemPath = resolvedTarget;
+            }
 
             if (item.itemType === models.ItemType.File) {
                 const folder = path.dirname(outputItemPath);
