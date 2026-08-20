@@ -13,6 +13,7 @@ In order to build and package extensions you will need to install some dependenc
 - Run `npm install -g tfx-cli`
 - Run `npm install -g vsts-npm-auth`
 - Run `vsts-npm-auth -config .npmrc` to setup authentication for npm (might be needed if you need to install packages for certain tasks within an extension))
+   - Sometimes `-force` parameter needs to be used
 
 ### How to Build
 
