@@ -20,6 +20,11 @@ const commitId = tl.getInput(isAdoConnectionType ? "versionAdo" : "version");
 const downloadPath = tl.getInput("downloadPath");
 validateInputs(serviceConnection, repositoryId, projectId, branch, commitId, downloadPath);
 
+/**
+ * @typedef {Object} AuthParameters
+ * @property {Record<string, any>} parameters - An object containing key-value pairs of authorization parameters.
+ */
+
 // @ts-ignore
 shell.rm('-rf', downloadPath);
 const error = shell.error();
@@ -32,9 +37,9 @@ if (error) {
 /**
  * @typedef {Object} ConnectionDetails
  * @property {string} Url - The URL of the TFS server or Azure DevOps organization, obtained from the service connection endpoint.
- * @property {string} Username - The username for authentication, which may be a placeholder value (e.g., "oauth2") for Azure DevOps service connections using access tokens.
- * @property {string} [Password] - The password or token for authentication, which may be an access token for Azure DevOps service connections or a personal access token for TFS service connections.
- * @property {string} [AccessToken] - The access token for authentication, which is only applicable for Azure DevOps service connections using workload identity federation. This property may be undefined for TFS service connections or Azure DevOps service connections that do not use workload identity federation.
+ * @property {string | null} Username - The username for authentication, which may be a placeholder value (e.g., "oauth2") for Azure DevOps service connections using access tokens.
+ * @property {string | null} [Password] - The password or token for authentication, which may be an access token for Azure DevOps service connections or a personal access token for TFS service connections.
+ * @property {string | null} [AccessToken] - The access token for authentication, which is only applicable for Azure DevOps service connections using workload identity federation. This property may be undefined for TFS service connections or Azure DevOps service connections that do not use workload identity federation.
  */
 
 /** @type {ConnectionDetails} */
@@ -186,7 +191,9 @@ function getReposOrTfsScDetails(serviceConnection, hostUrl) {
         throw new Error("The authorization scheme " + auth.scheme + " is not supported for a External Tfs endpoint.");
     }
 
+    /** @type {string | null} */
     let hostUsername = ".";
+    /** @type {string | null} */
     let hostPassword = "";
 
     if (auth.scheme == "Token") {
@@ -213,24 +220,20 @@ function getReposOrTfsScDetails(serviceConnection, hostUrl) {
 
 /**
  * Helper function to get authorization parameters from the service connection authorization object, with case-insensitive key matching.
- * @param {Object} auth - The authorization object obtained from the service connection, which contains the parameters in a 'parameters' property.
+ * @param {AuthParameters} auth - The authorization object obtained from the service connection, which contains the parameters in a 'parameters' property.
  * @param {string} paramName - The name of the parameter to retrieve (e.g., 'username', 'password', 'apitoken').
- * @returns {string} The value of the requested authorization parameter.
+ * @returns {string | null} The value of the requested authorization parameter.
  */
 function getAuthParameter(auth, paramName) {
-    let paramValue = null;
-    // @ts-ignore
-    const parameters = Object.getOwnPropertyNames(auth['parameters']);
-    let keyName;
-    parameters.some(function (key) {
-        if (key.toLowerCase() === paramName.toLowerCase()) {
-            keyName = key;
-            return true;
-        }
+    if (!auth || !auth.parameters || !paramName) {
+        return null;
+    }
+
+    const keyName = Object.keys(auth.parameters).find(function (key) {
+        return key && key.toLowerCase() === paramName.toLowerCase();
     });
-    // @ts-ignore
-    paramValue = auth['parameters'][keyName];
-    return paramValue;
+
+    return keyName ? auth.parameters[keyName] : null;
 }
 
 /**
@@ -244,6 +247,10 @@ function getGitClientPromise(connectionDetails) {
         // Use bearer handler for ADO service connections that works with the access token.
         handler = webApim.getBearerHandler(connectionDetails.AccessToken, true);
     } else {
+        if (!connectionDetails.Username) {
+            throw new Error("Username is not provided for the service connection.");
+        }
+
         if (!connectionDetails.Password) {
             throw new Error("Password is not provided for the service connection.");
         }
