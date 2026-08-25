@@ -4,6 +4,7 @@ import { quote } from 'shell-quote';
 import { ansibleInterface } from './ansibleInterface';
 import * as ansibleUtils from './ansibleUtils';
 import { ansibleTaskParameters } from './ansibleTaskParameters';
+import { shellQuote, neutralizeCommandSubstitution, shellSplit } from './shellEscaping';
 
 export class ansibleCommandLineInterface extends ansibleInterface {
     constructor(params: ansibleTaskParameters) {
@@ -15,6 +16,10 @@ export class ansibleCommandLineInterface extends ansibleInterface {
         this._playbookPath = "";
         this._inventoryPath = "";
         this._sudoUser = "";
+        this._sanitizeActivate = false;
+        this._sanitizeAudit = false;
+        this._sanitizeTelemetry = false;
+        this._sanitizedFields = [];
     }
 
     public async execute() {
@@ -42,6 +47,17 @@ export class ansibleCommandLineInterface extends ansibleInterface {
     }
 
     protected async _executeAnsiblePlaybook() {
+        // Feature flags gate the OS command-injection hardening (CWE-78) so it
+        // can be rolled out safely. Consumed via tl.getBoolFeatureFlag, matching
+        // the SshV0 / AzureCLI args-sanitizer rollout in azure-pipelines-tasks.
+        //   AZP_75787_ENABLE_NEW_LOGIC     -> apply hardening (quote/neutralize)
+        //   AZP_75787_ENABLE_NEW_LOGIC_LOG -> audit only (warn, keep legacy cmd)
+        //   AZP_75787_ENABLE_COLLECT       -> emit telemetry only
+        this._sanitizeActivate = tl.getBoolFeatureFlag('AZP_75787_ENABLE_NEW_LOGIC');
+        this._sanitizeAudit = tl.getBoolFeatureFlag('AZP_75787_ENABLE_NEW_LOGIC_LOG');
+        this._sanitizeTelemetry = tl.getBoolFeatureFlag('AZP_75787_ENABLE_COLLECT');
+        this._sanitizedFields = [];
+
         if (this._playbookPath == null || this._playbookPath.trim() == "") {
             this._playbookPath = this._taskParameters.playbookPath;
         }
@@ -52,7 +68,8 @@ export class ansibleCommandLineInterface extends ansibleInterface {
             const inventoryLocation = this._taskParameters.inventoryType;
 
             if (inventoryLocation == 'file') {
-                this._inventoryPath = this._taskParameters.inventoryFilePath;
+                let inventoryFilePath = this._taskParameters.inventoryFilePath;
+                this._inventoryPath = this._applyHardening('inventoryFile', inventoryFilePath, inventoryFilePath, shellQuote(inventoryFilePath));
             } else if (inventoryLocation == 'hostList') {
                 this._inventoryPath = await this.getInventoryPathForHostList();
             } else if (inventoryLocation == 'inlineContent') {
@@ -124,7 +141,7 @@ export class ansibleCommandLineInterface extends ansibleInterface {
             if (!hostList.endsWith(','))
                 hostList = hostList.concat(',');
             tl.debug("Host List = " + '"' + hostList + '"');
-            resolve('"' + hostList + '"');
+            resolve(this._applyHardening('inventoryHostList', hostList, '"' + hostList + '"', shellQuote(hostList)));
         });
     }
 
@@ -139,6 +156,9 @@ export class ansibleCommandLineInterface extends ansibleInterface {
                 const remoteInventoryPath = '"' + remoteInventory + '"';
                 tl.debug('RemoteInventoryPath = ' + remoteInventoryPath);
 
+                // Inline inventory content is user-controlled and echoed into a
+                // file through the shell. It is always hardened via shell-quote
+                // (CodeQL SM03609 / Bug 2236220), independent of the feature flag.
                 const inventoryCmd = 'echo ' + quote([content]) + ' > ' + remoteInventory;
                 await __this.executeCommand(inventoryCmd);
 
@@ -158,22 +178,57 @@ export class ansibleCommandLineInterface extends ansibleInterface {
         let cmd = 'ansible-playbook ';
 
         if (this._inventoryPath && this._inventoryPath.trim()) {
+            // Inventory value is already hardened where it is produced.
             cmd = cmd.concat('-i ' + this._inventoryPath + ' ');
         }
 
         if (this._playbookPath && this._playbookPath.trim()) {
-            cmd = cmd.concat(this._playbookPath + " ");
+            let playbookPath = this._applyHardening('playbookPath', this._playbookPath, this._playbookPath, shellQuote(this._playbookPath));
+            cmd = cmd.concat(playbookPath + " ");
         }
 
         if (this._sudoUser && this._sudoUser.trim()) {
-            cmd = cmd.concat('-b --become-user ' + this._sudoUser + ' ');
+            let sudoUser = this._applyHardening('sudoUser', this._sudoUser, this._sudoUser, shellQuote(this._sudoUser));
+            cmd = cmd.concat('-b --become-user ' + sudoUser + ' ');
         }
 
         if (this._additionalParams && this._additionalParams.trim()) {
-            cmd = cmd.concat(this._additionalParams);
+            let hardenedParams = shellSplit(this._additionalParams).map(neutralizeCommandSubstitution).join(' ');
+            let additionalParams = this._applyHardening('additionalParameters', this._additionalParams, this._additionalParams, hardenedParams);
+            cmd = cmd.concat(additionalParams);
         }
-
+        this._emitSanitizationSignals();
         return cmd;
+    }
+
+    // Returns the hardened value when the fix is activated, otherwise the legacy
+    // value. Records fields that contain shell metacharacters so that the audit
+    // and telemetry flags can report the injection surface during rollout.
+    private _applyHardening(fieldName: string, rawValue: string, legacyValue: string, hardenedValue: string): string {
+        if (rawValue && ansibleCommandLineInterface._shellMetaRegex.test(rawValue)
+            && (this._sanitizeActivate || this._sanitizeAudit || this._sanitizeTelemetry)) {
+            if (this._sanitizedFields.indexOf(fieldName) === -1) {
+                this._sanitizedFields.push(fieldName);
+            }
+        }
+        return this._sanitizeActivate ? hardenedValue : legacyValue;
+    }
+
+    private _emitSanitizationSignals() {
+        if (!this._sanitizedFields || this._sanitizedFields.length === 0) {
+            return;
+        }
+        if (this._sanitizeTelemetry) {
+            let payload = {
+                task: 'Ansible',
+                activated: this._sanitizeActivate,
+                sanitizedFields: this._sanitizedFields
+            };
+            console.log('##vso[telemetry.publish area=TaskHub;feature=Ansible]' + JSON.stringify(payload));
+        }
+        if (this._sanitizeAudit && !this._sanitizeActivate) {
+            tl.warning(tl.loc('CommandArgumentsSanitized', this._sanitizedFields.join(', ')));
+        }
     }
 
     protected _taskParameters: ansibleTaskParameters;
@@ -183,4 +238,10 @@ export class ansibleCommandLineInterface extends ansibleInterface {
     protected _inventoryPath: string;
     private _sudoUser: string;
     private _additionalParams: string;
+    private _sanitizeActivate: boolean;
+    private _sanitizeAudit: boolean;
+    private _sanitizeTelemetry: boolean;
+    private _sanitizedFields: string[];
+    // Shell command-control metacharacters that indicate an injection surface.
+    private static _shellMetaRegex: RegExp = /[`$;|&<>()#\r\n'"\\]/;
 }
