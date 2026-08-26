@@ -483,26 +483,15 @@ describe('Ansible Suite', function () {
                 expectFailure(runner, 'expected tower events API error to fail');
                 assert(outputContains(runner, 'loc_mock_FailedToGetJobDetails'), 'should fail with job details fetch token');
             });
+
+            it('neutralizes OS command injection when the hardening feature flag is enabled', async function () {
+                const runner = newRunner('testCommandInjectionHardeningForAgentMachine');
+                await runAndDump(runner, nodeVersion);
+                expectSuccess(runner, 'expected command injection hardening scenario to succeed');
+                // Every user-controlled input is single-quoted / escaped, so the ';', '$()' and
+                // other metacharacters are passed to ansible-playbook as inert literals.
+                assert(runner.stdOutContained("cmd run on agent machine = ansible-playbook -i 'Dummy_IP_Address,' '/path/to/ansiblePlaybookRoot/ansiblePlaybook.yml' -b --become-user 'root ; touch /tmp/pwned' \\; whoami"), 'injection payloads should be neutralized');
+            });
         });
-    });
-
-    it('should neutralize OS command injection when the hardening feature flag is enabled', (done: MochaDone) => {
-        this.timeout(1000);
-        let testPath = path.join(__dirname, 'testCommandInjectionHardeningForAgentMachine');
-        let runner = new mocktest.MockTestRunner(testPath);
-        runner.run();
-
-        try {
-            assert(runner.succeeded, "Should have succeeded");
-            // Every user-controlled input is single-quoted / escaped, so the ';', '$()' and
-            // other metacharacters are passed to ansible-playbook as inert literals.
-            assert(runner.stdOutContained("cmd run on agent machine = ansible-playbook -i 'Dummy_IP_Address,' '/path/to/ansiblePlaybookRoot/ansiblePlaybook.yml' -b --become-user 'root ; touch /tmp/pwned' \\; whoami"), 'injection payloads should be neutralized');
-            done();
-        }
-        catch (error) {
-            console.log("STDERR", runner.stderr);
-            console.log("STDOUT", runner.stdout);
-            done(error);
-        }
     });
 });
