@@ -17,7 +17,6 @@ export class ansibleCommandLineInterface extends ansibleInterface {
         this._inventoryPath = "";
         this._sudoUser = "";
         this._sanitizeActivate = false;
-        this._sanitizeAudit = false;
         this._sanitizeTelemetry = false;
         this._sanitizedFields = [];
     }
@@ -51,10 +50,8 @@ export class ansibleCommandLineInterface extends ansibleInterface {
         // can be rolled out safely. Consumed via tl.getBoolFeatureFlag, matching
         // the SshV0 / AzureCLI args-sanitizer rollout in azure-pipelines-tasks.
         //   AZP_75787_ENABLE_NEW_LOGIC     -> apply hardening (quote/neutralize)
-        //   AZP_75787_ENABLE_NEW_LOGIC_LOG -> audit only (warn, keep legacy cmd)
         //   AZP_75787_ENABLE_COLLECT       -> emit telemetry only
         this._sanitizeActivate = tl.getBoolFeatureFlag('AZP_75787_ENABLE_NEW_LOGIC');
-        this._sanitizeAudit = tl.getBoolFeatureFlag('AZP_75787_ENABLE_NEW_LOGIC_LOG');
         this._sanitizeTelemetry = tl.getBoolFeatureFlag('AZP_75787_ENABLE_COLLECT');
         this._sanitizedFields = [];
 
@@ -202,11 +199,11 @@ export class ansibleCommandLineInterface extends ansibleInterface {
     }
 
     // Returns the hardened value when the fix is activated, otherwise the legacy
-    // value. Records fields that contain shell metacharacters so that the audit
-    // and telemetry flags can report the injection surface during rollout.
+    // value. Records fields that contain shell metacharacters so that the
+    // telemetry flag can report the injection surface during rollout.
     private _applyHardening(fieldName: string, rawValue: string, legacyValue: string, hardenedValue: string): string {
         if (rawValue && ansibleCommandLineInterface._shellMetaRegex.test(rawValue)
-            && (this._sanitizeActivate || this._sanitizeAudit || this._sanitizeTelemetry)) {
+            && (this._sanitizeActivate || this._sanitizeTelemetry)) {
             if (this._sanitizedFields.indexOf(fieldName) === -1) {
                 this._sanitizedFields.push(fieldName);
             }
@@ -226,9 +223,6 @@ export class ansibleCommandLineInterface extends ansibleInterface {
             };
             console.log('##vso[telemetry.publish area=TaskHub;feature=Ansible]' + JSON.stringify(payload));
         }
-        if (this._sanitizeAudit && !this._sanitizeActivate) {
-            tl.warning(tl.loc('CommandArgumentsSanitized', this._sanitizedFields.join(', ')));
-        }
     }
 
     protected _taskParameters: ansibleTaskParameters;
@@ -239,7 +233,6 @@ export class ansibleCommandLineInterface extends ansibleInterface {
     private _sudoUser: string;
     private _additionalParams: string;
     private _sanitizeActivate: boolean;
-    private _sanitizeAudit: boolean;
     private _sanitizeTelemetry: boolean;
     private _sanitizedFields: string[];
     // Shell command-control metacharacters that indicate an injection surface.

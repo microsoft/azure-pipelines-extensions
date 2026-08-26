@@ -356,7 +356,6 @@
         "AnisbleNotPresent": "Could not locate Ansible. Either it is not installed or its path is not present on ENVIRONMENT PATH variable",
         "PlaybookRootNotDirectory": "Playbook root %s should be a directory",
         "PlaybookNotPresent": "Playbook file %s doesn't exist inside playbook root directory %s",
-        "InventoryFileNotPresent": "Inventory file %s doest not exist",
-        "CommandArgumentsSanitized": "One or more Ansible command inputs (%s) contain shell metacharacters that would be neutralized to prevent OS command injection. Enable the AZP_75787_ENABLE_NEW_LOGIC feature flag to apply the hardening."
+        "InventoryFileNotPresent": "Inventory file %s doest not exist"
     }
 }
