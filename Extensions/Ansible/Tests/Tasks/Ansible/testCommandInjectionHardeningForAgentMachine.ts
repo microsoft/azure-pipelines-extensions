@@ -1,34 +1,17 @@
-import mockanswer = require('vsts-task-lib/mock-answer');
-import mockrun = require('vsts-task-lib/mock-run');
-import path = require('path');
+import { createRunner, configureBaseAgentMachine } from './scenarioHelpers';
 
+// Enable the OS command-injection hardening feature flag (CWE-78 fix) so the
+// task quotes / neutralizes every user-controlled input before it is passed to
+// ansible-playbook.
+process.env['AZP_75787_ENABLE_NEW_LOGIC'] = 'true';
 
-let taskPath = path.join(__dirname, '../../../Src/Tasks/Ansible/main.js');
-let runner = new mockrun.TaskMockRunner(taskPath);
-runner.setInput('ansibleInterface', 'agentMachine');
-runner.setInput('connectionOverSsh', '8b04f8a5-9a17-474d-836c-60c24edcfa50');
-runner.setInput('playbookSourceAgentMachine', 'ansibleMachine');
+const runner = createRunner();
+configureBaseAgentMachine(runner);
+runner.setInput('playbookPathOnAgentMachine', '/path/to/ansiblePlaybookRoot/ansiblePlaybook.yml');
 runner.setInput('inventoriesAgentMachine', 'hostList');
+runner.setInput('inventoryHostListAgentMachine', 'Dummy_IP_Address');
 runner.setInput('sudoEnabled', 'true');
 runner.setInput('sudoUser', 'root ; touch /tmp/pwned');
 runner.setInput('args', '; whoami');
-
-runner.setInput('playbookPathOnAgentMachine', '/path/to/ansiblePlaybookRoot/ansiblePlaybook.yml');
-runner.setInput('inventoryHostListAgentMachine', 'Dummy_IP_Address');
-
-process.env["AZURE_HTTP_USER_AGENT"] = "TFS_useragent";
-process.env["ENDPOINT_AUTH_PARAMETER_8b04f8a5-9a17-474d-836c-60c24edcfa50_USERNAME"] = "DummyUser";
-process.env["ENDPOINT_AUTH_PARAMETER_8b04f8a5-9a17-474d-836c-60c24edcfa50_PASSWORD"] = "DummyPassword";
-process.env["ENDPOINT_DATA_8b04f8a5-9a17-474d-836c-60c24edcfa50_HOST"] = "true dummy host";
-process.env["ENDPOINT_DATA_8b04f8a5-9a17-474d-836c-60c24edcfa50_PORT"] = "22";
-
-// Enable the OS command-injection hardening feature flag (CWE-78 fix).
-process.env["AZP_75787_ENABLE_NEW_LOGIC"] = "true";
-
-var tl = require('vsts-task-lib/mock-task');
-runner.registerMock('vsts-task-lib/toolrunner', require('vsts-task-lib/mock-toolrunner'));
-runner.registerMock('vsts-task-lib/task', "vsts-task-lib/mock-task");
-
-runner.registerMock('./ansibleUtils', require('./mockAnsibleUtils'));
 
 runner.run();
