@@ -65,8 +65,8 @@ export class ansibleCommandLineInterface extends ansibleInterface {
             const inventoryLocation = this._taskParameters.inventoryType;
 
             if (inventoryLocation == 'file') {
-                let inventoryFilePath = this._taskParameters.inventoryFilePath;
-                this._inventoryPath = this._applyHardening('inventoryFile', inventoryFilePath, inventoryFilePath, () => shellQuote(inventoryFilePath));
+                const inventoryFilePath = this._taskParameters.inventoryFilePath;
+                this._inventoryPath = this._applyHardening('inventoryFile', inventoryFilePath, inventoryFilePath, shellQuote);
             } else if (inventoryLocation == 'hostList') {
                 this._inventoryPath = await this.getInventoryPathForHostList();
             } else if (inventoryLocation == 'inlineContent') {
@@ -138,7 +138,7 @@ export class ansibleCommandLineInterface extends ansibleInterface {
             if (!hostList.endsWith(','))
                 hostList = hostList.concat(',');
             tl.debug("Host List = " + '"' + hostList + '"');
-            resolve(this._applyHardening('inventoryHostList', hostList, '"' + hostList + '"', () => shellQuote(hostList)));
+            resolve(this._applyHardening('inventoryHostList', hostList, '"' + hostList + '"', shellQuote));
         });
     }
 
@@ -180,17 +180,17 @@ export class ansibleCommandLineInterface extends ansibleInterface {
         }
 
         if (this._playbookPath && this._playbookPath.trim()) {
-            let playbookPath = this._applyHardening('playbookPath', this._playbookPath, this._playbookPath, () => shellQuote(this._playbookPath));
+            const playbookPath = this._applyHardening('playbookPath', this._playbookPath, this._playbookPath, shellQuote);
             cmd = cmd.concat(playbookPath + " ");
         }
 
         if (this._sudoUser && this._sudoUser.trim()) {
-            let sudoUser = this._applyHardening('sudoUser', this._sudoUser, this._sudoUser, () => shellQuote(this._sudoUser));
+            const sudoUser = this._applyHardening('sudoUser', this._sudoUser, this._sudoUser, shellQuote);
             cmd = cmd.concat('-b --become-user ' + sudoUser + ' ');
         }
 
         if (this._additionalParams && this._additionalParams.trim()) {
-            let additionalParams = this._applyHardening('additionalParameters', this._additionalParams, this._additionalParams, () => shellSplit(this._additionalParams).map(neutralizeCommandSubstitution).join(' '));
+            const additionalParams = this._applyHardening('additionalParameters', this._additionalParams, this._additionalParams, ansibleCommandLineInterface._neutralizeAdditionalParameters);
             cmd = cmd.concat(additionalParams);
         }
         this._emitSanitizationSignals();
@@ -204,7 +204,7 @@ export class ansibleCommandLineInterface extends ansibleInterface {
     // behaves exactly as before and is unaffected by those helpers. Records
     // fields that contain shell metacharacters so that the telemetry flag can
     // report the injection surface during rollout.
-    private _applyHardening(fieldName: string, rawValue: string, legacyValue: string, harden: () => string): string {
+    private _applyHardening(fieldName: string, rawValue: string, legacyValue: string, harden: (value: string) => string): string {
         if (!this._sanitizeActivate && !this._sanitizeTelemetry) {
             return legacyValue;
         }
@@ -213,7 +213,13 @@ export class ansibleCommandLineInterface extends ansibleInterface {
                 this._sanitizedFields.push(fieldName);
             }
         }
-        return this._sanitizeActivate ? harden() : legacyValue;
+        return this._sanitizeActivate ? harden(rawValue) : legacyValue;
+    }
+
+    // Splits the additional parameters into tokens and neutralizes command
+    // substitution in each one, preserving the original token separation.
+    private static _neutralizeAdditionalParameters(value: string): string {
+        return shellSplit(value).map(neutralizeCommandSubstitution).join(' ');
     }
 
     private _emitSanitizationSignals() {
