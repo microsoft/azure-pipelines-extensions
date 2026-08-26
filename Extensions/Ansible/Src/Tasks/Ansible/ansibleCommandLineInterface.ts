@@ -66,7 +66,7 @@ export class ansibleCommandLineInterface extends ansibleInterface {
 
             if (inventoryLocation == 'file') {
                 let inventoryFilePath = this._taskParameters.inventoryFilePath;
-                this._inventoryPath = this._applyHardening('inventoryFile', inventoryFilePath, inventoryFilePath, shellQuote(inventoryFilePath));
+                this._inventoryPath = this._applyHardening('inventoryFile', inventoryFilePath, inventoryFilePath, () => shellQuote(inventoryFilePath));
             } else if (inventoryLocation == 'hostList') {
                 this._inventoryPath = await this.getInventoryPathForHostList();
             } else if (inventoryLocation == 'inlineContent') {
@@ -138,7 +138,7 @@ export class ansibleCommandLineInterface extends ansibleInterface {
             if (!hostList.endsWith(','))
                 hostList = hostList.concat(',');
             tl.debug("Host List = " + '"' + hostList + '"');
-            resolve(this._applyHardening('inventoryHostList', hostList, '"' + hostList + '"', shellQuote(hostList)));
+            resolve(this._applyHardening('inventoryHostList', hostList, '"' + hostList + '"', () => shellQuote(hostList)));
         });
     }
 
@@ -180,18 +180,17 @@ export class ansibleCommandLineInterface extends ansibleInterface {
         }
 
         if (this._playbookPath && this._playbookPath.trim()) {
-            let playbookPath = this._applyHardening('playbookPath', this._playbookPath, this._playbookPath, shellQuote(this._playbookPath));
+            let playbookPath = this._applyHardening('playbookPath', this._playbookPath, this._playbookPath, () => shellQuote(this._playbookPath));
             cmd = cmd.concat(playbookPath + " ");
         }
 
         if (this._sudoUser && this._sudoUser.trim()) {
-            let sudoUser = this._applyHardening('sudoUser', this._sudoUser, this._sudoUser, shellQuote(this._sudoUser));
+            let sudoUser = this._applyHardening('sudoUser', this._sudoUser, this._sudoUser, () => shellQuote(this._sudoUser));
             cmd = cmd.concat('-b --become-user ' + sudoUser + ' ');
         }
 
         if (this._additionalParams && this._additionalParams.trim()) {
-            let hardenedParams = shellSplit(this._additionalParams).map(neutralizeCommandSubstitution).join(' ');
-            let additionalParams = this._applyHardening('additionalParameters', this._additionalParams, this._additionalParams, hardenedParams);
+            let additionalParams = this._applyHardening('additionalParameters', this._additionalParams, this._additionalParams, () => shellSplit(this._additionalParams).map(neutralizeCommandSubstitution).join(' '));
             cmd = cmd.concat(additionalParams);
         }
         this._emitSanitizationSignals();
@@ -199,16 +198,22 @@ export class ansibleCommandLineInterface extends ansibleInterface {
     }
 
     // Returns the hardened value when the fix is activated, otherwise the legacy
-    // value. Records fields that contain shell metacharacters so that the
-    // telemetry flag can report the injection surface during rollout.
-    private _applyHardening(fieldName: string, rawValue: string, legacyValue: string, hardenedValue: string): string {
-        if (rawValue && ansibleCommandLineInterface._shellMetaRegex.test(rawValue)
-            && (this._sanitizeActivate || this._sanitizeTelemetry)) {
+    // value. The hardening transform is provided as a lazy producer so that the
+    // shellQuote / shellSplit / neutralizeCommandSubstitution helpers are only
+    // ever invoked when the feature flag is on — with the flag off the task
+    // behaves exactly as before and is unaffected by those helpers. Records
+    // fields that contain shell metacharacters so that the telemetry flag can
+    // report the injection surface during rollout.
+    private _applyHardening(fieldName: string, rawValue: string, legacyValue: string, harden: () => string): string {
+        if (!this._sanitizeActivate && !this._sanitizeTelemetry) {
+            return legacyValue;
+        }
+        if (rawValue && ansibleCommandLineInterface._shellMetaRegex.test(rawValue)) {
             if (this._sanitizedFields.indexOf(fieldName) === -1) {
                 this._sanitizedFields.push(fieldName);
             }
         }
-        return this._sanitizeActivate ? hardenedValue : legacyValue;
+        return this._sanitizeActivate ? harden() : legacyValue;
     }
 
     private _emitSanitizationSignals() {
