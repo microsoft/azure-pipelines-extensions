@@ -4,7 +4,7 @@ import { quote } from 'shell-quote';
 import { ansibleInterface } from './ansibleInterface';
 import * as ansibleUtils from './ansibleUtils';
 import { ansibleTaskParameters } from './ansibleTaskParameters';
-import { shellQuote, neutralizeCommandSubstitution, shellSplit } from './shellEscaping';
+import { shellQuote, neutralizeCommandSubstitution, shellSplit } from 'azure-pipelines-tasks-utility-common/shellEscaping';
 
 export class ansibleCommandLineInterface extends ansibleInterface {
     constructor(params: ansibleTaskParameters) {
