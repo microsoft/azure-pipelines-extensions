@@ -66,7 +66,7 @@ export class ansibleCommandLineInterface extends ansibleInterface {
 
             if (inventoryLocation == 'file') {
                 const inventoryFilePath = this._taskParameters.inventoryFilePath;
-                this._inventoryPath = this._applyHardening('inventoryFile', inventoryFilePath, inventoryFilePath, shellQuote);
+                this._inventoryPath = this._applyHardening('inventoryFile', inventoryFilePath, shellQuote);
             } else if (inventoryLocation == 'hostList') {
                 this._inventoryPath = await this.getInventoryPathForHostList();
             } else if (inventoryLocation == 'inlineContent') {
@@ -180,17 +180,17 @@ export class ansibleCommandLineInterface extends ansibleInterface {
         }
 
         if (this._playbookPath && this._playbookPath.trim()) {
-            const playbookPath = this._applyHardening('playbookPath', this._playbookPath, this._playbookPath, shellQuote);
+            const playbookPath = this._applyHardening('playbookPath', this._playbookPath, shellQuote);
             cmd = cmd.concat(playbookPath + " ");
         }
 
         if (this._sudoUser && this._sudoUser.trim()) {
-            const sudoUser = this._applyHardening('sudoUser', this._sudoUser, this._sudoUser, shellQuote);
+            const sudoUser = this._applyHardening('sudoUser', this._sudoUser, shellQuote);
             cmd = cmd.concat('-b --become-user ' + sudoUser + ' ');
         }
 
         if (this._additionalParams && this._additionalParams.trim()) {
-            const additionalParams = this._applyHardening('additionalParameters', this._additionalParams, this._additionalParams, ansibleCommandLineInterface._neutralizeAdditionalParameters);
+            const additionalParams = this._applyHardening('additionalParameters', this._additionalParams, ansibleCommandLineInterface._neutralizeAdditionalParameters);
             cmd = cmd.concat(additionalParams);
         }
         this._emitSanitizationSignals();
@@ -204,7 +204,17 @@ export class ansibleCommandLineInterface extends ansibleInterface {
     // behaves exactly as before and is unaffected by those helpers. Records
     // fields that contain shell metacharacters so that the telemetry flag can
     // report the injection surface during rollout.
-    private _applyHardening(fieldName: string, rawValue: string, legacyValue: string, harden: (value: string) => string): string {
+    //
+    // Most call sites use the raw value verbatim as the legacy (flag-off) value,
+    // so the 3-argument overload defaults legacyValue to rawValue. The
+    // 4-argument overload is used where the legacy value differs from the raw
+    // input (e.g. the host list is legacy-quoted).
+    private _applyHardening(fieldName: string, rawValue: string, harden: (value: string) => string): string;
+    private _applyHardening(fieldName: string, rawValue: string, legacyValue: string, harden: (value: string) => string): string;
+    private _applyHardening(fieldName: string, rawValue: string, legacyValueOrHarden: string | ((value: string) => string), maybeHarden?: (value: string) => string): string {
+        const legacyValue = typeof legacyValueOrHarden === 'string' ? legacyValueOrHarden : rawValue;
+        const harden = typeof legacyValueOrHarden === 'string' ? maybeHarden! : legacyValueOrHarden;
+
         if (!this._sanitizeActivate && !this._sanitizeTelemetry) {
             return legacyValue;
         }
