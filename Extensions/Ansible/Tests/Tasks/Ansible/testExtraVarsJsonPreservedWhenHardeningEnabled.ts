@@ -7,7 +7,7 @@ import { createRunner, configureBaseAgentMachine } from './scenarioHelpers';
 // which ansible-playbook silently mis-parses as YAML. The quote-aware
 // neutralizer must round-trip such safe inputs unchanged while still escaping
 // genuine injection sequences.
-process.env['DISTRIBUTEDTASK_TASKS_AZP_75787_ENABLE_NEW_LOGIC'] = 'true';
+process.env['DISTRIBUTEDTASK_TASKS_AZP_2457936_ENABLE_NEW_LOGIC'] = 'true';
 
 const runner = createRunner();
 configureBaseAgentMachine(runner);

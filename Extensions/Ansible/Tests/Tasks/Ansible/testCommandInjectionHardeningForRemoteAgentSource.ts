@@ -7,7 +7,7 @@ import { createRunner, setSshEndpointEnvironment, EndpointId } from './scenarioH
 // unescaped through the '-i' argument and the 'rm -f' / 'rm -rf' cleanup
 // commands. With the hardening feature flag enabled every one of those shell
 // sinks must be shell-quoted.
-process.env['DISTRIBUTEDTASK_TASKS_AZP_75787_ENABLE_NEW_LOGIC'] = 'true';
+process.env['DISTRIBUTEDTASK_TASKS_AZP_2457936_ENABLE_NEW_LOGIC'] = 'true';
 
 const runner = createRunner();
 setSshEndpointEnvironment();
