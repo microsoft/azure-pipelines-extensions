@@ -4,7 +4,8 @@ import { quote } from 'shell-quote';
 import { ansibleInterface } from './ansibleInterface';
 import * as ansibleUtils from './ansibleUtils';
 import { ansibleTaskParameters } from './ansibleTaskParameters';
-import { shellQuote, neutralizeCommandSubstitution, shellSplit } from 'azure-pipelines-tasks-utility-common/shellEscaping';
+import { shellQuote } from 'azure-pipelines-tasks-utility-common/shellEscaping';
+import { neutralizeAdditionalParameters } from './argsSanitization';
 
 export class ansibleCommandLineInterface extends ansibleInterface {
     constructor(params: ansibleTaskParameters) {
@@ -16,8 +17,17 @@ export class ansibleCommandLineInterface extends ansibleInterface {
         this._playbookPath = "";
         this._inventoryPath = "";
         this._sudoUser = "";
-        this._sanitizeActivate = false;
-        this._sanitizeTelemetry = false;
+        // Read the feature flags that gate the OS command-injection hardening
+        // (CWE-78) so it can be rolled out safely. Read in the constructor so the
+        // flags are resolved before any code path builds a shell command —
+        // derived interfaces (e.g. remote machine) copy artifacts and harden
+        // _inventoryPath / _playbookPath before super._executeAnsiblePlaybook()
+        // runs. Consumed via tl.getPipelineFeature, matching the SshV0 /
+        // AzureCLI args-sanitizer rollout in azure-pipelines-tasks.
+        //   AZP_75787_ENABLE_NEW_LOGIC  -> apply hardening (quote / neutralize)
+        //   AZP_75787_ENABLE_COLLECT    -> emit telemetry only (shadow mode)
+        this._sanitizeActivate = tl.getPipelineFeature('AZP_75787_ENABLE_NEW_LOGIC');
+        this._sanitizeTelemetry = tl.getPipelineFeature('AZP_75787_ENABLE_COLLECT');
         this._sanitizedFields = [];
     }
 
@@ -46,15 +56,6 @@ export class ansibleCommandLineInterface extends ansibleInterface {
     }
 
     protected async _executeAnsiblePlaybook() {
-        // Feature flags gate the OS command-injection hardening (CWE-78) so it
-        // can be rolled out safely. Consumed via tl.getPipelineFeature, matching
-        // the SshV0 / AzureCLI args-sanitizer rollout in azure-pipelines-tasks.
-        //   AZP_75787_ENABLE_NEW_LOGIC     -> apply hardening (quote/neutralize)
-        //   AZP_75787_ENABLE_COLLECT       -> emit telemetry only
-        this._sanitizeActivate = tl.getPipelineFeature('AZP_75787_ENABLE_NEW_LOGIC');
-        this._sanitizeTelemetry = tl.getPipelineFeature('AZP_75787_ENABLE_COLLECT');
-        this._sanitizedFields = [];
-
         if (this._playbookPath == null || this._playbookPath.trim() == "") {
             this._playbookPath = this._taskParameters.playbookPath;
         }
@@ -190,7 +191,7 @@ export class ansibleCommandLineInterface extends ansibleInterface {
         }
 
         if (this._additionalParams && this._additionalParams.trim()) {
-            const additionalParams = this._applyHardening('additionalParameters', this._additionalParams, ansibleCommandLineInterface._neutralizeAdditionalParameters);
+            const additionalParams = this._applyHardening('additionalParameters', this._additionalParams, neutralizeAdditionalParameters);
             cmd = cmd.concat(additionalParams);
         }
         this._emitSanitizationSignals();
@@ -199,39 +200,40 @@ export class ansibleCommandLineInterface extends ansibleInterface {
 
     // Returns the hardened value when the fix is activated, otherwise the legacy
     // value. The hardening transform is provided as a lazy producer so that the
-    // shellQuote / shellSplit / neutralizeCommandSubstitution helpers are only
-    // ever invoked when the feature flag is on — with the flag off the task
-    // behaves exactly as before and is unaffected by those helpers. Records
-    // fields that contain shell metacharacters so that the telemetry flag can
-    // report the injection surface during rollout.
+    // shellQuote / neutralize helpers are only ever invoked when at least one
+    // flag is on — with both flags off the task behaves exactly as before and is
+    // unaffected by those helpers.
     //
     // Most call sites use the raw value verbatim as the legacy (flag-off) value,
     // so this 3-argument variant defaults legacyValue to rawValue and delegates
     // to _applyHardeningLegacy. Use _applyHardeningLegacy directly where the
     // legacy value differs from the raw input (e.g. the host list is
     // legacy-quoted).
-    private _applyHardening(fieldName: string, rawValue: string, harden: (value: string) => string): string
+    protected _applyHardening(fieldName: string, rawValue: string, harden: (value: string) => string): string
     {
         return this._applyHardeningLegacy(fieldName, rawValue, rawValue, harden);
     }
 
-    private _applyHardeningLegacy(fieldName: string, rawValue: string, legacyValue: string, harden: (value: string) => string): string {
+    protected _applyHardeningLegacy(fieldName: string, rawValue: string, legacyValue: string, harden: (value: string) => string): string {
         if (!this._sanitizeActivate && !this._sanitizeTelemetry) {
             return legacyValue;
         }
-        if (rawValue && ansibleCommandLineInterface._shellMetaRegex.test(rawValue)) {
-            if (this._sanitizedFields.indexOf(fieldName) === -1) {
-                this._sanitizedFields.push(fieldName);
-            }
+        // Compute the hardened value so telemetry can report the true set of
+        // commands the fix will change (legacyValue !== hardenedValue), rather
+        // than a proxy such as "contains a metacharacter". shellQuote always
+        // adds quotes, so it can change a command even for values with no
+        // metacharacter (e.g. a path with a space). This runs only when a flag
+        // is on, so the flag-off path is never affected by the helper.
+        const hardenedValue = harden(rawValue);
+        if (legacyValue !== hardenedValue && this._sanitizedFields.indexOf(fieldName) === -1) {
+            this._sanitizedFields.push(fieldName);
         }
-        return this._sanitizeActivate ? harden(rawValue) : legacyValue;
+        return this._sanitizeActivate ? hardenedValue : legacyValue;
     }
 
-    // Splits the additional parameters into tokens and neutralizes command
-    // substitution in each one, preserving the original token separation.
-    private static _neutralizeAdditionalParameters(value: string): string {
-        return shellSplit(value).map(neutralizeCommandSubstitution).join(' ');
-    }
+    // Neutralizes OS command-injection vectors in the additional parameters.
+    // Implemented in the standalone argsSanitization module so it can be
+    // unit-tested in isolation (see argsSanitizationTests).
 
     private _emitSanitizationSignals() {
         if (!this._sanitizedFields || this._sanitizedFields.length === 0) {
@@ -241,6 +243,7 @@ export class ansibleCommandLineInterface extends ansibleInterface {
             let payload = {
                 task: 'Ansible',
                 activated: this._sanitizeActivate,
+                mode: this._sanitizeActivate ? 'live' : 'shadow',
                 sanitizedFields: this._sanitizedFields
             };
             console.log('##vso[telemetry.publish area=TaskHub;feature=Ansible]' + JSON.stringify(payload));
@@ -257,6 +260,4 @@ export class ansibleCommandLineInterface extends ansibleInterface {
     private _sanitizeActivate: boolean;
     private _sanitizeTelemetry: boolean;
     private _sanitizedFields: string[];
-    // Shell command-control metacharacters that indicate an injection surface.
-    private static _shellMetaRegex: RegExp = /[`$;|&<>()#\r\n'"\\]/;
 }
