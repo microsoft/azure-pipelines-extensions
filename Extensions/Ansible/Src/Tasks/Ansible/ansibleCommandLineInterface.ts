@@ -22,12 +22,15 @@ export class ansibleCommandLineInterface extends ansibleInterface {
         // flags are resolved before any code path builds a shell command —
         // derived interfaces (e.g. remote machine) copy artifacts and harden
         // _inventoryPath / _playbookPath before super._executeAnsiblePlaybook()
-        // runs. Consumed via tl.getPipelineFeature, matching the SshV0 /
-        // AzureCLI args-sanitizer rollout in azure-pipelines-tasks.
-        //   AZP_75787_ENABLE_NEW_LOGIC  -> apply hardening (quote / neutralize)
-        //   AZP_75787_ENABLE_COLLECT    -> emit telemetry only (shadow mode)
-        this._sanitizeActivate = tl.getPipelineFeature('AZP_75787_ENABLE_NEW_LOGIC');
-        this._sanitizeTelemetry = tl.getPipelineFeature('AZP_75787_ENABLE_COLLECT');
+        // runs. Consumed via tl.getPipelineFeature, following the same
+        // enforce/shadow pattern as the SshV0 / AzureCLI args-sanitizer rollout
+        // in azure-pipelines-tasks. Dedicated flags (keyed to this fix's work
+        // item, Bug 2457936) so the Ansible rollout is staged independently of
+        // the shared AZP_75787_* sanitizer program.
+        //   AZP_2457936_ENABLE_NEW_LOGIC  -> apply hardening (quote / neutralize)
+        //   AZP_2457936_ENABLE_COLLECT    -> emit telemetry only (shadow mode)
+        this._sanitizeActivate = tl.getPipelineFeature('AZP_2457936_ENABLE_NEW_LOGIC');
+        this._sanitizeTelemetry = tl.getPipelineFeature('AZP_2457936_ENABLE_COLLECT');
         this._sanitizedFields = [];
     }
 
