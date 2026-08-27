@@ -147,6 +147,7 @@ extends:
               clientid: $(EsrpClientId)
               intent: PackageDistribution
               contenttype: npm
+              productstate: legacy
               contentsource: Folder
               folderlocation: $(Pipeline.Workspace)/npm-packages/packages
               waitforreleasecompletion: true

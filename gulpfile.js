@@ -1140,6 +1140,11 @@ function resolveSuitesToRun() {
         return null;
     }
 
+    if (options.suite !== '**') {
+        console.log("Explicit suite requested: " + options.suite);
+        return [options.suite];
+    }
+
     const files = getChangedFiles();
 
     if (files === null) {
