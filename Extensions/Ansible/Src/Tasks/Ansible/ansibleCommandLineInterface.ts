@@ -138,7 +138,7 @@ export class ansibleCommandLineInterface extends ansibleInterface {
             if (!hostList.endsWith(','))
                 hostList = hostList.concat(',');
             tl.debug("Host List = " + '"' + hostList + '"');
-            resolve(this._applyHardening('inventoryHostList', hostList, '"' + hostList + '"', shellQuote));
+            resolve(this._applyHardeningLegacy('inventoryHostList', hostList, '"' + hostList + '"', shellQuote));
         });
     }
 
@@ -206,15 +206,16 @@ export class ansibleCommandLineInterface extends ansibleInterface {
     // report the injection surface during rollout.
     //
     // Most call sites use the raw value verbatim as the legacy (flag-off) value,
-    // so the 3-argument overload defaults legacyValue to rawValue. The
-    // 4-argument overload is used where the legacy value differs from the raw
-    // input (e.g. the host list is legacy-quoted).
-    private _applyHardening(fieldName: string, rawValue: string, harden: (value: string) => string): string;
-    private _applyHardening(fieldName: string, rawValue: string, legacyValue: string, harden: (value: string) => string): string;
-    private _applyHardening(fieldName: string, rawValue: string, legacyValueOrHarden: string | ((value: string) => string), maybeHarden?: (value: string) => string): string {
-        const legacyValue = typeof legacyValueOrHarden === 'string' ? legacyValueOrHarden : rawValue;
-        const harden = typeof legacyValueOrHarden === 'string' ? maybeHarden! : legacyValueOrHarden;
+    // so this 3-argument variant defaults legacyValue to rawValue and delegates
+    // to _applyHardeningLegacy. Use _applyHardeningLegacy directly where the
+    // legacy value differs from the raw input (e.g. the host list is
+    // legacy-quoted).
+    private _applyHardening(fieldName: string, rawValue: string, harden: (value: string) => string): string
+    {
+        return this._applyHardeningLegacy(fieldName, rawValue, rawValue, harden);
+    }
 
+    private _applyHardeningLegacy(fieldName: string, rawValue: string, legacyValue: string, harden: (value: string) => string): string {
         if (!this._sanitizeActivate && !this._sanitizeTelemetry) {
             return legacyValue;
         }
