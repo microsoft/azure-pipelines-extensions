@@ -47,12 +47,12 @@ export class ansibleCommandLineInterface extends ansibleInterface {
 
     protected async _executeAnsiblePlaybook() {
         // Feature flags gate the OS command-injection hardening (CWE-78) so it
-        // can be rolled out safely. Consumed via tl.getBoolFeatureFlag, matching
+        // can be rolled out safely. Consumed via tl.getPipelineFeature, matching
         // the SshV0 / AzureCLI args-sanitizer rollout in azure-pipelines-tasks.
         //   AZP_75787_ENABLE_NEW_LOGIC     -> apply hardening (quote/neutralize)
         //   AZP_75787_ENABLE_COLLECT       -> emit telemetry only
-        this._sanitizeActivate = tl.getBoolFeatureFlag('AZP_75787_ENABLE_NEW_LOGIC');
-        this._sanitizeTelemetry = tl.getBoolFeatureFlag('AZP_75787_ENABLE_COLLECT');
+        this._sanitizeActivate = tl.getPipelineFeature('AZP_75787_ENABLE_NEW_LOGIC');
+        this._sanitizeTelemetry = tl.getPipelineFeature('AZP_75787_ENABLE_COLLECT');
         this._sanitizedFields = [];
 
         if (this._playbookPath == null || this._playbookPath.trim() == "") {
