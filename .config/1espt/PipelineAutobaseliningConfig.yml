@@ -38,3 +38,19 @@ pipelines:
           lastModifiedDate: 2026-05-11
         binskim:
           lastModifiedDate: 2026-05-11
+  23284:
+    retail:
+      binary:
+        binskim:
+          lastModifiedDate: 2026-08-28
+        spotbugs:
+          lastModifiedDate: 2026-08-28
+      source:
+        eslint:
+          lastModifiedDate: 2026-08-28
+        psscriptanalyzer:
+          lastModifiedDate: 2026-08-28
+        armory:
+          lastModifiedDate: 2026-08-28
+        accessibilityinsights:
+          lastModifiedDate: 2026-08-28
