@@ -87,7 +87,7 @@ describe('Unit Tests', () => {
             var artifactItem = { fileLength: 0, itemType: models.ItemType.Folder, path: "path1\\folder1", lastModified: null, metadata: null };
 
             localFileProvider.putArtifactItem(artifactItem, null).then((processedItem) => {
-                assert(stub.calledWith(path.join("c:\\drop", "path1\\folder1")));
+                assert(stub.calledWith(path.resolve("c:\\drop", "path1\\folder1")));
                 done();
             }, (err) => {
                 throw err;
