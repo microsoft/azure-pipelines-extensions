@@ -1,0 +1,158 @@
+name: ArtifactEngineV2 npm - $(Date:yyyyMMdd)$(Rev:.r)
+appendCommitMessageToRunName: false
+
+trigger: none
+pr: none
+
+parameters:
+- name: dryRun
+  displayName: Build and pack without publishing
+  type: boolean
+  default: true
+
+variables:
+- group: esrp-npm-release
+
+resources:
+  repositories:
+  - repository: 1ESPipelineTemplates
+    type: git
+    name: 1ESPipelineTemplates/1ESPipelineTemplates
+    ref: refs/tags/release
+
+extends:
+  template: v1/1ES.Official.PipelineTemplate.yml@1ESPipelineTemplates
+  parameters:
+    settings:
+      networkIsolationPolicy: Permissive,CFSClean,CFSClean2
+    sdl:
+      sourceAnalysisPool:
+        name: 1ES-ABTT-Shared-Pool
+        image: abtt-windows-2025
+        os: windows
+    customBuildTags:
+    - 1ES-AzureExtensions
+    - ArtifactEngineV2
+    stages:
+    - stage: BuildAndPack
+      displayName: Build, test, and pack ArtifactEngineV2
+      jobs:
+      - job: pack
+        displayName: Build and pack npm package
+        pool:
+          name: 1ES-ABTT-Shared-Pool
+          image: abtt-ubuntu-2404
+          os: linux
+        templateContext:
+          outputs:
+          - output: pipelineArtifact
+            targetPath: $(Build.ArtifactStagingDirectory)/npm-packages
+            artifactName: npm-packages
+        steps:
+        - task: NodeTool@0
+          displayName: Use Node.js 24.x
+          inputs:
+            versionSpec: 24.x
+
+        - task: NpmAuthenticate@0
+          displayName: Authenticate with internal npm feed
+          inputs:
+            workingFile: $(Build.SourcesDirectory)/.npmrc
+
+        - script: npm ci --userconfig $(Build.SourcesDirectory)/.npmrc
+          displayName: Install repository dependencies
+          workingDirectory: $(Build.SourcesDirectory)
+
+        - script: npx gulp build
+          displayName: Build extensions
+          workingDirectory: $(Build.SourcesDirectory)
+          env:
+            npm_config_userconfig: $(Build.SourcesDirectory)/.npmrc
+
+        - script: npx gulp test --suite ArtifactEngineV2
+          displayName: Test ArtifactEngineV2
+          workingDirectory: $(Build.SourcesDirectory)
+          env:
+            npm_config_userconfig: $(Build.SourcesDirectory)/.npmrc
+
+        - bash: |
+            set -euo pipefail
+            node <<'NODE'
+            const packageJson = require('./package.json');
+            if (packageJson.private === true || packageJson.name !== 'artifact-engine' || !packageJson.version.startsWith('2.')) {
+              console.error(`ERROR: Expected publishable artifact-engine@2.x, found ${packageJson.name}@${packageJson.version}.`);
+              process.exit(1);
+            }
+            console.log(`Validated ${packageJson.name}@${packageJson.version}.`);
+            NODE
+          displayName: Validate ArtifactEngineV2 package identity
+          workingDirectory: $(Build.SourcesDirectory)/_build/Extensions/ArtifactEngineV2
+
+        - bash: |
+            set -euo pipefail
+            package_dir="$(Build.ArtifactStagingDirectory)/npm-packages/packages"
+            mkdir -p "$package_dir"
+            npm pack --pack-destination "$package_dir"
+          displayName: Pack ArtifactEngineV2 for ESRP
+          workingDirectory: $(Build.SourcesDirectory)/_build/Extensions/ArtifactEngineV2
+
+        - bash: |
+            set -euo pipefail
+            shopt -s nullglob
+            packages=("$(Build.ArtifactStagingDirectory)/npm-packages/packages"/*.tgz)
+            echo "Found ${#packages[@]} npm package(s)."
+            if [ "${#packages[@]}" -ne 1 ]; then
+              echo "ERROR: Expected exactly one ArtifactEngineV2 package."
+              exit 1
+            fi
+          displayName: Verify npm package exists
+
+        - bash: |
+            set -euo pipefail
+            for package in "$(Build.ArtifactStagingDirectory)/npm-packages/packages"/*.tgz; do
+              if tar -tzf "$package" | grep -E '(^|/)_manifest/'; then
+                echo "ERROR: $package contains an SBOM _manifest/ folder."
+                exit 1
+              fi
+            done
+          displayName: Verify npm package contents
+
+    - ${{ if eq(parameters.dryRun, false) }}:
+      - stage: PublishToNpmViaESRP
+        displayName: Publish ArtifactEngineV2 to npm via ESRP
+        dependsOn: BuildAndPack
+        condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
+        jobs:
+        - job: esrp
+          displayName: Publish npm package
+          pool:
+            name: 1ES-ABTT-Shared-Pool
+            image: abtt-windows-2025
+            os: windows
+          templateContext:
+            type: releaseJob
+            isProduction: true
+            inputs:
+            - input: pipelineArtifact
+              artifactName: npm-packages
+              targetPath: $(Pipeline.Workspace)/npm-packages
+          steps:
+          - task: EsrpRelease@12
+            displayName: Publish package to npm via ESRP
+            inputs:
+              connectedservicename: $(EsrpServiceConnection)
+              usemanagedidentity: true
+              keyvaultname: $(EsrpKeyVault)
+              signcertname: $(EsrpSignCert)
+              clientid: $(EsrpClientId)
+              intent: PackageDistribution
+              contenttype: npm
+              productstate: latest
+              contentsource: Folder
+              folderlocation: $(Pipeline.Workspace)/npm-packages/packages
+              waitforreleasecompletion: true
+              owners: $(EsrpOwners)
+              approvers: $(EsrpApprovers)
+              serviceendpointurl: $(EsrpServiceEndpointUrl)
+              mainpublisher: $(EsrpMainPublisher)
+              domaintenantid: $(EsrpDomainTenantId)
