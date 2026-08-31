@@ -186,6 +186,9 @@ function registerGitWrapperMock(tr: tmrm.TaskMockRunner, opts: GitWrapperMockOpt
             if (shouldFail) {
                 process.nextTick(() => deferred.reject(new Error('Simulated git clone failure attempt ' + cloneAttempts)));
             } else {
+                // Real `git clone` creates the target folder; downloadTfGit.js does a real
+                // process.chdir(folder) right after, so the mock must mirror that side-effect.
+                require('fs').mkdirSync(folder, { recursive: true });
                 process.nextTick(() => deferred.resolve(0));
             }
             return deferred.promise;

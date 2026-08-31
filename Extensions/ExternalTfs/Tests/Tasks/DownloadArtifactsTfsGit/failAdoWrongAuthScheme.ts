@@ -24,26 +24,19 @@ tr.setInput('downloadPath', DOWNLOAD_PATH);
 
 setAdoEndpoint('UsernamePassword');
 
-const Q = require('q');
 const events = require('events');
 
 class MockGitWrapper extends events.EventEmitter {
     public username: string = '';
     public password: string = '';
     public clone(_repo: string, _progress: boolean, _folder: string, _options: unknown): unknown {
-        const d = Q.defer();
-        process.nextTick(() => d.resolve(0));
-        return d.promise;
+        return new Promise((resolve) => process.nextTick(() => resolve(0)));
     }
     public fetch(_args: string[], _options: unknown): unknown {
-        const d = Q.defer();
-        process.nextTick(() => d.resolve(0));
-        return d.promise;
+        return new Promise((resolve) => process.nextTick(() => resolve(0)));
     }
     public checkout(_ref: string, _options?: unknown): unknown {
-        const d = Q.defer();
-        process.nextTick(() => d.resolve(0));
-        return d.promise;
+        return new Promise((resolve) => process.nextTick(() => resolve(0)));
     }
 }
 tr.registerMock('./gitwrapper', { GitWrapper: MockGitWrapper });
