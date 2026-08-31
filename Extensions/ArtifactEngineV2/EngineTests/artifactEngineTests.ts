@@ -134,6 +134,44 @@ describe('Unit Tests', () => {
                 });
         });
 
+        it('processItems should preserve case-sensitive matching when the feature is disabled', (done) => {
+            var testProvider = new providers.StubProvider();
+            var downloadOptions = new engine.ArtifactEngineOptions();
+            downloadOptions.itemPattern = 'path1/**\n!PATH1/PATH2/**';
+
+            new engine.ArtifactEngine()
+                .processItems(testProvider, testProvider, downloadOptions)
+                .then(() => {
+                    assert.strictEqual(testProvider.getArtifactItemCalledCount, 3);
+                    done();
+                }, (err) => {
+                    throw err;
+                });
+        });
+
+        runWindowsBasedTest('processItems should match case-insensitively when the feature is enabled', async () => {
+            var testProvider = new providers.StubProvider();
+            var downloadOptions = new engine.ArtifactEngineOptions();
+            downloadOptions.itemPattern = 'path1/**\n!PATH1/PATH2/**';
+            const featureEnvironmentVariable =
+                'DISTRIBUTEDTASK_TASKS_CASEINSENSITIVEARTIFACTMATCHINGFIXENABLED';
+            var originalValue = process.env[featureEnvironmentVariable];
+            process.env[featureEnvironmentVariable] = 'true';
+
+            try {
+                await new engine.ArtifactEngine().processItems(testProvider, testProvider, downloadOptions);
+                assert.strictEqual(testProvider.getArtifactItemCalledCount, 2);
+            }
+            finally {
+                if (originalValue === undefined) {
+                    delete process.env[featureEnvironmentVariable];
+                }
+                else {
+                    process.env[featureEnvironmentVariable] = originalValue;
+                }
+            }
+        });
+
         it('processItems should call getArtifactItem only for included artifact items prefering exclude over include pattern', (done) => {
             var testProvider = new providers.StubProvider();
             var downloadOptions = new engine.ArtifactEngineOptions();
