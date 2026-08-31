@@ -1,35 +1,28 @@
+const fs = require('fs');
 const url = require('url');
 
 const tl = require('azure-pipelines-task-lib/task');
 const webApim = require('azure-devops-node-api/WebApi');
-const Q = require('q');
-const shell = require("shelljs");
 
 const gitwm = require('./gitwrapper');
 const auth = require('./auth');
+
 const GIT_CLONE_RETRY_ATTEMPTS = 4;
 
 const connectionType = tl.getInput("connectionType");
 const isAdoConnectionType = connectionType === 'ado';
 
 const serviceConnection = tl.getInput(isAdoConnectionType ? "azureDevOpsServiceConnection" : "connection");
-const repositoryId = tl.getInput(isAdoConnectionType ? "definitionAdo" : "definition");
-const projectId = tl.getInput(isAdoConnectionType ? "projectAdo" : "project");
-const branch = tl.getInput(isAdoConnectionType ? "branchAdo" : "branch");
-const commitId = tl.getInput(isAdoConnectionType ? "versionAdo" : "version");
-const downloadPath = tl.getInput("downloadPath");
+const repositoryId = tl.getInputRequired(isAdoConnectionType ? "definitionAdo" : "definition");
+const projectId = tl.getInputRequired(isAdoConnectionType ? "projectAdo" : "project");
+const branch = tl.getInputRequired(isAdoConnectionType ? "branchAdo" : "branch");
+const commitId = tl.getInputRequired(isAdoConnectionType ? "versionAdo" : "version");
+const downloadPath = tl.getInputRequired("downloadPath");
 validateInputs(serviceConnection, repositoryId, projectId, branch, commitId, downloadPath);
 
-/**
- * @typedef {Object} AuthParameters
- * @property {Record<string, any>} parameters - An object containing key-value pairs of authorization parameters.
- */
-
-// @ts-ignore
-shell.rm('-rf', downloadPath);
-const error = shell.error();
-
-if (error) {
+try {
+    fs.rmSync(downloadPath, { recursive: true, force: true });
+} catch (error) {
     tl.error(error);
     process.exit(1);
 }
@@ -63,7 +56,6 @@ getServiceConnectionDetails(serviceConnection).then(response => {
     connectionDetails = response;
     return getGitClientPromise(connectionDetails);
 }).then(gitClient => {
-    // @ts-ignore
     return getRepositoryRemoteUrl(gitClient, repositoryId, projectId);
 }).then(repositoryRemoteUrl => {
     const gitReadyRepoUrl = prepareGitConsumableRepoUrl(repositoryRemoteUrl, connectionDetails);
@@ -72,27 +64,25 @@ getServiceConnectionDetails(serviceConnection).then(response => {
 
     return executeWithRetries('gitClone', () => {
         return git
-            // @ts-ignore
             .clone(gitReadyRepoUrl, true, downloadPath, gitOptions)
             .then((/** @type {any} */ result) => {
             if (isPullRequest) {
-                shell.cd(downloadPath);
-                // @ts-ignore
+                process.chdir(downloadPath);
                 return git.fetch(['origin', branch], gitOptions);
             }
             return result;
         });
     }, GIT_CLONE_RETRY_ATTEMPTS);
 }).then(() => {
-    shell.cd(downloadPath);
+    process.chdir(downloadPath);
     const ref = isPullRequest ? commitId : branch;
-    // @ts-ignore
     return git.checkout(ref, gitOptions);
 }).then(() => {
     if (!isPullRequest) {
-        // @ts-ignore
         return git.checkout(commitId);
     }
+
+    return null;
 }).catch(error => {
     tl.error(error);
     tl.setResult(tl.TaskResult.Failed, error);
@@ -219,21 +209,14 @@ function getReposOrTfsScDetails(serviceConnection, hostUrl) {
 }
 
 /**
- * Helper function to get authorization parameters from the service connection authorization object, with case-insensitive key matching.
- * @param {AuthParameters} auth - The authorization object obtained from the service connection, which contains the parameters in a 'parameters' property.
+ * Finds an authorization parameter by name, matching keys case-insensitively.
+ * @param {import('azure-pipelines-task-lib/task').EndpointAuthorization} auth - The authorization object obtained from the service connection.
  * @param {string} paramName - The name of the parameter to retrieve (e.g., 'username', 'password', 'apitoken').
- * @returns {string | null} The value of the requested authorization parameter.
+ * @returns {string} The value of the requested authorization parameter, or an empty string if not found.
  */
 function getAuthParameter(auth, paramName) {
-    if (!auth || !auth.parameters || !paramName) {
-        return null;
-    }
-
-    const keyName = Object.keys(auth.parameters).find(function (key) {
-        return key && key.toLowerCase() === paramName.toLowerCase();
-    });
-
-    return keyName ? auth.parameters[keyName] : null;
+    const keyName = Object.keys(auth.parameters).find((key) => key.toLowerCase() === paramName.toLowerCase());
+    return (keyName ? auth.parameters[keyName] : '') || '';
 }
 
 /**
@@ -313,16 +296,11 @@ function prepareGitConsumableRepoUrl(repoUrl, connectionDetails) {
 function configureGitApiWrapper(connectionDetails) {
     // Create a wrapper around the git CLI so we can call clone/fetch/checkout and stream its output to the logs.
     const gitApiWrapper = new gitwm.GitWrapper();
-    // @ts-ignore
     gitApiWrapper.on('stdout', data => console.log(data.toString()));
-    // @ts-ignore
     gitApiWrapper.on('stderr', data => console.log(data.toString()));
 
-    // @ts-ignore
     gitApiWrapper.username = connectionDetails.Username;
-    // @ts-ignore
-    gitApiWrapper.password = connectionDetails.Password;
-    // @ts-ignore
+    gitApiWrapper.password = connectionDetails.Password || '';
     return gitApiWrapper;
 }
 
@@ -345,26 +323,21 @@ function isPullRequestBranch(branch) {
  * @returns {Promise<any>}
  */
 function executeWithRetries(operationName, operation, remainingRetryAttempts) {
-    const deferred = Q.defer();
-    operation().then((/** @type {any} */ result) => {
-        deferred.resolve(result);
-    }).fail((/** @type {string} */ error) => {
-        if (remainingRetryAttempts <= 0) {
-            tl.error('OperationFailed: ' + operationName);
-            tl.setResult(tl.TaskResult.Failed, error);
-            deferred.reject(error);
-        } else {
-            tl.debug('RetryingOperation: ' + operationName + ', remainingRetryAttempts: ' + remainingRetryAttempts);
-            remainingRetryAttempts = remainingRetryAttempts - 1;
-            setTimeout(() => {
-                executeWithRetries(operationName, operation, remainingRetryAttempts).then(
-                    (result) => deferred.resolve(result),
-                    (retryError) => deferred.reject(retryError)
-                );
-            }, 4 * 1000);
-        }
+    return new Promise((resolve, reject) => {
+        operation().then((/** @type {any} */ result) => {
+            resolve(result);
+        }, (/** @type {string} */ error) => {
+            if (remainingRetryAttempts <= 0) {
+                tl.error('OperationFailed: ' + operationName);
+                tl.setResult(tl.TaskResult.Failed, error);
+                reject(error);
+            } else {
+                tl.debug('RetryingOperation: ' + operationName + ', remainingRetryAttempts: ' + remainingRetryAttempts);
+                remainingRetryAttempts = remainingRetryAttempts - 1;
+                setTimeout(() => {
+                    executeWithRetries(operationName, operation, remainingRetryAttempts).then(resolve, reject);
+                }, 4 * 1000);
+            }
+        });
     });
-
-    // @ts-ignore
-    return deferred.promise;
 }
