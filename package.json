@@ -21,7 +21,6 @@
     "gulp-cli": "^3.0.0",
     "tfx-cli": "^0.21.1",
     "@types/gulp": "^4.0.17",
-    "@types/gulp-mocha": "^0.0.37",
     "@types/node": "^20.19.41",
     "@types/shelljs": "^0.8.17",
     "@types/through2": "^2.0.41",
@@ -30,9 +29,9 @@
     "adm-zip": "0.6.0",
     "azure-pipelines-task-lib": "5.278.0",
     "gulp": "^5.0.1",
-    "gulp-mocha": "^10.0.1",
     "gulp-typescript": "^5.0.1",
     "minimatch": "3.1.5",
+    "mocha": "^11.7.5",
     "shelljs": "^0.10.0",
     "sync-request": "3.0.1",
     "through2": "^2.0.1",
@@ -41,17 +40,12 @@
     "xml2js": "^0.6.2"
   },
   "overrides": {
-    "picomatch": "2.3.2",
-    "qs": "^6.14.2",
-    "serialize-javascript": "^7.0.5",
-    "mocha@5.2.0": {
-      "minimatch": "3.1.5"
+    "tfx-cli": {
+      "uuid": "11.1.1"
     },
-    "mkdirp@0.5.1": {
-      "minimist": "0.2.4"
-    },
-    "gulp-typescript": {
-      "braces": "3.0.3"
+    "mocha": {
+      "diff": "8.0.4",
+      "serialize-javascript": "7.1.0"
     }
   }
 }
