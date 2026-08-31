@@ -21,6 +21,7 @@
     "gulp-cli": "^3.0.0",
     "tfx-cli": "^0.21.1",
     "@types/gulp": "^4.0.17",
+    "@types/mocha": "^10.0.10",
     "@types/node": "^20.19.41",
     "@types/shelljs": "^0.8.17",
     "@types/through2": "^2.0.41",
