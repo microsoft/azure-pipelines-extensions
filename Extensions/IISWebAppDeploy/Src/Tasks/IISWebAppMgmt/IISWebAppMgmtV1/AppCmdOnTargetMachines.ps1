@@ -288,6 +288,7 @@ function Run-AdditionalCommands
 
 function Update-Website
 {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingUsernameAndPasswordParams', '', Justification = 'Create-And-Update-Website and existing tests call these legacy named string parameters directly.')]
     param(
         [string]$siteName,
         [string]$appPoolName,
@@ -355,6 +356,7 @@ function Update-Website
 
 function Update-AppPool
 {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingUsernameAndPasswordParams', '', Justification = 'Create-And-Update-AppPool and existing tests call these legacy named string parameters directly.')]
     param(
         [string]$appPoolName,
         [string]$clrVersion,
@@ -404,6 +406,7 @@ function Update-AppPool
 
 function Create-And-Update-Website
 {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingUsernameAndPasswordParams', '', Justification = 'Execute-Main and existing tests call these legacy named string parameters directly.')]
     param(
         [string]$siteName,
         [string]$appPoolName,
@@ -431,6 +434,7 @@ function Create-And-Update-Website
 
 function Create-And-Update-AppPool
 {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingUsernameAndPasswordParams', '', Justification = 'Existing generated-script and test callers use these legacy named string parameters.')]
     param(
         [string]$appPoolName,
         [string]$clrVersion,
@@ -452,6 +456,7 @@ function Create-And-Update-AppPool
 
 function Execute-Main
 {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingUsernameAndPasswordParams', '', Justification = 'ManageIISWebApp.ps1 generates this call with legacy named string parameters, so the signature must remain compatible.')]
     param (
         [string]$CreateWebsite,
         [string]$WebsiteName,

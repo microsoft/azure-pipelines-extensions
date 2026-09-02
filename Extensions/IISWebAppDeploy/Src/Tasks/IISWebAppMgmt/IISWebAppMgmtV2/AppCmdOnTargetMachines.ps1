@@ -828,6 +828,8 @@ function Set-WebsiteAuthentication {
 
 function Get-PSCredentials {
 
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingUsernameAndPasswordParams', '', Justification = 'Existing callers and tests use these legacy named string parameters, so the signature must remain compatible.')]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingConvertToSecureStringWithPlainText', '', Justification = 'The legacy task contract requires converting a task-provided plaintext secret, and the established conversion behavior must remain unchanged.')]
     param (
         [string][AllowNull()] $username, 
         [string][AllowNull()] $password 
@@ -845,6 +847,7 @@ function Get-PSCredentials {
 
 function Invoke-Main
 {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingUsernameAndPasswordParams', '', Justification = 'Utility.ps1 generates Invoke-Main calls with these legacy named string parameters, so the signature must remain compatible.')]
     param (
         [string]$ActionIISWebsite,
         [string]$ActionIISApplicationPool,

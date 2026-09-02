@@ -23,7 +23,7 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
-# ── Extension → CI test pipeline mapping ──
+# Extension to CI test pipeline mapping
 $pipelineMapping = @{
     'Ansible'         = 'AzDev-ReleaseManagement-Ansible-CI-Test'
     'BitBucket'       = 'AzDev-ReleaseManagement-BitBucket-CI-Test'
@@ -33,7 +33,7 @@ $pipelineMapping = @{
     'TeamCity'        = 'AzDev-ReleaseManagement-TeamCity-CI-Test'
 }
 
-# ── Parse extensions ──
+# Parse extensions
 $extensionList = $Extensions.Split(';', [System.StringSplitOptions]::RemoveEmptyEntries) | ForEach-Object { $_.Trim() }
 
 if ($extensionList.Count -eq 0) {
@@ -45,7 +45,7 @@ Write-Host "Extensions to test: $($extensionList -join ', ')"
 Write-Host "Org URL            : $OrgUrl"
 Write-Host "Project            : $Project"
 
-# ── Resolve pipeline names ──
+# Resolve pipeline names
 $extensionsToTest = @()
 $skippedExtensions = @()
 
@@ -71,7 +71,7 @@ if ($skippedExtensions.Count -gt 0) {
     Write-Host "`nSkipped (no mapping): $($skippedExtensions -join ', ')"
 }
 
-# ── Get AAD token ──
+# Get AAD token
 function Get-AdoAccessToken {
     $token = az account get-access-token --resource 499b84ac-1321-427f-aa17-267ca6975798 --query accessToken -o tsv 2>$null
     if ([string]::IsNullOrWhiteSpace($token)) {
@@ -87,12 +87,12 @@ $headers = @{
     'Accept'       = 'application/json'
 }
 
-# ── Fetch pipeline definitions ──
+# Fetch pipeline definitions
 $allPipelinesUrl = "$orgUrl/$Project/_apis/pipelines?api-version=7.1"
 Write-Host "`nFetching pipeline definitions from: $allPipelinesUrl"
 $allPipelines = Invoke-RestMethod -Method GET -Uri $allPipelinesUrl -Headers $headers
 
-# ── Trigger all CI test pipelines ──
+# Trigger all CI test pipelines
 $body = @{
     resources = @{
         repositories = @{
@@ -128,7 +128,7 @@ foreach ($entry in $extensionsToTest) {
         }
 
         $buildUrl = "$orgUrl/$Project/_build/results?buildId=$runId&view=results"
-        Write-Host "    Queued run ID: $runId — $buildUrl"
+        Write-Host "    Queued run ID: $runId - $buildUrl"
 
         $runningBuilds += @{
             Extension  = $ext
@@ -149,7 +149,7 @@ if ($runningBuilds.Count -eq 0) {
     return
 }
 
-# ── Poll all pipelines until completion ──
+# Poll all pipelines until completion
 Write-Host "`n=== Waiting for $($runningBuilds.Count) pipeline(s) to complete ==="
 $deadline = [DateTimeOffset]::UtcNow.AddMinutes($TimeoutMinutes)
 
@@ -185,25 +185,25 @@ do {
     }
 } while (-not $allDone)
 
-# ── Report results ──
+# Report results
 Write-Host "`n=== CI Test Results ==="
 
 $failed = @()
 $succeeded = @()
 
 foreach ($build in $runningBuilds) {
-    $icon = if ($build.Result -eq 'succeeded') { '✅' } else { '❌' }
-    Write-Host "  $icon $($build.Extension): $($build.Result) — $($build.BuildUrl)"
+    $statusLabel = if ($build.Result -eq 'succeeded') { 'PASS' } else { 'FAIL' }
+    Write-Host "  [$statusLabel] $($build.Extension): $($build.Result) - $($build.BuildUrl)"
     if ($build.Result -eq 'succeeded') { $succeeded += $build.Extension } else { $failed += $build.Extension }
 }
 
 if ($skippedExtensions.Count -gt 0) {
-    Write-Host "  ⏭️  Skipped (no CI mapping): $($skippedExtensions -join ', ')"
+    Write-Host "  [SKIP] Skipped (no CI mapping): $($skippedExtensions -join ', ')"
 }
 
 Write-Host "`nSucceeded: $($succeeded.Count)/$($runningBuilds.Count)"
 if ($failed.Count -gt 0) {
-    Write-Host "Failed   : $($failed.Count)/$($runningBuilds.Count) — $($failed -join ', ')"
+    Write-Host "Failed   : $($failed.Count)/$($runningBuilds.Count) - $($failed -join ', ')"
     throw "CI tests failed for: $($failed -join ', ')"
 }
 

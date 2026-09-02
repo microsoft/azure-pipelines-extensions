@@ -64,6 +64,7 @@ function Get-ScriptToRun
 
 function Run-RemoteDeployment
 {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingUsernameAndPasswordParams', '', Justification = 'Existing tests and callers use these named parameters, and the deployment SDK requires separate string values.')]
     param(
         [string]$machinesList,
         [string]$scriptToRun,
@@ -91,6 +92,7 @@ function Run-RemoteDeployment
 
 function Main
 {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingUsernameAndPasswordParams', '', Justification = 'This task entry point is invoked with legacy named string parameters that are part of the task contract.')]
     param (
     [string]$machinesList,
     [string]$adminUserName,

@@ -104,6 +104,8 @@ $InvokePsOnRemoteScriptBlock = {
 
 function Invoke-RemoteDeployment
 {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingUsernameAndPasswordParams", "", Justification = "Legacy task callers require these names and direct NetworkCredential username semantics.")]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidAssignmentToAutomaticVariable", "", Justification = "Preserve the existing telemetry loop behavior while remediating the repository-wide analyzer finding.")]
     param(
         [string]$machinesList,
         [string]$scriptToRun,
@@ -251,6 +253,7 @@ function Get-SkipCAOption
 
 function Get-Credentials
 {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingUsernameAndPasswordParams", "", Justification = "Legacy callers and NetworkCredential username semantics require these named string parameters.")]
     param(
         [string]$userName,
         [string]$password
