@@ -7,6 +7,40 @@
   "extends": [
     "eslint:recommended"
   ],
+  "plugins": [
+    "import"
+  ],
+  "rules": {
+    "brace-style": ["error", "1tbs"],
+    "import/first": "error",
+    "import/newline-after-import": "error",
+    "import/no-duplicates": "error",
+    "import/no-extraneous-dependencies": [
+      "error",
+      {
+        "devDependencies": [
+          "**/*.test.{js,ts}",
+          "**/*.spec.{js,ts}",
+          "**/*_suite.{js,ts}",
+          "**/Tests/**",
+          "gulpfile.js",
+          "package.js",
+          "package-utils.js"
+        ]
+      }
+    ],
+    "import/order": [
+      "error",
+      {
+        "alphabetize": {
+          "caseInsensitive": true,
+          "order": "asc"
+        },
+        "groups": ["builtin", "external", "internal", "parent", "sibling", "index"],
+        "newlines-between": "always"
+      }
+    ]
+  },
   "overrides": [
     {
       "files": [
@@ -14,8 +48,12 @@
       ],
       "parser": "@typescript-eslint/parser",
       "extends": [
-        "plugin:@typescript-eslint/recommended"
-      ]
+        "plugin:@typescript-eslint/recommended",
+        "plugin:@typescript-eslint/strict"
+      ],
+      "rules": {
+        "@typescript-eslint/no-inferrable-types": "error"
+      }
     },
     {
       "files": [
