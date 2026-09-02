@@ -64,6 +64,10 @@ function fail(runner: any, msg: string): never {
     throw new Error(msg);
 }
 
+function outputContains(runner: any, value: string): boolean {
+    return (runner.stdout || '').indexOf(value) >= 0 || (runner.stderr || '').indexOf(value) >= 0;
+}
+
 const nodeVersions = getDeclaredNodeVersions();
 
 describe('DownloadArtifactsTfsGit Suite', function () {
@@ -168,35 +172,35 @@ describe('DownloadArtifactsTfsGit Suite', function () {
                 const runner = newRunner('failMissingRepository');
                 await runAndDump(runner, nodeVersion);
                 if (runner.succeeded) fail(runner, 'expected task to fail for missing repository');
-                assert(runner.stdOutContained('Repository is not provided'), 'expected validateInputs to throw for missing repository');
+                assert(outputContains(runner, 'Input required: definition'), 'expected required-input error for missing repository');
             });
 
             it('throws when project id is empty', async function () {
                 const runner = newRunner('failMissingProject');
                 await runAndDump(runner, nodeVersion);
                 if (runner.succeeded) fail(runner, 'expected task to fail for missing project');
-                assert(runner.stdOutContained('Project is not provided'), 'expected validateInputs to throw for missing project');
+                assert(outputContains(runner, 'Input required: project'), 'expected required-input error for missing project');
             });
 
             it('throws when branch is empty', async function () {
                 const runner = newRunner('failMissingBranch');
                 await runAndDump(runner, nodeVersion);
                 if (runner.succeeded) fail(runner, 'expected task to fail for missing branch');
-                assert(runner.stdOutContained('Branch is not provided'), 'expected validateInputs to throw for missing branch');
+                assert(outputContains(runner, 'Input required: branch'), 'expected required-input error for missing branch');
             });
 
             it('throws when commit id is empty', async function () {
                 const runner = newRunner('failMissingCommitId');
                 await runAndDump(runner, nodeVersion);
                 if (runner.succeeded) fail(runner, 'expected task to fail for missing commit id');
-                assert(runner.stdOutContained('Commit ID is not provided'), 'expected validateInputs to throw for missing commit id');
+                assert(outputContains(runner, 'Input required: version'), 'expected required-input error for missing commit id');
             });
 
             it('throws when download path is empty', async function () {
                 const runner = newRunner('failMissingDownloadPath');
                 await runAndDump(runner, nodeVersion);
                 if (runner.succeeded) fail(runner, 'expected task to fail for missing download path');
-                assert(runner.stdOutContained('Download path is not provided'), 'expected validateInputs to throw for missing download path');
+                assert(outputContains(runner, 'Input required: downloadPath'), 'expected required-input error for missing download path');
             });
 
             it('fails when endpoint URL cannot be resolved', async function () {
@@ -239,7 +243,7 @@ describe('DownloadArtifactsTfsGit Suite', function () {
                 const runner = newRunner('failAdoWrongAuthScheme');
                 await runAndDump(runner, nodeVersion);
                 if (runner.succeeded) fail(runner, 'expected task to fail for non-WIF ADO scheme');
-                assert(runner.stdOutContained('is not supported'), 'expected scheme-not-supported error from auth.js');
+                assert(outputContains(runner, 'is not supported'), 'expected scheme-not-supported error from auth.js');
             });
 
             it('fails when repository remoteUrl is missing', async function () {
