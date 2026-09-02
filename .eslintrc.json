@@ -1,0 +1,31 @@
+{
+  "root": true,
+  "env": {
+    "es2020": true,
+    "node": true
+  },
+  "extends": [
+    "eslint:recommended"
+  ],
+  "overrides": [
+    {
+      "files": [
+        "**/*.ts"
+      ],
+      "parser": "@typescript-eslint/parser",
+      "extends": [
+        "plugin:@typescript-eslint/recommended"
+      ]
+    },
+    {
+      "files": [
+        "Extensions/**/Tests/**/*.{js,ts}",
+        "Extensions/**/*_suite.{js,ts}",
+        "Extensions/**/*.{test,spec}.{js,ts}"
+      ],
+      "env": {
+        "mocha": true
+      }
+    }
+  ]
+}

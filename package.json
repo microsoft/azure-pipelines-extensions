@@ -14,9 +14,13 @@
   },
   "scripts": {
     "build": "gulp build",
-    "test": "gulp test"
+    "test": "gulp test",
+    "lint": "eslint \"Extensions/**/*.ts\" \"Extensions/**/*.js\" gulpfile.js package.js package-utils.js",
+    "lint:fix": "eslint \"Extensions/**/*.ts\" \"Extensions/**/*.js\" gulpfile.js package.js package-utils.js --fix"
   },
   "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^7.18.0",
+    "@typescript-eslint/parser": "^7.18.0",
     "@types/adm-zip": "^0.4.34",
     "gulp-cli": "^3.0.0",
     "tfx-cli": "^0.21.1",
@@ -29,6 +33,7 @@
     "@types/xml2js": "^0.4.14",
     "adm-zip": "0.6.0",
     "azure-pipelines-task-lib": "5.278.0",
+    "eslint": "^8.57.0",
     "gulp": "^5.0.1",
     "gulp-mocha": "^10.0.1",
     "gulp-typescript": "^5.0.1",
