@@ -87,6 +87,7 @@ function Escape-SpecialChars
 
 function Get-ScriptToRun
 {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingUsernameAndPasswordParams', '', Justification = 'Existing tests and generated Execute-Main scripts use these legacy named string parameters, so the signature must remain compatible.')]
     param (
         [string]$createWebsite,
         [string]$websiteName,
@@ -126,6 +127,7 @@ function Get-ScriptToRun
 
 function Run-RemoteDeployment
 {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingUsernameAndPasswordParams', '', Justification = 'Existing task and test callers use these legacy named string parameters, and Invoke-RemoteDeployment expects the plaintext values.')]
     param(
         [string]$machinesList,
         [string]$scriptToRun,
@@ -153,6 +155,7 @@ function Run-RemoteDeployment
 
 function Main
 {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingUsernameAndPasswordParams', '', Justification = 'The task entry point binds existing task inputs to these legacy named string parameters, so the signature must remain compatible.')]
     param (
     [string]$machinesList,
     [string]$adminUserName,

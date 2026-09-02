@@ -25,6 +25,7 @@ function TrimInputs([ref]$adminUserName, [ref]$sqlUsername, [ref]$dacpacFile, [r
 
 function RunRemoteDeployment
 {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingUsernameAndPasswordParams', '', Justification = 'Main, existing tests, and the deployment SDK use these separate legacy string parameters.')]
     param(
         [string]$machinesList,
         [string]$scriptToRun,
@@ -52,6 +53,7 @@ function RunRemoteDeployment
 
 function GetScriptToRun
 {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingUsernameAndPasswordParams', '', Justification = 'Main and existing tests use these legacy named string parameters to preserve generated-script behavior.')]
     param (
         [string]$taskType,
         [string]$dacpacFile,
@@ -182,6 +184,7 @@ function GetScriptToRun
 
 function Main
 {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingUsernameAndPasswordParams', '', Justification = 'This task entry point is invoked with legacy named or positional string parameters that are part of the task contract.')]
     param (
     [string]$machinesList,
     [string]$adminUserName,

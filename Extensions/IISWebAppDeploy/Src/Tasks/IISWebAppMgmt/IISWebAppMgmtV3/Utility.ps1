@@ -6,6 +6,7 @@ Write-Verbose "Entering script Utility.ps1"
 
 function Set-IISWebSite
 {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingUsernameAndPasswordParams', '', Justification = 'Generated scripts and task callers require these legacy named string parameters.')]
     param (
         [string] $actionIISWebsite,
         [string] $websiteName,
@@ -98,6 +99,7 @@ function Set-IISWebSite
 
 function Set-IISVirtualDirectory
 {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingUsernameAndPasswordParams', '', Justification = 'Generated scripts and task callers require these legacy named string parameters.')]
     param (
         [string] $parentWebsiteName,
         [string] $virtualPath,
@@ -122,6 +124,7 @@ function Set-IISVirtualDirectory
 
 function Set-IISWebApplication 
 {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingUsernameAndPasswordParams', '', Justification = 'Generated scripts and task callers require these legacy named string parameters.')]
     param (
         [string] $parentWebsiteName,
         [string] $virtualPath,
@@ -167,6 +170,7 @@ function Set-IISWebApplication
 
 function Set-IISApplicationPool
 {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingUsernameAndPasswordParams', '', Justification = 'Generated scripts and task callers require these legacy named string parameters.')]
     param (
         [string] $actionIISApplicationPool,
         [string] $appPoolName,
@@ -371,6 +375,8 @@ function Parse-TargetMachineNames {
 
 function Get-TargetMachineCredential {
     [CmdletBinding()]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingUsernameAndPasswordParams', '', Justification = 'Existing callers require the legacy username and password string parameters.')]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingConvertToSecureStringWithPlainText', '', Justification = 'The legacy API/task contract requires converting an already-generated or task-provided plaintext secret, and behavior must remain unchanged.')]
     param(
         [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
@@ -406,6 +412,7 @@ function Get-NewPSSessionOption {
 
 function Run-RemoteDeployment
 {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingUsernameAndPasswordParams', '', Justification = 'The task entry point is invoked with these legacy named string parameters.')]
     param(
         [string]$machinesList,
         [string]$scriptToRun,

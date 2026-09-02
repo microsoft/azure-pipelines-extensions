@@ -146,6 +146,9 @@ function Get-AzureCmdletsVersion
 
 function Get-Password
 {
+    [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingConvertToSecureStringWithPlainText', '', Justification = 'The legacy API/task contract requires converting an already-generated or task-provided plaintext secret, and behavior must remain unchanged.')]
+    param()
+
     Add-Type -AssemblyName System.Web
     $password = [System.Web.Security.Membership]::GeneratePassword(40, 3)
     $password = ConvertTo-SecureString $password -AsPlainText -Force
