@@ -20,7 +20,8 @@ tr.setInput('downloadPath', DOWNLOAD_PATH);
 
 process.env['ENDPOINT_URL_' + TFS_CONNECTION_ID] = 'https://tfs.example.local/DefaultCollection';
 process.env['ENDPOINT_AUTH_' + TFS_CONNECTION_ID] = JSON.stringify({
-    scheme: 'UsernamePassword'
+    scheme: 'UsernamePassword',
+    parameters: {}
 });
 process.env['ENDPOINT_AUTH_SCHEME_' + TFS_CONNECTION_ID] = 'UsernamePassword';
 
