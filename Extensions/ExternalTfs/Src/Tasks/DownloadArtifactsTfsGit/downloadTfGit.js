@@ -299,8 +299,8 @@ function configureGitApiWrapper(connectionDetails) {
     gitApiWrapper.on('stdout', data => console.log(data.toString()));
     gitApiWrapper.on('stderr', data => console.log(data.toString()));
 
-    gitApiWrapper.username = connectionDetails.Username;
-    gitApiWrapper.password = connectionDetails.Password || '';
+    gitApiWrapper.username = connectionDetails.Username ?? '';
+    gitApiWrapper.password = connectionDetails.Password ?? '';
     return gitApiWrapper;
 }
 
