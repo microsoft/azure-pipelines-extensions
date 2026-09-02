@@ -167,8 +167,7 @@ gulp.task("compileNode", gulp.series("compilePS", async function () {
             });
     } catch (err) {
         console.log('error:' + err.message);
-        cb(new Error('compileTasks: ' + err.message));
-        return;
+        throw new Error('compileTasks: ' + err.message);
     }
 
     // Compile UIExtensions
