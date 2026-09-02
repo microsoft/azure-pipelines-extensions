@@ -3,6 +3,7 @@ const cp = require('node:child_process');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
+const { finished } = require('node:stream/promises');
 const { parseArgs } = require('node:util');
 
 // build/test script
@@ -93,7 +94,7 @@ gulp.task("compilePS", gulp.series("clean", function () {
     }
 }));
 
-gulp.task("compileNode", gulp.series("compilePS", function (cb) {
+gulp.task("compileNode", gulp.series("compilePS", async function () {
     try {
         // Cache all externals in the download directory.
         // Cache all externals in the download directory.
@@ -194,7 +195,7 @@ gulp.task("compileNode", gulp.series("compilePS", function (cb) {
 
     const testFiles = path.join(_extnBuildRoot, "**/Tests/**/*.ts");
 
-    gulp.src([taskFiles, `!${testFiles}`, artifactEngineFiles, artifactEngineV2Files, '!**/node_modules/**'], { base: _extnBuildRoot })
+    const taskCompilation = gulp.src([taskFiles, `!${testFiles}`, artifactEngineFiles, artifactEngineV2Files, '!**/node_modules/**'], { base: _extnBuildRoot })
         .pipe(tasksProject())
         .pipe(gulp.dest(path.join(_buildRoot, "Extensions")))
         .on("error", errorHandler);
@@ -202,7 +203,7 @@ gulp.task("compileNode", gulp.series("compilePS", function (cb) {
     const testProject = gts.createProject(rootTsconfigPath, { typescript: typescript, declaration: true });
     const sanitizerTestFiles = path.join(_extnBuildRoot, "**/ps_modules/Sanitizer/Tests/*.ts");
 
-    gulp.src([testFiles, `!${sanitizerTestFiles}`], { base: _extnBuildRoot })
+    const testCompilation = gulp.src([testFiles, `!${sanitizerTestFiles}`], { base: _extnBuildRoot })
         .pipe(testProject())
         .pipe(gulp.dest(path.join(_buildRoot, "Extensions")))
         .on("error", errorHandler);
@@ -211,8 +212,8 @@ gulp.task("compileNode", gulp.series("compilePS", function (cb) {
     validateArtifactEngineV2TranspileErrors();
 
     // Generate loc files
-    createResjson(cb);
-    cb();
+    createResjson(() => { });
+    await Promise.all([finished(taskCompilation), finished(testCompilation)]);
 }));
 
 function validateArtifactEngineTranspileErrors() {
@@ -668,7 +669,7 @@ gulp.task("tscBuildTasks", function (cb) {
 
             try {
                 pkgm.installDependencies(taskPath, path.basename(taskPath));
-                cp.execFileSync(process.execPath, [tscCliPath, '-p', configPath], { stdio: util.isDebug() ? 'inherit' : 'ignore' });
+                cp.execFileSync(process.execPath, [tscCliPath, '-p', configPath], { stdio: 'inherit' });
             } catch (err) {
                 console.error(`TypeScript compilation failed for ${configPath}: ${err.message}`);
                 console.error(`Execute manually the command:\nnpx tsc -p ${configPath}`);

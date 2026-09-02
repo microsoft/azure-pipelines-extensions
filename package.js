@@ -171,12 +171,7 @@ function installDependencies(taskPath, taskName) {
         npmArgs.splice(1, 0, '--no-engine-strict');
     }
 
-    const isDebug = util.isDebug();
-    if (isDebug) {
-        npmArgs.push('--verbose');
-    }
-
-    cp.execFileSync(npmCmd, npmArgs, { stdio: isDebug ? 'inherit' : 'ignore', shell: true });
+    cp.execFileSync(npmCmd, npmArgs, { stdio: 'inherit', shell: true });
 }
 
 module.exports = {
