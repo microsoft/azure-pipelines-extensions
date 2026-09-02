@@ -83,13 +83,15 @@ export class ArtifactEngine {
         retryCount = retryCount ? retryCount : 0;
         if (item.itemType === models.ItemType.File) {
             var pathToMatch = item.path.replace(/\\/g, '/');
+            var isCaseInsensitiveArtifactMatchingFixEnabled =
+                tl.getPipelineFeature('CaseInsensitiveArtifactMatchingFixEnabled');
             var matchOptions = {
                 debug: false,
                 nobrace: true,
                 noglobstar: false,
                 dot: true,
                 noext: false,
-                nocase: false,
+                nocase: process.platform === 'win32' && isCaseInsensitiveArtifactMatchingFixEnabled,
                 nonull: false,
                 matchBase: false,
                 nocomment: false,
