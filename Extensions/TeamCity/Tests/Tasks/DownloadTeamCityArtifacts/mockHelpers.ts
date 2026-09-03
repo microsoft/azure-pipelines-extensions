@@ -1,4 +1,4 @@
-import tmrm = require('azure-pipelines-task-lib/mock-run');
+import * as tmrm from 'azure-pipelines-task-lib/mock-run';
 
 // -- Shared constants ----------------------------------------------------------
 
@@ -77,10 +77,28 @@ export function registerAllMocks(tr: tmrm.TaskMockRunner, options?: ScenarioOpti
 }
 
 function registerArtifactEngineMocks(tr: tmrm.TaskMockRunner, options: ScenarioOptions): void {
+    interface MockWebProviderLike {
+        url?: string;
+    }
+
+    interface MockFilesystemProviderLike {
+        rootPath?: string;
+    }
+
+    interface MockHandlerLike {
+        username?: string;
+        password?: string;
+    }
+
+    interface MockArtifactError extends Error {
+        statusCode?: number;
+        httpStatusCode?: number;
+    }
+
     class MockArtifactEngineOptions {
-        public itemPattern: string = '';
-        public verbose: boolean = false;
-        public parallelProcessingLimit: number = 4;
+        public itemPattern = '';
+        public verbose = false;
+        public parallelProcessingLimit = 4;
     }
 
     // Simple glob matcher for test patterns (handles **, *, and prefix/suffix matching).
@@ -105,7 +123,7 @@ function registerArtifactEngineMocks(tr: tmrm.TaskMockRunner, options: ScenarioO
     }
 
     class MockArtifactEngine {
-        public processItems(webProvider: any, fsProvider: any, opts: MockArtifactEngineOptions): Promise<void> {
+        public processItems(webProvider: MockWebProviderLike, fsProvider: MockFilesystemProviderLike, opts: MockArtifactEngineOptions): Promise<void> {
             console.log('[mock-artifact-engine] processItems itemPattern=' + opts.itemPattern);
             console.log('[mock-artifact-engine] processItems parallelLimit=' + opts.parallelProcessingLimit);
             console.log('[mock-artifact-engine] processItems verbose=' + opts.verbose);
@@ -120,7 +138,7 @@ function registerArtifactEngineMocks(tr: tmrm.TaskMockRunner, options: ScenarioO
             }
 
             if (options.downloadFailStatusCode) {
-                const err: any = new Error(options.downloadFailMessage || 'Failed request');
+                const err = new Error(options.downloadFailMessage || 'Failed request') as MockArtifactError;
                 err.statusCode = options.downloadFailStatusCode;
                 err.httpStatusCode = options.downloadFailStatusCode;
                 return Promise.reject(err);
@@ -137,9 +155,9 @@ function registerArtifactEngineMocks(tr: tmrm.TaskMockRunner, options: ScenarioO
     class MockWebProvider {
         public url: string;
         public templatePath: string;
-        public variables: any;
-        public handler: any;
-        constructor(url: string, templatePath: string, variables: any, handler: any) {
+        public variables: object;
+        public handler: MockHandlerLike;
+        constructor(url: string, templatePath: string, variables: object, handler: MockHandlerLike) {
             this.url = url;
             this.templatePath = templatePath;
             this.variables = variables;

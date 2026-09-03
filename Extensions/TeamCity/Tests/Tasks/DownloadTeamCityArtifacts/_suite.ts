@@ -1,15 +1,15 @@
-import assert = require('assert');
-import path = require('path');
+import * as assert from 'assert';
+import * as path from 'path';
 
-const mocktest = require('azure-pipelines-task-lib/mock-test');
+import * as mocktest from 'azure-pipelines-task-lib/mock-test';
 
 process.env['DISTRIBUTEDTASK_TASKS_NODE_SKIPDEBUGLOGSWHENDEBUGMODEOFF'] = 'true';
 
-function newRunner(scenario: string): any {
+function newRunner(scenario: string): mocktest.MockTestRunner {
     return new mocktest.MockTestRunner(path.join(__dirname, scenario + '.js'));
 }
 
-async function runAndDump(runner: any, nodeVersion: number): Promise<void> {
+async function runAndDump(runner: mocktest.MockTestRunner, nodeVersion: number): Promise<void> {
     try {
         await runner.runAsync(nodeVersion);
     } catch (err) {
@@ -19,7 +19,7 @@ async function runAndDump(runner: any, nodeVersion: number): Promise<void> {
     }
 }
 
-function fail(runner: any, msg: string): never {
+function fail(runner: mocktest.MockTestRunner, msg: string): never {
     console.log('--- STDOUT ---');
     console.log(runner.stdout);
     console.log('--- STDERR ---');
