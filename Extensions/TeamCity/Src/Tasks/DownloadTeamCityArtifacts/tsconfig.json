@@ -2,6 +2,7 @@
     "compilerOptions": {
         "target": "ES6",
         "module": "commonjs",
+        "resolveJsonModule": true,
         "declaration": true,
         "sourceMap": false,
         "allowJs": true,
