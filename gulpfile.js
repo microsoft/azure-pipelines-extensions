@@ -212,7 +212,10 @@ gulp.task("compileNode", gulp.series("compilePS", async function () {
 
     // Generate loc files
     createResjson(() => { });
-    await Promise.all([finished(taskCompilation), finished(testCompilation)]);
+    await Promise.all([
+        finished(taskCompilation, { readable: false }),
+        finished(testCompilation, { readable: false })
+    ]);
 }));
 
 function validateArtifactEngineTranspileErrors() {
