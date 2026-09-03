@@ -1,6 +1,7 @@
 import * as assert from 'assert';
 
 import * as engine from '../Engine';
+import * as models from '../Models';
 import * as providers from '../Providers';
 
 describe('Unit Tests', () => {
@@ -134,33 +135,149 @@ describe('Unit Tests', () => {
                 });
         });
 
-        it('processItems should preserve case-sensitive matching when the feature is disabled', (done) => {
+        it('processItems should preserve case-sensitive matching and skip detection when the feature is disabled', async () => {
             var testProvider = new providers.StubProvider();
+            var destinationProvider: models.IArtifactProvider = testProvider;
             var downloadOptions = new engine.ArtifactEngineOptions();
             downloadOptions.itemPattern = 'path1/**\n!PATH1/PATH2/**';
+            var detectionCalled = false;
+            destinationProvider.isCaseInsensitiveFilesystem = () => {
+                detectionCalled = true;
+                return true;
+            };
 
-            new engine.ArtifactEngine()
-                .processItems(testProvider, testProvider, downloadOptions)
-                .then(() => {
-                    assert.strictEqual(testProvider.getArtifactItemCalledCount, 3);
-                    done();
-                }, (err) => {
-                    throw err;
-                });
+            await withCaseInsensitiveArtifactMatchingFeature(false, async () => {
+                await new engine.ArtifactEngine()
+                    .processItems(testProvider, destinationProvider, downloadOptions);
+
+                assert.strictEqual(testProvider.getArtifactItemCalledCount, 3);
+                assert.strictEqual(detectionCalled, false);
+            });
         });
 
-        runWindowsBasedTest('processItems should match case-insensitively when the feature is enabled', async () => {
+        it('processItems should skip detection and preserve case-sensitive matching on Linux', async () => {
             var testProvider = new providers.StubProvider();
+            var destinationProvider: models.IArtifactProvider = testProvider;
             var downloadOptions = new engine.ArtifactEngineOptions();
             downloadOptions.itemPattern = 'path1/**\n!PATH1/PATH2/**';
+            var detectionCalled = false;
+            destinationProvider.isCaseInsensitiveFilesystem = () => {
+                detectionCalled = true;
+                return true;
+            };
+
+            await withProcessPlatform('linux', async () => {
+                await withCaseInsensitiveArtifactMatchingFeature(true, async () => {
+                    await new engine.ArtifactEngine()
+                        .processItems(testProvider, destinationProvider, downloadOptions);
+
+                    assert.strictEqual(testProvider.getArtifactItemCalledCount, 3);
+                    assert.strictEqual(detectionCalled, false);
+                });
+            });
+        });
+
+        [
+            { target: 'a case-insensitive Windows target', platform: 'win32' as NodeJS.Platform },
+            { target: 'a case-insensitive macOS target', platform: 'darwin' as NodeJS.Platform }
+        ].forEach(({ target, platform }) => {
+            it(`processItems should match case-insensitively when the feature is enabled for ${target}`, async () => {
+                await assertCaseInsensitiveMatching(true, platform);
+            });
+        });
+
+        it('processItems should evaluate destination filesystem detection once for multiple matched items', async () => {
+            var testProvider = new providers.StubProvider();
+            var destinationProvider: models.IArtifactProvider = testProvider;
+            var downloadOptions = new engine.ArtifactEngineOptions();
+            downloadOptions.itemPattern = 'path1/**';
+            var detectionCalledCount = 0;
+            destinationProvider.isCaseInsensitiveFilesystem = () => {
+                detectionCalledCount++;
+                return true;
+            };
+
+            await withProcessPlatform('win32', async () => {
+                await withCaseInsensitiveArtifactMatchingFeature(true, async () => {
+                    await new engine.ArtifactEngine()
+                        .processItems(testProvider, destinationProvider, downloadOptions);
+
+                    assert.strictEqual(testProvider.getArtifactItemCalledCount, 3);
+                    assert.strictEqual(detectionCalledCount, 1);
+                });
+            });
+        });
+
+        [
+            { target: 'a case-sensitive Linux target', platform: 'linux' as NodeJS.Platform },
+            { target: 'a case-sensitive macOS target', platform: 'darwin' as NodeJS.Platform }
+        ].forEach(({ target, platform }) => {
+            it(`processItems should preserve case-sensitive matching when the feature is enabled for ${target}`, async () => {
+                await assertCaseInsensitiveMatching(false, platform);
+            });
+        });
+
+        it('processItems should preserve case-sensitive matching when filesystem detection fails', async () => {
+            await assertCaseInsensitiveMatching(null, 'win32');
+        });
+
+        async function assertCaseInsensitiveMatching(
+            isCaseInsensitive: boolean,
+            platform: NodeJS.Platform): Promise<void> {
+            var testProvider = new providers.StubProvider();
+            var destinationProvider: models.IArtifactProvider = testProvider;
+            var downloadOptions = new engine.ArtifactEngineOptions();
+            downloadOptions.itemPattern = 'path1/**\n!PATH1/PATH2/**';
+            destinationProvider.isCaseInsensitiveFilesystem = () => {
+                if (isCaseInsensitive === null) {
+                    throw new Error('Filesystem case detection is unavailable');
+                }
+
+                return isCaseInsensitive;
+            };
+
+            await withProcessPlatform(platform, async () => {
+                await withCaseInsensitiveArtifactMatchingFeature(true, async () => {
+                    await new engine.ArtifactEngine()
+                        .processItems(testProvider, destinationProvider, downloadOptions);
+
+                    assert.strictEqual(testProvider.getArtifactItemCalledCount, isCaseInsensitive ? 2 : 3);
+                });
+            });
+        }
+
+        async function withProcessPlatform(
+            platform: NodeJS.Platform,
+            operation: () => Promise<void>): Promise<void> {
+            const platformDescriptor = Object.getOwnPropertyDescriptor(process, 'platform');
+            if (!platformDescriptor) {
+                throw new Error('Unable to save the process platform descriptor');
+            }
+
+            Object.defineProperty(process, 'platform', { value: platform });
+            try {
+                await operation();
+            }
+            finally {
+                Object.defineProperty(process, 'platform', platformDescriptor);
+            }
+        }
+
+        async function withCaseInsensitiveArtifactMatchingFeature(
+            enabled: boolean,
+            operation: () => Promise<void>): Promise<void> {
             const featureEnvironmentVariable =
                 'DISTRIBUTEDTASK_TASKS_CASEINSENSITIVEARTIFACTMATCHINGFIXENABLED';
-            var originalValue = process.env[featureEnvironmentVariable];
-            process.env[featureEnvironmentVariable] = 'true';
+            const originalValue = process.env[featureEnvironmentVariable];
+            if (enabled) {
+                process.env[featureEnvironmentVariable] = 'true';
+            }
+            else {
+                delete process.env[featureEnvironmentVariable];
+            }
 
             try {
-                await new engine.ArtifactEngine().processItems(testProvider, testProvider, downloadOptions);
-                assert.strictEqual(testProvider.getArtifactItemCalledCount, 2);
+                await operation();
             }
             finally {
                 if (originalValue === undefined) {
@@ -170,7 +287,7 @@ describe('Unit Tests', () => {
                     process.env[featureEnvironmentVariable] = originalValue;
                 }
             }
-        });
+        }
 
         it('processItems should call getArtifactItem only for included artifact items prefering exclude over include pattern', (done) => {
             var testProvider = new providers.StubProvider();

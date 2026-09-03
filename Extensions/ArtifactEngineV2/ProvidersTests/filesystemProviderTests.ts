@@ -35,6 +35,7 @@ libMocker.enable({
 
 import * as providers from '../Providers';
 import { ArtifactItemStore } from '../Store/artifactItemStore';
+import * as filesystemCaseSensitivity from '../Providers/filesystemCaseSensitivity';
 var tl = require("azure-pipelines-task-lib");
 
 describe('Unit Tests', () => {
@@ -81,6 +82,20 @@ describe('Unit Tests', () => {
             }, (err) => {
                 throw err;
             });
+        });
+
+        it('isCaseInsensitiveFilesystem should detect only the destination root once', () => {
+            const caseDetectionStub = sinon.stub(filesystemCaseSensitivity, 'isFilesystemCaseInsensitive').returns(true);
+            const provider = new providers.FilesystemProvider('c:\\drop');
+
+            try {
+                assert.strictEqual(provider.isCaseInsensitiveFilesystem(), true);
+                assert.strictEqual(provider.isCaseInsensitiveFilesystem(), true);
+                assert.strictEqual(caseDetectionStub.calledOnceWithExactly('c:\\drop'), true);
+            }
+            finally {
+                caseDetectionStub.restore();
+            }
         });
 
         it('putArtifactItem should also create empty folders', (done) => {

@@ -15,6 +15,8 @@ export class ArtifactEngine {
             const workers: Promise<void>[] = [];
             artifactEngineOptions = artifactEngineOptions || new ArtifactEngineOptions();
             this.createPatternList(artifactEngineOptions);
+            this.isCaseInsensitiveArtifactMatching =
+                this.isCaseInsensitiveArtifactMatchingEnabled(destProvider);
             this.artifactItemStore.flush();
             Logger.verbose = artifactEngineOptions.verbose;
             this.logger = new Logger(this.artifactItemStore);
@@ -83,15 +85,13 @@ export class ArtifactEngine {
         retryCount = retryCount ? retryCount : 0;
         if (item.itemType === models.ItemType.File) {
             var pathToMatch = item.path.replace(/\\/g, '/');
-            var isCaseInsensitiveArtifactMatchingFixEnabled =
-                tl.getPipelineFeature('CaseInsensitiveArtifactMatchingFixEnabled');
             var matchOptions = {
                 debug: false,
                 nobrace: true,
                 noglobstar: false,
                 dot: true,
                 noext: false,
-                nocase: process.platform === 'win32' && isCaseInsensitiveArtifactMatchingFixEnabled,
+                nocase: this.isCaseInsensitiveArtifactMatching,
                 nonull: false,
                 matchBase: false,
                 nocomment: false,
@@ -156,6 +156,26 @@ export class ArtifactEngine {
         }
     }
 
+    private isCaseInsensitiveArtifactMatchingEnabled(destProvider: models.IArtifactProvider): boolean {
+        if (!tl.getPipelineFeature('CaseInsensitiveArtifactMatchingFixEnabled')
+            || !this.isFilesystemCaseInsensitiveDetectionSupported()
+            || !destProvider.isCaseInsensitiveFilesystem) {
+            return false;
+        }
+
+        try {
+            return destProvider.isCaseInsensitiveFilesystem();
+        }
+        catch (error) {
+            // Filesystem detection is advisory; preserve case-sensitive matching if it cannot run.
+            return false;
+        }
+    }
+
+    private isFilesystemCaseInsensitiveDetectionSupported(): boolean {
+        return process.platform === 'win32' || process.platform === 'darwin';
+    }
+
     private getRetryIntervalInSeconds(baseRetryInterval: number, retryCount: number): number {
         let MaxRetryLimitInSeconds = 360;
         var exponentialBackOff = baseRetryInterval * Math.pow(3, (retryCount + 1));
@@ -174,6 +194,7 @@ export class ArtifactEngine {
     private artifactItemStore: ArtifactItemStore = new ArtifactItemStore();
     private logger: Logger;
     private patternList: string[];
+    private isCaseInsensitiveArtifactMatching = false;
 }
 
 tl.setResourcePath(path.join(path.dirname(__dirname), 'lib.json'));
