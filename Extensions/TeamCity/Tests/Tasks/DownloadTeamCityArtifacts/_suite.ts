@@ -49,6 +49,8 @@ describe(`DownloadTeamCityArtifacts Suite (Node ${NODE_VERSION})`, function () {
             'should target the requested downloadPath');
         assert(runner.stdOutContained('[mock-artifact-engine] processItems'),
             'should invoke ArtifactEngine.processItems');
+        assert(runner.stdOutContained('[mock-artifact-engine] processItems parallelLimit=4'),
+            'should preserve ArtifactEngine default parallelism when the variable is unset');
     });
 
     it('masks password with tl.setSecret before any HTTP call', async function () {
