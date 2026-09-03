@@ -94,7 +94,7 @@ async function main(): Promise<void> {
     downloaderOptions.verbose = debugMode ? debugMode.toLowerCase() != 'false' : false;
     const parallelLimit = Number(tl.getVariable("release.artifact.download.parallellimit"));
 
-    if (!isNaN(parallelLimit)) {
+    if (Number.isFinite(parallelLimit) && parallelLimit > 0) {
         downloaderOptions.parallelProcessingLimit = parallelLimit;
     }
 
