@@ -157,9 +157,15 @@ export class ArtifactEngine {
     }
 
     private isCaseInsensitiveArtifactMatchingEnabled(destProvider: models.IArtifactProvider): boolean {
-        if (!tl.getPipelineFeature('CaseInsensitiveArtifactMatchingFixEnabled')
-            || !this.isFilesystemCaseInsensitiveDetectionSupported()
-            || !destProvider.isCaseInsensitiveFilesystem) {
+        if (!tl.getPipelineFeature('CaseInsensitiveArtifactMatchingFixEnabled')) {
+            return false;
+        }
+
+        if (process.platform === 'win32') {
+            return true;
+        }
+
+        if (process.platform !== 'darwin' || !destProvider.isCaseInsensitiveFilesystem) {
             return false;
         }
 
@@ -170,10 +176,6 @@ export class ArtifactEngine {
             // Filesystem detection is advisory; preserve case-sensitive matching if it cannot run.
             return false;
         }
-    }
-
-    private isFilesystemCaseInsensitiveDetectionSupported(): boolean {
-        return process.platform === 'win32' || process.platform === 'darwin';
     }
 
     private getRetryIntervalInSeconds(baseRetryInterval: number, retryCount: number): number {

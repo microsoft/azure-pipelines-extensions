@@ -177,13 +177,30 @@ describe('Unit Tests', () => {
             });
         });
 
-        [
-            { target: 'a case-insensitive Windows target', platform: 'win32' as NodeJS.Platform },
-            { target: 'a case-insensitive macOS target', platform: 'darwin' as NodeJS.Platform }
-        ].forEach(({ target, platform }) => {
-            it(`processItems should match case-insensitively when the feature is enabled for ${target}`, async () => {
-                await assertCaseInsensitiveMatching(true, platform);
+        it('processItems should match case-insensitively and skip detection on Windows', async () => {
+            var testProvider = new providers.StubProvider();
+            var destinationProvider: models.IArtifactProvider = testProvider;
+            var downloadOptions = new engine.ArtifactEngineOptions();
+            downloadOptions.itemPattern = 'path1/**\n!PATH1/PATH2/**';
+            var detectionCalled = false;
+            destinationProvider.isCaseInsensitiveFilesystem = () => {
+                detectionCalled = true;
+                return false;
+            };
+
+            await withProcessPlatform('win32', async () => {
+                await withCaseInsensitiveArtifactMatchingFeature(true, async () => {
+                    await new engine.ArtifactEngine()
+                        .processItems(testProvider, destinationProvider, downloadOptions);
+
+                    assert.strictEqual(testProvider.getArtifactItemCalledCount, 2);
+                    assert.strictEqual(detectionCalled, false);
+                });
             });
+        });
+
+        it('processItems should match case-insensitively for a case-insensitive macOS target', async () => {
+            await assertCaseInsensitiveMatching(true, 'darwin');
         });
 
         it('processItems should evaluate destination filesystem detection once for multiple matched items', async () => {
@@ -197,7 +214,7 @@ describe('Unit Tests', () => {
                 return true;
             };
 
-            await withProcessPlatform('win32', async () => {
+            await withProcessPlatform('darwin', async () => {
                 await withCaseInsensitiveArtifactMatchingFeature(true, async () => {
                     await new engine.ArtifactEngine()
                         .processItems(testProvider, destinationProvider, downloadOptions);
@@ -218,7 +235,7 @@ describe('Unit Tests', () => {
         });
 
         it('processItems should preserve case-sensitive matching when filesystem detection fails', async () => {
-            await assertCaseInsensitiveMatching(null, 'win32');
+            await assertCaseInsensitiveMatching(null, 'darwin');
         });
 
         async function assertCaseInsensitiveMatching(
