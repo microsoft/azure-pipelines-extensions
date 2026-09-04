@@ -215,8 +215,9 @@ function getReposOrTfsScDetails(serviceConnection, hostUrl) {
  * @returns {string} The value of the requested authorization parameter, or an empty string if not found.
  */
 function getAuthParameter(auth, paramName) {
-    const keyName = Object.keys(auth.parameters).find((key) => key.toLowerCase() === paramName.toLowerCase());
-    return (keyName ? auth.parameters[keyName] : '') || '';
+    const parameters = auth && auth.parameters ? auth.parameters : {};
+    const keyName = Object.keys(parameters).find((key) => key.toLowerCase() === paramName.toLowerCase());
+    return (keyName ? parameters[keyName] : '') || '';
 }
 
 /**
