@@ -58,9 +58,3 @@ var run = function (cl, inheritStreams, noHeader) {
     return (output || '').toString().trim();
 }
 exports.run = run;
-
-exports.isDebug = function () {
-    let { SYSTEM_DEBUG } = process.env;
-    SYSTEM_DEBUG = SYSTEM_DEBUG || 'false';
-    return SYSTEM_DEBUG.toLowerCase() === 'true' || process.argv.includes('--verbose');
-}
