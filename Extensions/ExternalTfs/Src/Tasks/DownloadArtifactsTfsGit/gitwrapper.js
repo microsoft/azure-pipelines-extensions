@@ -1,31 +1,45 @@
-// @ts-nocheck
+const fs = require('fs');
+const EventEmitter = require('events');
+const path = require('path');
 
-"use strict";
-var __extends = (this && this.__extends) || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-};
-var tl = require('azure-pipelines-task-lib');
-var events = require('events');
-var Q = require('q');
-var fs = require('fs');
-var shell = require('shelljs');
-var path = require('path');
-exports.envGitUsername = 'GIT_USERNAME';
-exports.envGitPassword = 'GIT_PASSWORD';
+const { which } = require('azure-pipelines-task-lib/task');
+const { ToolRunner } = require('azure-pipelines-task-lib/toolrunner');
 
-var GitWrapper = (function (_super) {
-    __extends(GitWrapper, _super);
-    function GitWrapper() {
-        _super.call(this);
-        this.gitInstalled = shell.which('git', false) !== null;
+const envGitUsername = 'GIT_USERNAME';
+const envGitPassword = 'GIT_PASSWORD';
+
+/**
+ * @typedef {Object} GitExecOptions
+ * @property {boolean} [useGitExe]
+ * @property {boolean} [creds]
+ * @property {boolean} [debugOutput]
+ * @property {string} [cwd]
+ * @property {NodeJS.ProcessEnv} [env]
+ * @property {NodeJS.WritableStream} [outStream]
+ * @property {NodeJS.WritableStream} [errStream]
+ */
+
+class GitWrapper extends EventEmitter {
+    constructor() {
+        super();
+        this.gitInstalled = which('git') !== '';
+        /** @type {string} */
+        this.username = '';
+        /** @type {string} */
+        this.password = '';
     }
-    GitWrapper.prototype.clone = function (repository, progress, folder, options) {
+
+    /**
+     * @param {string} repository
+     * @param {boolean} [progress]
+     * @param {string} [folder]
+     * @param {GitExecOptions} [options]
+     */
+    clone(repository, progress, folder, options) {
         options = options || {};
         options.useGitExe = true;
         options.creds = true;
-        var args = ['clone', repository];
+        const args = ['clone', repository];
         if (progress) {
             args.push('--progress');
         }
@@ -33,86 +47,99 @@ var GitWrapper = (function (_super) {
             args.push(folder);
         }
         return this.exec(args, options);
-    };
-    GitWrapper.prototype.fetch = function (args, options) {
+    }
+
+    /**
+     * @param {string[]} args
+     * @param {GitExecOptions} [options]
+     */
+    fetch(args, options) {
         options = options || {};
         options.useGitExe = true;
         options.creds = true;
         return this.exec(['fetch'].concat(args), options);
-    };
-    GitWrapper.prototype.checkout = function (ref, options) {
+    }
+
+    /**
+     * @param {string} ref
+     * @param {GitExecOptions} [options]
+     */
+    checkout(ref, options) {
         options = options || {};
         options.useGitExe = true;
         options.creds = true;
         return this.exec(['checkout', ref], options);
-    };
+    }
 
-    GitWrapper.prototype.reset = function (args, options) {
+    /**
+     * @param {string[]} args
+     * @param {GitExecOptions} [options]
+     */
+    reset(args, options) {
         options = options || {};
         options.useGitExe = true;
         return this.exec(['reset'].concat(args), options);
-    };
-    GitWrapper.prototype.exec = function (args, options) {
-        var _this = this;
-        options = options || {};
-        var defer = Q.defer();
-        var gitPath = shell.which('git', false);
-        var rootDirectory = path.dirname(path.dirname(path.dirname(path.dirname(path.dirname(require.main.filename)))));
-        var agentGit = path.join(rootDirectory, "externals", "git", "cmd", "git.exe");
-        if(fs.existsSync(agentGit)){
+    }
+
+    /**
+     * @param {string[]} args
+     * @param {GitExecOptions} [options]
+     */
+    exec(args, options) {
+        const opts = options || {};
+        let gitPath = which('git') || undefined;
+        // Prefer the agent-provisioned git so tasks work without relying on PATH.
+        const mainFilename = require.main ? require.main.filename : __filename;
+        const rootDirectory = path.dirname(path.dirname(path.dirname(path.dirname(path.dirname(mainFilename)))));
+        const agentGit = path.join(rootDirectory, "externals", "git", "cmd", "git.exe");
+        if (fs.existsSync(agentGit)) {
             gitPath = agentGit;
         }
         if (!gitPath) {
-            throw (new Error('git not found.  ensure installed and in the path'));
+            throw new Error('git not found.  ensure installed and in the path');
         }
-        var git = new tl.ToolRunner(gitPath.toString());
-        git.silent = true;
-        var creds = this.username + ':' + this.password;
-        var escapedCreds = encodeURIComponent(this.username) + ':' + encodeURIComponent(this.password);
-        git.on('debug', function (message) {
-            if (options.debugOutput) {
-                var repl = message.replace(creds, '...');
+
+        const git = new ToolRunner(gitPath);
+
+        const creds = this.username + ':' + this.password;
+        const escapedCreds = encodeURIComponent(this.username) + ':' + encodeURIComponent(this.password);
+
+        git.on('debug', (/** @type {string} */ message) => {
+            if (opts.debugOutput) {
+                let repl = message.replace(creds, '...');
                 repl = repl.replace(escapedCreds, '...');
-                _this.emit('stdout', '[debug]' + repl);
+                this.emit('stdout', '[debug]' + repl);
             }
         });
-        git.on('stdout', function (data) {
-            _this.emit('stdout', data);
+        git.on('stdout', (/** @type {Buffer} */ data) => {
+            this.emit('stdout', data);
         });
-        git.on('stderr', function (data) {
-            _this.emit('stderr', data);
+        git.on('stderr', (/** @type {Buffer} */ data) => {
+            this.emit('stderr', data);
         });
-        // TODO: if HTTP_PROXY is set (debugging) we can also supply http.proxy config
-        // TODO: handle and test with spaces in the path
-        if (false // not using credhelper for now, user/pass in url
-            && options.creds) {
-            // protect against private repo where no creds are supplied (external) - we don't want a prompt
-            process.env[exports.envGitUsername] = this.username || 'none';
-            process.env[exports.envGitPassword] = this.password || '';
-            var credHelper = path.join(__dirname, 'credhelper.js');
-            git.arg('-c');
-            // TODO: test quoting and spaces
-            git.arg('credential.helper=' + credHelper, true); // raw arg
-        }
-        args.map(function (arg) {
-            git.arg(arg, true); // raw arg
+
+        args.map((/** @type {string} */ arg) => {
+            git.arg(arg);
         });
-        options = options || {};
-        var ops = {
-            cwd: options.cwd || process.cwd(),
-            env: options.env || process.env,
+
+        const ops = {
+            cwd: opts.cwd || process.cwd(),
+            env: opts.env || process.env,
             silent: true,
-            outStream: options.outStream || process.stdout,
-            errStream: options.errStream || process.stderr,
+            outStream: opts.outStream || process.stdout,
+            errStream: opts.errStream || process.stderr,
             failOnStdErr: false,
             ignoreReturnCode: false
         };
+
         return git.exec(ops)
-            .fin(function () {
-            process.env[exports.envGitUsername] = null;
-            process.env[exports.envGitPassword] = null;
-        });
-    };
-    return GitWrapper;
-}(events.EventEmitter));
+            .fin(() => {
+                delete process.env[envGitUsername];
+                delete process.env[envGitPassword];
+            });
+    }
+}
+
+exports.envGitUsername = envGitUsername;
+exports.envGitPassword = envGitPassword;
 exports.GitWrapper = GitWrapper;
