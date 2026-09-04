@@ -4,6 +4,7 @@ import * as fs from 'fs';
 import * as models from '../Models';
 import { Logger } from '../Engine/logger';
 import { ArtifactItemStore } from '../Store/artifactItemStore';
+import { isFilesystemCaseInsensitive } from './filesystemCaseSensitivity';
 
 var tl = require('azure-pipelines-task-lib');
 
@@ -113,6 +114,21 @@ export class FilesystemProvider implements models.IArtifactProvider {
         });
     }
 
+    public isCaseInsensitiveFilesystem(): boolean {
+        if (!this._hasDeterminedFilesystemCaseSensitivity) {
+            try {
+                this._isCaseInsensitiveFilesystem = isFilesystemCaseInsensitive(this._rootLocation);
+            }
+            catch (error) {
+                this._isCaseInsensitiveFilesystem = false;
+            }
+
+            this._hasDeterminedFilesystemCaseSensitivity = true;
+        }
+
+        return this._isCaseInsensitiveFilesystem;
+    }
+
     dispose(): void {
     }
 
@@ -160,4 +176,6 @@ export class FilesystemProvider implements models.IArtifactProvider {
 
     private _rootLocation: string;
     private _rootItemPath: string;
+    private _hasDeterminedFilesystemCaseSensitivity = false;
+    private _isCaseInsensitiveFilesystem = false;
 }

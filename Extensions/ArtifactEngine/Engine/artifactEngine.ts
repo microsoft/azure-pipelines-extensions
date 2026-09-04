@@ -15,6 +15,8 @@ export class ArtifactEngine {
             const workers: Promise<void>[] = [];
             artifactEngineOptions = artifactEngineOptions || new ArtifactEngineOptions();
             this.createPatternList(artifactEngineOptions);
+            this.isCaseInsensitiveArtifactMatching =
+                this.isCaseInsensitiveArtifactMatchingEnabled(destProvider);
             this.artifactItemStore.flush();
             Logger.verbose = artifactEngineOptions.verbose;
             this.logger = new Logger(this.artifactItemStore);
@@ -89,7 +91,7 @@ export class ArtifactEngine {
                 noglobstar: false,
                 dot: true,
                 noext: false,
-                nocase: false,
+                nocase: this.isCaseInsensitiveArtifactMatching,
                 nonull: false,
                 matchBase: false,
                 nocomment: false,
@@ -154,6 +156,28 @@ export class ArtifactEngine {
         }
     }
 
+    private isCaseInsensitiveArtifactMatchingEnabled(destProvider: models.IArtifactProvider): boolean {
+        if (!tl.getPipelineFeature('CaseInsensitiveArtifactMatchingFixEnabled')) {
+            return false;
+        }
+
+        if (process.platform === 'win32') {
+            return true;
+        }
+
+        if (process.platform !== 'darwin' || !destProvider.isCaseInsensitiveFilesystem) {
+            return false;
+        }
+
+        try {
+            return destProvider.isCaseInsensitiveFilesystem();
+        }
+        catch (error) {
+            // Filesystem detection is advisory; preserve case-sensitive matching if it cannot run.
+            return false;
+        }
+    }
+
     private getRetryIntervalInSeconds(baseRetryInterval: number, retryCount: number): number {
         let MaxRetryLimitInSeconds = 360;
         var exponentialBackOff = baseRetryInterval * Math.pow(3, (retryCount + 1));
@@ -172,6 +196,7 @@ export class ArtifactEngine {
     private artifactItemStore: ArtifactItemStore = new ArtifactItemStore();
     private logger: Logger;
     private patternList: string[];
+    private isCaseInsensitiveArtifactMatching = false;
 }
 
 tl.setResourcePath(path.join(path.dirname(__dirname), 'lib.json'));
