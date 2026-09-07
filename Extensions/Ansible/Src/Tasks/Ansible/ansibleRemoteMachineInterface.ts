@@ -5,6 +5,7 @@ import tl = require("azure-pipelines-task-lib/task");
 import * as ansibleUtils from './ansibleUtils';
 import { ansibleTaskParameters } from './ansibleTaskParameters';
 import { ansibleCommandLineInterface } from './ansibleCommandLineInterface';
+import { shellQuote } from 'azure-pipelines-tasks-utility-common/shellEscaping';
 
 export class ansibleRemoteMachineInterface extends ansibleCommandLineInterface {
     constructor(params: ansibleTaskParameters) {
@@ -50,7 +51,9 @@ export class ansibleRemoteMachineInterface extends ansibleCommandLineInterface {
         scpConfig.path = remotePlaybookRoot;
         tl.debug('Copying playbook to ansible machine.');
         this._playbookPath = remotePlaybookRoot + "/" + playbookFile;
-        this._cleanupCmd.push('rm -rf ' + remotePlaybookRoot);
+        // The cleanup command runs the path through a remote shell, so harden it
+        // (behind the flag). The SCP copy below uses the raw path (no shell).
+        this._cleanupCmd.push('rm -rf ' + this._applyHardening('playbookCleanupPath', remotePlaybookRoot, shellQuote));
         await ansibleUtils.copyFileToRemoteMachine(playbookRoot, remotePlaybookRoot, scpConfig);
     }
 
@@ -67,8 +70,11 @@ export class ansibleRemoteMachineInterface extends ansibleCommandLineInterface {
         const scpConfig = this._sshConfig || {};
         scpConfig.path = remoteInventory;
         tl.debug('Copying Inventory file to ansible machine.');
-        this._inventoryPath = remoteInventory;
-        this._cleanupCmd.push('rm -f ' + remoteInventory);
+        // _inventoryPath is passed to ansible-playbook via '-i' and reused in the
+        // cleanup command, both of which run through a remote shell, so harden it
+        // (behind the flag). The SCP copy below uses the raw path (no shell).
+        this._inventoryPath = this._applyHardening('inventoryFile', remoteInventory, shellQuote);
+        this._cleanupCmd.push('rm -f ' + this._inventoryPath);
         await ansibleUtils.copyFileToRemoteMachine(inventoryFile, remoteInventory, scpConfig);
     }
 

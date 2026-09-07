@@ -483,6 +483,66 @@ describe('Ansible Suite', function () {
                 expectFailure(runner, 'expected tower events API error to fail');
                 assert(outputContains(runner, 'loc_mock_FailedToGetJobDetails'), 'should fail with job details fetch token');
             });
+
+            it('neutralizes OS command injection when the hardening feature flag is enabled', async function () {
+                const runner = newRunner('testCommandInjectionHardeningForAgentMachine');
+                await runAndDump(runner, nodeVersion);
+                expectSuccess(runner, 'expected command injection hardening scenario to succeed');
+                // Every user-controlled input is single-quoted, so the ';', '$()' and
+                // other metacharacters are passed to ansible-playbook as inert literals.
+                // The free-form additional args ('; whoami') are tokenized and each token
+                // is single-quoted, so ';' and 'whoami' become two literal arguments.
+                assert(runner.stdOutContained("cmd run on agent machine = ansible-playbook -i 'Dummy_IP_Address,' '/path/to/ansiblePlaybookRoot/ansiblePlaybook.yml' -b --become-user 'root ; touch /tmp/pwned' ';' 'whoami'"), 'injection payloads should be neutralized');
+            });
+
+            it('hardens remote inventory and cleanup paths copied from the agent machine', async function () {
+                const runner = newRunner('testCommandInjectionHardeningForRemoteAgentSource');
+                await runAndDump(runner, nodeVersion);
+                expectSuccess(runner, 'expected remote agent-source hardening scenario to succeed');
+                // The '/tmp' paths derive from basename(userInput) and reach the remote shell via
+                // '-i', 'rm -f' and 'rm -rf', so each must be single-quoted with the flag on.
+                assert(runner.stdOutContained("cmd run on remote machine = ansible-playbook -i '/tmp/inv;$(id).ini' '/tmp/pbroot;$(id)/ansiblePlaybook.yml'"), 'remote inventory and playbook paths should be quoted');
+                assert(runner.stdOutContained("cmd run on remote machine = rm -f '/tmp/inv;$(id).ini'"), 'inventory cleanup command should be quoted');
+                assert(runner.stdOutContained("cmd run on remote machine = rm -rf '/tmp/pbroot;$(id)'"), 'playbook cleanup command should be quoted');
+                // Guard against the pre-fix behaviour where the metacharacters reached the shell raw.
+                assert(!runner.stdOutContained('cmd run on remote machine = rm -f /tmp/inv;$(id).ini'), 'inventory cleanup must not be left unquoted');
+            });
+
+            it('preserves a quoted JSON --extra-vars value when hardening is enabled', async function () {
+                const runner = newRunner('testExtraVarsJsonPreservedWhenHardeningEnabled');
+                await runAndDump(runner, nodeVersion);
+                expectSuccess(runner, 'expected JSON extra-vars scenario to succeed');
+                // Each token is single-quoted, so the shell hands the original JSON
+                // object back to ansible-playbook intact as one literal argument.
+                assert(runner.stdOutContained('cmd run on agent machine = ansible-playbook -i \'Dummy_IP_Address,\' \'/path/to/ansiblePlaybookRoot/ansiblePlaybook.yml\' \'--extra-vars\' \'{"a":"b"}\''), 'JSON extra-vars should be preserved intact, not stripped');
+                // ...and must NOT be corrupted into the quote-stripped YAML form.
+                assert(!runner.stdOutContained('--extra-vars {a:b}'), 'JSON extra-vars must not be quote-stripped');
+            });
+
+            it('preserves a multi-key JSON --extra-vars value when hardening is enabled', async function () {
+                const runner = newRunner('testExtraVarsMultiKeyJsonPreservedWhenHardeningEnabled');
+                await runAndDump(runner, nodeVersion);
+                expectSuccess(runner, 'expected multi-key JSON extra-vars scenario to succeed');
+                // Each token is single-quoted, so { } and , stay literal and the shell
+                // hands the whole multi-key JSON object back as one argument.
+                assert(runner.stdOutContained('cmd run on agent machine = ansible-playbook -i \'Dummy_IP_Address,\' \'/path/to/ansiblePlaybookRoot/ansiblePlaybook.yml\' \'--extra-vars\' \'{"a":"b","c":"d"}\''), 'multi-key JSON extra-vars should be preserved intact');
+                // ...and must NOT be brace-expanded into two split words.
+                assert(!runner.stdOutContained('\'{"a":"b"}\' \'{"c":"d"}\''), 'multi-key JSON extra-vars must not be brace-expanded');
+            });
+
+
+            it('reports the will-change signal in shadow mode telemetry', async function () {
+                const runner = newRunner('testSanitizationTelemetryShadowForAgentMachine');
+                await runAndDump(runner, nodeVersion);
+                expectSuccess(runner, 'expected shadow-mode telemetry scenario to succeed');
+                // COLLECT-only: the command keeps its legacy (unquoted) form...
+                assert(runner.stdOutContained('cmd run on agent machine = ansible-playbook -i "Dummy_IP_Address," /opt/my play/site.yml'), 'shadow mode should keep the legacy command');
+                // ...while telemetry still records the space-only path that the fix would quote.
+                assert(runner.stdOutContained('##vso[telemetry.publish area=TaskHub;feature=Ansible]'), 'telemetry should be published in shadow mode');
+                assert(runner.stdOutContained('"mode":"shadow"'), 'telemetry should be tagged as shadow mode');
+                assert(runner.stdOutContained('"activated":false'), 'telemetry should report the fix is not activated');
+                assert(runner.stdOutContained('"playbookPath"'), 'telemetry should record the space-only playbook path as will-change');
+            });
         });
     });
 });
