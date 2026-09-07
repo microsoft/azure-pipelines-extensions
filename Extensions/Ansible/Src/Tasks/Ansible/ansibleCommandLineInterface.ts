@@ -4,8 +4,7 @@ import { quote } from 'shell-quote';
 import { ansibleInterface } from './ansibleInterface';
 import * as ansibleUtils from './ansibleUtils';
 import { ansibleTaskParameters } from './ansibleTaskParameters';
-import { shellQuote } from 'azure-pipelines-tasks-utility-common/shellEscaping';
-import { neutralizeAdditionalParameters } from './argsSanitization';
+import { shellQuote, shellSplit } from 'azure-pipelines-tasks-utility-common/shellEscaping';
 
 export class ansibleCommandLineInterface extends ansibleInterface {
     constructor(params: ansibleTaskParameters) {
@@ -194,7 +193,15 @@ export class ansibleCommandLineInterface extends ansibleInterface {
         }
 
         if (this._additionalParams && this._additionalParams.trim()) {
-            const additionalParams = this._applyHardening('additionalParameters', this._additionalParams, neutralizeAdditionalParameters);
+            // Free-form additional parameters can contain multiple shell tokens,
+            // so split them (honouring quotes) and re-quote each token with
+            // shellQuote so the shell treats every token as a single, literal
+            // argument. Unlike neutralizeCommandSubstitution, shellQuote also
+            // keeps multi-key JSON (e.g. --extra-vars '{"a":"b","c":"d"}') safe
+            // from brace expansion. Both helpers come from the shared
+            // azure-pipelines-tasks-utility-common package.
+            const additionalParams = this._applyHardening('additionalParameters', this._additionalParams,
+                (value) => shellSplit(value).map((token) => shellQuote(token)).join(' '));
             cmd = cmd.concat(additionalParams);
         }
         this._emitSanitizationSignals();
@@ -233,10 +240,6 @@ export class ansibleCommandLineInterface extends ansibleInterface {
         }
         return this._sanitizeActivate ? hardenedValue : legacyValue;
     }
-
-    // Neutralizes OS command-injection vectors in the additional parameters.
-    // Implemented in the standalone argsSanitization module so it can be
-    // unit-tested in isolation (see argsSanitizationTests).
 
     private _emitSanitizationSignals() {
         if (!this._sanitizedFields || this._sanitizedFields.length === 0) {
