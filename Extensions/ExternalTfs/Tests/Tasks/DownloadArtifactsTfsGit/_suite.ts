@@ -13,6 +13,7 @@
 import assert = require('assert');
 import path = require('path');
 import fs = require('fs');
+import { COMMIT_ID } from './mockHelpers';
 
 // MockTestRunner has no .d.ts in our compile path; use the value via require.
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -128,6 +129,16 @@ describe('DownloadArtifactsTfsGit Suite', function () {
                 // For PR path the script does NOT call `git checkout <branch>` separately.
                 const checkoutBranch = runner.stdOutContained('[mock-git] checkout refs/pull/42/merge');
                 assert(!checkoutBranch, 'PR path must not checkout the branch name; only the commit');
+            });
+
+            it('retries a failed PR fetch without recloning', async function () {
+                const runner = newRunner('successPullRequestFetchRetry');
+                await runAndDump(runner, nodeVersion);
+                if (!runner.succeeded) fail(runner, 'expected task to succeed after retrying the PR fetch');
+                assert(runner.stdOutContained('[mock-git] clone-attempt 1'), 'should clone once');
+                assert(!runner.stdOutContained('[mock-git] clone-attempt 2'), 'should not re-clone after fetch fails');
+                assert(runner.stdOutContained('[mock-git] fetch-attempt 2'), 'should retry the PR fetch in the existing checkout');
+                assert(runner.stdOutContained('[mock-git] checkout ' + COMMIT_ID), 'should checkout the requested commit after fetch succeeds');
             });
 
             it('detects PR branches with refs/remotes/origin/pull/ prefix', async function () {

@@ -9,23 +9,9 @@ const auth = require('./auth');
 
 const GIT_CLONE_RETRY_ATTEMPTS = 4;
 
-const connectionType = tl.getInput("connectionType");
-const isAdoConnectionType = connectionType === 'ado';
-
-const serviceConnection = tl.getInput(isAdoConnectionType ? "azureDevOpsServiceConnection" : "connection");
-const repositoryId = tl.getInputRequired(isAdoConnectionType ? "definitionAdo" : "definition");
-const projectId = tl.getInputRequired(isAdoConnectionType ? "projectAdo" : "project");
-const branch = tl.getInputRequired(isAdoConnectionType ? "branchAdo" : "branch");
-const commitId = tl.getInputRequired(isAdoConnectionType ? "versionAdo" : "version");
-const downloadPath = tl.getInputRequired("downloadPath");
-validateInputs(serviceConnection, repositoryId, projectId, branch, commitId, downloadPath);
-
-try {
-    fs.rmSync(downloadPath, { recursive: true, force: true });
-} catch (error) {
-    tl.error(error);
-    process.exit(1);
-}
+let isAdoConnectionType = false;
+/** @type {string} */
+let downloadPath;
 
 /**
  * @typedef {Object} ConnectionDetails
@@ -52,38 +38,50 @@ const gitOptions = {
     debugOutput: !!process.env['SYSTEM_DEBUG']
 };
 
-getServiceConnectionDetails(serviceConnection).then(response => {
-    connectionDetails = response;
-    return getGitClientPromise(connectionDetails);
-}).then(gitClient => {
-    return getRepositoryRemoteUrl(gitClient, repositoryId, projectId);
-}).then(repositoryRemoteUrl => {
-    const gitReadyRepoUrl = prepareGitConsumableRepoUrl(repositoryRemoteUrl, connectionDetails);
-    git = configureGitApiWrapper(connectionDetails);
-    isPullRequest = isPullRequestBranch(branch);
+async function main() {
+    const connectionType = tl.getInput("connectionType");
+    isAdoConnectionType = connectionType === 'ado';
 
-    return executeWithRetries('gitClone', () => {
-        return git
-            .clone(gitReadyRepoUrl, true, downloadPath, gitOptions)
-            .then((/** @type {any} */ result) => {
-            if (isPullRequest) {
-                process.chdir(downloadPath);
-                return git.fetch(['origin', branch], gitOptions);
-            }
-            return result;
-        });
-    }, GIT_CLONE_RETRY_ATTEMPTS);
-}).then(() => {
-    process.chdir(downloadPath);
-    const ref = isPullRequest ? commitId : branch;
-    return git.checkout(ref, gitOptions);
-}).then(() => {
-    if (!isPullRequest) {
-        return git.checkout(commitId);
+    const serviceConnection = tl.getInput(isAdoConnectionType ? "azureDevOpsServiceConnection" : "connection");
+    const repositoryId = tl.getInputRequired(isAdoConnectionType ? "definitionAdo" : "definition");
+    const projectId = tl.getInputRequired(isAdoConnectionType ? "projectAdo" : "project");
+    const branch = tl.getInputRequired(isAdoConnectionType ? "branchAdo" : "branch");
+    const commitId = tl.getInputRequired(isAdoConnectionType ? "versionAdo" : "version");
+    downloadPath = tl.getInputRequired("downloadPath");
+    validateInputs(serviceConnection);
+
+    const originalWorkingDirectory = process.cwd();
+    try {
+        connectionDetails = await getServiceConnectionDetails(serviceConnection);
+        const gitClient = await getGitClientPromise(connectionDetails);
+        const repositoryRemoteUrl = await getRepositoryRemoteUrl(gitClient, repositoryId, projectId);
+        const gitReadyRepoUrl = prepareGitConsumableRepoUrl(repositoryRemoteUrl, connectionDetails);
+        git = configureGitApiWrapper(connectionDetails);
+        isPullRequest = isPullRequestBranch(branch);
+
+        await executeWithRetries('gitClone', () => {
+            process.chdir(originalWorkingDirectory);
+            removeDownloadPath();
+            return git.clone(gitReadyRepoUrl, true, downloadPath, gitOptions);
+        }, GIT_CLONE_RETRY_ATTEMPTS);
+
+        if (isPullRequest) {
+            await executeWithRetries('gitFetch', () => {
+                return git.fetch(['origin', branch], { ...gitOptions, cwd: downloadPath });
+            }, GIT_CLONE_RETRY_ATTEMPTS);
+        }
+
+        const ref = isPullRequest ? commitId : branch;
+        await git.checkout(ref, { ...gitOptions, cwd: downloadPath });
+        if (!isPullRequest) {
+            await git.checkout(commitId, { ...gitOptions, cwd: downloadPath });
+        }
+    } finally {
+        process.chdir(originalWorkingDirectory);
     }
+}
 
-    return null;
-}).catch(error => {
+main().catch(error => {
     tl.error(error);
     tl.setResult(tl.TaskResult.Failed, error);
 });
@@ -92,32 +90,21 @@ getServiceConnectionDetails(serviceConnection).then(response => {
  * Validates the inputs provided to the task, ensuring that all required parameters are present and not empty.
  * If any validation checks fail, an error is thrown with a descriptive message indicating which parameter is missing or invalid.
  * @param {string | undefined} serviceConnection - The name of the service connection in Azure DevOps, which is required to authenticate and access the Git repository.
- * @param {string | undefined} repositoryId - The ID of the Git repository to clone, which is required to identify the specific repository within the project.
- * @param {string | undefined} projectId - The ID of the Azure DevOps project that contains the Git repository, which is required to scope the repository lookup and ensure the correct repository is accessed.
- * @param {string | undefined} branch - The name of the branch to clone, which is required to specify which branch of the repository should be cloned.
- * @param {string | undefined} commitId - The ID of the specific commit to checkout after cloning, which is required to ensure that the correct version of the code is checked out for use in the pipeline.
- * @param {string | undefined} downloadPath - The local file system path where the Git repository should be cloned, which is required to specify where the code should be downloaded on the agent machine.
  * @throws {Error} If any of the required parameters are missing or invalid, an error is thrown with a descriptive message.
  */
-function validateInputs(serviceConnection, repositoryId, projectId, branch, commitId, downloadPath) {
+function validateInputs(serviceConnection) {
     if (!serviceConnection || serviceConnection.trim().length === 0) {
         throw new Error("Service connection is not provided.");
     }
-    if (!repositoryId) {
-        throw new Error("Repository is not provided.");
-    }
-    if (!projectId) {
-        throw new Error("Project is not provided.");
-    }
-    if (!branch) {
-        throw new Error("Branch is not provided.");
-    }
-    if (!commitId) {
-        throw new Error("Commit ID is not provided.");
-    }
-    if (!downloadPath) {
-        throw new Error("Download path is not provided.");
-    }
+}
+
+function removeDownloadPath() {
+    fs.rmSync(downloadPath, {
+        recursive: true,
+        force: true,
+        maxRetries: 3,
+        retryDelay: 100
+    });
 }
 
 /**
