@@ -312,7 +312,15 @@ function isPullRequestBranch(branch) {
  */
 function executeWithRetries(operationName, operation, remainingRetryAttempts) {
     return new Promise((resolve, reject) => {
-        operation().then((/** @type {any} */ result) => {
+        let operationResult;
+        try {
+            // Synchronous throws (e.g. removeDownloadPath's EBUSY/EPERM) must become a rejection here,
+            // otherwise they'd bypass the retry branch below.
+            operationResult = Promise.resolve(operation());
+        } catch (error) {
+            operationResult = Promise.reject(error);
+        }
+        operationResult.then((/** @type {any} */ result) => {
             resolve(result);
         }, (/** @type {string} */ error) => {
             if (remainingRetryAttempts <= 0) {
