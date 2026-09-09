@@ -144,6 +144,31 @@ export function compressSetTimeout(): void {
     };
 }
 
+export interface FsMockOptions {
+    /** Number of leading fs.rmSync() calls that should throw synchronously (simulates Windows EBUSY/EPERM) before succeeding. */
+    rmSyncFailures?: number;
+    /** When true, fs.rmSync() throws synchronously on every call. */
+    rmSyncAlwaysFails?: boolean;
+}
+
+/** Mocks 'fs' so removeDownloadPath()'s fs.rmSync() can be made to throw synchronously, mirroring a locked-file cleanup failure on Windows. */
+export function registerFsMock(tr: tmrm.TaskMockRunner, opts: FsMockOptions = {}): void {
+    const realFs = require('fs');
+    const mockFs: { [key: string]: unknown } = Object.assign({}, realFs);
+    let rmSyncAttempts = 0;
+    mockFs['rmSync'] = (...args: unknown[]) => {
+        rmSyncAttempts++;
+        console.log('[mock-fs] rmSync-attempt ' + rmSyncAttempts);
+        if (opts.rmSyncAlwaysFails || rmSyncAttempts <= (opts.rmSyncFailures || 0)) {
+            const err: NodeJS.ErrnoException = new Error('EBUSY: resource busy or locked, rmdir');
+            err.code = 'EBUSY';
+            throw err;
+        }
+        return realFs.rmSync(...args);
+    };
+    tr.registerMock('fs', mockFs);
+}
+
 function registerShellMock(tr: tmrm.TaskMockRunner): void {
     const realShell = require('shelljs');
     const mockShell: { [key: string]: unknown } = Object.assign({}, realShell);

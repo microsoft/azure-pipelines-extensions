@@ -170,6 +170,17 @@ describe('DownloadArtifactsTfsGit Suite', function () {
                 assert(runner.stdOutContained('[mock-git] checkout 1234567890abcdef1234567890abcdef12345678'), 'should continue by checking out the requested commit after the retry succeeds');
             });
 
+            it('retries clone after removeDownloadPath() throws synchronously (e.g. Windows EBUSY/EPERM)', async function () {
+                const runner = newRunner('successRetryAfterCleanupThrows');
+                await runAndDump(runner, nodeVersion);
+                if (!runner.succeeded) fail(runner, 'expected task to succeed after cleanup retry');
+                assert(runner.stdOutContained('[mock-fs] rmSync-attempt 1'), 'should attempt cleanup once and hit the simulated throw');
+                assert(runner.stdOutContained('[mock-fs] rmSync-attempt 2'), 'should retry cleanup instead of skipping the remaining clone attempts');
+                assert(runner.stdOutContained('[mock-git] clone-attempt 1'), 'should reach git.clone() once cleanup succeeds');
+                assert(!runner.stdOutContained('[mock-git] clone-attempt 2'), 'clone itself should not have needed to retry');
+                assert(runner.stdOutContained('[mock-git] checkout master'), 'should continue to checkout after the retried clone succeeds');
+            });
+
             // ---- Failure / validation scenarios ----------------------------
 
             it('throws when service connection is empty', async function () {
@@ -286,6 +297,17 @@ describe('DownloadArtifactsTfsGit Suite', function () {
                 assert(runner.stdOutContained('[mock-git] clone-attempt 5'), 'should attempt clone the maximum number of times');
                 assert(runner.stdOutContained('OperationFailed: gitClone'), 'should emit OperationFailed once retries are exhausted');
                 assert(!runner.stdOutContained('[mock-git] checkout '), 'should not attempt checkout after clone retries are exhausted');
+            });
+
+            it('fails after exhausting retries when removeDownloadPath() always throws synchronously', async function () {
+                const runner = newRunner('failCleanupAlwaysThrows');
+                await runAndDump(runner, nodeVersion);
+                if (runner.succeeded) fail(runner, 'expected task to fail after cleanup retries exhausted');
+                // GIT_CLONE_RETRY_ATTEMPTS = 4 => 1 initial + 4 retries = 5 cleanup attempts,
+                // and git.clone() should never be reached since cleanup always throws first.
+                assert(runner.stdOutContained('[mock-fs] rmSync-attempt 5'), 'should consume all retry attempts on the synchronous throw instead of failing immediately');
+                assert(!runner.stdOutContained('[mock-git] clone-attempt'), 'should never reach git.clone() since cleanup always throws first');
+                assert(runner.stdOutContained('OperationFailed: gitClone'), 'should emit OperationFailed once retries are exhausted');
             });
         });
     });
