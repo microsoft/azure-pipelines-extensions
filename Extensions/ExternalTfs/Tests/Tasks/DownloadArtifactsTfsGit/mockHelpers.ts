@@ -106,6 +106,8 @@ export interface GitWrapperMockOptions {
     cloneFailures?: number;
     /** When true, .clone() rejects on every call. */
     cloneAlwaysFails?: boolean;
+    /** Number of times .fetch() should reject before succeeding. */
+    fetchFailures?: number;
     /** Forces .checkout() to reject on its first invocation. */
     checkoutFailsOnce?: boolean;
 }
@@ -142,6 +144,31 @@ export function compressSetTimeout(): void {
     };
 }
 
+export interface FsMockOptions {
+    /** Number of leading fs.rmSync() calls that should throw synchronously (simulates Windows EBUSY/EPERM) before succeeding. */
+    rmSyncFailures?: number;
+    /** When true, fs.rmSync() throws synchronously on every call. */
+    rmSyncAlwaysFails?: boolean;
+}
+
+/** Mocks 'fs' so removeDownloadPath()'s fs.rmSync() can be made to throw synchronously, mirroring a locked-file cleanup failure on Windows. */
+export function registerFsMock(tr: tmrm.TaskMockRunner, opts: FsMockOptions = {}): void {
+    const realFs = require('fs');
+    const mockFs: { [key: string]: unknown } = Object.assign({}, realFs);
+    let rmSyncAttempts = 0;
+    mockFs['rmSync'] = (...args: unknown[]) => {
+        rmSyncAttempts++;
+        console.log('[mock-fs] rmSync-attempt ' + rmSyncAttempts);
+        if (opts.rmSyncAlwaysFails || rmSyncAttempts <= (opts.rmSyncFailures || 0)) {
+            const err: NodeJS.ErrnoException = new Error('EBUSY: resource busy or locked, rmdir');
+            err.code = 'EBUSY';
+            throw err;
+        }
+        return realFs.rmSync(...args);
+    };
+    tr.registerMock('fs', mockFs);
+}
+
 function registerShellMock(tr: tmrm.TaskMockRunner): void {
     const realShell = require('shelljs');
     const mockShell: { [key: string]: unknown } = Object.assign({}, realShell);
@@ -167,6 +194,7 @@ function registerGitWrapperMock(tr: tmrm.TaskMockRunner, opts: GitWrapperMockOpt
     const events = require('events');
 
     let cloneAttempts = 0;
+    let fetchAttempts = 0;
     let checkoutAttempts = 0;
 
     class MockGitWrapper extends events.EventEmitter {
@@ -195,9 +223,15 @@ function registerGitWrapperMock(tr: tmrm.TaskMockRunner, opts: GitWrapperMockOpt
         }
 
         public fetch(args: string[], _options: unknown): unknown {
+            fetchAttempts++;
+            console.log('[mock-git] fetch-attempt ' + fetchAttempts);
             console.log('[mock-git] fetch ' + args.join(' '));
             const deferred = Q.defer();
-            process.nextTick(() => deferred.resolve(0));
+            if (fetchAttempts <= (opts.fetchFailures || 0)) {
+                process.nextTick(() => deferred.reject(new Error('Simulated git fetch failure attempt ' + fetchAttempts)));
+            } else {
+                process.nextTick(() => deferred.resolve(0));
+            }
             return deferred.promise;
         }
 
