@@ -1,15 +1,15 @@
-import assert = require('assert');
-import path = require('path');
+import * as assert from 'assert';
+import * as path from 'path';
 
-const mocktest = require('azure-pipelines-task-lib/mock-test');
+import * as mocktest from 'azure-pipelines-task-lib/mock-test';
 
 process.env['DISTRIBUTEDTASK_TASKS_NODE_SKIPDEBUGLOGSWHENDEBUGMODEOFF'] = 'true';
 
-function newRunner(scenario: string): any {
+function newRunner(scenario: string): mocktest.MockTestRunner {
     return new mocktest.MockTestRunner(path.join(__dirname, scenario + '.js'));
 }
 
-async function runAndDump(runner: any, nodeVersion: number): Promise<void> {
+async function runAndDump(runner: mocktest.MockTestRunner, nodeVersion: number): Promise<void> {
     try {
         await runner.runAsync(nodeVersion);
     } catch (err) {
@@ -19,7 +19,7 @@ async function runAndDump(runner: any, nodeVersion: number): Promise<void> {
     }
 }
 
-function fail(runner: any, msg: string): never {
+function fail(runner: mocktest.MockTestRunner, msg: string): never {
     console.log('--- STDOUT ---');
     console.log(runner.stdout);
     console.log('--- STDERR ---');
@@ -49,6 +49,8 @@ describe(`DownloadTeamCityArtifacts Suite (Node ${NODE_VERSION})`, function () {
             'should target the requested downloadPath');
         assert(runner.stdOutContained('[mock-artifact-engine] processItems'),
             'should invoke ArtifactEngine.processItems');
+        assert(runner.stdOutContained('[mock-artifact-engine] processItems parallelLimit=4'),
+            'should preserve ArtifactEngine default parallelism when the variable is unset');
     });
 
     it('masks password with tl.setSecret before any HTTP call', async function () {
