@@ -4,7 +4,7 @@
 //   azure-devops-node-api/WebApi           -> WebApi + getBasicHandler
 //   artifact-engine/Engine                 -> ArtifactEngine, ArtifactEngineOptions
 //   artifact-engine/Providers              -> FilesystemProvider, WebProvider
-//   artifact-engine/Providers/typed-rest-client/Handlers
+//   typed-rest-client/Handlers
 //                                          -> BasicCredentialHandler, PersonalAccessTokenCredentialHandler
 //   ./auth                                 -> getAccessTokenViaWorkloadIdentityFederation
 //
@@ -188,7 +188,7 @@ function registerHandlersMock(tr: tmrm.TaskMockRunner): void {
     function PersonalAccessTokenCredentialHandler(this: any, _token: string) {
         console.log('[mock-handlers] PersonalAccessTokenCredentialHandler');
     }
-    tr.registerMock('artifact-engine/Providers/typed-rest-client/Handlers', {
+    tr.registerMock('typed-rest-client/Handlers', {
         BasicCredentialHandler,
         PersonalAccessTokenCredentialHandler
     });
