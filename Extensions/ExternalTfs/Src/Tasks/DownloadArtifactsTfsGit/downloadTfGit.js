@@ -1,5 +1,4 @@
 const fs = require('fs');
-const url = require('url');
 
 const tl = require('azure-pipelines-task-lib/task');
 const webApim = require('azure-devops-node-api/WebApi');
@@ -267,13 +266,14 @@ function getRepositoryRemoteUrl(gitClient, repositoryId, projectId) {
  * @returns {string} The Git repository URL with authentication details included, if available.
  */
 function prepareGitConsumableRepoUrl(repoUrl, connectionDetails) {
-    const parsedRepoUrl = url.parse(repoUrl);
+    const parsedRepoUrl = new URL(repoUrl);
 
     if (connectionDetails.Username && connectionDetails.Password) {
-        parsedRepoUrl.auth = connectionDetails.Username + ':' + connectionDetails.Password;
+        parsedRepoUrl.username = connectionDetails.Username;
+        parsedRepoUrl.password = connectionDetails.Password;
     }
 
-    return url.format(parsedRepoUrl);
+    return parsedRepoUrl.toString();
 }
 
 /**
