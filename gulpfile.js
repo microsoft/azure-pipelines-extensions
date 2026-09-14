@@ -8,15 +8,13 @@ const { parseArgs } = require('node:util');
 
 // build/test script
 const admZip = require('adm-zip');
+const gulp = require('gulp');
+const gts = require('gulp-typescript');
 const shell = require('shelljs');
 // @ts-ignore
 const syncRequest = require('sync-request');
 const typescript = require('typescript');
 const xml2js = require('xml2js');
-
-// gulp modules
-const gts = require('gulp-typescript');
-const gulp = require('gulp');
 
 const pkgm = require('./package');
 const util = require('./package-utils');
@@ -141,7 +139,7 @@ gulp.task("compileNode", gulp.series("compilePS", async function () {
                         const destPath = path.join(_buildRoot, relativeExternalsPath);
 
                         // copy specific files
-                        if (!!copySpecification) {
+                        if (copySpecification) {
                             copyGroups(copySpecification, packageSource, destPath);
                         }
                     });
@@ -310,8 +308,7 @@ function copyGroup(group, sourceRoot, destRoot) {
     // copy the files
     if (group.hasOwnProperty('options') && group.options) {
         shell.cp(group.options, source, dest);
-    }
-    else {
+    } else {
         shell.cp(source, dest);
     }
 }
@@ -458,7 +455,7 @@ function compileUIExtensions(extensionRoot) {
             .pipe(tsLocal)
             .on('error', errorHandler)
             .pipe(gulp.dest(uiExtensionsPath));
-    };
+    }
 
     return;
 }
@@ -816,7 +813,7 @@ gulp.task('testLib_NodeModules', gulp.series('testLib', function () {
 gulp.task('testResources', gulp.parallel('testLib_NodeModules', 'ps1tests', 'tstests', 'copyTestData'));
 
 // Resolve the direct Mocha dependency so tests use the repository's pinned CLI.
-var _mochaBin = require.resolve('mocha/bin/_mocha');
+var _mochaBin = require.resolve('mocha/bin/mocha.js');
 
 /**
  * Spawn mocha as a separate child Node process for a single logical "suite"
@@ -851,7 +848,9 @@ function runMochaSuite(label, patterns, ignorePatterns) {
             // Normalize back to native separators for spawn args.
             var native = m.split('/').join(path.sep);
             // @ts-ignore - guard against duplicates in the glob results, which would cause mocha to run the same file multiple times and skew results (e.g. if both "Extensions/**\/*Tests.js" and "Extensions/MyExt/**/*Tests.js" are included, files under MyExt would be duplicated). Use a Set if we can assume Node 12+.
-            if (!seen[native]) { seen[native] = true; files.push(native); }
+            if (!seen[native]) {
+                seen[native] = true; files.push(native);
+            }
         });
     });
 
@@ -868,8 +867,12 @@ function runMochaSuite(label, patterns, ignorePatterns) {
 
     console.log('\n========================================');
     console.log('Running mocha suite: ' + label);
-    (patterns || []).forEach(function (p) { console.log('  pattern: ' + p); });
-    (ignorePatterns || []).forEach(function (p) { console.log('  ignore : ' + p); });
+    (patterns || []).forEach(function (p) {
+        console.log('  pattern: ' + p);
+    });
+    (ignorePatterns || []).forEach(function (p) {
+        console.log('  ignore : ' + p);
+    });
     console.log('  resolved files: ' + files.length);
     console.log('========================================');
 
@@ -890,7 +893,9 @@ function runMochaSuite(label, patterns, ignorePatterns) {
             env: process.env,
             cwd: __dirname
         });
-        child.on('exit', function (code) { resolve(code == null ? 1 : code); });
+        child.on('exit', function (code) {
+            resolve(code == null ? 1 : code);
+        });
         child.on('error', function (err) {
             console.error('Failed to spawn mocha for suite ' + label + ': ' + err.message);
             resolve(1);
@@ -920,7 +925,9 @@ async function runMochaSuitesSequentially(suites) {
     return p.then(function () {
         if (failures.length > 0) {
             console.error('\n' + failures.length + ' mocha suite(s) failed:');
-            failures.forEach(function (f) { console.error('  - ' + f.label + ' (exit code ' + f.code + ')'); });
+            failures.forEach(function (f) {
+                console.error('  - ' + f.label + ' (exit code ' + f.code + ')');
+            });
             throw new Error('Mocha test failures: ' + failures.map(function (f) { return f.label; }).join(', '));
         }
     });
@@ -1090,7 +1097,9 @@ function hitsSharedInfra(files) {
     return files.some(function (f) {
         var dotIndex = f.lastIndexOf('.');
         if (dotIndex >= 0 && SHARED_INFRA_IGNORE_EXTENSIONS.indexOf(f.substring(dotIndex).toLowerCase()) >= 0) return false;
-        return SHARED_INFRA_PREFIXES.some(function (p) { return f === p || f.indexOf(p) === 0; });
+        return SHARED_INFRA_PREFIXES.some(function (p) {
+            return f === p || f.indexOf(p) === 0;
+        });
     });
 }
 
