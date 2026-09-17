@@ -2,6 +2,8 @@ const cp = require('node:child_process');
 const fs = require('node:fs');
 const path = require('node:path');
 
+const extensionChanges = require('./extensionChangeUtils');
+
 const repoRoot = path.resolve(__dirname, '..');
 
 function git(args, options) {
@@ -21,27 +23,9 @@ function tryGit(args) {
     }
 }
 
-function normalizePath(filePath) {
-    return filePath.replace(/\\/g, '/');
-}
-
 function getStagedFiles() {
-    const output = git(['diff', '--cached', '--name-only', '--diff-filter=ACMR']);
-    return output ? output.split(/\r?\n/).map(normalizePath).filter(Boolean) : [];
-}
-
-function getPublishableExtension(filePath) {
-    const match = filePath.match(/^Extensions\/([^/]+)\//);
-    if (!match) return null;
-
-    const extensionName = match[1];
-    const manifestPath = `Extensions/${extensionName}/Src/vss-extension.json`;
-    if (!fs.existsSync(path.join(repoRoot, manifestPath))) return null;
-
-    return {
-        extensionName,
-        manifestPath
-    };
+    const output = git(['diff', '--cached', '--name-only', '--diff-filter=ACMRD']);
+    return output ? output.split(/\r?\n/).map(extensionChanges.normalizeGitPath).filter(Boolean) : [];
 }
 
 function readVersion(content, manifestPath) {
@@ -68,7 +52,7 @@ function bumpPatch(version, manifestPath) {
 
 function hasUnstagedManifestChanges(manifestPath) {
     const output = tryGit(['diff', '--name-only', '--', manifestPath]);
-    return output !== null && output.split(/\r?\n/).map(normalizePath).includes(manifestPath);
+    return output !== null && output.split(/\r?\n/).map(extensionChanges.normalizeGitPath).includes(manifestPath);
 }
 
 function stageManifest(manifestPath) {
@@ -101,48 +85,46 @@ function updateManifestVersion(manifestPath, oldVersion, newVersion) {
 
 function main() {
     const stagedFiles = getStagedFiles();
-    const extensionsByName = new Map();
+    const extensions = extensionChanges.resolveChangedPublishableExtensions(stagedFiles, repoRoot, {
+        includeAllOutsideExtensions: true
+    });
 
-    for (const filePath of stagedFiles) {
-        const extension = getPublishableExtension(filePath);
-        if (extension) {
-            extensionsByName.set(extension.extensionName, extension);
-        }
-    }
-
-    if (extensionsByName.size === 0) {
+    if (extensions.length === 0) {
         return;
     }
 
     const bumped = [];
     const skipped = [];
 
-    for (const extension of Array.from(extensionsByName.values()).sort(function (a, b) {
-        return a.extensionName.localeCompare(b.extensionName);
-    })) {
-        const stagedContent = tryGit(['show', ':' + extension.manifestPath]);
-        if (stagedContent === null) {
-            throw new Error(`${extension.manifestPath}: manifest is not tracked in the index`);
+    for (const extensionName of extensions.sort()) {
+        const manifestPath = extensionChanges.getExtensionManifestRelativePath(repoRoot, extensionName);
+        if (!manifestPath) {
+            throw new Error(`No vss-extension.json found for extension: ${extensionName}`);
         }
 
-        const headContent = tryGit(['show', 'HEAD:' + extension.manifestPath]);
-        const stagedVersion = readVersion(stagedContent, extension.manifestPath);
-        const headVersion = headContent === null ? null : readVersion(headContent, extension.manifestPath);
+        const stagedContent = tryGit(['show', ':' + manifestPath]);
+        if (stagedContent === null) {
+            throw new Error(`${manifestPath}: manifest is not tracked in the index`);
+        }
+
+        const headContent = tryGit(['show', 'HEAD:' + manifestPath]);
+        const stagedVersion = readVersion(stagedContent, manifestPath);
+        const headVersion = headContent === null ? null : readVersion(headContent, manifestPath);
 
         if (headVersion !== null && stagedVersion !== headVersion) {
-            skipped.push(`${extension.extensionName} (${stagedVersion} already staged)`);
+            skipped.push(`${extensionName} (${stagedVersion} already staged)`);
             continue;
         }
 
-        if (hasUnstagedManifestChanges(extension.manifestPath)) {
+        if (hasUnstagedManifestChanges(manifestPath)) {
             throw new Error(
-                `${extension.manifestPath} has unstaged changes. Stage or stash them before committing so the hook does not include unintended manifest edits.`
+                `${manifestPath} has unstaged changes. Stage or stash them before committing so the hook does not include unintended manifest edits.`
             );
         }
 
-        const newVersion = bumpPatch(stagedVersion, extension.manifestPath);
-        updateManifestVersion(extension.manifestPath, stagedVersion, newVersion);
-        bumped.push(`${extension.extensionName}: ${stagedVersion} -> ${newVersion}`);
+        const newVersion = bumpPatch(stagedVersion, manifestPath);
+        updateManifestVersion(manifestPath, stagedVersion, newVersion);
+        bumped.push(`${extensionName}: ${stagedVersion} -> ${newVersion}`);
     }
 
     if (bumped.length > 0) {
