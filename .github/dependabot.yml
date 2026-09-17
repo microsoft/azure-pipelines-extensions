@@ -12,3 +12,12 @@ updates:
       - dependencies
     commit-message:
       prefix: deps
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    groups:
+      github-actions:
+        patterns: ["*"]
+    schedule:
+      interval: "weekly"
+    cooldown:
+      default-days: 7

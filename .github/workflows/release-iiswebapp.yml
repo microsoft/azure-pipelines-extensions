@@ -19,12 +19,12 @@ jobs:
       contents: write # Permissions to attcach the artifact to release assets.
     
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@a37ce9120846195fa4ece8f58b268e6043cb2f26 # v3.7.0
       with:
         ref: ${{ github.event.release.target_commitish }} # Checkout the commit that used in the release.
 
     - name: Install Node.js ${{ env.node-version }}
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@3235b876344d2a9aa001b8d1453c930bba69e610 # v3.9.1
       with:
         node-version: ${{ env.node-version }}
 
@@ -42,12 +42,12 @@ jobs:
     
     - name: Get asset upload URL
       id: get_release
-      uses: bruceadams/get-release@v1.3.2
+      uses: bruceadams/get-release@74c3d60f5a28f358ccf241a00c9021ea16f0569f # v1.3.2
       env:
         GITHUB_TOKEN: ${{ github.token }}
 
     - name: Upload Extension as Release Asset
-      uses: shogo82148/actions-upload-release-asset@v1
+      uses: shogo82148/actions-upload-release-asset@aaba0f56bdbc1071f4af234d5cb16055e8a400de # v1.10.4
       with:
         upload_url: ${{ steps.get_release.outputs.upload_url }}
         asset_path: _package/IISWebAppDeploy/${{ env.extension-name }}
@@ -55,7 +55,7 @@ jobs:
         asset_content_type: application/octet-stream
         
     - name: Upload Extension as Artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@ff15f0306b3f739f7b6fd43fb5d26cd321bd4de5 # v3.2.1
       with:
         name: IISWebAppDeploy Extension Artifact
         path: _package/IISWebAppDeploy/${{ env.extension-name }}
@@ -68,13 +68,13 @@ jobs:
 
     steps:
     - name: Download a Build Artifact
-      uses: actions/download-artifact@v2.1.1
+      uses: actions/download-artifact@cbed621e49e4c01b044d60f6c80ea4ed6328b281 # v2.1.1
       with:
         name: IISWebAppDeploy Extension Artifact
         path: ./artifacts/extensions/IISWebAppDeploy/
 
     - name: Use Node.js ${{ env.node-version }}
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@3235b876344d2a9aa001b8d1453c930bba69e610 # v3.9.1
       with:
         node-version: ${{ env.node-version }}
 
