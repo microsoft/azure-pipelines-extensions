@@ -51,17 +51,16 @@ function getBaselineRef() {
 
 /**
  * Lists files that differ between the index (what is about to be committed)
- * and a baseline commit. When baselineRef is provided this covers the whole
- * branch's changes since it diverged from master, not just this commit's
- * staged diff.
- * @param {string | null} baselineRef Baseline commit to diff against, or null
- * to only diff the index against HEAD (this commit's staged changes).
+ * and a comparison point.
+ * @param {string | null} against Commit-ish to diff the index against, or
+ * null to diff the index against HEAD (i.e. only this commit's own staged
+ * changes).
  * @returns {string[]} Normalized, repo-relative changed file paths.
  */
-function getChangedFilesSinceBaseline(baselineRef) {
+function getChangedFiles(against) {
     const args = ['diff', '--cached', '--name-only', '--diff-filter=ACMRD'];
-    if (baselineRef) {
-        args.push(baselineRef);
+    if (against) {
+        args.push(against);
     }
 
     const output = git(args);
@@ -132,19 +131,33 @@ function main() {
         );
     }
 
-    const changedFiles = getChangedFilesSinceBaseline(baselineRef);
-    const extensions = extensionChanges.resolveChangedPublishableExtensions(changedFiles, repoRoot, {
+    // Rule A: files this commit itself is staging. Any of these touching an
+    // extension (or anything outside Extensions/) always triggers a bump for
+    // the affected extension(s), regardless of master.
+    const stagedFiles = getChangedFiles(null);
+    const extensionsFromThisCommit = extensionChanges.resolveChangedPublishableExtensions(stagedFiles, repoRoot, {
         includeAllOutsideExtensions: true
     });
 
-    if (extensions.length === 0) {
+    // Rule B: files changed anywhere between master and the index (i.e. the
+    // whole branch so far, including earlier commits). Used only to catch
+    // extensions whose source changed on this branch but were never bumped -
+    // e.g. a commit made before the hook existed, or with --no-verify.
+    const extensionsWithDebt = baselineRef
+        ? extensionChanges.resolveChangedPublishableExtensions(getChangedFiles(baselineRef), repoRoot, {
+            includeAllOutsideExtensions: true
+        })
+        : [];
+
+    const candidates = Array.from(new Set(extensionsFromThisCommit.concat(extensionsWithDebt))).sort();
+    if (candidates.length === 0) {
         return;
     }
 
     const bumped = [];
     const skipped = [];
 
-    for (const extensionName of extensions.sort()) {
+    for (const extensionName of candidates) {
         const manifestPath = extensionChanges.getExtensionManifestRelativePath(repoRoot, extensionName);
         if (!manifestPath) {
             throw new Error(`No vss-extension.json found for extension: ${extensionName}`);
@@ -164,7 +177,10 @@ function main() {
             continue;
         }
 
-        if (baselineRef) {
+        // This commit's own changes always warrant a bump. Otherwise, this
+        // extension is only here because of branch-wide debt vs master, so
+        // only bump it if that debt has not already been paid off.
+        if (!extensionsFromThisCommit.includes(extensionName) && baselineRef) {
             const baselineContent = tryGit(['show', baselineRef + ':' + manifestPath]);
             const baselineVersion = baselineContent === null ? null : readVersion(baselineContent, manifestPath);
 
