@@ -67,6 +67,26 @@ function getChangedFiles(against) {
     return output ? output.split(/\r?\n/).map(extensionChanges.normalizeGitPath).filter(Boolean) : [];
 }
 
+/**
+ * Finds the newest commit on this branch that changed an extension manifest.
+ * Changes after that commit have not yet been accompanied by a version bump.
+ * @param {string} manifestPath Repo-relative manifest path.
+ * @param {string} baselineRef Merge-base with master.
+ * @returns {string} The latest manifest-changing commit, or the baseline when
+ * the manifest has not changed on this branch.
+ */
+function getLatestManifestChange(manifestPath, baselineRef) {
+    const commit = tryGit([
+        'log',
+        '-1',
+        '--format=%H',
+        baselineRef + '..HEAD',
+        '--',
+        manifestPath
+    ]);
+    return commit || baselineRef;
+}
+
 function readVersion(content, manifestPath) {
     try {
         const manifest = JSON.parse(content);
@@ -139,17 +159,16 @@ function main() {
         includeAllOutsideExtensions: true
     });
 
-    // Rule B: files changed anywhere between master and the index (i.e. the
-    // whole branch so far, including earlier commits). Used only to catch
-    // extensions whose source changed on this branch but were never bumped -
-    // e.g. a commit made before the hook existed, or with --no-verify.
-    const extensionsWithDebt = baselineRef
+    // Rule B: first find extensions affected anywhere on the branch. Each
+    // candidate is checked below against its latest manifest-changing commit,
+    // so relevant changes made after an earlier bump remain detectable.
+    const branchCandidates = baselineRef
         ? extensionChanges.resolveChangedPublishableExtensions(getChangedFiles(baselineRef), repoRoot, {
             includeAllOutsideExtensions: true
         })
         : [];
 
-    const candidates = Array.from(new Set(extensionsFromThisCommit.concat(extensionsWithDebt))).sort();
+    const candidates = Array.from(new Set(extensionsFromThisCommit.concat(branchCandidates))).sort();
     if (candidates.length === 0) {
         return;
     }
@@ -177,15 +196,22 @@ function main() {
             continue;
         }
 
-        // This commit's own changes always warrant a bump. Otherwise, this
-        // extension is only here because of branch-wide debt vs master, so
-        // only bump it if that debt has not already been paid off.
+        // This commit's own changes always warrant a bump. Otherwise, check
+        // whether any relevant branch change happened after this extension's
+        // latest manifest bump.
         if (!extensionsFromThisCommit.includes(extensionName) && baselineRef) {
-            const baselineContent = tryGit(['show', baselineRef + ':' + manifestPath]);
-            const baselineVersion = baselineContent === null ? null : readVersion(baselineContent, manifestPath);
+            const latestManifestChange = getLatestManifestChange(manifestPath, baselineRef);
+            const changesSinceManifest = getChangedFiles(latestManifestChange).filter(function (filePath) {
+                return filePath !== manifestPath;
+            });
+            const affectedSinceManifest = extensionChanges.resolveChangedPublishableExtensions(
+                changesSinceManifest,
+                repoRoot,
+                { includeAllOutsideExtensions: true }
+            );
 
-            if (baselineVersion !== null && baselineVersion !== stagedVersion) {
-                skipped.push(`${extensionName} (${stagedVersion} already bumped vs master)`);
+            if (!affectedSinceManifest.includes(extensionName)) {
+                skipped.push(`${extensionName} (${stagedVersion} already covers branch changes)`);
                 continue;
             }
         }
