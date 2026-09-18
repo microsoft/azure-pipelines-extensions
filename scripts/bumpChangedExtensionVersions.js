@@ -51,6 +51,32 @@ function getBaselineRef() {
 }
 
 /**
+ * Resolves the remote-tracking ref for the current branch (e.g. `origin/foo`
+ * for local branch `foo`), representing the state of this branch as of the
+ * last successful `git push`.
+ *
+ * CI republishes every changed extension to the Marketplace on every push
+ * (see `.pipelines/1es-migration/azure-pipelines-integration.yml`) and
+ * rejects a push whose manifest version does not exceed what is already
+ * published there. Since the previous push is what put that version on the
+ * Marketplace, this ref is the right baseline for deciding whether a further
+ * bump is needed - as opposed to `getBaselineRef()`, which only tells us
+ * whether the extension was bumped at all *somewhere* on this branch.
+ * @returns {string | null} The remote-tracking ref name (not a commit SHA),
+ * or null if the current branch has no remote-tracking ref yet (detached
+ * HEAD, or the branch has never been pushed).
+ */
+function getPushedBranchRef() {
+    const branchName = tryGit(['rev-parse', '--abbrev-ref', 'HEAD']);
+    if (!branchName || branchName === 'HEAD') {
+        return null;
+    }
+
+    const remoteRef = 'origin/' + branchName;
+    return tryGit(['rev-parse', '--verify', '--quiet', remoteRef]) === null ? null : remoteRef;
+}
+
+/**
  * Lists files that differ between the index (what is about to be committed)
  * and a comparison point.
  * @param {string | null} against Commit-ish to diff the index against, or
@@ -141,6 +167,16 @@ function main() {
         return;
     }
 
+    // CI republishes every candidate extension on every push and requires its
+    // version to exceed what is already on the Marketplace - which is exactly
+    // what the previous push published. So the right "already bumped, skip
+    // it" baseline is the last pushed state of this branch (`origin/<branch>`),
+    // not master: comparing against master would only catch the first push,
+    // and every push after that would try to republish the same version and
+    // fail. Fall back to the master baseline when the branch has never been
+    // pushed yet (no remote-tracking ref to compare against).
+    const skipCheckRef = getPushedBranchRef() || baselineRef;
+
     const bumped = [];
     const skipped = [];
 
@@ -157,16 +193,17 @@ function main() {
 
         const stagedVersion = readVersion(stagedContent, manifestPath);
 
-        // Bump once per branch: if the staged version already differs from
-        // the master baseline, this extension was already bumped somewhere
-        // on this branch, so leave it alone no matter what changes further -
-        // one bump per PR is enough, it should not creep up on every commit.
-        if (baselineRef) {
-            const baselineContent = tryGit(['show', baselineRef + ':' + manifestPath]);
+        // Bump once per push: if the staged version already differs from the
+        // skip-check baseline, this extension was already bumped since that
+        // baseline was recorded, so leave it alone no matter what changes
+        // further - one bump per push is enough, it should not creep up on
+        // every commit made before the next push.
+        if (skipCheckRef) {
+            const baselineContent = tryGit(['show', skipCheckRef + ':' + manifestPath]);
             const baselineVersion = baselineContent === null ? null : readVersion(baselineContent, manifestPath);
 
             if (baselineVersion !== null && stagedVersion !== baselineVersion) {
-                skipped.push(`${extensionName} (${stagedVersion} already bumped on this branch)`);
+                skipped.push(`${extensionName} (${stagedVersion} already bumped since ${skipCheckRef})`);
                 continue;
             }
         }
