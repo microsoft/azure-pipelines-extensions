@@ -135,9 +135,7 @@ function main() {
     // Find every extension touched anywhere on this branch (from the master
     // baseline through the staged index), not just by this commit.
     const changedFiles = baselineRef ? getChangedFiles(baselineRef) : getChangedFiles(null);
-    const candidates = extensionChanges.resolveChangedPublishableExtensions(changedFiles, repoRoot, {
-        includeAllOutsideExtensions: true
-    }).sort();
+    const candidates = extensionChanges.resolveChangedPublishableExtensions(changedFiles, repoRoot).sort();
 
     if (candidates.length === 0) {
         return;
