@@ -5,6 +5,10 @@ const path = require('node:path');
 const repoRoot = path.resolve(__dirname, '..');
 const hooksPath = path.join(repoRoot, '.githooks');
 
+if (process.env.TF_BUILD || process.env.CI) {
+    process.exit(0);
+}
+
 if (!fs.existsSync(path.join(repoRoot, '.git')) || !fs.existsSync(hooksPath)) {
     process.exit(0);
 }
