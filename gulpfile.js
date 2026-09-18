@@ -20,6 +20,7 @@ const gulp = require('gulp');
 
 const pkgm = require('./package');
 const util = require('./package-utils');
+const extensionChanges = require('./scripts/extensionChangeUtils');
 
 const { values: options } = parseArgs({
     args: process.argv.slice(2),
@@ -561,7 +562,7 @@ gulp.task("syncVersions", function (cb) {
     /** @type {string[]} */
     var extensions = [];
     if (requested.toLowerCase() === 'all') {
-        extensions = discoverPublishableExtensions();
+        extensions = extensionChanges.discoverPublishableExtensions(__dirname);
     } else {
         extensions = String(options.syncVersions).split(/[,\s]+/).map(function (name) {
             return name.trim();
@@ -617,19 +618,7 @@ gulp.task("syncVersions", function (cb) {
 
         var extName = extensions[index++];
 
-        var possiblePaths = [
-            path.join(__dirname, 'Extensions', extName, 'Src', 'vss-extension.json'),
-            path.join(__dirname, 'Extensions', extName, 'src', 'vss-extension.json'),
-            path.join(__dirname, 'Extensions', extName, 'vss-extension.json')
-        ];
-
-        var manifestPath = null;
-        for (var i = 0; i < possiblePaths.length; i++) {
-            if (fs.existsSync(possiblePaths[i])) {
-                manifestPath = possiblePaths[i];
-                break;
-            }
-        }
+        var manifestPath = extensionChanges.getExtensionManifestPath(__dirname, extName);
 
         if (!manifestPath) {
             console.error('No vss-extension.json found for extension: ' + extName);
@@ -844,7 +833,7 @@ function runMochaSuite(label, patterns, ignorePatterns) {
 
     /** @type {string[]} */
     var files = [];
-    var seen = {};
+    var seen = new Set();
     (patterns || []).forEach(function (p) {
         // nocase:false to keep `*Tests.js` (capital T) from matching
         // dependency files like `tests.js` on case-insensitive filesystems.
@@ -852,8 +841,22 @@ function runMochaSuite(label, patterns, ignorePatterns) {
         matches.forEach(function (m) {
             // Normalize back to native separators for spawn args.
             var native = m.split('/').join(path.sep);
-            // @ts-ignore - guard against duplicates in the glob results, which would cause mocha to run the same file multiple times and skew results (e.g. if both "Extensions/**\/*Tests.js" and "Extensions/MyExt/**/*Tests.js" are included, files under MyExt would be duplicated). Use a Set if we can assume Node 12+.
-            if (!seen[native]) { seen[native] = true; files.push(native); }
+            // Dedupe on a canonicalized key rather than the raw matched path:
+            // overlapping glob patterns (e.g. "Extensions/**\/*Tests.js" and
+            // "Extensions/MyExt/**/*Tests.js") can resolve the same file via
+            // paths that differ by casing, separators, or relative form,
+            // which would cause mocha to run it more than once and skew
+            // results. Windows filesystems are case-insensitive, so lowercase
+            // the key there.
+            var key = path.normalize(path.resolve(native));
+            if (process.platform === 'win32') {
+                key = key.toLowerCase();
+            }
+
+            if (!seen.has(key)) {
+                seen.add(key);
+                files.push(native);
+            }
         });
     });
 
@@ -1061,74 +1064,6 @@ function getChangedFiles(filterLocalChanges) {
     return files;
 }
 
-const SHARED_INFRA_PREFIXES = [
-    'Extensions/Common/',
-    'Extensions/ArtifactEngine/',
-    'Extensions/ArtifactEngineV2/',
-    'common.json',
-    'externals.json',
-    'package.json',
-    'package-lock.json',
-    'package.js',
-    'package-utils.js',
-    'base.tsconfig.json',
-    'tsconfig.json',
-    'gulpfile.js',
-    'definitions/',
-    'TaskModules/',
-    'scripts/',
-    '.pipelines/',
-    'ci/'
-];
-const SHARED_INFRA_IGNORE_EXTENSIONS = ['.md', '.txt', '.png', '.jpg', '.gif'];
-
-/**
- * Returns true if any changed file touches shared infrastructure.
- * Documentation and image files (.md, .txt, .png, .jpg, .gif) are excluded.
- * @param {string[]} files
- * @returns {boolean}
- */
-function hitsSharedInfra(files) {
-    return files.some(function (f) {
-        var dotIndex = f.lastIndexOf('.');
-        if (dotIndex >= 0 && SHARED_INFRA_IGNORE_EXTENSIONS.indexOf(f.substring(dotIndex).toLowerCase()) >= 0) return false;
-        return SHARED_INFRA_PREFIXES.some(function (p) { return f === p || f.indexOf(p) === 0; });
-    });
-}
-
-/**
- * Given changed files and a filter function, returns matched extension names.
- * Returns null if shared infrastructure changed (caller decides semantics).
- * @param {string[]} files
- * @param {function(string): boolean} filterFn
- * @returns {string[] | null}
- */
-function resolveChangedExtensions(files, filterFn) {
-    if (hitsSharedInfra(files)) {
-        console.log("Shared infrastructure changed -> returning null (all).");
-        return null;
-    }
-    /** @type {{ [key: string]: boolean }} */
-    var selected = {};
-    files.forEach(function (f) {
-        var m = f.match(/^Extensions\/([^\/]+)\//);
-        if (!m) return;
-        var ext = m[1];
-        if (filterFn(ext)) selected[ext] = true;
-    });
-    return Object.keys(selected);
-}
-
-// Discover extensions that have Src/vss-extension.json (publishable to marketplace).
-function discoverPublishableExtensions() {
-    var extensionsRoot = path.join(__dirname, 'Extensions');
-    return fs.readdirSync(extensionsRoot).filter(function (name) {
-        var dir = path.join(extensionsRoot, name);
-        if (!fs.statSync(dir).isDirectory()) return false;
-        return fs.existsSync(path.join(dir, 'Src', 'vss-extension.json'));
-    });
-}
-
 // ---------------------------------------------------------------------------
 // resolveSuitesToRun — used by `gulp test` to pick mocha suites
 // ---------------------------------------------------------------------------
@@ -1163,7 +1098,7 @@ function resolveSuitesToRun() {
         return fs.existsSync(path.join(dir, 'Tests')) || fs.existsSync(path.join(dir, 'EngineTests'));
     });
     console.log("Discovered test-bearing extensions: " + testBearing.join(', '));
-    const result = resolveChangedExtensions(files, function (/** @type {string} */ ext) {
+    const result = extensionChanges.resolveChangedExtensions(files, function (/** @type {string} */ ext) {
         return testBearing.indexOf(ext) >= 0;
     });
 
@@ -1180,7 +1115,7 @@ function resolveSuitesToRun() {
 // ---------------------------------------------------------------------------
 
 gulp.task("detectChangedExtensions", function (done) {
-    const publishable = discoverPublishableExtensions();
+    const publishable = extensionChanges.discoverPublishableExtensions(__dirname);
     console.log("Publishable extensions: " + publishable.join(', '));
 
     const files = getChangedFiles();
@@ -1190,7 +1125,7 @@ gulp.task("detectChangedExtensions", function (done) {
         console.log("Cannot determine changed files -> returning all publishable extensions.");
         extensions = publishable;
     } else {
-        const result = resolveChangedExtensions(files, function (/** @type {string} */ ext) {
+        const result = extensionChanges.resolveChangedExtensions(files, function (/** @type {string} */ ext) {
             return publishable.indexOf(ext) >= 0;
         });
 
