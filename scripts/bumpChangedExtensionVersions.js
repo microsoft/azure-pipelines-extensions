@@ -51,6 +51,32 @@ function getBaselineRef() {
 }
 
 /**
+ * Resolves the remote-tracking ref for the current branch (e.g. `origin/foo`
+ * for local branch `foo`), representing the state of this branch as of the
+ * last successful `git push`.
+ *
+ * CI republishes every changed extension to the Marketplace on every push
+ * (see `.pipelines/1es-migration/azure-pipelines-integration.yml`) and
+ * rejects a push whose manifest version does not exceed what is already
+ * published there. Since the previous push is what put that version on the
+ * Marketplace, this ref is the right baseline for deciding whether a further
+ * bump is needed - as opposed to `getBaselineRef()`, which only tells us
+ * whether the extension was bumped at all *somewhere* on this branch.
+ * @returns {string | null} The remote-tracking ref name (not a commit SHA),
+ * or null if the current branch has no remote-tracking ref yet (detached
+ * HEAD, or the branch has never been pushed).
+ */
+function getPushedBranchRef() {
+    const branchName = tryGit(['rev-parse', '--abbrev-ref', 'HEAD']);
+    if (!branchName || branchName === 'HEAD') {
+        return null;
+    }
+
+    const remoteRef = 'origin/' + branchName;
+    return tryGit(['rev-parse', '--verify', '--quiet', remoteRef]) === null ? null : remoteRef;
+}
+
+/**
  * Lists files that differ between the index (what is about to be committed)
  * and a comparison point.
  * @param {string | null} against Commit-ish to diff the index against, or
@@ -88,6 +114,47 @@ function bumpPatch(version, manifestPath) {
     }
 
     return `${match[1]}.${match[2]}.${Number(match[3]) + 1}`;
+}
+
+/** Max time to wait for the live Marketplace check before giving up on it. */
+const LIVE_CHECK_TIMEOUT_MS = 20000;
+
+/**
+ * Attempts to bump `manifestPath` above the live Marketplace version by
+ * delegating to `scripts/BumpExtensionVersion.ps1` - the same script CI's
+ * "Verify extension versions are bumped" step uses to check what is actually
+ * published. This is necessary because these extensions are published from
+ * a shared Marketplace listing: another push (even from a different branch)
+ * can advance the Marketplace version past what this branch's own git
+ * history shows, so a purely local `+1` bump can land exactly on a version
+ * that is already published and still fail CI.
+ *
+ * Requires `pwsh` (PowerShell 7) on PATH and an authenticated `az login`
+ * session. Never throws - whenever the live check cannot run (missing
+ * `pwsh`/`az`, no network, not logged in, timeout, etc.) it returns a
+ * message describing why, and the caller falls back to the local heuristic
+ * instead of blocking the commit.
+ * @param {string} manifestPath Repo-relative path to the vss-extension.json.
+ * @returns {string | null} A warning message if the live check could not run,
+ * or null if it ran successfully (whether or not it changed the file).
+ */
+function tryLiveMarketplaceBump(manifestPath) {
+    const scriptPath = path.join(repoRoot, 'scripts', 'BumpExtensionVersion.ps1');
+    const fullManifestPath = path.join(repoRoot, manifestPath);
+
+    try {
+        cp.execFileSync(
+            'pwsh',
+            ['-NoProfile', '-NonInteractive', '-File', scriptPath, '-ManifestPath', fullManifestPath],
+            { cwd: repoRoot, encoding: 'utf8', timeout: LIVE_CHECK_TIMEOUT_MS, stdio: ['ignore', 'pipe', 'pipe'] }
+        );
+        return null;
+    }
+    catch (err) {
+        const stderr = (err && err.stderr && String(err.stderr).trim()) || '';
+        const detail = stderr.split(/\r?\n/).filter(Boolean).pop() || (err && err.message) || 'unknown error';
+        return `Marketplace check unavailable for ${manifestPath} (${detail}); falling back to local version bump.`;
+    }
 }
 
 function hasUnstagedManifestChanges(manifestPath) {
@@ -135,16 +202,25 @@ function main() {
     // Find every extension touched anywhere on this branch (from the master
     // baseline through the staged index), not just by this commit.
     const changedFiles = baselineRef ? getChangedFiles(baselineRef) : getChangedFiles(null);
-    const candidates = extensionChanges.resolveChangedPublishableExtensions(changedFiles, repoRoot, {
-        includeAllOutsideExtensions: true
-    }).sort();
+    const candidates = extensionChanges.resolveChangedPublishableExtensions(changedFiles, repoRoot).sort();
 
     if (candidates.length === 0) {
         return;
     }
 
+    // CI republishes every candidate extension on every push and requires its
+    // version to exceed what is already on the Marketplace - which is exactly
+    // what the previous push published. So the right "already bumped, skip
+    // it" baseline is the last pushed state of this branch (`origin/<branch>`),
+    // not master: comparing against master would only catch the first push,
+    // and every push after that would try to republish the same version and
+    // fail. Fall back to the master baseline when the branch has never been
+    // pushed yet (no remote-tracking ref to compare against).
+    const skipCheckRef = getPushedBranchRef() || baselineRef;
+
     const bumped = [];
     const skipped = [];
+    const upToDate = [];
 
     for (const extensionName of candidates) {
         const manifestPath = extensionChanges.getExtensionManifestRelativePath(repoRoot, extensionName);
@@ -159,16 +235,17 @@ function main() {
 
         const stagedVersion = readVersion(stagedContent, manifestPath);
 
-        // Bump once per branch: if the staged version already differs from
-        // the master baseline, this extension was already bumped somewhere
-        // on this branch, so leave it alone no matter what changes further -
-        // one bump per PR is enough, it should not creep up on every commit.
-        if (baselineRef) {
-            const baselineContent = tryGit(['show', baselineRef + ':' + manifestPath]);
+        // Bump once per push: if the staged version already differs from the
+        // skip-check baseline, this extension was already bumped since that
+        // baseline was recorded, so leave it alone no matter what changes
+        // further - one bump per push is enough, it should not creep up on
+        // every commit made before the next push.
+        if (skipCheckRef) {
+            const baselineContent = tryGit(['show', skipCheckRef + ':' + manifestPath]);
             const baselineVersion = baselineContent === null ? null : readVersion(baselineContent, manifestPath);
 
             if (baselineVersion !== null && stagedVersion !== baselineVersion) {
-                skipped.push(`${extensionName} (${stagedVersion} already bumped on this branch)`);
+                skipped.push(`${extensionName} (${stagedVersion} already bumped since ${skipCheckRef})`);
                 continue;
             }
         }
@@ -179,9 +256,28 @@ function main() {
             );
         }
 
-        const newVersion = bumpPatch(stagedVersion, manifestPath);
-        updateManifestVersion(manifestPath, stagedVersion, newVersion);
-        bumped.push(`${extensionName}: ${stagedVersion} -> ${newVersion}`);
+        // Prefer a live Marketplace-aware bump (same source of truth CI's
+        // verify step uses) so the new version is guaranteed to exceed what
+        // is actually published, even if another branch published past this
+        // branch's own git history. Fall back to the local +1 heuristic
+        // whenever the live check cannot run.
+        const liveCheckWarning = tryLiveMarketplaceBump(manifestPath);
+        if (liveCheckWarning) {
+            console.warn(liveCheckWarning);
+            const newVersion = bumpPatch(stagedVersion, manifestPath);
+            updateManifestVersion(manifestPath, stagedVersion, newVersion);
+            bumped.push(`${extensionName}: ${stagedVersion} -> ${newVersion} (local heuristic)`);
+            continue;
+        }
+
+        const liveVersion = readVersion(fs.readFileSync(path.join(repoRoot, manifestPath), 'utf8'), manifestPath);
+        if (liveVersion === stagedVersion) {
+            upToDate.push(`${extensionName} (${stagedVersion} already exceeds Marketplace)`);
+            continue;
+        }
+
+        stageManifest(manifestPath);
+        bumped.push(`${extensionName}: ${stagedVersion} -> ${liveVersion} (Marketplace check)`);
     }
 
     if (bumped.length > 0) {
@@ -194,6 +290,13 @@ function main() {
     if (skipped.length > 0) {
         console.log('Skipped extension versions:');
         skipped.forEach(function (message) {
+            console.log('  ' + message);
+        });
+    }
+
+    if (upToDate.length > 0) {
+        console.log('Already up to date:');
+        upToDate.forEach(function (message) {
             console.log('  ' + message);
         });
     }

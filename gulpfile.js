@@ -833,7 +833,7 @@ function runMochaSuite(label, patterns, ignorePatterns) {
 
     /** @type {string[]} */
     var files = [];
-    var seen = {};
+    var seen = new Set();
     (patterns || []).forEach(function (p) {
         // nocase:false to keep `*Tests.js` (capital T) from matching
         // dependency files like `tests.js` on case-insensitive filesystems.
@@ -841,8 +841,22 @@ function runMochaSuite(label, patterns, ignorePatterns) {
         matches.forEach(function (m) {
             // Normalize back to native separators for spawn args.
             var native = m.split('/').join(path.sep);
-            // @ts-ignore - guard against duplicates in the glob results, which would cause mocha to run the same file multiple times and skew results (e.g. if both "Extensions/**\/*Tests.js" and "Extensions/MyExt/**/*Tests.js" are included, files under MyExt would be duplicated). Use a Set if we can assume Node 12+.
-            if (!seen[native]) { seen[native] = true; files.push(native); }
+            // Dedupe on a canonicalized key rather than the raw matched path:
+            // overlapping glob patterns (e.g. "Extensions/**\/*Tests.js" and
+            // "Extensions/MyExt/**/*Tests.js") can resolve the same file via
+            // paths that differ by casing, separators, or relative form,
+            // which would cause mocha to run it more than once and skew
+            // results. Windows filesystems are case-insensitive, so lowercase
+            // the key there.
+            var key = path.normalize(path.resolve(native));
+            if (process.platform === 'win32') {
+                key = key.toLowerCase();
+            }
+
+            if (!seen.has(key)) {
+                seen.add(key);
+                files.push(native);
+            }
         });
     });
 

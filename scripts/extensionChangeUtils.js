@@ -23,11 +23,6 @@ const SHARED_INFRA_PREFIXES = [
 const SHARED_INFRA_IGNORE_EXTENSIONS = ['.md', '.txt', '.png', '.jpg', '.gif'];
 
 /**
- * @typedef {Object} ResolveChangedPublishableExtensionOptions
- * @property {boolean} [includeAllOutsideExtensions] - When true, any changed file outside Extensions/ selects every publishable extension.
- */
-
-/**
  * Converts a git path to the forward-slash format used by git command output.
  * @param {string} filePath
  * @returns {string}
@@ -134,22 +129,14 @@ function resolveChangedExtensions(files, filterFn) {
 
 /**
  * Resolves changed publishable extension names. Shared-infra changes always
- * select all publishable extensions; callers can also treat any file outside
- * Extensions/ as selecting all publishable extensions.
+ * select all publishable extensions.
  * @param {string[] | null} files
  * @param {string} repoRoot
- * @param {ResolveChangedPublishableExtensionOptions} [options]
  * @returns {string[]}
  */
-function resolveChangedPublishableExtensions(files, repoRoot, options) {
+function resolveChangedPublishableExtensions(files, repoRoot) {
     const publishable = discoverPublishableExtensions(repoRoot);
     if (files === null) {
-        return publishable;
-    }
-
-    if (options && options.includeAllOutsideExtensions && files.some(function (filePath) {
-        return !normalizeGitPath(filePath).startsWith('Extensions/');
-    })) {
         return publishable;
     }
 
