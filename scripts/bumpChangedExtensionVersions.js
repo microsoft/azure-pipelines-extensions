@@ -24,13 +24,14 @@ function tryGit(args) {
 }
 
 /** Branches to look for a comparison baseline, in preference order. */
-const BASELINE_BRANCH_CANDIDATES = ['master', 'origin/master'];
+const BASELINE_BRANCH_CANDIDATES = ['origin/master', 'master'];
 
 /**
  * Finds the merge-base commit between HEAD and the first available baseline
- * branch (local `master`, falling back to `origin/master`). Used to detect
- * extension changes that were committed earlier on this branch without a
- * version bump, which a plain staged-vs-HEAD diff would miss.
+ * branch (tracking `origin/master`, falling back to local `master` for offline
+ * or single-repository workflows). Used to detect extension changes that were
+ * committed earlier on this branch without a version bump, which a plain
+ * staged-vs-HEAD diff would miss.
  * @returns {string | null} The merge-base commit SHA, or null if no baseline
  * branch or common ancestor could be found (e.g. the very first commit).
  */
@@ -65,26 +66,6 @@ function getChangedFiles(against) {
 
     const output = git(args);
     return output ? output.split(/\r?\n/).map(extensionChanges.normalizeGitPath).filter(Boolean) : [];
-}
-
-/**
- * Finds the newest commit on this branch that changed an extension manifest.
- * Changes after that commit have not yet been accompanied by a version bump.
- * @param {string} manifestPath Repo-relative manifest path.
- * @param {string} baselineRef Merge-base with master.
- * @returns {string} The latest manifest-changing commit, or the baseline when
- * the manifest has not changed on this branch.
- */
-function getLatestManifestChange(manifestPath, baselineRef) {
-    const commit = tryGit([
-        'log',
-        '-1',
-        '--format=%H',
-        baselineRef + '..HEAD',
-        '--',
-        manifestPath
-    ]);
-    return commit || baselineRef;
 }
 
 function readVersion(content, manifestPath) {
@@ -146,29 +127,18 @@ function main() {
     const baselineRef = getBaselineRef();
     if (!baselineRef) {
         console.warn(
-            'Warning: could not resolve a master baseline (tried "master", "origin/master"). ' +
+            'Warning: could not resolve a master baseline (tried "origin/master", "master"). ' +
                 'Only checking this commit\'s staged changes; changes committed earlier on this branch without a version bump may be missed.'
         );
     }
 
-    // Rule A: files this commit itself is staging. Any of these touching an
-    // extension (or anything outside Extensions/) always triggers a bump for
-    // the affected extension(s), regardless of master.
-    const stagedFiles = getChangedFiles(null);
-    const extensionsFromThisCommit = extensionChanges.resolveChangedPublishableExtensions(stagedFiles, repoRoot, {
+    // Find every extension touched anywhere on this branch (from the master
+    // baseline through the staged index), not just by this commit.
+    const changedFiles = baselineRef ? getChangedFiles(baselineRef) : getChangedFiles(null);
+    const candidates = extensionChanges.resolveChangedPublishableExtensions(changedFiles, repoRoot, {
         includeAllOutsideExtensions: true
-    });
+    }).sort();
 
-    // Rule B: first find extensions affected anywhere on the branch. Each
-    // candidate is checked below against its latest manifest-changing commit,
-    // so relevant changes made after an earlier bump remain detectable.
-    const branchCandidates = baselineRef
-        ? extensionChanges.resolveChangedPublishableExtensions(getChangedFiles(baselineRef), repoRoot, {
-            includeAllOutsideExtensions: true
-        })
-        : [];
-
-    const candidates = Array.from(new Set(extensionsFromThisCommit.concat(branchCandidates))).sort();
     if (candidates.length === 0) {
         return;
     }
@@ -187,31 +157,18 @@ function main() {
             throw new Error(`${manifestPath}: manifest is not tracked in the index`);
         }
 
-        const headContent = tryGit(['show', 'HEAD:' + manifestPath]);
         const stagedVersion = readVersion(stagedContent, manifestPath);
-        const headVersion = headContent === null ? null : readVersion(headContent, manifestPath);
 
-        if (headVersion !== null && stagedVersion !== headVersion) {
-            skipped.push(`${extensionName} (${stagedVersion} already staged)`);
-            continue;
-        }
+        // Bump once per branch: if the staged version already differs from
+        // the master baseline, this extension was already bumped somewhere
+        // on this branch, so leave it alone no matter what changes further -
+        // one bump per PR is enough, it should not creep up on every commit.
+        if (baselineRef) {
+            const baselineContent = tryGit(['show', baselineRef + ':' + manifestPath]);
+            const baselineVersion = baselineContent === null ? null : readVersion(baselineContent, manifestPath);
 
-        // This commit's own changes always warrant a bump. Otherwise, check
-        // whether any relevant branch change happened after this extension's
-        // latest manifest bump.
-        if (!extensionsFromThisCommit.includes(extensionName) && baselineRef) {
-            const latestManifestChange = getLatestManifestChange(manifestPath, baselineRef);
-            const changesSinceManifest = getChangedFiles(latestManifestChange).filter(function (filePath) {
-                return filePath !== manifestPath;
-            });
-            const affectedSinceManifest = extensionChanges.resolveChangedPublishableExtensions(
-                changesSinceManifest,
-                repoRoot,
-                { includeAllOutsideExtensions: true }
-            );
-
-            if (!affectedSinceManifest.includes(extensionName)) {
-                skipped.push(`${extensionName} (${stagedVersion} already covers branch changes)`);
+            if (baselineVersion !== null && stagedVersion !== baselineVersion) {
+                skipped.push(`${extensionName} (${stagedVersion} already bumped on this branch)`);
                 continue;
             }
         }
