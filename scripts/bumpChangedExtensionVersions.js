@@ -116,6 +116,47 @@ function bumpPatch(version, manifestPath) {
     return `${match[1]}.${match[2]}.${Number(match[3]) + 1}`;
 }
 
+/** Max time to wait for the live Marketplace check before giving up on it. */
+const LIVE_CHECK_TIMEOUT_MS = 20000;
+
+/**
+ * Attempts to bump `manifestPath` above the live Marketplace version by
+ * delegating to `scripts/BumpExtensionVersion.ps1` - the same script CI's
+ * "Verify extension versions are bumped" step uses to check what is actually
+ * published. This is necessary because these extensions are published from
+ * a shared Marketplace listing: another push (even from a different branch)
+ * can advance the Marketplace version past what this branch's own git
+ * history shows, so a purely local `+1` bump can land exactly on a version
+ * that is already published and still fail CI.
+ *
+ * Requires `pwsh` (PowerShell 7) on PATH and an authenticated `az login`
+ * session. Never throws - whenever the live check cannot run (missing
+ * `pwsh`/`az`, no network, not logged in, timeout, etc.) it returns a
+ * message describing why, and the caller falls back to the local heuristic
+ * instead of blocking the commit.
+ * @param {string} manifestPath Repo-relative path to the vss-extension.json.
+ * @returns {string | null} A warning message if the live check could not run,
+ * or null if it ran successfully (whether or not it changed the file).
+ */
+function tryLiveMarketplaceBump(manifestPath) {
+    const scriptPath = path.join(repoRoot, 'scripts', 'BumpExtensionVersion.ps1');
+    const fullManifestPath = path.join(repoRoot, manifestPath);
+
+    try {
+        cp.execFileSync(
+            'pwsh',
+            ['-NoProfile', '-NonInteractive', '-File', scriptPath, '-ManifestPath', fullManifestPath],
+            { cwd: repoRoot, encoding: 'utf8', timeout: LIVE_CHECK_TIMEOUT_MS, stdio: ['ignore', 'pipe', 'pipe'] }
+        );
+        return null;
+    }
+    catch (err) {
+        const stderr = (err && err.stderr && String(err.stderr).trim()) || '';
+        const detail = stderr.split(/\r?\n/).filter(Boolean).pop() || (err && err.message) || 'unknown error';
+        return `Marketplace check unavailable for ${manifestPath} (${detail}); falling back to local version bump.`;
+    }
+}
+
 function hasUnstagedManifestChanges(manifestPath) {
     const output = tryGit(['diff', '--name-only', '--', manifestPath]);
     return output !== null && output.split(/\r?\n/).map(extensionChanges.normalizeGitPath).includes(manifestPath);
@@ -179,6 +220,7 @@ function main() {
 
     const bumped = [];
     const skipped = [];
+    const upToDate = [];
 
     for (const extensionName of candidates) {
         const manifestPath = extensionChanges.getExtensionManifestRelativePath(repoRoot, extensionName);
@@ -214,9 +256,28 @@ function main() {
             );
         }
 
-        const newVersion = bumpPatch(stagedVersion, manifestPath);
-        updateManifestVersion(manifestPath, stagedVersion, newVersion);
-        bumped.push(`${extensionName}: ${stagedVersion} -> ${newVersion}`);
+        // Prefer a live Marketplace-aware bump (same source of truth CI's
+        // verify step uses) so the new version is guaranteed to exceed what
+        // is actually published, even if another branch published past this
+        // branch's own git history. Fall back to the local +1 heuristic
+        // whenever the live check cannot run.
+        const liveCheckWarning = tryLiveMarketplaceBump(manifestPath);
+        if (liveCheckWarning) {
+            console.warn(liveCheckWarning);
+            const newVersion = bumpPatch(stagedVersion, manifestPath);
+            updateManifestVersion(manifestPath, stagedVersion, newVersion);
+            bumped.push(`${extensionName}: ${stagedVersion} -> ${newVersion} (local heuristic)`);
+            continue;
+        }
+
+        const liveVersion = readVersion(fs.readFileSync(path.join(repoRoot, manifestPath), 'utf8'), manifestPath);
+        if (liveVersion === stagedVersion) {
+            upToDate.push(`${extensionName} (${stagedVersion} already exceeds Marketplace)`);
+            continue;
+        }
+
+        stageManifest(manifestPath);
+        bumped.push(`${extensionName}: ${stagedVersion} -> ${liveVersion} (Marketplace check)`);
     }
 
     if (bumped.length > 0) {
@@ -229,6 +290,13 @@ function main() {
     if (skipped.length > 0) {
         console.log('Skipped extension versions:');
         skipped.forEach(function (message) {
+            console.log('  ' + message);
+        });
+    }
+
+    if (upToDate.length > 0) {
+        console.log('Already up to date:');
+        upToDate.forEach(function (message) {
             console.log('  ' + message);
         });
     }
