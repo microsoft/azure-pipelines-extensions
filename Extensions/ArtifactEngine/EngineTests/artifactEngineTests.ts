@@ -48,35 +48,35 @@ describe('Unit Tests', () => {
                 });
         });
 
-        it('processItems should call getArtifactItem only for artifact items that match the download pattern', (done) => {
-            var testProvider = new providers.StubProvider();
-            var downloadOptions = new engine.ArtifactEngineOptions();
-            downloadOptions.itemPattern = '@(PAth4|path5)/**';
+        it('processItems should call getArtifactItem only for artifact items that match the download pattern', async () => {
+            // Pin the feature flag off so this case-sensitive assertion isn't affected by
+            // ambient CaseInsensitiveArtifactMatchingFixEnabled state in the environment.
+            await withCaseInsensitiveArtifactMatchingFeature(false, async () => {
+                var testProvider = new providers.StubProvider();
+                var downloadOptions = new engine.ArtifactEngineOptions();
+                downloadOptions.itemPattern = '@(PAth4|path5)/**';
 
-            new engine.ArtifactEngine()
-                .processItems(testProvider, testProvider, downloadOptions)
-                .then(() => {
-                    assert.strictEqual(testProvider.getArtifactItemCalledCount, 1);
-                    done();
-                }, (err) => {
-                    throw err;
-                });
+                await new engine.ArtifactEngine()
+                    .processItems(testProvider, testProvider, downloadOptions);
+
+                assert.strictEqual(testProvider.getArtifactItemCalledCount, 1);
+            });
         });
 
         var runWindowsBasedTest = process.platform == 'win32' ? it : it.skip;
-        runWindowsBasedTest('processItems should call getArtifactItem only for artifact items that match the download pattern', (done) => {
-            var testProvider = new providers.StubProvider();
-            var downloadOptions = new engine.ArtifactEngineOptions();
-            downloadOptions.itemPattern = '@(PAth4|path5)\\**';
+        runWindowsBasedTest('processItems should call getArtifactItem only for artifact items that match the download pattern', async () => {
+            // Pin the feature flag off so this case-sensitive assertion isn't affected by
+            // ambient CaseInsensitiveArtifactMatchingFixEnabled state in the environment.
+            await withCaseInsensitiveArtifactMatchingFeature(false, async () => {
+                var testProvider = new providers.StubProvider();
+                var downloadOptions = new engine.ArtifactEngineOptions();
+                downloadOptions.itemPattern = '@(PAth4|path5)\\**';
 
-            new engine.ArtifactEngine()
-                .processItems(testProvider, testProvider, downloadOptions)
-                .then(() => {
-                    assert.strictEqual(testProvider.getArtifactItemCalledCount, 1);
-                    done();
-                }, (err) => {
-                    throw err;
-                });
+                await new engine.ArtifactEngine()
+                    .processItems(testProvider, testProvider, downloadOptions);
+
+                assert.strictEqual(testProvider.getArtifactItemCalledCount, 1);
+            });
         });
 
         it('processItems should return items after processing', (done) => {

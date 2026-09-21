@@ -205,7 +205,12 @@ if ($marketplaceVersion) {
         Write-Host "Bumping   : $localVersion -> $newVersionStr  (local <= Marketplace max)"
 
         $updatedContent = $content -replace '(?m)(^\s*"version"\s*:\s*")[\d.]+(")', "`${1}$newVersionStr`${2}"
-        Set-Content $ManifestPath $updatedContent -NoNewline -Encoding UTF8
+
+        # Write without a BOM: Set-Content/Out-File "-Encoding UTF8" on Windows PowerShell
+        # emits a UTF-8 BOM, which breaks strict JSON.parse() consumers (e.g. Node test
+        # helpers) even though the original manifest never had one.
+        $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+        [System.IO.File]::WriteAllText($ManifestPath, $updatedContent, $utf8NoBom)
         Write-Host "Updated   : $ManifestPath"
     }
     else {

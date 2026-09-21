@@ -14,9 +14,11 @@
   },
   "scripts": {
     "build": "gulp build",
+    "install-hooks": "node scripts/installGitHooks.js",
     "test": "gulp test",
     "lint": "eslint \"Extensions/**/*.ts\" \"Extensions/**/*.js\" gulpfile.js package.js package-utils.js",
-    "lint:fix": "eslint \"Extensions/**/*.ts\" \"Extensions/**/*.js\" gulpfile.js package.js package-utils.js --fix"
+    "lint:fix": "eslint \"Extensions/**/*.ts\" \"Extensions/**/*.js\" gulpfile.js package.js package-utils.js --fix",
+    "prepare": "node scripts/installGitHooks.js"
   },
   "devDependencies": {
     "@types/adm-zip": "^0.4.34",
