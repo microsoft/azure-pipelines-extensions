@@ -15,6 +15,11 @@ To use Artifact engine in your tasks or app have a look at [E2E.ts](E2ETests/jen
 ![Architecture](https://github.com/Microsoft/azure-pipelines-extensions/blob/master/Extensions/ArtifactEngine/sequence.svg)
 
 ## Development
+ArtifactEngineV2 is consumed by tasks that still advertise a Node 10 handler.
+Keep `azure-pipelines-task-lib` pinned to the Node 10-compatible version until
+those consumers migrate. A caret range can introduce newer task-lib releases
+that call `crypto.randomUUID()`, which is unavailable on Node 10.
+
 **Build**
 ---------
 1. Run npm install in ArtifactEngineV2 folder
