@@ -3,6 +3,7 @@ import { TicketState } from '../Models/ticketState';
 import { ArtifactItemStore } from '../Store/artifactItemStore';
 
 var tl = require('azure-pipelines-task-lib');
+var os = require('os');
 import * as ci from './cilogger';
 
 export class Logger {
@@ -21,7 +22,7 @@ export class Logger {
     }
 
     public static logMessage(message: string) {
-        console.log(message);
+        tl.writeExternalOutput(message + os.EOL, {source: 'remote'});
     }
 
     public logProgress() {
