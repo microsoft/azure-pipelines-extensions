@@ -76,6 +76,20 @@ describe('Unit Tests', () => {
             });
         });
 
+        // Reproduces the production scenario: real (non-mocked) win32 agent with the feature flag enabled.
+        runWindowsBasedTest('processItems should call getArtifactItem case-insensitively when CaseInsensitiveArtifactMatchingFixEnabled is enabled on a Windows agent', async () => {
+            var testProvider = new providers.StubProvider();
+            var downloadOptions = new engine.ArtifactEngineOptions();
+            downloadOptions.itemPattern = '@(PAth4|path5)/**';
+
+            await withCaseInsensitiveArtifactMatchingFeature(true, async () => {
+                await new engine.ArtifactEngine()
+                    .processItems(testProvider, testProvider, downloadOptions);
+
+                assert.strictEqual(testProvider.getArtifactItemCalledCount, 2);
+            });
+        });
+
         it('processItems should return items after processing', (done) => {
             var testProvider = new providers.StubProvider();
 
