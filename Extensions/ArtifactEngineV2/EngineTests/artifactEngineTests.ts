@@ -68,35 +68,46 @@ describe('Unit Tests', () => {
                 });
         });
 
-        it('processItems should call getArtifactItem only for artifact items that match the download pattern', (done) => {
+        it('processItems should call getArtifactItem only for artifact items that match the download pattern', async () => {
             var testProvider = new providers.StubProvider();
             var downloadOptions = new engine.ArtifactEngineOptions();
             downloadOptions.itemPattern = '@(PAth4|path5)/**';
 
-            new engine.ArtifactEngine()
-                .processItems(testProvider, testProvider, downloadOptions)
-                .then(() => {
-                    assert.strictEqual(testProvider.getArtifactItemCalledCount, 1);
-                    done();
-                }, (err) => {
-                    throw err;
-                });
+            // Real CI agents can set this pipeline feature on, so force it off to assert case-sensitive matching.
+            await withCaseInsensitiveArtifactMatchingFeature(false, async () => {
+                await new engine.ArtifactEngine()
+                    .processItems(testProvider, testProvider, downloadOptions);
+
+                assert.strictEqual(testProvider.getArtifactItemCalledCount, 1);
+            });
         });
 
         var runWindowsBasedTest = process.platform == 'win32' ? it : it.skip;
-        runWindowsBasedTest('processItems should call getArtifactItem only for artifact items that match the download pattern', (done) => {
+        runWindowsBasedTest('processItems should call getArtifactItem only for artifact items that match the download pattern', async () => {
             var testProvider = new providers.StubProvider();
             var downloadOptions = new engine.ArtifactEngineOptions();
             downloadOptions.itemPattern = '@(PAth4|path5)\\**';
 
-            new engine.ArtifactEngine()
-                .processItems(testProvider, testProvider, downloadOptions)
-                .then(() => {
-                    assert.strictEqual(testProvider.getArtifactItemCalledCount, 1);
-                    done();
-                }, (err) => {
-                    throw err;
-                });
+            await withCaseInsensitiveArtifactMatchingFeature(false, async () => {
+                await new engine.ArtifactEngine()
+                    .processItems(testProvider, testProvider, downloadOptions);
+
+                assert.strictEqual(testProvider.getArtifactItemCalledCount, 1);
+            });
+        });
+
+        // Reproduces the production scenario: real (non-mocked) win32 agent with the feature flag enabled.
+        runWindowsBasedTest('processItems should call getArtifactItem case-insensitively when CaseInsensitiveArtifactMatchingFixEnabled is enabled on a Windows agent', async () => {
+            var testProvider = new providers.StubProvider();
+            var downloadOptions = new engine.ArtifactEngineOptions();
+            downloadOptions.itemPattern = '@(PAth4|path5)/**';
+
+            await withCaseInsensitiveArtifactMatchingFeature(true, async () => {
+                await new engine.ArtifactEngine()
+                    .processItems(testProvider, testProvider, downloadOptions);
+
+                assert.strictEqual(testProvider.getArtifactItemCalledCount, 2);
+            });
         });
 
         it('processItems should return items after processing', (done) => {
@@ -256,6 +267,23 @@ describe('Unit Tests', () => {
 
         it('processItems should preserve case-sensitive matching when filesystem detection fails', async () => {
             await assertCaseInsensitiveMatching(null, 'darwin');
+        });
+
+        it('processItems should preserve case-sensitive matching on macOS when the destination provider does not support filesystem detection', async () => {
+            var testProvider = new providers.StubProvider();
+            var destinationProvider: models.IArtifactProvider = testProvider;
+            var downloadOptions = new engine.ArtifactEngineOptions();
+            downloadOptions.itemPattern = 'path1/**\n!PATH1/PATH2/**';
+            // isCaseInsensitiveFilesystem intentionally left unimplemented
+
+            await withProcessPlatform('darwin', async () => {
+                await withCaseInsensitiveArtifactMatchingFeature(true, async () => {
+                    await new engine.ArtifactEngine()
+                        .processItems(testProvider, destinationProvider, downloadOptions);
+
+                    assert.strictEqual(testProvider.getArtifactItemCalledCount, 3);
+                });
+            });
         });
 
         async function assertCaseInsensitiveMatching(
