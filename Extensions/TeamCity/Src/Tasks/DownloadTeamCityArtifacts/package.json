@@ -7,6 +7,7 @@
     "underscore": "^1.13.8"
   },
   "overrides": {
+    "brace-expansion@1": "1.1.21",
     "artifact-engine": {
       "handlebars": "4.7.9"
     },
