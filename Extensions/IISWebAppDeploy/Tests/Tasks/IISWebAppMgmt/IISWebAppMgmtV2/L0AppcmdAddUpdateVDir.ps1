@@ -31,7 +31,8 @@ Assert-WasCalled Run-Command -- -command "`"appcmdPath`"  set vdir /vdir.name:`"
 # Test 2 : Virtual Directory exists. Updating 
 
 $physicalPathAuth = "VDWindowsAuth"
-$physicalPathAuthCredentials = Get-MockCredentials
+$passwordPrefix = [Guid]::NewGuid().ToString("N")
+$physicalPathAuthCredentials = Get-MockCredentials -PasswordPrefix $passwordPrefix
 
 UnRegister-Mock Test-ApplicationExist
 Unregister-Mock Test-VirtualDirectoryExist
@@ -46,7 +47,7 @@ Add-And-Update-VirtualDirectory -siteName $websiteName -virtualPath $virtualPath
 Assert-WasCalled Test-ApplicationExist -Times 1
 Assert-WasCalled Test-VirtualDirectoryExist -Times 1
 Assert-WasCalled Run-Command -Times 1
-Assert-WasCalled Run-Command -- -command "`"appcmdPath`"  set vdir /vdir.name:`"Sample Web Site/Applcation/VDir`" -physicalPath:`"Drive:/Physical Path`" -userName:`"domain\name`" -password:`"random!123```"`$password`""
+Assert-WasCalled Run-Command -- -command "`"appcmdPath`"  set vdir /vdir.name:`"Sample Web Site/Applcation/VDir`" -physicalPath:`"Drive:/Physical Path`" -userName:`"domain\name`" -password:`"$passwordPrefix!```"`$password`""
 
 # Test 3 : Physical root folder, not application
 

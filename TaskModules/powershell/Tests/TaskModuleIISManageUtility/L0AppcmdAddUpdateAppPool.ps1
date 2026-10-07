@@ -47,7 +47,8 @@ Assert-WasCalled Invoke-VstsTool -- -FileName "appcmdPath" -Arguments " set appp
 $pipeLineMode = "Classic"
 $dotNetVersion = "v2.0"
 $appPoolIdentity = "SpecificUser"
-$appPoolCredentials = Get-MockCredentials
+$passwordPrefix = [Guid]::NewGuid().ToString("N")
+$appPoolCredentials = Get-MockCredentials -PasswordPrefix $passwordPrefix
 
 Unregister-Mock Test-AppPoolExist
 Unregister-Mock Invoke-VstsTool
@@ -59,4 +60,4 @@ Add-And-Update-AppPool -appPoolName $appPoolName -clrVersion $dotNetVersion -pip
 
 Assert-WasCalled Test-AppPoolExist -Times 1
 Assert-WasCalled Invoke-VstsTool -Times 1
-Assert-WasCalled Invoke-VstsTool -- -FileName "appcmdPath" -Arguments " set apppool /apppool.name:`"Sample App Pool`" -managedRuntimeVersion:v2.0 -managedPipelineMode:Classic -processModel.identityType:SpecificUser -processModel.userName:`"domain\name`" -processModel.password:`"random!123```"`$password`"" -RequireExitCodeZero
+Assert-WasCalled Invoke-VstsTool -- -FileName "appcmdPath" -Arguments " set apppool /apppool.name:`"Sample App Pool`" -managedRuntimeVersion:v2.0 -managedPipelineMode:Classic -processModel.identityType:SpecificUser -processModel.userName:`"domain\name`" -processModel.password:`"$passwordPrefix!```"`$password`"" -RequireExitCodeZero

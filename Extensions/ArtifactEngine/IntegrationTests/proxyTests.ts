@@ -1,4 +1,5 @@
 import * as assert from 'assert';
+import { randomBytes } from 'crypto';
 import * as http from 'http';
 import * as net from 'net';
 
@@ -12,11 +13,14 @@ describe('Integration Tests', () => {
     describe('proxy tests', () => {
 
         it('should be able to download jenkins artifact under proxy', function (done) {
+            const password = randomBytes(16).toString('hex');
+            const proxyUsername = 'admin:123';
+            const proxyPassword = `${randomBytes(16).toString('hex')}:#:`;
 
             // nock isn't working well with tunnel proxy so setting up custom server
             var proxy = http.createServer(function (req, res) {
 
-                assert.strictEqual(req.headers['authorization'], 'Basic ' + Buffer.from('username:password').toString('base64'));
+                assert.strictEqual(req.headers['authorization'], 'Basic ' + Buffer.from(`username:${password}`).toString('base64'));
                 assert.strictEqual(req.headers['user-agent'], 'artifact-engine ' + packagejson.version);
 
                 if (req.url === "/job/ArtifactEngineJob/6/api/json?tree=artifacts[*]") {
@@ -44,7 +48,7 @@ describe('Integration Tests', () => {
 
             proxy.on('connect', onConnect);
             function onConnect(req, clientSocket, head) {
-                assert.strictEqual(req.headers['proxy-authorization'], 'Basic ' + Buffer.from('admin:123:pass#123:').toString('base64'));
+                assert.strictEqual(req.headers['proxy-authorization'], 'Basic ' + Buffer.from(`${proxyUsername}:${proxyPassword}`).toString('base64'));
 
                 var serverSocket = net.connect({ port: 9011 }, function () {
                     clientSocket.write('HTTP/1.1 200 Connection established\r\n\r\n');
@@ -63,7 +67,7 @@ describe('Integration Tests', () => {
             function setUpClient() {
                 let processor = new engine.ArtifactEngine();
                 let processorOptions = getArtifactEngineOptions();
-                let webProvider = getJenkinsWebProvider();
+                let webProvider = getJenkinsWebProvider(password, proxyUsername, proxyPassword);
                 let stubProvider = new providers.StubProvider();
 
                 var processItemsPromise = processor.processItems(webProvider, stubProvider, processorOptions);
@@ -92,7 +96,7 @@ function getArtifactEngineOptions(): engine.ArtifactEngineOptions {
     return processorOptions;
 }
 
-function getJenkinsWebProvider(): providers.WebProvider {
+function getJenkinsWebProvider(password: string, proxyUsername: string, proxyPassword: string): providers.WebProvider {
     var itemsUrl = "http://127.0.0.1:9011/job/ArtifactEngineJob/6/api/json?tree=artifacts[*]"
     var variables = {
         "endpoint": {
@@ -102,14 +106,14 @@ function getJenkinsWebProvider(): providers.WebProvider {
         "version": "6"
     };
 
-    var handler = new BasicCredentialHandler("username", "password");
+    var handler = new BasicCredentialHandler("username", password);
     var webProvider = new providers.WebProvider(itemsUrl, "jenkins.handlebars", variables, handler, {
         ignoreSslError: false,
         keepAlive: true,
         proxy: {
             proxyUrl: 'http://127.0.0.1:9011',
-            proxyUsername: 'admin:123',
-            proxyPassword: 'pass#123:'
+            proxyUsername: proxyUsername,
+            proxyPassword: proxyPassword
         }
     });
 

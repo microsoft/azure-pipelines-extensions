@@ -61,7 +61,8 @@ Assert-WasCalled Run-Command -- -command "`"appcmdPath`"  set site /site.name:`"
 
 $appPoolName = ""
 $authType = "WebsiteWindowsAuth"
-$websitePhysicalPathAuthCredentials = Get-MockCredentials
+$passwordPrefix = [Guid]::NewGuid().ToString("N")
+$websitePhysicalPathAuthCredentials = Get-MockCredentials -PasswordPrefix $passwordPrefix
 
 Unregister-Mock Test-WebsiteExist
 Unregister-Mock Run-Command
@@ -75,4 +76,4 @@ Add-And-Update-Website -siteName $siteName -appPoolName $appPoolName -physicalPa
 
 Assert-WasCalled Test-WebsiteExist -Times 1
 Assert-WasCalled Run-Command -Times 1
-Assert-WasCalled Run-Command -- -command "`"appcmdPath`"  set site /site.name:`"Sample Web Site`" -[path='/'].[path='/'].physicalPath:`"Drive:/RandomPath`" -[path='/'].[path='/'].userName:`"domain\name`" -[path='/'].[path='/'].password:`"random!123```"`$password`""
+Assert-WasCalled Run-Command -- -command "`"appcmdPath`"  set site /site.name:`"Sample Web Site`" -[path='/'].[path='/'].physicalPath:`"Drive:/RandomPath`" -[path='/'].[path='/'].userName:`"domain\name`" -[path='/'].[path='/'].password:`"$passwordPrefix!```"`$password`""
