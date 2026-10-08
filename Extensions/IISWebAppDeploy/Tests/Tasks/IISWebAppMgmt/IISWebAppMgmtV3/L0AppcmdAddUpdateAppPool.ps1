@@ -47,7 +47,8 @@ Assert-WasCalled Run-Command -- -command "`"appcmdPath`"  set apppool /apppool.n
 $pipeLineMode = "Classic"
 $dotNetVersion = "v2.0"
 $appPoolIdentity = "SpecificUser"
-$appPoolCredentials = Get-MockCredentials
+$passwordPrefix = [Guid]::NewGuid().ToString("N")
+$appPoolCredentials = Get-MockCredentials -PasswordPrefix $passwordPrefix
 
 Unregister-Mock Test-AppPoolExist
 Unregister-Mock Run-Command
@@ -59,4 +60,4 @@ Add-And-Update-AppPool -appPoolName $appPoolName -clrVersion $dotNetVersion -pip
 
 Assert-WasCalled Test-AppPoolExist -Times 1
 Assert-WasCalled Run-Command -Times 1
-Assert-WasCalled Run-Command -- -command "`"appcmdPath`"  set apppool /apppool.name:`"Sample App Pool`" -managedRuntimeVersion:v2.0 -managedPipelineMode:Classic -processModel.identityType:SpecificUser -processModel.userName:`"domain\name`" -processModel.password:`"random!123```"`$password`""
+Assert-WasCalled Run-Command -- -command "`"appcmdPath`"  set apppool /apppool.name:`"Sample App Pool`" -managedRuntimeVersion:v2.0 -managedPipelineMode:Classic -processModel.identityType:SpecificUser -processModel.userName:`"domain\name`" -processModel.password:`"$passwordPrefix!```"`$password`""

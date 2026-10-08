@@ -47,7 +47,8 @@ Assert-WasCalled Invoke-VstsTool -- -FileName "appcmdPath" -Arguments " set app 
 # Test 3 : Updating the application's physical path authentication
 
 $physicalPathAuth = "ApplicationWindowsAuth"
-$physicalPathAuthCredentials = Get-MockCredentials
+$passwordPrefix = [Guid]::NewGuid().ToString("N")
+$physicalPathAuthCredentials = Get-MockCredentials -PasswordPrefix $passwordPrefix
 
 Unregister-Mock Test-ApplicationExist
 Unregister-Mock Invoke-VstsTool
@@ -59,4 +60,4 @@ Add-And-Update-Application -siteName $websiteName -virtualPath $virtualPath -phy
 
 Assert-WasCalled Test-ApplicationExist -Times 1
 Assert-WasCalled Invoke-VstsTool -Times 1
-Assert-WasCalled Invoke-VstsTool -- -FileName "appcmdPath" -Arguments " set app /app.name:`"Sample Web Site/Application`" -applicationPool:`"Sample App Pool`" -[path='/'].physicalPath:`"Drive:/New Physical Path`" -[path='/'].userName:`"domain\name`" -[path='/'].password:`"random!123```"`$password`"" -RequireExitCodeZero
+Assert-WasCalled Invoke-VstsTool -- -FileName "appcmdPath" -Arguments " set app /app.name:`"Sample Web Site/Application`" -applicationPool:`"Sample App Pool`" -[path='/'].physicalPath:`"Drive:/New Physical Path`" -[path='/'].userName:`"domain\name`" -[path='/'].password:`"$passwordPrefix!```"`$password`"" -RequireExitCodeZero

@@ -5,8 +5,10 @@ Register-Mock Get-AppCmdLocation {
 }
 
 function Get-MockCredentials {
+    param([Parameter(Mandatory = $true)][string]$PasswordPrefix)
+
     $username = "domain\name"
-    $password = 'random!123`"$password'
+    $password = $PasswordPrefix + '!`"$password'
 
     $securePass = New-Object System.Security.SecureString
     ForEach ($ch in $password.ToCharArray()) { $securePass.appendChar($ch) }

@@ -61,7 +61,8 @@ Assert-WasCalled Invoke-VstsTool -- -FileName "appcmdPath" -Arguments " set site
 
 $appPoolName = ""
 $authType = "WebsiteWindowsAuth"
-$websitePhysicalPathAuthCredentials = Get-MockCredentials
+$passwordPrefix = [Guid]::NewGuid().ToString("N")
+$websitePhysicalPathAuthCredentials = Get-MockCredentials -PasswordPrefix $passwordPrefix
 
 Unregister-Mock Test-WebsiteExist
 Unregister-Mock Invoke-VstsTool
@@ -75,4 +76,4 @@ Add-And-Update-Website -siteName $siteName -appPoolName $appPoolName -physicalPa
 
 Assert-WasCalled Test-WebsiteExist -Times 1
 Assert-WasCalled Invoke-VstsTool -Times 1
-Assert-WasCalled Invoke-VstsTool -- -FileName "appcmdPath" -Arguments " set site /site.name:`"Sample Web Site`" -[path='/'].[path='/'].physicalPath:`"Drive:/RandomPath`" -[path='/'].[path='/'].userName:`"domain\name`" -[path='/'].[path='/'].password:`"random!123```"`$password`"" -RequireExitCodeZero
+Assert-WasCalled Invoke-VstsTool -- -FileName "appcmdPath" -Arguments " set site /site.name:`"Sample Web Site`" -[path='/'].[path='/'].physicalPath:`"Drive:/RandomPath`" -[path='/'].[path='/'].userName:`"domain\name`" -[path='/'].[path='/'].password:`"$passwordPrefix!```"`$password`"" -RequireExitCodeZero
