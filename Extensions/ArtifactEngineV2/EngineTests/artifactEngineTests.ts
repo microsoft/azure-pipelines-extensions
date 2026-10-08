@@ -1,11 +1,31 @@
 import * as assert from 'assert';
+import * as os from 'os';
 
 import * as engine from '../Engine';
+import { Logger } from '../Engine/logger';
 import * as models from '../Models';
 import * as providers from '../Providers';
 
+var sinon = require('sinon');
+
 describe('Unit Tests', () => {
     describe('artifactEngine tests', () => {
+
+        it('logMessage filters VSO commands while preserving text and appending a newline', () => {
+            let output = '';
+            const writeStub = sinon.stub(process.stdout, 'write').callsFake((chunk: string | Buffer) => {
+                output += chunk.toString();
+                return true;
+            });
+
+            try {
+                Logger.logMessage('Skipping folder/##vso[task.complete result=Succeeded;]file.txt');
+            } finally {
+                writeStub.restore();
+            }
+
+            assert.strictEqual(output, 'Skipping folder/##_vso[task.complete result=Succeeded;]file.txt' + os.EOL);
+        });
 
         it('processItems should call getRootItemsCalledCount for the given artifact provider', function (done) {
             // first test is timing out sometimes in cdp
