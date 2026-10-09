@@ -13,9 +13,6 @@
     "ssh2-sftp-client": "^8.1.0",
     "typed-rest-client": "^3.0.0"
   },
-  "overrides": {
-    "js-yaml": "3.15.2"
-  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
