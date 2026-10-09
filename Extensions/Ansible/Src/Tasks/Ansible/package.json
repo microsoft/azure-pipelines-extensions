@@ -6,8 +6,8 @@
   "author": "Microsoft",
   "license": "ISC",
   "dependencies": {
-    "azure-pipelines-task-lib": "5.278.0",
-    "azure-pipelines-tasks-utility-common": "^3.279.2",
+    "azure-pipelines-task-lib": "5.281.0",
+    "azure-pipelines-tasks-utility-common": "^3.281.0",
     "shell-quote": "^1.11.0",
     "ssh2": "1.4.0",
     "ssh2-sftp-client": "^8.1.0",
