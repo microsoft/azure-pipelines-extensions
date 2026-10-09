@@ -15,6 +15,7 @@
   "scripts": {
     "build": "gulp build",
     "test": "gulp test",
+    "test:brace-expansion": "node scripts/test-brace-expansion.js",
     "lint": "eslint \"Extensions/**/*.ts\" \"Extensions/**/*.js\" gulpfile.js package.js package-utils.js",
     "lint:fix": "eslint \"Extensions/**/*.ts\" \"Extensions/**/*.js\" gulpfile.js package.js package-utils.js --fix"
   },

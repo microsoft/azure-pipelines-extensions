@@ -31,6 +31,9 @@ In order to build and package extensions you will need to install some dependenc
   - Ensure you run the command with sufficient permissions (e.g. open PowerShell as Administrator), as Azure CLI may need access to protected directories.
   - You may be prompted to log in to Azure (`az login`) because `--syncVersions` requires an access token to query the Marketplace API. The login prompt will open automatically in the browser if your session has expired.
 - `gulp test` will run all pester or mocha tests written for each task, in the Tests folder.
+- CI builds and tests run on Node.js 24. Use Node.js 24 locally (the root package requires Node.js >=20 and npm >=10.8.2).
+- `npm run test:brace-expansion` checks the installed source dependencies against their lockfiles and exercises normal brace expansion plus nested-brace and comma-parser stack-exhaustion regressions. Run it after installing dependencies in all task and ArtifactEngine package folders.
+- After `gulp build`, run `npm run test:brace-expansion -- --build` to check the corresponding dependencies in the extension build output.
 
 ### How to package extensions
 
