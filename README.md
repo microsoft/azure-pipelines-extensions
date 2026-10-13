@@ -34,6 +34,8 @@ In order to build and package extensions you will need to install some dependenc
 - CI builds and tests run on Node.js 24. Use Node.js 24 locally (the root package requires Node.js >=20 and npm >=10.8.2).
 - `npm run test:brace-expansion` checks the installed source dependencies against their lockfiles and exercises normal brace expansion plus nested-brace and comma-parser stack-exhaustion regressions. Run it after installing dependencies in all task and ArtifactEngine package folders.
 - After `gulp build`, run `npm run test:brace-expansion -- --build` to check the corresponding dependencies in the extension build output.
+- `npm run test:handlebars` checks that the installed ArtifactEngine and artifact download task dependencies use Handlebars 4.7.10 or newer and exercises prototype-constructor lookup regressions plus normal template rendering.
+- After `gulp build`, run `npm run test:handlebars -- --build` to check the corresponding dependencies in the extension build output.
 
 ### How to package extensions
 
