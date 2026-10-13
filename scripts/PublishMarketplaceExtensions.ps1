@@ -338,6 +338,8 @@ foreach ($vsix in $vsixFiles) {
 
     if (-not $isLongValidationTimeout) {
         Write-Host "##[error]Failed to publish $($vsix.Name)"
+        Write-Host "tfx exited with code $($publishResult.ExitCode). Original tfx output:"
+        Write-Host ($publishResult.Output.Replace($MarketplaceToken, '***'))
         $failCount++
         continue
     }
