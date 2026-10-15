@@ -157,10 +157,6 @@ export class ArtifactEngine {
     }
 
     private isCaseInsensitiveArtifactMatchingEnabled(destProvider: models.IArtifactProvider): boolean {
-        if (!tl.getPipelineFeature('CaseInsensitiveArtifactMatchingFixEnabled')) {
-            return false;
-        }
-
         if (process.platform === 'win32') {
             return true;
         }
