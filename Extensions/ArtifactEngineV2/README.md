@@ -4,6 +4,9 @@
 Artifact engine is a generic framework which supports download of artifacts from different providers like *jenkins, teamcity, vsts, github-releases* etc.
 The framework is extensible and other providers can be easily plugged in the downloader.
 
+## Artifact path matching
+Include and exclude patterns match case-insensitively on Windows. On macOS, matching follows the destination filesystem's case sensitivity when the provider supports filesystem detection; otherwise it remains case-sensitive. Linux matching remains case-sensitive. This behavior does not require a pipeline feature flag.
+
 ## How to Use
 To use Artifact engine in your tasks or app have a look at [E2E.ts](E2ETests/jenkins.e2e.ts
 ).

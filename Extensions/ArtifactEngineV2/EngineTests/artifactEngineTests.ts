@@ -1,6 +1,8 @@
 import * as assert from 'assert';
 import * as os from 'os';
 
+import * as tl from 'azure-pipelines-task-lib/task';
+
 import * as engine from '../Engine';
 import { Logger } from '../Engine/logger';
 import * as models from '../Models';
@@ -73,13 +75,10 @@ describe('Unit Tests', () => {
             var downloadOptions = new engine.ArtifactEngineOptions();
             downloadOptions.itemPattern = '@(PAth4|path5)/**';
 
-            // Real CI agents can set this pipeline feature on, so force it off to assert case-sensitive matching.
-            await withCaseInsensitiveArtifactMatchingFeature(false, async () => {
-                await new engine.ArtifactEngine()
-                    .processItems(testProvider, testProvider, downloadOptions);
+            await new engine.ArtifactEngine()
+                .processItems(testProvider, testProvider, downloadOptions);
 
-                assert.strictEqual(testProvider.getArtifactItemCalledCount, 1);
-            });
+            assert.strictEqual(testProvider.getArtifactItemCalledCount, process.platform === 'win32' ? 2 : 1);
         });
 
         var runWindowsBasedTest = process.platform == 'win32' ? it : it.skip;
@@ -88,26 +87,10 @@ describe('Unit Tests', () => {
             var downloadOptions = new engine.ArtifactEngineOptions();
             downloadOptions.itemPattern = '@(PAth4|path5)\\**';
 
-            await withCaseInsensitiveArtifactMatchingFeature(false, async () => {
-                await new engine.ArtifactEngine()
-                    .processItems(testProvider, testProvider, downloadOptions);
+            await new engine.ArtifactEngine()
+                .processItems(testProvider, testProvider, downloadOptions);
 
-                assert.strictEqual(testProvider.getArtifactItemCalledCount, 1);
-            });
-        });
-
-        // Reproduces the production scenario: real (non-mocked) win32 agent with the feature flag enabled.
-        runWindowsBasedTest('processItems should call getArtifactItem case-insensitively when CaseInsensitiveArtifactMatchingFixEnabled is enabled on a Windows agent', async () => {
-            var testProvider = new providers.StubProvider();
-            var downloadOptions = new engine.ArtifactEngineOptions();
-            downloadOptions.itemPattern = '@(PAth4|path5)/**';
-
-            await withCaseInsensitiveArtifactMatchingFeature(true, async () => {
-                await new engine.ArtifactEngine()
-                    .processItems(testProvider, testProvider, downloadOptions);
-
-                assert.strictEqual(testProvider.getArtifactItemCalledCount, 2);
-            });
+            assert.strictEqual(testProvider.getArtifactItemCalledCount, 2);
         });
 
         it('processItems should return items after processing', (done) => {
@@ -166,24 +149,24 @@ describe('Unit Tests', () => {
                 });
         });
 
-        it('processItems should preserve case-sensitive matching and skip detection when the feature is disabled', async () => {
+        it('processItems should match case-insensitively on Windows without reading pipeline feature flags', async () => {
             var testProvider = new providers.StubProvider();
-            var destinationProvider: models.IArtifactProvider = testProvider;
             var downloadOptions = new engine.ArtifactEngineOptions();
             downloadOptions.itemPattern = 'path1/**\n!PATH1/PATH2/**';
-            var detectionCalled = false;
-            destinationProvider.isCaseInsensitiveFilesystem = () => {
-                detectionCalled = true;
-                return true;
-            };
+            const featureStub = sinon.stub(tl, 'getPipelineFeature').throws(new Error('Pipeline feature flags must not be read'));
 
-            await withCaseInsensitiveArtifactMatchingFeature(false, async () => {
-                await new engine.ArtifactEngine()
-                    .processItems(testProvider, destinationProvider, downloadOptions);
+            try {
+                await withProcessPlatform('win32', async () => {
+                    await new engine.ArtifactEngine()
+                        .processItems(testProvider, testProvider, downloadOptions);
 
-                assert.strictEqual(testProvider.getArtifactItemCalledCount, 3);
-                assert.strictEqual(detectionCalled, false);
-            });
+                    assert.strictEqual(testProvider.getArtifactItemCalledCount, 2);
+                    assert.strictEqual(featureStub.called, false);
+                });
+            }
+            finally {
+                featureStub.restore();
+            }
         });
 
         it('processItems should skip detection and preserve case-sensitive matching on Linux', async () => {
@@ -198,13 +181,11 @@ describe('Unit Tests', () => {
             };
 
             await withProcessPlatform('linux', async () => {
-                await withCaseInsensitiveArtifactMatchingFeature(true, async () => {
-                    await new engine.ArtifactEngine()
-                        .processItems(testProvider, destinationProvider, downloadOptions);
+                await new engine.ArtifactEngine()
+                    .processItems(testProvider, destinationProvider, downloadOptions);
 
-                    assert.strictEqual(testProvider.getArtifactItemCalledCount, 3);
-                    assert.strictEqual(detectionCalled, false);
-                });
+                assert.strictEqual(testProvider.getArtifactItemCalledCount, 3);
+                assert.strictEqual(detectionCalled, false);
             });
         });
 
@@ -220,13 +201,11 @@ describe('Unit Tests', () => {
             };
 
             await withProcessPlatform('win32', async () => {
-                await withCaseInsensitiveArtifactMatchingFeature(true, async () => {
-                    await new engine.ArtifactEngine()
-                        .processItems(testProvider, destinationProvider, downloadOptions);
+                await new engine.ArtifactEngine()
+                    .processItems(testProvider, destinationProvider, downloadOptions);
 
-                    assert.strictEqual(testProvider.getArtifactItemCalledCount, 2);
-                    assert.strictEqual(detectionCalled, false);
-                });
+                assert.strictEqual(testProvider.getArtifactItemCalledCount, 2);
+                assert.strictEqual(detectionCalled, false);
             });
         });
 
@@ -246,13 +225,11 @@ describe('Unit Tests', () => {
             };
 
             await withProcessPlatform('darwin', async () => {
-                await withCaseInsensitiveArtifactMatchingFeature(true, async () => {
-                    await new engine.ArtifactEngine()
-                        .processItems(testProvider, destinationProvider, downloadOptions);
+                await new engine.ArtifactEngine()
+                    .processItems(testProvider, destinationProvider, downloadOptions);
 
-                    assert.strictEqual(testProvider.getArtifactItemCalledCount, 3);
-                    assert.strictEqual(detectionCalledCount, 1);
-                });
+                assert.strictEqual(testProvider.getArtifactItemCalledCount, 3);
+                assert.strictEqual(detectionCalledCount, 1);
             });
         });
 
@@ -260,7 +237,7 @@ describe('Unit Tests', () => {
             { target: 'a case-sensitive Linux target', platform: 'linux' as NodeJS.Platform },
             { target: 'a case-sensitive macOS target', platform: 'darwin' as NodeJS.Platform }
         ].forEach(({ target, platform }) => {
-            it(`processItems should preserve case-sensitive matching when the feature is enabled for ${target}`, async () => {
+            it(`processItems should preserve case-sensitive matching for ${target}`, async () => {
                 await assertCaseInsensitiveMatching(false, platform);
             });
         });
@@ -277,12 +254,10 @@ describe('Unit Tests', () => {
             // isCaseInsensitiveFilesystem intentionally left unimplemented
 
             await withProcessPlatform('darwin', async () => {
-                await withCaseInsensitiveArtifactMatchingFeature(true, async () => {
-                    await new engine.ArtifactEngine()
-                        .processItems(testProvider, destinationProvider, downloadOptions);
+                await new engine.ArtifactEngine()
+                    .processItems(testProvider, destinationProvider, downloadOptions);
 
-                    assert.strictEqual(testProvider.getArtifactItemCalledCount, 3);
-                });
+                assert.strictEqual(testProvider.getArtifactItemCalledCount, 3);
             });
         });
 
@@ -302,12 +277,10 @@ describe('Unit Tests', () => {
             };
 
             await withProcessPlatform(platform, async () => {
-                await withCaseInsensitiveArtifactMatchingFeature(true, async () => {
-                    await new engine.ArtifactEngine()
-                        .processItems(testProvider, destinationProvider, downloadOptions);
+                await new engine.ArtifactEngine()
+                    .processItems(testProvider, destinationProvider, downloadOptions);
 
-                    assert.strictEqual(testProvider.getArtifactItemCalledCount, isCaseInsensitive ? 2 : 3);
-                });
+                assert.strictEqual(testProvider.getArtifactItemCalledCount, isCaseInsensitive ? 2 : 3);
             });
         }
 
@@ -325,32 +298,6 @@ describe('Unit Tests', () => {
             }
             finally {
                 Object.defineProperty(process, 'platform', platformDescriptor);
-            }
-        }
-
-        async function withCaseInsensitiveArtifactMatchingFeature(
-            enabled: boolean,
-            operation: () => Promise<void>): Promise<void> {
-            const featureEnvironmentVariable =
-                'DISTRIBUTEDTASK_TASKS_CASEINSENSITIVEARTIFACTMATCHINGFIXENABLED';
-            const originalValue = process.env[featureEnvironmentVariable];
-            if (enabled) {
-                process.env[featureEnvironmentVariable] = 'true';
-            }
-            else {
-                delete process.env[featureEnvironmentVariable];
-            }
-
-            try {
-                await operation();
-            }
-            finally {
-                if (originalValue === undefined) {
-                    delete process.env[featureEnvironmentVariable];
-                }
-                else {
-                    process.env[featureEnvironmentVariable] = originalValue;
-                }
             }
         }
 
