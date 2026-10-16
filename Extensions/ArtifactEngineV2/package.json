@@ -17,7 +17,7 @@
   },
   "dependencies": {
     "azure-pipelines-task-lib": "^5.281.0",
-    "handlebars": "4.7.9",
+    "handlebars": "4.7.10",
     "typed-rest-client": "^3.0.0"
   },
   "overrides": {

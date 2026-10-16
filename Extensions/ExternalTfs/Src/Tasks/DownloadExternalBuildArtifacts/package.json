@@ -15,7 +15,7 @@
   "overrides": {
     "underscore": "1.13.8",
     "artifact-engine": {
-      "handlebars": "4.7.9"
+      "handlebars": "4.7.10"
     },
     "picomatch": "2.3.2"
   }
