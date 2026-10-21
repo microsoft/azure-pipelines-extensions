@@ -1,10 +1,15 @@
+import * as os from 'os';
+
+import type { VsoCommandMode } from 'azure-pipelines-task-lib/externaloutput';
+import * as tl from 'azure-pipelines-task-lib/task';
+
 import { ItemType } from '../Models';
 import { TicketState } from '../Models/ticketState';
 import { ArtifactItemStore } from '../Store/artifactItemStore';
 
-var tl = require('azure-pipelines-task-lib');
-var os = require('os');
 import * as ci from './cilogger';
+
+const externalOutputFeature = 'EnableArtifactEngineExternalOutput';
 
 export class Logger {
 
@@ -23,6 +28,33 @@ export class Logger {
 
     public static logMessage(message: string) {
         tl.writeExternalOutput(message + os.EOL, {source: 'remote'});
+    }
+
+    /** Logs external text while preserving debug output semantics. */
+    public static infoExternalOutput(message: string) {
+        if (tl.getPipelineFeature(externalOutputFeature)) {
+            tl.debugExternalOutput(message, { source: 'remote', vsoCommandMode: Logger.vsoCommandMode });
+        } else {
+            Logger.logInfo(message);
+        }
+    }
+
+    /** Logs external text while preserving error output semantics. */
+    public static errorExternalOutput(message: string) {
+        if (tl.getPipelineFeature(externalOutputFeature)) {
+            tl.errorExternalOutput(message, { source: 'remote', vsoCommandMode: Logger.vsoCommandMode });
+        } else {
+            Logger.logError(message);
+        }
+    }
+
+    /** Logs external text using the configured mode and native line ending. */
+    public static messageExternalOutput(message: string) {
+        if (tl.getPipelineFeature(externalOutputFeature)) {
+            tl.writeExternalOutput(message + os.EOL, { source: 'remote', vsoCommandMode: Logger.vsoCommandMode });
+        } else {
+            Logger.logMessage(message);
+        }
     }
 
     public logProgress() {
@@ -113,7 +145,7 @@ export class Logger {
             tl.debug(this.padText("", maxPathLength + 25 + 25 + 10 + 10 + 15, '-'))
             fileTickets.forEach(ticket => {
                 var duration = (ticket.finishTime.valueOf() - ticket.startTime.valueOf()) / 1000 + " secs";
-                tl.debug("| " + this.padText(ticket.artifactItem.path, maxPathLength) + " | " + this.padText(ticket.startTime.toISOString(), 25) + " | " + this.padText(ticket.finishTime.toISOString(), 25) + " | " + this.padText(duration, 10) + " | " + this.padText(ticket.state.toString().toUpperCase(), 10) + "|");
+                Logger.infoExternalOutput("| " + this.padText(ticket.artifactItem.path, maxPathLength) + " | " + this.padText(ticket.startTime.toISOString(), 25) + " | " + this.padText(ticket.finishTime.toISOString(), 25) + " | " + this.padText(duration, 10) + " | " + this.padText(ticket.state.toString().toUpperCase(), 10) + "|");
                 tl.debug(this.padText("", maxPathLength + 25 + 25 + 10 + 10 + 15, '-'))
             });
         }
@@ -127,6 +159,7 @@ export class Logger {
     }
 
     public static verbose: boolean;
+    public static vsoCommandMode: VsoCommandMode = 'blockOnly';
     private store: ArtifactItemStore;
     private startTime: Date;
 }

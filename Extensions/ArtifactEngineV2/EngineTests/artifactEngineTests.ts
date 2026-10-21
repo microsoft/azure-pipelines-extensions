@@ -149,11 +149,11 @@ describe('Unit Tests', () => {
                 });
         });
 
-        it('processItems should match case-insensitively on Windows without reading pipeline feature flags', async () => {
+        it('processItems should match case-insensitively on Windows without reading the legacy matching feature flag', async () => {
             var testProvider = new providers.StubProvider();
             var downloadOptions = new engine.ArtifactEngineOptions();
             downloadOptions.itemPattern = 'path1/**\n!PATH1/PATH2/**';
-            const featureStub = sinon.stub(tl, 'getPipelineFeature').throws(new Error('Pipeline feature flags must not be read'));
+            const featureSpy = sinon.spy(tl, 'getPipelineFeature');
 
             try {
                 await withProcessPlatform('win32', async () => {
@@ -161,11 +161,11 @@ describe('Unit Tests', () => {
                         .processItems(testProvider, testProvider, downloadOptions);
 
                     assert.strictEqual(testProvider.getArtifactItemCalledCount, 2);
-                    assert.strictEqual(featureStub.called, false);
+                    assert.strictEqual(featureSpy.calledWith('CaseInsensitiveArtifactMatchingFixEnabled'), false);
                 });
             }
             finally {
-                featureStub.restore();
+                featureSpy.restore();
             }
         });
 
