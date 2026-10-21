@@ -77,12 +77,12 @@ export class FilesystemProvider implements models.IArtifactProvider {
                     // create parent folder if it has not already been created
                     tl.mkdirP(folder);
 
-                    Logger.logMessage(tl.loc("DownloadingTo", item.path, outputItemPath));
+                    Logger.messageExternalOutput(tl.loc("DownloadingTo", item.path, outputItemPath));
                     const outputStream = fs.createWriteStream(outputItemPath);
                     stream.pipe(outputStream);
                     stream.on("end",
                         () => {
-                            Logger.logMessage(tl.loc("DownloadedTo", item.path, outputItemPath));
+                            Logger.messageExternalOutput(tl.loc("DownloadedTo", item.path, outputItemPath));
                             if (!item.metadata) {
                                 item.metadata = {};
                             }
@@ -137,7 +137,7 @@ export class FilesystemProvider implements models.IArtifactProvider {
             var items: models.ArtifactItem[] = [];
             fs.readdir(itemsPath, (error, files) => {
                 if (!!error) {
-                    Logger.logMessage(tl.loc("UnableToReadDirectory", itemsPath, error));
+                    Logger.messageExternalOutput(tl.loc("UnableToReadDirectory", itemsPath, error));
                     reject(error);
                     return;
                 }
