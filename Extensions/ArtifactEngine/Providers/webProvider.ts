@@ -73,7 +73,7 @@ export class WebProvider implements IArtifactProvider {
                 res.message.on('error', (error) => {
                     if (zipStream) {
                         zipStream.destroy(error);
-                        Logger.message(error.toString());
+                        Logger.messageExternalOutput(error.toString());
                     }
                     reject(error);
                 });
@@ -113,7 +113,7 @@ export class WebProvider implements IArtifactProvider {
                 res.readBody().then((body: string) => {
                     fs.readFile(this.getTemplateFilePath(), 'utf8', (err, templateFileContent) => {
                         if (err) {
-                            Logger.message(err ? JSON.stringify(err) : "");
+                            Logger.messageExternalOutput(err ? JSON.stringify(err) : "");
                             reject(err);
                             return;
                         }
@@ -132,7 +132,7 @@ export class WebProvider implements IArtifactProvider {
 
                             resolve(items);
                         } catch (error) {
-                            Logger.message(tl.loc("FailedToParseResponse", body, error));
+                            Logger.messageExternalOutput(tl.loc("FailedToParseResponse", body, error));
                             reject(error);
                         }
                     });

@@ -23,9 +23,9 @@ const featureVariable = 'DISTRIBUTEDTASK_TASKS_ENABLEARTIFACTENGINEEXTERNALOUTPU
 const marker = '##vso[task.setvariable variable=ARTIFACT_ENGINE_TEST]value';
 const modes: VsoCommandMode[] = ['disabled', 'telemetryOnly', 'blockOnly', 'blockAndTelemetry'];
 const methods = [
-    { external: 'info', legacy: 'logInfo', helper: 'debugExternalOutput' },
-    { external: 'error', legacy: 'logError', helper: 'errorExternalOutput' },
-    { external: 'message', legacy: 'logMessage', helper: 'writeExternalOutput' }
+    { external: 'infoExternalOutput', legacy: 'logInfo', helper: 'debugExternalOutput' },
+    { external: 'errorExternalOutput', legacy: 'logError', helper: 'errorExternalOutput' },
+    { external: 'messageExternalOutput', legacy: 'logMessage', helper: 'writeExternalOutput' }
 ] as const;
 
 describe('external logger tests', () => {
@@ -89,6 +89,7 @@ describe('external logger tests', () => {
         for (const mode of modes) {
             it(`${method.external} passes ${mode} to the matching real output helper`, () => {
                 Logger.vsoCommandMode = mode;
+                const feature = sandbox.spy(tl, 'getPipelineFeature');
                 const helper = sandbox.spy(tl, method.helper);
                 const legacy = sandbox.spy(Logger, method.legacy);
                 const text = `prefix ${marker}\r\nsecond ${marker}`;
@@ -96,8 +97,9 @@ describe('external logger tests', () => {
                 Logger[method.external](text);
 
                 assert.strictEqual(helper.callCount, 1);
+                assert.deepStrictEqual(feature.firstCall.args, ['EnableArtifactEngineExternalOutput']);
                 assert.deepStrictEqual(helper.firstCall.args, [
-                    method.external === 'message' ? text + '\n' : text,
+                    method.external === 'messageExternalOutput' ? text + '\n' : text,
                     { source: 'remote', vsoCommandMode: mode }
                 ]);
                 assert.strictEqual(legacy.callCount, 0);
@@ -108,10 +110,10 @@ describe('external logger tests', () => {
                 assert.strictEqual(
                     logged.includes('##vso[telemetry.publish'),
                     mode === 'telemetryOnly' || mode === 'blockAndTelemetry');
-                if (method.external === 'info') {
+                if (method.external === 'infoExternalOutput') {
                     assert.ok(logged.includes('##vso[task.debug]prefix '));
                 }
-                if (method.external === 'error') {
+                if (method.external === 'errorExternalOutput') {
                     assert.ok(logged.includes('##vso[task.issue type=error;'));
                 }
             });
@@ -126,33 +128,33 @@ describe('external logger tests', () => {
         });
     }
 
-    it('message preserves ordinary text and exactly one appended newline', () => {
+    it('messageExternalOutput preserves ordinary text and exactly one appended newline', () => {
         Logger.vsoCommandMode = 'blockOnly';
-        Logger.message('ordinary text');
-        Logger.message('');
-        Logger.message('already terminated\n');
+        Logger.messageExternalOutput('ordinary text');
+        Logger.messageExternalOutput('');
+        Logger.messageExternalOutput('already terminated\n');
 
         assert.ok(output.includes('ordinary text\n'));
         assert.ok(output.includes('\n'));
         assert.ok(output.includes('already terminated\n\n'));
     });
 
-    it('message blocks an incomplete command marker', () => {
+    it('messageExternalOutput blocks an incomplete command marker', () => {
         Logger.vsoCommandMode = 'blockOnly';
 
-        Logger.message('prefix ##vso[');
+        Logger.messageExternalOutput('prefix ##vso[');
 
         assert.ok(output.includes('prefix ##_vso[\n'));
     });
 
-    it('info preserves the task-lib debug framing for ordinary text', () => {
+    it('infoExternalOutput preserves the task-lib debug framing for ordinary text', () => {
         Logger.vsoCommandMode = 'blockOnly';
         output.length = 0;
         tl.debug('ordinary text\r\nsecond');
         const legacy = output.join('');
         output.length = 0;
 
-        Logger.info('ordinary text\r\nsecond');
+        Logger.infoExternalOutput('ordinary text\r\nsecond');
 
         assert.ok(output.join('').endsWith(legacy));
     });
@@ -168,7 +170,7 @@ describe('external logger tests', () => {
         let rootCalls = 0;
         sandbox.stub(provider, 'getRootItems').callsFake(() => {
             assert.strictEqual(Logger.vsoCommandMode, expectedModes[rootCalls++]);
-            Logger.message(marker);
+            Logger.messageExternalOutput(marker);
             return Promise.resolve([]);
         });
 
@@ -201,7 +203,7 @@ describe('external logger tests', () => {
         ticket.state = TicketState.Processed;
         ticket.startTime = new Date('2026-01-01T00:00:00Z');
         ticket.finishTime = new Date('2026-01-01T00:00:01Z');
-        const external = sandbox.spy(Logger, 'info');
+        const external = sandbox.spy(Logger, 'infoExternalOutput');
         const telemetry = sandbox.stub(ci, 'publishEvent');
         Logger.verbose = true;
         Logger.vsoCommandMode = 'blockOnly';
@@ -239,7 +241,7 @@ describe('external logger tests', () => {
                 this.push(null);
             }
         });
-        const external = sandbox.spy(Logger, 'message');
+        const external = sandbox.spy(Logger, 'messageExternalOutput');
         Logger.vsoCommandMode = 'blockOnly';
 
         const result = await provider.putArtifactItem(item, source);
@@ -261,7 +263,7 @@ describe('external logger tests', () => {
         sandbox.stub(provider.webClient, 'get').resolves({
             readBody: () => Promise.resolve(body)
         });
-        const external = sandbox.spy(Logger, 'message');
+        const external = sandbox.spy(Logger, 'messageExternalOutput');
         Logger.vsoCommandMode = 'blockOnly';
 
         try {
@@ -285,8 +287,8 @@ describe('external logger tests', () => {
         sandbox.stub(provider, 'getRootItems').resolves([item]);
         sandbox.stub(provider, 'getArtifactItem').rejects(failure);
         sandbox.stub(ci, 'publishEvent');
-        const message = sandbox.spy(Logger, 'message');
-        const info = sandbox.spy(Logger, 'info');
+        const message = sandbox.spy(Logger, 'messageExternalOutput');
+        const info = sandbox.spy(Logger, 'infoExternalOutput');
         const options = new ArtifactEngineOptions();
         options.parallelProcessingLimit = 1;
         options.retryLimit = 2;
@@ -310,7 +312,7 @@ describe('external logger tests', () => {
         sandbox.stub(provider, 'getRootItems').resolves([item]);
         const download = sandbox.spy(provider, 'getArtifactItem');
         sandbox.stub(ci, 'publishEvent');
-        const message = sandbox.spy(Logger, 'message');
+        const message = sandbox.spy(Logger, 'messageExternalOutput');
         const options = new ArtifactEngineOptions();
         options.parallelProcessingLimit = 1;
         options.itemPattern = 'unmatched';
@@ -327,7 +329,7 @@ describe('external logger tests', () => {
 
     it('leaves internal progress counters unfiltered', () => {
         const clock = sandbox.useFakeTimers();
-        const external = sandbox.spy(Logger, 'info');
+        const external = sandbox.spy(Logger, 'infoExternalOutput');
         Logger.verbose = true;
 
         new Logger(new ArtifactItemStore()).logProgress();
@@ -339,7 +341,7 @@ describe('external logger tests', () => {
 
     it('keeps worker status and enqueue counts on the trusted internal API', async () => {
         const internal = sandbox.spy(Logger, 'logInfo');
-        const external = sandbox.spy(Logger, 'info');
+        const external = sandbox.spy(Logger, 'infoExternalOutput');
         const worker = new Worker<ArtifactItem>(
             3, () => Promise.resolve(), () => undefined, () => true, () => false);
         await worker.init();
@@ -357,7 +359,7 @@ describe('external logger tests', () => {
 
     it('does not log verbose rows or schedule progress when verbose is false', () => {
         const clock = sandbox.useFakeTimers();
-        const external = sandbox.spy(Logger, 'info');
+        const external = sandbox.spy(Logger, 'infoExternalOutput');
         sandbox.stub(ci, 'publishEvent');
         const logger = new Logger(new ArtifactItemStore());
 

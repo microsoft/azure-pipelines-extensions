@@ -36,13 +36,14 @@ original logging behavior regardless of the mode. Enabling the feature alone is
 not a mitigation: the caller must explicitly select a blocking mode.
 `telemetryOnly` is observation, not protection.
 
-For library contributors, use `Logger.info`, `Logger.error`, and `Logger.message`
-for external or mixed-origin messages, including artifact paths, metadata,
+For library contributors, use `Logger.infoExternalOutput`,
+`Logger.errorExternalOutput`, and `Logger.messageExternalOutput` for external
+or mixed-origin messages, including artifact paths, metadata,
 response bodies, and error text. These methods use task-lib's external-output
 helpers, preserving debug, error, and ordinary output respectively:
 
 ```ts
-Logger.message(tl.loc('DownloadingTo', item.path, outputItemPath));
+Logger.messageExternalOutput(tl.loc('DownloadingTo', item.path, outputItemPath));
 ```
 
 Keep `Logger.logInfo`, `Logger.logError`, and `Logger.logMessage` for trusted
