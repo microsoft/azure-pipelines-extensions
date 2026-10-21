@@ -942,6 +942,7 @@ function discoverBuiltTestBearingExtensions() {
 }
 
 gulp.task("test", gulp.series("testResources", function () {
+    require('./scripts/test-extension-selection')();
     process.env['TASK_TEST_TEMP'] = path.join(__dirname, _testTemp);
     shell.rm('-rf', _testTemp);
     shell.mkdir('-p', _testTemp);
@@ -1082,17 +1083,33 @@ const SHARED_INFRA_PREFIXES = [
 ];
 const SHARED_INFRA_IGNORE_EXTENSIONS = ['.md', '.txt', '.png', '.jpg', '.gif'];
 
+// Standalone libraries and build/test infrastructure require validation, not
+// republishing unchanged extensions. Bundled shared inputs still fan out publication.
+const SHARED_PUBLICATION_PREFIXES = [
+    'Extensions/Common/',
+    'common.json',
+    'externals.json',
+    'package.json',
+    'package-lock.json',
+    'package.js',
+    'package-utils.js',
+    'base.tsconfig.json',
+    'tsconfig.json',
+    'TaskModules/'
+];
+
 /**
  * Returns true if any changed file touches shared infrastructure.
  * Documentation and image files (.md, .txt, .png, .jpg, .gif) are excluded.
  * @param {string[]} files
+ * @param {string[]} [prefixes]
  * @returns {boolean}
  */
-function hitsSharedInfra(files) {
+function hitsSharedInfra(files, prefixes = SHARED_INFRA_PREFIXES) {
     return files.some(function (f) {
         var dotIndex = f.lastIndexOf('.');
         if (dotIndex >= 0 && SHARED_INFRA_IGNORE_EXTENSIONS.indexOf(f.substring(dotIndex).toLowerCase()) >= 0) return false;
-        return SHARED_INFRA_PREFIXES.some(function (p) { return f === p || f.indexOf(p) === 0; });
+        return prefixes.some(function (p) { return f === p || f.indexOf(p) === 0; });
     });
 }
 
@@ -1101,10 +1118,11 @@ function hitsSharedInfra(files) {
  * Returns null if shared infrastructure changed (caller decides semantics).
  * @param {string[]} files
  * @param {function(string): boolean} filterFn
+ * @param {string[]} [sharedInfraPrefixes]
  * @returns {string[] | null}
  */
-function resolveChangedExtensions(files, filterFn) {
-    if (hitsSharedInfra(files)) {
+function resolveChangedExtensions(files, filterFn, sharedInfraPrefixes) {
+    if (hitsSharedInfra(files, sharedInfraPrefixes)) {
         console.log("Shared infrastructure changed -> returning null (all).");
         return null;
     }
@@ -1192,7 +1210,7 @@ gulp.task("detectChangedExtensions", function (done) {
     } else {
         const result = resolveChangedExtensions(files, function (/** @type {string} */ ext) {
             return publishable.indexOf(ext) >= 0;
-        });
+        }, SHARED_PUBLICATION_PREFIXES);
 
         if (result === null) {
             console.log("Shared infra changed -> returning all publishable extensions.");

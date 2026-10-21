@@ -4,6 +4,7 @@ import * as path from 'path';
 import { Readable, Writable } from 'stream';
 
 import type { VsoCommandMode } from 'azure-pipelines-task-lib/externaloutput';
+import * as taskLibInternal from 'azure-pipelines-task-lib/internal';
 import * as tl from 'azure-pipelines-task-lib/task';
 // eslint-disable-next-line import/no-extraneous-dependencies -- EngineTests is a test directory.
 import * as sinon from 'sinon';
@@ -63,12 +64,17 @@ describe('external logger tests', () => {
             Logger.vsoCommandMode = 'blockAndTelemetry';
             const feature = sandbox.spy(tl, 'getPipelineFeature');
             const external = sandbox.spy(tl, method.helper);
+            const debug = sandbox.spy(tl, 'debug');
 
             Logger[method.legacy](marker);
 
             assert.strictEqual(feature.callCount, 0);
             assert.strictEqual(external.callCount, 0);
-            assert.ok(output.join('').includes(marker));
+            if (method.legacy === 'logInfo') {
+                assert.ok(debug.calledWith(marker));
+            } else {
+                assert.ok(output.join('').includes(marker));
+            }
         });
 
         for (const flag of [undefined, 'false']) {
@@ -92,6 +98,7 @@ describe('external logger tests', () => {
                 const feature = sandbox.spy(tl, 'getPipelineFeature');
                 const helper = sandbox.spy(tl, method.helper);
                 const legacy = sandbox.spy(Logger, method.legacy);
+                const debug = sandbox.spy(taskLibInternal, '_debug');
                 const text = `prefix ${marker}\r\nsecond ${marker}`;
 
                 Logger[method.external](text);
@@ -105,14 +112,15 @@ describe('external logger tests', () => {
                 assert.strictEqual(legacy.callCount, 0);
                 const blocked = mode === 'blockOnly' || mode === 'blockAndTelemetry';
                 const logged = output.join('');
-                assert.strictEqual(logged.includes(marker), !blocked);
-                assert.strictEqual(logged.includes('##_vso[task.setvariable'), blocked);
+                if (method.external === 'infoExternalOutput') {
+                    assert.ok(debug.calledWith(blocked ? text.replace(/##vso\[/g, '##_vso[') : text));
+                } else {
+                    assert.strictEqual(logged.includes(marker), !blocked);
+                    assert.strictEqual(logged.includes('##_vso[task.setvariable'), blocked);
+                }
                 assert.strictEqual(
                     logged.includes('##vso[telemetry.publish'),
                     mode === 'telemetryOnly' || mode === 'blockAndTelemetry');
-                if (method.external === 'infoExternalOutput') {
-                    assert.ok(logged.includes('##vso[task.debug]prefix '));
-                }
                 if (method.external === 'errorExternalOutput') {
                     assert.ok(logged.includes('##vso[task.issue type=error;'));
                 }
@@ -149,6 +157,7 @@ describe('external logger tests', () => {
 
     it('infoExternalOutput preserves the task-lib debug framing for ordinary text', () => {
         Logger.vsoCommandMode = 'blockOnly';
+        const debug = sandbox.spy(taskLibInternal, '_debug');
         output.length = 0;
         tl.debug('ordinary text\r\nsecond');
         const legacy = output.join('');
@@ -156,6 +165,7 @@ describe('external logger tests', () => {
 
         Logger.infoExternalOutput('ordinary text\r\nsecond');
 
+        assert.ok(debug.calledWith('ordinary text\r\nsecond'));
         assert.ok(output.join('').endsWith(legacy));
     });
 
@@ -204,6 +214,8 @@ describe('external logger tests', () => {
         ticket.startTime = new Date('2026-01-01T00:00:00Z');
         ticket.finishTime = new Date('2026-01-01T00:00:01Z');
         const external = sandbox.spy(Logger, 'infoExternalOutput');
+        const debug = sandbox.spy(taskLibInternal, '_debug');
+        const internal = sandbox.spy(tl, 'debug');
         const telemetry = sandbox.stub(ci, 'publishEvent');
         Logger.verbose = true;
         Logger.vsoCommandMode = 'blockOnly';
@@ -214,8 +226,8 @@ describe('external logger tests', () => {
         assert.ok(external.firstCall.args[0].includes(item.path));
         assert.strictEqual(item.path, `drop/${marker}\r\nsecond`);
         assert.ok(!output.join('').includes(marker));
-        assert.ok(output.join('').includes('##_vso[task.setvariable'));
-        assert.ok(output.join('').includes('##vso[task.debug]Summary:'));
+        assert.ok(debug.calledWithMatch('##_vso[task.setvariable'));
+        assert.ok(internal.calledWith('Summary:'));
         assert.strictEqual(telemetry.callCount, 1);
         assert.strictEqual(telemetry.firstCall.args[0], 'performance');
     });
@@ -330,13 +342,14 @@ describe('external logger tests', () => {
     it('leaves internal progress counters unfiltered', () => {
         const clock = sandbox.useFakeTimers();
         const external = sandbox.spy(Logger, 'infoExternalOutput');
+        const debug = sandbox.spy(tl, 'debug');
         Logger.verbose = true;
 
         new Logger(new ArtifactItemStore()).logProgress();
         clock.tick(5000);
 
         assert.strictEqual(external.callCount, 0);
-        assert.ok(output.join('').includes('Total Items: 0, Processed: 0'));
+        assert.ok(debug.calledWithMatch('Total Items: 0, Processed: 0'));
     });
 
     it('keeps worker status and enqueue counts on the trusted internal API', async () => {
