@@ -14,6 +14,7 @@ export class ArtifactEngine {
         var artifactDownloadTicketsPromise = new Promise<models.ArtifactDownloadTicket[]>((resolve, reject) => {
             const workers: Promise<void>[] = [];
             artifactEngineOptions = artifactEngineOptions || new ArtifactEngineOptions();
+            Logger.vsoCommandMode = artifactEngineOptions.vsoCommandMode ?? 'disabled';
             this.createPatternList(artifactEngineOptions);
             this.isCaseInsensitiveArtifactMatching =
                 this.isCaseInsensitiveArtifactMatchingEnabled(destProvider);
@@ -75,7 +76,7 @@ export class ArtifactEngine {
                 reject(err);
             } else {
                 this.artifactItemStore.increaseRetryCount(item);
-                Logger.logMessage(tl.loc("RetryingDownload", item.path, (retryCount + 1)));
+                Logger.message(tl.loc("RetryingDownload", item.path, (retryCount + 1)));
                 // retry interval sequence 5s 15s 45s 135s
                 // 2 min is the time limit for freeing of ports
                 setTimeout(() => this
@@ -100,24 +101,24 @@ export class ArtifactEngine {
             };
 
             if (tl.match([pathToMatch], this.patternList, null, matchOptions).length > 0) {
-                Logger.logInfo("Processing " + item.path);
+                Logger.info("Processing " + item.path);
                 sourceProvider.getArtifactItem(item).then((contentStream) => {
-                    Logger.logInfo("Got download stream for item: " + item.path);
+                    Logger.info("Got download stream for item: " + item.path);
                     destProvider.putArtifactItem(item, contentStream)
                         .then((item) => {
                             this.artifactItemStore.updateState(item, models.TicketState.Processed);
                             resolve();
                         }, (err) => {
-                            Logger.logInfo("Error placing file " + item.path + ": " + err);
+                            Logger.info("Error placing file " + item.path + ": " + err);
                             retryIfRequired(err);
                         });
                 }, (err) => {
-                    Logger.logInfo("Error getting file " + item.path + ": " + err);
+                    Logger.info("Error getting file " + item.path + ": " + err);
                     retryIfRequired(err);
                 });
             }
             else {
-                Logger.logMessage(tl.loc("SkippingItem", pathToMatch));
+                Logger.message(tl.loc("SkippingItem", pathToMatch));
                 this.artifactItemStore.updateState(item, models.TicketState.Skipped);
                 resolve();
             }
@@ -142,7 +143,7 @@ export class ArtifactEngine {
                             this.artifactItemStore.updateState(item, models.TicketState.Processed);
                             resolve();
                         }, (err) => {
-                            Logger.logInfo("Error creating folder " + item.path + ": " + err);
+                            Logger.info("Error creating folder " + item.path + ": " + err);
                             retryIfRequired(err);
                         });
                 }
@@ -150,7 +151,7 @@ export class ArtifactEngine {
                 Logger.logInfo("Enqueued " + items.length + " for processing.");
                 resolve();
             }, (err) => {
-                Logger.logInfo("Error getting " + item.path + ":" + err);
+                Logger.info("Error getting " + item.path + ":" + err);
                 retryIfRequired(err);
             });
         }
@@ -202,12 +203,12 @@ export class ArtifactEngine {
 tl.setResourcePath(path.join(path.dirname(__dirname), 'lib.json'));
 process.on('unhandledRejection', (err) => {
     ci.publishEvent('reliability', <ci.IReliabilityData>{ issueType: 'unhandledRejection', errorMessage: JSON.stringify(err, Object.getOwnPropertyNames(err)) });
-    Logger.logError(tl.loc("UnhandledRejection", err));
+    Logger.error(tl.loc("UnhandledRejection", err));
     throw err;
 });
 
 process.on('uncaughtException', (err) => {
     ci.publishEvent('reliability', <ci.IReliabilityData>{ issueType: 'uncaughtException', errorMessage: JSON.stringify(err, Object.getOwnPropertyNames(err)) });
-    Logger.logError(tl.loc("UnhandledException", err));
+    Logger.error(tl.loc("UnhandledException", err));
     throw err;
 });

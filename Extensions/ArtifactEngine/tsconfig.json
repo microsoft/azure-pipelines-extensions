@@ -4,6 +4,7 @@
         "module": "commonjs",
         "sourceMap": true,
         "moduleResolution": "node",
+        "types": ["mocha", "node"],
         "declaration": true,
         "rootDir": ".",
         "removeComments": true,

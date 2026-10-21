@@ -1,3 +1,5 @@
+import type { VsoCommandMode } from 'azure-pipelines-task-lib/externaloutput';
+
 export class ArtifactEngineOptions {
     retryLimit: number = 5;
     retryIntervalInSeconds: number = 5;
@@ -5,4 +7,5 @@ export class ArtifactEngineOptions {
     parallelProcessingLimit: number = 4;
     itemPattern: string = '**';
     verbose: boolean = false;
+    vsoCommandMode?: VsoCommandMode = 'disabled';
 }
