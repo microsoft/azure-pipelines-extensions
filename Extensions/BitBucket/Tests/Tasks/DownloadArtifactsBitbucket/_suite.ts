@@ -1,16 +1,52 @@
 import assert = require('assert');
+import { EventEmitter } from 'events';
 import fs = require('fs');
 import path = require('path');
+import { PassThrough } from 'stream';
 
-const mocktest = require('azure-pipelines-task-lib/mock-test');
+import { MockTestRunner } from 'azure-pipelines-task-lib/mock-test';
+
+interface WrapperExecOptions {
+    creds?: boolean;
+    debugOutput?: boolean;
+    cwd?: string;
+    env?: NodeJS.ProcessEnv;
+    outStream?: NodeJS.WritableStream;
+    errStream?: NodeJS.WritableStream;
+}
+
+interface WrapperUnderTest extends EventEmitter {
+    username: string;
+    password: string;
+    clone(repository: string, progress: boolean, folder: string, options: WrapperExecOptions): Promise<number>;
+    fetch(args: string[], options: WrapperExecOptions): Promise<number>;
+    checkout(ref: string, options: WrapperExecOptions): Promise<number>;
+    reset(args: string[], options: WrapperExecOptions): Promise<number>;
+    exec(args: string[], options: WrapperExecOptions): Promise<number>;
+}
+
+type ToolOutputHandler = (data: string | Buffer) => void;
+
+interface MockToolRunner {
+    on(name: string, callback: ToolOutputHandler): void;
+    arg(value: string): void;
+    execAsync(options: WrapperExecOptions): Promise<number>;
+}
+
+interface TaskLibMockTarget {
+    which(tool: string, required?: boolean): string;
+    tool(toolPath: string): MockToolRunner;
+    setSecret(value: string): void;
+    warning(message: string): void;
+}
 
 process.env['DISTRIBUTEDTASK_TASKS_NODE_SKIPDEBUGLOGSWHENDEBUGMODEOFF'] = 'true';
 
 const taskJsonPath = path.join(process.cwd(), 'Extensions', 'BitBucket', 'Src', 'Tasks', 'DownloadArtifactsBitbucket', 'task.json');
 const sourceControlWrapperModulePath = path.join(process.cwd(), 'Extensions', 'BitBucket', 'Src', 'Tasks', 'DownloadArtifactsBitbucket', 'sourcecontrolwrapper.js');
-const sourceControlWrapperTl = (function (): any {
+const sourceControlWrapperTl = (function (): TaskLibMockTarget {
     try {
-        const resolvedPath = (require as any).resolve('azure-pipelines-task-lib/task', { paths: [path.dirname(sourceControlWrapperModulePath)] });
+        const resolvedPath = require.resolve('azure-pipelines-task-lib/task', { paths: [path.dirname(sourceControlWrapperModulePath)] });
         return require(resolvedPath);
     } catch (err) {
         return require('azure-pipelines-task-lib/task');
@@ -34,11 +70,11 @@ function getDeclaredNodeVersions(): number[] {
     return Array.from(versions).sort((a, b) => a - b);
 }
 
-function newRunner(scenario: string): any {
-    return new mocktest.MockTestRunner(path.join(__dirname, scenario + '.js'), taskJsonPath);
+function newRunner(scenario: string): MockTestRunner {
+    return new MockTestRunner(path.join(__dirname, scenario + '.js'), taskJsonPath);
 }
 
-async function runAndDump(runner: any, nodeVersion: number): Promise<void> {
+async function runAndDump(runner: MockTestRunner, nodeVersion: number): Promise<void> {
     try {
         await runner.runAsync(nodeVersion);
     } catch (err) {
@@ -48,7 +84,7 @@ async function runAndDump(runner: any, nodeVersion: number): Promise<void> {
     }
 }
 
-function fail(runner: any, msg: string): never {
+function fail(runner: MockTestRunner, msg: string): never {
     console.log('--- STDOUT ---');
     console.log(runner.stdout);
     console.log('--- STDERR ---');
@@ -333,17 +369,17 @@ describe('DownloadArtifactsBitbucket Suite', function () {
 });
 
 describe('SourceControlWrapper Unit Suite', function () {
-    function newWrapper(): any {
+    function newWrapper(): WrapperUnderTest {
         // eslint-disable-next-line @typescript-eslint/no-var-requires
-        const moduleRef = require(sourceControlWrapperModulePath);
+        const moduleRef: { SourceControlWrapper: new (toolType: string) => WrapperUnderTest } = require(sourceControlWrapperModulePath);
         return new moduleRef.SourceControlWrapper('git');
     }
 
     it('builds expected args for clone/fetch/checkout/reset', async function () {
         const wrapper = newWrapper();
-        const observed: Array<{ args: string[]; opts: any }> = [];
+        const observed: Array<{ args: string[]; opts: WrapperExecOptions }> = [];
 
-        wrapper.exec = function (args: string[], opts: any): Promise<number> {
+        wrapper.exec = function (args: string[], opts: WrapperExecOptions): Promise<number> {
             observed.push({ args, opts });
             return Promise.resolve(0);
         };
@@ -370,8 +406,8 @@ describe('SourceControlWrapper Unit Suite', function () {
         const originalWarning = sourceControlWrapperTl.warning;
 
         const seenArgs: string[] = [];
-        let seenExecOps: any = null;
-        const handlers: { [k: string]: Function } = {};
+        let seenExecOps: WrapperExecOptions | null = null;
+        const handlers: Record<string, ToolOutputHandler> = {};
         const masked: string[] = [];
 
         sourceControlWrapperTl.which = function (): string {
@@ -380,12 +416,18 @@ describe('SourceControlWrapper Unit Suite', function () {
         sourceControlWrapperTl.setSecret = function (value: string): void {
             masked.push(value);
         };
-        sourceControlWrapperTl.warning = function (): void { return; };
-        sourceControlWrapperTl.tool = function (): any {
+        sourceControlWrapperTl.warning = function (): void {
+            return;
+        };
+        sourceControlWrapperTl.tool = function (): MockToolRunner {
             return {
-                on: function (name: string, cb: Function): void { handlers[name] = cb; },
-                arg: function (value: string): void { seenArgs.push(value); },
-                execAsync: function (ops: any): Promise<number> {
+            on: function (name: string, cb: ToolOutputHandler): void {
+                    handlers[name] = cb;
+                },
+                arg: function (value: string): void {
+                    seenArgs.push(value);
+                },
+                execAsync: function (ops: WrapperExecOptions): Promise<number> {
                     seenExecOps = ops;
                     handlers.debug('run https://u:p@bitbucket.org/org/repo.git and u%3Ap');
                     handlers.stdout(new Buffer('stdout-line'));
@@ -402,8 +444,12 @@ describe('SourceControlWrapper Unit Suite', function () {
 
             const stdoutEvents: string[] = [];
             const stderrEvents: string[] = [];
-            wrapper.on('stdout', function (data: any) { stdoutEvents.push(String(data)); });
-            wrapper.on('stderr', function (data: any) { stderrEvents.push(String(data)); });
+            wrapper.on('stdout', function (data: unknown) {
+                stdoutEvents.push(String(data));
+            });
+            wrapper.on('stderr', function (data: unknown) {
+                stderrEvents.push(String(data));
+            });
 
             const rc = await wrapper.exec(['clone', 'repo'], { debugOutput: true });
 
@@ -445,15 +491,19 @@ describe('SourceControlWrapper Unit Suite', function () {
         const originalWhich = sourceControlWrapperTl.which;
         const originalTool = sourceControlWrapperTl.tool;
 
-        const handlers: { [k: string]: Function } = {};
+        const handlers: Record<string, ToolOutputHandler> = {};
 
         sourceControlWrapperTl.which = function (): string {
             return '/usr/bin/git';
         };
-        sourceControlWrapperTl.tool = function (): any {
+        sourceControlWrapperTl.tool = function (): MockToolRunner {
             return {
-                on: function (name: string, cb: Function): void { handlers[name] = cb; },
-                arg: function (): void { return; },
+            on: function (name: string, cb: ToolOutputHandler): void {
+                    handlers[name] = cb;
+                },
+                arg: function (): void {
+                    return;
+                },
                 execAsync: function (): Promise<number> {
                     handlers.debug('contains-userpass u:p and u%3Ap');
                     return Promise.resolve(0);
@@ -467,7 +517,9 @@ describe('SourceControlWrapper Unit Suite', function () {
             wrapper.password = 'p';
 
             const stdoutEvents: string[] = [];
-            wrapper.on('stdout', function (data: any) { stdoutEvents.push(String(data)); });
+            wrapper.on('stdout', function (data: unknown) {
+                stdoutEvents.push(String(data));
+            });
 
             await wrapper.exec(['status'], { debugOutput: false });
             assert.strictEqual(stdoutEvents.length, 0, 'no debug output should be emitted when debugOutput=false');
@@ -481,16 +533,20 @@ describe('SourceControlWrapper Unit Suite', function () {
         const originalWhich = sourceControlWrapperTl.which;
         const originalTool = sourceControlWrapperTl.tool;
 
-        let capturedOps: any = null;
+        let capturedOps: WrapperExecOptions | null = null;
 
         sourceControlWrapperTl.which = function (): string {
             return '/usr/bin/git';
         };
-        sourceControlWrapperTl.tool = function (): any {
+        sourceControlWrapperTl.tool = function (): MockToolRunner {
             return {
-                on: function (): void { return; },
-                arg: function (): void { return; },
-                execAsync: function (ops: any): Promise<number> {
+                on: function (): void {
+                    return;
+                },
+                arg: function (): void {
+                    return;
+                },
+                execAsync: function (ops: WrapperExecOptions): Promise<number> {
                     capturedOps = ops;
                     return Promise.resolve(0);
                 }
@@ -499,9 +555,9 @@ describe('SourceControlWrapper Unit Suite', function () {
 
         try {
             const wrapper = newWrapper();
-            const fakeOut = { write: function (): void { return; } } as any;
-            const fakeErr = { write: function (): void { return; } } as any;
-            const fakeEnv = { A: 'B' } as any;
+            const fakeOut = new PassThrough();
+            const fakeErr = new PassThrough();
+            const fakeEnv = { A: 'B' };
 
             await wrapper.exec(['status'], {
                 cwd: '/tmp/repo',
@@ -538,11 +594,17 @@ describe('SourceControlWrapper Unit Suite', function () {
             warningCount++;
             assert(message.indexOf('Failed to mask credentials for log redaction') >= 0, 'should emit redaction warning');
         };
-        sourceControlWrapperTl.tool = function (): any {
+        sourceControlWrapperTl.tool = function (): MockToolRunner {
             return {
-                on: function (): void { return; },
-                arg: function (): void { return; },
-                execAsync: function (): Promise<number> { return Promise.resolve(0); }
+                on: function (): void {
+                    return;
+                },
+                arg: function (): void {
+                    return;
+                },
+                execAsync: function (): Promise<number> {
+                    return Promise.resolve(0);
+                }
             };
         };
 
@@ -568,10 +630,14 @@ describe('SourceControlWrapper Unit Suite', function () {
         sourceControlWrapperTl.which = function (): string {
             return '/usr/bin/git';
         };
-        sourceControlWrapperTl.tool = function (): any {
+        sourceControlWrapperTl.tool = function (): MockToolRunner {
             return {
-                on: function (): void { return; },
-                arg: function (): void { return; },
+                on: function (): void {
+                    return;
+                },
+                arg: function (): void {
+                    return;
+                },
                 execAsync: function (): Promise<number> {
                     return Promise.reject(new Error('simulated exec failure'));
                 }

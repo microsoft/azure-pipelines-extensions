@@ -1,4 +1,6 @@
 import events = require('events');
+import realFs = require('fs');
+
 import tmrm = require('azure-pipelines-task-lib/mock-run');
 
 export const CONNECTION_ID = 'bitbucket-connection-id';
@@ -116,17 +118,16 @@ export function registerAllMocks(tr: tmrm.TaskMockRunner, options?: ScenarioOpti
 
 export function clearEndpointAuth(): void {
     const endpoint = CONNECTION_ID;
-    delete process.env['ENDPOINT_AUTH_' + endpoint];
-    delete process.env['ENDPOINT_AUTH_SCHEME_' + endpoint];
-    delete process.env['ENDPOINT_AUTH_PARAMETER_' + endpoint + '_APITOKEN'];
-    delete process.env['ENDPOINT_AUTH_PARAMETER_' + endpoint + '_EMAIL'];
-    delete process.env['ENDPOINT_AUTH_PARAMETER_' + endpoint + '_USERNAME'];
-    delete process.env['ENDPOINT_AUTH_PARAMETER_' + endpoint + '_PASSWORD'];
-    delete process.env['ENDPOINT_AUTH_PARAMETER_' + endpoint + '_ACCESSTOKEN'];
+    Reflect.deleteProperty(process.env, 'ENDPOINT_AUTH_' + endpoint);
+    Reflect.deleteProperty(process.env, 'ENDPOINT_AUTH_SCHEME_' + endpoint);
+    Reflect.deleteProperty(process.env, 'ENDPOINT_AUTH_PARAMETER_' + endpoint + '_APITOKEN');
+    Reflect.deleteProperty(process.env, 'ENDPOINT_AUTH_PARAMETER_' + endpoint + '_EMAIL');
+    Reflect.deleteProperty(process.env, 'ENDPOINT_AUTH_PARAMETER_' + endpoint + '_USERNAME');
+    Reflect.deleteProperty(process.env, 'ENDPOINT_AUTH_PARAMETER_' + endpoint + '_PASSWORD');
+    Reflect.deleteProperty(process.env, 'ENDPOINT_AUTH_PARAMETER_' + endpoint + '_ACCESSTOKEN');
 }
 
 function registerFsMock(tr: tmrm.TaskMockRunner, cleanupFixture: boolean, cleanupThrows: boolean): void {
-    const realFs = require('fs');
     const mockFs: { [key: string]: unknown } = Object.assign({}, realFs);
 
     function normalizePath(p: string): string {
@@ -134,13 +135,17 @@ function registerFsMock(tr: tmrm.TaskMockRunner, cleanupFixture: boolean, cleanu
     }
 
     if (!cleanupFixture) {
-        mockFs['existsSync'] = function () { return false; };
+        mockFs['existsSync'] = function () {
+            return false;
+        };
         tr.registerMock('fs', mockFs);
         return;
     }
 
     if (cleanupThrows) {
-        mockFs['existsSync'] = function () { return true; };
+        mockFs['existsSync'] = function () {
+            return true;
+        };
         mockFs['lstatSync'] = function () {
             throw new Error('Simulated cleanup failure');
         };
@@ -148,7 +153,7 @@ function registerFsMock(tr: tmrm.TaskMockRunner, cleanupFixture: boolean, cleanu
         return;
     }
 
-    mockFs['existsSync'] = function (_targetPath: string) {
+    mockFs['existsSync'] = function () {
         return true;
     };
 
@@ -156,7 +161,9 @@ function registerFsMock(tr: tmrm.TaskMockRunner, cleanupFixture: boolean, cleanu
         const p = normalizePath(targetPath);
         const isDirectory = p === '' || p === '.' || p === 'sub';
         return {
-            isDirectory: function () { return isDirectory; }
+            isDirectory: function () {
+                return isDirectory;
+            }
         };
     };
 
@@ -185,9 +192,9 @@ function registerFsMock(tr: tmrm.TaskMockRunner, cleanupFixture: boolean, cleanu
 
 function registerHttpsMock(tr: tmrm.TaskMockRunner, apiResponseText?: string): void {
     tr.registerMock('https', {
-        request: function (options: { [key: string]: string | object }, callback: Function) {
+        request: function (options: { [key: string]: string | object }, callback: (response: events.EventEmitter & { statusCode: number; statusMessage: string }) => void) {
             let authUser = '';
-            
+
             // Check for Authorization header (new method)
             const headers = options.headers as { [key: string]: string } | undefined;
             if (headers && headers['Authorization']) {
@@ -206,12 +213,13 @@ function registerHttpsMock(tr: tmrm.TaskMockRunner, apiResponseText?: string): v
                 const auth = (options.auth as string) || '';
                 authUser = auth.indexOf(':') >= 0 ? auth.split(':')[0] : auth;
             }
-            
+
             console.log('[mock-https] request ' + options.path + ' authUser=' + authUser);
 
-            const response = new events.EventEmitter() as any;
-            response.statusCode = 200;
-            response.statusMessage = 'OK';
+            const response = Object.assign(new events.EventEmitter(), {
+                statusCode: 200,
+                statusMessage: 'OK'
+            });
             callback(response);
 
             return {
@@ -258,7 +266,7 @@ function registerSourceControlWrapperMock(tr: tmrm.TaskMockRunner, options: Scen
             console.log('[mock-scw] ctor tool=' + toolType);
         }
 
-        public clone(repository: string, _progress: boolean, folder: string, _execOptions: unknown): Promise<number> {
+        public clone(repository: string, _progress: boolean, folder: string): Promise<number> {
             console.log('[mock-scw] clone ' + sanitizeRepoUrl(repository) + ' ' + folder);
             console.log('[mock-scw] auth user=' + this.username + ' passSet=' + (!!this.password));
             if (options.cloneFails) {
@@ -267,7 +275,7 @@ function registerSourceControlWrapperMock(tr: tmrm.TaskMockRunner, options: Scen
             return Promise.resolve(0);
         }
 
-        public checkout(ref: string, _execOptions?: unknown): Promise<number> {
+        public checkout(ref: string): Promise<number> {
             checkoutCall++;
             console.log('[mock-scw] checkout ' + ref);
             if (options.checkoutFailsAt && checkoutCall === options.checkoutFailsAt) {

@@ -97,7 +97,7 @@ extends:
           inputs:
             workingFile: ./.npmrc
         - script: npm ci --userconfig ./.npmrc
-        - script: npx --no-install eslint "Extensions/{TeamCity,ServiceNow,IISWebAppDeploy,ExternalTfs}/**/*.{ts,js}"
+        - script: npx --no-install eslint "Extensions/{TeamCity,ServiceNow,IISWebAppDeploy,ExternalTfs,BitBucket}/**/*.{ts,js}"
           displayName: 'Lint onboarded extensions (non-blocking)'
           continueOnError: true
         - task: gulp@0
