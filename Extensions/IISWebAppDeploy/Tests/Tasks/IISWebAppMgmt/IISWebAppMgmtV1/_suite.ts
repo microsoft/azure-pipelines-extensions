@@ -83,7 +83,7 @@ describe('IISWebAppMgmtV1 Suite', function () {
         it('test AppCmdOnTargetMachines - Create-Website function', (done) => {
             psr.run(path.join(__dirname, 'L0CreateWebsiteFunction.ps1'), done);
         })
-        
+
         it('test AppCmdOnTargetMachines - Create-AppPool function', (done) => {
             psr.run(path.join(__dirname, 'L0CreateAppPoolFunction.ps1'), done);
         })
@@ -111,5 +111,5 @@ describe('IISWebAppMgmtV1 Suite', function () {
         it('test AppCmdOnTargetMachines - Execute-Main function', (done) => {
             psr.run(path.join(__dirname, 'L0ExecuteMainFunction.ps1'), done);
         })
-    }    
+    }
 });

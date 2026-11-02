@@ -2,8 +2,11 @@
 // throws. We deliberately do NOT register a ./auth mock; only the other
 // dependencies (shelljs, gitwrapper, WebApi) are stubbed.
 
-import tmrm = require('azure-pipelines-task-lib/mock-run');
+import events = require('events');
 import path = require('path');
+
+import tmrm = require('azure-pipelines-task-lib/mock-run');
+import realShell = require('shelljs');
 
 import {
     ADO_CONNECTION_ID, PROJECT_ID, REPOSITORY_ID, DOWNLOAD_PATH,
@@ -24,24 +27,21 @@ tr.setInput('downloadPath', DOWNLOAD_PATH);
 
 setAdoEndpoint('UsernamePassword');
 
-const events = require('events');
-
 class MockGitWrapper extends events.EventEmitter {
-    public username: string = '';
-    public password: string = '';
-    public clone(_repo: string, _progress: boolean, _folder: string, _options: unknown): unknown {
+    public username = '';
+    public password = '';
+    public clone(): unknown {
         return new Promise((resolve) => process.nextTick(() => resolve(0)));
     }
-    public fetch(_args: string[], _options: unknown): unknown {
+    public fetch(): unknown {
         return new Promise((resolve) => process.nextTick(() => resolve(0)));
     }
-    public checkout(_ref: string, _options?: unknown): unknown {
+    public checkout(): unknown {
         return new Promise((resolve) => process.nextTick(() => resolve(0)));
     }
 }
 tr.registerMock('./gitwrapper', { GitWrapper: MockGitWrapper });
 
-const realShell = require('shelljs');
 tr.registerMock('shelljs', Object.assign({}, realShell, {
     rm: () => ({ code: 0 }),
     error: () => null,

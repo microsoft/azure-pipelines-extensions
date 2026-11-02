@@ -10,11 +10,10 @@
 // When new handlers are added, this driver picks them up automatically.
 
 import assert = require('assert');
-import path = require('path');
 import fs = require('fs');
+import path = require('path');
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const mocktest = require('azure-pipelines-task-lib/mock-test');
+import { MockTestRunner } from 'azure-pipelines-task-lib/mock-test';
 
 // CI parity: hosted agents set this variable so azure-pipelines-task-lib
 // suppresses `tl.debug()` output unless `system.debug=true`. Mirror that
@@ -38,12 +37,12 @@ function getDeclaredNodeVersions(): number[] {
     return Array.from(versions).sort((a, b) => a - b);
 }
 
-function newRunner(scenario: string): any {
+function newRunner(scenario: string): MockTestRunner {
     const testPath = path.join(__dirname, scenario + '.js');
-    return new mocktest.MockTestRunner(testPath, taskJsonPath);
+    return new MockTestRunner(testPath, taskJsonPath);
 }
 
-async function runAndDump(runner: any, nodeVersion: number): Promise<void> {
+async function runAndDump(runner: MockTestRunner, nodeVersion: number): Promise<void> {
     try {
         await runner.runAsync(nodeVersion);
     } catch (err) {
@@ -53,7 +52,7 @@ async function runAndDump(runner: any, nodeVersion: number): Promise<void> {
     }
 }
 
-function fail(runner: any, msg: string): never {
+function fail(runner: MockTestRunner, msg: string): never {
     console.log('--- STDOUT ---');
     console.log(runner.stdout);
     console.log('--- STDERR ---');

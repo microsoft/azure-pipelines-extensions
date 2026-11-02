@@ -1,10 +1,10 @@
 const fs = require('fs');
 
-const tl = require('azure-pipelines-task-lib/task');
 const webApim = require('azure-devops-node-api/WebApi');
+const tl = require('azure-pipelines-task-lib/task');
 
-const gitwm = require('./gitwrapper');
 const auth = require('./auth');
+const gitwm = require('./gitwrapper');
 
 const GIT_CLONE_RETRY_ATTEMPTS = 4;
 

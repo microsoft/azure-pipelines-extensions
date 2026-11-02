@@ -10,7 +10,11 @@
 //   "[mock-git] event:<name>"
 //   "[mock-auth] wif <serviceConnection>"
 
+import events = require('events');
+import realFs = require('fs');
+
 import tmrm = require('azure-pipelines-task-lib/mock-run');
+import realShell = require('shelljs');
 
 export const TFS_CONNECTION_ID = 'tfs-connection-id';
 export const ADO_CONNECTION_ID = 'ado-connection-id';
@@ -46,12 +50,12 @@ export function setReposOrTfsEndpoint(opts: TfsEndpointOptions): void {
     if (opts.url !== '') {
         process.env['ENDPOINT_URL_' + id] = opts.url ?? TFS_HOST_URL;
     } else {
-        delete process.env['ENDPOINT_URL_' + id];
+        Reflect.deleteProperty(process.env, 'ENDPOINT_URL_' + id);
     }
 
     if (opts.includeAuth === false) {
-        delete process.env['ENDPOINT_AUTH_' + id];
-        delete process.env['ENDPOINT_AUTH_SCHEME_' + id];
+        Reflect.deleteProperty(process.env, 'ENDPOINT_AUTH_' + id);
+        Reflect.deleteProperty(process.env, 'ENDPOINT_AUTH_SCHEME_' + id);
         return;
     }
 
@@ -139,9 +143,9 @@ export function registerAllMocks(tr: tmrm.TaskMockRunner, opts: RegisterAllMocks
 
 export function compressSetTimeout(): void {
     const realSetTimeout = global.setTimeout;
-    (global as any).setTimeout = (fn: (...args: unknown[]) => void, ms: number, ...args: unknown[]) => {
+    global.setTimeout = ((fn: (...args: unknown[]) => void, ms: number, ...args: unknown[]) => {
         return realSetTimeout(fn, Math.min(ms, 5) as unknown as number, ...args);
-    };
+    }) as typeof global.setTimeout;
 }
 
 export interface FsMockOptions {
@@ -153,10 +157,9 @@ export interface FsMockOptions {
 
 /** Mocks 'fs' so removeDownloadPath()'s fs.rmSync() can be made to throw synchronously, mirroring a locked-file cleanup failure on Windows. */
 export function registerFsMock(tr: tmrm.TaskMockRunner, opts: FsMockOptions = {}): void {
-    const realFs = require('fs');
     const mockFs: { [key: string]: unknown } = Object.assign({}, realFs);
     let rmSyncAttempts = 0;
-    mockFs['rmSync'] = (...args: unknown[]) => {
+    mockFs['rmSync'] = (...args: Parameters<typeof realFs.rmSync>) => {
         rmSyncAttempts++;
         console.log('[mock-fs] rmSync-attempt ' + rmSyncAttempts);
         if (opts.rmSyncAlwaysFails || rmSyncAttempts <= (opts.rmSyncFailures || 0)) {
@@ -170,17 +173,20 @@ export function registerFsMock(tr: tmrm.TaskMockRunner, opts: FsMockOptions = {}
 }
 
 function registerShellMock(tr: tmrm.TaskMockRunner): void {
-    const realShell = require('shelljs');
     const mockShell: { [key: string]: unknown } = Object.assign({}, realShell);
     mockShell['rm'] = (..._args: unknown[]) => {
         console.log('[mock-shell] rm ' + _args.map(String).join(' '));
         return { code: 0 } as unknown;
     };
     mockShell['error'] = () => null;
-    mockShell['cd'] = (dir: string) => { console.log('[mock-shell] cd ' + dir); };
-    mockShell['which'] = (cmd: string, _required?: boolean) => '/usr/bin/' + cmd;
-    mockShell['test'] = (_flag: string, _path: string) => true;
-    mockShell['mkdir'] = (..._args: unknown[]) => { console.log('[mock-shell] mkdir ' + _args.map(String).join(' ')); };
+    mockShell['cd'] = (dir: string) => {
+        console.log('[mock-shell] cd ' + dir);
+    };
+    mockShell['which'] = (cmd: string) => '/usr/bin/' + cmd;
+    mockShell['test'] = () => true;
+    mockShell['mkdir'] = (..._args: unknown[]) => {
+        console.log('[mock-shell] mkdir ' + _args.map(String).join(' '));
+    };
     mockShell['exec'] = (cmd: string, cb: (code: number, stdout: string) => void) => {
         console.log('[mock-shell] exec ' + cmd);
         if (typeof cb === 'function') cb(0, '');
@@ -190,61 +196,56 @@ function registerShellMock(tr: tmrm.TaskMockRunner): void {
 }
 
 function registerGitWrapperMock(tr: tmrm.TaskMockRunner, opts: GitWrapperMockOptions = {}): void {
-    const Q = require('q');
-    const events = require('events');
-
     let cloneAttempts = 0;
     let fetchAttempts = 0;
     let checkoutAttempts = 0;
 
     class MockGitWrapper extends events.EventEmitter {
-        public username: string = '';
-        public password: string = '';
-        public gitInstalled: boolean = true;
+        public username = '';
+        public password = '';
+        public gitInstalled = true;
 
-        constructor() { super(); }
-
-        public clone(repo: string, _progress: boolean, folder: string, _options: unknown): unknown {
+        public clone(repo: string, _progress: boolean, folder: string): Promise<number> {
             cloneAttempts++;
             console.log('[mock-git] clone-attempt ' + cloneAttempts);
             const sanitized = repo.replace(/:\/\/[^@]+@/, '://***@');
             console.log('[mock-git] clone ' + sanitized + ' ' + folder);
-            const deferred = Q.defer();
             const shouldFail = !!opts.cloneAlwaysFails || (cloneAttempts <= (opts.cloneFailures || 0));
-            if (shouldFail) {
-                process.nextTick(() => deferred.reject(new Error('Simulated git clone failure attempt ' + cloneAttempts)));
-            } else {
+            return new Promise((resolve, reject) => {
+                if (shouldFail) {
+                    process.nextTick(() => reject(new Error('Simulated git clone failure attempt ' + cloneAttempts)));
+                } else {
                 // Real `git clone` creates the target folder; downloadTfGit.js does a real
                 // process.chdir(folder) right after, so the mock must mirror that side-effect.
-                require('fs').mkdirSync(folder, { recursive: true });
-                process.nextTick(() => deferred.resolve(0));
-            }
-            return deferred.promise;
+                    realFs.mkdirSync(folder, { recursive: true });
+                    process.nextTick(() => resolve(0));
+                }
+            });
         }
 
-        public fetch(args: string[], _options: unknown): unknown {
+        public fetch(args: string[]): Promise<number> {
             fetchAttempts++;
             console.log('[mock-git] fetch-attempt ' + fetchAttempts);
             console.log('[mock-git] fetch ' + args.join(' '));
-            const deferred = Q.defer();
-            if (fetchAttempts <= (opts.fetchFailures || 0)) {
-                process.nextTick(() => deferred.reject(new Error('Simulated git fetch failure attempt ' + fetchAttempts)));
-            } else {
-                process.nextTick(() => deferred.resolve(0));
-            }
-            return deferred.promise;
+            return new Promise((resolve, reject) => {
+                if (fetchAttempts <= (opts.fetchFailures || 0)) {
+                    process.nextTick(() => reject(new Error('Simulated git fetch failure attempt ' + fetchAttempts)));
+                } else {
+                    process.nextTick(() => resolve(0));
+                }
+            });
         }
 
-        public checkout(ref: string, _options?: unknown): unknown {
+        public checkout(ref: string): Promise<number> {
             checkoutAttempts++;
             console.log('[mock-git] checkout ' + ref);
-            const deferred = Q.defer();
-            if (opts.checkoutFailsOnce && checkoutAttempts === 1) {
-                process.nextTick(() => deferred.reject(new Error('Simulated checkout failure')));
-            } else {
-                process.nextTick(() => deferred.resolve(0));
-            }
-            return deferred.promise;
+            return new Promise((resolve, reject) => {
+                if (opts.checkoutFailsOnce && checkoutAttempts === 1) {
+                    process.nextTick(() => reject(new Error('Simulated checkout failure')));
+                } else {
+                    process.nextTick(() => resolve(0));
+                }
+            });
         }
     }
 
@@ -279,7 +280,7 @@ function registerWebApiMock(tr: tmrm.TaskMockRunner, opts: WebApiMockOptions = {
         }
     };
 
-    function FakeWebApi(this: any, url: string, handler: unknown) {
+    function FakeWebApi(url: string, handler: unknown) {
         console.log('[mock-webapi] WebApi ' + url + ' handler=' + JSON.stringify(handler));
         return {
             getGitApi: () => Promise.resolve(fakeGitApi)
@@ -288,7 +289,7 @@ function registerWebApiMock(tr: tmrm.TaskMockRunner, opts: WebApiMockOptions = {
 
     tr.registerMock('azure-devops-node-api/WebApi', {
         WebApi: FakeWebApi,
-        getBasicHandler: (user: string, _pass: string) => {
+        getBasicHandler: (user: string) => {
             console.log('[mock-webapi] getBasicHandler user=' + user);
             return { type: 'basic', user };
         },

@@ -1,17 +1,17 @@
-const fs = require('fs');
-const path = require('path');
-
-import { WebApi, getBasicHandler } from 'azure-devops-node-api/WebApi';
-import * as tl from 'azure-pipelines-task-lib/task';
+import * as fs from 'fs';
+import * as path from 'path';
 
 import * as engine from "artifact-engine/Engine";
 import * as providers from "artifact-engine/Providers";
+import { WebApi, getBasicHandler } from 'azure-devops-node-api/WebApi';
+import * as tl from 'azure-pipelines-task-lib/task';
 import * as webHandlers from "typed-rest-client/Handlers";
+
+import * as auth from './auth';
 
 tl.setResourcePath(path.join(__dirname, 'task.json'));
 
-const taskJson = require('./task.json');
-const auth = require('./auth');
+const taskJson: { version: Record<string, number> } = JSON.parse(fs.readFileSync(path.join(__dirname, 'task.json'), 'utf8'));
 
 export interface ConnectionDetails {
     serviceConnection: string;
@@ -21,7 +21,7 @@ export interface ConnectionDetails {
     username: string;
 }
 
-const area: string = 'DownloadExternalBuildArtifacts';
+const area = 'DownloadExternalBuildArtifacts';
 
 function getDefaultProps() {
     const hostType = (tl.getVariable('SYSTEM.HOSTTYPE') || "").toLowerCase();
@@ -30,7 +30,7 @@ function getDefaultProps() {
         hostType: hostType,
         definitionName: '[NonEmail:' + (hostType === 'release' ? tl.getVariable('RELEASE.DEFINITIONNAME') : tl.getVariable('BUILD.DEFINITIONNAME')) + ']',
         processId: hostType === 'release' ? tl.getVariable('RELEASE.RELEASEID') : tl.getVariable('BUILD.BUILDID'),
-        processUrl: hostType === 'release' ? tl.getVariable('RELEASE.RELEASEWEBURL') : (tl.getVariable('SYSTEM.TEAMFOUNDATIONSERVERURI')! + tl.getVariable('SYSTEM.TEAMPROJECT') + '/_build?buildId=' + tl.getVariable('BUILD.BUILDID')),
+        processUrl: hostType === 'release' ? tl.getVariable('RELEASE.RELEASEWEBURL') : (`${tl.getVariable('SYSTEM.TEAMFOUNDATIONSERVERURI')}${tl.getVariable('SYSTEM.TEAMPROJECT')}/_build?buildId=${tl.getVariable('BUILD.BUILDID')}`),
         taskDisplayName: tl.getVariable('TASK.DISPLAYNAME'),
         jobid: tl.getVariable('SYSTEM.JOBID'),
         agentVersion: tl.getVariable('AGENT.VERSION'),
@@ -40,7 +40,7 @@ function getDefaultProps() {
     };
 }
 
-function publishEvent(feature: "reliability", properties: any): void {
+function publishEvent(feature: "reliability", properties: { issueType: string; errorMessage: string }): void {
     try {
         const splitVersion = (process.env.AGENT_VERSION || '').split('.');
         const major = parseInt(splitVersion[0] || '0');
@@ -55,17 +55,16 @@ function publishEvent(feature: "reliability", properties: any): void {
             }
         }
 
-        console.log(telemetry);;
+        console.log(telemetry);
     } catch (err) {
         tl.warning("Failed to log telemetry, error: " + err);
     }
 }
 
 async function main(): Promise<void> {
-    const promise = new Promise<void>(async (resolve, reject) => {
-        const connectionType = tl.getInput('connectionType', true)!;
+        const connectionType = tl.getInputRequired('connectionType');
         const itemPattern = tl.getInput('itemPattern', false);
-        const downloadPath = tl.getInput('downloadPath', true)!;
+        const downloadPath = tl.getInputRequired('downloadPath');
         const connectionDetails: ConnectionDetails = connectionType === 'ado'
             ? await configureForAdoSc()
             : configureForTfsSc();
@@ -88,13 +87,17 @@ async function main(): Promise<void> {
         const artifacts = await executeWithRetries(
             "getArtifacts",
             () => buildApi.getArtifacts(connectionDetails.projectId, connectionDetails.buildId),
-            maxRetries).catch(reason => reject(reason));
+            maxRetries);
 
         if (artifacts) {
-            const downloadPromises: Array<Promise<any>> = [];
+            const downloadPromises: Array<Promise<unknown>> = [];
             console.log("Linked artifacts count: " + artifacts.length);
-            artifacts.forEach(async function (artifact: any) {
-                let downloaderOptions = new engine.ArtifactEngineOptions();
+            for (const artifact of artifacts) {
+                const resource = artifact.resource;
+                if (!resource || !resource.type) {
+                    throw new Error(tl.loc("FileContainerInvalidArtifactData"));
+                }
+                const downloaderOptions = new engine.ArtifactEngineOptions();
                 downloaderOptions.itemPattern = itemPattern || "";
                 downloaderOptions.verbose = verbose;
 
@@ -102,9 +105,12 @@ async function main(): Promise<void> {
                     downloaderOptions.parallelProcessingLimit = parallelLimit;
                 }
 
-                if (artifact.resource.type.toLowerCase() === "container") {
-                    let downloader = new engine.ArtifactEngine();
-                    const containerParts: string[] = artifact.resource.data.split('/', 3);
+                if (resource.type.toLowerCase() === "container") {
+                    if (typeof resource.data !== 'string') {
+                        throw new Error(tl.loc("FileContainerInvalidArtifactData"));
+                    }
+                    const downloader = new engine.ArtifactEngine();
+                    const containerParts: string[] = resource.data.split('/', 3);
                     if (containerParts.length !== 3) {
                         throw new Error(tl.loc("FileContainerInvalidArtifactData"));
                     }
@@ -125,12 +131,13 @@ async function main(): Promise<void> {
                     const webProvider = new providers.WebProvider(itemsUrl, templatePath, variables, handler);
                     const fileSystemProvider = new providers.FilesystemProvider(downloadPath);
 
-                    downloadPromises.push(downloader.processItems(webProvider, fileSystemProvider, downloaderOptions).catch((reason) => {
-                        reject(reason);
-                    }));
-                } else if (artifact.resource.type.toLowerCase() === "filepath") {
-                    let downloader = new engine.ArtifactEngine();
-                    let downloadUrl = artifact.resource.data;
+                    downloadPromises.push(downloader.processItems(webProvider, fileSystemProvider, downloaderOptions));
+                } else if (resource.type.toLowerCase() === "filepath") {
+                    if (typeof resource.data !== 'string') {
+                        throw new Error(tl.loc("FileContainerInvalidArtifactData"));
+                    }
+                    const downloader = new engine.ArtifactEngine();
+                    const downloadUrl = resource.data;
                     let artifactLocation = downloadUrl + '/' + artifact.name;
                     if (!fs.existsSync(artifactLocation)) {
                         console.log(tl.loc("ArtifactNameDirectoryNotFound", artifactLocation, downloadUrl));
@@ -141,24 +148,15 @@ async function main(): Promise<void> {
                     const fileShareProvider = new providers.FilesystemProvider(artifactLocation);
                     const fileSystemProvider = new providers.FilesystemProvider(downloadPath + '\\' + artifact.name);
 
-                    downloadPromises.push(downloader.processItems(fileShareProvider, fileSystemProvider, downloaderOptions).catch((reason) => {
-                        reject(reason);
-                    }));
+                    downloadPromises.push(downloader.processItems(fileShareProvider, fileSystemProvider, downloaderOptions));
                 } else {
-                    console.log(tl.loc('UnsupportedArtifactType', artifact.resource.type));
+                    console.log(tl.loc('UnsupportedArtifactType', resource.type));
                 }
-            });
+            }
 
-            Promise.all(downloadPromises).then(() => {
-                console.log(tl.loc('ArtifactsSuccessfullyDownloaded', downloadPath));
-                resolve();
-            }).catch((error) => {
-                reject(error);
-            });
+            await Promise.all(downloadPromises);
+            console.log(tl.loc('ArtifactsSuccessfullyDownloaded', downloadPath));
         }
-    });
-
-    return promise;
 }
 
 async function configureForAdoSc(): Promise<ConnectionDetails> {
@@ -230,18 +228,18 @@ function validateInputs(serviceConnection: string | undefined, projectId: string
     };
 }
 
-async function executeWithRetries(operationName: string, operation: () => Promise<any>, retryCount: number): Promise<any> {
+async function executeWithRetries<T>(operationName: string, operation: () => Promise<T>, retryCount: number): Promise<T> {
     return new Promise((resolve, reject) => {
         executeWithRetriesImplementation(operationName, operation, retryCount, resolve, reject);
     });
 }
 
-function executeWithRetriesImplementation(
+function executeWithRetriesImplementation<T>(
     operationName: string,
-    operation: () => Promise<any>,
+    operation: () => Promise<T>,
     currentRetryCount: number,
-    resolve: (value: any) => void,
-    reject: (reason?: any) => void
+    resolve: (value: T) => void,
+    reject: (reason?: unknown) => void
 ) {
     operation().then((result) => {
         resolve(result);
@@ -251,8 +249,7 @@ function executeWithRetriesImplementation(
             console.log(error);
             tl.debug(error);
             reject(error);
-        }
-        else {
+        } else {
             console.log(tl.loc('RetryingOperation', operationName, currentRetryCount));
             console.log(error);
             tl.debug(error);

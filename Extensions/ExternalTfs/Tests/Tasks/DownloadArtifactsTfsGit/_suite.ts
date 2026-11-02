@@ -11,13 +11,12 @@
 // pick them up automatically without code changes.
 
 import assert = require('assert');
-import path = require('path');
 import fs = require('fs');
-import { COMMIT_ID } from './mockHelpers';
+import path = require('path');
 
-// MockTestRunner has no .d.ts in our compile path; use the value via require.
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const mocktest = require('azure-pipelines-task-lib/mock-test');
+import { MockTestRunner } from 'azure-pipelines-task-lib/mock-test';
+
+import { COMMIT_ID } from './mockHelpers';
 
 // CI parity: hosted agents set this variable so azure-pipelines-task-lib
 // suppresses `tl.debug()` output unless `system.debug=true`. Mirror that
@@ -41,12 +40,12 @@ function getDeclaredNodeVersions(): number[] {
     return Array.from(versions).sort((a, b) => a - b);
 }
 
-function newRunner(scenario: string): any {
+function newRunner(scenario: string): MockTestRunner {
     const testPath = path.join(__dirname, scenario + '.js');
-    return new mocktest.MockTestRunner(testPath, taskJsonPath);
+    return new MockTestRunner(testPath, taskJsonPath);
 }
 
-async function runAndDump(runner: any, nodeVersion: number): Promise<void> {
+async function runAndDump(runner: MockTestRunner, nodeVersion: number): Promise<void> {
     try {
         await runner.runAsync(nodeVersion);
     } catch (err) {
@@ -57,7 +56,7 @@ async function runAndDump(runner: any, nodeVersion: number): Promise<void> {
     }
 }
 
-function fail(runner: any, msg: string): never {
+function fail(runner: MockTestRunner, msg: string): never {
     console.log('--- STDOUT ---');
     console.log(runner.stdout);
     console.log('--- STDERR ---');
@@ -65,7 +64,7 @@ function fail(runner: any, msg: string): never {
     throw new Error(msg);
 }
 
-function outputContains(runner: any, value: string): boolean {
+function outputContains(runner: MockTestRunner, value: string): boolean {
     return (runner.stdout || '').indexOf(value) >= 0 || (runner.stderr || '').indexOf(value) >= 0;
 }
 

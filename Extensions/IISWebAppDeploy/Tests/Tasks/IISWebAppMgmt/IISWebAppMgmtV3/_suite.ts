@@ -26,7 +26,7 @@ describe('IISWebAppMgmtV3 Suite', function () {
     if (ps) {
         it('test iis manage utility - manage website', (done) => {
             psr.run(path.join(__dirname, 'L0UtilityManageWebsite.ps1'), done);
-        }) 
+        })
 
         it('test iis manage utility - manage application', (done) => {
             psr.run(path.join(__dirname, 'L0UtilityManageApp.ps1'), done);
@@ -34,7 +34,7 @@ describe('IISWebAppMgmtV3 Suite', function () {
 
         it('test iis manage utility - manage virtual directory', (done) => {
             psr.run(path.join(__dirname, 'L0UtilityManageVDir.ps1'), done);
-        }) 
+        })
 
         it('test iis manage utility - manage application pool', (done) => {
             psr.run(path.join(__dirname, 'L0UtilityManageAppPool.ps1'), done);
@@ -59,11 +59,11 @@ describe('IISWebAppMgmtV3 Suite', function () {
 
         it('test website exists', (done) => {
             psr.run(path.join(__dirname, 'L0AppcmdTestWebsiteExists.ps1'), done);
-        }) 
+        })
 
         it('test add and update website', (done) => {
             psr.run(path.join(__dirname, 'L0AppcmdAddUpdateWebsite.ps1'), done);
-        }) 
+        })
 
         it('test add bindings for website', (done) => {
             psr.run(path.join(__dirname, 'L0AppcmdTestAddWebsiteBindings.ps1'), done);
@@ -91,7 +91,7 @@ describe('IISWebAppMgmtV3 Suite', function () {
 
         it('test add and update appPool', (done) => {
             psr.run(path.join(__dirname, 'L0AppcmdAddUpdateAppPool.ps1'), done);
-        }) 
+        })
 
         it('test application exists', (done) => {
             psr.run(path.join(__dirname, 'L0AppcmdTestApplicationExists.ps1'), done);
@@ -103,7 +103,7 @@ describe('IISWebAppMgmtV3 Suite', function () {
 
         it('test virtual directory exists', (done) => {
             psr.run(path.join(__dirname, 'L0AppcmdTestVirtualDirExists.ps1'), done);
-        }) 
+        })
 
         it('test add and update virtual directory', (done) => {
             psr.run(path.join(__dirname, 'L0AppcmdAddUpdateVDir.ps1'), done);
@@ -111,10 +111,10 @@ describe('IISWebAppMgmtV3 Suite', function () {
 
         it('test additional actions for website and application pool', (done) => {
             psr.run(path.join(__dirname, 'L0AppcmdAdditionalActions.ps1'), done);
-        }) 
+        })
 
         it('test invoke main for appcmd', (done) => {
             psr.run(path.join(__dirname, 'L0AppcmdInvokeMain.ps1'), done);
         })
-    }    
+    }
 });

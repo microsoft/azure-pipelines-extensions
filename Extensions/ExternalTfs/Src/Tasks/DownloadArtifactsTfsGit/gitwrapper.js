@@ -1,5 +1,5 @@
-const fs = require('fs');
 const EventEmitter = require('events');
+const fs = require('fs');
 const path = require('path');
 
 const { which } = require('azure-pipelines-task-lib/task');

@@ -1,5 +1,5 @@
-import tl = require('azure-pipelines-task-lib/task');
 import * as msal from "@azure/msal-node";
+import tl = require('azure-pipelines-task-lib/task');
 import { getFederatedToken } from "azure-pipelines-tasks-azure-arm-rest/azCliUtility";
 
 export async function getAccessTokenViaWorkloadIdentityFederation(serviceConnection: string): Promise<string | undefined> {
@@ -49,7 +49,7 @@ async function getAccessTokenFromFederatedToken(
     },
     system: {
       loggerOptions: {
-        loggerCallback: (_level, message, _containsPii) => {
+        loggerCallback: (_level, message) => {
           tl.debug(message);
         },
         piiLoggingEnabled: false,
