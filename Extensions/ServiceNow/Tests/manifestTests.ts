@@ -1,21 +1,22 @@
 // Tests for vss-extension.json manifest, OAuth2 auth scheme, and structural consistency.
 
 import assert = require('assert');
-import path = require('path');
 import fs = require('fs');
+import path = require('path');
+
 import {
     extensionManifestPath, srcRoot,
     createTaskV0Path, createTaskV1Path, createTaskV2Path,
     updateTaskV0Path, updateTaskV1Path, updateTaskV2Path,
-    loadJson
+    loadJson, TaskManifest, ExtensionManifest, Contribution, AuthenticationScheme, DataSource
 } from './helpers';
 
 describe('Manifest Suite', function () {
 
-    let manifest: any;
+    let manifest: ExtensionManifest;
 
     before(function () {
-        manifest = loadJson(extensionManifestPath);
+        manifest = loadJson<ExtensionManifest>(extensionManifestPath);
     });
 
     describe('Extension manifest (vss-extension.json)', function () {
@@ -33,7 +34,7 @@ describe('Manifest Suite', function () {
         });
 
         it('should specify targets including Microsoft.VisualStudio.Services.Cloud', function () {
-            const targets = manifest.targets.map((t: any) => t.id);
+            const targets = manifest.targets.map((t) => t.id);
             assert.ok(targets.includes('Microsoft.VisualStudio.Services.Cloud'),
                 'should target Microsoft.VisualStudio.Services.Cloud');
         });
@@ -46,12 +47,12 @@ describe('Manifest Suite', function () {
 
     describe('Service endpoint contribution', function () {
 
-        let endpoint: any;
+        let endpoint: Contribution;
 
         before(function () {
             const contributions = manifest.contributions || [];
             endpoint = contributions.find(
-                (c: any) => c.type === 'ms.vss-endpoint.service-endpoint-type'
+                (c) => c.type === 'ms.vss-endpoint.service-endpoint-type'
             );
         });
 
@@ -62,7 +63,7 @@ describe('Manifest Suite', function () {
 
         it('should have OAuth2 as an authentication scheme', function () {
             const authSchemes = endpoint.properties.authenticationSchemes;
-            const oauth2 = authSchemes.find((s: any) => s.type === 'ms.vss-endpoint.endpoint-auth-scheme-oauth2');
+            const oauth2 = authSchemes.find((s) => s.type === 'ms.vss-endpoint.endpoint-auth-scheme-oauth2');
             assert.ok(oauth2, 'should have an OAuth2 auth scheme');
         });
 
@@ -73,22 +74,22 @@ describe('Manifest Suite', function () {
 
         it('should have Basic as an authentication scheme', function () {
             const authSchemes = endpoint.properties.authenticationSchemes;
-            const basic = authSchemes.find((s: any) => s.type === 'ms.vss-endpoint.endpoint-auth-scheme-basic');
+            const basic = authSchemes.find((s) => s.type === 'ms.vss-endpoint.endpoint-auth-scheme-basic');
             assert.ok(basic, 'should have a Basic auth scheme');
         });
     });
 
     describe('OAuth2 auth scheme details', function () {
 
-        let oauth2: any;
+        let oauth2: AuthenticationScheme;
 
         before(function () {
             const contributions = manifest.contributions || [];
             const endpoint = contributions.find(
-                (c: any) => c.type === 'ms.vss-endpoint.service-endpoint-type'
+                (c) => c.type === 'ms.vss-endpoint.service-endpoint-type'
             );
             const authSchemes = endpoint.properties.authenticationSchemes;
-            oauth2 = authSchemes.find((s: any) => s.type === 'ms.vss-endpoint.endpoint-auth-scheme-oauth2');
+            oauth2 = authSchemes.find((s) => s.type === 'ms.vss-endpoint.endpoint-auth-scheme-oauth2');
         });
 
         it('should define authorizationUrl with /oauth_auth.do path', function () {
@@ -102,7 +103,7 @@ describe('Manifest Suite', function () {
             assert.ok(oauth2.dataSourceBindings.length > 0, 'should have at least one data source binding');
 
             const tokenBinding = oauth2.dataSourceBindings.find(
-                (b: any) => b.dataSourceName && b.dataSourceName.toLowerCase().includes('token')
+                (b) => b.dataSourceName && b.dataSourceName.toLowerCase().includes('token')
             );
             assert.ok(tokenBinding, 'should have a token-related data source binding');
         });
@@ -110,7 +111,7 @@ describe('Manifest Suite', function () {
         it('should support authorization_code grant type in endpoint dataSources', function () {
             const contributions = manifest.contributions || [];
             const ep = contributions.find(
-                (c: any) => c.type === 'ms.vss-endpoint.service-endpoint-type'
+                (c) => c.type === 'ms.vss-endpoint.service-endpoint-type'
             );
             const dataSources = ep.properties.dataSources || [];
             const allDataSources = JSON.stringify(dataSources);
@@ -121,7 +122,7 @@ describe('Manifest Suite', function () {
         it('should include client_id and client_secret in token request dataSources', function () {
             const contributions = manifest.contributions || [];
             const ep = contributions.find(
-                (c: any) => c.type === 'ms.vss-endpoint.service-endpoint-type'
+                (c) => c.type === 'ms.vss-endpoint.service-endpoint-type'
             );
             const dataSources = ep.properties.dataSources || [];
             const allDataSources = JSON.stringify(dataSources);
@@ -132,7 +133,7 @@ describe('Manifest Suite', function () {
         it('should use /oauth_token.do for token endpoint in dataSources', function () {
             const contributions = manifest.contributions || [];
             const ep = contributions.find(
-                (c: any) => c.type === 'ms.vss-endpoint.service-endpoint-type'
+                (c) => c.type === 'ms.vss-endpoint.service-endpoint-type'
             );
             const dataSources = ep.properties.dataSources || [];
             const allDataSources = JSON.stringify(dataSources);
@@ -143,12 +144,12 @@ describe('Manifest Suite', function () {
 
     describe('Data sources', function () {
 
-        let dataSources: any[];
+        let dataSources: DataSource[];
 
         before(function () {
             const contributions = manifest.contributions || [];
             const endpoint = contributions.find(
-                (c: any) => c.type === 'ms.vss-endpoint.service-endpoint-type'
+                (c) => c.type === 'ms.vss-endpoint.service-endpoint-type'
             );
             dataSources = endpoint.properties.dataSources || [];
         });
@@ -158,15 +159,15 @@ describe('Manifest Suite', function () {
         });
 
         it('should have unique data source names', function () {
-            const names = dataSources.map((ds: any) => ds.name);
+            const names = dataSources.map((ds) => ds.name);
             const uniqueNames = new Set(names);
             assert.strictEqual(names.length, uniqueNames.size,
                 `data source names should be unique, found duplicates: ${names.filter((n: string, i: number) => names.indexOf(n) !== i)}`);
         });
 
         it('should have resultSelector using jsonpath syntax for applicable sources', function () {
-            const withSelectors = dataSources.filter((ds: any) => ds.resultSelector);
-            withSelectors.forEach((ds: any) => {
+            const withSelectors = dataSources.filter((ds) => ds.resultSelector);
+            withSelectors.forEach((ds) => {
                 assert.ok(ds.resultSelector.startsWith('jsonpath:'),
                     `data source "${ds.name}" resultSelector should start with jsonpath:`);
             });
@@ -178,10 +179,10 @@ describe('Manifest Suite', function () {
         it('should declare CreateAndQueryChangeRequest task contributions', function () {
             const contributions = manifest.contributions || [];
             const taskContributions = contributions.filter(
-                (c: any) => c.type === 'ms.vss-distributed-task.task'
+                (c) => c.type === 'ms.vss-distributed-task.task'
             );
             const createTasks = taskContributions.filter(
-                (c: any) => c.properties && c.properties.name &&
+                (c) => c.properties && c.properties.name &&
                     c.properties.name.includes('CreateAndQueryChangeRequest')
             );
             assert.ok(createTasks.length > 0, 'should have CreateAndQueryChangeRequest task contributions');
@@ -190,10 +191,10 @@ describe('Manifest Suite', function () {
         it('should declare UpdateServiceNowChangeRequest task contributions', function () {
             const contributions = manifest.contributions || [];
             const taskContributions = contributions.filter(
-                (c: any) => c.type === 'ms.vss-distributed-task.task'
+                (c) => c.type === 'ms.vss-distributed-task.task'
             );
             const updateTasks = taskContributions.filter(
-                (c: any) => c.properties && c.properties.name &&
+                (c) => c.properties && c.properties.name &&
                     c.properties.name.includes('UpdateChangeRequest')
             );
             assert.ok(updateTasks.length > 0, 'should have UpdateChangeRequest task contributions');
@@ -214,21 +215,21 @@ describe('Manifest Suite', function () {
         allTaskPaths.forEach(({ label, path: taskPath }) => {
             describe(`${label} structural integrity`, function () {
 
-                let task: any;
+                let task: TaskManifest;
 
                 before(function () {
                     task = loadJson(taskPath);
                 });
 
                 it('should have no duplicate input names', function () {
-                    const names = task.inputs.map((i: any) => i.name);
+                    const names = task.inputs.map((i) => i.name);
                     const uniqueNames = new Set(names);
                     assert.strictEqual(names.length, uniqueNames.size,
                         `should have unique input names, found duplicates: ${names.filter((n: string, i: number) => names.indexOf(n) !== i)}`);
                 });
 
                 it('should have all dataSourceBindings reference valid endpointId', function () {
-                    (task.dataSourceBindings || []).forEach((binding: any) => {
+                    (task.dataSourceBindings || []).forEach((binding) => {
                         assert.strictEqual(binding.endpointId, '$(ServiceNowConnection)',
                             `dataSourceBinding target "${binding.target}" should reference ServiceNowConnection`);
                     });
@@ -236,7 +237,7 @@ describe('Manifest Suite', function () {
 
                 it('should have non-empty Body fields when present', function () {
                     const chain = task.execution.HttpRequestChain.Execute;
-                    chain.forEach((step: any, index: number) => {
+                    chain.forEach((step, index: number) => {
                         if (!step.RequestInputs.Body) return;
                         assert.ok(step.RequestInputs.Body.length > 0,
                             `step ${index} Body should be non-empty`);
@@ -250,9 +251,9 @@ describe('Manifest Suite', function () {
             it('should reference existing task folders in contributions', function () {
                 const contributions = manifest.contributions || [];
                 const taskContributions = contributions.filter(
-                    (c: any) => c.type === 'ms.vss-distributed-task.task'
+                    (c) => c.type === 'ms.vss-distributed-task.task'
                 );
-                taskContributions.forEach((tc: any) => {
+                taskContributions.forEach((tc) => {
                     const taskFolder = path.join(srcRoot, tc.properties.name);
                     assert.ok(fs.existsSync(taskFolder),
                         `task contribution references folder "${tc.properties.name}" which should exist at ${taskFolder}`);
@@ -261,7 +262,7 @@ describe('Manifest Suite', function () {
 
             it('should reference existing icon files', function () {
                 if (manifest.icons) {
-                    Object.entries(manifest.icons).forEach(([key, relativePath]: [string, any]) => {
+                    Object.entries(manifest.icons).forEach(([key, relativePath]) => {
                         const iconPath = path.join(srcRoot, relativePath);
                         assert.ok(fs.existsSync(iconPath),
                             `icon "${key}" references "${relativePath}" which should exist at ${iconPath}`);
@@ -271,7 +272,7 @@ describe('Manifest Suite', function () {
 
             it('should have matching file entries for static files', function () {
                 const files = manifest.files || [];
-                files.forEach((f: any) => {
+                files.forEach((f) => {
                     const filePath = path.join(srcRoot, f.path);
                     assert.ok(fs.existsSync(filePath),
                         `manifest file entry "${f.path}" should exist at ${filePath}`);

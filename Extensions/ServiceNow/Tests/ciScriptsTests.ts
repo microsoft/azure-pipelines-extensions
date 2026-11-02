@@ -2,6 +2,7 @@
 
 import assert = require('assert');
 import fs = require('fs');
+
 import { determineCiScriptPath, triggerCiScriptPath } from './helpers';
 
 // Parse the switch statement in DetermineCiTestPipelineName.ps1 to extract extension→pipeline mappings.
@@ -30,7 +31,10 @@ function parseTriggerScript(content: string): Map<string, string> {
     for (let i = blockStart; i < content.length; i++) {
         if (content[i] === '{') braceCount++;
         if (content[i] === '}') braceCount--;
-        if (braceCount === 0) { blockEnd = i; break; }
+        if (braceCount === 0) {
+            blockEnd = i;
+            break;
+        }
     }
     const pipelineMappingBlock = content.substring(blockStart, blockEnd + 1);
 
