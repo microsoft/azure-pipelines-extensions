@@ -1,10 +1,11 @@
-import Q = require('q');
-import assert = require('assert');
-var path = require('path');
-var psm = require('../../../../../Common/lib/psRunner');
-var shell = require('shelljs');
-var ps = shell.which('powershell.exe');
-var psr = null;
+import path = require('path');
+
+import shell = require('shelljs');
+
+import psm = require('../../../../../Common/lib/psRunner');
+
+const ps = shell.which('powershell.exe');
+let psr = null;
 
 describe('IISWebAppMgmtV2 Suite', function () {
     this.timeout(parseInt(process.env.TASK_TEST_TIMEOUT) || 20000);
@@ -34,7 +35,7 @@ describe('IISWebAppMgmtV2 Suite', function () {
         it('test iis manage utility - manage virtual directory', (done) => {
             psr.run(path.join(__dirname, 'L0UtilityManageVDir.ps1'), done);
         }) 
-        
+
         it('test iis manage utility - manage application pool', (done) => {
             psr.run(path.join(__dirname, 'L0UtilityManageAppPool.ps1'), done);
         })
@@ -55,7 +56,7 @@ describe('IISWebAppMgmtV2 Suite', function () {
         it('test iis manage utility - Escape-SepcialChars function', (done) => {
             psr.run(path.join(__dirname, 'L0EscapeSpecialCharsFunction.ps1'), done);
         })
-        
+
         it('test website exists', (done) => {
             psr.run(path.join(__dirname, 'L0AppcmdTestWebsiteExists.ps1'), done);
         }) 
@@ -63,12 +64,12 @@ describe('IISWebAppMgmtV2 Suite', function () {
         it('test add and update website', (done) => {
             psr.run(path.join(__dirname, 'L0AppcmdAddUpdateWebsite.ps1'), done);
         }) 
-  		   
+
         it('test add bindings for website', (done) => {
             psr.run(path.join(__dirname, 'L0AppcmdTestAddWebsiteBindings.ps1'), done);
         })
 
-  		it('test binding exists for website', (done) => {
+        it('test binding exists for website', (done) => {
             psr.run(path.join(__dirname, 'L0AppcmdTestBinding.ps1'), done);
         })
 
@@ -91,7 +92,7 @@ describe('IISWebAppMgmtV2 Suite', function () {
         it('test add and update application', (done) => {
             psr.run(path.join(__dirname, 'L0AppcmdAddUpdateApplication.ps1'), done);
         })
-     	
+
         it('test virtual directory exists', (done) => {
             psr.run(path.join(__dirname, 'L0AppcmdTestVirtualDirExists.ps1'), done);
         }) 

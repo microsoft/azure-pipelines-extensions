@@ -1,10 +1,11 @@
-import Q = require('q');
-import assert = require('assert');
-var path = require('path');
-var psm = require('../../../../../Common/lib/psRunner');
-var shell = require('shelljs');
-var ps = shell.which('powershell.exe');
-var psr = null;
+import path = require('path');
+
+import shell = require('shelljs');
+
+import psm = require('../../../../../Common/lib/psRunner');
+
+const ps = shell.which('powershell.exe');
+let psr = null;
 
 describe('IISWebAppMgmtV1 Suite', function () {
     this.timeout(parseInt(process.env.TASK_TEST_TIMEOUT) || 20000);

@@ -1,11 +1,11 @@
-import Q = require('q');
-import assert = require('assert');
-const fs = require('fs');
-var path = require('path');
-var psm = require('../../../../../Common/lib/psRunner');
-var shell = require('shelljs');
-var ps = shell.which('powershell.exe');
-var psr = null;
+import path = require('path');
+
+import shell = require('shelljs');
+
+import psm = require('../../../../../Common/lib/psRunner');
+
+const ps = shell.which('powershell.exe');
+let psr = null;
 
 describe('SqlDacpacDeployV2 Suite', function () {
     this.timeout(20000);
