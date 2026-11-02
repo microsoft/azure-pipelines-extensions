@@ -5,28 +5,34 @@ import assert = require('assert');
 import childProcess = require('child_process');
 import crypto = require('crypto');
 import fs = require('fs');
+import { createRequire } from 'module';
 import os = require('os');
 import path = require('path');
 import util = require('util');
+
+import type * as sshTypes from '../../../Src/Tasks/Ansible/node_modules/@types/ssh2';
 
 process.env['DISTRIBUTEDTASK_TASKS_NODE_SKIPDEBUGLOGSWHENDEBUGMODEOFF'] = 'true';
 
 // util.isDate() was removed from modern Node, but older ssh2 releases still destructure it from 'util' at
 // module load and call it unconditionally in their server-side ATTRS encoder; restore it before requiring
 // ssh2 so this test double can act as an SFTP server regardless of which ssh2 version is currently pinned.
-if (typeof (util as any).isDate !== 'function') {
-    (util as any).isDate = (value: unknown): boolean => Object.prototype.toString.call(value) === '[object Date]';
+const legacyUtil: typeof util & { isDate?: (value: unknown) => boolean } = util;
+if (typeof legacyUtil.isDate !== 'function') {
+  legacyUtil.isDate = (value: unknown): value is Date => Object.prototype.toString.call(value) === '[object Date]';
 }
 
 const taskFolderPath = path.join(process.cwd(), '_build', 'Extensions', 'Ansible', 'Src', 'Tasks', 'Ansible');
 const taskMainPath = path.join(taskFolderPath, 'main.js');
+const requireTask = createRequire(taskMainPath);
 
 // Load the task's own installed ssh2, matching exactly what ansibleUtils.js resolves at runtime.
-const ssh2 = require(path.join(taskFolderPath, 'node_modules', 'ssh2'));
+const ssh2 = requireTask('ssh2') as typeof sshTypes;
 const { STATUS_CODE, flagsToString } = ssh2.utils.sftp;
 
 const TEST_USERNAME = 'ansible-dependency-test-user';
 const TEST_PASSWORD = 'ansible-dependency-test-password';
+const modernBuffer = Buffer as typeof Buffer & { alloc(size: number): Buffer };
 
 function ensureTaskJsCompiled(): void {
   if (fs.existsSync(path.join(taskFolderPath, 'ansibleUtils.js'))) {
@@ -49,8 +55,8 @@ function ensureTaskJsCompiled(): void {
   }
 }
 
-function loadAnsibleUtils(): any {
-  return require(path.join(taskFolderPath, 'ansibleUtils.js'));
+function loadAnsibleUtils(): typeof import('../../../Src/Tasks/Ansible/ansibleUtils') {
+  return requireTask('./ansibleUtils.js') as typeof import('../../../Src/Tasks/Ansible/ansibleUtils');
 }
 
 // Maps a remote SFTP path onto a real directory on disk so the fake server performs actual file I/O.
@@ -73,16 +79,16 @@ function startTestSshServer(sftpRoot?: string): Promise<TestSshServer> {
     publicKeyEncoding: { type: 'spki', format: 'pem' }
   }).privateKey;
 
-  const server = new ssh2.Server({ hostKeys: [hostKey] }, (client: any) => {
-    client.on('authentication', (ctx: any) => {
+  const server = new ssh2.Server({ hostKeys: [hostKey] }, (client) => {
+    client.on('authentication', (ctx) => {
       if (ctx.method !== 'password' || ctx.username !== TEST_USERNAME || ctx.password !== TEST_PASSWORD) {
         return ctx.reject(['password']);
       }
       ctx.accept();
     }).on('ready', () => {
-      client.on('session', (acceptSession: any) => {
+      client.on('session', (acceptSession) => {
         const session = acceptSession();
-        session.on('sftp', (acceptSftp: any) => {
+        session.on('sftp', (acceptSftp) => {
           if (!sftpRoot) {
             return;
           }
@@ -92,7 +98,7 @@ function startTestSshServer(sftpRoot?: string): Promise<TestSshServer> {
 
           sftp.on('REALPATH', (reqid: number, reqPath: string) => {
             const resolved = path.posix.normalize('/' + reqPath.replace(/^\/+/, ''));
-            sftp.name(reqid, [{ filename: resolved, longname: resolved, attrs: {} }]);
+            sftp.name(reqid, [{ filename: resolved, longname: resolved, attrs: {} as sshTypes.Attributes }]);
           });
 
           const statHandler = (reqid: number, reqPath: string): void => {
@@ -106,7 +112,7 @@ function startTestSshServer(sftpRoot?: string): Promise<TestSshServer> {
                 uid: stats.uid,
                 gid: stats.gid,
                 size: stats.size
-              });
+              } as sshTypes.Attributes);
             });
           };
           sftp.on('STAT', statHandler);
@@ -120,7 +126,7 @@ function startTestSshServer(sftpRoot?: string): Promise<TestSshServer> {
               }
               const handleId = nextHandle++;
               openHandles.set(handleId, fd);
-              const handle: Buffer = (Buffer as any).alloc(4);
+              const handle = modernBuffer.alloc(4);
               handle.writeUInt32BE(handleId, 0);
               sftp.handle(reqid, handle);
             });
@@ -162,7 +168,7 @@ function startTestSshServer(sftpRoot?: string): Promise<TestSshServer> {
           });
 
           sftp.on('OPENDIR', (reqid: number) => {
-            const handle: Buffer = (Buffer as any).alloc(4);
+            const handle = modernBuffer.alloc(4);
             sftp.handle(reqid, handle);
           });
 
@@ -176,16 +182,21 @@ function startTestSshServer(sftpRoot?: string): Promise<TestSshServer> {
 
   return new Promise((resolve, reject) => {
     server.on('error', reject);
-    server.listen(0, '127.0.0.1', function (this: any) {
+    server.listen(0, '127.0.0.1', () => {
+      const address = server.address();
+      if (!address || typeof address === 'string') {
+        reject(new Error('Expected the test SSH server to listen on a TCP port'));
+        return;
+      }
       resolve({
-        port: this.address().port,
+        port: address.port,
         close: () => new Promise<void>((res) => server.close(() => res()))
       });
     });
   });
 }
 
-function connectionConfig(port: number, password: string = TEST_PASSWORD): any {
+function connectionConfig(port: number, password: string = TEST_PASSWORD): sshTypes.ConnectConfig {
   return {
     host: '127.0.0.1',
     port,

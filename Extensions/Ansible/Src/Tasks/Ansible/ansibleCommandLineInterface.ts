@@ -1,10 +1,10 @@
 import tl = require("azure-pipelines-task-lib/task");
+import { shellQuote, shellSplit } from 'azure-pipelines-tasks-utility-common/shellEscaping';
 import { quote } from 'shell-quote';
 
 import { ansibleInterface } from './ansibleInterface';
-import * as ansibleUtils from './ansibleUtils';
 import { ansibleTaskParameters } from './ansibleTaskParameters';
-import { shellQuote, shellSplit } from 'azure-pipelines-tasks-utility-common/shellEscaping';
+import * as ansibleUtils from './ansibleUtils';
 
 export class ansibleCommandLineInterface extends ansibleInterface {
     constructor(params: ansibleTaskParameters) {
@@ -46,8 +46,8 @@ export class ansibleCommandLineInterface extends ansibleInterface {
             //clean up script file if needed
             if (this._cleanupCmd && this._cleanupCmd.length > 0) {
                 try {
-                    for (let i = 0; i < this._cleanupCmd.length; i++) {
-                        await this.executeCommand(this._cleanupCmd[i]!);
+                    for (const cleanupCmd of this._cleanupCmd) {
+                        await this.executeCommand(cleanupCmd);
                     }
                 } catch (err) {
                     tl.warning(tl.loc('RemoteFileCleanUpFailed', err));
@@ -136,7 +136,7 @@ export class ansibleCommandLineInterface extends ansibleInterface {
     protected async getInventoryPathForHostList(): Promise<string> {
         let hostList = this._taskParameters.inventoryHostList.trim();
 
-        return new Promise<string>((resolve, reject) => {
+        return new Promise<string>((resolve) => {
             //host list should end with comma (,)
             if (!hostList.endsWith(','))
                 hostList = hostList.concat(',');
@@ -148,30 +148,22 @@ export class ansibleCommandLineInterface extends ansibleInterface {
     protected async createAndGetInventoryPathForInline(): Promise<string> {
         const content = this._taskParameters.inventoryInline.trim();
         const dynamicInventory = this._taskParameters.inventoryDynamic;
-        const __this = this;
+        const remoteInventory = ansibleUtils.getTemporaryInventoryFilePath();
+        const remoteInventoryPath = '"' + remoteInventory + '"';
+        tl.debug('RemoteInventoryPath = ' + remoteInventoryPath);
 
-        return new Promise<string>(async (resolve, reject) => {
-            try {
-                const remoteInventory = ansibleUtils.getTemporaryInventoryFilePath();
-                const remoteInventoryPath = '"' + remoteInventory + '"';
-                tl.debug('RemoteInventoryPath = ' + remoteInventoryPath);
+        // Inline inventory content is user-controlled and echoed into a
+        // file through the shell. It is always hardened via shell-quote
+        // (CodeQL SM03609 / Bug 2236220), independent of the feature flag.
+        const inventoryCmd = 'echo ' + quote([content]) + ' > ' + remoteInventory;
+        await this.executeCommand(inventoryCmd);
 
-                // Inline inventory content is user-controlled and echoed into a
-                // file through the shell. It is always hardened via shell-quote
-                // (CodeQL SM03609 / Bug 2236220), independent of the feature flag.
-                const inventoryCmd = 'echo ' + quote([content]) + ' > ' + remoteInventory;
-                await __this.executeCommand(inventoryCmd);
+        if (dynamicInventory == true) {
+            await this.executeCommand('chmod +x ' + remoteInventory);
+        }
 
-                if (dynamicInventory == true) {
-                    await __this.executeCommand('chmod +x ' + remoteInventory);
-                }
-
-                this._cleanupCmd.push('rm -f ' + remoteInventory);
-                resolve(remoteInventory);
-            } catch (error) {
-                reject(error);
-            }
-        });
+        this._cleanupCmd.push('rm -f ' + remoteInventory);
+        return remoteInventory;
     }
 
     private _buildPlaybookExecutionCommand() {
@@ -219,8 +211,7 @@ export class ansibleCommandLineInterface extends ansibleInterface {
     // to _applyHardeningLegacy. Use _applyHardeningLegacy directly where the
     // legacy value differs from the raw input (e.g. the host list is
     // legacy-quoted).
-    protected _applyHardening(fieldName: string, rawValue: string, harden: (value: string) => string): string
-    {
+    protected _applyHardening(fieldName: string, rawValue: string, harden: (value: string) => string): string {
         return this._applyHardeningLegacy(fieldName, rawValue, rawValue, harden);
     }
 
@@ -246,7 +237,7 @@ export class ansibleCommandLineInterface extends ansibleInterface {
             return;
         }
         if (this._sanitizeTelemetry) {
-            let payload = {
+            const payload = {
                 task: 'Ansible',
                 activated: this._sanitizeActivate,
                 mode: this._sanitizeActivate ? 'live' : 'shadow',

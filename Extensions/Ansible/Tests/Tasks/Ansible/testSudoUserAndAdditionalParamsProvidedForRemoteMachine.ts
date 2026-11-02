@@ -1,10 +1,12 @@
-import mockanswer = require('azure-pipelines-task-lib/mock-answer');
-import mockrun = require('azure-pipelines-task-lib/mock-run');
 import path = require('path');
 
+import mockrun = require('azure-pipelines-task-lib/mock-run');
+import mockToolRunner = require('azure-pipelines-task-lib/mock-toolrunner');
 
-let taskPath = path.join(__dirname, '../../../Src/Tasks/Ansible/main.js');
-let runner = new mockrun.TaskMockRunner(taskPath);
+import * as mockAnsibleUtils from './mockAnsibleUtils';
+
+const taskPath = path.join(__dirname, '../../../Src/Tasks/Ansible/main.js');
+const runner = new mockrun.TaskMockRunner(taskPath);
 runner.setInput('ansibleInterface', 'remoteMachine');
 runner.setInput('connectionOverSsh', '8b04f8a5-9a17-474d-836c-60c24edcfa50');
 runner.setInput('playbookSourceRemoteMachine', 'ansibleMachine');
@@ -22,11 +24,9 @@ process.env["ENDPOINT_AUTH_PARAMETER_8b04f8a5-9a17-474d-836c-60c24edcfa50_PASSWO
 process.env["ENDPOINT_DATA_8b04f8a5-9a17-474d-836c-60c24edcfa50_HOST"] = "true dummy host";
 process.env["ENDPOINT_DATA_8b04f8a5-9a17-474d-836c-60c24edcfa50_PORT"] = "22";
 
-var tl = require('azure-pipelines-task-lib/mock-task');
-runner.registerMock('azure-pipelines-task-lib/toolrunner', require('azure-pipelines-task-lib/mock-toolrunner'));
-runner.registerMock('azure-pipelines-task-lib/task', require('azure-pipelines-task-lib/mock-task'));
+runner.registerMock('azure-pipelines-task-lib/toolrunner', mockToolRunner);
 
-runner.registerMock('./ansibleUtils', require('./mockAnsibleUtils'));
+runner.registerMock('./ansibleUtils', mockAnsibleUtils);
 
 runner.run();
 

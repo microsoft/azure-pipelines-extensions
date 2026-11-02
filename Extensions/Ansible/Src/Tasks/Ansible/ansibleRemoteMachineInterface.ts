@@ -1,11 +1,13 @@
 import path = require("path");
 
 import tl = require("azure-pipelines-task-lib/task");
-
-import * as ansibleUtils from './ansibleUtils';
-import { ansibleTaskParameters } from './ansibleTaskParameters';
-import { ansibleCommandLineInterface } from './ansibleCommandLineInterface';
 import { shellQuote } from 'azure-pipelines-tasks-utility-common/shellEscaping';
+import ssh = require('ssh2');
+
+import { ansibleCommandLineInterface } from './ansibleCommandLineInterface';
+import { ansibleTaskParameters } from './ansibleTaskParameters';
+import * as ansibleUtils from './ansibleUtils';
+
 
 export class ansibleRemoteMachineInterface extends ansibleCommandLineInterface {
     constructor(params: ansibleTaskParameters) {
@@ -79,6 +81,9 @@ export class ansibleRemoteMachineInterface extends ansibleCommandLineInterface {
     }
 
     protected async executeCommand(cmd: string): Promise<string> {
+        if (!this._sshClientConnection) {
+            throw tl.loc('ConnectionFailed', 'SSH client is not connected');
+        }
         return await ansibleUtils.runCommandOnRemoteMachine(cmd, this._sshClientConnection, this._remoteCmdOptions);
     }
 
@@ -99,8 +104,7 @@ export class ansibleRemoteMachineInterface extends ansibleCommandLineInterface {
 
         // Register credentials with the log masker so they are redacted in pipeline logs
         try {
-            // @ts-ignore setSecret correctly handles null/undefined
-            tl.setSecret(password);
+            tl.setSecret(password || '');
 
             if (privateKey) {
                 // PEM private keys are multi-line; setSecret() rejects multi-line values,
@@ -117,7 +121,7 @@ export class ansibleRemoteMachineInterface extends ansibleCommandLineInterface {
 
         if (privateKey) {
             // Remove private key from environment to prevent inheritance by child processes
-            delete process.env[privateKeyEnvVar];
+            Reflect.deleteProperty(process.env, privateKeyEnvVar);
         }
 
         //setup the SSH connection configuration based on endpoint details
@@ -125,21 +129,21 @@ export class ansibleRemoteMachineInterface extends ansibleCommandLineInterface {
             tl.debug('Using private key for ssh connection.');
 
             this._sshConfig = {
-                host: hostname,
-                port: port,
-                username: username,
+                host: hostname || '',
+                port: Number(port),
+                username: username || '',
                 privateKey: privateKey,
-                passphrase: password
+                passphrase: password || ''
             }
         } else {
             //use password
             tl.debug('Using username and password for ssh connection.');
 
             this._sshConfig = {
-                host: hostname,
-                port: port,
-                username: username,
-                password: password
+                host: hostname || '',
+                port: Number(port),
+                username: username || '',
+                password: password || ''
             }
         }
 
@@ -161,7 +165,7 @@ export class ansibleRemoteMachineInterface extends ansibleCommandLineInterface {
         }
     }
 
-    private _sshClientConnection: any;
-    private _sshConfig: any;
+    private _sshClientConnection: ssh.Client | null;
+    private _sshConfig: ssh.ConnectConfig & { path?: string };
 }
 

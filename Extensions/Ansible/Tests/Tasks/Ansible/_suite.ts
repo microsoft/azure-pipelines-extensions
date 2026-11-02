@@ -1,17 +1,20 @@
 import assert = require('assert');
 import childProcess = require('child_process');
 import fs = require('fs');
+import { createRequire } from 'module';
 import os = require('os');
 import path = require('path');
-import { TestGuid } from './mockAnsibleUtils';
 
-const mocktest = require('azure-pipelines-task-lib/mock-test');
+import mocktest = require('azure-pipelines-task-lib/mock-test');
+
+import { TestGuid } from './mockAnsibleUtils';
 
 process.env['DISTRIBUTEDTASK_TASKS_NODE_SKIPDEBUGLOGSWHENDEBUGMODEOFF'] = 'true';
 
 const taskJsonPath = path.join(process.cwd(), 'Extensions', 'Ansible', 'Src', 'Tasks', 'Ansible', 'task.json');
 const taskFolderPath = path.join(process.cwd(), '_build', 'Extensions', 'Ansible', 'Src', 'Tasks', 'Ansible');
 const taskMainPath = path.join(taskFolderPath, 'main.js');
+const requireTask = createRequire(taskMainPath);
 
 function getDeclaredNodeVersions(): number[] {
     const taskJson = JSON.parse(fs.readFileSync(taskJsonPath, 'utf-8'));
@@ -30,11 +33,11 @@ function getDeclaredNodeVersions(): number[] {
     return Array.from(versions).sort((a, b) => a - b);
 }
 
-function newRunner(scenario: string): any {
+function newRunner(scenario: string): mocktest.MockTestRunner {
     return new mocktest.MockTestRunner(path.join(__dirname, scenario + '.js'), taskJsonPath);
 }
 
-async function runAndDump(runner: any, nodeVersion: number): Promise<void> {
+async function runAndDump(runner: mocktest.MockTestRunner, nodeVersion: number): Promise<void> {
     try {
         await runner.runAsync(nodeVersion);
     } catch (err) {
@@ -44,7 +47,7 @@ async function runAndDump(runner: any, nodeVersion: number): Promise<void> {
     }
 }
 
-function fail(runner: any, msg: string): never {
+function fail(runner: mocktest.MockTestRunner, msg: string): never {
     console.log('--- STDOUT ---');
     console.log(runner.stdout);
     console.log('--- STDERR ---');
@@ -52,19 +55,19 @@ function fail(runner: any, msg: string): never {
     throw new Error(msg);
 }
 
-function expectSuccess(runner: any, message: string): void {
+function expectSuccess(runner: mocktest.MockTestRunner, message: string): void {
     if (!runner.succeeded) {
         fail(runner, message);
     }
 }
 
-function expectFailure(runner: any, message: string): void {
+function expectFailure(runner: mocktest.MockTestRunner, message: string): void {
     if (!runner.failed) {
         fail(runner, message);
     }
 }
 
-function outputContains(runner: any, value: string): boolean {
+function outputContains(runner: mocktest.MockTestRunner, value: string): boolean {
     const stdout = runner.stdout || '';
     const stderr = runner.stderr || '';
     return stdout.indexOf(value) >= 0 || stderr.indexOf(value) >= 0;
@@ -78,8 +81,8 @@ function quoteShellArg(value: string): string {
     return "'" + value.replace(/'/g, "'\\''") + "'";
 }
 
-async function runRealAgentCommand(scriptContents: string, failOnStdErr: boolean = false): Promise<{ stdout: string; stderr: string; error?: any; }> {
-    const ansibleUtils = require(path.join(taskFolderPath, 'ansibleUtils.js'));
+async function runRealAgentCommand(scriptContents: string, failOnStdErr = false): Promise<{ stdout: string; stderr: string; error?: unknown; }> {
+    const ansibleUtils = requireTask('./ansibleUtils.js') as typeof import('../../../Src/Tasks/Ansible/ansibleUtils');
     const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ansible-agent-command-'));
     const scriptPath = path.join(tempDir, 'script.js');
     fs.writeFileSync(scriptPath, scriptContents, 'utf8');
@@ -88,21 +91,21 @@ async function runRealAgentCommand(scriptContents: string, failOnStdErr: boolean
     const originalStderrWrite = process.stderr.write.bind(process.stderr);
     let stdout = '';
     let stderr = '';
-    let error: any;
+    let error: unknown;
 
-    (process.stdout as any).write = (chunk: any, encoding?: any, callback?: any): boolean => {
-        stdout += Buffer.isBuffer(chunk) ? chunk.toString('utf8') : String(chunk);
+    process.stdout.write = (chunk: unknown, encoding?: unknown, callback?: unknown): boolean => {
+        stdout += String(chunk);
         const writeCallback = typeof encoding === 'function' ? encoding : callback;
-        if (writeCallback) {
+        if (typeof writeCallback === 'function') {
             writeCallback();
         }
         return true;
     };
 
-    (process.stderr as any).write = (chunk: any, encoding?: any, callback?: any): boolean => {
-        stderr += Buffer.isBuffer(chunk) ? chunk.toString('utf8') : String(chunk);
+    process.stderr.write = (chunk: unknown, encoding?: unknown, callback?: unknown): boolean => {
+        stderr += String(chunk);
         const writeCallback = typeof encoding === 'function' ? encoding : callback;
-        if (writeCallback) {
+        if (typeof writeCallback === 'function') {
             writeCallback();
         }
         return true;
@@ -113,8 +116,8 @@ async function runRealAgentCommand(scriptContents: string, failOnStdErr: boolean
     } catch (err) {
         error = err;
     } finally {
-        (process.stdout as any).write = originalStdoutWrite;
-        (process.stderr as any).write = originalStderrWrite;
+        process.stdout.write = originalStdoutWrite;
+        process.stderr.write = originalStderrWrite;
         fs.rmSync(tempDir, { recursive: true, force: true });
     }
 
@@ -122,13 +125,16 @@ async function runRealAgentCommand(scriptContents: string, failOnStdErr: boolean
 }
 
 async function runRealAgentCommandTerminatedBySignal(): Promise<void> {
-    const ansibleUtils = require(path.join(taskFolderPath, 'ansibleUtils.js'));
-    const taskLib = require(path.join(taskFolderPath, 'node_modules', 'azure-pipelines-task-lib', 'task.js'));
+    const ansibleUtils = requireTask('./ansibleUtils.js') as typeof import('../../../Src/Tasks/Ansible/ansibleUtils');
+    const taskLib = requireTask('azure-pipelines-task-lib/task') as typeof import('azure-pipelines-task-lib/task');
+    const childProcessMock: {
+        spawn(command: string, options?: childProcess.SpawnOptionsWithoutStdio): childProcess.ChildProcess;
+    } = childProcess;
     const originalSpawn = childProcess.spawn;
 
     taskLib.setResourcePath(path.join(taskFolderPath, 'task.json'), true);
 
-    (childProcess as any).spawn = function (): childProcess.ChildProcess {
+    childProcessMock.spawn = function (): childProcess.ChildProcess {
         const child = originalSpawn(process.execPath, ['-e', 'setInterval(() => {}, 1000);']);
         child.on('spawn', () => child.kill('SIGTERM'));
         return child;
@@ -137,7 +143,7 @@ async function runRealAgentCommandTerminatedBySignal(): Promise<void> {
     try {
         await ansibleUtils.runCommandOnSameMachine('mock signal command', { failOnStdErr: false });
     } finally {
-        (childProcess as any).spawn = originalSpawn;
+        childProcessMock.spawn = originalSpawn;
     }
 }
 

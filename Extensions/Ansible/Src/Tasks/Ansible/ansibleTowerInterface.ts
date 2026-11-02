@@ -60,8 +60,7 @@ export class ansibleTowerInterface extends ansibleInterface {
 
             // Register credentials with the log masker so they are redacted in pipeline logs
             try {
-                // @ts-ignore setSecret correctly handles undefined/null values
-                tl.setSecret(this._password);
+                tl.setSecret(this._password || '');
             } catch {
                 tl.warning('Failed to mask Ansible Tower password for log redaction.');
             }
@@ -75,7 +74,7 @@ export class ansibleTowerInterface extends ansibleInterface {
         return querystring.stringify({});
     }
 
-    private getBasicRequestHeader(): any {
+    private getBasicRequestHeader(): Record<string, string> {
         const authToken = Buffer.from(this._username + ":" + this._password).toString('base64');
 
         try {
@@ -109,11 +108,11 @@ export class ansibleTowerInterface extends ansibleInterface {
 
         const response = await beginRequest<JobTemplateResponse>(request);
 
-        if (response.statusCode !== 200 || !response.body?.['results']?.[0]) {
+        if (response.statusCode !== 200 || !response.body || typeof response.body === 'string' || !response.body.results[0]) {
             throw (tl.loc('JobTemplateNotPresent', this._jobTemplateName));
         }
 
-        return response.body!['results'][0]['id'];
+        return response.body.results[0].id;
     }
 
     private async getJobStatus(jobId: string): Promise<string> {
@@ -124,11 +123,11 @@ export class ansibleTowerInterface extends ansibleInterface {
 
         const response = await beginRequest<JobStatusResponse>(request);
 
-        if (response.statusCode !== 200) {
+        if (response.statusCode !== 200 || !response.body || typeof response.body === 'string') {
             throw (tl.loc('FailedToGetJobDetails', response.statusCode, response.statusMessage));
         }
 
-        return response.body!['status'];
+        return response.body.status;
     }
 
     private async getJobEvents(jobId: string, lastDisplayedEvent: number): Promise<string[]> {
@@ -143,14 +142,14 @@ export class ansibleTowerInterface extends ansibleInterface {
         while (jobEventUrl) {
             request.uri = jobEventUrl;
             const response = await beginRequest<JobEventResponse>(request);
-            if (response.statusCode === 200) {
-                const results: JobEventResult[] = response.body!['results'];
-                const nextPageUrl = response.body!['next'];
+            if (response.statusCode === 200 && response.body && typeof response.body !== 'string') {
+                const results = response.body.results;
+                const nextPageUrl = response.body.next;
                 results.forEach((event) => {
                     if (event['counter'] > lastDisplayedEvent)
                         stdoutArray[event['counter']] = event['stdout'];
                 });
-                jobEventUrl = (nextPageUrl != null) ? (this._hostname! + nextPageUrl) : null;
+                jobEventUrl = (nextPageUrl != null) ? (this._hostname + nextPageUrl) : null;
             } else {
                 throw (tl.loc('FailedToGetJobDetails', response.statusCode, response.statusMessage));
             }
@@ -171,7 +170,7 @@ export class ansibleTowerInterface extends ansibleInterface {
         let lastDisplayedEvent = 0;
         let status = "";
 
-        while (true) {
+        while (!this.isJobInTerminalState(status)) {
             status = await this.getJobStatus(jobId);
             if (status !== 'pending') {
                 const events = await this.getJobEvents(jobId, lastDisplayedEvent);
@@ -205,14 +204,14 @@ export class ansibleTowerInterface extends ansibleInterface {
 
         const response = await beginRequest<{ id: string }>(request);
 
-        if (response.statusCode !== 201 || !response.body) {
+        if (response.statusCode !== 201 || !response.body || typeof response.body === 'string') {
             throw (tl.loc('CouldnotLaunchJob', response.statusCode, response.statusMessage));
         }
 
         return response.body['id'];
     }
 
-    private sleepFor(sleepDurationInSeconds: number): Promise<any> {
+    private sleepFor(sleepDurationInSeconds: number): Promise<void> {
         return new Promise(resolve => {
             setTimeout(resolve, sleepDurationInSeconds * 1000);
         });
