@@ -1,4 +1,5 @@
 import path = require('path');
+
 import tmrm = require('azure-pipelines-task-lib/mock-run');
 
 import { ITEM_PATTERN_CUSTOM, registerAllMocks, setEndpointAuth, setRequiredInputs } from './mockHelpers';
