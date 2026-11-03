@@ -96,9 +96,9 @@ export interface RegisterAllMocksOptions {
 
 export function compressSetTimeout(): void {
     const realSetTimeout = global.setTimeout;
-    (global as any).setTimeout = (fn: (...args: unknown[]) => void, ms: number, ...args: unknown[]) => {
+    global.setTimeout = ((fn: (...args: unknown[]) => void, ms: number, ...args: unknown[]) => {
         return realSetTimeout(fn, Math.min(ms, 5) as unknown as number, ...args);
-    };
+    }) as typeof global.setTimeout;
 }
 
 export function registerAllMocks(tr: tmrm.TaskMockRunner, opts: RegisterAllMocksOptions = {}): void {
@@ -130,7 +130,7 @@ function registerWebApiMock(tr: tmrm.TaskMockRunner, opts: RegisterAllMocksOptio
         }
     };
 
-    function FakeWebApi(this: any, url: string, _handler: unknown) {
+    function FakeWebApi(url: string) {
         console.log('[mock-webapi] WebApi ' + url);
         return {
             getBuildApi: async () => fakeBuildApi
@@ -139,7 +139,7 @@ function registerWebApiMock(tr: tmrm.TaskMockRunner, opts: RegisterAllMocksOptio
 
     tr.registerMock('azure-devops-node-api/WebApi', {
         WebApi: FakeWebApi,
-        getBasicHandler: (user: string, _pass: string) => {
+        getBasicHandler: (user: string) => {
             console.log('[mock-webapi] getBasicHandler user=' + user);
             return { type: 'basic', user };
         }
@@ -148,9 +148,9 @@ function registerWebApiMock(tr: tmrm.TaskMockRunner, opts: RegisterAllMocksOptio
 
 function registerArtifactEngineMock(tr: tmrm.TaskMockRunner, downloadFails?: boolean): void {
     class MockArtifactEngineOptions {
-        public itemPattern: string = '';
-        public verbose: boolean = false;
-        public parallelProcessingLimit: number = 0;
+        public itemPattern = '';
+        public verbose = false;
+        public parallelProcessingLimit = 0;
     }
     class MockArtifactEngine {
         public processItems(_provider: unknown, _destProvider: unknown, options: MockArtifactEngineOptions): Promise<number> {
@@ -169,10 +169,10 @@ function registerArtifactEngineMock(tr: tmrm.TaskMockRunner, downloadFails?: boo
 }
 
 function registerProvidersMock(tr: tmrm.TaskMockRunner): void {
-    function WebProvider(this: any, itemsUrl: string, _template: string, _vars: unknown, _handler: unknown) {
+    function WebProvider(itemsUrl: string) {
         console.log('[mock-providers] WebProvider ' + itemsUrl);
     }
-    function FilesystemProvider(this: any, destPath: string) {
+    function FilesystemProvider(destPath: string) {
         console.log('[mock-providers] FilesystemProvider ' + destPath);
     }
     tr.registerMock('artifact-engine/Providers', {
@@ -182,10 +182,10 @@ function registerProvidersMock(tr: tmrm.TaskMockRunner): void {
 }
 
 function registerHandlersMock(tr: tmrm.TaskMockRunner): void {
-    function BasicCredentialHandler(this: any, user: string, _pass: string) {
+    function BasicCredentialHandler(user: string) {
         console.log('[mock-handlers] BasicCredentialHandler user=' + user);
     }
-    function PersonalAccessTokenCredentialHandler(this: any, _token: string) {
+    function PersonalAccessTokenCredentialHandler() {
         console.log('[mock-handlers] PersonalAccessTokenCredentialHandler');
     }
     tr.registerMock('typed-rest-client/Handlers', {

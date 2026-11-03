@@ -1,7 +1,7 @@
 const fs = require('fs');
 const https = require('https');
-const url = require('url');
 const path = require('path');
+const url = require('url');
 
 const tl = require('azure-pipelines-task-lib/task');
 
@@ -319,6 +319,8 @@ function getAuthParameter(endpoint, paramName) {
         throw new Error('The authorization scheme ' + auth.scheme + ' is not supported for a bitbucket endpoint. Please use "oauth2", "token", or "usernamepassword".');
     }
 
-    const keyName = Object.getOwnPropertyNames(auth['parameters']).find(function (x) { return x.toLowerCase() === paramName.toLowerCase(); });
+    const keyName = Object.getOwnPropertyNames(auth['parameters']).find(function (x) {
+ return x.toLowerCase() === paramName.toLowerCase(); 
+});
     return keyName ? auth['parameters'][keyName] : undefined;
 }

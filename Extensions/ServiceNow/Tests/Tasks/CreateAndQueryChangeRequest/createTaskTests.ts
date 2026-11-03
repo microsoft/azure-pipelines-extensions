@@ -1,8 +1,9 @@
 // Tests for CreateAndQueryChangeRequest task.json (all versions) and V2 advanced features.
 
 import assert = require('assert');
+
 import {
-    createTaskV0Path, createTaskV1Path, createTaskV2Path, loadJson
+    createTaskV0Path, createTaskV1Path, createTaskV2Path, loadJson, TaskManifest
 } from '../../helpers';
 
 describe('CreateAndQueryChangeRequest Suite', function () {
@@ -16,7 +17,7 @@ describe('CreateAndQueryChangeRequest Suite', function () {
     taskVersions.forEach(({ label, path: taskPath }) => {
         describe(label, function () {
 
-            let task: any;
+            let task: TaskManifest;
 
             before(function () {
                 task = loadJson(taskPath);
@@ -51,7 +52,7 @@ describe('CreateAndQueryChangeRequest Suite', function () {
             });
 
             it('should require ServiceNowConnection input', function () {
-                const input = task.inputs.find((i: any) => i.name === 'ServiceNowConnection');
+                const input = task.inputs.find((i) => i.name === 'ServiceNowConnection');
                 assert.ok(input, 'ServiceNowConnection input should exist');
                 assert.strictEqual(input.type, 'connectedService:ServiceNow');
                 assert.strictEqual(input.required, 'true');
@@ -59,7 +60,7 @@ describe('CreateAndQueryChangeRequest Suite', function () {
 
             if (label !== 'V0') {
                 it('should have changeRequestAction input with createNew and useExisting options', function () {
-                    const input = task.inputs.find((i: any) => i.name === 'changeRequestAction');
+                    const input = task.inputs.find((i) => i.name === 'changeRequestAction');
                     assert.ok(input, 'changeRequestAction input should exist');
                     assert.ok(input.options.createNew, 'should have createNew option');
                     assert.ok(input.options.useExisting, 'should have useExisting option');
@@ -67,7 +68,7 @@ describe('CreateAndQueryChangeRequest Suite', function () {
                 });
 
                 it('should have changeType input with Normal, Standard, and Emergency options', function () {
-                    const input = task.inputs.find((i: any) => i.name === 'changeType');
+                    const input = task.inputs.find((i) => i.name === 'changeType');
                     assert.ok(input, 'changeType input should exist');
                     assert.ok(input.options.Normal, 'should have Normal option');
                     assert.ok(input.options.Standard, 'should have Standard option');
@@ -75,7 +76,7 @@ describe('CreateAndQueryChangeRequest Suite', function () {
                 });
 
                 it('should have shortdescription as required input for createNew', function () {
-                    const input = task.inputs.find((i: any) => i.name === 'shortdescription');
+                    const input = task.inputs.find((i) => i.name === 'shortdescription');
                     assert.ok(input, 'shortdescription input should exist');
                     assert.strictEqual(input.required, 'true');
                     assert.ok(input.visibleRule.includes('changeRequestAction = createNew'));
@@ -91,8 +92,8 @@ describe('CreateAndQueryChangeRequest Suite', function () {
             it('should produce CHANGE_REQUEST_NUMBER and CHANGE_SYSTEM_ID output variables', function () {
                 const chain = task.execution.HttpRequestChain.Execute;
                 const allOutputVars = chain
-                    .filter((step: any) => step.ExecutionOptions && step.ExecutionOptions.OutputVariables)
-                    .map((step: any) => step.ExecutionOptions.OutputVariables)
+                    .filter((step) => step.ExecutionOptions && step.ExecutionOptions.OutputVariables)
+                    .map((step) => step.ExecutionOptions.OutputVariables)
                     .join(' ');
 
                 assert.ok(allOutputVars.includes('CHANGE_REQUEST_NUMBER'), 'should output CHANGE_REQUEST_NUMBER');
@@ -102,12 +103,12 @@ describe('CreateAndQueryChangeRequest Suite', function () {
             it('should POST to import API for creating change requests', function () {
                 const chain = task.execution.HttpRequestChain.Execute;
                 const postSteps = chain.filter(
-                    (step: any) => step.RequestInputs.Method === 'POST'
+                    (step) => step.RequestInputs.Method === 'POST'
                 );
                 assert.ok(postSteps.length > 0, 'should have POST steps');
 
                 const importStep = postSteps.find(
-                    (step: any) => step.RequestInputs.EndpointUrl.includes('/api/now/import/x_mioms_azpipeline_change_request_import')
+                    (step) => step.RequestInputs.EndpointUrl.includes('/api/now/import/x_mioms_azpipeline_change_request_import')
                 );
                 assert.ok(importStep, 'should POST to the change_request_import endpoint');
             });
@@ -115,19 +116,19 @@ describe('CreateAndQueryChangeRequest Suite', function () {
             it('should GET from table API for querying change requests', function () {
                 const chain = task.execution.HttpRequestChain.Execute;
                 const getSteps = chain.filter(
-                    (step: any) => step.RequestInputs.Method === 'GET'
+                    (step) => step.RequestInputs.Method === 'GET'
                 );
                 assert.ok(getSteps.length > 0, 'should have GET steps');
 
                 const tableStep = getSteps.find(
-                    (step: any) => step.RequestInputs.EndpointUrl.includes('/api/now/table/change_request')
+                    (step) => step.RequestInputs.EndpointUrl.includes('/api/now/table/change_request')
                 );
                 assert.ok(tableStep, 'should GET from the change_request table');
             });
 
             it('should set Content-Type and Accept headers to application/json', function () {
                 const chain = task.execution.HttpRequestChain.Execute;
-                chain.forEach((step: any, index: number) => {
+                chain.forEach((step, index: number) => {
                     if (step.RequestInputs.Headers) {
                         const headers = JSON.parse(step.RequestInputs.Headers);
                         assert.strictEqual(headers['Content-Type'], 'application/json',
@@ -142,7 +143,7 @@ describe('CreateAndQueryChangeRequest Suite', function () {
                 assert.ok(task.dataSourceBindings, 'dataSourceBindings should exist');
                 assert.ok(task.dataSourceBindings.length > 0, 'should have at least one data source binding');
 
-                const targets = task.dataSourceBindings.map((b: any) => b.target);
+                const targets = task.dataSourceBindings.map((b) => b.target);
                 assert.ok(targets.includes('DesiredExitStatus'), 'should bind DesiredExitStatus');
                 assert.ok(targets.includes('priority'), 'should bind priority');
                 assert.ok(targets.includes('risk'), 'should bind risk');
@@ -153,7 +154,7 @@ describe('CreateAndQueryChangeRequest Suite', function () {
 
     describe('V2 Advanced Features', function () {
 
-        let task: any;
+        let task: TaskManifest;
 
         before(function () {
             task = loadJson(createTaskV2Path);
@@ -162,7 +163,7 @@ describe('CreateAndQueryChangeRequest Suite', function () {
         describe('Success criteria inputs', function () {
 
             it('should have successCriteria input with desiredStatus and advanced options', function () {
-                const input = task.inputs.find((i: any) => i.name === 'successCriteria');
+                const input = task.inputs.find((i) => i.name === 'successCriteria');
                 assert.ok(input, 'successCriteria input should exist');
                 assert.ok(input.options.desiredStatus, 'should have desiredStatus option');
                 assert.ok(input.options.advanced, 'should have advanced option');
@@ -170,13 +171,13 @@ describe('CreateAndQueryChangeRequest Suite', function () {
             });
 
             it('should have DesiredExitStatus input visible when successCriteria = desiredStatus', function () {
-                const input = task.inputs.find((i: any) => i.name === 'DesiredExitStatus');
+                const input = task.inputs.find((i) => i.name === 'DesiredExitStatus');
                 assert.ok(input, 'DesiredExitStatus input should exist');
                 assert.ok(input.visibleRule.includes('successCriteria = desiredStatus'));
             });
 
             it('should have AdvancedSuccessCriteria input visible when successCriteria = advanced', function () {
-                const input = task.inputs.find((i: any) => i.name === 'AdvancedSuccessCriteria');
+                const input = task.inputs.find((i) => i.name === 'AdvancedSuccessCriteria');
                 assert.ok(input, 'AdvancedSuccessCriteria input should exist');
                 assert.ok(input.visibleRule.includes('successCriteria = advanced'));
             });
@@ -185,7 +186,7 @@ describe('CreateAndQueryChangeRequest Suite', function () {
         describe('useExisting flow inputs', function () {
 
             it('should have changeQueryCriteria input with changeRequestNumber and queryString options', function () {
-                const input = task.inputs.find((i: any) => i.name === 'changeQueryCriteria');
+                const input = task.inputs.find((i) => i.name === 'changeQueryCriteria');
                 assert.ok(input, 'changeQueryCriteria input should exist');
                 assert.ok(input.options.changeRequestNumber, 'should have changeRequestNumber option');
                 assert.ok(input.options.queryString, 'should have queryString option');
@@ -193,14 +194,14 @@ describe('CreateAndQueryChangeRequest Suite', function () {
             });
 
             it('should have changeRequestNumber input visible for useExisting + changeRequestNumber', function () {
-                const input = task.inputs.find((i: any) => i.name === 'changeRequestNumber');
+                const input = task.inputs.find((i) => i.name === 'changeRequestNumber');
                 assert.ok(input, 'changeRequestNumber input should exist');
                 assert.ok(input.visibleRule.includes('changeRequestAction = useExisting'));
                 assert.ok(input.visibleRule.includes('changeQueryCriteria = changeRequestNumber'));
             });
 
             it('should have queryString input visible for useExisting + queryString', function () {
-                const input = task.inputs.find((i: any) => i.name === 'queryString');
+                const input = task.inputs.find((i) => i.name === 'queryString');
                 assert.ok(input, 'queryString input should exist');
                 assert.ok(input.visibleRule.includes('changeRequestAction = useExisting'));
                 assert.ok(input.visibleRule.includes('changeQueryCriteria = queryString'));
@@ -212,7 +213,7 @@ describe('CreateAndQueryChangeRequest Suite', function () {
             it('should have separate POST steps for checks and release hosttype', function () {
                 const chain = task.execution.HttpRequestChain.Execute;
                 const postSteps = chain.filter(
-                    (step: any) => step.RequestInputs.Method === 'POST'
+                    (step) => step.RequestInputs.Method === 'POST'
                 );
                 assert.ok(postSteps.length >= 2, `should have at least 2 POST steps, found ${postSteps.length}`);
             });
@@ -220,7 +221,7 @@ describe('CreateAndQueryChangeRequest Suite', function () {
             it('should have SkipSectionExpression referencing system.hosttype for checks path', function () {
                 const chain = task.execution.HttpRequestChain.Execute;
                 const checksSteps = chain.filter(
-                    (step: any) => step.ExecutionOptions &&
+                    (step) => step.ExecutionOptions &&
                         step.ExecutionOptions.SkipSectionExpression &&
                         step.ExecutionOptions.SkipSectionExpression.includes('system.hosttype')
                 );
@@ -229,10 +230,10 @@ describe('CreateAndQueryChangeRequest Suite', function () {
 
             it('should reference checks-specific variables (stageId, buildId, stageAttempt)', function () {
                 const chain = task.execution.HttpRequestChain.Execute;
-                const allUrls = chain.map((step: any) => step.RequestInputs.EndpointUrl).join(' ');
+                const allUrls = chain.map((step) => step.RequestInputs.EndpointUrl).join(' ');
                 const allBodies = chain
-                    .filter((step: any) => step.RequestInputs.Body)
-                    .map((step: any) => step.RequestInputs.Body)
+                    .filter((step) => step.RequestInputs.Body)
+                    .map((step) => step.RequestInputs.Body)
                     .join(' ');
                 const combined = allUrls + allBodies;
 
@@ -245,7 +246,7 @@ describe('CreateAndQueryChangeRequest Suite', function () {
             it('should have a WaitForCompletion gate step (polling step)', function () {
                 const chain = task.execution.HttpRequestChain.Execute;
                 const waitSteps = chain.filter(
-                    (step: any) => step.RequestInputs.WaitForCompletion === 'true'
+                    (step) => step.RequestInputs.WaitForCompletion === 'true'
                 );
                 assert.ok(waitSteps.length > 0, 'should have at least one step with WaitForCompletion=true');
             });
@@ -256,8 +257,8 @@ describe('CreateAndQueryChangeRequest Suite', function () {
             it('should produce CHANGE_CORRELATION_ID output variable', function () {
                 const chain = task.execution.HttpRequestChain.Execute;
                 const allOutputVars = chain
-                    .filter((step: any) => step.ExecutionOptions && step.ExecutionOptions.OutputVariables)
-                    .map((step: any) => step.ExecutionOptions.OutputVariables)
+                    .filter((step) => step.ExecutionOptions && step.ExecutionOptions.OutputVariables)
+                    .map((step) => step.ExecutionOptions.OutputVariables)
                     .join(' ');
 
                 assert.ok(allOutputVars.includes('CHANGE_CORRELATION_ID'), 'should output CHANGE_CORRELATION_ID');
@@ -267,20 +268,20 @@ describe('CreateAndQueryChangeRequest Suite', function () {
         describe('Additional inputs', function () {
 
             it('should have otherParameters as multiLine input', function () {
-                const input = task.inputs.find((i: any) => i.name === 'otherParameters');
+                const input = task.inputs.find((i) => i.name === 'otherParameters');
                 assert.ok(input, 'otherParameters input should exist');
                 assert.strictEqual(input.type, 'multiLine');
             });
 
             it('should have schedule group inputs (schedulestarttime, scheduleendtime)', function () {
-                const start = task.inputs.find((i: any) => i.name === 'schedulestarttime');
-                const end = task.inputs.find((i: any) => i.name === 'scheduleendtime');
+                const start = task.inputs.find((i) => i.name === 'schedulestarttime');
+                const end = task.inputs.find((i) => i.name === 'scheduleendtime');
                 assert.ok(start, 'schedulestarttime input should exist');
                 assert.ok(end, 'scheduleendtime input should exist');
             });
 
             it('should have standardChangeTemplate input visible for Standard change type', function () {
-                const input = task.inputs.find((i: any) => i.name === 'standardChangeTemplate');
+                const input = task.inputs.find((i) => i.name === 'standardChangeTemplate');
                 assert.ok(input, 'standardChangeTemplate input should exist');
                 assert.ok(input.visibleRule.includes('changeType = Standard'));
             });

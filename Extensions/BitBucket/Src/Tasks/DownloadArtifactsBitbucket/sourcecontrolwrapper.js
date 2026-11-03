@@ -1,5 +1,6 @@
-const tl = require('azure-pipelines-task-lib/task');
 const events = require('events');
+
+const tl = require('azure-pipelines-task-lib/task');
 
 /**
  * @typedef {Object} ExecOptions

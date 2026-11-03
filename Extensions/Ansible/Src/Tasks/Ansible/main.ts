@@ -2,11 +2,11 @@ import path = require("path");
 
 import tl = require("azure-pipelines-task-lib/task");
 
-import { ansibleInterface } from './ansibleInterface';
 import { ansibleCommandLineInterface } from './ansibleCommandLineInterface';
+import { ansibleInterface } from './ansibleInterface';
 import { ansibleRemoteMachineInterface } from './ansibleRemoteMachineInterface';
-import { ansibleTowerInterface } from './ansibleTowerInterface';
 import { ansibleTaskParameters } from './ansibleTaskParameters';
+import { ansibleTowerInterface } from './ansibleTowerInterface';
 
 try {
     tl.setResourcePath(path.join(__dirname, "task.json"));
@@ -14,26 +14,25 @@ try {
     tl.setResult(tl.TaskResult.Failed, error);
 }
 
-export class ansibleCommandLineInterfaceFactory {
-    public static getCommandLineInterface(params: ansibleTaskParameters): ansibleCommandLineInterface {
+export const ansibleCommandLineInterfaceFactory = {
+    getCommandLineInterface(params: ansibleTaskParameters): ansibleCommandLineInterface {
         if (params.ansibleInterface == "remoteMachine") {
             return new ansibleRemoteMachineInterface(params);
-        }
-        else {
+        } else {
             return new ansibleCommandLineInterface(params);
         }
     }
-}
+};
 
-export class ansibleInterfaceFactory {
-    public static GetAnsibleInterface(params: ansibleTaskParameters): ansibleInterface {
+export const ansibleInterfaceFactory = {
+    GetAnsibleInterface(params: ansibleTaskParameters): ansibleInterface {
         if (params.ansibleInterface != 'ansibleTower') {
             return ansibleCommandLineInterfaceFactory.getCommandLineInterface(params);
         } else {
             return new ansibleTowerInterface();
         }
     }
-}
+};
 
 function run() {
     try {

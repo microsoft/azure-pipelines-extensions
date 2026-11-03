@@ -1,7 +1,8 @@
 // Tests for UpdateServiceNowChangeRequest task.json (all versions).
 
 import assert = require('assert');
-import { updateTaskV0Path, updateTaskV1Path, updateTaskV2Path, loadJson } from '../../helpers';
+
+import { updateTaskV0Path, updateTaskV1Path, updateTaskV2Path, loadJson, TaskManifest } from '../../helpers';
 
 describe('UpdateServiceNowChangeRequest Suite', function () {
 
@@ -14,7 +15,7 @@ describe('UpdateServiceNowChangeRequest Suite', function () {
     taskVersions.forEach(({ label, path: taskPath }) => {
         describe(label, function () {
 
-            let task: any;
+            let task: TaskManifest;
 
             before(function () {
                 task = loadJson(taskPath);
@@ -49,35 +50,35 @@ describe('UpdateServiceNowChangeRequest Suite', function () {
             });
 
             it('should require ServiceNowConnection input', function () {
-                const input = task.inputs.find((i: any) => i.name === 'ServiceNowConnection');
+                const input = task.inputs.find((i) => i.name === 'ServiceNowConnection');
                 assert.ok(input, 'ServiceNowConnection input should exist');
                 assert.strictEqual(input.type, 'connectedService:ServiceNow');
                 assert.strictEqual(input.required, 'true');
             });
 
             it('should require ChangeRequestNumber input', function () {
-                const input = task.inputs.find((i: any) => i.name === 'ChangeRequestNumber');
+                const input = task.inputs.find((i) => i.name === 'ChangeRequestNumber');
                 assert.ok(input, 'ChangeRequestNumber input should exist');
                 assert.strictEqual(input.required, true);
             });
 
             if (label !== 'V0') {
                 it('should have UpdateStatus boolean input', function () {
-                    const input = task.inputs.find((i: any) => i.name === 'UpdateStatus');
+                    const input = task.inputs.find((i) => i.name === 'UpdateStatus');
                     assert.ok(input, 'UpdateStatus input should exist');
                     assert.strictEqual(input.type, 'boolean');
                 });
 
                 it('should have NewStatus input visible when UpdateStatus is true', function () {
-                    const input = task.inputs.find((i: any) => i.name === 'NewStatus');
+                    const input = task.inputs.find((i) => i.name === 'NewStatus');
                     assert.ok(input, 'NewStatus input should exist');
                     assert.ok(input.visibleRule.includes('UpdateStatus = true'));
                 });
             }
 
             it('should have CloseCode and CloseNotes inputs', function () {
-                const closeCode = task.inputs.find((i: any) => i.name === 'CloseCode');
-                const closeNotes = task.inputs.find((i: any) => i.name === 'CloseNotes');
+                const closeCode = task.inputs.find((i) => i.name === 'CloseCode');
+                const closeNotes = task.inputs.find((i) => i.name === 'CloseNotes');
 
                 assert.ok(closeCode, 'CloseCode input should exist');
                 assert.ok(closeNotes, 'CloseNotes input should exist');
@@ -92,12 +93,12 @@ describe('UpdateServiceNowChangeRequest Suite', function () {
             it('should POST to import API for updates', function () {
                 const chain = task.execution.HttpRequestChain.Execute;
                 const postSteps = chain.filter(
-                    (step: any) => step.RequestInputs.Method === 'POST'
+                    (step) => step.RequestInputs.Method === 'POST'
                 );
                 assert.ok(postSteps.length > 0, 'should have POST steps for updates');
 
                 const importStep = postSteps.find(
-                    (step: any) => step.RequestInputs.EndpointUrl.includes('/api/now/import/x_mioms_azpipeline_change_request_import')
+                    (step) => step.RequestInputs.EndpointUrl.includes('/api/now/import/x_mioms_azpipeline_change_request_import')
                 );
                 assert.ok(importStep, 'should POST to the change_request_import endpoint');
             });

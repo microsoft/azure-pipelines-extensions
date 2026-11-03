@@ -1,10 +1,11 @@
-import Q = require('q');
-import assert = require('assert');
-var path = require('path');
-var psm = require('../../../../../Common/lib/psRunner');
-var shell = require('shelljs');
-var ps = shell.which('powershell.exe');
-var psr = null;
+import path = require('path');
+
+import shell = require('shelljs');
+
+import psm = require('../../../../../Common/lib/psRunner');
+
+const ps = shell.which('powershell.exe');
+let psr = null;
 
 describe('IISWebAppMgmtV1 Suite', function () {
     this.timeout(parseInt(process.env.TASK_TEST_TIMEOUT) || 20000);
@@ -82,7 +83,7 @@ describe('IISWebAppMgmtV1 Suite', function () {
         it('test AppCmdOnTargetMachines - Create-Website function', (done) => {
             psr.run(path.join(__dirname, 'L0CreateWebsiteFunction.ps1'), done);
         })
-        
+
         it('test AppCmdOnTargetMachines - Create-AppPool function', (done) => {
             psr.run(path.join(__dirname, 'L0CreateAppPoolFunction.ps1'), done);
         })
@@ -110,5 +111,5 @@ describe('IISWebAppMgmtV1 Suite', function () {
         it('test AppCmdOnTargetMachines - Execute-Main function', (done) => {
             psr.run(path.join(__dirname, 'L0ExecuteMainFunction.ps1'), done);
         })
-    }    
+    }
 });

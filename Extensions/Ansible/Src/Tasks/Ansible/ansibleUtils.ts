@@ -1,8 +1,8 @@
 import cp = require('child_process');
 import crypto = require('crypto');
 import fs = require('fs');
-import os = require('os');
 import http = require('http');
+import os = require('os');
 import querystring = require('querystring');
 import util = require("util");
 
@@ -11,7 +11,7 @@ import ssh = require('ssh2');
 import SftpClient = require('ssh2-sftp-client');
 import * as httpClient from 'typed-rest-client/HttpClient';
 
-var httpObj = new httpClient.HttpClient(tl.getVariable("AZURE_HTTP_USER_AGENT")!);
+const httpObj = new httpClient.HttpClient(tl.getVariable("AZURE_HTTP_USER_AGENT") || '');
 const Ssh2Client = ssh.Client;
 
 export function _writeLine(str: string): void {
@@ -83,7 +83,7 @@ export async function copyFileToRemoteMachine(src: string, dest: string, sftpCon
  * @param sshConfig
  * @returns {Promise<any>|Promise<T>}
  */
-export function setupSshClientConnection(sshConfig: any): Promise<ssh.Client> {
+export function setupSshClientConnection(sshConfig: ssh.ConnectConfig): Promise<ssh.Client> {
     return new Promise<ssh.Client>((resolve, reject) => {
         const client = new Ssh2Client();
         client.on('ready', () => {
@@ -103,7 +103,7 @@ export function setupSshClientConnection(sshConfig: any): Promise<ssh.Client> {
  */
 export function runCommandOnRemoteMachine(command: string, sshClient: ssh.Client, options: RemoteCommandOptions): Promise<string> {
     return new Promise<string>((resolve, reject) => {
-        let stdErrWritten: boolean = false;
+        let stdErrWritten = false;
 
         if (!options) {
             tl.debug('Options not passed to runCommandOnRemoteMachine, setting defaults.');
@@ -155,8 +155,8 @@ export function runCommandOnSameMachine(command: string, options: RemoteCommandO
         const cmdToRun = command;
         tl.debug('cmdToRun = ' + cmdToRun);
 
-        let stdErrWritten: boolean = false;
-        let settled: boolean = false;
+        let stdErrWritten = false;
+        let settled = false;
         const child = cp.spawn(cmdToRun, { shell: true });
 
         child.stdout.on('data', (data) => {
@@ -215,8 +215,8 @@ export function getShellWhich(moduleName: string): string | null {
 export class WebRequest {
     public method: string;
     public uri: string;
-    public body: any;
-    public headers: any;
+    public body: string;
+    public headers: Record<string, string>;
     constructor() {
         this.headers = {};
         this.body = querystring.stringify({});
@@ -228,7 +228,7 @@ export class WebRequest {
 export class WebResponse<T> {
     public statusCode: number | undefined;
     public headers: http.IncomingHttpHeaders | undefined;
-    public body: T | undefined;
+    public body: T | string | undefined;
     public statusMessage: string | undefined;
 }
 
@@ -250,7 +250,7 @@ export function getTemporaryInventoryFilePath(): string {
 }
 
 function toWebResponse<T>(response: http.IncomingMessage | undefined, body: string | undefined): WebResponse<T> {
-    var res = new WebResponse<T>();
+    const res = new WebResponse<T>();
 
     if (response) {
         res.statusCode = response.statusCode;
@@ -261,7 +261,6 @@ function toWebResponse<T>(response: http.IncomingMessage | undefined, body: stri
             try {
                 res.body = JSON.parse(body);
             } catch (error) {
-                // @ts-ignore let's keep it as-is so far, but we should consider changing the type of body to string | T in the future
                 res.body = body;
             }
         }

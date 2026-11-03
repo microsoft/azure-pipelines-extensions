@@ -1,11 +1,12 @@
 // High-priority validation tests: visibleRules, pickList bindings, expressions, data sources, and cross-version checks.
 
 import assert = require('assert');
+
 import {
-    extensionManifestPath, srcRoot,
+    extensionManifestPath,
     createTaskV0Path, createTaskV1Path, createTaskV2Path,
     updateTaskV0Path, updateTaskV1Path, updateTaskV2Path,
-    loadJson
+    loadJson, TaskManifest, ExtensionManifest, DataSource
 } from './helpers';
 
 describe('Validation Suite', function () {
@@ -43,9 +44,9 @@ describe('Validation Suite', function () {
         allTaskPaths.forEach(({ label, path: taskPath }) => {
             it(`${label}: all visibleRule references should point to existing inputs`, function () {
                 const task = loadJson(taskPath);
-                const inputNames = new Set(task.inputs.map((i: any) => i.name));
+                const inputNames = new Set(task.inputs.map((i) => i.name));
 
-                task.inputs.forEach((input: any) => {
+                task.inputs.forEach((input) => {
                     if (!input.visibleRule) return;
 
                     const refs = extractVisibleRuleInputRefs(input.visibleRule);
@@ -60,10 +61,10 @@ describe('Validation Suite', function () {
         allTaskPaths.forEach(({ label, path: taskPath }) => {
             it(`${label}: all group visibleRules should reference existing inputs`, function () {
                 const task = loadJson(taskPath);
-                const inputNames = new Set(task.inputs.map((i: any) => i.name));
+                const inputNames = new Set(task.inputs.map((i) => i.name));
                 const groups = task.groups || [];
 
-                groups.forEach((group: any) => {
+                groups.forEach((group) => {
                     if (!group.visibleRule) return;
 
                     const refs = extractVisibleRuleInputRefs(group.visibleRule);
@@ -82,12 +83,12 @@ describe('Validation Suite', function () {
             it(`${label}: every pickList input should have options or a dataSourceBinding`, function () {
                 const task = loadJson(taskPath);
                 const boundTargets = new Set(
-                    (task.dataSourceBindings || []).map((b: any) => b.target)
+                    (task.dataSourceBindings || []).map((b) => b.target)
                 );
 
-                const pickListInputs = task.inputs.filter((i: any) => i.type === 'pickList');
+                const pickListInputs = task.inputs.filter((i) => i.type === 'pickList');
 
-                pickListInputs.forEach((input: any) => {
+                pickListInputs.forEach((input) => {
                     const hasOptions = input.options && Object.keys(input.options).length > 0;
                     const hasDsBinding = boundTargets.has(input.name);
                     assert.ok(hasOptions || hasDsBinding,
@@ -102,9 +103,9 @@ describe('Validation Suite', function () {
         allTaskPaths.forEach(({ label, path: taskPath }) => {
             it(`${label}: all input groupNames should reference existing groups`, function () {
                 const task = loadJson(taskPath);
-                const groupNames = new Set((task.groups || []).map((g: any) => g.name));
+                const groupNames = new Set((task.groups || []).map((g) => g.name));
 
-                task.inputs.forEach((input: any) => {
+                task.inputs.forEach((input) => {
                     if (!input.groupName) return;
                     assert.ok(groupNames.has(input.groupName),
                         `Input "${input.name}" references group "${input.groupName}" which does not exist in ${label}`);
@@ -130,7 +131,7 @@ describe('Validation Suite', function () {
                 const task = loadJson(taskPath);
                 const chain = task.execution.HttpRequestChain.Execute;
 
-                chain.forEach((step: any, index: number) => {
+                chain.forEach((step, index: number) => {
                     if (step.ExecutionOptions && step.ExecutionOptions.SkipSectionExpression) {
                         const expr = step.ExecutionOptions.SkipSectionExpression;
                         assert.ok(hasBalancedParentheses(expr),
@@ -143,7 +144,7 @@ describe('Validation Suite', function () {
 
     describe('Update V2 checks execution path', function () {
 
-        let task: any;
+        let task: TaskManifest;
 
         before(function () {
             task = loadJson(updateTaskV2Path);
@@ -165,7 +166,7 @@ describe('Validation Suite', function () {
         it('should have a GET step referencing stageId/buildId/stageAttempt for checks context', function () {
             const chain = task.execution.HttpRequestChain.Execute;
             const checksStep = chain.find(
-                (step: any) => step.RequestInputs.EndpointUrl.includes('system.stageId')
+                (step) => step.RequestInputs.EndpointUrl.includes('system.stageId')
             );
             assert.ok(checksStep, 'should have a step with system.stageId');
             assert.ok(checksStep.RequestInputs.EndpointUrl.includes('build.buildId'),
@@ -192,7 +193,7 @@ describe('Validation Suite', function () {
         it('should query by correlation fields when ChangeRequestNumber is absent', function () {
             const chain = task.execution.HttpRequestChain.Execute;
             const correlationStep = chain.find(
-                (step: any) => step.RequestInputs.EndpointUrl.includes('x_mioms_azpipeline_stage_id')
+                (step) => step.RequestInputs.EndpointUrl.includes('x_mioms_azpipeline_stage_id')
             );
             assert.ok(correlationStep, 'should have a correlation-based query step');
             assert.ok(correlationStep.RequestInputs.EndpointUrl.includes('x_mioms_azpipeline_build_id'),
@@ -228,8 +229,8 @@ describe('Validation Suite', function () {
 
             [v0, v1].forEach((task) => {
                 const bindings = task.dataSourceBindings || [];
-                const stateBinding = bindings.find((b: any) => b.target === 'NewStatus');
-                const closeBinding = bindings.find((b: any) => b.target === 'CloseCode');
+                const stateBinding = bindings.find((b) => b.target === 'NewStatus');
+                const closeBinding = bindings.find((b) => b.target === 'CloseCode');
 
                 if (stateBinding) {
                     assert.strictEqual(stateBinding.dataSourceName, 'StateLabel',
@@ -246,8 +247,8 @@ describe('Validation Suite', function () {
             const v2 = loadJson(updateTaskV2Path);
             const bindings = v2.dataSourceBindings || [];
 
-            const stateBinding = bindings.find((b: any) => b.target === 'NewStatus');
-            const closeBinding = bindings.find((b: any) => b.target === 'CloseCode');
+            const stateBinding = bindings.find((b) => b.target === 'NewStatus');
+            const closeBinding = bindings.find((b) => b.target === 'CloseCode');
 
             assert.ok(stateBinding, 'V2 should have NewStatus dataSourceBinding');
             assert.strictEqual(stateBinding.dataSourceName, 'State',
@@ -261,13 +262,13 @@ describe('Validation Suite', function () {
 
     describe('Data source endpointUrl validation', function () {
 
-        let dataSources: any[];
+        let dataSources: DataSource[];
 
         before(function () {
-            const manifest = loadJson(extensionManifestPath);
+            const manifest = loadJson<ExtensionManifest>(extensionManifestPath);
             const contributions = manifest.contributions || [];
             const endpoint = contributions.find(
-                (c: any) => c.type === 'ms.vss-endpoint.service-endpoint-type'
+                (c) => c.type === 'ms.vss-endpoint.service-endpoint-type'
             );
             dataSources = endpoint.properties.dataSources || [];
         });
@@ -278,7 +279,7 @@ describe('Validation Suite', function () {
         });
 
         it('all endpointUrls should start with {{endpoint.url}} or {{{configuration.Url}}}', function () {
-            dataSources.forEach((ds: any) => {
+            dataSources.forEach((ds) => {
                 const url = ds.endpointUrl;
                 const validPrefix = url.startsWith('{{endpoint.url}}') ||
                     url.startsWith('{{{configuration.Url}}}');
@@ -288,14 +289,14 @@ describe('Validation Suite', function () {
         });
 
         it('TestConnection should include app_major_version=4', function () {
-            const testConn = dataSources.find((ds: any) => ds.name === 'TestConnection');
+            const testConn = dataSources.find((ds) => ds.name === 'TestConnection');
             assert.ok(testConn, 'TestConnection data source should exist');
             assert.ok(testConn.endpointUrl.includes('app_major_version=4'),
                 'TestConnection should reference app_major_version=4');
         });
 
         it('TestConnection should point to the azpipeline app_version API', function () {
-            const testConn = dataSources.find((ds: any) => ds.name === 'TestConnection');
+            const testConn = dataSources.find((ds) => ds.name === 'TestConnection');
             assert.ok(testConn.endpointUrl.includes('/api/x_mioms_azpipeline/app_version'),
                 'TestConnection should use the app_version API');
         });
@@ -303,7 +304,7 @@ describe('Validation Suite', function () {
         it('paginated data sources (Configuration Item, Assignment Group) should include sysparm_offset', function () {
             const paginatedSources = ['Configuration Item', 'Assignment Group'];
             paginatedSources.forEach((name) => {
-                const ds = dataSources.find((d: any) => d.name === name);
+                const ds = dataSources.find((d) => d.name === name);
                 assert.ok(ds, `${name} data source should exist`);
                 assert.ok(ds.endpointUrl.includes('sysparm_offset'),
                     `${name} should include sysparm_offset for pagination`);
@@ -314,9 +315,9 @@ describe('Validation Suite', function () {
 
         it('all data sources that query sys_choice should include sysparm_fields', function () {
             const choiceSources = dataSources.filter(
-                (ds: any) => ds.endpointUrl.includes('/sys_choice')
+                (ds) => ds.endpointUrl.includes('/sys_choice')
             );
-            choiceSources.forEach((ds: any) => {
+            choiceSources.forEach((ds) => {
                 assert.ok(ds.endpointUrl.includes('sysparm_fields'),
                     `data source "${ds.name}" queries sys_choice but missing sysparm_fields`);
             });
@@ -327,7 +328,7 @@ describe('Validation Suite', function () {
 
         it('V0 CloseCode should use "NewStatus = Closed"', function () {
             const v0 = loadJson(updateTaskV0Path);
-            const closeCode = v0.inputs.find((i: any) => i.name === 'CloseCode');
+            const closeCode = v0.inputs.find((i) => i.name === 'CloseCode');
             assert.ok(closeCode, 'CloseCode should exist in V0');
             assert.ok(closeCode.visibleRule.includes('Closed'),
                 'V0 CloseCode visibleRule should reference "Closed" (label)');
@@ -335,7 +336,7 @@ describe('Validation Suite', function () {
 
         it('V1 CloseCode should use "UpdateStatus = true && NewStatus = Closed"', function () {
             const v1 = loadJson(updateTaskV1Path);
-            const closeCode = v1.inputs.find((i: any) => i.name === 'CloseCode');
+            const closeCode = v1.inputs.find((i) => i.name === 'CloseCode');
             assert.ok(closeCode, 'CloseCode should exist in V1');
             assert.ok(closeCode.visibleRule.includes('UpdateStatus = true'),
                 'V1 CloseCode should require UpdateStatus = true');
@@ -345,7 +346,7 @@ describe('Validation Suite', function () {
 
         it('V2 CloseCode should use "UpdateStatus = true && NewStatus = 3"', function () {
             const v2 = loadJson(updateTaskV2Path);
-            const closeCode = v2.inputs.find((i: any) => i.name === 'CloseCode');
+            const closeCode = v2.inputs.find((i) => i.name === 'CloseCode');
             assert.ok(closeCode, 'CloseCode should exist in V2');
             assert.ok(closeCode.visibleRule.includes('UpdateStatus = true'),
                 'V2 CloseCode should require UpdateStatus = true');
@@ -359,7 +360,7 @@ describe('Validation Suite', function () {
         allTaskPaths.forEach(({ label, path: taskPath }) => {
             it(`${label}: all inputs should have helpMarkDown defined`, function () {
                 const task = loadJson(taskPath);
-                task.inputs.forEach((input: any) => {
+                task.inputs.forEach((input) => {
                     assert.ok(input.helpMarkDown !== undefined && input.helpMarkDown !== null,
                         `Input "${input.name}" in ${label} should have helpMarkDown defined`);
                     // Allow empty string — only undefined/null is invalid

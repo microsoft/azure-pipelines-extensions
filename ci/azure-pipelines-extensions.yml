@@ -97,8 +97,8 @@ extends:
           inputs:
             workingFile: ./.npmrc
         - script: npm ci --userconfig ./.npmrc
-        - script: npx --no-install eslint "Extensions/TeamCity/**/*.{ts,js}"
-          displayName: 'Lint TeamCity (non-blocking)'
+        - script: npx --no-install eslint "Extensions/**/*.{ts,js}"
+          displayName: 'Lint onboarded extensions (non-blocking)'
           continueOnError: true
         - task: gulp@0
           displayName: 'gulp build'

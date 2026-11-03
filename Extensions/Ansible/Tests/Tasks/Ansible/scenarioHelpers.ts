@@ -1,7 +1,9 @@
-import mockrun = require('azure-pipelines-task-lib/mock-run');
 import path = require('path');
 
-const mockUtils = require('./mockAnsibleUtils');
+import mockrun = require('azure-pipelines-task-lib/mock-run');
+import mockToolRunner = require('azure-pipelines-task-lib/mock-toolrunner');
+
+import * as mockUtils from './mockAnsibleUtils';
 
 export const EndpointId = '8b04f8a5-9a17-474d-836c-60c24edcfa50';
 
@@ -11,7 +13,7 @@ export function createRunner(): mockrun.TaskMockRunner {
     mockUtils.resetMockState();
 
     const runner = new mockrun.TaskMockRunner(taskPath);
-    runner.registerMock('azure-pipelines-task-lib/toolrunner', require('azure-pipelines-task-lib/mock-toolrunner'));
+    runner.registerMock('azure-pipelines-task-lib/toolrunner', mockToolRunner);
     runner.registerMock('./ansibleUtils', mockUtils);
 
     process.env['AZURE_HTTP_USER_AGENT'] = 'TFS_useragent';
@@ -39,7 +41,7 @@ export function setSshEndpointEnvironment(options?: {
     if (options && options.privateKey !== undefined) {
         process.env['ENDPOINT_DATA_' + EndpointId + '_PRIVATEKEY'] = options.privateKey;
     } else {
-        delete process.env['ENDPOINT_DATA_' + EndpointId + '_PRIVATEKEY'];
+        Reflect.deleteProperty(process.env, 'ENDPOINT_DATA_' + EndpointId + '_PRIVATEKEY');
     }
 }
 
@@ -88,6 +90,6 @@ export function configureBaseTower(runner: mockrun.TaskMockRunner): void {
     runner.setInput('jobTemplateName', 'Demo Job Template 3');
 }
 
-export function getMockUtils(): any {
+export function getMockUtils(): typeof mockUtils {
     return mockUtils;
 }

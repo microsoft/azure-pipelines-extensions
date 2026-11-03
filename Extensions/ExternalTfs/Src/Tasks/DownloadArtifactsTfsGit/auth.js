@@ -1,5 +1,5 @@
-const tl = require('azure-pipelines-task-lib/task');
 const msal = require('@azure/msal-node');
+const tl = require('azure-pipelines-task-lib/task');
 const { getFederatedToken } = require('azure-pipelines-tasks-azure-arm-rest/azCliUtility');
 
 /**

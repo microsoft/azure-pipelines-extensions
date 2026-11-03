@@ -1,5 +1,6 @@
-import tmrm = require('azure-pipelines-task-lib/mock-run');
 import path = require('path');
+
+import tmrm = require('azure-pipelines-task-lib/mock-run');
 
 import {
     PROJECT_ID, BUILD_ID, DOWNLOAD_PATH,

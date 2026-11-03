@@ -15,7 +15,7 @@
   ],
   "version": {
     "Major": 2,
-    "Minor": 183,
+    "Minor": 283,
     "Patch": 0
   },
   "instanceNameFormat": "Update ServiceNow Change Request",
