@@ -58,17 +58,13 @@ export class FilesystemProvider implements models.IArtifactProvider {
                 outputItemPath = path.join(this._rootLocation, item.path);
             }
             else {
-                // Feature on: reject item paths that resolve outside the download root.
-                const resolvedRoot: string = path.resolve(this._rootLocation);
-                const resolvedTarget: string = path.resolve(resolvedRoot, item.path);
-                const relative: string = path.relative(resolvedRoot, resolvedTarget);
-                if (relative === '..'
-                    || relative.startsWith('..' + path.sep)
-                    || path.isAbsolute(relative)) {
-                    reject(new Error(tl.loc("InvalidArtifactPath", item.path)));
+                try {
+                    outputItemPath = this.resolveSafeOutputPath(item.path);
+                }
+                catch (err) {
+                    reject(err);
                     return;
                 }
-                outputItemPath = resolvedTarget;
             }
 
             if (item.itemType === models.ItemType.File) {
@@ -112,6 +108,66 @@ export class FilesystemProvider implements models.IArtifactProvider {
                 }
             }
         });
+    }
+
+    /**
+     * Resolves item.path against the configured download root and rejects it if it
+     * would escape the root -- either lexically (e.g. "../../x") or physically, by
+     * passing through a pre-existing symbolic link whose real target lies outside
+     * the root (e.g. a symlink planted by an earlier checkout step).
+     *
+     * Throws an Error with the same localized message as the previous lexical-only
+     * check ("InvalidArtifactPath") on any violation.
+     */
+    private resolveSafeOutputPath(itemPath: string): string {
+        const resolvedRoot: string = path.resolve(this._rootLocation);
+        const resolvedTarget: string = path.resolve(resolvedRoot, itemPath);
+        const relative: string = path.relative(resolvedRoot, resolvedTarget);
+        if (relative === '..'
+            || relative.startsWith('..' + path.sep)
+            || path.isAbsolute(relative)) {
+            throw new Error(tl.loc("InvalidArtifactPath", itemPath));
+        }
+
+        // Make sure the root itself exists so realpathSync below can succeed, then
+        // resolve it to its real (symlink-free) location.
+        tl.mkdirP(resolvedRoot);
+        const realRoot: string = fs.realpathSync(resolvedRoot);
+
+        // Walk each existing ancestor directory between realRoot and the target's
+        // parent directory, verifying none of them is a symlink whose real target
+        // escapes realRoot. Stop at the first path component that does not exist
+        // yet -- there is nothing to escape through, since mkdirP will create a
+        // fresh real directory there.
+        const segments: string[] = relative.split(path.sep);
+        let current: string = realRoot;
+        for (let i = 0; i < segments.length - 1; i++) {
+            current = path.join(current, segments[i]);
+
+            let stat: fs.Stats;
+            try {
+                stat = fs.lstatSync(current);
+            }
+            catch (err) {
+                // Does not exist yet: nothing to escape through.
+                break;
+            }
+
+            if (stat.isSymbolicLink()) {
+                const real: string = fs.realpathSync(current);
+                const relToRoot: string = path.relative(realRoot, real);
+                if (relToRoot === '..'
+                    || relToRoot.startsWith('..' + path.sep)
+                    || path.isAbsolute(relToRoot)) {
+                    throw new Error(tl.loc("InvalidArtifactPath", itemPath));
+                }
+                // Symlink stays inside the root: continue walking from its real
+                // location so further segments are checked correctly.
+                current = real;
+            }
+        }
+
+        return path.join(current, segments[segments.length - 1]);
     }
 
     public isCaseInsensitiveFilesystem(): boolean {

@@ -14,6 +14,18 @@ var createWriteStreamSpy = sinon.spy((filePath) => {
     return mockedStream;
 });
 
+// Default: no ancestor is a symlink, and realpathSync is the identity function.
+// Individual tests simulate a pre-existing symlink ancestor by overriding these
+// with .callsFake(...) and restoring the default afterwards.
+var defaultLstatSync = (p) => ({
+    isSymbolicLink: () => false,
+    isDirectory: () => true,
+    isFile: () => false
+});
+var defaultRealpathSync = (p) => p;
+var lstatSyncStub = sinon.stub().callsFake(defaultLstatSync);
+var realpathSyncStub = sinon.stub().callsFake(defaultRealpathSync);
+
 libMocker.registerMock('fs', {
     statSync: () => {
         return {
@@ -25,7 +37,9 @@ libMocker.registerMock('fs', {
     readFile: (filename, encoding, callback) => {
         callback(undefined, "{}");
     },
-    writeFileSync: () => { }
+    writeFileSync: () => { },
+    lstatSync: lstatSyncStub,
+    realpathSync: realpathSyncStub
 });
 libMocker.enable({
     warnOnReplace: false,
@@ -256,6 +270,69 @@ describe('Unit Tests', () => {
                     assert.strictEqual(processedItem.metadata[models.Constants.DestinationUrlKey], path.join("c:\\drop", itemPath));
                 })
                 .finally(restore);
+        });
+
+        // 9. MSRC 167951: a pre-existing ancestor symlink whose real target escapes the
+        //    download root must be rejected, even though the item path is lexically in-root.
+        it('putArtifactItem should reject writes through a pre-existing ancestor symlink that escapes the root', () => {
+            const root = path.resolve("c:\\drop");
+            const pivotDir = path.join(root, "drop", "pivot");
+
+            lstatSyncStub.callsFake((p) => {
+                if (p === pivotDir) {
+                    return { isSymbolicLink: () => true, isDirectory: () => false, isFile: () => false };
+                }
+                return defaultLstatSync(p);
+            });
+            realpathSyncStub.callsFake((p) => {
+                if (p === pivotDir) {
+                    return "c:\\trusted\\scripts";
+                }
+                return defaultRealpathSync(p);
+            });
+
+            const artifactItem = { fileLength: 0, itemType: models.ItemType.File, path: 'drop\\pivot\\deploy.sh', contentType: undefined, lastModified: null, metadata: null };
+
+            return assert.rejects(
+                localFileProvider.putArtifactItem(artifactItem, null),
+                /outside the download directory/
+            ).finally(() => {
+                lstatSyncStub.callsFake(defaultLstatSync);
+                realpathSyncStub.callsFake(defaultRealpathSync);
+            });
+        });
+
+        // 10. A symlink ancestor that resolves to another location still inside the root is
+        //     benign and must be allowed, proving the fix does not blanket-reject all symlinks.
+        it('putArtifactItem should allow writes through a pre-existing ancestor symlink that stays inside the root', () => {
+            const root = path.resolve("c:\\drop");
+            const linkDir = path.join(root, "alias");
+            const realDir = path.join(root, "real");
+
+            lstatSyncStub.callsFake((p) => {
+                if (p === linkDir) {
+                    return { isSymbolicLink: () => true, isDirectory: () => false, isFile: () => false };
+                }
+                return defaultLstatSync(p);
+            });
+            realpathSyncStub.callsFake((p) => {
+                if (p === linkDir) {
+                    return realDir;
+                }
+                return defaultRealpathSync(p);
+            });
+
+            const itemPath = 'alias\\file.txt';
+            const expected = path.join(realDir, "file.txt");
+            const artifactItem = { fileLength: 0, itemType: models.ItemType.File, path: itemPath, contentType: undefined, lastModified: null, metadata: null };
+
+            return localFileProvider.putArtifactItem(artifactItem, makeReadable('stub content')).then((processedItem) => {
+                assert.strictEqual(createWriteStreamSpy.lastCall.args[0], expected, `createWriteStream should receive ${expected}`);
+                assert.strictEqual(processedItem.metadata[models.Constants.DestinationUrlKey], expected);
+            }).finally(() => {
+                lstatSyncStub.callsFake(defaultLstatSync);
+                realpathSyncStub.callsFake(defaultRealpathSync);
+            });
         });
 
         after(() => {
