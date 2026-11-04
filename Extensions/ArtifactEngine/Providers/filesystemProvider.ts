@@ -190,6 +190,12 @@ export class FilesystemProvider implements models.IArtifactProvider {
         return flags;
     }
 
+    private createSecurityRejection(messageKey: string, itemPath: string): Error {
+        const err: any = new Error(tl.loc(messageKey, itemPath));
+        err.nonRetryable = true;
+        return err;
+    }
+
     private resolveSafeOutputPath(itemPath: string): string {
         const resolvedRoot: string = path.resolve(this._rootLocation);
         const resolvedTarget: string = path.resolve(resolvedRoot, itemPath);
@@ -197,7 +203,7 @@ export class FilesystemProvider implements models.IArtifactProvider {
         if (relative === '..'
             || relative.startsWith('..' + path.sep)
             || path.isAbsolute(relative)) {
-            throw new Error(tl.loc("InvalidArtifactPath", itemPath));
+            throw this.createSecurityRejection("InvalidArtifactPath", itemPath);
         }
 
         tl.mkdirP(resolvedRoot);
@@ -226,12 +232,18 @@ export class FilesystemProvider implements models.IArtifactProvider {
             }
 
             if (stat.isSymbolicLink()) {
-                const real: string = fs.realpathSync(current);
+                let real: string;
+                try {
+                    real = fs.realpathSync(current);
+                }
+                catch (err) {
+                    throw this.createSecurityRejection("InvalidArtifactPath", itemPath);
+                }
                 const relToRoot: string = path.relative(realRoot, real);
                 if (relToRoot === '..'
                     || relToRoot.startsWith('..' + path.sep)
                     || path.isAbsolute(relToRoot)) {
-                    throw new Error(tl.loc("InvalidArtifactPath", itemPath));
+                    throw this.createSecurityRejection("InvalidArtifactPath", itemPath);
                 }
                 current = real;
             }
@@ -241,7 +253,7 @@ export class FilesystemProvider implements models.IArtifactProvider {
         try {
             const finalStat: fs.Stats = fs.lstatSync(finalPath);
             if (finalStat.isSymbolicLink()) {
-                throw new Error(tl.loc("ArtifactPathIsSymlink", itemPath));
+                throw this.createSecurityRejection("ArtifactPathIsSymlink", itemPath);
             }
         }
         catch (err) {
