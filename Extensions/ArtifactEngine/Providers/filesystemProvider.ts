@@ -52,25 +52,37 @@ export class FilesystemProvider implements models.IArtifactProvider {
     }
 
     public putArtifactItem(item: models.ArtifactItem, stream: NodeJS.ReadableStream): Promise<models.ArtifactItem> {
+        if (!tl.getPipelineFeature("EnableArtifactEnginePathValidation") || tl.getPipelineFeature("EnableLegacyArtifactPathValidation")) {
+            return this.putArtifactItemLegacy(item, stream);
+        }
+
+        return this.putArtifactItemSecure(item, stream);
+    }
+
+    // Unmodified pre-fix implementation. Runs verbatim whenever path validation is off, or
+    // EnableLegacyArtifactPathValidation is On, so rollback restores the exact legacy behavior.
+    private putArtifactItemLegacy(item: models.ArtifactItem, stream: NodeJS.ReadableStream): Promise<models.ArtifactItem> {
         return new Promise((resolve, reject) => {
             let outputItemPath: string;
             if (!tl.getPipelineFeature("EnableArtifactEnginePathValidation")) {
                 outputItemPath = path.join(this._rootLocation, item.path);
             }
             else {
-                try {
-                    outputItemPath = this.resolveSafeOutputPath(item.path);
-                }
-                catch (err) {
-                    reject(err);
+                const resolvedRoot: string = path.resolve(this._rootLocation);
+                const resolvedTarget: string = path.resolve(resolvedRoot, item.path);
+                const relative: string = path.relative(resolvedRoot, resolvedTarget);
+                if (relative === '..'
+                    || relative.startsWith('..' + path.sep)
+                    || path.isAbsolute(relative)) {
+                    reject(new Error(tl.loc("InvalidArtifactPath", item.path)));
                     return;
                 }
+                outputItemPath = resolvedTarget;
             }
 
             if (item.itemType === models.ItemType.File) {
                 const folder = path.dirname(outputItemPath);
                 try {
-                    // create parent folder if it has not already been created
                     tl.mkdirP(folder);
 
                     Logger.messageExternalOutput(tl.loc("DownloadingTo", item.path, outputItemPath));
@@ -110,15 +122,74 @@ export class FilesystemProvider implements models.IArtifactProvider {
         });
     }
 
-    /**
-     * Resolves item.path against the configured download root and rejects it if it
-     * would escape the root -- either lexically (e.g. "../../x") or physically, by
-     * passing through a pre-existing symbolic link whose real target lies outside
-     * the root (e.g. a symlink planted by an earlier checkout step).
-     *
-     * Throws an Error with the same localized message as the previous lexical-only
-     * check ("InvalidArtifactPath") on any violation.
-     */
+    // New hardened implementation. Runs only when path validation is on and the legacy
+    // rollback flag is off (the new default).
+    private putArtifactItemSecure(item: models.ArtifactItem, stream: NodeJS.ReadableStream): Promise<models.ArtifactItem> {
+        return new Promise((resolve, reject) => {
+            let outputItemPath: string;
+            try {
+                outputItemPath = this.resolveSafeOutputPath(item.path);
+            }
+            catch (err) {
+                reject(err);
+                return;
+            }
+
+            if (item.itemType === models.ItemType.File) {
+                const folder = path.dirname(outputItemPath);
+                try {
+                    tl.mkdirP(folder);
+
+                    Logger.messageExternalOutput(tl.loc("DownloadingTo", item.path, outputItemPath));
+                    const writeOptions = { flags: this.getWriteOpenFlags() } as any;
+                    const outputStream = fs.createWriteStream(outputItemPath, writeOptions);
+                    stream.pipe(outputStream);
+                    stream.on("end",
+                        () => {
+                            Logger.messageExternalOutput(tl.loc("DownloadedTo", item.path, outputItemPath));
+                            if (!item.metadata) {
+                                item.metadata = {};
+                            }
+
+                            item.metadata[models.Constants.DestinationUrlKey] = outputItemPath;
+                        });
+                    stream.on("error",
+                        (error) => {
+                            reject(error);
+                        });
+                    outputStream.on("error",
+                        (error) => {
+                            reject(error);
+                        });
+                    outputStream.on("finish", () => {
+                        this.artifactItemStore.updateFileSize(item, outputStream.bytesWritten);
+                        resolve(item);
+                    });
+                }
+                catch (err) {
+                    reject(err);
+                }
+            }
+            else {
+                try {
+                    tl.mkdirP(outputItemPath);
+                    resolve(item);
+                }
+                catch (err) {
+                    reject(err);
+                }
+            }
+        });
+    }
+
+    private getWriteOpenFlags(): number {
+        let flags: number = fs.constants.O_WRONLY | fs.constants.O_CREAT | fs.constants.O_TRUNC;
+        if (typeof fs.constants.O_NOFOLLOW === 'number') {
+            flags |= fs.constants.O_NOFOLLOW;
+        }
+        return flags;
+    }
+
     private resolveSafeOutputPath(itemPath: string): string {
         const resolvedRoot: string = path.resolve(this._rootLocation);
         const resolvedTarget: string = path.resolve(resolvedRoot, itemPath);
@@ -129,16 +200,9 @@ export class FilesystemProvider implements models.IArtifactProvider {
             throw new Error(tl.loc("InvalidArtifactPath", itemPath));
         }
 
-        // Make sure the root itself exists so realpathSync below can succeed, then
-        // resolve it to its real (symlink-free) location.
         tl.mkdirP(resolvedRoot);
         const realRoot: string = fs.realpathSync(resolvedRoot);
 
-        // Walk each existing ancestor directory between realRoot and the target's
-        // parent directory, verifying none of them is a symlink whose real target
-        // escapes realRoot. Stop at the first path component that does not exist
-        // yet -- there is nothing to escape through, since mkdirP will create a
-        // fresh real directory there.
         const segments: string[] = relative.split(path.sep);
         let current: string = realRoot;
         for (let i = 0; i < segments.length - 1; i++) {
@@ -149,7 +213,6 @@ export class FilesystemProvider implements models.IArtifactProvider {
                 stat = fs.lstatSync(current);
             }
             catch (err) {
-                // Does not exist yet: nothing to escape through.
                 break;
             }
 
@@ -161,13 +224,24 @@ export class FilesystemProvider implements models.IArtifactProvider {
                     || path.isAbsolute(relToRoot)) {
                     throw new Error(tl.loc("InvalidArtifactPath", itemPath));
                 }
-                // Symlink stays inside the root: continue walking from its real
-                // location so further segments are checked correctly.
                 current = real;
             }
         }
 
-        return path.join(current, segments[segments.length - 1]);
+        const finalPath: string = path.join(current, segments[segments.length - 1]);
+        try {
+            const finalStat: fs.Stats = fs.lstatSync(finalPath);
+            if (finalStat.isSymbolicLink()) {
+                throw new Error(tl.loc("ArtifactPathIsSymlink", itemPath));
+            }
+        }
+        catch (err) {
+            if (err && err.message === tl.loc("ArtifactPathIsSymlink", itemPath)) {
+                throw err;
+            }
+        }
+
+        return finalPath;
     }
 
     public isCaseInsensitiveFilesystem(): boolean {

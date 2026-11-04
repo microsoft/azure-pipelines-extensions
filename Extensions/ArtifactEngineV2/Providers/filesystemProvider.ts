@@ -52,6 +52,16 @@ export class FilesystemProvider implements models.IArtifactProvider {
     }
 
     public putArtifactItem(item: models.ArtifactItem, stream: NodeJS.ReadableStream): Promise<models.ArtifactItem> {
+        if (!tl.getPipelineFeature("EnableArtifactEnginePathValidation") || tl.getPipelineFeature("EnableLegacyArtifactPathValidation")) {
+            return this.putArtifactItemLegacy(item, stream);
+        }
+
+        return this.putArtifactItemSecure(item, stream);
+    }
+
+    // Unmodified pre-fix implementation. Runs verbatim whenever path validation is off, or
+    // EnableLegacyArtifactPathValidation is On, so rollback restores the exact legacy behavior.
+    private putArtifactItemLegacy(item: models.ArtifactItem, stream: NodeJS.ReadableStream): Promise<models.ArtifactItem> {
         return new Promise((resolve, reject) => {
             let outputItemPath: string;
             if (!tl.getPipelineFeature("EnableArtifactEnginePathValidation")) {
@@ -112,6 +122,128 @@ export class FilesystemProvider implements models.IArtifactProvider {
                 }
             }
         });
+    }
+
+    // New hardened implementation. Runs only when path validation is on and the legacy
+    // rollback flag is off (the new default).
+    private putArtifactItemSecure(item: models.ArtifactItem, stream: NodeJS.ReadableStream): Promise<models.ArtifactItem> {
+        return new Promise((resolve, reject) => {
+            let outputItemPath: string;
+            try {
+                outputItemPath = this.resolveSafeOutputPath(item.path);
+            }
+            catch (err) {
+                reject(err);
+                return;
+            }
+
+            if (item.itemType === models.ItemType.File) {
+                const folder = path.dirname(outputItemPath);
+                try {
+                    tl.mkdirP(folder);
+
+                    Logger.messageExternalOutput(tl.loc("DownloadingTo", item.path, outputItemPath));
+                    const writeOptions = { flags: this.getWriteOpenFlags() } as any;
+                    const outputStream = fs.createWriteStream(outputItemPath, writeOptions);
+                    stream.pipe(outputStream);
+                    stream.on("end",
+                        () => {
+                            Logger.messageExternalOutput(tl.loc("DownloadedTo", item.path, outputItemPath));
+                            if (!item.metadata) {
+                                item.metadata = {};
+                            }
+
+                            item.metadata[models.Constants.DestinationUrlKey] = outputItemPath;
+                        });
+                    stream.on("error",
+                        (error) => {
+                            reject(error);
+                        });
+                    outputStream.on("error",
+                        (error) => {
+                            reject(error);
+                        });
+                    outputStream.on("finish", () => {
+                        this.artifactItemStore.updateFileSize(item, outputStream.bytesWritten);
+                        resolve(item);
+                    });
+                }
+                catch (err) {
+                    reject(err);
+                }
+            }
+            else {
+                try {
+                    tl.mkdirP(outputItemPath);
+                    resolve(item);
+                }
+                catch (err) {
+                    reject(err);
+                }
+            }
+        });
+    }
+
+    private getWriteOpenFlags(): number {
+        let flags: number = fs.constants.O_WRONLY | fs.constants.O_CREAT | fs.constants.O_TRUNC;
+        if (typeof fs.constants.O_NOFOLLOW === 'number') {
+            flags |= fs.constants.O_NOFOLLOW;
+        }
+        return flags;
+    }
+
+    private resolveSafeOutputPath(itemPath: string): string {
+        const resolvedRoot: string = path.resolve(this._rootLocation);
+        const resolvedTarget: string = path.resolve(resolvedRoot, itemPath);
+        const relative: string = path.relative(resolvedRoot, resolvedTarget);
+        if (relative === '..'
+            || relative.startsWith('..' + path.sep)
+            || path.isAbsolute(relative)) {
+            throw new Error(tl.loc("InvalidArtifactPath", itemPath));
+        }
+
+        tl.mkdirP(resolvedRoot);
+        const realRoot: string = fs.realpathSync(resolvedRoot);
+
+        const segments: string[] = relative.split(path.sep);
+        let current: string = realRoot;
+        for (let i = 0; i < segments.length - 1; i++) {
+            current = path.join(current, segments[i]);
+
+            let stat: fs.Stats;
+            try {
+                stat = fs.lstatSync(current);
+            }
+            catch (err) {
+                break;
+            }
+
+            if (stat.isSymbolicLink()) {
+                const real: string = fs.realpathSync(current);
+                const relToRoot: string = path.relative(realRoot, real);
+                if (relToRoot === '..'
+                    || relToRoot.startsWith('..' + path.sep)
+                    || path.isAbsolute(relToRoot)) {
+                    throw new Error(tl.loc("InvalidArtifactPath", itemPath));
+                }
+                current = real;
+            }
+        }
+
+        const finalPath: string = path.join(current, segments[segments.length - 1]);
+        try {
+            const finalStat: fs.Stats = fs.lstatSync(finalPath);
+            if (finalStat.isSymbolicLink()) {
+                throw new Error(tl.loc("ArtifactPathIsSymlink", itemPath));
+            }
+        }
+        catch (err) {
+            if (err && err.message === tl.loc("ArtifactPathIsSymlink", itemPath)) {
+                throw err;
+            }
+        }
+
+        return finalPath;
     }
 
     public isCaseInsensitiveFilesystem(): boolean {
