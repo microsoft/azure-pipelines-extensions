@@ -255,9 +255,15 @@ export class FilesystemProvider implements models.IArtifactProvider {
             if (finalStat.isSymbolicLink()) {
                 throw this.createSecurityRejection("ArtifactPathIsSymlink", itemPath);
             }
+            if (!finalStat.isFile() && !finalStat.isDirectory()) {
+                throw this.createSecurityRejection("ArtifactPathIsSpecialFile", itemPath);
+            }
+            if (finalStat.isFile() && finalStat.nlink > 1) {
+                throw this.createSecurityRejection("ArtifactPathIsHardLinked", itemPath);
+            }
         }
         catch (err) {
-            if (err && err.message === tl.loc("ArtifactPathIsSymlink", itemPath)) {
+            if (err && err.nonRetryable) {
                 throw err;
             }
         }

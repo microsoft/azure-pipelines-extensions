@@ -6,6 +6,8 @@
         "DownloadedTo": "Downloaded %s to %s",
         "InvalidArtifactPath": "Artifact path %s resolves outside the download directory.",
         "ArtifactPathIsSymlink": "Artifact path %s already exists as a symbolic link and was rejected.",
+        "ArtifactPathIsHardLinked": "Artifact path %s already exists as a hard-linked file and was rejected.",
+        "ArtifactPathIsSpecialFile": "Artifact path %s already exists as a non-regular file (e.g. a device, pipe, or socket) and was rejected.",
         "UnableToReadDirectory": "Unable to read directory %s. Error: %s",
         "RetryingDownload": "Retrying download of %s, retry count: %s",
         "SkippingItem": "Skipped processing item %s",
