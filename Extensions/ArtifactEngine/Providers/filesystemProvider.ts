@@ -201,7 +201,16 @@ export class FilesystemProvider implements models.IArtifactProvider {
         }
 
         tl.mkdirP(resolvedRoot);
-        const realRoot: string = fs.realpathSync(resolvedRoot);
+        let realRoot: string;
+        try {
+            realRoot = fs.realpathSync(resolvedRoot);
+        }
+        catch (err) {
+            // Root does not exist yet (e.g. mkdirP was a no-op, or creation is deferred until
+            // the first write). Nothing can be a pre-existing symlink at a path that doesn't
+            // exist, so fall back to the lexically resolved root.
+            realRoot = resolvedRoot;
+        }
 
         const segments: string[] = relative.split(path.sep);
         let current: string = realRoot;
