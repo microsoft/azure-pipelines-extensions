@@ -1063,6 +1063,7 @@ function getChangedFiles(filterLocalChanges) {
 }
 
 const SHARED_INFRA_PREFIXES = [
+    '.oxlintrc.json',
     'Extensions/Common/',
     'Extensions/ArtifactEngine/',
     'Extensions/ArtifactEngineV2/',

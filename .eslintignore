@@ -1,6 +1,0 @@
-**/node_modules/**
-**/_build/**
-**/_package/**
-**/*.d.ts
-.gdn/**
-definitions/**
