@@ -52,13 +52,22 @@ export class FilesystemProvider implements models.IArtifactProvider {
     }
 
     public putArtifactItem(item: models.ArtifactItem, stream: NodeJS.ReadableStream): Promise<models.ArtifactItem> {
+        if (!tl.getPipelineFeature("EnableArtifactEnginePathValidation") || tl.getPipelineFeature("EnableLegacyArtifactPathValidation")) {
+            return this.putArtifactItemLegacy(item, stream);
+        }
+
+        return this.putArtifactItemSecure(item, stream);
+    }
+
+    // Unmodified pre-fix implementation. Runs verbatim whenever path validation is off, or
+    // EnableLegacyArtifactPathValidation is On, so rollback restores the exact legacy behavior.
+    private putArtifactItemLegacy(item: models.ArtifactItem, stream: NodeJS.ReadableStream): Promise<models.ArtifactItem> {
         return new Promise((resolve, reject) => {
             let outputItemPath: string;
             if (!tl.getPipelineFeature("EnableArtifactEnginePathValidation")) {
                 outputItemPath = path.join(this._rootLocation, item.path);
             }
             else {
-                // Feature on: reject item paths that resolve outside the download root.
                 const resolvedRoot: string = path.resolve(this._rootLocation);
                 const resolvedTarget: string = path.resolve(resolvedRoot, item.path);
                 const relative: string = path.relative(resolvedRoot, resolvedTarget);
@@ -74,7 +83,6 @@ export class FilesystemProvider implements models.IArtifactProvider {
             if (item.itemType === models.ItemType.File) {
                 const folder = path.dirname(outputItemPath);
                 try {
-                    // create parent folder if it has not already been created
                     tl.mkdirP(folder);
 
                     Logger.messageExternalOutput(tl.loc("DownloadingTo", item.path, outputItemPath));
@@ -112,6 +120,155 @@ export class FilesystemProvider implements models.IArtifactProvider {
                 }
             }
         });
+    }
+
+    // New hardened implementation. Runs only when path validation is on and the legacy
+    // rollback flag is off (the new default).
+    private putArtifactItemSecure(item: models.ArtifactItem, stream: NodeJS.ReadableStream): Promise<models.ArtifactItem> {
+        return new Promise((resolve, reject) => {
+            let outputItemPath: string;
+            try {
+                outputItemPath = this.resolveSafeOutputPath(item.path);
+            }
+            catch (err) {
+                reject(err);
+                return;
+            }
+
+            if (item.itemType === models.ItemType.File) {
+                const folder = path.dirname(outputItemPath);
+                try {
+                    tl.mkdirP(folder);
+
+                    Logger.messageExternalOutput(tl.loc("DownloadingTo", item.path, outputItemPath));
+                    const writeOptions = { flags: this.getWriteOpenFlags() } as any;
+                    const outputStream = fs.createWriteStream(outputItemPath, writeOptions);
+                    stream.pipe(outputStream);
+                    stream.on("end",
+                        () => {
+                            Logger.messageExternalOutput(tl.loc("DownloadedTo", item.path, outputItemPath));
+                            if (!item.metadata) {
+                                item.metadata = {};
+                            }
+
+                            item.metadata[models.Constants.DestinationUrlKey] = outputItemPath;
+                        });
+                    stream.on("error",
+                        (error) => {
+                            reject(error);
+                        });
+                    outputStream.on("error",
+                        (error) => {
+                            reject(error);
+                        });
+                    outputStream.on("finish", () => {
+                        this.artifactItemStore.updateFileSize(item, outputStream.bytesWritten);
+                        resolve(item);
+                    });
+                }
+                catch (err) {
+                    reject(err);
+                }
+            }
+            else {
+                try {
+                    tl.mkdirP(outputItemPath);
+                    resolve(item);
+                }
+                catch (err) {
+                    reject(err);
+                }
+            }
+        });
+    }
+
+    private getWriteOpenFlags(): number {
+        let flags: number = fs.constants.O_WRONLY | fs.constants.O_CREAT | fs.constants.O_TRUNC;
+        if (typeof fs.constants.O_NOFOLLOW === 'number') {
+            flags |= fs.constants.O_NOFOLLOW;
+        }
+        return flags;
+    }
+
+    private createSecurityRejection(messageKey: string, itemPath: string): Error {
+        const err: any = new Error(tl.loc(messageKey, itemPath));
+        err.nonRetryable = true;
+        return err;
+    }
+
+    private resolveSafeOutputPath(itemPath: string): string {
+        const resolvedRoot: string = path.resolve(this._rootLocation);
+        const resolvedTarget: string = path.resolve(resolvedRoot, itemPath);
+        const relative: string = path.relative(resolvedRoot, resolvedTarget);
+        if (relative === '..'
+            || relative.startsWith('..' + path.sep)
+            || path.isAbsolute(relative)) {
+            throw this.createSecurityRejection("InvalidArtifactPath", itemPath);
+        }
+
+        tl.mkdirP(resolvedRoot);
+        let realRoot: string;
+        try {
+            realRoot = fs.realpathSync(resolvedRoot);
+        }
+        catch (err) {
+            // Root does not exist yet (e.g. mkdirP was a no-op, or creation is deferred until
+            // the first write). Nothing can be a pre-existing symlink at a path that doesn't
+            // exist, so fall back to the lexically resolved root.
+            realRoot = resolvedRoot;
+        }
+
+        const segments: string[] = relative.split(path.sep);
+        let current: string = realRoot;
+        for (let i = 0; i < segments.length - 1; i++) {
+            current = path.join(current, segments[i]);
+
+            let stat: fs.Stats;
+            try {
+                stat = fs.lstatSync(current);
+            }
+            catch (err) {
+                break;
+            }
+
+            if (stat.isSymbolicLink()) {
+                let real: string;
+                try {
+                    real = fs.realpathSync(current);
+                }
+                catch (err) {
+                    throw this.createSecurityRejection("InvalidArtifactPath", itemPath);
+                }
+                const relToRoot: string = path.relative(realRoot, real);
+                if (relToRoot === '..'
+                    || relToRoot.startsWith('..' + path.sep)
+                    || path.isAbsolute(relToRoot)) {
+                    throw this.createSecurityRejection("InvalidArtifactPath", itemPath);
+                }
+                current = real;
+            }
+        }
+
+        const finalPath: string = path.join(current, segments[segments.length - 1]);
+        try {
+            const finalStat: fs.Stats = fs.lstatSync(finalPath);
+            if (finalStat.isSymbolicLink()) {
+                throw this.createSecurityRejection("ArtifactPathIsSymlink", itemPath);
+            }
+            if (!finalStat.isFile() && !finalStat.isDirectory()) {
+                throw this.createSecurityRejection("ArtifactPathIsSpecialFile", itemPath);
+            }
+            if (finalStat.isFile() && finalStat.nlink > 1) {
+                throw this.createSecurityRejection("ArtifactPathIsHardLinked", itemPath);
+            }
+        }
+        catch (err) {
+            if (err && err.nonRetryable) {
+                throw err;
+            }
+        }
+
+        return finalPath;
     }
 
     public isCaseInsensitiveFilesystem(): boolean {

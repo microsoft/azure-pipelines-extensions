@@ -71,6 +71,11 @@ export class ArtifactEngine {
         reject,
         retryCount?: number) {
         var retryIfRequired = (err) => {
+            if (err && err.nonRetryable) {
+                this.artifactItemStore.updateState(item, models.TicketState.Failed);
+                reject(err);
+                return;
+            }
             if (retryCount === artifactEngineOptions.retryLimit - 1) {
                 this.artifactItemStore.updateState(item, models.TicketState.Failed);
                 reject(err);

@@ -3,16 +3,26 @@ import * as path from 'path'
 var libMocker = require("azure-pipelines-task-lib/lib-mocker");
 var stream = require("stream");
 var sinon = require("sinon");
+var realFsConstants = require("fs").constants;
 
 import * as assert from 'assert';
 
 import * as models from '../Models';
 
-var createWriteStreamSpy = sinon.spy((filePath) => {
+var createWriteStreamSpy = sinon.spy((filePath, options) => {
     var mockedStream = stream.Writable();
     mockedStream._write = (data, encoding, callback) => { callback(); };
     return mockedStream;
 });
+
+var defaultLstatSync = (p) => ({
+    isSymbolicLink: () => false,
+    isDirectory: () => true,
+    isFile: () => false
+});
+var defaultRealpathSync = (p) => p;
+var lstatSyncStub = sinon.stub().callsFake(defaultLstatSync);
+var realpathSyncStub = sinon.stub().callsFake(defaultRealpathSync);
 
 libMocker.registerMock('fs', {
     statSync: () => {
@@ -25,7 +35,10 @@ libMocker.registerMock('fs', {
     readFile: (filename, encoding, callback) => {
         callback(undefined, "{}");
     },
-    writeFileSync: () => { }
+    writeFileSync: () => { },
+    lstatSync: lstatSyncStub,
+    realpathSync: realpathSyncStub,
+    constants: realFsConstants
 });
 libMocker.enable({
     warnOnReplace: false,
@@ -256,6 +269,136 @@ describe('Unit Tests', () => {
                     assert.strictEqual(processedItem.metadata[models.Constants.DestinationUrlKey], path.join("c:\\drop", itemPath));
                 })
                 .finally(restore);
+        });
+
+        it('putArtifactItem should reject writes through a pre-existing ancestor symlink that escapes the root', () => {
+            const root = path.resolve("c:\\drop");
+            const pivotDir = path.join(root, "drop", "pivot");
+
+            lstatSyncStub.callsFake((p) => {
+                if (p === pivotDir) {
+                    return { isSymbolicLink: () => true, isDirectory: () => false, isFile: () => false };
+                }
+                return defaultLstatSync(p);
+            });
+            realpathSyncStub.callsFake((p) => {
+                if (p === pivotDir) {
+                    return "c:\\trusted\\scripts";
+                }
+                return defaultRealpathSync(p);
+            });
+
+            const artifactItem = { fileLength: 0, itemType: models.ItemType.File, path: 'drop\\pivot\\deploy.sh', contentType: undefined, lastModified: null, metadata: null };
+
+            return assert.rejects(
+                localFileProvider.putArtifactItem(artifactItem, null),
+                /outside the download directory/
+            ).finally(() => {
+                lstatSyncStub.callsFake(defaultLstatSync);
+                realpathSyncStub.callsFake(defaultRealpathSync);
+            });
+        });
+
+        it('putArtifactItem should allow writes through a pre-existing ancestor symlink that stays inside the root', () => {
+            const root = path.resolve("c:\\drop");
+            const linkDir = path.join(root, "alias");
+            const realDir = path.join(root, "real");
+
+            lstatSyncStub.callsFake((p) => {
+                if (p === linkDir) {
+                    return { isSymbolicLink: () => true, isDirectory: () => false, isFile: () => false };
+                }
+                return defaultLstatSync(p);
+            });
+            realpathSyncStub.callsFake((p) => {
+                if (p === linkDir) {
+                    return realDir;
+                }
+                return defaultRealpathSync(p);
+            });
+
+            const itemPath = 'alias\\file.txt';
+            const expected = path.join(realDir, "file.txt");
+            const artifactItem = { fileLength: 0, itemType: models.ItemType.File, path: itemPath, contentType: undefined, lastModified: null, metadata: null };
+
+            return localFileProvider.putArtifactItem(artifactItem, makeReadable('stub content')).then((processedItem) => {
+                assert.strictEqual(createWriteStreamSpy.lastCall.args[0], expected, `createWriteStream should receive ${expected}`);
+                assert.strictEqual(processedItem.metadata[models.Constants.DestinationUrlKey], expected);
+            }).finally(() => {
+                lstatSyncStub.callsFake(defaultLstatSync);
+                realpathSyncStub.callsFake(defaultRealpathSync);
+            });
+        });
+
+        it('putArtifactItem should reject writes where the final path component is a pre-existing symlink', () => {
+            const root = path.resolve("c:\\drop");
+            const finalPath = path.join(root, "deploy.sh");
+
+            lstatSyncStub.callsFake((p) => {
+                if (p === finalPath) {
+                    return { isSymbolicLink: () => true, isDirectory: () => false, isFile: () => false };
+                }
+                return defaultLstatSync(p);
+            });
+
+            const artifactItem = { fileLength: 0, itemType: models.ItemType.File, path: 'deploy.sh', contentType: undefined, lastModified: null, metadata: null };
+
+            return assert.rejects(
+                localFileProvider.putArtifactItem(artifactItem, null),
+                /already exists as a symbolic link/
+            ).finally(() => {
+                lstatSyncStub.callsFake(defaultLstatSync);
+            });
+        });
+
+        it('putArtifactItem should open the output file with O_NOFOLLOW when path validation is active', () => {
+            const itemPath = 'file1.txt';
+            const expected = path.resolve("c:\\drop", itemPath);
+            const artifactItem = { fileLength: 0, itemType: models.ItemType.File, path: itemPath, contentType: undefined, lastModified: null, metadata: null };
+
+            return localFileProvider.putArtifactItem(artifactItem, makeReadable('stub content')).then((processedItem) => {
+                const openFlags = createWriteStreamSpy.lastCall.args[1] && createWriteStreamSpy.lastCall.args[1].flags;
+                assert.strictEqual(typeof openFlags, 'number', 'createWriteStream should receive numeric open flags');
+                if (typeof realFsConstants.O_NOFOLLOW === 'number') {
+                    assert.strictEqual((openFlags & realFsConstants.O_NOFOLLOW) !== 0, true, 'open flags should include O_NOFOLLOW');
+                }
+                assert.strictEqual(processedItem.metadata[models.Constants.DestinationUrlKey], expected);
+            });
+        });
+
+        it('putArtifactItem should fall back to legacy lexical-only validation when EnableLegacyArtifactPathValidation is On', () => {
+            const legacyKey = 'DISTRIBUTEDTASK_TASKS_ENABLELEGACYARTIFACTPATHVALIDATION';
+            process.env[legacyKey] = 'true';
+
+            const root = path.resolve("c:\\drop");
+            const pivotDir = path.join(root, "drop", "pivot");
+
+            lstatSyncStub.callsFake((p) => {
+                if (p === pivotDir) {
+                    return { isSymbolicLink: () => true, isDirectory: () => false, isFile: () => false };
+                }
+                return defaultLstatSync(p);
+            });
+            realpathSyncStub.callsFake((p) => {
+                if (p === pivotDir) {
+                    return "c:\\trusted\\scripts";
+                }
+                return defaultRealpathSync(p);
+            });
+
+            const itemPath = 'drop\\pivot\\deploy.sh';
+            const expected = path.resolve("c:\\drop", itemPath);
+            const artifactItem = { fileLength: 0, itemType: models.ItemType.File, path: itemPath, contentType: undefined, lastModified: null, metadata: null };
+
+            return localFileProvider.putArtifactItem(artifactItem, makeReadable('stub content')).then((processedItem) => {
+                assert.strictEqual(createWriteStreamSpy.lastCall.args[0], expected, `createWriteStream should receive ${expected}`);
+                assert.strictEqual(createWriteStreamSpy.lastCall.args[1], undefined, 'legacy mode should not pass O_NOFOLLOW open flags');
+                assert.strictEqual(processedItem.metadata[models.Constants.DestinationUrlKey], expected);
+            }).finally(() => {
+                delete process.env[legacyKey];
+                lstatSyncStub.callsFake(defaultLstatSync);
+                realpathSyncStub.callsFake(defaultRealpathSync);
+            });
         });
 
         after(() => {
