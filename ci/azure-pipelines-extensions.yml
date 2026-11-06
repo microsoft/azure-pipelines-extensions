@@ -97,8 +97,8 @@ extends:
           inputs:
             workingFile: ./.npmrc
         - script: npm ci --userconfig ./.npmrc
-        - script: npx --no-install eslint "Extensions/**/*.{ts,js}"
-          displayName: 'Lint onboarded extensions (non-blocking)'
+        - script: npm run lint
+          displayName: 'Oxlint extensions and build scripts (non-blocking)'
           continueOnError: true
         - task: gulp@0
           displayName: 'gulp build'
