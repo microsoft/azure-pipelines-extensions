@@ -112,6 +112,8 @@ Extensions/ExternalTfs/
 
 > Both tasks run on a **build agent** (Node execution handler). They have full access to the agent file system.
 
+Use Node 24 when validating these tasks. The patched transitive Azure Identity dependency requires Node.js 22 or newer and uses MSAL 7.x internally. The tasks' direct MSAL dependencies remain on their existing major versions; updating those is not required to fix the Azure Identity dependency's advisory.
+
 **What is ExternalTfsXamlBuild?** This is a legacy artifact type for XAML build definitions on a remote TFS server. Unlike the other two artifact types, it has **no backing task** and no `downloadTaskId` in the manifest — the release server handles the download entirely server-side. The drop location can be either a container (downloaded as zip) or a file share (UNC path). It has its own set of data sources (`XamlProjects`, `XamlDefinitions`, `XamlBuilds`, `LatestXamlBuild`, `XamlBuild`). XAML builds are deprecated, so this artifact type exists only for backward compatibility. See the `externalTFSXamlBuild-release-artifact-type` contribution in `vss-extension.json` for the full definition.
 
 ### How Authentication Works
