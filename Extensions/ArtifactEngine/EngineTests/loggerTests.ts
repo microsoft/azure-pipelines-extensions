@@ -6,7 +6,6 @@ import { Readable, Writable } from 'stream';
 import type { VsoCommandMode } from 'azure-pipelines-task-lib/externaloutput';
 import * as taskLibInternal from 'azure-pipelines-task-lib/internal';
 import * as tl from 'azure-pipelines-task-lib/task';
-// eslint-disable-next-line import/no-extraneous-dependencies -- EngineTests is a test directory.
 import * as sinon from 'sinon';
 
 import { ArtifactEngine, ArtifactEngineOptions } from '../Engine';
