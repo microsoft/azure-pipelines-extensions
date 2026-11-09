@@ -283,12 +283,12 @@ describe('Unit Tests', () => {
             });
             realpathSyncStub.callsFake((p) => {
                 if (p === pivotDir) {
-                    return "c:\\trusted\\scripts";
+                    return path.join(path.dirname(root), "trusted", "scripts");
                 }
                 return defaultRealpathSync(p);
             });
 
-            const artifactItem = { fileLength: 0, itemType: models.ItemType.File, path: 'drop\\pivot\\deploy.sh', contentType: undefined, lastModified: null, metadata: null };
+            const artifactItem = { fileLength: 0, itemType: models.ItemType.File, path: ["drop", "pivot", "deploy.sh"].join(path.sep), contentType: undefined, lastModified: null, metadata: null };
 
             return assert.rejects(
                 localFileProvider.putArtifactItem(artifactItem, null),
@@ -317,7 +317,7 @@ describe('Unit Tests', () => {
                 return defaultRealpathSync(p);
             });
 
-            const itemPath = 'alias\\file.txt';
+            const itemPath = ["alias", "file.txt"].join(path.sep);
             const expected = path.join(realDir, "file.txt");
             const artifactItem = { fileLength: 0, itemType: models.ItemType.File, path: itemPath, contentType: undefined, lastModified: null, metadata: null };
 
