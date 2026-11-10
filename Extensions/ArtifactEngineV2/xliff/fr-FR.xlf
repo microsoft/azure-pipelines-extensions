@@ -2,6 +2,26 @@
 <xliff version="1.2">
   <file original="lib.json" source-language="en-US" target-language="fr-FR" datatype="plaintext">
     <body>
+      <trans-unit xmlns="" id="loc.messages.ArtifactPathIsHardLinked">
+        <source>Artifact path %s already exists as a hard-linked file and was rejected.</source>
+        <target state="translated">Le chemin d’accès de l’artefact %s existe déjà en tant que fichier à liens physiques et a été rejeté.</target>
+        <note />
+      </trans-unit>
+      <trans-unit xmlns="" id="loc.messages.ArtifactPathIsSpecialFile">
+        <source>Artifact path %s already exists as a non-regular file (e.g. a device, pipe, or socket) and was rejected.</source>
+        <target state="translated">Le chemin d’accès de l’artefact %s existe déjà en tant que fichier non standard (par exemple, un périphérique, un tube ou un socket) et a été rejeté.</target>
+        <note />
+      </trans-unit>
+      <trans-unit xmlns="" id="loc.messages.ArtifactPathIsSymlink">
+        <source>Artifact path %s already exists as a symbolic link and was rejected.</source>
+        <target state="translated">Le chemin d’accès de l’artefact %s existe déjà en tant que lien symbolique et a été rejeté.</target>
+        <note />
+      </trans-unit>
+      <trans-unit xmlns="" id="loc.messages.InvalidArtifactPath">
+        <source>Artifact path %s resolves outside the download directory.</source>
+        <target state="translated">Le chemin d’accès de l’artefact %s se résout en dehors du répertoire de téléchargement.</target>
+        <note />
+      </trans-unit>
       <trans-unit xmlns="" id="loc.messages.DownloadSummary">
         <source>Total Files: %s, Processed: %s, Skipped: %s, Failed: %s, Download time: %s secs, Download size: %s</source>
         <target state="translated">Fichiers totaux : %s, Traités : %s, Ignorés : %s, En échec : %s, Durée du téléchargement : %s s, Taille du téléchargement : %s</target>
