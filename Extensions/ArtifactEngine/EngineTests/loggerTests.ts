@@ -232,15 +232,6 @@ describe('external logger tests', () => {
     });
 
     it('filters real filesystem-provider logs without changing paths or downloaded bytes', async () => {
-        // This test exercises the real (unmocked) fs module, so it must not be
-        // routed through putArtifactItemSecure's path-validation walk, which
-        // issues real fs.lstatSync/realpathSync/mkdirSync calls against a
-        // "drop" directory that doesn't exist on disk here. Pin the dispatch
-        // to the legacy path regardless of any ambient
-        // DISTRIBUTEDTASK_TASKS_ENABLEARTIFACTENGINEPATHVALIDATION value the
-        // CI agent/org may inject, since this test only cares about logger
-        // filtering, not path-validation behavior (covered separately in
-        // ProvidersTests/filesystemProviderTests.ts).
         const pathValidationVariable = 'DISTRIBUTEDTASK_TASKS_ENABLEARTIFACTENGINEPATHVALIDATION';
         const originalPathValidation = process.env[pathValidationVariable];
         delete process.env[pathValidationVariable];
