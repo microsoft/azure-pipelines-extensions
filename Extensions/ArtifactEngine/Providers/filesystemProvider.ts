@@ -228,7 +228,19 @@ export class FilesystemProvider implements models.IArtifactProvider {
                 stat = fs.lstatSync(current);
             }
             catch (err) {
-                break;
+                if (err && err.code !== 'ENOENT') {
+                    throw this.createSecurityRejection("InvalidArtifactPath", itemPath);
+                }
+
+                try {
+                    fs.mkdirSync(current);
+                }
+                catch (mkdirErr) {
+                    if (!mkdirErr || mkdirErr.code !== 'EEXIST') {
+                        throw mkdirErr;
+                    }
+                }
+                continue;
             }
 
             if (stat.isSymbolicLink()) {

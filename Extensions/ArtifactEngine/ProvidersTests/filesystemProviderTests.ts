@@ -21,8 +21,10 @@ var defaultLstatSync = (p) => ({
     isFile: () => false
 });
 var defaultRealpathSync = (p) => p;
+var defaultMkdirSync = (p) => undefined;
 var lstatSyncStub = sinon.stub().callsFake(defaultLstatSync);
 var realpathSyncStub = sinon.stub().callsFake(defaultRealpathSync);
+var mkdirSyncStub = sinon.stub().callsFake(defaultMkdirSync);
 
 libMocker.registerMock('fs', {
     statSync: () => {
@@ -38,6 +40,7 @@ libMocker.registerMock('fs', {
     writeFileSync: () => { },
     lstatSync: lstatSyncStub,
     realpathSync: realpathSyncStub,
+    mkdirSync: mkdirSyncStub,
     constants: realFsConstants
 });
 libMocker.enable({
@@ -251,6 +254,91 @@ describe('Unit Tests', () => {
             return localFileProvider.putArtifactItem(artifactItem, makeReadable('stub content')).then((processedItem) => {
                 assert.strictEqual(createWriteStreamSpy.lastCall.args[0], expected, `createWriteStream should receive ${expected}`);
                 assert.strictEqual(processedItem.metadata[models.Constants.DestinationUrlKey], expected);
+            });
+        });
+
+        it('putArtifactItem should not truncate the resolved path when intermediate folders do not exist yet', () => {
+            const itemPath = ['folder', 'sub', 'file.txt'].join(path.sep);
+            const expected = path.resolve("c:\\drop", itemPath);
+            const artifactItem = { fileLength: 0, itemType: models.ItemType.File, path: itemPath, contentType: undefined, lastModified: null, metadata: null };
+
+            lstatSyncStub.callsFake((p) => {
+                const err: any = new Error('ENOENT: no such file or directory');
+                err.code = 'ENOENT';
+                throw err;
+            });
+
+            return localFileProvider.putArtifactItem(artifactItem, makeReadable('stub content')).then((processedItem) => {
+                assert.strictEqual(createWriteStreamSpy.lastCall.args[0], expected, `createWriteStream should receive the full nested path ${expected}, not a truncated one`);
+                assert.strictEqual(processedItem.metadata[models.Constants.DestinationUrlKey], expected);
+            }).finally(() => {
+                lstatSyncStub.callsFake(defaultLstatSync);
+            });
+        });
+
+        it('putArtifactItem should reject (not silently skip) a non-ENOENT lstat failure on an intermediate segment', () => {
+            const itemPath = ['folder', 'sub', 'file.txt'].join(path.sep);
+            const artifactItem = { fileLength: 0, itemType: models.ItemType.File, path: itemPath, contentType: undefined, lastModified: null, metadata: null };
+
+            lstatSyncStub.callsFake((p) => {
+                const err: any = new Error('ELOOP: too many symbolic links encountered');
+                err.code = 'ELOOP';
+                throw err;
+            });
+
+            return assert.rejects(
+                localFileProvider.putArtifactItem(artifactItem, makeReadable('stub content')),
+                /outside the download directory/
+            ).finally(() => {
+                lstatSyncStub.callsFake(defaultLstatSync);
+            });
+        });
+
+        it('putArtifactItem should tolerate a concurrent EEXIST race while creating an intermediate directory', () => {
+            const itemPath = ['folder', 'sub', 'file.txt'].join(path.sep);
+            const expected = path.resolve("c:\\drop", itemPath);
+            const artifactItem = { fileLength: 0, itemType: models.ItemType.File, path: itemPath, contentType: undefined, lastModified: null, metadata: null };
+
+            lstatSyncStub.callsFake((p) => {
+                const err: any = new Error('ENOENT: no such file or directory');
+                err.code = 'ENOENT';
+                throw err;
+            });
+            mkdirSyncStub.callsFake((p) => {
+                const err: any = new Error('EEXIST: file already exists');
+                err.code = 'EEXIST';
+                throw err;
+            });
+
+            return localFileProvider.putArtifactItem(artifactItem, makeReadable('stub content')).then((processedItem) => {
+                assert.strictEqual(createWriteStreamSpy.lastCall.args[0], expected, `createWriteStream should still receive the full nested path ${expected}`);
+            }).finally(() => {
+                lstatSyncStub.callsFake(defaultLstatSync);
+                mkdirSyncStub.callsFake(defaultMkdirSync);
+            });
+        });
+
+        it('putArtifactItem should propagate a genuine mkdir failure while creating an intermediate directory', () => {
+            const itemPath = ['folder', 'sub', 'file.txt'].join(path.sep);
+            const artifactItem = { fileLength: 0, itemType: models.ItemType.File, path: itemPath, contentType: undefined, lastModified: null, metadata: null };
+
+            lstatSyncStub.callsFake((p) => {
+                const err: any = new Error('ENOENT: no such file or directory');
+                err.code = 'ENOENT';
+                throw err;
+            });
+            mkdirSyncStub.callsFake((p) => {
+                const err: any = new Error('EACCES: permission denied');
+                err.code = 'EACCES';
+                throw err;
+            });
+
+            return assert.rejects(
+                localFileProvider.putArtifactItem(artifactItem, makeReadable('stub content')),
+                /EACCES/
+            ).finally(() => {
+                lstatSyncStub.callsFake(defaultLstatSync);
+                mkdirSyncStub.callsFake(defaultMkdirSync);
             });
         });
 
