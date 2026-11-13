@@ -124,7 +124,7 @@ describe('Unit Tests', () => {
             var artifactItem = { fileLength: 0, itemType: models.ItemType.Folder, path: "path1\\folder1", lastModified: null, metadata: null };
 
             localFileProvider.putArtifactItem(artifactItem, null).then((processedItem) => {
-                assert(stub.calledWith(path.resolve("c:\\drop", "path1\\folder1")));
+                assert(mkdirSyncStub.calledWith(path.resolve("c:\\drop", "path1\\folder1")));
                 done();
             }, (err) => {
                 throw err;
@@ -245,14 +245,14 @@ describe('Unit Tests', () => {
 
         // 7. Paths that resolve to the root itself (relative === '') are allowed.
         it('putArtifactItem should allow folder items that resolve to the root itself', () => {
-            stub.resetHistory();
+            mkdirSyncStub.resetHistory();
             const resolvedRoot = path.resolve("c:\\drop");
 
             return Promise.all(['', '.'].map((itemPath) => {
                 const artifactItem = { fileLength: 0, itemType: models.ItemType.Folder, path: itemPath, contentType: undefined, lastModified: null, metadata: null };
                 return localFileProvider.putArtifactItem(artifactItem, null).then((processedItem) => {
                     assert.strictEqual(processedItem, artifactItem);
-                    assert(stub.calledWith(resolvedRoot), `mkdirP should be called with ${resolvedRoot}`);
+                    assert(mkdirSyncStub.calledWith(resolvedRoot), `mkdirSync should be called with ${resolvedRoot}`);
                 });
             }));
         });

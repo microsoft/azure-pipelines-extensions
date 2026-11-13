@@ -200,7 +200,7 @@ export class FilesystemProvider implements models.IArtifactProvider {
             }
             else {
                 try {
-                    tl.mkdirP(outputItemPath);
+                    this.createValidatedDirectory(outputItemPath, item.path);
                     resolve(item);
                 }
                 catch (err) {
@@ -247,6 +247,40 @@ export class FilesystemProvider implements models.IArtifactProvider {
         }
 
         return err;
+    }
+
+    // Creates a directory-type artifact's final path segment with the same symlink-safe
+    // guarantee as the intermediate segments in resolveSafeOutputPath, instead of an
+    // unchecked mkdirP call that would reopen the TOCTOU window the latter closes.
+    private createValidatedDirectory(dirPath: string, itemPath: string): void {
+        try {
+            fs.mkdirSync(dirPath);
+            return;
+        }
+        catch (err) {
+            if (!err || err.code !== 'EEXIST') {
+                throw err;
+            }
+        }
+
+        let raceStat: fs.Stats;
+        try {
+            raceStat = fs.lstatSync(dirPath);
+        }
+        catch (raceErr) {
+            throw this.createSecurityRejection("InvalidArtifactPath", itemPath, raceErr);
+        }
+
+        const resolvedRoot: string = path.resolve(this._rootLocation);
+        let realRoot: string;
+        try {
+            realRoot = fs.realpathSync(resolvedRoot);
+        }
+        catch (err) {
+            realRoot = resolvedRoot;
+        }
+
+        this.validateExistingIntermediateSegment(dirPath, raceStat, realRoot, itemPath);
     }
 
     private validateExistingIntermediateSegment(current: string, stat: fs.Stats, realRoot: string, itemPath: string): string {
