@@ -1,8 +1,10 @@
+import * as os from 'os';
 import * as path from 'path';
 import * as fs from 'fs';
 
 import * as models from '../Models';
 import { Logger } from '../Engine/logger';
+import * as ci from '../Engine/cilogger';
 import { ArtifactItemStore } from '../Store/artifactItemStore';
 import { isFilesystemCaseInsensitive } from './filesystemCaseSensitivity';
 
@@ -122,8 +124,6 @@ export class FilesystemProvider implements models.IArtifactProvider {
         });
     }
 
-    // New hardened implementation. Runs only when path validation is on and the legacy
-    // rollback flag is off (the new default).
     private putArtifactItemSecure(item: models.ArtifactItem, stream: NodeJS.ReadableStream): Promise<models.ArtifactItem> {
         return new Promise((resolve, reject) => {
             let outputItemPath: string;
@@ -131,18 +131,26 @@ export class FilesystemProvider implements models.IArtifactProvider {
                 outputItemPath = this.resolveSafeOutputPath(item.path);
             }
             catch (err) {
+                if (stream && typeof (stream as any).destroy === 'function') {
+                    (stream as any).destroy();
+                }
                 reject(err);
                 return;
             }
 
             if (item.itemType === models.ItemType.File) {
                 const folder = path.dirname(outputItemPath);
+                const tempItemPath = this.getTempWritePath(outputItemPath);
+                let settled = false;
+                const cleanupTempFile = () => {
+                    fs.unlink(tempItemPath, () => { /* best-effort cleanup */ });
+                };
                 try {
                     tl.mkdirP(folder);
 
                     Logger.messageExternalOutput(tl.loc("DownloadingTo", item.path, outputItemPath));
                     const writeOptions = { flags: this.getWriteOpenFlags() } as any;
-                    const outputStream = fs.createWriteStream(outputItemPath, writeOptions);
+                    const outputStream = fs.createWriteStream(tempItemPath, writeOptions);
                     stream.pipe(outputStream);
                     stream.on("end",
                         () => {
@@ -155,18 +163,36 @@ export class FilesystemProvider implements models.IArtifactProvider {
                         });
                     stream.on("error",
                         (error) => {
+                            if (settled) { return; }
+                            settled = true;
+                            cleanupTempFile();
                             reject(error);
                         });
                     outputStream.on("error",
                         (error) => {
+                            if (settled) { return; }
+                            settled = true;
+                            cleanupTempFile();
                             reject(error);
                         });
                     outputStream.on("finish", () => {
+                        if (settled) { return; }
+                        try {
+                            fs.renameSync(tempItemPath, outputItemPath);
+                        }
+                        catch (renameErr) {
+                            settled = true;
+                            cleanupTempFile();
+                            reject(renameErr);
+                            return;
+                        }
+                        settled = true;
                         this.artifactItemStore.updateFileSize(item, outputStream.bytesWritten);
                         resolve(item);
                     });
                 }
                 catch (err) {
+                    cleanupTempFile();
                     reject(err);
                 }
             }
@@ -190,10 +216,60 @@ export class FilesystemProvider implements models.IArtifactProvider {
         return flags;
     }
 
-    private createSecurityRejection(messageKey: string, itemPath: string): Error {
+    private getTempWritePath(outputItemPath: string): string {
+        const dir = path.dirname(outputItemPath);
+        const base = path.basename(outputItemPath);
+        const unique = `${process.pid}-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+        return path.join(dir, `.${base}.tmp-${unique}`);
+    }
+
+    private createSecurityRejection(messageKey: string, itemPath: string, cause?: any): Error {
         const err: any = new Error(tl.loc(messageKey, itemPath));
         err.nonRetryable = true;
+        if (cause !== undefined && cause !== null) {
+            err.cause = cause;
+        }
+
+        try {
+            ci.publishEvent('pathValidationRejection', {
+                reason: messageKey,
+                causeCode: cause && cause.code ? cause.code : undefined,
+                pathValidationFlag: !!tl.getPipelineFeature("EnableArtifactEnginePathValidation"),
+                legacyPathValidationFlag: !!tl.getPipelineFeature("EnableLegacyArtifactPathValidation"),
+                os: os.platform(),
+                provider: 'filesystem'
+            });
+        }
+        catch (telemetryErr) {
+            // Telemetry must never block or fail the rejection it is reporting on.
+        }
+
         return err;
+    }
+
+    private validateExistingIntermediateSegment(current: string, stat: fs.Stats, realRoot: string, itemPath: string): string {
+        if (stat.isSymbolicLink()) {
+            let real: string;
+            try {
+                real = fs.realpathSync(current);
+            }
+            catch (err) {
+                throw this.createSecurityRejection("InvalidArtifactPath", itemPath, err);
+            }
+            const relToRoot: string = path.relative(realRoot, real);
+            if (relToRoot === '..'
+                || relToRoot.startsWith('..' + path.sep)
+                || path.isAbsolute(relToRoot)) {
+                throw this.createSecurityRejection("InvalidArtifactPath", itemPath);
+            }
+            return real;
+        }
+
+        if (!stat.isDirectory()) {
+            throw this.createSecurityRejection("InvalidArtifactPath", itemPath);
+        }
+
+        return current;
     }
 
     private resolveSafeOutputPath(itemPath: string): string {
@@ -206,15 +282,11 @@ export class FilesystemProvider implements models.IArtifactProvider {
             throw this.createSecurityRejection("InvalidArtifactPath", itemPath);
         }
 
-        tl.mkdirP(resolvedRoot);
         let realRoot: string;
         try {
             realRoot = fs.realpathSync(resolvedRoot);
         }
         catch (err) {
-            // Root does not exist yet (e.g. mkdirP was a no-op, or creation is deferred until
-            // the first write). Nothing can be a pre-existing symlink at a path that doesn't
-            // exist, so fall back to the lexically resolved root.
             realRoot = resolvedRoot;
         }
 
@@ -229,36 +301,31 @@ export class FilesystemProvider implements models.IArtifactProvider {
             }
             catch (err) {
                 if (err && err.code !== 'ENOENT') {
-                    throw this.createSecurityRejection("InvalidArtifactPath", itemPath);
+                    throw this.createSecurityRejection("InvalidArtifactPath", itemPath, err);
                 }
 
                 try {
                     fs.mkdirSync(current);
+                    continue;
                 }
                 catch (mkdirErr) {
                     if (!mkdirErr || mkdirErr.code !== 'EEXIST') {
                         throw mkdirErr;
                     }
+
+                    let raceStat: fs.Stats;
+                    try {
+                        raceStat = fs.lstatSync(current);
+                    }
+                    catch (raceErr) {
+                        throw this.createSecurityRejection("InvalidArtifactPath", itemPath, raceErr);
+                    }
+                    current = this.validateExistingIntermediateSegment(current, raceStat, realRoot, itemPath);
+                    continue;
                 }
-                continue;
             }
 
-            if (stat.isSymbolicLink()) {
-                let real: string;
-                try {
-                    real = fs.realpathSync(current);
-                }
-                catch (err) {
-                    throw this.createSecurityRejection("InvalidArtifactPath", itemPath);
-                }
-                const relToRoot: string = path.relative(realRoot, real);
-                if (relToRoot === '..'
-                    || relToRoot.startsWith('..' + path.sep)
-                    || path.isAbsolute(relToRoot)) {
-                    throw this.createSecurityRejection("InvalidArtifactPath", itemPath);
-                }
-                current = real;
-            }
+            current = this.validateExistingIntermediateSegment(current, stat, realRoot, itemPath);
         }
 
         const finalPath: string = path.join(current, segments[segments.length - 1]);
@@ -270,13 +337,13 @@ export class FilesystemProvider implements models.IArtifactProvider {
             if (!finalStat.isFile() && !finalStat.isDirectory()) {
                 throw this.createSecurityRejection("ArtifactPathIsSpecialFile", itemPath);
             }
-            if (finalStat.isFile() && finalStat.nlink > 1) {
-                throw this.createSecurityRejection("ArtifactPathIsHardLinked", itemPath);
-            }
         }
         catch (err) {
             if (err && err.nonRetryable) {
                 throw err;
+            }
+            if (err && err.code !== 'ENOENT') {
+                throw this.createSecurityRejection("InvalidArtifactPath", itemPath, err);
             }
         }
 
