@@ -138,11 +138,37 @@ export class ArtifactEngine {
                     return value;
                 });
 
+                const isPathValidationEnabled = tl.getPipelineFeature("EnableArtifactEnginePathValidation") && !tl.getPipelineFeature("EnableLegacyArtifactPathValidation");
+
+                if (!isPathValidationEnabled) {
+                    if (items.length > 0) {
+                        this.artifactItemStore.addItems(items);
+                        this.artifactItemStore.updateState(item, models.TicketState.Processed);
+                    }
+                    else {
+                        destProvider.putArtifactItem(item, null)
+                            .then((item) => {
+                                this.artifactItemStore.updateState(item, models.TicketState.Processed);
+                                resolve();
+                            }, (err) => {
+                                Logger.infoExternalOutput("Error creating folder " + item.path + ": " + err);
+                                retryIfRequired(err);
+                            });
+                    }
+
+                    Logger.logInfo("Enqueued " + items.length + " for processing.");
+                    resolve();
+                    return;
+                }
+
                 if (items.length > 0) {
                     this.artifactItemStore.addItems(items);
                     this.artifactItemStore.updateState(item, models.TicketState.Processed);
+                    Logger.logInfo("Enqueued " + items.length + " for processing.");
+                    resolve();
                 }
                 else {
+                    Logger.logInfo("Enqueued " + items.length + " for processing.");
                     destProvider.putArtifactItem(item, null)
                         .then((item) => {
                             this.artifactItemStore.updateState(item, models.TicketState.Processed);
@@ -152,9 +178,6 @@ export class ArtifactEngine {
                             retryIfRequired(err);
                         });
                 }
-
-                Logger.logInfo("Enqueued " + items.length + " for processing.");
-                resolve();
             }, (err) => {
                 Logger.infoExternalOutput("Error getting " + item.path + ":" + err);
                 retryIfRequired(err);

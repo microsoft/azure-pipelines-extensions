@@ -232,39 +232,46 @@ describe('external logger tests', () => {
     });
 
     it('filters real filesystem-provider logs without changing paths or downloaded bytes', async () => {
-        const bytes: Buffer[] = [];
-        const destination = new Writable({
-            write(chunk, encoding, callback) {
-                bytes.push(Buffer.from(chunk));
-                callback();
-            }
-        });
-        const writeStream = sandbox.stub(fs, 'createWriteStream').returns(destination);
-        sandbox.stub(tl, 'mkdirP');
-        const provider = new FilesystemProvider(path.resolve('drop'));
-        provider.artifactItemStore = new ArtifactItemStore();
-        const item = new ArtifactItem();
-        item.path = `nested/${marker}.txt`;
-        item.itemType = ItemType.File;
-        const source = new Readable({
-            read() {
-                this.push('unchanged file content');
-                this.push(null);
-            }
-        });
-        const external = sandbox.spy(Logger, 'messageExternalOutput');
-        Logger.vsoCommandMode = 'blockOnly';
+        const pathValidationVariable = 'DISTRIBUTEDTASK_TASKS_ENABLEARTIFACTENGINEPATHVALIDATION';
+        const originalPathValidation = process.env[pathValidationVariable];
+        delete process.env[pathValidationVariable];
+        try {
+            const bytes: Buffer[] = [];
+            const destination = new Writable({
+                write(chunk, encoding, callback) {
+                    bytes.push(Buffer.from(chunk));
+                    callback();
+                }
+            });
+            const writeStream = sandbox.stub(fs, 'createWriteStream').returns(destination);
+            sandbox.stub(tl, 'mkdirP');
+            const provider = new FilesystemProvider(path.resolve('drop'));
+            provider.artifactItemStore = new ArtifactItemStore();
+            const item = new ArtifactItem();
+            item.path = `nested/${marker}.txt`;
+            item.itemType = ItemType.File;
+            const source = new Readable({
+                read() {
+                    this.push('unchanged file content');
+                    this.push(null);
+                }
+            });
+            const external = sandbox.spy(Logger, 'messageExternalOutput');
+            Logger.vsoCommandMode = 'blockOnly';
 
-        const result = await provider.putArtifactItem(item, source);
+            const result = await provider.putArtifactItem(item, source);
 
-        assert.strictEqual(result, item);
-        assert.strictEqual(item.path, `nested/${marker}.txt`);
-        assert.strictEqual(writeStream.firstCall.args[0], path.resolve('drop', item.path));
-        assert.strictEqual(item.metadata['destinationUrl'], path.resolve('drop', item.path));
-        assert.strictEqual(Buffer.concat(bytes).toString(), 'unchanged file content');
-        assert.strictEqual(external.callCount, 2);
-        assert.ok(!output.join('').includes(marker));
-        assert.ok(output.join('').includes('##_vso[task.setvariable'));
+            assert.strictEqual(result, item);
+            assert.strictEqual(item.path, `nested/${marker}.txt`);
+            assert.strictEqual(writeStream.firstCall.args[0], path.resolve('drop', item.path));
+            assert.strictEqual(item.metadata['destinationUrl'], path.resolve('drop', item.path));
+            assert.strictEqual(Buffer.concat(bytes).toString(), 'unchanged file content');
+            assert.strictEqual(external.callCount, 2);
+            assert.ok(!output.join('').includes(marker));
+            assert.ok(output.join('').includes('##_vso[task.setvariable'));
+        } finally {
+            restoreEnvironment(pathValidationVariable, originalPathValidation);
+        }
     });
 
     it('filters a malformed remote response while preserving its parse failure', async () => {
