@@ -101,6 +101,35 @@ describe('Unit Tests', () => {
             }
         });
 
+        it('downloads a nested file into a destination root that does not exist yet', async () => {
+            const tempBase = makeTempRoot('aefs-missing-');
+            const destRoot = path.join(tempBase, 'not-created-yet');
+            try {
+                assert.strictEqual(fs.existsSync(destRoot), false, 'precondition: destination root must not exist yet');
+
+                const rootItem = new models.ArtifactItem();
+                rootItem.itemType = models.ItemType.Folder;
+                rootItem.path = '';
+
+                const fileItem = new models.ArtifactItem();
+                fileItem.itemType = models.ItemType.File;
+                fileItem.path = path.join('drop', 'file.txt');
+                fileItem.metadata = { content: 'missing-root-content' };
+
+                const source = new SingleLevelProvider(rootItem, [fileItem]);
+                const dest = new FilesystemProvider(destRoot);
+
+                await new ArtifactEngine().processItems(source, dest, new ArtifactEngineOptions());
+
+                const expectedPath = path.join(destRoot, 'drop', 'file.txt');
+                assert.strictEqual(fs.existsSync(expectedPath), true, 'file should be written even though the destination root did not exist yet');
+                assert.strictEqual(fs.readFileSync(expectedPath, 'utf8'), 'missing-root-content');
+            }
+            finally {
+                fs.rmSync(tempBase, { recursive: true, force: true });
+            }
+        });
+
         it('creates the destination root itself without EISDIR when the artifact path is empty (ZIP root)', async () => {
             const destRoot = makeTempRoot('aefs-ziproot-');
             try {
@@ -118,6 +147,30 @@ describe('Unit Tests', () => {
             }
             finally {
                 fs.rmSync(destRoot, { recursive: true, force: true });
+            }
+        });
+
+        it('writes the ZIP root item to the destination file path (file item, empty path, matching the real ZIP download flow)', async () => {
+            const tempBase = makeTempRoot('aefs-zipfile-');
+            const destRoot = path.join(tempBase, 'artifact.zip');
+            try {
+                const dest = new FilesystemProvider(destRoot);
+                dest.artifactItemStore = new ArtifactItemStore();
+
+                const rootFileItem = new models.ArtifactItem();
+                rootFileItem.itemType = models.ItemType.File;
+                rootFileItem.path = '';
+                rootFileItem.metadata = {};
+
+                const content = 'fake-zip-bytes';
+                await dest.putArtifactItem(rootFileItem, readStreamOf(content));
+
+                assert.strictEqual(fs.existsSync(destRoot), true, 'the ZIP file itself should be written at the root location');
+                assert.strictEqual(fs.statSync(destRoot).isFile(), true, 'the root location must remain a file, not be turned into a directory');
+                assert.strictEqual(fs.readFileSync(destRoot, 'utf8'), content);
+            }
+            finally {
+                fs.rmSync(tempBase, { recursive: true, force: true });
             }
         });
 

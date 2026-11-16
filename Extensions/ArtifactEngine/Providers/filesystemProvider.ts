@@ -316,6 +316,10 @@ export class FilesystemProvider implements models.IArtifactProvider {
             throw this.createSecurityRejection("InvalidArtifactPath", itemPath);
         }
 
+        if (relative !== '') {
+            tl.mkdirP(resolvedRoot);
+        }
+
         let realRoot: string;
         try {
             realRoot = fs.realpathSync(resolvedRoot);
