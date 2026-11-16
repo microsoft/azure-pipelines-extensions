@@ -21,8 +21,14 @@ var defaultLstatSync = (p) => ({
     isFile: () => false
 });
 var defaultRealpathSync = (p) => p;
+var defaultMkdirSync = (p) => undefined;
+var defaultRenameSync = (oldPath, newPath) => undefined;
+var defaultUnlink = (p, callback) => { callback(undefined); };
 var lstatSyncStub = sinon.stub().callsFake(defaultLstatSync);
 var realpathSyncStub = sinon.stub().callsFake(defaultRealpathSync);
+var mkdirSyncStub = sinon.stub().callsFake(defaultMkdirSync);
+var renameSyncStub = sinon.stub().callsFake(defaultRenameSync);
+var unlinkStub = sinon.stub().callsFake(defaultUnlink);
 
 libMocker.registerMock('fs', {
     statSync: () => {
@@ -38,6 +44,9 @@ libMocker.registerMock('fs', {
     writeFileSync: () => { },
     lstatSync: lstatSyncStub,
     realpathSync: realpathSyncStub,
+    mkdirSync: mkdirSyncStub,
+    renameSync: renameSyncStub,
+    unlink: unlinkStub,
     constants: realFsConstants
 });
 libMocker.enable({
@@ -115,7 +124,7 @@ describe('Unit Tests', () => {
             var artifactItem = { fileLength: 0, itemType: models.ItemType.Folder, path: "path1\\folder1", lastModified: null, metadata: null };
 
             localFileProvider.putArtifactItem(artifactItem, null).then((processedItem) => {
-                assert(stub.calledWith(path.resolve("c:\\drop", "path1\\folder1")));
+                assert(mkdirSyncStub.calledWith(path.resolve("c:\\drop", "path1\\folder1")));
                 done();
             }, (err) => {
                 throw err;
@@ -128,6 +137,14 @@ describe('Unit Tests', () => {
             s.push(content);
             s.push(null);
             return s;
+        }
+
+        function assertWroteToTempSiblingOf(actualArg, expectedFinalPath) {
+            assert.strictEqual(path.dirname(actualArg), path.dirname(expectedFinalPath),
+                `createWriteStream should target a temp file alongside ${expectedFinalPath}, got ${actualArg}`);
+            const expectedPrefix = `.${path.basename(expectedFinalPath)}.tmp-`;
+            assert.ok(path.basename(actualArg).startsWith(expectedPrefix),
+                `createWriteStream should target a temp file named like ${expectedPrefix}*, got ${path.basename(actualArg)}`);
         }
 
         // 1. Parent-relative paths (POSIX separators) are rejected on every platform.
@@ -194,7 +211,7 @@ describe('Unit Tests', () => {
             const artifactItem = { fileLength: 0, itemType: models.ItemType.File, path: itemPath, contentType: undefined, lastModified: null, metadata: null };
 
             return posixProvider.putArtifactItem(artifactItem, makeReadable('stub content')).then((processedItem) => {
-                assert.strictEqual(createWriteStreamSpy.lastCall.args[0], expected, `createWriteStream should receive ${expected}`);
+                assertWroteToTempSiblingOf(createWriteStreamSpy.lastCall.args[0], expected);
                 assert(expected.startsWith(path.resolve(root)), 'resolved target must stay within the root');
                 assert.strictEqual(processedItem.metadata[models.Constants.DestinationUrlKey], expected);
             });
@@ -228,14 +245,14 @@ describe('Unit Tests', () => {
 
         // 7. Paths that resolve to the root itself (relative === '') are allowed.
         it('putArtifactItem should allow folder items that resolve to the root itself', () => {
-            stub.resetHistory();
+            mkdirSyncStub.resetHistory();
             const resolvedRoot = path.resolve("c:\\drop");
 
             return Promise.all(['', '.'].map((itemPath) => {
                 const artifactItem = { fileLength: 0, itemType: models.ItemType.Folder, path: itemPath, contentType: undefined, lastModified: null, metadata: null };
                 return localFileProvider.putArtifactItem(artifactItem, null).then((processedItem) => {
                     assert.strictEqual(processedItem, artifactItem);
-                    assert(stub.calledWith(resolvedRoot), `mkdirP should be called with ${resolvedRoot}`);
+                    assert(mkdirSyncStub.calledWith(resolvedRoot), `mkdirSync should be called with ${resolvedRoot}`);
                 });
             }));
         });
@@ -248,8 +265,98 @@ describe('Unit Tests', () => {
             const artifactItem = { fileLength: 0, itemType: models.ItemType.File, path: itemPath, contentType: undefined, lastModified: null, metadata: null };
 
             return localFileProvider.putArtifactItem(artifactItem, makeReadable('stub content')).then((processedItem) => {
-                assert.strictEqual(createWriteStreamSpy.lastCall.args[0], expected, `createWriteStream should receive ${expected}`);
+                assertWroteToTempSiblingOf(createWriteStreamSpy.lastCall.args[0], expected);
                 assert.strictEqual(processedItem.metadata[models.Constants.DestinationUrlKey], expected);
+            });
+        });
+
+        it('putArtifactItem should not truncate the resolved path when intermediate folders do not exist yet', () => {
+            const itemPath = ['folder', 'sub', 'file.txt'].join(path.sep);
+            const expected = path.resolve("c:\\drop", itemPath);
+            const artifactItem = { fileLength: 0, itemType: models.ItemType.File, path: itemPath, contentType: undefined, lastModified: null, metadata: null };
+
+            lstatSyncStub.callsFake((p) => {
+                const err: any = new Error('ENOENT: no such file or directory');
+                err.code = 'ENOENT';
+                throw err;
+            });
+
+            return localFileProvider.putArtifactItem(artifactItem, makeReadable('stub content')).then((processedItem) => {
+                assertWroteToTempSiblingOf(createWriteStreamSpy.lastCall.args[0], expected);
+                assert.strictEqual(processedItem.metadata[models.Constants.DestinationUrlKey], expected);
+            }).finally(() => {
+                lstatSyncStub.callsFake(defaultLstatSync);
+            });
+        });
+
+        it('putArtifactItem should reject (not silently skip) a non-ENOENT lstat failure on an intermediate segment', () => {
+            const itemPath = ['folder', 'sub', 'file.txt'].join(path.sep);
+            const artifactItem = { fileLength: 0, itemType: models.ItemType.File, path: itemPath, contentType: undefined, lastModified: null, metadata: null };
+
+            lstatSyncStub.callsFake((p) => {
+                const err: any = new Error('ELOOP: too many symbolic links encountered');
+                err.code = 'ELOOP';
+                throw err;
+            });
+
+            return assert.rejects(
+                localFileProvider.putArtifactItem(artifactItem, makeReadable('stub content')),
+                /outside the download directory/
+            ).finally(() => {
+                lstatSyncStub.callsFake(defaultLstatSync);
+            });
+        });
+
+        it('putArtifactItem should tolerate a concurrent EEXIST race while creating an intermediate directory', () => {
+            const itemPath = ['folder', 'sub', 'file.txt'].join(path.sep);
+            const expected = path.resolve("c:\\drop", itemPath);
+            const artifactItem = { fileLength: 0, itemType: models.ItemType.File, path: itemPath, contentType: undefined, lastModified: null, metadata: null };
+
+            lstatSyncStub.callsFake((p) => {
+                if (!lstatSyncStub.seenPaths) { lstatSyncStub.seenPaths = new Set(); }
+                if (lstatSyncStub.seenPaths.has(p)) {
+                    return { isSymbolicLink: () => false, isDirectory: () => true, isFile: () => false };
+                }
+                lstatSyncStub.seenPaths.add(p);
+                const err: any = new Error('ENOENT: no such file or directory');
+                err.code = 'ENOENT';
+                throw err;
+            });
+            mkdirSyncStub.callsFake((p) => {
+                const err: any = new Error('EEXIST: file already exists');
+                err.code = 'EEXIST';
+                throw err;
+            });
+
+            return localFileProvider.putArtifactItem(artifactItem, makeReadable('stub content')).then((processedItem) => {
+                assertWroteToTempSiblingOf(createWriteStreamSpy.lastCall.args[0], expected);
+            }).finally(() => {
+                lstatSyncStub.callsFake(defaultLstatSync);
+                mkdirSyncStub.callsFake(defaultMkdirSync);
+            });
+        });
+
+        it('putArtifactItem should propagate a genuine mkdir failure while creating an intermediate directory', () => {
+            const itemPath = ['folder', 'sub', 'file.txt'].join(path.sep);
+            const artifactItem = { fileLength: 0, itemType: models.ItemType.File, path: itemPath, contentType: undefined, lastModified: null, metadata: null };
+
+            lstatSyncStub.callsFake((p) => {
+                const err: any = new Error('ENOENT: no such file or directory');
+                err.code = 'ENOENT';
+                throw err;
+            });
+            mkdirSyncStub.callsFake((p) => {
+                const err: any = new Error('EACCES: permission denied');
+                err.code = 'EACCES';
+                throw err;
+            });
+
+            return assert.rejects(
+                localFileProvider.putArtifactItem(artifactItem, makeReadable('stub content')),
+                /EACCES/
+            ).finally(() => {
+                lstatSyncStub.callsFake(defaultLstatSync);
+                mkdirSyncStub.callsFake(defaultMkdirSync);
             });
         });
 
@@ -321,7 +428,7 @@ describe('Unit Tests', () => {
             const artifactItem = { fileLength: 0, itemType: models.ItemType.File, path: itemPath, contentType: undefined, lastModified: null, metadata: null };
 
             return localFileProvider.putArtifactItem(artifactItem, makeReadable('stub content')).then((processedItem) => {
-                assert.strictEqual(createWriteStreamSpy.lastCall.args[0], expected, `createWriteStream should receive ${expected}`);
+                assertWroteToTempSiblingOf(createWriteStreamSpy.lastCall.args[0], expected);
                 assert.strictEqual(processedItem.metadata[models.Constants.DestinationUrlKey], expected);
             }).finally(() => {
                 lstatSyncStub.callsFake(defaultLstatSync);
