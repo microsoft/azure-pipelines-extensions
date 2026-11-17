@@ -36,6 +36,7 @@ In order to build and package extensions you will need to install some dependenc
 - After `gulp build`, run `npm run test:brace-expansion -- --build` to check the corresponding dependencies in the extension build output.
 - `npm run test:handlebars` checks that the installed ArtifactEngine and artifact download task dependencies use Handlebars 4.7.10 or newer and exercises prototype-constructor lookup regressions plus normal template rendering.
 - After `gulp build`, run `npm run test:handlebars -- --build` to check the corresponding dependencies in the extension build output.
+- When updating dependencies, run `npm audit --audit-level=high` in the repository root and each task and ArtifactEngine package folder. Include development dependencies: the ArtifactEngine packages override Mocha's `serialize-javascript` dependency to a patched 7.x release.
 
 ### Linting
 
