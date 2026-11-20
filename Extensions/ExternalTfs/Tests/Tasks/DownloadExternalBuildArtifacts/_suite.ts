@@ -121,6 +121,46 @@ describe('DownloadExternalBuildArtifacts Suite', function () {
                 assert(!runner.stdOutContained('[mock-providers] FilesystemProvider'), 'unsupported artifact must not create FilesystemProvider');
             });
 
+            for (const featureValue of [undefined, 'false', 'true']) {
+                it(`respects the extension VSO flag for artifact diagnostics when ${featureValue ?? 'unset'}`, async function () {
+                    const feature = 'DISTRIBUTEDTASK_TASKS_ENABLEVSOCOMMANDBLOCKINGEXTENSIONS';
+                    const previousValue = process.env[feature];
+                    if (featureValue === undefined) {
+                        Reflect.deleteProperty(process.env, feature);
+                    } else {
+                        process.env[feature] = featureValue;
+                    }
+
+                    try {
+                        const runner = newRunner('successExternalOutput');
+                        await runAndDump(runner, nodeVersion);
+                        assert(runner.succeeded, 'expected task to succeed');
+
+                        const command = '##vso[task.setvariable variable=OUTPUT_TEST]external-data-sentinel';
+                        const blocked = featureValue === 'true';
+                        const expected = blocked ? command.replace('##vso[', '##_vso[') : command;
+                        assert(runner.stdout.includes('unsupported\r' + expected));
+
+                        const telemetryLines = runner.stdout.split('\n').filter(line =>
+                            line.startsWith('##vso[telemetry.publish area=TaskLib;feature=ExternalOutputVsoCommand;]')
+                        );
+                        assert.strictEqual(telemetryLines.length, 1);
+                        const event = JSON.parse(telemetryLines[0].slice(telemetryLines[0].indexOf(']') + 1));
+                        assert.strictEqual(event.source, 'remote');
+                        assert.strictEqual(event.commandName, 'task.setvariable');
+                        assert.strictEqual(event.blocked, blocked);
+                        assert(!telemetryLines[0].includes('OUTPUT_TEST'));
+                        assert(!telemetryLines[0].includes('external-data-sentinel'));
+                    } finally {
+                        if (previousValue === undefined) {
+                            Reflect.deleteProperty(process.env, feature);
+                        } else {
+                            process.env[feature] = previousValue;
+                        }
+                    }
+                });
+            }
+
             it('retries getArtifacts on transient failure and ultimately succeeds', async function () {
                 const runner = newRunner('successGetArtifactsRetry');
                 await runAndDump(runner, nodeVersion);

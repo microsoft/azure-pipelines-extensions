@@ -22,6 +22,12 @@ export interface ConnectionDetails {
 }
 
 const area = 'DownloadExternalBuildArtifacts';
+const externalOutputOptions: tl.ExternalOutputOptions = {
+    source: 'remote',
+    vsoCommandMode: tl.getPipelineFeature('EnableVsoCommandBlockingExtensions')
+        ? 'blockAndTelemetry'
+        : 'telemetryOnly'
+};
 
 function getDefaultProps() {
     const hostType = (tl.getVariable('SYSTEM.HOSTTYPE') || "").toLowerCase();
@@ -150,7 +156,7 @@ async function main(): Promise<void> {
 
                     downloadPromises.push(downloader.processItems(fileShareProvider, fileSystemProvider, downloaderOptions));
                 } else {
-                    console.log(tl.loc('UnsupportedArtifactType', resource.type));
+                    tl.writeExternalOutput(tl.loc('UnsupportedArtifactType', resource.type) + '\n', externalOutputOptions);
                 }
             }
 
