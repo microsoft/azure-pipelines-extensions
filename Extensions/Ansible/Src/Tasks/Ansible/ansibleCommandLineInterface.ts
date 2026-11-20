@@ -1,6 +1,5 @@
 import tl = require("azure-pipelines-task-lib/task");
 import { shellQuote, shellSplit } from 'azure-pipelines-tasks-utility-common/shellEscaping';
-import { quote } from 'shell-quote';
 
 import { ansibleInterface } from './ansibleInterface';
 import { ansibleTaskParameters } from './ansibleTaskParameters';
@@ -153,9 +152,9 @@ export class ansibleCommandLineInterface extends ansibleInterface {
         tl.debug('RemoteInventoryPath = ' + remoteInventoryPath);
 
         // Inline inventory content is user-controlled and echoed into a
-        // file through the shell. It is always hardened via shell-quote
+        // file through the shell. It is always hardened via shellQuote
         // (CodeQL SM03609 / Bug 2236220), independent of the feature flag.
-        const inventoryCmd = 'echo ' + quote([content]) + ' > ' + remoteInventory;
+        const inventoryCmd = 'echo ' + shellQuote(content) + ' > ' + remoteInventory;
         await this.executeCommand(inventoryCmd);
 
         if (dynamicInventory == true) {

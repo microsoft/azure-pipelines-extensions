@@ -2,13 +2,12 @@
   "name": "ansible",
   "version": "0.0.1",
   "description": "Ansible task for playbook execution",
-  "main": "main.js",
+  "main": "main.ts",
   "author": "Microsoft",
   "license": "ISC",
   "dependencies": {
     "azure-pipelines-task-lib": "5.281.0",
     "azure-pipelines-tasks-utility-common": "^3.281.0",
-    "shell-quote": "^1.11.0",
     "ssh2": "1.4.0",
     "ssh2-sftp-client": "^8.1.0",
     "typed-rest-client": "^3.0.0"
@@ -17,7 +16,6 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "devDependencies": {
-    "@types/shell-quote": "^1.7.5",
     "@types/ssh2-sftp-client": "^9.0.6"
   }
 }
