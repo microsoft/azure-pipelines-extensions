@@ -106,6 +106,8 @@ export function setAdoEndpoint(scheme: AuthSchemeFixture): void {
 }
 
 export interface GitWrapperMockOptions {
+    /** Output chunks to emit during clone. */
+    outputChunks?: Array<{ event: 'stdout' | 'stderr'; text: string }>;
     /** Number of times .clone() should reject before succeeding. */
     cloneFailures?: number;
     /** When true, .clone() rejects on every call. */
@@ -210,6 +212,9 @@ function registerGitWrapperMock(tr: tmrm.TaskMockRunner, opts: GitWrapperMockOpt
             console.log('[mock-git] clone-attempt ' + cloneAttempts);
             const sanitized = repo.replace(/:\/\/[^@]+@/, '://***@');
             console.log('[mock-git] clone ' + sanitized + ' ' + folder);
+            for (const chunk of opts.outputChunks || []) {
+                this.emit(chunk.event, Buffer.from(chunk.text));
+            }
             const shouldFail = !!opts.cloneAlwaysFails || (cloneAttempts <= (opts.cloneFailures || 0));
             return new Promise((resolve, reject) => {
                 if (shouldFail) {

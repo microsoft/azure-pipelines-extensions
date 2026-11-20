@@ -89,6 +89,74 @@ describe('DownloadArtifactsTfsGit Suite', function () {
                 assert(runner.stdOutContained('[mock-git] checkout 1234567890abcdef1234567890abcdef12345678'), 'should checkout commit');
             });
 
+            for (const featureValue of [undefined, 'false', 'true']) {
+                it(`respects the Git output feature flag when ${featureValue ?? 'unset'}`, async function () {
+                    const feature = 'DISTRIBUTEDTASK_TASKS_ENABLEVSOCOMMANDBLOCKINGEXTENSIONS';
+                    const otherFeatures = [
+                        'DISTRIBUTEDTASK_TASKS_DOWNLOADARTIFACTSTFSGITENABLEVSOCOMMANDBLOCKING',
+                        'DISTRIBUTEDTASK_TASKS_ENABLEVSOCOMMANDBLOCKINGRMTASKS'
+                    ];
+                    const previousValue = process.env[feature];
+                    const previousOtherValues = otherFeatures.map(name => process.env[name]);
+                    otherFeatures.forEach(name => {
+                        process.env[name] = featureValue === 'true' ? 'false' : 'true';
+                    });
+                    if (featureValue === undefined) {
+                        Reflect.deleteProperty(process.env, feature);
+                    } else {
+                        process.env[feature] = featureValue;
+                    }
+
+                    try {
+                        const runner = newRunner('successGitOutput');
+                        await runAndDump(runner, nodeVersion);
+                        assert(runner.succeeded, 'expected task to succeed');
+
+                        const blocked = featureValue === 'true';
+                        const command = '##vso[task.setvariable variable=OUTPUT_TEST]external-data-sentinel';
+                        const expected = blocked ? command.replace('##vso[', '##_vso[') : command;
+                        assert(runner.stdout.includes('ordinary stdout\r' + expected));
+                        assert(runner.stdout.includes('\n' + expected));
+                        assert(runner.stdout.includes('ordinary stderr ' + expected));
+                        assert(runner.stdout.includes('uppercase ' + command.replace('vso', 'VSO')));
+                        assert(runner.stdout.includes('format ##[warning]message'));
+                        if (blocked) {
+                            assert(!runner.stdout.includes(command));
+                        }
+                        for (let i = 1; i < '##vso['.length; i++) {
+                            assert(runner.stdout.includes(command.slice(0, i) + '\n' + command.slice(i) + '\n'));
+                        }
+
+                        const telemetryLines = runner.stdout.split('\n').filter(line =>
+                            line.startsWith('##vso[telemetry.publish area=TaskLib;feature=ExternalOutputVsoCommand;]')
+                        );
+                        assert.strictEqual(telemetryLines.length, 3, 'should report commands from both streams');
+                        for (const line of telemetryLines) {
+                            const event = JSON.parse(line.slice(line.indexOf(']') + 1));
+                            assert.strictEqual(event.source, 'childProcess');
+                            assert.strictEqual(event.commandName, 'task.setvariable');
+                            assert.strictEqual(event.blocked, blocked);
+                            assert(!line.includes('OUTPUT_TEST'), 'telemetry must omit command properties');
+                            assert(!line.includes('external-data-sentinel'), 'telemetry must omit command data');
+                        }
+                    } finally {
+                        if (previousValue === undefined) {
+                            Reflect.deleteProperty(process.env, feature);
+                        } else {
+                            process.env[feature] = previousValue;
+                        }
+                        otherFeatures.forEach((name, index) => {
+                            const previous = previousOtherValues[index];
+                            if (previous === undefined) {
+                                Reflect.deleteProperty(process.env, name);
+                            } else {
+                                process.env[name] = previous;
+                            }
+                        });
+                    }
+                });
+            }
+
             it('clones using reposOrTfs UsernamePassword auth', async function () {
                 const runner = newRunner('successReposOrTfsUserPass');
                 await runAndDump(runner, nodeVersion);
