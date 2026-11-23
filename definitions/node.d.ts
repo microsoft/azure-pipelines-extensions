@@ -109,6 +109,7 @@ declare var Buffer: {
      */
     new (array: any[]): Buffer;
     prototype: Buffer;
+    from(string: string, encoding?: string): Buffer;
     /**
      * Returns true if {obj} is a Buffer
      *

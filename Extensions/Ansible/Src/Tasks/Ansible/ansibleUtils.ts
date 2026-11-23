@@ -134,7 +134,12 @@ export function runCommandOnRemoteMachine(command: string, sshClient: ssh.Client
 
                 externalOutput.on('error', fail);
                 stream.on('error', fail);
-                stream.pipe(externalOutput, { end: false });
+                stream.on('data', (data: Buffer) => {
+                    if (!externalOutput.write(data)) {
+                        stream.pause();
+                    }
+                });
+                externalOutput.on('drain', () => stream.resume());
                 stream.on('close', (code: string | number, signal: string) => {
                     tl.debug('code = ' + code + ', signal = ' + signal);
                     externalOutput.once('end', () => {

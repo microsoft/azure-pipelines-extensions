@@ -261,12 +261,13 @@ describe('Ansible Suite', function () {
             assert(!stdout.includes(stdoutCommand), 'should not emit the original stdout logging-command marker');
             assert(!stdout.includes(stderrCommand), 'should not emit the original stderr logging-command marker');
 
-            const telemetryLines = stdout.split('\n').filter(line =>
-                line.startsWith('##vso[telemetry.publish area=TaskLib;feature=ExternalOutputVsoCommand;]')
-            );
+            const telemetryMarker = '##vso[telemetry.publish area=TaskLib;feature=ExternalOutputVsoCommand;]';
+            const telemetryLines = stdout.split('\n')
+                .map(line => line.slice(line.indexOf(telemetryMarker)))
+                .filter(line => line.startsWith(telemetryMarker));
             assert.strictEqual(telemetryLines.length, 2, 'should report both blocked commands');
             for (const line of telemetryLines) {
-                const event = JSON.parse(line.slice(line.indexOf(']') + 1));
+                const event = JSON.parse(line.slice(telemetryMarker.length));
                 assert.strictEqual(event.source, 'remote');
                 assert.strictEqual(event.commandName, 'task.setvariable');
                 assert.strictEqual(event.blocked, true);
