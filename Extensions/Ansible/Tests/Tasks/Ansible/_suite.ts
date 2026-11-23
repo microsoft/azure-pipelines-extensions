@@ -285,7 +285,7 @@ describe('Ansible Suite', function () {
                 const runner = newRunner('testInventoryToBeInlineForRemoteMachine');
                 await runAndDump(runner, nodeVersion);
                 expectSuccess(runner, 'expected remote inline dynamic scenario to succeed');
-                assert(runner.stdOutContained(`cmd run on remote machine = echo DUMMY_IP_ADDRESS > /tmp/${TestGuid}inventory.ini`), 'should create inline inventory');
+                assert(runner.stdOutContained(`cmd run on remote machine = echo 'DUMMY_IP_ADDRESS' > /tmp/${TestGuid}inventory.ini`), 'should create inline inventory');
                 assert(runner.stdOutContained(`cmd run on remote machine = chmod +x /tmp/${TestGuid}inventory.ini`), 'should chmod dynamic inventory');
             });
 
@@ -350,7 +350,7 @@ describe('Ansible Suite', function () {
                 const runner = newRunner('testInventoryToBeInlineForAgentMachine');
                 await runAndDump(runner, nodeVersion);
                 expectSuccess(runner, 'expected agent inline scenario to succeed');
-                assert(runner.stdOutContained(`cmd run on agent machine = echo DUMMY_IP_ADDRESS > /tmp/${TestGuid}inventory.ini`), 'should write inline inventory on agent');
+                assert(runner.stdOutContained(`cmd run on agent machine = echo 'DUMMY_IP_ADDRESS' > /tmp/${TestGuid}inventory.ini`), 'should write inline inventory on agent');
             });
 
             it('runs agent machine static inline inventory flow without chmod', async function () {
