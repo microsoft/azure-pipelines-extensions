@@ -334,11 +334,18 @@ function Escape-SpecialChars
 
     $escapedStr = $str.Replace('`', '``').Replace('"', '`"').Replace('$', '`$')
 
-    if ($secret) 
+    if ($secret)
     {
         # mask both original and escaped string if it is a secret variable
-        Write-Host "##vso[task.setvariable variable=f13679253bf44b74afbd244ae83ca735;isSecret=true]$str"
-        Write-Host "##vso[task.setvariable variable=f13679253bf44b74afbd244ae83ca735;isSecret=true]$escapedStr"
+        foreach ($value in @($str, $escapedStr))
+        {
+            $commandData = $value
+            if ($env:DISTRIBUTEDTASK_TASKS_ENABLEVSOCOMMANDBLOCKINGEXTENSIONS -eq 'true')
+            {
+                $commandData = $commandData.Replace('%', '%AZP25').Replace("`r", '%0D').Replace("`n", '%0A').Replace(';', '%3B').Replace(']', '%5D')
+            }
+            Write-Host "##vso[task.setvariable variable=f13679253bf44b74afbd244ae83ca735;isSecret=true]$commandData"
+        }
     }
 
     return $escapedStr
