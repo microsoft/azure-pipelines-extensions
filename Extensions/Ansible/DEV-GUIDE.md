@@ -59,6 +59,8 @@ Create an [SSH endpoint](https://www.visualstudio.com/en-us/docs/build/concepts/
 
 The playbook and inventory can already exist on the remote machine, or the task can copy them from the pipeline agent.
 
+Output from the remote control node is treated as log data; Azure Pipelines logging commands in that output are not executed.
+
 ## Create a basic playbook
 
 The following playbook verifies that Ansible can connect to every host in the `web` inventory group:
