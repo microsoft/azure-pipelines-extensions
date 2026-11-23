@@ -2,7 +2,7 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
-## [1.284.1] 23 November 2026
+## [1.284.3] 23 November 2026
 ### Fixed
 - Escape secret values in IIS Web App Management V2/V3 logging commands when `EnableVsoCommandBlockingExtensions` is enabled.
 
