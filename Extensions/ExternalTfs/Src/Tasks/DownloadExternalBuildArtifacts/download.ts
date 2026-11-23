@@ -28,6 +28,10 @@ const externalOutputOptions: tl.ExternalOutputOptions = {
         ? 'blockAndTelemetry'
         : 'telemetryOnly'
 };
+const destinationPathOutputOptions: tl.ExternalOutputOptions = {
+    source: 'repository',
+    vsoCommandMode: externalOutputOptions.vsoCommandMode
+};
 
 function getDefaultProps() {
     const hostType = (tl.getVariable('SYSTEM.HOSTTYPE') || "").toLowerCase();
@@ -106,6 +110,9 @@ async function main(): Promise<void> {
                 const downloaderOptions = new engine.ArtifactEngineOptions();
                 downloaderOptions.itemPattern = itemPattern || "";
                 downloaderOptions.verbose = verbose;
+                if (externalOutputOptions.vsoCommandMode === 'blockAndTelemetry') {
+                    downloaderOptions.vsoCommandMode = externalOutputOptions.vsoCommandMode;
+                }
 
                 if (parallelLimit) {
                     downloaderOptions.parallelProcessingLimit = parallelLimit;
@@ -161,7 +168,7 @@ async function main(): Promise<void> {
             }
 
             await Promise.all(downloadPromises);
-            console.log(tl.loc('ArtifactsSuccessfullyDownloaded', downloadPath));
+            tl.writeExternalOutput(tl.loc('ArtifactsSuccessfullyDownloaded', downloadPath) + '\n', destinationPathOutputOptions);
         }
 }
 

@@ -161,6 +161,54 @@ describe('DownloadExternalBuildArtifacts Suite', function () {
                 });
             }
 
+            for (const featureValue of [undefined, 'false', 'true']) {
+                it(`respects the extension VSO flag for destination paths when ${featureValue ?? 'unset'}`, async function () {
+                    const feature = 'DISTRIBUTEDTASK_TASKS_ENABLEVSOCOMMANDBLOCKINGEXTENSIONS';
+                    const previousValue = process.env[feature];
+                    if (featureValue === undefined) {
+                        Reflect.deleteProperty(process.env, feature);
+                    } else {
+                        process.env[feature] = featureValue;
+                    }
+
+                    try {
+                        const runner = newRunner('successDestinationPathOutput');
+                        await runAndDump(runner, nodeVersion);
+                        assert(runner.succeeded, 'expected task to succeed');
+
+                        const command = '##vso[task.setvariable variable=OUTPUT_TEST]destination-path-sentinel';
+                        const blocked = featureValue === 'true';
+                        const expected = blocked ? command.replace('##vso[', '##_vso[') : command;
+                        assert(runner.stdout.includes(`loc_mock_ArtifactsSuccessfullyDownloaded /tmp/external-build-artifacts\r\n${expected}`));
+                        if (blocked) {
+                            assert(!runner.stdout.includes(command));
+                        }
+
+                        const telemetryLines = runner.stdout.split('\n').filter(line =>
+                            line.startsWith('##vso[telemetry.publish area=TaskLib;feature=ExternalOutputVsoCommand;]')
+                        );
+                        assert.strictEqual(telemetryLines.length, 1);
+                        const event = JSON.parse(telemetryLines[0].slice(telemetryLines[0].indexOf(']') + 1));
+                        assert.strictEqual(event.source, 'repository');
+                        assert.strictEqual(event.commandName, 'task.setvariable');
+                        assert.strictEqual(event.blocked, blocked);
+                        assert(!telemetryLines[0].includes('destination-path-sentinel'));
+
+                        const engineRunner = newRunner('successReposOrTfsContainer');
+                        await runAndDump(engineRunner, nodeVersion);
+                        assert(engineRunner.succeeded, 'expected artifact download to succeed');
+                        const engineMode = blocked ? 'blockAndTelemetry' : 'blockOnly';
+                        assert(engineRunner.stdout.includes(`vsoCommandMode=${engineMode}`));
+                    } finally {
+                        if (previousValue === undefined) {
+                            Reflect.deleteProperty(process.env, feature);
+                        } else {
+                            process.env[feature] = previousValue;
+                        }
+                    }
+                });
+            }
+
             it('retries getArtifacts on transient failure and ultimately succeeds', async function () {
                 const runner = newRunner('successGetArtifactsRetry');
                 await runAndDump(runner, nodeVersion);
