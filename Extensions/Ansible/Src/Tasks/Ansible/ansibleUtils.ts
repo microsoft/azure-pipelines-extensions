@@ -13,6 +13,11 @@ import * as httpClient from 'typed-rest-client/HttpClient';
 
 const httpObj = new httpClient.HttpClient(tl.getVariable("AZURE_HTTP_USER_AGENT") || '');
 const Ssh2Client = ssh.Client;
+const remoteOutputOptions: tl.ExternalOutputOptions = {
+    source: 'remote',
+    vsoCommandMode: 'blockAndTelemetry'
+};
+const remoteOutputDebugOptions: tl.ExternalOutputOptions = { source: 'remote' };
 
 export function _writeLine(str: string): void {
     process.stdout.write(str + os.EOL);
@@ -118,25 +123,48 @@ export function runCommandOnRemoteMachine(command: string, sshClient: ssh.Client
             if (err) {
                 reject(tl.loc('RemoteCmdExecutionErr', err))
             } else {
+                const externalOutput = tl.createExternalOutputStream(remoteOutputOptions);
+                let settled = false;
+                const fail = (error: Error): void => {
+                    if (!settled) {
+                        settled = true;
+                        reject(error);
+                    }
+                };
+
+                externalOutput.on('error', fail);
+                stream.on('error', fail);
+                stream.on('data', (data: Buffer) => {
+                    if (!externalOutput.write(data)) {
+                        stream.pause();
+                    }
+                });
+                externalOutput.on('drain', () => stream.resume());
                 stream.on('close', (code: string | number, signal: string) => {
                     tl.debug('code = ' + code + ', signal = ' + signal);
+                    externalOutput.once('end', () => {
+                        if (settled) {
+                            return;
+                        }
+                        settled = true;
 
-                    //based on the options decide whether to fail the build or not if data was written to STDERR
-                    if (stdErrWritten === true && options.failOnStdErr === true) {
-                        reject(tl.loc('RemoteCmdExecutionErr'));
-                    } else if (code && code != 0) {
-                        reject(tl.loc('RemoteCmdNonZeroExitCode', cmdToRun, code));
-                    } else {
-                        //success case - code is undefined or code is 0
-                        resolve('0');
-                    }
-                }).on('data', (data: string) => {
-                    _writeLine(data);
-                }).stderr.on('data', (data) => {
+                        //based on the options decide whether to fail the build or not if data was written to STDERR
+                        if (stdErrWritten === true && options.failOnStdErr === true) {
+                            reject(tl.loc('RemoteCmdExecutionErr'));
+                        } else if (code && code != 0) {
+                            reject(tl.loc('RemoteCmdNonZeroExitCode', cmdToRun, code));
+                        } else {
+                            //success case - code is undefined or code is 0
+                            resolve('0');
+                        }
+                    });
+                    externalOutput.end();
+                });
+                stream.stderr.on('data', (data) => {
                     stdErrWritten = true;
-                    tl.debug('stderr = ' + data);
+                    tl.debugExternalOutput('stderr = ' + data, remoteOutputDebugOptions);
                     if (data && data.toString().trim() !== '') {
-                        tl.error(data);
+                        tl.errorExternalOutput(data, remoteOutputOptions);
                     }
                 });
             }

@@ -22,6 +22,16 @@ export interface ConnectionDetails {
 }
 
 const area = 'DownloadExternalBuildArtifacts';
+const externalOutputOptions: tl.ExternalOutputOptions = {
+    source: 'remote',
+    vsoCommandMode: tl.getPipelineFeature('EnableVsoCommandBlockingExtensions')
+        ? 'blockAndTelemetry'
+        : 'telemetryOnly'
+};
+const destinationPathOutputOptions: tl.ExternalOutputOptions = {
+    source: 'repository',
+    vsoCommandMode: externalOutputOptions.vsoCommandMode
+};
 
 function getDefaultProps() {
     const hostType = (tl.getVariable('SYSTEM.HOSTTYPE') || "").toLowerCase();
@@ -100,6 +110,9 @@ async function main(): Promise<void> {
                 const downloaderOptions = new engine.ArtifactEngineOptions();
                 downloaderOptions.itemPattern = itemPattern || "";
                 downloaderOptions.verbose = verbose;
+                if (externalOutputOptions.vsoCommandMode === 'blockAndTelemetry') {
+                    downloaderOptions.vsoCommandMode = externalOutputOptions.vsoCommandMode;
+                }
 
                 if (parallelLimit) {
                     downloaderOptions.parallelProcessingLimit = parallelLimit;
@@ -140,22 +153,22 @@ async function main(): Promise<void> {
                     const downloadUrl = resource.data;
                     let artifactLocation = downloadUrl + '/' + artifact.name;
                     if (!fs.existsSync(artifactLocation)) {
-                        console.log(tl.loc("ArtifactNameDirectoryNotFound", artifactLocation, downloadUrl));
+                        tl.writeExternalOutput(tl.loc("ArtifactNameDirectoryNotFound", artifactLocation, downloadUrl) + '\n', externalOutputOptions);
                         artifactLocation = downloadUrl;
                     }
 
-                    console.log(tl.loc("DownloadArtifacts", artifactLocation));
+                    tl.writeExternalOutput(tl.loc("DownloadArtifacts", artifactLocation) + '\n', externalOutputOptions);
                     const fileShareProvider = new providers.FilesystemProvider(artifactLocation);
                     const fileSystemProvider = new providers.FilesystemProvider(downloadPath + '\\' + artifact.name);
 
                     downloadPromises.push(downloader.processItems(fileShareProvider, fileSystemProvider, downloaderOptions));
                 } else {
-                    console.log(tl.loc('UnsupportedArtifactType', resource.type));
+                    tl.writeExternalOutput(tl.loc('UnsupportedArtifactType', resource.type) + '\n', externalOutputOptions);
                 }
             }
 
             await Promise.all(downloadPromises);
-            console.log(tl.loc('ArtifactsSuccessfullyDownloaded', downloadPath));
+            tl.writeExternalOutput(tl.loc('ArtifactsSuccessfullyDownloaded', downloadPath) + '\n', destinationPathOutputOptions);
         }
 }
 

@@ -284,8 +284,18 @@ function prepareGitConsumableRepoUrl(repoUrl, connectionDetails) {
 function configureGitApiWrapper(connectionDetails) {
     // Create a wrapper around the git CLI so we can call clone/fetch/checkout and stream its output to the logs.
     const gitApiWrapper = new gitwm.GitWrapper();
-    gitApiWrapper.on('stdout', data => console.log(data.toString()));
-    gitApiWrapper.on('stderr', data => console.log(data.toString()));
+    /** @type {import('azure-pipelines-task-lib/task').ExternalOutputOptions} */
+    const outputOptions = {
+        source: 'childProcess',
+        vsoCommandMode: tl.getPipelineFeature('EnableVsoCommandBlockingExtensions')
+            ? 'blockAndTelemetry'
+            : 'telemetryOnly'
+    };
+    // Preserve the per-chunk newline so command markers cannot span separate writes.
+    /** @param {Buffer | string} data */
+    const logGitOutput = data => tl.writeExternalOutput(data.toString() + '\n', outputOptions);
+    gitApiWrapper.on('stdout', logGitOutput);
+    gitApiWrapper.on('stderr', logGitOutput);
 
     gitApiWrapper.username = connectionDetails.Username ?? '';
     gitApiWrapper.password = connectionDetails.Password ?? '';

@@ -20,6 +20,7 @@ import { WebProvider } from '../Providers/webProvider';
 import { ArtifactItemStore } from '../Store/artifactItemStore';
 
 const featureVariable = 'DISTRIBUTEDTASK_TASKS_ENABLEARTIFACTENGINEEXTERNALOUTPUT';
+const vsoCommandBlockingFeatureVariable = 'DISTRIBUTEDTASK_TASKS_ENABLEVSOCOMMANDBLOCKINGEXTENSIONS';
 const marker = '##vso[task.setvariable variable=ARTIFACT_ENGINE_TEST]value';
 const modes: VsoCommandMode[] = ['disabled', 'telemetryOnly', 'blockOnly', 'blockAndTelemetry'];
 const methods = [
@@ -32,17 +33,20 @@ describe('external logger tests', () => {
     let sandbox: ReturnType<typeof sinon.sandbox.create>;
     let output: string[];
     let originalFeature: string | undefined;
+    let originalVsoCommandBlockingFeature: string | undefined;
     let originalMode: VsoCommandMode;
     let originalVerbose: boolean;
 
     beforeEach(() => {
         sandbox = sinon.sandbox.create();
         originalFeature = process.env[featureVariable];
+        originalVsoCommandBlockingFeature = process.env[vsoCommandBlockingFeatureVariable];
         originalMode = Logger.vsoCommandMode;
         originalVerbose = Logger.verbose;
         Logger.vsoCommandMode = 'disabled';
         Logger.verbose = false;
         process.env[featureVariable] = 'true';
+        process.env[vsoCommandBlockingFeatureVariable] = 'false';
         output = [];
         sandbox.stub(process.stdout, 'write').callsFake((chunk: string | Buffer) => {
             output.push(chunk.toString());
@@ -54,6 +58,7 @@ describe('external logger tests', () => {
     afterEach(() => {
         sandbox.restore();
         restoreEnvironment(featureVariable, originalFeature);
+        restoreEnvironment(vsoCommandBlockingFeatureVariable, originalVsoCommandBlockingFeature);
         Logger.vsoCommandMode = originalMode;
         Logger.verbose = originalVerbose;
     });
@@ -269,6 +274,51 @@ describe('external logger tests', () => {
             assert.strictEqual(external.callCount, 2);
             assert.ok(!output.join('').includes(marker));
             assert.ok(output.join('').includes('##_vso[task.setvariable'));
+        } finally {
+            restoreEnvironment(pathValidationVariable, originalPathValidation);
+        }
+    });
+
+    it('blocks SMB file-name logging commands when the VSO blocking feature is enabled', async () => {
+        restoreEnvironment(featureVariable, 'false');
+        process.env[vsoCommandBlockingFeatureVariable] = 'true';
+        const pathValidationVariable = 'DISTRIBUTEDTASK_TASKS_ENABLEARTIFACTENGINEPATHVALIDATION';
+        const originalPathValidation = process.env[pathValidationVariable];
+        Reflect.deleteProperty(process.env, pathValidationVariable);
+
+        try {
+            const destination = new Writable({
+                write(chunk, encoding, callback) {
+                    callback();
+                }
+            });
+            sandbox.stub(fs, 'createWriteStream').returns(destination);
+            sandbox.stub(tl, 'mkdirP');
+            const provider = new FilesystemProvider(path.resolve('drop'));
+            provider.artifactItemStore = new ArtifactItemStore();
+            const item = new ArtifactItem();
+            item.path = `nested/${marker}.txt`;
+            item.itemType = ItemType.File;
+            const source = new Readable({
+                read() {
+                    this.push('unchanged file content');
+                    this.push(null);
+                }
+            });
+            Logger.vsoCommandMode = 'disabled';
+
+            await provider.putArtifactItem(item, source);
+
+            const logged = output.join('');
+            assert.ok(!logged.includes(marker));
+            assert.ok(logged.includes('##_vso[task.setvariable'));
+            const telemetryLine = logged.split('\n').find(line =>
+                line.startsWith('##vso[telemetry.publish area=TaskLib;feature=ExternalOutputVsoCommand;]'));
+            assert.ok(telemetryLine);
+            const event = JSON.parse(telemetryLine.slice(telemetryLine.indexOf(']') + 1));
+            assert.strictEqual(event.source, 'remote');
+            assert.strictEqual(event.commandName, 'task.setvariable');
+            assert.strictEqual(event.blocked, true);
         } finally {
             restoreEnvironment(pathValidationVariable, originalPathValidation);
         }
