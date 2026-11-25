@@ -370,7 +370,7 @@ describe('DownloadArtifactsBitbucket Suite', function () {
 
 describe('SourceControlWrapper Unit Suite', function () {
     function newWrapper(): WrapperUnderTest {
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        // oxlint-disable-next-line typescript/no-var-requires
         const moduleRef: { SourceControlWrapper: new (toolType: string) => WrapperUnderTest } = require(sourceControlWrapperModulePath);
         return new moduleRef.SourceControlWrapper('git');
     }

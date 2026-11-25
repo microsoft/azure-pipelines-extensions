@@ -8,6 +8,15 @@ import { ArtifactItemStore } from '../Store/artifactItemStore';
 import * as ci from './cilogger';
 
 const externalOutputFeature = 'EnableArtifactEngineExternalOutput';
+const vsoCommandBlockingFeature = 'EnableVsoCommandBlockingExtensions';
+
+function shouldFilterExternalOutput(): boolean {
+    return tl.getPipelineFeature(externalOutputFeature) || tl.getPipelineFeature(vsoCommandBlockingFeature);
+}
+
+function getExternalOutputMode(): VsoCommandMode {
+    return tl.getPipelineFeature(vsoCommandBlockingFeature) ? 'blockAndTelemetry' : Logger.vsoCommandMode;
+}
 
 export class Logger {
 
@@ -30,8 +39,8 @@ export class Logger {
 
     /** Logs external text while preserving debug output semantics. */
     public static infoExternalOutput(message: string) {
-        if (tl.getPipelineFeature(externalOutputFeature)) {
-            tl.debugExternalOutput(message, { source: 'remote', vsoCommandMode: Logger.vsoCommandMode });
+        if (shouldFilterExternalOutput()) {
+            tl.debugExternalOutput(message, { source: 'remote', vsoCommandMode: getExternalOutputMode() });
         } else {
             Logger.logInfo(message);
         }
@@ -39,8 +48,8 @@ export class Logger {
 
     /** Logs external text while preserving error output semantics. */
     public static errorExternalOutput(message: string) {
-        if (tl.getPipelineFeature(externalOutputFeature)) {
-            tl.errorExternalOutput(message, { source: 'remote', vsoCommandMode: Logger.vsoCommandMode });
+        if (shouldFilterExternalOutput()) {
+            tl.errorExternalOutput(message, { source: 'remote', vsoCommandMode: getExternalOutputMode() });
         } else {
             Logger.logError(message);
         }
@@ -48,8 +57,8 @@ export class Logger {
 
     /** Logs external text rather than trusted internal messages or agent commands. */
     public static messageExternalOutput(message: string) {
-        if (tl.getPipelineFeature(externalOutputFeature)) {
-            tl.writeExternalOutput(message + '\n', { source: 'remote', vsoCommandMode: Logger.vsoCommandMode });
+        if (shouldFilterExternalOutput()) {
+            tl.writeExternalOutput(message + '\n', { source: 'remote', vsoCommandMode: getExternalOutputMode() });
         } else {
             Logger.logMessage(message);
         }

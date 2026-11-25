@@ -2,6 +2,26 @@
 <xliff version="1.2">
   <file original="lib.json" source-language="en-US" target-language="ko-KR" datatype="plaintext">
     <body>
+      <trans-unit xmlns="" id="loc.messages.ArtifactPathIsHardLinked">
+        <source>Artifact path %s already exists as a hard-linked file and was rejected.</source>
+        <target state="translated">아티팩트 경로 %s이(가) 이미 하드 링크된 파일로 존재하여 거부되었습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit xmlns="" id="loc.messages.ArtifactPathIsSpecialFile">
+        <source>Artifact path %s already exists as a non-regular file (e.g. a device, pipe, or socket) and was rejected.</source>
+        <target state="translated">아티팩트 경로 %s이(가) 이미 일반 파일이 아닌 파일(예: 장치, 파이프 또는 소켓)로 존재하여 거부되었습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit xmlns="" id="loc.messages.ArtifactPathIsSymlink">
+        <source>Artifact path %s already exists as a symbolic link and was rejected.</source>
+        <target state="translated">아티팩트 경로 %s이(가) 이미 심볼릭 링크로 존재하여 거부되었습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit xmlns="" id="loc.messages.InvalidArtifactPath">
+        <source>Artifact path %s resolves outside the download directory.</source>
+        <target state="translated">아티팩트 경로 %s이(가) 다운로드 디렉터리 외부로 확인됩니다.</target>
+        <note />
+      </trans-unit>
       <trans-unit xmlns="" id="loc.messages.DownloadSummary">
         <source>Total Files: %s, Processed: %s, Skipped: %s, Failed: %s, Download time: %s secs, Download size: %s</source>
         <target state="translated">총 파일: %s, 처리됨: %s, 건너뜀: %s, 실패함: %s, 다운로드 시간: %s초, 다운로드 크기: %s</target>

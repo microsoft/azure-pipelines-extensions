@@ -20,13 +20,15 @@ function testExtensionSelection() {
         'Extensions/ArtifactEngineV2/EngineTests/loggerTests.ts',
         'Extensions/ArtifactEngineV2/package-lock.json'
     ];
-    const buildOnly = ['gulpfile.js', 'scripts/test-extension-selection.js', '.pipelines/1es-migration/azure-pipelines-integration.yml'];
+    const buildOnly = ['gulpfile.js', 'scripts/test-extension-selection.js', '.pipelines/1es-migration/azure-pipelines-integration.yml', '.oxlintrc.json'];
 
     assert.equal(select(libraries).length, 0, 'Library-only changes must not publish Marketplace extensions');
     assert.equal(select(buildOnly).length, 0, 'Build/test-only changes must not publish Marketplace extensions');
     assert.equal(select([...libraries, ...buildOnly]).length, 0);
     assert.equal(selection.resolveChangedExtensions(libraries, filter), null, 'Library changes must still run all unit suites');
     assert.equal(selection.resolveChangedExtensions(buildOnly, filter), null, 'Build/test changes must still run all unit suites');
+    assert.equal(selection.resolveChangedExtensions(['.oxlintrc.json'], filter), null, 'Lint configuration changes must run all unit suites');
+    assert.equal(select(['.oxlintrc.json']).length, 0, 'Lint configuration changes alone must not publish Marketplace extensions');
     assert.equal(select([...libraries, 'Extensions/TeamCity/Src/Tasks/DownloadTeamCityArtifacts/task.json']).join(), 'TeamCity');
     assert.equal(select(['Extensions/Ansible/Src/vss-extension.json', 'Extensions/BitBucket/Src/task.ts']).join(), 'Ansible,BitBucket');
     assert.equal(select(['Extensions/TeamCity/Src/README.md']).join(), 'TeamCity');

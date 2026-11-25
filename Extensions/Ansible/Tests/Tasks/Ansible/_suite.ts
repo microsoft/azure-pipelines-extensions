@@ -4,6 +4,7 @@ import fs = require('fs');
 import { createRequire } from 'module';
 import os = require('os');
 import path = require('path');
+import { PassThrough } from 'stream';
 
 import mocktest = require('azure-pipelines-task-lib/mock-test');
 
@@ -124,6 +125,45 @@ async function runRealAgentCommand(scriptContents: string, failOnStdErr = false)
     return { stdout, stderr, error };
 }
 
+async function runRemoteCommandWithChunks(chunks: Buffer[], stderrChunks: Buffer[] = []): Promise<string> {
+    const ansibleUtils = requireTask('./ansibleUtils.js') as typeof import('../../../Src/Tasks/Ansible/ansibleUtils');
+    const channel = new PassThrough() as PassThrough & { stderr: PassThrough };
+    channel.stderr = new PassThrough();
+    const client = {
+        exec: (_command: string, callback: (error: Error | undefined, channel: unknown) => void): void => {
+            callback(undefined, channel);
+        }
+    } as unknown as Parameters<typeof ansibleUtils.runCommandOnRemoteMachine>[1];
+    const originalStdoutWrite = process.stdout.write.bind(process.stdout);
+    let stdout = '';
+
+    process.stdout.write = (chunk: unknown, encoding?: unknown, callback?: unknown): boolean => {
+        stdout += String(chunk);
+        const writeCallback = typeof encoding === 'function' ? encoding : callback;
+        if (typeof writeCallback === 'function') {
+            writeCallback();
+        }
+        return true;
+    };
+
+    try {
+        const command = ansibleUtils.runCommandOnRemoteMachine('ansible-playbook', client, { failOnStdErr: false });
+        for (const chunk of chunks) {
+            channel.write(chunk);
+        }
+        for (const chunk of stderrChunks) {
+            channel.stderr.write(chunk);
+        }
+        channel.stderr.end();
+        channel.end();
+        await command;
+    } finally {
+        process.stdout.write = originalStdoutWrite;
+    }
+
+    return stdout;
+}
+
 async function runRealAgentCommandTerminatedBySignal(): Promise<void> {
     const ansibleUtils = requireTask('./ansibleUtils.js') as typeof import('../../../Src/Tasks/Ansible/ansibleUtils');
     const taskLib = requireTask('azure-pipelines-task-lib/task') as typeof import('azure-pipelines-task-lib/task');
@@ -194,6 +234,55 @@ describe('Ansible Suite', function () {
 
         assert(!result.error, 'should not fail when playbook output is written');
         assert(result.stdout.indexOf(playbookOutput) >= 0, 'should print playbook output to normal task output');
+    });
+
+    it('blocks logging commands in remote-machine output regardless of the extension flag', async function () {
+        const feature = 'DISTRIBUTEDTASK_TASKS_ENABLEVSOCOMMANDBLOCKINGEXTENSIONS';
+        const previousValue = process.env[feature];
+        process.env[feature] = 'false';
+
+        try {
+            const stdoutCommand = '##vso[task.setvariable variable=OUTPUT_STDOUT]stdout-sentinel';
+            const stderrCommand = '##vso[task.setvariable variable=OUTPUT_STDERR]stderr-sentinel';
+            const stdout = await runRemoteCommandWithChunks([
+                Buffer.from('TASK [untrusted] '),
+                Buffer.from('##vs'),
+                Buffer.from('o[task.setvariable variable=OUTPUT_STDOUT]stdout-sentinel\n'),
+                Buffer.from('TASK [normal] ok\n')
+            ], [
+                Buffer.from(stderrCommand + '\n')
+            ]);
+
+            assert(stdout.includes('##_vso[task.setvariable variable=OUTPUT_STDOUT]stdout-sentinel'),
+                'should neutralize the logging-command marker in remote stdout');
+            assert(stdout.includes('##_vso[task.setvariable variable=OUTPUT_STDERR]stderr-sentinel'),
+                'should neutralize the logging-command marker in remote stderr');
+            assert(stdout.includes('TASK [normal] ok'), 'should preserve ordinary remote output');
+            assert(!stdout.includes(stdoutCommand), 'should not emit the original stdout logging-command marker');
+            assert(!stdout.includes(stderrCommand), 'should not emit the original stderr logging-command marker');
+
+            const telemetryMarker = '##vso[telemetry.publish area=TaskLib;feature=ExternalOutputVsoCommand;]';
+            const telemetryLines = stdout.split('\n')
+                .map(line => line.slice(line.indexOf(telemetryMarker)))
+                .filter(line => line.startsWith(telemetryMarker));
+            assert.strictEqual(telemetryLines.length, 2, 'should report both blocked commands');
+            for (const line of telemetryLines) {
+                const event = JSON.parse(line.slice(telemetryMarker.length));
+                assert.strictEqual(event.source, 'remote');
+                assert.strictEqual(event.commandName, 'task.setvariable');
+                assert.strictEqual(event.blocked, true);
+                assert(!line.includes('OUTPUT_STDOUT'));
+                assert(!line.includes('OUTPUT_STDERR'));
+                assert(!line.includes('stdout-sentinel'));
+                assert(!line.includes('stderr-sentinel'));
+            }
+        } finally {
+            if (previousValue === undefined) {
+                Reflect.deleteProperty(process.env, feature);
+            } else {
+                process.env[feature] = previousValue;
+            }
+        }
     });
 
     it('streams real agent command stderr to normal task output when failOnStdErr is false', async function () {
@@ -285,7 +374,7 @@ describe('Ansible Suite', function () {
                 const runner = newRunner('testInventoryToBeInlineForRemoteMachine');
                 await runAndDump(runner, nodeVersion);
                 expectSuccess(runner, 'expected remote inline dynamic scenario to succeed');
-                assert(runner.stdOutContained(`cmd run on remote machine = echo DUMMY_IP_ADDRESS > /tmp/${TestGuid}inventory.ini`), 'should create inline inventory');
+                assert(runner.stdOutContained(`cmd run on remote machine = echo 'DUMMY_IP_ADDRESS' > /tmp/${TestGuid}inventory.ini`), 'should create inline inventory');
                 assert(runner.stdOutContained(`cmd run on remote machine = chmod +x /tmp/${TestGuid}inventory.ini`), 'should chmod dynamic inventory');
             });
 
@@ -350,7 +439,7 @@ describe('Ansible Suite', function () {
                 const runner = newRunner('testInventoryToBeInlineForAgentMachine');
                 await runAndDump(runner, nodeVersion);
                 expectSuccess(runner, 'expected agent inline scenario to succeed');
-                assert(runner.stdOutContained(`cmd run on agent machine = echo DUMMY_IP_ADDRESS > /tmp/${TestGuid}inventory.ini`), 'should write inline inventory on agent');
+                assert(runner.stdOutContained(`cmd run on agent machine = echo 'DUMMY_IP_ADDRESS' > /tmp/${TestGuid}inventory.ini`), 'should write inline inventory on agent');
             });
 
             it('runs agent machine static inline inventory flow without chmod', async function () {

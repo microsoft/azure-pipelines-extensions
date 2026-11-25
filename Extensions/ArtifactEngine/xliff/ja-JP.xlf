@@ -2,6 +2,26 @@
 <xliff version="1.2">
   <file original="lib.json" source-language="en-US" target-language="ja-JP" datatype="plaintext">
     <body>
+      <trans-unit xmlns="" id="loc.messages.ArtifactPathIsHardLinked">
+        <source>Artifact path %s already exists as a hard-linked file and was rejected.</source>
+        <target state="translated">アーティファクト パス %s は既にハード リンクされたファイルとして存在するため、拒否されました。</target>
+        <note />
+      </trans-unit>
+      <trans-unit xmlns="" id="loc.messages.ArtifactPathIsSpecialFile">
+        <source>Artifact path %s already exists as a non-regular file (e.g. a device, pipe, or socket) and was rejected.</source>
+        <target state="translated">アーティファクト パス %s は既に特殊ファイル (デバイス、パイプ、ソケットなど) として存在するため、拒否されました。</target>
+        <note />
+      </trans-unit>
+      <trans-unit xmlns="" id="loc.messages.ArtifactPathIsSymlink">
+        <source>Artifact path %s already exists as a symbolic link and was rejected.</source>
+        <target state="translated">アーティファクト パス %s は既にシンボリック リンクとして存在するため、拒否されました。</target>
+        <note />
+      </trans-unit>
+      <trans-unit xmlns="" id="loc.messages.InvalidArtifactPath">
+        <source>Artifact path %s resolves outside the download directory.</source>
+        <target state="translated">アーティファクト パス %s はダウンロード ディレクトリの外部に解決されます。</target>
+        <note />
+      </trans-unit>
       <trans-unit xmlns="" id="loc.messages.DownloadSummary">
         <source>Total Files: %s, Processed: %s, Skipped: %s, Failed: %s, Download time: %s secs, Download size: %s</source>
         <target state="translated">合計ファイル数: %s、処理済み: %s、スキップ: %s、失敗: %s、ダウンロード時間: %s 秒、ダウンロード サイズ: %s</target>

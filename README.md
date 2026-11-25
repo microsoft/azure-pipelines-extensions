@@ -31,11 +31,22 @@ In order to build and package extensions you will need to install some dependenc
   - Ensure you run the command with sufficient permissions (e.g. open PowerShell as Administrator), as Azure CLI may need access to protected directories.
   - You may be prompted to log in to Azure (`az login`) because `--syncVersions` requires an access token to query the Marketplace API. The login prompt will open automatically in the browser if your session has expired.
 - `gulp test` will run all pester or mocha tests written for each task, in the Tests folder.
-- CI builds and tests run on Node.js 24. Use Node.js 24 locally (the root package requires Node.js >=20 and npm >=10.8.2).
+- CI builds and tests run on Node.js 24. Use Node.js 24 locally (the root package requires Node.js 20.19.x or newer in the 20.x series, or Node.js >=22.12, and npm >=10.8.2).
 - `npm run test:brace-expansion` checks the installed source dependencies against their lockfiles and exercises normal brace expansion plus nested-brace and comma-parser stack-exhaustion regressions. Run it after installing dependencies in all task and ArtifactEngine package folders.
 - After `gulp build`, run `npm run test:brace-expansion -- --build` to check the corresponding dependencies in the extension build output.
 - `npm run test:handlebars` checks that the installed ArtifactEngine and artifact download task dependencies use Handlebars 4.7.10 or newer and exercises prototype-constructor lookup regressions plus normal template rendering.
 - After `gulp build`, run `npm run test:handlebars -- --build` to check the corresponding dependencies in the extension build output.
+
+### Linting
+
+- `npm run lint` runs Oxlint on JavaScript and TypeScript files in `Extensions/` and the root build scripts (`gulpfile.js`, `package.js`, and `package-utils.js`).
+- `npm run lint:fix` applies safe automatic fixes to the same files. Review the changes before committing.
+- To lint a single extension, run `npx --no-install oxlint Extensions/Ansible` (replace `Ansible` with the extension folder).
+- To lint all supported source files in the repository, run `npx --no-install oxlint .`.
+- `.oxlintrc.json` preserves the supported rules from the previous ESLint configuration, including TypeScript and import checks. Dependencies, generated output, declaration files, `.gdn/`, and `definitions/` are excluded.
+- Oxlint is the only development linter. The migration intentionally drops unsupported ESLint rules: `brace-style`, `import/no-extraneous-dependencies`, `import/order`, `no-dupe-args`, `no-extra-semi`, `no-mixed-spaces-and-tabs`, `no-new-symbol`, and `no-octal`. Some syntax checks are handled by the parser, and supported rule implementations can also produce different diagnostics.
+- Use `// oxlint-disable-next-line <plugin>/<rule>` for a necessary inline suppression, with an explanation of why it is needed.
+- CI linting remains non-blocking while existing violations are addressed. The separate 1ES SDL ESLint security scan remains enabled; it is not the development lint command.
 
 ### How to package extensions
 
@@ -55,7 +66,7 @@ While updating an extension or its tasks it is important to ensure that:
     - If only logic around the extension is changed, update the version number for extension only (in `vss-extension.json` file).
     - **If a shared/common file is changed, update the version number for ALL publishable extensions.** Shared infrastructure files can introduce regressions across all extensions, so a version bump ensures each extension is re-validated and re-published. Shared files include:
       - `Extensions/Common/`, `Extensions/ArtifactEngine/`, `Extensions/ArtifactEngineV2/`
-      - Root config files: `package.json`, `package-lock.json`, `gulpfile.js`, `tsconfig.json`, `common.json`, `externals.json`, `package.js`, `package-utils.js`, `base.tsconfig.json`
+      - Root config files: `package.json`, `package-lock.json`, `gulpfile.js`, `tsconfig.json`, `common.json`, `externals.json`, `package.js`, `package-utils.js`, `base.tsconfig.json`, `.oxlintrc.json`
       - Directories: `definitions/`, `TaskModules/`, `scripts/`, `.pipelines/`, `ci/`
       - Note: Documentation files (`.md`, `.txt`) and images (`.png`, `.jpg`, `.gif`) in these paths are excluded from this rule.
     - The version number consist of three parts (major, minor, patch). Be aware that minor number should reflect [the current sprint](https://whatsprintis.it/) of Azure DevOps team in which change is being made. Patch number starts from 0 for the initial version, and increments for every change.

@@ -151,10 +151,11 @@ function registerArtifactEngineMock(tr: tmrm.TaskMockRunner, downloadFails?: boo
         public itemPattern = '';
         public verbose = false;
         public parallelProcessingLimit = 0;
+        public vsoCommandMode = 'blockOnly';
     }
     class MockArtifactEngine {
         public processItems(_provider: unknown, _destProvider: unknown, options: MockArtifactEngineOptions): Promise<number> {
-            console.log('[mock-engine] processItems pattern=' + (options.itemPattern || '') + ' verbose=' + !!options.verbose);
+            console.log('[mock-engine] processItems pattern=' + (options.itemPattern || '') + ' verbose=' + !!options.verbose + ' vsoCommandMode=' + options.vsoCommandMode);
             if (downloadFails) {
                 return Promise.reject(new Error('Simulated download failure'));
             }

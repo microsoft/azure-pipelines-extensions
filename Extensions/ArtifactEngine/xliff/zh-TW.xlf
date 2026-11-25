@@ -2,6 +2,26 @@
 <xliff version="1.2">
   <file original="lib.json" source-language="en-US" target-language="zh-TW" datatype="plaintext">
     <body>
+      <trans-unit xmlns="" id="loc.messages.ArtifactPathIsHardLinked">
+        <source>Artifact path %s already exists as a hard-linked file and was rejected.</source>
+        <target state="translated">成品路徑 %s 已作為硬連結檔案存在，已遭拒絕。</target>
+        <note />
+      </trans-unit>
+      <trans-unit xmlns="" id="loc.messages.ArtifactPathIsSpecialFile">
+        <source>Artifact path %s already exists as a non-regular file (e.g. a device, pipe, or socket) and was rejected.</source>
+        <target state="translated">成品路徑 %s 已作為非一般檔案 (例如裝置、管道或通訊端) 存在，已遭拒絕。</target>
+        <note />
+      </trans-unit>
+      <trans-unit xmlns="" id="loc.messages.ArtifactPathIsSymlink">
+        <source>Artifact path %s already exists as a symbolic link and was rejected.</source>
+        <target state="translated">成品路徑 %s 已作為符號連結存在，已遭拒絕。</target>
+        <note />
+      </trans-unit>
+      <trans-unit xmlns="" id="loc.messages.InvalidArtifactPath">
+        <source>Artifact path %s resolves outside the download directory.</source>
+        <target state="translated">成品路徑 %s 解析到下載目錄外部。</target>
+        <note />
+      </trans-unit>
       <trans-unit xmlns="" id="loc.messages.DownloadSummary">
         <source>Total Files: %s, Processed: %s, Skipped: %s, Failed: %s, Download time: %s secs, Download size: %s</source>
         <target state="translated">檔案總數: %s，已處理: %s，已跳過: %s，失敗: %s，下載時間: %s 秒，下載大小: %s</target>

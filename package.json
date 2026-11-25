@@ -10,15 +10,15 @@
   },
   "engines": {
     "npm": ">=10.8.2",
-    "node": ">=20.0.0"
+    "node": "^20.19.0 || >=22.12.0"
   },
   "scripts": {
     "build": "gulp build",
     "test": "gulp test",
     "test:brace-expansion": "node scripts/test-brace-expansion.js",
     "test:handlebars": "node scripts/test-handlebars.js",
-    "lint": "eslint \"Extensions/**/*.ts\" \"Extensions/**/*.js\" gulpfile.js package.js package-utils.js",
-    "lint:fix": "eslint \"Extensions/**/*.ts\" \"Extensions/**/*.js\" gulpfile.js package.js package-utils.js --fix"
+    "lint": "oxlint Extensions gulpfile.js package.js package-utils.js",
+    "lint:fix": "oxlint Extensions gulpfile.js package.js package-utils.js --fix"
   },
   "devDependencies": {
     "@types/adm-zip": "^0.4.34",
@@ -29,17 +29,14 @@
     "@types/through2": "^2.0.41",
     "@types/validator": "^5.7.35",
     "@types/xml2js": "^0.4.14",
-    "@typescript-eslint/eslint-plugin": "^7.18.0",
-    "@typescript-eslint/parser": "^7.18.0",
     "adm-zip": "0.6.1",
     "azure-pipelines-task-lib": "5.281.0",
-    "eslint": "^8.57.0",
-    "eslint-plugin-import": "^2.32.0",
     "gulp": "^5.0.1",
     "gulp-cli": "^3.0.0",
     "gulp-mocha": "^10.0.1",
     "gulp-typescript": "^5.0.1",
     "minimatch": "3.1.5",
+    "oxlint": "1.90.0",
     "shelljs": "^0.10.0",
     "sync-request": "3.0.1",
     "tfx-cli": "^0.21.1",

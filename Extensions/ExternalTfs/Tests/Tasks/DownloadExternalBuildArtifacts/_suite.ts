@@ -93,6 +93,65 @@ describe('DownloadExternalBuildArtifacts Suite', function () {
                 assert(runner.stdOutContained('[mock-engine] processItems'), 'should invoke ArtifactEngine.processItems');
             });
 
+            const filepathCases = [undefined, 'false', 'true'].flatMap(featureValue =>
+                [false, true].map(pathExists => ({ featureValue, pathExists })));
+            for (const { featureValue, pathExists } of filepathCases) {
+                it(`respects the extension VSO flag for ${pathExists ? 'existing' : 'missing'} filepath artifacts when ${featureValue ?? 'unset'}`, async function () {
+                    const feature = 'DISTRIBUTEDTASK_TASKS_ENABLEVSOCOMMANDBLOCKINGEXTENSIONS';
+                    const previousValue = process.env[feature];
+                    const pathExistsVariable = 'EXTERNAL_TFS_TEST_ARTIFACT_PATH_EXISTS';
+                    const previousPathExists = process.env[pathExistsVariable];
+                    process.env[pathExistsVariable] = String(pathExists);
+                    if (featureValue === undefined) {
+                        Reflect.deleteProperty(process.env, feature);
+                    } else {
+                        process.env[feature] = featureValue;
+                    }
+
+                    try {
+                        const runner = newRunner('successFilePathExternalOutput');
+                        await runAndDump(runner, nodeVersion);
+                        if (!runner.succeeded) fail(runner, 'expected task to succeed');
+
+                        const blocked = featureValue === 'true';
+                        const marker = blocked ? '##_vso[' : '##vso[';
+                        const downloadUrl = `/some/share/${marker}task.setvariable variable=PATH_TEST]data-sentinel`;
+                        const artifactName = `${marker}task.setvariable variable=NAME_TEST]name-sentinel`;
+                        if (pathExists) {
+                            assert(!runner.stdout.includes('loc_mock_ArtifactNameDirectoryNotFound'));
+                            assert(runner.stdout.includes(`loc_mock_DownloadArtifacts ${downloadUrl}/${artifactName}`));
+                        } else {
+                            assert(runner.stdout.includes(`loc_mock_ArtifactNameDirectoryNotFound ${downloadUrl}/${artifactName} ${downloadUrl}`));
+                            assert(runner.stdout.includes(`loc_mock_DownloadArtifacts ${downloadUrl}`));
+                        }
+
+                        const telemetryLines = runner.stdout.split('\n').filter(line =>
+                            line.startsWith('##vso[telemetry.publish area=TaskLib;feature=ExternalOutputVsoCommand;]')
+                        );
+                        assert.strictEqual(telemetryLines.length, pathExists ? 2 : 4);
+                        for (const line of telemetryLines) {
+                            const event = JSON.parse(line.slice(line.indexOf(']') + 1));
+                            assert.strictEqual(event.source, 'remote');
+                            assert.strictEqual(event.commandName, 'task.setvariable');
+                            assert.strictEqual(event.blocked, blocked);
+                            assert(!line.includes('data-sentinel'));
+                            assert(!line.includes('name-sentinel'));
+                        }
+                    } finally {
+                        if (previousValue === undefined) {
+                            Reflect.deleteProperty(process.env, feature);
+                        } else {
+                            process.env[feature] = previousValue;
+                        }
+                        if (previousPathExists === undefined) {
+                            Reflect.deleteProperty(process.env, pathExistsVariable);
+                        } else {
+                            process.env[pathExistsVariable] = previousPathExists;
+                        }
+                    }
+                });
+            }
+
             it('downloads artifacts via ADO workload identity federation', async function () {
                 const runner = newRunner('successAdoWif');
                 await runAndDump(runner, nodeVersion);
@@ -120,6 +179,94 @@ describe('DownloadExternalBuildArtifacts Suite', function () {
                 assert(!runner.stdOutContained('[mock-providers] WebProvider'), 'unsupported artifact must not create WebProvider');
                 assert(!runner.stdOutContained('[mock-providers] FilesystemProvider'), 'unsupported artifact must not create FilesystemProvider');
             });
+
+            for (const featureValue of [undefined, 'false', 'true']) {
+                it(`respects the extension VSO flag for artifact diagnostics when ${featureValue ?? 'unset'}`, async function () {
+                    const feature = 'DISTRIBUTEDTASK_TASKS_ENABLEVSOCOMMANDBLOCKINGEXTENSIONS';
+                    const previousValue = process.env[feature];
+                    if (featureValue === undefined) {
+                        Reflect.deleteProperty(process.env, feature);
+                    } else {
+                        process.env[feature] = featureValue;
+                    }
+
+                    try {
+                        const runner = newRunner('successExternalOutput');
+                        await runAndDump(runner, nodeVersion);
+                        assert(runner.succeeded, 'expected task to succeed');
+
+                        const command = '##vso[task.setvariable variable=OUTPUT_TEST]external-data-sentinel';
+                        const blocked = featureValue === 'true';
+                        const expected = blocked ? command.replace('##vso[', '##_vso[') : command;
+                        assert(runner.stdout.includes('unsupported\r' + expected));
+
+                        const telemetryLines = runner.stdout.split('\n').filter(line =>
+                            line.startsWith('##vso[telemetry.publish area=TaskLib;feature=ExternalOutputVsoCommand;]')
+                        );
+                        assert.strictEqual(telemetryLines.length, 1);
+                        const event = JSON.parse(telemetryLines[0].slice(telemetryLines[0].indexOf(']') + 1));
+                        assert.strictEqual(event.source, 'remote');
+                        assert.strictEqual(event.commandName, 'task.setvariable');
+                        assert.strictEqual(event.blocked, blocked);
+                        assert(!telemetryLines[0].includes('OUTPUT_TEST'));
+                        assert(!telemetryLines[0].includes('external-data-sentinel'));
+                    } finally {
+                        if (previousValue === undefined) {
+                            Reflect.deleteProperty(process.env, feature);
+                        } else {
+                            process.env[feature] = previousValue;
+                        }
+                    }
+                });
+            }
+
+            for (const featureValue of [undefined, 'false', 'true']) {
+                it(`respects the extension VSO flag for destination paths when ${featureValue ?? 'unset'}`, async function () {
+                    const feature = 'DISTRIBUTEDTASK_TASKS_ENABLEVSOCOMMANDBLOCKINGEXTENSIONS';
+                    const previousValue = process.env[feature];
+                    if (featureValue === undefined) {
+                        Reflect.deleteProperty(process.env, feature);
+                    } else {
+                        process.env[feature] = featureValue;
+                    }
+
+                    try {
+                        const runner = newRunner('successDestinationPathOutput');
+                        await runAndDump(runner, nodeVersion);
+                        assert(runner.succeeded, 'expected task to succeed');
+
+                        const command = '##vso[task.setvariable variable=OUTPUT_TEST]destination-path-sentinel';
+                        const blocked = featureValue === 'true';
+                        const expected = blocked ? command.replace('##vso[', '##_vso[') : command;
+                        assert(runner.stdout.includes(`loc_mock_ArtifactsSuccessfullyDownloaded /tmp/external-build-artifacts\r\n${expected}`));
+                        if (blocked) {
+                            assert(!runner.stdout.includes(command));
+                        }
+
+                        const telemetryLines = runner.stdout.split('\n').filter(line =>
+                            line.startsWith('##vso[telemetry.publish area=TaskLib;feature=ExternalOutputVsoCommand;]')
+                        );
+                        assert.strictEqual(telemetryLines.length, 1);
+                        const event = JSON.parse(telemetryLines[0].slice(telemetryLines[0].indexOf(']') + 1));
+                        assert.strictEqual(event.source, 'repository');
+                        assert.strictEqual(event.commandName, 'task.setvariable');
+                        assert.strictEqual(event.blocked, blocked);
+                        assert(!telemetryLines[0].includes('destination-path-sentinel'));
+
+                        const engineRunner = newRunner('successReposOrTfsContainer');
+                        await runAndDump(engineRunner, nodeVersion);
+                        assert(engineRunner.succeeded, 'expected artifact download to succeed');
+                        const engineMode = blocked ? 'blockAndTelemetry' : 'blockOnly';
+                        assert(engineRunner.stdout.includes(`vsoCommandMode=${engineMode}`));
+                    } finally {
+                        if (previousValue === undefined) {
+                            Reflect.deleteProperty(process.env, feature);
+                        } else {
+                            process.env[feature] = previousValue;
+                        }
+                    }
+                });
+            }
 
             it('retries getArtifacts on transient failure and ultimately succeeds', async function () {
                 const runner = newRunner('successGetArtifactsRetry');

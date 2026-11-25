@@ -1,4 +1,7 @@
 import { Logger } from './logger';
+
+var tl = require('azure-pipelines-task-lib/task');
+
 export class Worker<T> {
     private execute: (item: T) => Promise<void>;
     private getNextItem: () => T;
@@ -27,6 +30,9 @@ export class Worker<T> {
         try {
             if (this.hasDownloadFailed()) {
                 Logger.logInfo(`Aborting respawning worker, as download failed for some file(s).`);
+                if (tl.getPipelineFeature("EnableArtifactEnginePathValidation") && !tl.getPipelineFeature("EnableLegacyArtifactPathValidation")) {
+                    reject(new Error('Aborting worker: download failed for one or more item(s).'));
+                }
                 return;
             }
             
