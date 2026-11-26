@@ -3,13 +3,14 @@
   "main": "download.js",
   "dependencies": {
     "artifact-engine": "^1.280.0",
-    "azure-pipelines-task-lib": "^5.281.0",
+    "azure-pipelines-task-lib": "^5.283.2",
     "underscore": "^1.13.8"
   },
   "overrides": {
     "artifact-engine": {
       "handlebars": "4.7.10"
     },
-    "picomatch": "2.3.2"
+    "picomatch": "2.3.2",
+    "follow-redirects": "1.16.3"
   }
 }
