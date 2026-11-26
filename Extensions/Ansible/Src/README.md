@@ -36,6 +36,40 @@ When Ansible automation engine is located on a remote machine:
 
 ![Run Ansible Playbook](Images/ansible_screen_2.png)
 
+## Use the task in a YAML pipeline
+
+The task is referenced as `Ansible@0`. The input names below are the ones defined in the task's `task.json`.
+
+Ansible installed on the agent machine, with the inventory given as a host list:
+
+```yaml
+steps:
+- task: Ansible@0
+  displayName: Run playbook
+  inputs:
+    ansibleInterface: agentMachine
+    playbookPathOnAgentMachine: $(System.DefaultWorkingDirectory)/playbooks/site.yml
+    inventoriesAgentMachine: hostList
+    inventoryHostListAgentMachine: foo.example.com,bar.example.com
+```
+
+Ansible installed on a remote machine, reached through an SSH service connection, with the playbook copied from the agent:
+
+```yaml
+steps:
+- task: Ansible@0
+  displayName: Run playbook on the Ansible machine
+  inputs:
+    ansibleInterface: remoteMachine
+    connectionOverSsh: my-ssh-service-connection
+    playbookSourceRemoteMachine: agentMachine
+    playbookRootRemoteMachine: $(System.DefaultWorkingDirectory)/playbooks
+    playbookPathLinkedArtifactOnRemoteMachine: site.yml
+    inventoriesRemoteMachine: noInventory
+```
+
+The `inventories...` input takes `noInventory`, `file`, `hostList` or `inlineContent`. Each choice has its own follow-up input, listed next to **Inventory location** below. `sudoEnabled`, `sudoUser`, `args` and `failOnStdErr` apply to both locations.
+
 ## Task arguments
 
 * **Ansible location**: Location where Ansible automation engine is installed. Can be either a self-hosted agent machine or a remote machine. Ansible communicates with remote machines over SSH and would require the SSH endpoint details.
